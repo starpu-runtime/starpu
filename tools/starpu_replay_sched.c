@@ -66,12 +66,14 @@ static unsigned ndependson;
 static unsigned params[STARPU_NMAXBUFS];
 static unsigned nparams;
 
-static enum sched_type {
+static enum sched_type
+{
 	NormalTask,
 	PrefetchTask,
 } sched_type;
 
-static struct starpu_codelet cl_prefetch = {
+static struct starpu_codelet cl_prefetch =
+{
         .where = STARPU_NOWHERE,
         .nbuffers = 1,
         .modes = { STARPU_R },
@@ -105,13 +107,15 @@ LIST_TYPE(dep,
 	unsigned i;
 );
 
-struct deps {
+struct deps
+{
 	UT_hash_handle hh;
 	unsigned long submitorder;
 	struct dep_list list;
 } *dependencies = NULL;
 
-static void reset(void) {
+static void reset(void)
+{
 	submitorder = 0;
 	priority = INT_MIN;
 	eosw = -1;
@@ -156,7 +160,7 @@ static void checkField(char * s)
 		char * delim = " ";
 		char * token = strtok(s, delim);
 		int i = 0;
-		 
+
 		while (token != NULL)
 		{
 			int k = strtol(token, NULL, 10);
@@ -171,13 +175,13 @@ static void checkField(char * s)
 
 	else if (TEST("DependsOn"))
 	{
-		/* NOTE : dependsons (in the sched.rec)  should be the submit orders of the dependencies, 
+		/* NOTE : dependsons (in the sched.rec)  should be the submit orders of the dependencies,
 		   otherwise it can occur an undefined behaviour
 		   (contrary to the tasks.rec where dependencies are jobids */
 		unsigned i = 0;
 		char * delim = " ";
 		char * token = strtok(s+strlen("DependsOn: "), delim);
-		
+
 		while (token != NULL)
 		{
 			dependson[i] = strtol(token, NULL, 10);
@@ -200,7 +204,7 @@ static void checkField(char * s)
 		char * delim = " ";
 		char * token = strtok(s, delim);
 		int i = 0;
-		 
+
 		while (token != NULL)
 		{
 			params[i] = strtol(token, NULL, 10);
@@ -215,7 +219,7 @@ static void checkField(char * s)
 		s = s + strlen("MemoryNode: ");
 		memnode = strtol(s, NULL, 10);
 	}
-	
+
 	else if (TEST("Workerorder"))
 	{
 		s = s + strlen("Workerorder: ");
@@ -227,7 +231,7 @@ static void checkField(char * s)
 void schedRecInit(const char * filename)
 {
 	FILE * f = fopen(filename, "r");
-	
+
 	if(f == NULL)
 	{
 		fprintf(stderr,"unable to open file %s: %s\n", filename, strerror(errno));
@@ -237,7 +241,7 @@ void schedRecInit(const char * filename)
 	size_t lnsize = 128;
 	char * s = malloc(sizeof(*s) * lnsize);
 	int eof = 0;
-	
+
 	reset();
 
 	while(!eof && !feof(f))
@@ -274,7 +278,8 @@ void schedRecInit(const char * filename)
 			task->ndependson = ndependson;
 
 			/* Also record submitorder of tasks that this one will need to depend on */
-			for (i = 0; i < ndependson; i++) {
+			for (i = 0; i < ndependson; i++)
+			{
 				struct dep *dep;
 				struct starpu_task *starpu_task;
 				_STARPU_MALLOC(dep, sizeof(*dep));
@@ -283,7 +288,8 @@ void schedRecInit(const char * filename)
 
 				struct deps *deps;
 				HASH_FIND(hh, dependencies, &task->dependson[i], sizeof(submitorder), deps);
-				if (!deps) {
+				if (!deps)
+				{
 					/* No task depends on this one yet, add a cell for it */
 					_STARPU_MALLOC(deps, sizeof(*deps));
 					dep_list_init(&deps->list);
@@ -335,6 +341,8 @@ void schedRecInit(const char * filename)
 		}
 		else checkField(s);
 	}
+
+	fclose(f);
 }
 
 static void do_prefetch(void *arg)
@@ -366,7 +374,8 @@ void applySchedRec(struct starpu_task *starpu_task, unsigned long submit_order)
 	}
 
 	HASH_FIND(hh, prefetch_tasks, &submit_order, sizeof(submit_order), task);
-	if (task) {
+	if (task)
+	{
 		/* We want to submit a prefetch for this task */
 		debug("task %lu has a prefetch for parameter %d to node %d\n", submit_order, task->params[0], task->memnode);
 		struct starpu_task *pref_task;

@@ -241,9 +241,9 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 			STARPU_ASSERT(handles_cell != NULL);
 
 			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
-			
+
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
-			
+
 			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
 
 			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
@@ -304,9 +304,12 @@ void reset(void)
 
 void fix_wontuse_handle(struct task * wontuseTask)
 {
-	struct handle * handle_tmp;
-	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	struct handle *handle_tmp;
 	STARPU_ASSERT(wontuseTask);
+
+	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	STARPU_ASSERT(handle_tmp);
+
 	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
 }
 
@@ -314,7 +317,7 @@ void fix_wontuse_handle(struct task * wontuseTask)
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	
+
 	const struct starpu_rbtree * tmptree = &tree;
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
 	unsigned long last_submitorder = 0;
@@ -793,7 +796,7 @@ eof:
 		HASH_DEL(handles_hash, handle);
 		free(handle);
         }
-	
+
 	struct perfmodel * model_s, * modeltmp;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{
