@@ -1131,8 +1131,10 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		struct _starpu_data_replicate *local_replicate;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 			local_replicate->mc->diduse = 1;
+		_starpu_spin_unlock(&handle->header_lock);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
