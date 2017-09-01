@@ -182,9 +182,7 @@ struct starpu_task
 	unsigned destroy:1;
 	unsigned regenerate:1;
 
-	unsigned scheduled:1;
-
-	unsigned int mf_skip:1;
+	unsigned mf_skip:1;
 
 	unsigned no_submitorder:1; /* do not allocate a submitorder id for this task */
 
@@ -196,6 +194,7 @@ struct starpu_task
 	int priority;
 
 	enum starpu_task_status status;
+	unsigned char scheduled:1;
 
 	int magic;
 
