@@ -141,6 +141,7 @@ EXTRA_DIST =				\
 	dev/checker/rename.sh		\
 	dev/cppcheck/suppressions.txt	\
 	dev/valgrind/fxt.suppr		\
+	dev/valgrind/hdf5.suppr		\
 	dev/valgrind/hwloc.suppr	\
 	dev/valgrind/libc.suppr		\
 	dev/valgrind/libgomp.suppr	\
