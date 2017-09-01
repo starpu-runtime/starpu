@@ -23,6 +23,12 @@
  * We defined a dumb interface for data whose size increase over kernel execution
  */
 
+#ifdef STARPU_HAVE_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#else
+#define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
+#endif
+
 #define FULLSIZE (5*1024*1024ULL)
 #define INCREASE 0.80
 #ifdef STARPU_QUICK_CHECK
@@ -202,6 +208,7 @@ static void kernel(void *descr[], void *cl_arg)
 	/* Round to page size */
 	increase -= increase & (65536-1);
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size + increase);
 	STARPU_ASSERT(variable_interface->ptr);
 	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */
 	starpu_free_on_node_flags(dst_node, old, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
@@ -232,8 +239,10 @@ static struct starpu_codelet cl =
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
-static void nop(void *descr[], void *cl_arg)
+static void init(void *descr[], void *cl_arg)
 {
+	struct variable_size_interface *variable_interface = descr[0];
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size);
 }
 
 static double nop_cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
@@ -249,7 +258,7 @@ static struct starpu_perfmodel nop_perf_model =
 
 static struct starpu_codelet cl_init =
 {
-	.cpu_funcs = {nop},
+	.cpu_funcs = {init},
 
 	/* dynamic size doesn't work on MIC */
 	/*.cpu_funcs_name = {"kernel"},*/

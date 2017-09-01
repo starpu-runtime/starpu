@@ -36,7 +36,7 @@
 #ifdef STARPU_HAVE_MEMCHECK_H
 #include <valgrind/memcheck.h>
 #else
-#define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
+#define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
 #endif
 
 #ifdef STARPU_QUICK_CHECK
