@@ -3436,7 +3436,7 @@ fi
 if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x"
 then
   AC_MSG_NOTICE([
-WARNING: lib was not found, you will not be able to execute StarPU applications
+WARNING: lib was not found, you will not be able to build StarPU applications
 with Microsoft Visual Studio. Add to your PATH the directories for MSVC, e.g
    c:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE;
    c:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin])
