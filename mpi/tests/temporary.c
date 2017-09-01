@@ -45,7 +45,8 @@ static struct starpu_codelet codelet_add =
 	.cpu_funcs = {func_add},
 	.nbuffers = 3,
 	.modes = {STARPU_W, STARPU_R, STARPU_R},
-	.model = &dumb_model
+	.model = &dumb_model,
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 int main(int argc, char **argv)
