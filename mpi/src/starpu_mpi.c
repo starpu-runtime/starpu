@@ -155,6 +155,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->size_req = 0;
 	(*req)->internal_req = NULL;
 	(*req)->is_internal_req = 0;
+	(*req)->to_destroy = 1;
 	(*req)->early_data_handle = NULL;
 	(*req)->envelope = NULL;
 	(*req)->sequential_consistency = 1;
@@ -374,6 +375,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	req->func = func;
 	req->sequential_consistency = sequential_consistency;
 	req->is_internal_req = is_internal_req;
+	/* For internal requests, we wait for both the request completion and the matching application request completion */
+	req->to_destroy = !is_internal_req;
 	req->count = count;
 
 	/* Asynchronously request StarPU to fetch the data in main memory: when
@@ -1177,6 +1180,17 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	{
 		if (args->req->detached)
 		{
+			/* have the internal request destroyed now or when completed */
+			STARPU_PTHREAD_MUTEX_LOCK(&args->req->internal_req->req_mutex);
+			if (args->req->internal_req->to_destroy) {
+				/* The request completed first, can now destroy it */
+				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
+				_starpu_mpi_request_destroy(args->req->internal_req);
+			} else {
+				/* The request didn't complete yet, tell it to destroy it when it completes */
+				args->req->internal_req->to_destroy = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
+			}
 			_starpu_mpi_handle_request_termination(args->req);
 			_starpu_mpi_request_destroy(args->req);
 		}
@@ -1251,8 +1265,19 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			_STARPU_MPI_TRACE_COMPLETE_END(req->request_type, req->node_tag.rank, req->node_tag.data_tag);
 
-			if (req->is_internal_req == 0)
+			STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+			/* We don't want to free internal non-detached
+			   requests, we need to get their MPI request before
+			   destroying them */
+			if (req->is_internal_req && !req->to_destroy)
 			{
+				/* We have completed the request, let the application request destroy it */
+				req->to_destroy = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+			}
+			else
+			{
+				STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
 				_starpu_mpi_request_destroy(req);
 			}
 

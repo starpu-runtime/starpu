@@ -246,7 +246,8 @@ LIST_TYPE(_starpu_mpi_req,
 
         struct _starpu_mpi_envelope* envelope;
 
-	int is_internal_req;
+	unsigned is_internal_req:1;
+	unsigned to_destroy:1;
 	struct _starpu_mpi_req *internal_req;
 	struct _starpu_mpi_early_data_handle *early_data_handle;
 
