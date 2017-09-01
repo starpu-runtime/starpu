@@ -122,7 +122,14 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
+	if (rank == 0)
+	{
+		starpu_data_unregister(tmp0);
+	}
 	starpu_data_unregister(data0);
+	starpu_data_unregister(data1);
+	starpu_data_unregister(tmp);
+	starpu_data_unregister(tmp2);
 
 skip:
 	starpu_mpi_shutdown();
