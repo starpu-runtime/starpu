@@ -96,7 +96,7 @@ static void zero(void *buffers[], void *args)
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;
-	VALGRIND_MAKE_MEM_DEFINED(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
 }
 
 static void inc(void *buffers[], void *args)
