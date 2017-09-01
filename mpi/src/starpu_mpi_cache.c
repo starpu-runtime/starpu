@@ -106,7 +106,8 @@ void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle)
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	struct _starpu_data_entry *entry;
 
-	if (_starpu_cache_enabled == 1) {
+	if (_starpu_cache_enabled == 1)
+	{
 		STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 		_starpu_mpi_cache_flush_nolock(data_handle);
 		HASH_FIND_PTR(_cache_data, &data_handle, entry);
