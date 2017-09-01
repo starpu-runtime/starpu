@@ -976,6 +976,32 @@ static inline void _starpu_worker_relax_on(void)
 #define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
 #endif
 
+/* Same, but with current worker mutex already held */
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_on_locked(struct _starpu_worker *worker, const char*file, int line, const char* func)
+#else
+static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
+#endif
+{
+	if (!worker->state_sched_op_pending)
+		return;
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(worker->state_relax_refcnt<UINT_MAX, "relax last turn on in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
+	STARPU_ASSERT(worker->state_relax_refcnt<UINT_MAX);
+#endif
+	worker->state_relax_refcnt++;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_on_file = file;
+	worker->relax_on_line = line;
+	worker->relax_on_func = func;
+#endif
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
+#endif
+
 #ifdef STARPU_SPINLOCK_CHECK
 static inline void __starpu_worker_relax_off(const char*file, int line, const char* func)
 #else
@@ -1005,6 +1031,35 @@ static inline void _starpu_worker_relax_off(void)
 }
 #ifdef STARPU_SPINLOCK_CHECK
 #define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
+#endif
+
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_off_locked(const char*file, int line, const char* func)
+#else
+static inline void _starpu_worker_relax_off_locked(void)
+#endif
+{
+	int workerid = starpu_worker_get_id();
+	if (workerid == -1)
+		return;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	if (!worker->state_sched_op_pending)
+		return;
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(worker->state_relax_refcnt>0, "relax last turn off in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
+	STARPU_ASSERT(worker->state_relax_refcnt>0);
+#endif
+	worker->state_relax_refcnt--;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_off_file = file;
+	worker->relax_off_line = line;
+	worker->relax_off_func = func;
+#endif
+}
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
 #endif
 
 static inline int _starpu_worker_get_relax_state(void)
@@ -1044,23 +1099,31 @@ static inline void _starpu_worker_lock(int workerid)
 
 static inline int _starpu_worker_trylock(int workerid)
 {
+	struct _starpu_worker *cur_worker = _starpu_get_local_worker_key();
+	int cur_workerid = cur_worker->workerid;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
-	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
-	int cur_workerid = starpu_worker_get_id();
+
+	/* Start with ourself */
+	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&cur_worker->sched_mutex);
+	if (ret)
+		return ret;
+	if (workerid == cur_workerid)
+		/* We only needed to lock ourself */
+		return ret;
+
+	/* Now try to lock the other worker */
+	ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
 	if (!ret)
 	{
-		if (workerid != cur_workerid)
-		{
-			ret = !worker->state_relax_refcnt;
-			if (ret)
-				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-		}
+		/* Good, check that it is relaxed */
+		ret = !worker->state_relax_refcnt;
+		if (ret)
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
-	if (!ret && workerid != cur_workerid)
-	{
-		_starpu_worker_relax_on();
-	}
+	if (!ret)
+		_starpu_worker_relax_on_locked(cur_worker);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 	return ret;
 }
 
