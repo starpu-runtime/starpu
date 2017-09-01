@@ -96,6 +96,10 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 
 void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
+	if (data && xrank == STARPU_MPI_PER_NODE)
+	{
+		STARPU_ASSERT_MSG(starpu_mpi_data_get_rank(data) == STARPU_MPI_PER_NODE, "If task is replicated, it has to access only per-node data");
+	}
 	if (data && mode & STARPU_R)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
