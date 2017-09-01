@@ -45,6 +45,7 @@ int _starpu_memory_manager_init()
 		/* This is accessed for statistics outside the lock, don't care
 		 * about that */
 		STARPU_HG_DISABLE_CHECKING(used_size[i]);
+		STARPU_HG_DISABLE_CHECKING(global_size[i]);
 		waiting_size[i] = 0;
 		STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
 		STARPU_PTHREAD_COND_INIT(&cond_nodes[i], NULL);
