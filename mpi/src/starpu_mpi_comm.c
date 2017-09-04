@@ -181,7 +181,10 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 			}
 		}
 		i++;
-		if (i == _starpu_mpi_comm_nb) i=0;
+		if (i == _starpu_mpi_comm_nb)
+		{
+			i=0;
+		}
 		if (i == _starpu_mpi_comm_tested)
 		{
 			// We have tested all the requests, none has completed

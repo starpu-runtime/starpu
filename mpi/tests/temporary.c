@@ -74,7 +74,8 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	if (starpu_mpi_cache_is_enabled() == 0)
+		goto skip;
 
 	if (rank == 0)
 	{

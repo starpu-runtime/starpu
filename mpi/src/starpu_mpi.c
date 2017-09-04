@@ -1889,7 +1889,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	}
 
 	starpu_mpi_comm_rank(comm, &me);
-	if (node == rank) return;
+	if (node == rank)
+		return;
 
 	tag = starpu_mpi_data_get_tag(data_handle);
 	if (tag == -1)
@@ -1930,7 +1931,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	}
 
 	starpu_mpi_comm_rank(comm, &me);
-	if (node == rank) return;
+	if (node == rank)
+		return;
 
 	tag = starpu_mpi_data_get_tag(data_handle);
 	if (tag == -1)

@@ -105,7 +105,8 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	if (rank != 0 && rank != 1) goto end;
+	if (rank != 0 && rank != 1)
+		goto end;
 
 	if (rank == 0)
 	{

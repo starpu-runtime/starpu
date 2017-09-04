@@ -191,7 +191,8 @@ int main(int argc, char **argv)
 
 	for(x = 0; x < nb_elements; x+=step)
 	{
-		if (handles[x]) starpu_data_unregister(handles[x]);
+		if (handles[x])
+			starpu_data_unregister(handles[x]);
 	}
 	starpu_data_unregister(dot_handle);
 	free(vector);

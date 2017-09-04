@@ -230,22 +230,28 @@ int main(int argc, char **argv)
 	}
 
 	ret = exchange_variable(rank, 0);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_variable(rank, 1);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_void(rank, 0);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_void(rank, 1);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_complex(rank, 0);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_complex(rank, 1);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();

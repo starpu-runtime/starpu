@@ -1907,8 +1907,11 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl)
 {
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	if(comb == -1) return NULL;
-	if(!model->state->per_arch[comb]) return NULL;
+	if (comb == -1)
+		return NULL;
+
+	if (!model->state->per_arch[comb])
+		return NULL;
 
 	return &model->state->per_arch[comb][impl];
 }

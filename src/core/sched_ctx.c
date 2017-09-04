@@ -54,7 +54,7 @@ static void set_priority_hierarchically_on_notified_workers(int* workers_to_add,
 static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 static void add_notified_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id);
 
-/* notify workers that a ctx change operation is about to proceed. 
+/* notify workers that a ctx change operation is about to proceed.
  *
  * Once this function returns, the notified workers must not start a new
  * scheduling operation until they are notified that the ctx change op is
@@ -603,7 +603,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 			sched_ctx->sub_ctxs[i] = sub_ctxs[i];
 		sched_ctx->nsub_ctxs = nsub_ctxs;
 	}
-	
+
 	_starpu_add_workers_to_new_sched_ctx(sched_ctx, workerids, nworkers_ctx);
 
 #ifdef STARPU_HAVE_HWLOC
@@ -658,7 +658,7 @@ int starpu_sched_ctx_get_stream_worker(unsigned sub_ctx)
 
 	struct starpu_sched_ctx_iterator it;
 	int worker = -1;
-	
+
 	workers->init_iterator(workers, &it);
 	if(workers->has_next(workers, &it))
 	{
@@ -852,14 +852,14 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 		else if (arg_type == STARPU_SCHED_CTX_SUB_CTXS)
 		{
 			arg_i++;
-			sub_ctxs = (int*)arglist[arg_i]; 
+			sub_ctxs = (int*)arglist[arg_i];
 			arg_i++;
-			nsub_ctxs = *(int*)arglist[arg_i]; 
+			nsub_ctxs = *(int*)arglist[arg_i];
 		}
 		else if (arg_type == STARPU_SCHED_CTX_CUDA_NSMS)
 		{
 			arg_i++;
-			nsms = *(int*)arglist[arg_i]; 
+			nsms = *(int*)arglist[arg_i];
 		}
 
 		else
@@ -1070,7 +1070,8 @@ static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 
 		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
-		if(ret == -EAGAIN) break;
+		if (ret == -EAGAIN)
+			break;
 	}
 }
 
@@ -1078,7 +1079,8 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 {
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
 	{
-		if (window_size == 0.0) return 1;
+		if (window_size == 0.0)
+			return 1;
 
 		_starpu_sched_ctx_lock_read(sched_ctx->id);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
@@ -1086,7 +1088,9 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 
 		double expected_len = 0.0;
 		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
+		{
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
+		}
 		else
 		{
 			_STARPU_MSG("%u: sc start is 0.0\n", sched_ctx->id);
@@ -2184,7 +2188,7 @@ void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned
 }
 
 #if 0
-void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex, 
+void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx, unsigned manage_mutex,
 				       unsigned with_repush)
 {
 	/* TODO: make something cleaner which differentiates between calls
@@ -2624,13 +2628,13 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 		{
 			notify_workers_about_changing_ctx_done(chg->nworkers_to_change, chg->workerids_to_change);
 		}
-		
+
 		_starpu_sched_ctx_unlock_write(chg->sched_ctx_id);
 		free(chg->workerids_to_notify);
 		free(chg->workerids_to_change);
 		_starpu_ctx_change_delete(chg);
 	}
-	
+
 
 }
 

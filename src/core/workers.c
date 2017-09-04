@@ -340,9 +340,11 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
+		return 0;
 
-	if (task->workerids_len) {
+	if (task->workerids_len)
+	{
 		size_t div = sizeof(*task->workerids) * 8;
 		if (workerid / div >= task->workerids_len || ! (task->workerids[workerid / div] & (1UL << workerid % div)))
 			return 0;
@@ -387,7 +389,8 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
+		return 0;
 
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)
@@ -2246,7 +2249,8 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 						}
 					}
 
-					if(found) break;
+					if(found)
+						break;
 				}
 			}
 			if(!found)
