@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 		{
 			starpu_vector_data_register(&data_handles[x], 0, (uintptr_t)&vector[x], 1, sizeof(int));
 		}
-		else if ((mpi_rank == rank))
+		else if (mpi_rank == rank)
 		{
 			/* I do not own that index but i will need it for my computations */
 			starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL, 1, sizeof(int));
