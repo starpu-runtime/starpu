@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 		{
 			starpu_vector_data_register(&data_handles[x], 0, (uintptr_t)&vector[x], 1, sizeof(int));
 		}
-		else if ((mpi_rank == rank))
+		else if (mpi_rank == rank)
 		{
 			/* I do not own that index but i will need it for my computations */
 			starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL, 1, sizeof(int));

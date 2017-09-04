@@ -27,12 +27,12 @@
 
 static int TAG_LOAD(int n)
 {
-	return ((n+1) << 24);
+	return (n+1) << 24;
 }
 
 static int TAG_MOV(int n)
 {
-	return ((n+1) << 20);
+	return (n+1) << 20;
 }
 
 /* Hash table of local pieces of data that has been moved out of the local MPI
