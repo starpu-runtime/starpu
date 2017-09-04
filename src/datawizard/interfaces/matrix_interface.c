@@ -211,9 +211,9 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((matrix_a->nx == matrix_b->nx)
-			&& (matrix_a->ny == matrix_b->ny)
-			&& (matrix_a->elemsize == matrix_b->elemsize));
+	return (matrix_a->nx == matrix_b->nx)
+		&& (matrix_a->ny == matrix_b->ny)
+		&& (matrix_a->elemsize == matrix_b->elemsize);
 }
 
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2014-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2015, 2017  CNRS
  * Copyright (C) 2015  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -100,13 +100,13 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 		return -1;
 	if (dataA->arbiter != dataB->arbiter)
 		/* Both are arbitered, sort by arbiter pointer order */
-		return ((dataA->arbiter < dataB->arbiter)?-1:1);
+		return (dataA->arbiter < dataB->arbiter)?-1:1;
 	/* If both are arbitered by the same arbiter (or they are both not
 	 * arbitered), we'll sort them by handle */
 
 	/* In case we have data/subdata from different trees */
 	if (dataA->root_handle != dataB->root_handle)
-		return ((dataA->root_handle < dataB->root_handle)?-1:1);
+		return (dataA->root_handle < dataB->root_handle)?-1:1;
 
 	/* Things get more complicated: we need to find the location of dataA
 	 * and dataB within the tree. */

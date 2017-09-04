@@ -771,7 +771,7 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	no_pending = !data_requests_npending[node];
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node]);
 
-	return (no_request && no_pending);
+	return no_request && no_pending;
 }
 
 /* Note: the returned value will be outdated since the locks are not taken at

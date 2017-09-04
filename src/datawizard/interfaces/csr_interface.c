@@ -137,9 +137,9 @@ static int csr_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_csr_interface *csr_b = (struct starpu_csr_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((csr_a->nnz == csr_b->nnz)
-			&& (csr_a->nrow == csr_b->nrow)
-			&& (csr_a->elemsize == csr_b->elemsize));
+	return (csr_a->nnz == csr_b->nnz)
+		&& (csr_a->nrow == csr_b->nrow)
+		&& (csr_a->elemsize == csr_b->elemsize);
 }
 
 /* offer an access to the data parameters */

@@ -544,7 +544,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = starpu_getenv("STARPU_WORKERS_CPUID")))
+	if (strval = starpu_getenv("STARPU_WORKERS_CPUID"))
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
