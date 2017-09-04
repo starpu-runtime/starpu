@@ -1079,7 +1079,8 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
-		if(ret == -EAGAIN) break;
+		if (ret == -EAGAIN)
+			break;
 	}
 	if(!unlocked)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
@@ -1094,7 +1095,8 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 {
 	if(sched_ctx->sched_policy && sched_ctx->sched_policy->simulate_push_task)
 	{
-		if (window_size == 0.0) return 1;
+		if (window_size == 0.0)
+			return 1;
 
 		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
 		double expected_end = sched_ctx->sched_policy->simulate_push_task(task);
@@ -1102,7 +1104,9 @@ unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starp
 
 		double expected_len = 0.0;
 		if(hyp_actual_start_sample[sched_ctx->id] != 0.0)
+		{
 			expected_len = expected_end - hyp_actual_start_sample[sched_ctx->id] ;
+		}
 		else
 		{
 			_STARPU_MSG("%u: sc start is 0.0\n", sched_ctx->id);

@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	if (starpu_mpi_cache_is_enabled() == 0)
+		goto skip;
 
 	if (rank == 0)
 	{

@@ -452,7 +452,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
@@ -469,7 +470,10 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		free(descrs);
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	if (do_execute == 0) return 1;
+	if (do_execute == 0)
+	{
+		return 1;
+	}
 	else
 	{
 		va_list varg_list_copy;
@@ -516,7 +520,8 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	int nb_data;
 
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	if (ret == 0)
 	{
@@ -570,7 +575,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, varg_list);
 	va_end(varg_list);
 	STARPU_ASSERT(ret >= 0);
-	if (ret > 0) return NULL; else return task;
+	return (ret > 0) ? NULL : task;
 }
 
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
@@ -588,7 +593,8 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, varg_list);
 	va_end(varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }

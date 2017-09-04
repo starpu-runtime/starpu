@@ -58,7 +58,8 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	cache = starpu_mpi_cache_is_enabled();
-	if (cache == 0) goto skip;
+	if (cache == 0)
+		goto skip;
 
 	val = malloc(sizeof(*val));
 	*val = 12;

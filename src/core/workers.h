@@ -464,12 +464,11 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &_starpu_config.workers[id];
 }
 
-/* Returns the starpu_sched_ctx structure that descriebes the state of the 
+/* Returns the starpu_sched_ctx structure that descriebes the state of the
  * specified ctx */
 static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
-	return &_starpu_config.sched_ctxs[id];
+	return (id == STARPU_NMAX_SCHED_CTXS) ? NULL : &_starpu_config.sched_ctxs[id];
 }
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
@@ -510,7 +509,7 @@ static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/* returns workers not belonging to any context, be careful no mutex is used, 
+/* returns workers not belonging to any context, be careful no mutex is used,
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 

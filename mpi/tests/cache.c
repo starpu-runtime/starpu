@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	if (starpu_mpi_cache_is_enabled() == 0)
+		goto skip;
 
 	if (rank == 0)
 		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));

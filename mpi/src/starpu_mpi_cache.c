@@ -132,7 +132,8 @@ void _starpu_mpi_cache_free()
 {
 	int i;
 
-	if (_starpu_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0)
+		return;
 
 	_starpu_mpi_cache_empty_tables(_starpu_cache_comm_size);
 	free(_cache_sent_data);
@@ -200,7 +201,8 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 	int nb_nodes, i;
 	int mpi_rank, my_rank;
 
-	if (_starpu_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0)
+		return;
 
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	starpu_mpi_comm_rank(comm, &my_rank);
@@ -239,7 +241,8 @@ void _starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 	struct _starpu_data_entry *avail;
 	int i, nb_nodes;
 
-	if (_starpu_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0)
+		return;
 
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	for(i=0 ; i<nb_nodes ; i++)
@@ -310,7 +313,8 @@ void *_starpu_mpi_cache_received_data_get(starpu_data_handle_t data, int mpi_ran
 {
 	struct _starpu_data_entry *already_received;
 
-	if (_starpu_cache_enabled == 0) return NULL;
+	if (_starpu_cache_enabled == 0)
+		return NULL;
 
 	if (mpi_rank == STARPU_MPI_PER_NODE)
 		return NULL;
@@ -333,7 +337,8 @@ void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 {
 	struct _starpu_data_entry *already_sent;
 
-	if (_starpu_cache_enabled == 0) return NULL;
+	if (_starpu_cache_enabled == 0)
+		return NULL;
 
 	STARPU_MPI_ASSERT_MSG(dest < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", dest, _starpu_cache_comm_size);
 

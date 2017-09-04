@@ -124,7 +124,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 			if (task)
 			{
 				ret = starpu_task_submit(task);
-				if (ret == -ENODEV) goto enodev;
+				if (ret == -ENODEV)
+					goto enodev;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 
@@ -237,7 +238,8 @@ int main(int argc, char **argv)
 			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
 				ret = test(rank, node, before, after_node[node], insert_task, data_array);
-				if (ret == -ENODEV || ret) global_ret = ret;
+				if (ret == -ENODEV || ret)
+					global_ret = ret;
 			}
 		}
 	}
