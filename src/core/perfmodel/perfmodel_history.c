@@ -1030,7 +1030,7 @@ int starpu_perfmodel_list(FILE *output)
         dp = opendir(path);
         if (dp != NULL)
 	{
-                while (ep = readdir(dp))
+                while ((ep = readdir(dp)))
 		{
                         if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
                                 fprintf(output, "file: <%s>\n", ep->d_name);
