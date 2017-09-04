@@ -2413,7 +2413,7 @@ static void _starpu_sched_ctx_unblock_workers_in_parallel(unsigned sched_ctx_id,
 		if(starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
 			 && (workerid != master || all))
 		{
-			if((current_worker_id == -1 || workerid != current_worker_id))
+			if (current_worker_id == -1 || workerid != current_worker_id)
 			{
 				struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 				STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);

@@ -176,10 +176,10 @@ coo_compare(void *a, void *b)
 	coo_a = (struct starpu_coo_interface *) a;
 	coo_b = (struct starpu_coo_interface *) b;
 
-	return (coo_a->nx == coo_b->nx &&
+	return coo_a->nx == coo_b->nx &&
 		coo_a->ny == coo_b->ny &&
 		coo_a->n_values == coo_b->n_values &&
-		coo_a->elemsize == coo_b->elemsize);
+		coo_a->elemsize == coo_b->elemsize;
 }
 
 static void

@@ -227,22 +227,22 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 
 uint32_t _starpu_can_submit_cuda_task(void)
 {
-	return (STARPU_CUDA & _starpu_config.worker_mask);
+	return STARPU_CUDA & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_cpu_task(void)
 {
-	return (STARPU_CPU & _starpu_config.worker_mask);
+	return STARPU_CPU & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_opencl_task(void)
 {
-	return (STARPU_OPENCL & _starpu_config.worker_mask);
+	return STARPU_OPENCL & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_scc_task(void)
 {
-	return (STARPU_SCC & _starpu_config.worker_mask);
+	return STARPU_SCC & _starpu_config.worker_mask;
 }
 
 static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
@@ -267,7 +267,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		opencl_func_enabled = opencl_func != NULL && starpu_opencl_worker_get_count();
 #endif
 
-		return (cpu_func_enabled && cuda_func_enabled && opencl_func_enabled);
+		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled;
 	}
 	case STARPU_CPU_WORKER:
 	{

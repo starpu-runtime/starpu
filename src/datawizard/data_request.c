@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2016  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -822,7 +822,7 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	no_pending = !data_requests_npending[node];
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node]);
 
-	return (no_request && no_pending);
+	return no_request && no_pending;
 }
 
 /* Note: the returned value will be outdated since the locks are not taken at

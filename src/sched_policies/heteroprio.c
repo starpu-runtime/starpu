@@ -643,7 +643,7 @@ done:		;
 /* TOTO berenger: iterate in the other sense */
 		struct starpu_task *task_to_prefetch = NULL;
 		for (task_to_prefetch  = starpu_task_prio_list_begin(&worker->tasks_queue.list);
-			(task_to_prefetch != starpu_task_prio_list_end(&worker->tasks_queue.list) &&
+		     (task_to_prefetch != starpu_task_prio_list_end(&worker->tasks_queue.list) &&
 		      nb_added_tasks && hp->nb_remaining_tasks_per_arch_index[worker->arch_index] != 0);
 		     task_to_prefetch  = starpu_task_prio_list_next(&worker->tasks_queue.list, task_to_prefetch))
 		{

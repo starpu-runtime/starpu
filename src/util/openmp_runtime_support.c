@@ -1987,7 +1987,7 @@ int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long 
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
-	return (*_nb_i != 0);
+	return *_nb_i != 0;
 }
 
 int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
@@ -2001,7 +2001,7 @@ int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long l
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
-	return (*_nb_i != 0);
+	return *_nb_i != 0;
 }
 
 int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i)

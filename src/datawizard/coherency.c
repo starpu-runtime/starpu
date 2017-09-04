@@ -834,7 +834,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	unsigned memory_node = replicate->memory_node;
 
 	if (replicate->state != STARPU_INVALID && handle->current_mode & STARPU_W)
-	if ((wt_mask & ~(1<<memory_node)))
+	if (wt_mask & ~(1<<memory_node))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	int cpt = 0;

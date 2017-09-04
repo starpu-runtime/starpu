@@ -150,7 +150,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_variable_interface *variable_b = (struct starpu_variable_interface *) data_interface_b;
 
 	/* Two variables are considered compatible if they have the same size */
-	return (variable_a->elemsize == variable_b->elemsize);
+	return variable_a->elemsize == variable_b->elemsize;
 }
 
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f)

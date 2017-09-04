@@ -158,8 +158,8 @@ static int vector_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_vector_interface *vector_b = (struct starpu_vector_interface *) data_interface_b;
 
 	/* Two vectors are considered compatible if they have the same size */
-	return ((vector_a->nx == vector_b->nx)
-			&& (vector_a->elemsize == vector_b->elemsize));
+	return (vector_a->nx == vector_b->nx)
+		&& (vector_a->elemsize == vector_b->elemsize);
 }
 
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f)

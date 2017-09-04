@@ -207,10 +207,10 @@ static int block_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_block_interface *block_b = (struct starpu_block_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((block_a->nx == block_b->nx)
-			&& (block_a->ny == block_b->ny)
-			&& (block_a->nz == block_b->nz)
-			&& (block_a->elemsize == block_b->elemsize));
+	return (block_a->nx == block_b->nx)
+		&& (block_a->ny == block_b->ny)
+		&& (block_a->nz == block_b->nz)
+		&& (block_a->elemsize == block_b->elemsize);
 }
 
 static void display_block_interface(starpu_data_handle_t handle, FILE *f)

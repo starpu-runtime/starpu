@@ -213,7 +213,7 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	else
 	{
 		STARPU_SYNCHRONIZE();
-		return (j->terminated == 2);
+		return j->terminated == 2;
 	}
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,

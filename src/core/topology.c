@@ -755,7 +755,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = starpu_getenv("STARPU_WORKERS_CPUID")))
+	if (strval = starpu_getenv("STARPU_WORKERS_CPUID"))
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -1967,9 +1967,9 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	msg_host_t host;
 #endif
 
-	int numa_enabled;
+	int numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
 	/* NUMA mode activated */
-	if ((numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0)))
+	if (numa_enabled)
 	{
 		/* Take all NUMA nodes used by CPU workers */
 		unsigned worker;

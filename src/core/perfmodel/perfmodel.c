@@ -144,7 +144,7 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 
 	STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
-	return (exp/alpha);
+	return exp/alpha;
 }
 
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)

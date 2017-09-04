@@ -523,7 +523,7 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 	struct _starpu_cluster_group *g;
 	int ret = 0;
 
-	if ((ret = _starpu_cluster_topology(cluster_level, machine)))
+	if (ret = _starpu_cluster_topology(cluster_level, machine))
 		return ret;
 
 	for (g = _starpu_cluster_group_list_begin(machine->groups) ;
