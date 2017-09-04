@@ -32,6 +32,7 @@
 #endif
 
 #define NITER	_starpu_calibration_minimum
+#define STARPU_CHUNK_DIM 4096
 
 /* TODO: support disk-to-disk copy with HD5Ocopy */
 
@@ -96,6 +97,7 @@ struct starpu_hdf5_obj
 {
         hid_t dataset;          /* describe this object in HDF5 file */
         char * path;            /* path where data are stored in HDF5 file */
+	size_t size;
 };
 
 static inline void _starpu_hdf5_protect_start(void * base STARPU_ATTRIBUTE_UNUSED)
@@ -114,6 +116,7 @@ static inline void _starpu_hdf5_protect_stop(void * base STARPU_ATTRIBUTE_UNUSED
 
 /* ------------------ Functions for internal thread -------------------- */
 
+/* TODO : Dataspace may not be NATIVE_CHAR for opened data */
 static void starpu_hdf5_full_read_internal(struct _starpu_hdf5_work * work)
 {
         herr_t status;
@@ -122,9 +125,24 @@ static void starpu_hdf5_full_read_internal(struct _starpu_hdf5_work * work)
         STARPU_ASSERT_MSG(status >= 0, "Can not read data associed to this dataset (%s)\n", work->obj->path);
 }
 
+/* TODO : Dataspace may not be NATIVE_CHAR for opened data */
 static void starpu_hdf5_full_write_internal(struct _starpu_hdf5_work * work)
 {
         herr_t status;
+
+	/* Update size of dataspace */
+	if (work->size > work->obj->size)
+	{
+		/* Get official datatype */
+		hid_t datatype = H5Dget_type(work->obj->dataset);
+		hsize_t sizeDatatype = H5Tget_size(datatype);
+		
+		/* Count in number of elements */
+		hsize_t extendsdim[1] = {work->size/sizeDatatype};
+		status = H5Dset_extent (work->obj->dataset, extendsdim);
+		STARPU_ASSERT_MSG(status >= 0, "Error when extending HDF5 dataspace !\n");
+		work->obj->size = work->size;
+	}
 
         /* Write ALL the dataspace */
         status = H5Dwrite(work->obj->dataset, H5T_NATIVE_CHAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, work->ptr);
@@ -182,6 +200,16 @@ static void starpu_hdf5_write_internal(struct _starpu_hdf5_work * work)
         /* Get official datatype */
         hid_t datatype = H5Dget_type(work->obj->dataset);
         hsize_t sizeDatatype = H5Tget_size(datatype);
+
+	/* Update size of dataspace */
+	if (work->size + work->offset > work->obj->size)
+	{
+		/* Count in number of elements */
+		hsize_t extendsdim[1] = {(work->offset + work->size)/sizeDatatype};
+		status = H5Dset_extent (work->obj->dataset, extendsdim);
+		STARPU_ASSERT_MSG(status >= 0, "Error when extending HDF5 dataspace !\n");
+		work->obj->size = work->offset + work->size;
+	}
 
         /* count in element, not in byte */
         work->offset /= sizeDatatype;
@@ -341,20 +369,27 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
 
         /* create a dataspace with one dimension of size elements */
         hsize_t dim[1] = {size};
-        hid_t dataspace = H5Screate_simple(1, dim, NULL);
+        hsize_t maxdim[1] = {H5S_UNLIMITED};
+        hid_t dataspace = H5Screate_simple(1, dim, maxdim);
 
         if (dataspace < 0)
         {
                 free(obj);
                 return NULL;
         }
+	
+	hsize_t chunkdim[1] = {STARPU_CHUNK_DIM};
+	hid_t prop = H5Pcreate (H5P_DATASET_CREATE);
+	herr_t status = H5Pset_chunk (prop, 1, chunkdim);
+        STARPU_ASSERT_MSG(status >= 0, "Error when setting HDF5 property \n");
 
         /* create a dataset at location name, with data described by the dataspace.
          * Each element are like char in C (expected one byte) 
          */
-        obj->dataset = H5Dcreate2(fileBase->fileID, name, H5T_NATIVE_CHAR, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        obj->dataset = H5Dcreate2(fileBase->fileID, name, H5T_NATIVE_CHAR, dataspace, H5P_DEFAULT, prop, H5P_DEFAULT);
 
         H5Sclose(dataspace);
+	H5Pclose(prop);
 
         if (obj->dataset < 0)
         {
@@ -363,13 +398,14 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
         }
 
         obj->path = name;
+	obj->size = size;
 
         _starpu_hdf5_protect_stop((void *) fileBase);
         
         return obj;
 }
 
-static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base * fileBase,  char * name, size_t size STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base * fileBase,  char * name, size_t size)
 {
         struct starpu_hdf5_obj * obj;
 	_STARPU_MALLOC(obj, sizeof(*obj));
@@ -390,6 +426,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
         }
 
         obj->path = name;
+	obj->size = size;
         
         return obj;
 }
@@ -422,7 +459,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
                 /* The file doesn't exist or the directory exists => create the datafile */
                 int id;
 		_starpu_mkpath(parameter, S_IRWXU);
-                fileBase->path = _starpu_mktemp_many(parameter, 0, O_RDWR | O_BINARY, &id);
+                fileBase->path = _starpu_mktemp(parameter, O_RDWR | O_BINARY, &id);
                 if (!fileBase->path)
                 {
                         free(fileBase);
