@@ -133,8 +133,10 @@ int main(int argc, char **argv)
 	for (loop = 0; loop < nloops; loop++)
 	{
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_dyn,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],
@@ -157,8 +159,10 @@ int main(int argc, char **argv)
 
 		/* Same, but using the toomany codelet */
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_toomany,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],
@@ -181,8 +185,10 @@ int main(int argc, char **argv)
 
 		/* Same, but using the variable codelet */
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_variable,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],

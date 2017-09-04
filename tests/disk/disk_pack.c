@@ -236,7 +236,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 		FPRINTF(stderr, "TEST SUCCESS\n");
 	else
 		FPRINTF(stderr, "TEST FAIL\n");
-	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
+	return try ? EXIT_SUCCESS : EXIT_FAILURE;
 
 enodev:
 	return STARPU_TEST_SKIPPED;

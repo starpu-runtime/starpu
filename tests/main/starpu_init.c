@@ -74,7 +74,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	else
 	{
 		FPRINTF(stderr, "Number of CPUS: %3d -- Number of expected CPUs: %3d\n", *cpu, expected_cpu);
-		return (*cpu != expected_cpu);
+		return *cpu != expected_cpu;
 	}
 }
 
