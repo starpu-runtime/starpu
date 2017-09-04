@@ -328,7 +328,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;
 	struct starpu_task * task;
-	while (task = _starpu_prio_deque_pop_task(tmp_fifo))
+	while ((task = _starpu_prio_deque_pop_task(tmp_fifo)))
 	{
 		starpu_sched_component_push_task(NULL, component, task);
 	}

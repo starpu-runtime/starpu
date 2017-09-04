@@ -409,7 +409,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 
 	handle->unlocking_reqs = 1;
 	struct _starpu_data_requester *r;
-	while (r = may_unlock_data_req_list_head(handle))
+	while ((r = may_unlock_data_req_list_head(handle)))
 	{
 		/* STARPU_RW accesses are treated as STARPU_W */
 		enum starpu_data_access_mode r_mode = r->mode;

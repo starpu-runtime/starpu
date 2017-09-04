@@ -276,7 +276,8 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if ((strval = starpu_getenv(varname)))
+	strval = starpu_getenv(varname);
+	if (strval)
 	{
 		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round
@@ -755,7 +756,8 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if (strval = starpu_getenv("STARPU_WORKERS_CPUID"))
+	strval = starpu_getenv("STARPU_WORKERS_CPUID");
+	if (strval)
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round

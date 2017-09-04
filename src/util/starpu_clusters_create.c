@@ -521,9 +521,10 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 			     struct starpu_cluster_machine *machine)
 {
 	struct _starpu_cluster_group *g;
-	int ret = 0;
+	int ret;
 
-	if (ret = _starpu_cluster_topology(cluster_level, machine))
+	ret = _starpu_cluster_topology(cluster_level, machine);
+	if (ret)
 		return ret;
 
 	for (g = _starpu_cluster_group_list_begin(machine->groups) ;
