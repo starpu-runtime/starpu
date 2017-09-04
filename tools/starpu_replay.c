@@ -169,7 +169,7 @@ void dumb_kernel(void) {}
 static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
-	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[(starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices))];
+	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];
 	if (!(expected_time == 0 || isnan(expected_time)))
 	{
 		return 1;
@@ -205,7 +205,7 @@ static struct starpu_codelet cl =
 /* The following function checks if the program has to use static or dynamic arrays*/
 static int set_alloc_mode(int total_parameters)
 {
-	return (total_parameters <= STARPU_NMAXBUFS);
+	return total_parameters <= STARPU_NMAXBUFS;
 }
 
 /* According to the allocation mode, modify handles_ptr and modes_ptr in static or dynamic */
