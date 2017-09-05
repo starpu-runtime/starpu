@@ -39,6 +39,10 @@ if USE_MPI
 SUBDIRS += mpi
 endif
 
+if USE_DSM
+SUBDIRS += dsm
+endif
+
 if BUILD_EXAMPLES
 SUBDIRS += examples
 endif
