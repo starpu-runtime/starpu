@@ -1287,11 +1287,20 @@ static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 }
 
 #ifdef STARPU_HAVE_POTI
-static void create_paje_state_color(char *name, char *type, float red, float green, float blue)
+static void create_paje_state_color(char *name, char *type, int ctx, float red, float green, float blue)
 {
 	char color[STARPU_POTI_STR_LEN];
+	char alias[STARPU_POTI_STR_LEN];
 	snprintf(color, sizeof(color), "%f %f %f", red, green, blue);
-	poti_DefineEntityValue(name, type, name, color);
+	if (ctx)
+	{
+		snprintf(alias, sizeof(alias), "%s_%d", name, ctx);
+	}
+	else
+	{
+		snprintf(alias, sizeof(alias), "%s", name);
+	}
+	poti_DefineEntityValue(alias, type, name, color);
 }
 #endif
 
@@ -1342,32 +1351,32 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	if (out_paje_file)
 	{
 #ifdef STARPU_HAVE_POTI
-		create_paje_state_color(name, "WS", red, green, blue);
+		create_paje_state_color(name, "WS", 0, red, green, blue);
 		int i;
 		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			char ctx[10];
 			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
 			if(i%10 == 1)
-				create_paje_state_color(name, ctx, 1.0, 0.39, 1.0);
+				create_paje_state_color(name, ctx, i, 1.0, 0.39, 1.0);
 			if(i%10 == 2)
-				create_paje_state_color(name, ctx, .0, 1.0, 0.0);
+				create_paje_state_color(name, ctx, i, .0, 1.0, 0.0);
 			if(i%10 == 3)
-				create_paje_state_color(name, ctx, 1.0, 1.0, .0);
+				create_paje_state_color(name, ctx, i, 1.0, 1.0, .0);
 			if(i%10 == 4)
-				create_paje_state_color(name, ctx, .0, 0.95, 1.0);
+				create_paje_state_color(name, ctx, i, .0, 0.95, 1.0);
 			if(i%10 == 5)
-				create_paje_state_color(name, ctx, .0, .0, .0);
+				create_paje_state_color(name, ctx, i, .0, .0, .0);
 			if(i%10 == 6)
-				create_paje_state_color(name, ctx, .0, .0, 0.5);
+				create_paje_state_color(name, ctx, i, .0, .0, 0.5);
 			if(i%10 == 7)
-				create_paje_state_color(name, ctx, 0.41, 0.41, 0.41);
+				create_paje_state_color(name, ctx, i, 0.41, 0.41, 0.41);
 			if(i%10 == 8)
-				create_paje_state_color(name, ctx, 1.0, .0, 1.0);
+				create_paje_state_color(name, ctx, i, 1.0, .0, 1.0);
 			if(i%10 == 9)
-				create_paje_state_color(name, ctx, .0, .0, 1.0);
+				create_paje_state_color(name, ctx, i, .0, .0, 1.0);
 			if(i%10 == 0)
-				create_paje_state_color(name, ctx, 0.6, 0.80, 50.0);
+				create_paje_state_color(name, ctx, i, 0.6, 0.80, 50.0);
 
 		}
 /* 		create_paje_state_color(name, "Ctx1", 1.0, 0.39, 1.0); */
@@ -1386,25 +1395,25 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			if(i%10 == 1)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"1.0 0.39 1.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 0.39 1.0\" \n", name, i, i, name);
 			if(i%10 == 2)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 1.0 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 1.0 .0\" \n", name, i, i, name);
 			if(i%10 == 3)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"0.87 0.87 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.87 0.87 .0\" \n", name, i, i, name);
 			if(i%10 == 4)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 0.95 1.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 0.95 1.0\" \n", name, i, i, name);
 			if(i%10 == 5)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 .0\" \n", name, i, i, name);
 			if(i%10 == 6)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 0.5\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 0.5\" \n", name, i, i, name);
 			if(i%10 == 7)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"0.41 0.41 0.41\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.41 0.41 0.41\" \n", name, i, i, name);
 			if(i%10 == 8)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"1.0 .0 1.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 .0 1.0\" \n", name, i, i, name);
 			if(i%10 == 9)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, i, name);
 			if(i%10 == 0)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, i, name);
 
 		}
 
