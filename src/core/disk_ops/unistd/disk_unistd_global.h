@@ -46,6 +46,6 @@ void* starpu_unistd_global_async_write (void *base, void *obj, void *buf, off_t 
 void starpu_unistd_global_wait_request(void * async_channel);
 int starpu_unistd_global_test_request(void * async_channel);
 void starpu_unistd_global_free_request(void * async_channel);
-int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size);
+int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t size);
 #endif

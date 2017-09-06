@@ -136,7 +136,7 @@ static int starpu_leveldb_read(void *base, void *obj, void *buf, off_t offset, s
 	return 0;
 }
 
-static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *size)
+static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
         struct starpu_leveldb_obj *tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
@@ -150,7 +150,7 @@ static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *s
 	STARPU_ASSERT(s.ok());
 
 	*size = value.length();
-	*ptr = malloc(*size);
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 	STARPU_ASSERT(*ptr);
 
 	/* use buffer */

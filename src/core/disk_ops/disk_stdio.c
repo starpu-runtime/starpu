@@ -233,7 +233,7 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	return 0;
 }
 
-static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
+static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
@@ -253,7 +253,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 	/* Alloc aligned buffer */
-	starpu_malloc_flags(ptr, *size, 0);
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 

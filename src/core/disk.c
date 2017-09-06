@@ -249,7 +249,7 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	return -EAGAIN;
 }
 
-int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
+int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
 {
         void *event = NULL;
 	int pos = get_location_with_node(src_node);
@@ -263,7 +263,7 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE
 			channel->event.disk_event.memory_node = src_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			event = disk_register_list[pos]->functions->async_full_read(disk_register_list[pos]->base, obj, ptr, size);
+			event = disk_register_list[pos]->functions->async_full_read(disk_register_list[pos]->base, obj, ptr, size, dst_node);
 			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 
                         add_async_event(channel, event);
@@ -272,7 +272,7 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE
 	/* asynchronous request failed or synchronous request is asked */
 	if (channel == NULL || !event)
 	{
-		disk_register_list[pos]->functions->full_read(disk_register_list[pos]->base, obj, ptr, size);
+		disk_register_list[pos]->functions->full_read(disk_register_list[pos]->base, obj, ptr, size, dst_node);
 		return 0;
 	}
 	return -EAGAIN;

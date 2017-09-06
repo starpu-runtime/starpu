@@ -320,7 +320,7 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
 }
 #endif
 
-int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
+int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
@@ -340,7 +340,7 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 		_starpu_unistd_reclose(fd);
 
 	/* Allocated aligned buffer */
-	starpu_malloc_flags(ptr, *size, 0);
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 	return starpu_unistd_global_read(base, obj, *ptr, 0, *size);
 }
 

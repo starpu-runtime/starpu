@@ -27,6 +27,7 @@ extern "C"
 #endif
 
 #include <datawizard/copy_driver.h>
+#include <datawizard/malloc.h>
 
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size) STARPU_ATTRIBUTE_MALLOC;

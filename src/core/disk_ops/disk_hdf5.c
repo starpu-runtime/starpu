@@ -672,7 +672,7 @@ static int starpu_hdf5_test(void * event)
         return starpu_sem_trywait(finished) == 0;
 }
 
-static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size)
+static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
         struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
 
@@ -683,7 +683,7 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
         *size = _starpu_get_size_obj(dataObj);
         _starpu_hdf5_protect_stop(base);
 
-        starpu_malloc_flags(ptr, *size, 0); 
+        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0); 
 
         starpu_hdf5_send_work(base, obj, *ptr, 0, *size, (void*) &finished, FULL_READ);
         
