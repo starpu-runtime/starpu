@@ -1642,7 +1642,9 @@ unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerid
 	unsigned nworkers = 0;
 	struct starpu_sched_ctx_iterator it;
 
-	if(!workers) return 0;
+	if(!workers)
+		return 0;
+
 	_STARPU_MALLOC(*workerids, workers->nworkers*sizeof(int));
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))

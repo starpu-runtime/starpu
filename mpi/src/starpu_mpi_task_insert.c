@@ -31,10 +31,12 @@
 #include <starpu_mpi_select_node.h>
 
 #define _SEND_DATA(data, mode, dest, data_tag, comm, callback, arg)     \
-	if (mode & STARPU_SSEND)					\
-		starpu_mpi_issend_detached(data, dest, data_tag, comm, callback, arg); \
-	else								\
-		starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
+	do { \
+		if (mode & STARPU_SSEND)						\
+			starpu_mpi_issend_detached(data, dest, data_tag, comm, callback, arg); \
+		else						\
+			starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
+	} while (0)
 
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
 {
@@ -462,12 +464,16 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, comm);
 	}
 
-	if (xrank_p) *xrank_p = xrank;
-	if (nb_data_p) *nb_data_p = nb_data;
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+
 	if (descrs_p)
 		*descrs_p = descrs;
 	else
 		free(descrs);
+
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
 	if (do_execute == 0)
@@ -733,7 +739,8 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				args->taskB->cl = args->data_handle->redux_cl;
 				args->taskB->sequential_consistency = 0;
 				STARPU_TASK_SET_HANDLE(args->taskB, args->data_handle, 0);
-				taskBs[j] = args->taskB; j++;
+				taskBs[j] = args->taskB;
+				j++;
 
 				// Submit taskA
 				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,

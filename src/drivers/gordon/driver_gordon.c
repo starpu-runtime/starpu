@@ -95,7 +95,8 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 		gordon_job->buffers[in] = (uint64_t)task->cl_arg;
 		gordon_job->ss[in].size = (uint32_t)task->cl_arg_size;
 
-		nin++; in++;
+		nin++;
+		in++;
 	}
 
 	/* count the number of in/inout/out buffers */
