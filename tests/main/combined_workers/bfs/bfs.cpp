@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014 Université de Bordeaux
+ * Copyright (C) 2014, 2017 Université de Bordeaux
  * Copyright (C) 2012 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,10 +55,10 @@ void read_file(char *input_f, unsigned int *nb_nodes, unsigned int *nb_edges,
 	fscanf(fp, "%u", nb_nodes);
 
 	// allocate host memory
-	*origin_graph_nodes = malloc(sizeof(Node) * (*nb_nodes));
-	*origin_graph_mask = malloc(sizeof(bool) * (*nb_nodes));
-	*origin_updating_graph_mask = malloc(sizeof(bool) * (*nb_nodes));
-	*origin_graph_visited = malloc(sizeof(bool) * (*nb_nodes));
+	*origin_graph_nodes = (Node *) malloc(sizeof(Node) * (*nb_nodes));
+	*origin_graph_mask = (bool *) malloc(sizeof(bool) * (*nb_nodes));
+	*origin_updating_graph_mask = (bool *) malloc(sizeof(bool) * (*nb_nodes));
+	*origin_graph_visited = (bool *) malloc(sizeof(bool) * (*nb_nodes));
 
 	int start, edgeno;
 	// initalize the memory
@@ -158,12 +158,12 @@ int main( int argc, char** argv)
 		  &origin_graph_mask, &origin_updating_graph_mask,
 		  &origin_graph_visited, &origin_graph_edges, &origin_cost);
 
-	graph_nodes = calloc(nb_nodes, sizeof(Node));
-	graph_mask = calloc(nb_nodes, sizeof(bool));
-	updating_graph_mask = calloc(nb_nodes, sizeof(bool));
-	graph_visited = calloc(nb_nodes, sizeof(bool));
-	graph_edges = calloc(nb_edges, sizeof(int));
-	cost = calloc(nb_nodes, sizeof(int));
+	graph_nodes = (Node *) calloc(nb_nodes, sizeof(Node));
+	graph_mask = (bool *) calloc(nb_nodes, sizeof(bool));
+	updating_graph_mask = (bool *) calloc(nb_nodes, sizeof(bool));
+	graph_visited = (bool *) calloc(nb_nodes, sizeof(bool));
+	graph_edges = (int *) calloc(nb_edges, sizeof(int));
+	cost = (int *) calloc(nb_nodes, sizeof(int));
 
 	memcpy(graph_nodes, origin_graph_nodes, nb_nodes*sizeof(Node));
 	memcpy(graph_edges, origin_graph_edges, nb_edges*sizeof(int));

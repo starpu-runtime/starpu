@@ -2,7 +2,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014 Université de Bordeaux
+# Copyright (C) 2014, 2017 Université de Bordeaux
 # Copyright (C) 2012 Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-CFLAGS += $(shell pkg-config --cflags starpu-1.0) -g -O0 -Wall -Werror
-LDFLAGS += $(shell pkg-config --libs starpu-1.0) -g -O0 -Wall -Werror
+CFLAGS += $(shell pkg-config --cflags starpu-1.0) -g -O0 -Wall
+LDFLAGS += $(shell pkg-config --libs starpu-1.0) -g -O0 -Wall
  
 all: bfs
  
