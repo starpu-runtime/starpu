@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\n");
 			fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 			fprintf(stderr, "\n");
-			fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+			fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 			exit(EXIT_SUCCESS);
 		}
 	}

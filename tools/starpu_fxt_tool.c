@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014, 2016-2017  Universite de Bordeaux
- * Copyright (C) 2012-2015  CNRS
+ * Copyright (C) 2012-2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,7 @@ static void usage()
 	fprintf(stderr, "   -no-smooth          avoid smoothing values for gflops etc.\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
         fprintf(stderr, "\n");
 }
 

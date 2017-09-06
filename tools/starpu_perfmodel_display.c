@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2014, 2017  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@ static void usage()
 	fprintf(stderr, "   -d                  display the directory storing performance models\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
         fprintf(stderr, "\n");
 }
 
