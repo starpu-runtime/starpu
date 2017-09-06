@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 	{
 		if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
 		{
-			fprintf(stderr, PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n");
+			fprintf(stderr, "%s (%s) %s\n", PROGNAME, PACKAGE_NAME, PACKAGE_VERSION);
 			exit(EXIT_SUCCESS);
 		}
 		fprintf(stderr, "Convert schedule optimized by lp into the Paje format\n\n");
 		fprintf(stderr, "Usage: lp_solve file.lp | %s > paje.trace\n", PROGNAME);
-		fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+		fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
 		fprintf(stderr, "\n");
 		exit(EXIT_SUCCESS);
 	}

@@ -47,7 +47,7 @@ void _starpu_read_spaces(FILE *f)
 }
 #endif /* _STARPU_OWN_NAN */
 
-void _starpu_write_double(FILE *f, char *format, double val)
+void _starpu_write_double(FILE *f, const char *format, double val)
 {
 #if _STARPU_OWN_NAN == 1
         if (isnan(val))
