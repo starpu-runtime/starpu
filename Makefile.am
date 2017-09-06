@@ -63,8 +63,6 @@ if STARPU_BUILD_SC_HYPERVISOR
 SUBDIRS += sc_hypervisor
 endif
 
-DIST_SUBDIRS = $(SUBDIRS)
-
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1.3.pc
 

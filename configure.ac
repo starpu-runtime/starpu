@@ -420,6 +420,9 @@ if test x$dsm_included != xyes; then
         if test x$enable_dsm = xyes; then
                 AC_MSG_ERROR(StarPU DSM library generation needs DSM source in STARPU/dsm subdirectory)
         fi
+	mkdir -p dsm
+	echo "dist:" > ./dsm/Makefile
+	echo "distdir:" >> ./dsm/Makefile
         enable_dsm=no
 fi
 
