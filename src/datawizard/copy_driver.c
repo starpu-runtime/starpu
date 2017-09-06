@@ -538,7 +538,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 			if (ret == 0)
 				/* write is already finished, ptr was allocated in pack_data */
-				starpu_free_flags(ptr, size, 0);
+				_starpu_free_flags_on_node(src_node, ptr, size, 0);
 
 #ifdef STARPU_DEVEL
 #warning TODO: support asynchronous disk requests for packed data
@@ -567,7 +567,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				/* read is already finished, we can already unpack */
 				handle->ops->unpack_data(handle, dst_node, ptr, size);
 				/* ptr is allocated in full_read */
-				starpu_free_flags(ptr, size, 0);
+				_starpu_free_flags_on_node(dst_node, ptr, size, 0);
 			}
 
 #ifdef STARPU_DEVEL
