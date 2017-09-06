@@ -35,7 +35,7 @@
 		if (mode & STARPU_SSEND)						\
 			starpu_mpi_issend_detached(data, dest, data_tag, comm, callback, arg); \
 		else						\
-			starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
+			starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg); \
 	} while (0)
 
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
