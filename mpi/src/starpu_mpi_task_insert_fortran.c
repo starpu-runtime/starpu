@@ -335,14 +335,17 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
-	if (xrank_p) *xrank_p = xrank;
-	if (nb_data_p) *nb_data_p = nb_data;
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
 	if (descrs_p)
 		*descrs_p = descrs;
 	else
 		free(descrs);
-	if (prio_p)
-		*prio_p = prio;
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
 	if (do_execute == 0)

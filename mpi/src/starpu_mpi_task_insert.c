@@ -33,10 +33,12 @@
 #include "starpu_mpi_task_insert.h"
 
 #define _SEND_DATA(data, mode, dest, data_tag, prio, comm, callback, arg)     \
-	if (mode & STARPU_SSEND)					\
-		starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); \
-	else								\
-		starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);
+	do {									\
+		if (mode & STARPU_SSEND)					\
+			starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); 	\
+		else												\
+			starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);	\
+	} while (0)
 
 static void (*pre_submit_hook)(struct starpu_task *task) = NULL;
 
@@ -493,14 +495,18 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
-	if (xrank_p) *xrank_p = xrank;
-	if (nb_data_p) *nb_data_p = nb_data;
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
 	if (descrs_p)
 		*descrs_p = descrs;
 	else
 		free(descrs);
-	if (prio_p)
-		*prio_p = prio;
+
 
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
@@ -776,7 +782,8 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				args->taskB->cl = args->data_handle->redux_cl;
 				args->taskB->sequential_consistency = 0;
 				STARPU_TASK_SET_HANDLE(args->taskB, args->data_handle, 0);
-				taskBs[j] = args->taskB; j++;
+				taskBs[j] = args->taskB;
+				j++;
 
 				// Submit taskA
 				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,
