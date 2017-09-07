@@ -22,7 +22,8 @@
 #include <mpi.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 void _starpu_mpi_cache_stats_init(MPI_Comm comm);

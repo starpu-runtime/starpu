@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014, 2015, 2016  CNRS
+ * Copyright (C) 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,8 @@ int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func
 	// Look for a unregistered policy
 	while(i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY)
 	{
-		if (_policies[i] == NULL) break;
+		if (_policies[i] == NULL)
+			break;
 		i++;
 	}
 	STARPU_ASSERT_MSG(i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY, "No unused policy available. Unregister existing policies before registering a new one.");

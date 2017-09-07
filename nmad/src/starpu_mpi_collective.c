@@ -27,6 +27,7 @@ struct _callback_arg
 	int count;
 };
 
+static
 void _callback_collective(void *arg)
 {
 	struct _callback_arg *callback_arg = arg;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,8 @@
 #include <piom_lock.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern int _starpu_debug_rank;
@@ -121,6 +122,8 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
 
+	int prio;
+
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	void *ptr;
@@ -157,6 +160,10 @@ LIST_TYPE(_starpu_mpi_req,
 
         /* in the case of user-defined datatypes, we need to send the size of the data */
 	nm_sr_request_t size_req;
+
+	long pre_sync_jobid;
+	long post_sync_jobid;
+
 
 	int waited;
 );
