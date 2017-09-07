@@ -48,9 +48,9 @@ static void _starpu_mpi_set_src_node_id()
                 else if (id_proc == DRIVER_MPI_MASTER_NODE_DEFAULT)
                 {
                         /* Only one node prints the error message. */
-                        _STARPU_DISP("The node you specify to be the master is "
-                                        "greater than the total number of nodes.\n"
-                                        "Taking node %d by default...\n", DRIVER_MPI_MASTER_NODE_DEFAULT);
+                        _STARPU_MSG("The node (%d) you specify to be the master is "
+				    "greater than the total number of nodes (%d). "
+				    "StarPU will use node %d.\n", node_id, nb_proc, DRIVER_MPI_MASTER_NODE_DEFAULT);
                 }
         }
 
@@ -176,10 +176,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -226,10 +223,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -258,7 +252,7 @@ void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, i
 }
 
 /* SEND to any node */
-void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event)
+void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event)
 {
         int res;
         int id_proc;
@@ -278,10 +272,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -302,7 +293,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int d
 }
 
 /* RECV to any node */
-void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event)
+void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int src_devid, void *msg, int len, void * event)
 {
         int res;
         int id_proc;
@@ -322,10 +313,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int
 
                 /* Initialize the list */
                 if (channel->event.mpi_ms_event.requests == NULL)
-                {
                         channel->event.mpi_ms_event.requests = _starpu_mpi_ms_event_request_list_new();
-                        _starpu_mpi_ms_event_request_list_init(channel->event.mpi_ms_event.requests);
-                }
 
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -462,13 +450,14 @@ void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
 
 void _starpu_mpi_common_barrier(void)
 {
-        MPI_Barrier(MPI_COMM_WORLD);
+        int ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 }
 
 /* Compute bandwidth and latency between source and sink nodes
  * Source node has to have the entire set of times at the end
  */
-void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS])
+void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS])
 {
         int ret;
         unsigned iter;
@@ -481,7 +470,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
         _STARPU_MALLOC(buf, SIZE_BANDWIDTH);
         memset(buf, 0, SIZE_BANDWIDTH);
 
-        unsigned sender, receiver;
+        int sender, receiver;
         for(sender = 0; sender < nb_proc; sender++)
         {
                 for(receiver = 0; receiver < nb_proc; receiver++)
@@ -490,7 +479,8 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                         if(sender == receiver)
                                 continue;
 
-                        MPI_Barrier(MPI_COMM_WORLD);
+                        ret = MPI_Barrier(MPI_COMM_WORLD);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 
                         if(id_proc == sender)
                         {
@@ -504,7 +494,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                                         STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
                                 }
                                 end = starpu_timing_now();
-                                bandwidth_dtod[sender][receiver] = (NITER*SIZE_BANDWIDTH)/(end - start);
+                                timing_dtod[sender][receiver] = (end - start)/NITER/SIZE_BANDWIDTH;
 
                                 /* measure latency sender to receiver */
                                 start = starpu_timing_now();
@@ -544,14 +534,14 @@ void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_M
                 /* if we are the sender, we send the data */
                 if (sender == id_proc)
                 {
-                        MPI_Send(bandwidth_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
+                        MPI_Send(timing_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
                         MPI_Send(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
                 }
 
                 /* the master node receives the data */
                 if (src_node_id == id_proc)
                 {
-                        MPI_Recv(bandwidth_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(timing_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 }
 

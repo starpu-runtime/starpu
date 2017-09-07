@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010-2013, 2016  CNRS
  * Copyright (C) 2011, 2017  INRIA
  * Copyright (C) 2016  Uppsala University
@@ -39,8 +39,6 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data;
 	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_center_policy_data));
-
-	_STARPU_DISP("Warning: you are running the default eager scheduler, which is not a very smart scheduler. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
@@ -136,7 +134,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (_starpu_wake_worker_relax(worker))
+			if (_starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 	}
 #endif

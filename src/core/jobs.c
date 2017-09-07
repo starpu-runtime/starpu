@@ -30,11 +30,10 @@
 #include <starpu_top.h>
 #include <top/starpu_top_core.h>
 #include <core/debug.h>
+#include <limits.h>
 
-/* we need to identify each task to generate the DAG. */
-static unsigned long job_cnt = 0;
 static int max_memory_use;
-static int njobs, maxnjobs;
+static unsigned long njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
@@ -54,7 +53,7 @@ void _starpu_job_fini(void)
 {
 	if (max_memory_use)
 	{
-		_STARPU_DISP("Memory used for %d tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		_STARPU_DISP("Memory used for %lu tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
 		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
 }
@@ -92,12 +91,13 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 		|| STARPU_AYU_EVENT)
 #endif
 	{
-		job->job_id = STARPU_ATOMIC_ADDL(&job_cnt, 1);
+		job->job_id = _starpu_fxt_get_job_id();
 		STARPU_AYU_ADDTASK(job->job_id, task);
+		STARPU_ASSERT(job->job_id != ULONG_MAX);
 	}
 	if (max_memory_use)
 	{
-		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
 		if (jobs > maxnjobs)
 			maxnjobs = jobs;
 	}
@@ -184,7 +184,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 	{
 		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 	}
-	
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
         _STARPU_LOG_OUT();
 }
@@ -213,7 +213,7 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	else
 	{
 		STARPU_SYNCHRONIZE();
-		return (j->terminated == 2);
+		return j->terminated == 2;
 	}
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
@@ -368,7 +368,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us
 	 *
-	 * For continuations, implicit dependency handles are only released 
+	 * For continuations, implicit dependency handles are only released
 	 * when the task fully completes */
 	if (j->implicit_dep_handle && !continuation)
 	{
@@ -380,6 +380,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
+
+	_STARPU_TRACE_TASK_NAME(j);
 
 	/* If this is a continuation, we do not notify task/tag dependencies
 	 * now. Task/tag dependencies will be notified only when the continued
@@ -713,7 +715,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
-		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%u pushed to worker %d, but %d already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
+		STARPU_ASSERT_MSG(task->workerorder >= worker->current_ordered_task_order, "worker order values must not have duplicates (%u pushed to worker %d, but %u already passed)", task->workerorder, worker->workerid, worker->current_ordered_task_order);
 		/* Put it in the ordered task ring */
 		unsigned needed = task->workerorder - worker->current_ordered_task_order + 1;
 		if (worker->local_ordered_tasks_size < needed)

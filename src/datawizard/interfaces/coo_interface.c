@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2016  Université Bordeaux
+ * Copyright (C) 2013-2017  Université Bordeaux
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <common/fxt.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/memory_nodes.h>
 
 static int
 copy_any_to_any(void *src_interface, unsigned src_node,
@@ -175,10 +176,10 @@ coo_compare(void *a, void *b)
 	coo_a = (struct starpu_coo_interface *) a;
 	coo_b = (struct starpu_coo_interface *) b;
 
-	return (coo_a->nx == coo_b->nx &&
+	return coo_a->nx == coo_b->nx &&
 		coo_a->ny == coo_b->ny &&
 		coo_a->n_values == coo_b->n_values &&
-		coo_a->elemsize == coo_b->elemsize);
+		coo_a->elemsize == coo_b->elemsize;
 }
 
 static void
@@ -214,7 +215,8 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 	.interfaceid           = STARPU_COO_INTERFACE_ID,
 	.interface_size        = sizeof(struct starpu_coo_interface),
 	.display               = display_coo_interface,
-	.describe              = describe
+	.describe              = describe,
+	.name                  = "STARPU_COO_INTERFACE"
 };
 
 void
@@ -235,7 +237,7 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize,
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(columns);
 		STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);

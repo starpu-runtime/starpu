@@ -28,6 +28,7 @@
 #include <starpu_scheduler.h>
 #include <starpu_bitmap.h>
 #include "prio_deque.h"
+#include <limits.h>
 
 #include <common/fxt.h>
 #include <core/workers.h>
@@ -58,6 +59,12 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	STARPU_HG_DISABLE_CHECKING(data->taskq.ntasks);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+
+	/* The application may use any integer */
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
@@ -83,6 +90,16 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	_starpu_worker_relax_off();
 	_starpu_prio_deque_push_back_task(taskq, task);
+
+	if (_starpu_get_nsched_ctxs() > 1)
+	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+	}
+
 	starpu_push_task_end(task);
 
 	/*if there are no tasks block */
@@ -128,20 +145,10 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (_starpu_wake_worker_relax(worker))
+			if (_starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 	}
 #endif
-
-	if (_starpu_get_nsched_ctxs() > 1)
-	{
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-	}
-
 
 	return 0;
 }
@@ -194,7 +201,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				starpu_bitmap_unset(data->waiters, worker);
 #else
-				_starpu_wake_worker_relax(worker);
+				_starpu_wake_worker_relax_light(worker);
 #endif
 			}
 		}

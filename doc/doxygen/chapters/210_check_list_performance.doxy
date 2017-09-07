@@ -197,9 +197,13 @@ structures of StarPU by describing the shape of your machine and/or your
 application at the configure step.
 
 To reduce the memory footprint of the data internal structures of StarPU, one
-can set the \ref enable-maxcpus "--enable-maxcpus", \ref enable-maxcudadev
-"--enable-maxcudadev", \ref enable-maxopencldev "--enable-maxopencldev" and
-\ref enable-maxnodes "--enable-maxnodes" configure parameters to give StarPU
+can set the
+\ref enable-maxcpus "--enable-maxcpus",
+\ref enable-maxnumanodes "--enable-maxnumanodes",
+\ref enable-maxcudadev "--enable-maxcudadev",
+\ref enable-maxopencldev "--enable-maxopencldev" and
+\ref enable-maxnodes "--enable-maxnodes"
+configure parameters to give StarPU
 the architecture of the machine it will run on, thus tuning the size of the
 structures to the machine.
 

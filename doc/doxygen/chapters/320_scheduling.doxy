@@ -23,8 +23,8 @@ This means scheduling policies usually contain at least one queue of tasks to
 store them between the time when they become available, and the time when a
 worker gets to grab them.
 
-By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
-because it provides correct load balance even if the application codelets do
+By default, StarPU uses the work-stealing scheduler <c>lws</c>. This is
+because it provides correct load balance and locality even if the application codelets do
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
 STARPU_SCHED. For instance <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
@@ -178,6 +178,16 @@ instance, to force execution of a task on CUDA0:
 \code{.c}
 task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+\endcode
+
+One can also specify a set worker(s) which are allowed to take the task, as an
+array of bit, for instance to allow workers 2 and 42:
+
+\code{.c}
+task->workerids = calloc(2,sizeof(uint32_t));
+task->workerids[2/32] |= (1 << (2%32));
+task->workerids[42/32] |= (1 << (42%32));
+task->workerids_len = 2;
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the

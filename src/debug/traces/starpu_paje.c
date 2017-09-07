@@ -42,19 +42,22 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 						     "Footprint string",
 						     "Tag string",
 						     "JobId string",
+						     "SubmitOrder string",
 						     "GFlop string",
 						     "X string",
 						     "Y string",
-						     "Z string",
+						     /* "Z string", */
 						     "Iteration string",
 						     "Subiteration string");
 	_starpu_poti_semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
-						     5,
+						     6,
 						     "Size string",
 						     "Params string",
 						     "Footprint string",
 						     "Tag string",
-						     "JobId string");
+						     "JobId string",
+						     "SubmitOrder string"
+						     );
 #else
 	poti_header(1,1);
 #endif
@@ -171,10 +174,11 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Footprint	string\n");
 	fprintf(file, "%%	Tag	string\n");
 	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%	SubmitOrder	string\n");
 	fprintf(file, "%%	GFlop	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
-	fprintf(file, "%%	Z	string\n");
+	/* fprintf(file, "%%	Z	string\n"); */
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
 	fprintf(file, "%%EndEventDef\n");
@@ -188,6 +192,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Footprint	string\n");
 	fprintf(file, "%%	Tag	string\n");
 	fprintf(file, "%%	JobId	string\n");
+	fprintf(file, "%%	SubmitOrder	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 
@@ -203,6 +208,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
 	poti_DefineEventType("register", "P", "data registration");
+	poti_DefineEventType("unregister", "P", "data unregistration");
 
 	/* Types for the memory node */
 	poti_DefineEventType("invalidate", "Mm", "data invalidation");
@@ -275,9 +281,12 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("RvS", "CtS", "ReceiveSubmitted", "0.1 1.0 1.0");
 	poti_DefineEntityValue("SdC", "CtS", "SendCompleted", "1.0 .5 1.0");
 	poti_DefineEntityValue("RvC", "CtS", "ReceiveCompleted", "0.5 1.0 1.0");
+	poti_DefineEntityValue("TD", "CtS", "Testing Detached", ".0 .0 .6");
+	poti_DefineEntityValue("MT", "CtS", "MPI Test", ".0 .0 .8");
 	poti_DefineEntityValue("Bu", "CtS", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "CtS", "Submiting task", ".3 .09 .0");
 	poti_DefineEntityValue("Th", "CtS", "Throttling task submission", ".8 .6 .6");
+	poti_DefineEntityValue("C", "CtS", "Callback", ".0 .3 .8");
 
 	/* Type for other threads */
 	poti_DefineEventType("user_user_event", "UT", "user event type");
@@ -342,6 +351,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
 2       register     P       \"data registration\"				\n\
+2       unregister     P       \"data unregistration\"				\n\
 2       user_event   P       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       user_user_event   UT       \"user event type\"				\n\
@@ -420,9 +430,12 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 6       RvS       CtS      ReceiveSubmitted  \"0.1 1.0 1.0\"	\n\
 6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
 6       RvC       CtS      ReceiveCompleted  \"0.5 1.0 1.0\"	\n\
+6       TD       CtS      \"Testing Detached\"  \".0 .0 .6\"	\n\
+6       MT       CtS      \"MPI Test\"  \".0 .0 .8\"	\n\
 6       Bu      CtS      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      CtS      \"Submitting task\" \".3 .09 .0\"		\n\
 6       Th      CtS      \"Throttling task submission\" \".8 .6 .6\"		\n\
+6       C       CtS      \"Callback\" \".0 .3 .8\"		\n\
 ");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\

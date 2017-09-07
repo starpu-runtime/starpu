@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2014  CNRS
+ * Copyright (C) 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -159,7 +159,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 			{
 				char file[1024];
 				FILE *f;
-				sprintf(file, "%s/matrix_as_vector_%s.dat", output_dir, device_name);
+				snprintf(file, sizeof(file), "%s/matrix_as_vector_%s.dat", output_dir, device_name);
 				f = fopen(file, "a");
 				fprintf(f, "%s\t%d\t%f\t%f\n", bench_id, nx, vector_timing, matrix_timing);
 				fclose(f);

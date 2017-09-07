@@ -24,6 +24,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_fxt.h>
 #include <common/list.h>
+#include <common/prio_list.h>
 #include <core/simgrid.h>
 
 #ifdef __cplusplus
@@ -91,7 +92,7 @@ int _starpu_debug_rank;
 
 #define _STARPU_MPI_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) size); } while (0)
 #define _STARPU_MPI_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
-#define _STARPU_MPI_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_MPI_REALLOC(ptr, size) do { void *_new_ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(_new_ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); ptr = _new_ptr; } while (0)
 
 #ifdef STARPU_VERBOSE
 #  define _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, node, tag, utag, comm, way) \
@@ -199,6 +200,8 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
 
+	int prio;
+
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	char *datatype_name;
@@ -243,7 +246,8 @@ LIST_TYPE(_starpu_mpi_req,
 
         struct _starpu_mpi_envelope* envelope;
 
-	int is_internal_req;
+	unsigned is_internal_req:1;
+	unsigned to_destroy:1;
 	struct _starpu_mpi_req *internal_req;
 	struct _starpu_mpi_early_data_handle *early_data_handle;
 
@@ -261,6 +265,7 @@ LIST_TYPE(_starpu_mpi_req,
 #endif
 
 );
+PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
 struct _starpu_mpi_argc_argv
 {

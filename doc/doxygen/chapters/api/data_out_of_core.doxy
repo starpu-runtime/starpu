@@ -132,4 +132,11 @@ This set uses the leveldb created by Google <br />
 More information at https://code.google.com/p/leveldb/ <br />
 It doesn't support asynchronous transfers.
 
+\var starpu_disk_hdf5_ops
+\ingroup API_Out_Of_Core
+This set uses the HDF5 library.<br />
+<strong>It doesn't support multiple opening from different processes. </strong> <br />
+You may only allow one process to write in the HDF5 file. <br />
+<strong>If HDF5 library is not compiled with --thread-safe you can't open more than one HDF5 file at the same time. </strong>
+
 */

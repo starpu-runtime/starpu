@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2011, 2013-2014  Université de Bordeaux
+# Copyright (C) 2009, 2011, 2013-2014, 2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 # Copyright (C) 2014  INRIA
 #
@@ -29,9 +29,11 @@ DOX_TAG = starpu.tag
 
 txtdir   = $(docdir)/manual
 
+EXTRA_DIST = 
+
 if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
-EXTRA_DIST = $(DOX_HTML_DIR) $(DOX_PDF)
+EXTRA_DIST += $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
@@ -41,7 +43,7 @@ uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
 else
 if AVAILABLE_DOC
-EXTRA_DIST = $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
+EXTRA_DIST += $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
 txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
 install-exec-hook:
@@ -52,8 +54,6 @@ uninstall-hook:
 endif
 endif
 
-
-if BUILD_DOC
 chapters =	\
 	chapters/000_introduction.doxy		\
 	chapters/101_building.doxy		\
@@ -145,6 +145,40 @@ chapters =	\
 	chapters/api/modularized_scheduler.doxy \
 	chapters/api/clustering_machine.doxy
 
+images = 	\
+	chapters/images/data_trace.eps \
+	chapters/images/data_trace.pdf \
+	chapters/images/data_trace.png \
+	chapters/images/distrib_data.eps \
+	chapters/images/distrib_data.pdf \
+	chapters/images/distrib_data.png \
+	chapters/images/distrib_data_histo.eps \
+	chapters/images/distrib_data_histo.pdf \
+	chapters/images/distrib_data_histo.png \
+	chapters/images/paje_draw_histogram.eps \
+	chapters/images/paje_draw_histogram.pdf \
+	chapters/images/paje_draw_histogram.png \
+	chapters/images/parallel_worker2.eps \
+	chapters/images/parallel_worker2.pdf \
+	chapters/images/parallel_worker2.png \
+	chapters/images/runtime-par.eps \
+	chapters/images/runtime-par.pdf \
+	chapters/images/runtime-par.png \
+	chapters/images/starpu_non_linear_memset_regression_based.eps \
+	chapters/images/starpu_non_linear_memset_regression_based.pdf \
+	chapters/images/starpu_non_linear_memset_regression_based.png \
+	chapters/images/starpu_non_linear_memset_regression_based_2.eps \
+	chapters/images/starpu_non_linear_memset_regression_based_2.pdf \
+	chapters/images/starpu_non_linear_memset_regression_based_2.png \
+	chapters/images/starpu_starpu_slu_lu_model_11.eps \
+	chapters/images/starpu_starpu_slu_lu_model_11.pdf \
+	chapters/images/starpu_starpu_slu_lu_model_11.png \
+	chapters/images/tasks_size_overhead.eps \
+	chapters/images/tasks_size_overhead.pdf \
+	chapters/images/tasks_size_overhead.png \
+	chapters/images/temanejo.png
+
+if BUILD_DOC
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 
@@ -283,6 +317,10 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_PDF)
 
 endif
+
+EXTRA_DIST += doxygen.cfg refman.tex \
+	      $(chapters) $(images)
+
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)

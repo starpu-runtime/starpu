@@ -176,7 +176,6 @@ int main(int argc, char **argv)
 {
 	int ret;
 	unsigned memnodes, i;
-	starpu_ssize_t available_size;
 
 	setenv("STARPU_LIMIT_CUDA_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);
@@ -189,6 +188,7 @@ int main(int argc, char **argv)
 	memnodes = starpu_memory_nodes_get_count();
 	for(i=0 ; i<memnodes ; i++)
 	{
+		starpu_ssize_t available_size;
 		available_size = starpu_memory_get_available(i);
 		if (available_size == -1)
 		{

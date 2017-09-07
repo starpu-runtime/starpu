@@ -22,7 +22,7 @@
 
 struct _starpu_mpi_sync_data_handle_hashlist
 {
-	struct _starpu_mpi_req_list *list;
+	struct _starpu_mpi_req_list list;
 	UT_hash_handle hh;
 	struct _starpu_mpi_node_tag node_tag;
 };
@@ -44,7 +44,7 @@ void _starpu_mpi_sync_data_shutdown(void)
 	struct _starpu_mpi_sync_data_handle_hashlist *current, *tmp;
 	HASH_ITER(hh, _starpu_mpi_sync_data_handle_hashmap, current, tmp)
 	{
-		_starpu_mpi_req_list_delete(current->list);
+		STARPU_ASSERT(_starpu_mpi_req_list_empty(&current->list));
 		HASH_DEL(_starpu_mpi_sync_data_handle_hashmap, current);
 		free(current);
 	}
@@ -62,15 +62,15 @@ void _starpu_mpi_sync_data_handle_display_hash(struct _starpu_mpi_node_tag *node
 	{
 		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %d does not exist\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
 	}
-	else if (_starpu_mpi_req_list_empty(hashlist->list))
+	else if (_starpu_mpi_req_list_empty(&hashlist->list))
 	{
 		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %d is empty\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
 	}
 	else
 	{
 		struct _starpu_mpi_req *cur;
-		for (cur = _starpu_mpi_req_list_begin(hashlist->list) ;
-		     cur != _starpu_mpi_req_list_end(hashlist->list);
+		for (cur = _starpu_mpi_req_list_begin(&hashlist->list) ;
+		     cur != _starpu_mpi_req_list_end(&hashlist->list);
 		     cur = _starpu_mpi_req_list_next(cur))
 		{
 			_STARPU_MPI_DEBUG(60, "Element for comm %ld source %d and tag %d: %p\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag, cur);
@@ -110,13 +110,13 @@ struct _starpu_mpi_req *_starpu_mpi_sync_data_find(int data_tag, int source, MPI
 	}
 	else
 	{
-		if (_starpu_mpi_req_list_empty(found->list))
+		if (_starpu_mpi_req_list_empty(&found->list))
 		{
 			req = NULL;
 		}
 		else
 		{
-			req = _starpu_mpi_req_list_pop_front(found->list);
+			req = _starpu_mpi_req_list_pop_front(&found->list);
 			_starpu_mpi_sync_data_handle_hashmap_count --;
 		}
 	}
@@ -136,11 +136,11 @@ void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *sync_req)
 	if (hashlist == NULL)
 	{
 		_STARPU_MPI_MALLOC(hashlist, sizeof(struct _starpu_mpi_sync_data_handle_hashlist));
-		hashlist->list = _starpu_mpi_req_list_new();
+		_starpu_mpi_req_list_init(&hashlist->list);
 		hashlist->node_tag = sync_req->node_tag;
 		HASH_ADD(hh, _starpu_mpi_sync_data_handle_hashmap, node_tag, sizeof(hashlist->node_tag), hashlist);
 	}
-	_starpu_mpi_req_list_push_back(hashlist->list, sync_req);
+	_starpu_mpi_req_list_push_back(&hashlist->list, sync_req);
 	_starpu_mpi_sync_data_handle_hashmap_count ++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_sync_data_handle_mutex);
 #ifdef STARPU_VERBOSE

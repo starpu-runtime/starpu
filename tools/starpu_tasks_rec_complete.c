@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\n");
 			fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 			fprintf(stderr, "\n");
-			fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+			fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -174,6 +174,11 @@ int main(int argc, char *argv[])
 		fprintf(output, "%s", s);
 	}
 
+	if (fclose(input))
+	{
+		fprintf(stderr, "couldn't close input: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 	if (fclose(output))
 	{
 		fprintf(stderr, "couldn't close output: %s\n", strerror(errno));

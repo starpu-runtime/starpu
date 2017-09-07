@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
+ * Copyright (C) 2011-2015, 2017  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -76,6 +76,9 @@ starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int tag)
 void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int tag)
 {
 	struct handle_tag_entry *entry;
+	if (tag == -1)
+		/* No tag for this data, probably a temporary data not to be communicated */
+		return;
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
 	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(tag)),

@@ -16,7 +16,7 @@
 
 /*
  * This implements list with priorities (as an int), by using two stages:
- * - an RB tree stage sorted by priority, whose leafs are...
+ * - an RB tree stage sorted by priority, whose leaves are...
  * - ... double-linked lists sorted by insertion order.
  *
  * We always keep the 0-priority list allocated, to avoid keeping
@@ -24,41 +24,86 @@
  *
  * We maintain an "empty" flag, to allow lockless FOO_prio_list_empty call.
  *
- * PRIO_LIST_TYPE(FOO, priority field)
+ * PRIO_LIST_TYPE(FOO, priority_field)
+ *
  * - Declares the following type:
  *   + priority list: struct FOO_prio_list
- * - Declares the following inlines:
- *   * Initialize a new priority list
+ *
+ * - Declares the following inlines (all O(1) except stated otherwise, n is the
+ * number of elements, p is the number of different priorities):
+ *
+ * * Initialize a new priority list
  * void FOO_prio_list_init(struct FOO_prio_list*)
- *   * Add a new element at the end of the list of the priority of the element
+ *
+ * * Add a new cell at the end of the list of the priority of the cell (O(log2 p))
  * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
- *   * Add a new element at the beginning of the list of the priority of the element
- * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
- *   * Test that the priority list is empty
+ *
+ * * Add a new cell at the beginning of the list of the priority of the cell (O(log2 p))
+ * void FOO_prio_list_push_front(struct FOO_prio_list*, struct FOO*)
+ *
+ * * Test whether the priority list is empty
  * void FOO_prio_list_empty(struct FOO_prio_list*)
- *   * Erase element from the priority list
+ *
+ * * Remove given cell from the priority list
  * void FOO_prio_list_erase(struct FOO_prio_list*, struct FOO*)
- *   * Return and erase the first element of the priority list
- * void FOO_prio_list_pop_front(struct FOO_prio_list*)
- *   * Catenate second priority list at ends of the first priority list
+ *
+ * * Return and remove the first cell of highest priority of the priority list
+ * void FOO_prio_list_pop_front_highest(struct FOO_prio_list*)
+ * * Return and remove the first cell of lowest priority of the priority list
+ * void FOO_prio_list_pop_front_lowest(struct FOO_prio_list*)
+ *
+ * * Return and remove the last cell of highest priority of the priority list
+ * void FOO_prio_list_pop_back_highest(struct FOO_prio_list*)
+ * * Return and remove the last cell of lowest priority of the priority list
+ * void FOO_prio_list_pop_back_lowest(struct FOO_prio_list*)
+ *
+ * * Return the first cell of highest priority of the priority list
+ * void FOO_prio_list_front_highest(struct FOO_prio_list*)
+ * * Return the first cell of lowest priority of the priority list
+ * void FOO_prio_list_front_lowest(struct FOO_prio_list*)
+ *
+ * * Return the last cell of highest priority of sthe priority list
+ * void FOO_prio_list_back_highest(struct FOO_prio_list*)
+ * * Return the last cell of lowest priority of sthe priority list
+ * void FOO_prio_list_back_lowest(struct FOO_prio_list*)
+ *
+ * * Append second priority list at ends of the first priority list (O(log2 p))
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
- *   * Test whether element is part of the list
+ *
+ * * Test whether cell is part of the list (O(n))
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
- *   * Returns the first element of the list
+ *
+ * * Return the first cell of the list
  * struct FOO*	FOO_prio_list_begin(struct FOO_prio_list*);
- *   * Returns the value to test at the end of the list
+ *
+ * * Return the value to test at the end of the list
  * struct FOO*	FOO_prio_list_end(struct FOO_prio_list*);
- *   * Returns the next element of the list
+ *
+ * * Return the next cell of the list
  * struct FOO*	FOO_prio_list_next(struct FOO_prio_list*, struct FOO*)
- *   * Returns the last element of the list
+ *
+ * * Return the last cell of the list
  * struct FOO*	FOO_prio_list_last(struct FOO_prio_list*);
- *   * Returns the value to test at the beginning of the list
+ *
+ * * Return the value to test at the beginning of the list
  * struct FOO*	FOO_prio_list_alpha(struct FOO_prio_list*);
- *   * Retuns the previous element of the list
+ *
+ * * Return the previous cell of the list
  * struct FOO*	FOO_prio_list_prev(struct FOO_prio_list*, struct FOO*)
  *
  * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
  * final structure.
+ *
+ * *********************************************************
+ * Usage example:
+ * LIST_TYPE(my_struct,
+ *   int a;
+ *   int b;
+ *   int prio;
+ * );
+ * PRIO_LIST_TYPE(my_struct, prio);
+ *
+ * and then my_struct_prio_list_* inlines are available
  */
 
 #ifndef __PRIO_LIST_H__
@@ -165,20 +210,25 @@
 			return 1; \
 		return 0; \
 	} \
+	/* To be called when removing an element from a stage, to potentially remove this stage */ \
+	PRIO_LIST_INLINE void ENAME##_prio_list_check_empty_stage(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list_stage *stage) \
+	{ \
+		if (ENAME##_list_empty(&stage->list)) { \
+			if (stage->prio != 0) \
+			{ \
+				/* stage got empty, remove it */ \
+				starpu_rbtree_remove(&priolist->tree, &stage->node); \
+				free(stage); \
+			} \
+			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
+		} \
+	} \
 	PRIO_LIST_INLINE void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, e->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
 		struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
 		ENAME##_list_erase(&stage->list, e); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
 	} \
 	PRIO_LIST_INLINE int ENAME##_prio_list_get_next_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
@@ -205,30 +255,6 @@
 		*pstage = stage; \
 		return 1; \
 	} \
-	PRIO_LIST_INLINE int ENAME##_prio_list_get_first_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
-	{ \
-		struct starpu_rbtree_node *node = starpu_rbtree_first(&priolist->tree); \
-		return ENAME##_prio_list_get_next_nonempty_stage(priolist, node, pnode, pstage); \
-	} \
-	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
-	{ \
-		struct starpu_rbtree_node *node; \
-		struct ENAME##_prio_list_stage *stage; \
-		struct ENAME *ret; \
-		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
-			return NULL; \
-		ret = ENAME##_list_pop_front(&stage->list); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
-		return ret; \
-	} \
 	PRIO_LIST_INLINE int ENAME##_prio_list_get_prev_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node *node, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
 		struct ENAME##_prio_list_stage *stage; \
@@ -254,12 +280,66 @@
 		*pstage = stage; \
 		return 1; \
 	} \
+	PRIO_LIST_INLINE int ENAME##_prio_list_get_first_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
+	{ \
+		struct starpu_rbtree_node *node = starpu_rbtree_first(&priolist->tree); \
+		return ENAME##_prio_list_get_next_nonempty_stage(priolist, node, pnode, pstage); \
+	} \
 	PRIO_LIST_INLINE int ENAME##_prio_list_get_last_nonempty_stage(struct ENAME##_prio_list *priolist, struct starpu_rbtree_node **pnode, struct ENAME##_prio_list_stage **pstage) \
 	{ \
 		struct starpu_rbtree_node *node = starpu_rbtree_last(&priolist->tree); \
 		return ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, pnode, pstage); \
 	} \
-	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front_highest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		ret = ENAME##_list_pop_front(&stage->list); \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
+		return ret; \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front_lowest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		ret = ENAME##_list_pop_front(&stage->list); \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
+		return ret; \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_front_highest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_front(&stage->list); \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_front_lowest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_front(&stage->list); \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back_highest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		struct ENAME *ret; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		ret = ENAME##_list_pop_back(&stage->list); \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
+		return ret; \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back_lowest(struct ENAME##_prio_list *priolist) \
 	{ \
 		struct starpu_rbtree_node *node; \
 		struct ENAME##_prio_list_stage *stage; \
@@ -267,16 +347,24 @@
 		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
 			return NULL; \
 		ret = ENAME##_list_pop_back(&stage->list); \
-		if (ENAME##_list_empty(&stage->list)) { \
-			if (stage->prio != 0) \
-			{ \
-				/* stage got empty, remove it */ \
-				starpu_rbtree_remove(&priolist->tree, node); \
-				free(stage); \
-			} \
-			priolist->empty = ENAME##_prio_list_empty_slow(priolist); \
-		} \
+		ENAME##_prio_list_check_empty_stage(priolist, stage); \
 		return ret; \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_back_highest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_first_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_back(&stage->list); \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_back_lowest(struct ENAME##_prio_list *priolist) \
+	{ \
+		struct starpu_rbtree_node *node; \
+		struct ENAME##_prio_list_stage *stage; \
+		if (!ENAME##_prio_list_get_last_nonempty_stage(priolist, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_back(&stage->list); \
 	} \
 	PRIO_LIST_INLINE void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
 	{ \
@@ -403,10 +491,22 @@
 	{ return ENAME##_list_empty(&(priolist)->list); } \
 	PRIO_LIST_INLINE void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ ENAME##_list_erase(&(priolist)->list, (e)); } \
-	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front(struct ENAME##_prio_list *priolist) \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front_highest(struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_pop_front(&(priolist)->list); } \
-	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back(struct ENAME##_prio_list *priolist) \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_front_lowest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_pop_front(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back_highest(struct ENAME##_prio_list *priolist) \
 	{ return ENAME##_list_pop_back(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_pop_back_lowest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_pop_back(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_front_highest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_front(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_front_lowest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_front(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_back_highest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_back(&(priolist)->list); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_back_lowest(struct ENAME##_prio_list *priolist) \
+	{ return ENAME##_list_back(&(priolist)->list); } \
 	PRIO_LIST_INLINE void ENAME##_prio_list_push_prio_list_back(struct ENAME##_prio_list *priolist, struct ENAME##_prio_list *priolist_toadd) \
 	{ ENAME##_list_push_list_back(&(priolist)->list, &(priolist_toadd)->list); } \
 	PRIO_LIST_INLINE int ENAME##_prio_list_ismember(const struct ENAME##_prio_list *priolist, const struct ENAME *e) \

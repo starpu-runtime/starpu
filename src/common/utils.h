@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -116,9 +116,10 @@
 	} while (0)
 
 
-#define _STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (size)); } while (0)
 #define _STARPU_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
-#define _STARPU_REALLOC(ptr, size) do { ptr = realloc(ptr, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); } while (0)
+#define _STARPU_REALLOC(ptr, size) do { void *_new_ptr = realloc(ptr, size); STARPU_ASSERT_MSG(_new_ptr != NULL, "Cannot reallocate %ld bytes\n", (long) (size)); ptr = _new_ptr;} while (0)
+#define _STARPU_MALLOC_CAST(ptr, size, type) do { ptr = (type) malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (size)); } while (0)
 
 #ifdef _MSC_VER
 #define _STARPU_IS_ZERO(a) (a == 0.0)
@@ -135,6 +136,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd);
  * creating a lot of temporary files to be stored in the same place */
 char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd);
 void _starpu_rmtemp_many(char *path, int depth);
+void _starpu_rmdir_many(char *path, int depth);
 int _starpu_fftruncate(FILE *file, size_t length);
 int _starpu_ftruncate(int fd, size_t length);
 int _starpu_frdlock(FILE *file);

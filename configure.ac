@@ -440,6 +440,38 @@ AM_CONDITIONAL(USE_NMAD, test x$build_nmad_lib = xyes)
 
 ###############################################################################
 #                                                                             #
+#                                    DSM                                      #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(dsm, [AS_HELP_STRING([--enable-dsm],
+                              [Enable StarPU DSM library generation])],
+            [enable_dsm=$enableval],
+            [enable_dsm=no])
+
+if test x$enable_dsm = xyes; then
+        # rule out StarPU DSM + StarPU MPI for now
+        if test x$build_mpi_lib = xyes; then
+                AC_MSG_ERROR(StarPU DSM library generation is incompatible with StarPU MPI lib generation)
+        fi
+fi
+
+dsm_included=no
+sinclude(dsm/config-inc.ac)
+if test x$dsm_included != xyes; then
+        if test x$enable_dsm = xyes; then
+                AC_MSG_ERROR(StarPU DSM library generation needs DSM source in STARPU/dsm subdirectory)
+        fi
+	mkdir -p dsm
+	echo "dist:" > ./dsm/Makefile
+	echo "distdir:" >> ./dsm/Makefile
+        enable_dsm=no
+fi
+
+AM_CONDITIONAL(USE_DSM, [test x$enable_dsm != xno])
+
+###############################################################################
+#                                                                             #
 #                                LIBTOOLS                                     #
 #                                                                             #
 ###############################################################################
@@ -604,6 +636,23 @@ AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
 
 ###############################################################################
 
+###############################################################################
+#                                                                             #
+#                           NUMA memory nodes                                 #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(maximum number of NUMA nodes)
+AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
+			[maximum number of NUMA nodes])],
+			nmaxnumanodes=$enableval, nmaxnumanodes=2)
+AC_MSG_RESULT($nmaxnumanodes)
+AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
+		[maximum number of NUMA nodes])
+
+
+###############################################################################
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
@@ -617,6 +666,10 @@ case "$target" in
   starpu_linux=yes
   AC_DEFINE(STARPU_LINUX_SYS, [1], [Define to 1 on Linux])
   ;;
+*-*-openbsd*)
+  starpu_openbsd=yes
+  AC_DEFINE(STARPU_OPENBSD_SYS, [1], [Define to 1 on OpenBSD systems])
+  ;;
 *-*darwin*)
   starpu_darwin=yes
   AC_DEFINE(STARPU_HAVE_DARWIN, [1], [Define this on darwin.])
@@ -625,6 +678,7 @@ esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 AM_CONDITIONAL([STARPU_LINUX_SYS], [test "x$starpu_linux" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_DARWIN], [test "x$starpu_darwin" = "xyes"])
+AM_CONDITIONAL([STARPU_OPENBSD_SYS], [test "x$starpu_openbsd" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
@@ -795,14 +849,79 @@ fi
 AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
 
 AC_CHECK_HEADERS([aio.h])
-AC_CHECK_HEADERS([libaio.h])
 AC_CHECK_LIB([rt], [aio_read])
-AC_CHECK_LIB([aio], [io_setup])
+#AC_CHECK_HEADERS([libaio.h])
+#AC_CHECK_LIB([aio], [io_setup])
 
 AC_CHECK_FUNCS([mkostemp])
 AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
+
+AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
+                    enable_hdf5=$enableval, enable_hdf5=maybe)
+
+if test "x$enable_hdf5" != xno
+then
+	AC_ARG_WITH(hdf5-include-dir,
+		[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
+		[specify where HDF5 headers are installed])],
+		[
+			hdf5_include_dir="$withval"
+		], [hdf5_include_dir=""])
+
+	hdf5_inc_dir="/usr/include/hdf5 /usr/include/hdf5/serial ${hdf5_include_dir}"
+
+	enable_include_hdf5=no
+	for f in $hdf5_inc_dir; do
+		if test -n "$f" ; then
+			SAVED_CFLAGS="${CFLAGS}"
+			CFLAGS=-I${f}
+			AC_CHECK_HEADERS([hdf5.h])
+			if test "$ac_cv_header_hdf5_h" = "yes" ; then
+				CFLAGS="-I${f} ${SAVED_CFLAGS}"
+				enable_include_hdf5=yes
+				break
+			else
+				CFLAGS=${SAVED_CFLAGS}
+			fi
+			unset ac_cv_header_hdf5_h
+		fi
+	done
+
+
+	AC_ARG_WITH(hdf5-lib-dir,
+		[AS_HELP_STRING([--with-hdf5-lib-dir=<path>],
+		[specify where HDF5 libraries are installed])],
+		[
+			hdf5_libraries_dir="$withval"
+		], [hdf5_libraries_dir=""])
+
+	hdf5_lib_dir="/usr/lib/x86_64-linux-gnu/hdf5 /usr/lib/x86_64-linux-gnu/hdf5/serial ${hdf5_libraries_dir}"
+
+	enable_libraries_hdf5=no
+	for f in $hdf5_lib_dir; do
+		if test -n "$f" ; then
+			SAVED_LDFLAGS="${LDFLAGS}"
+			LDFLAGS=-L${f}
+			STARPU_HAVE_LIBRARY(HDF5, [hdf5])
+			if test "$ac_cv_lib_hdf5_main" = "yes" ; then
+				LDFLAGS="-L${f} ${SAVED_LDFLAGS} ${STARPU_HDF5_LDFLAGS}"
+				enable_libraries_hdf5=yes
+				break
+			else
+				LDFLAGS=${SAVED_LDFLAGS}
+			fi
+			unset ac_cv_lib_hdf5_main
+		fi
+	done
+fi
+
+if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno"; then
+        AC_DEFINE([STARPU_HAVE_HDF5], [1], [Define to 1 if you have the <hdf5.h> header file.])
+fi
+AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno")
+
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
@@ -1851,13 +1970,13 @@ else
 	CXXFLAGS="-O3 $CXXFLAGS"
 fi
 if test x$GCC = xyes; then
-	CFLAGS+=" -gdwarf-2"
-	CXXFLAGS+=" -gdwarf-2"
-	LDFLAGS+=" -gdwarf-2"
+	CFLAGS+=" -gdwarf-2 -g3"
+	CXXFLAGS+=" -gdwarf-2 -g3"
+	LDFLAGS+=" -gdwarf-2 -g3"
 fi
-CFLAGS+=" -g3 "
-CXXFLAGS+=" -g3 "
-LDFLAGS+=" -g3 "
+CFLAGS+=" -g "
+CXXFLAGS+=" -g "
+LDFLAGS+=" -g "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
@@ -1984,15 +2103,19 @@ if test x$use_fxt = xyes; then
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti])
+	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+				[Enable the use of the POTI library to generate Paje traces])],
+				enable_poti=$enableval, enable_poti=no)
+	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $POTI_LIBS"
 		AC_CHECK_FUNCS([poti_init_custom])
 		LIBS="$save_LIBS"
-	], [:])
-	FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+	fi
 fi
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
@@ -2116,16 +2239,16 @@ if test x$maxnodes = x0 ; then
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
-		# we add nodes to use 3 memory disks
-		nodes=4
+		# we add nodes to use 2 memory disks
+		nodes=`expr $nmaxnumanodes + 2`
 		if test x$enable_cuda = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxcudadev`
 		fi
 		if test x$enable_opencl = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
-			# odd number.
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
 		if test x$enable_mic = xyes ; then
@@ -2317,39 +2440,44 @@ if test "x$enable_starpu_top" != "xno" ; then
 	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
 	if test x$QMAKE != xnot-found; then
 		QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
-		if test $QMAKE_VERSION -ge 2 ; then
-			PKG_CHECK_EXISTS([QtGui QtNetwork QtOpenGL QtSql], [
+		QT_VERSION=`$QMAKE --version 2>&1 | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
+		if test $QT_VERSION -ge 5 ; then
+			can_build_starpu_top=yes
+		elif test $QMAKE_VERSION -ge 2 ; then
+			PKG_CHECK_EXISTS([QtGui QtOpenGL QtSql], [
 				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
 				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
 				if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
 					can_build_starpu_top=yes
 				fi
-				QWT_PRI=embed
-				AC_ARG_WITH(qwt-include-dir,
-					[AS_HELP_STRING([--with-qwt-include-dir=<path>],
-					[specify installed libqwt include path])],
-					[
-						STARPU_QWT_INCLUDE="$withval"
-						AC_SUBST(STARPU_QWT_INCLUDE)
-						QWT_PRI=system
-					])
-				AC_ARG_WITH(qwt-lib-dir,
-					[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
-					[specify installed libqwt library path])],
-					[
-						STARPU_QWT_LDFLAGS="-L$withval"
-						QWT_PRI=system
-					])
-				AC_ARG_WITH(qwt-lib,
-					[AS_HELP_STRING([--with-qwt-lib=<name>],
-					[specify installed libqwt library name])],
-					[
-						STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
-						QWT_PRI=system
-					])
-				AC_SUBST(STARPU_QWT_LDFLAGS)
-				AC_SUBST(QWT_PRI)
 			])
+		fi
+		if test x$can_build_starpu_top = xyes; then
+			QWT_PRI=embed
+			AC_ARG_WITH(qwt-include-dir,
+				[AS_HELP_STRING([--with-qwt-include-dir=<path>],
+				[specify installed libqwt include path])],
+				[
+					STARPU_QWT_INCLUDE="$withval"
+					AC_SUBST(STARPU_QWT_INCLUDE)
+					QWT_PRI=system
+				])
+			AC_ARG_WITH(qwt-lib-dir,
+				[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
+				[specify installed libqwt library path])],
+				[
+					STARPU_QWT_LDFLAGS="-L$withval"
+					QWT_PRI=system
+				])
+			AC_ARG_WITH(qwt-lib,
+				[AS_HELP_STRING([--with-qwt-lib=<name>],
+				[specify installed libqwt library name])],
+				[
+					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
+					QWT_PRI=system
+				])
+			AC_SUBST(STARPU_QWT_LDFLAGS)
+			AC_SUBST(QWT_PRI)
 		fi
 	fi
 fi
@@ -2439,18 +2567,25 @@ AC_SUBST([pkglibdir])
 
 AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
 			[disable build of fortran examples])],
-			enable_build_fortran=$enableval, enable_build_fortran=yes)
+			enable_build_fortran_requested=$enableval, enable_build_fortran_requested=yes)
 use_mpi_fort=no
-if test "x$FC" != "x"; then
-	if $FC --version|grep -q 'GNU Fortran'; then
-		gfortran_fc_version=`$FC --version|head -1|sed 's/.*)//;s/^.*\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\)\.\([[0-9]][[0-9]]*\).*/\1.\2.\3/'`
-		gfortran_maj_version=`echo $gfortran_fc_version|cut -d. -f1`
-		gfortran_min_version=`echo $gfortran_fc_version|cut -d. -f2`
-
-		if test $gfortran_maj_version -lt 4 -o \( $gfortran_maj_version -eq 4 -a $gfortran_min_version -lt 9 \) ; then
-			AC_MSG_WARN([GFortran $gfortran_fc_version too old, version >= 4.9.x needed, Fortran examples will not be built])
-			enable_build_fortran="no"
-		fi
+enable_build_fortran=no
+if test "x$enable_build_fortran_requested" = "xyes" ; then
+   if test "x$FC" != "x"; then
+   	if $FC --version|grep -q 'GNU Fortran'; then
+		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+     	         #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+                 int dummy;
+                 #else
+                 #error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
+                 #endif
+                 ]],
+                 )],
+                 [enable_build_fortran="yes"],
+                 [enable_build_fortran="no"])
+                 if test "$enable_build_fortran" = "no" ; then
+                   AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
+                 fi
 	else
 		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
 			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
@@ -2520,6 +2655,7 @@ if test "x$FC" != "x"; then
 			fi
 		fi
 	fi
+   fi
 fi
 if test "x$enable_build_fortran" = "xyes" ; then
    if test "x$FC" = "x" ; then
@@ -2916,7 +3052,9 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 			else
 				AC_MSG_RESULT(no)
 				AC_MSG_CHECKING(min-dgels source)
-				cp -r $srcdir/min-dgels $PWD/
+				if test ! -d $PWD/min-dgels; then
+					cp -r $srcdir/min-dgels $PWD/
+				fi
 				AC_MSG_RESULT(yes)
 				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
 				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
@@ -3198,6 +3336,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
+  mkdir -p tests/overlap
+  test -e tests/overlap/overlap.sh || ln -sf $ac_abs_top_srcdir/tests/overlap/overlap.sh tests/overlap/
   mkdir -p tests/model-checking
   test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
   test -e tests/model-checking/barrier.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/barrier.sh tests/model-checking/
@@ -3205,6 +3345,10 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
+  test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
+  test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
+  test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
+  chmod +x tools/starpu_trace_state_stats.py
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3223,18 +3367,6 @@ AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
-
-AH_BOTTOM([
-#if defined(STARPU_DEVEL) && defined(BUILDING_STARPU)
-#  ifndef STARPU_CHECKED_UNISTD_H
-#    define STARPU_CHECKED_UNISTD_H
-#    ifdef _UNISTD_H
-#      define _UNISTD_H PLEASE_DONT_INCLUDE_IT
-#      error Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H
-#    endif
-#  endif
-#endif
-])
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
@@ -3355,6 +3487,7 @@ AC_MSG_NOTICE([
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
+	       StarPU DSM enabled:                            $enable_dsm
 	       FFT Support:                                   $fft_support
 	       GCC plug-in:                                   $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
@@ -3383,4 +3516,13 @@ then
 WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
 performance may be impacted a lot.  It is strongly recommended to install
 hwloc])
+fi
+
+if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x"
+then
+  AC_MSG_NOTICE([
+WARNING: lib was not found, you will not be able to build StarPU applications
+with Microsoft Visual Studio. Add to your PATH the directories for MSVC, e.g
+   c:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE;
+   c:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin])
 fi

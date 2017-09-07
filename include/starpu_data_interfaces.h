@@ -137,6 +137,8 @@ struct starpu_data_interface_ops
 
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+	char *name;
 };
 
 int starpu_data_interface_get_next_id(void);
@@ -480,6 +482,8 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 starpu_data_handle_t starpu_data_lookup(const void *ptr);
+
+int starpu_data_get_home_node(starpu_data_handle_t handle);
 
 #ifdef __cplusplus
 }

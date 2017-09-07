@@ -21,6 +21,9 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+	if (RUNNING_ON_VALGRIND)
+		return STARPU_TEST_SKIPPED;
+
 	disable_coredump();
 
 	ret = starpu_init(NULL);

@@ -27,6 +27,7 @@ extern "C"
 #endif
 
 #include <datawizard/copy_driver.h>
+#include <datawizard/malloc.h>
 
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size) STARPU_ATTRIBUTE_MALLOC;
@@ -49,7 +50,7 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel);
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel);
 
 /* interface to compare memory disk */
-int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);
+int _starpu_disk_can_copy(unsigned node1, unsigned node2);
 
 /* change disk flag */
 

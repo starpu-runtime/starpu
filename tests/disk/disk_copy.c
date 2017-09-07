@@ -138,7 +138,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 		FPRINTF(stderr, "TEST SUCCESS\n");
 	else
 		FPRINTF(stderr, "TEST FAIL\n");
-	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
+	return try ? EXIT_SUCCESS : EXIT_FAILURE;
 
 enodev:
 	return STARPU_TEST_SKIPPED;
@@ -176,6 +176,9 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
+#endif
+#ifdef STARPU_HAVE_HDF5
+	ret = merge_result(ret, dotest(&starpu_disk_hdf5_ops, s));
 #endif
 
 	ret2 = rmdir(s);

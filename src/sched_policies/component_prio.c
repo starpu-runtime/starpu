@@ -64,7 +64,10 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 	struct _starpu_prio_data * data = component->data;
 	struct _starpu_prio_deque * prio = &data->prio;
 	int card = starpu_bitmap_cardinal(component->workers_in_ctx);
-	STARPU_ASSERT(card != 0);
+	if (card == 0)
+                /* Oops, no resources to compute our tasks. Let's just hope that
+                 * we will be given one at some point */
+		card = 1;
 	double estimated_end = starpu_sched_component_estimated_end_min(component);
 	estimated_end += prio->exp_len / card;
 

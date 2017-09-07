@@ -42,8 +42,8 @@ enum starpu_heteroprio_types
 	STARPU_CUDA_IDX,
 	STARPU_OPENCL_IDX,
 	STARPU_MIC_IDX,
-	STARPU_MPI_MS_IDX,
 	STARPU_SCC_IDX,
+	STARPU_MPI_MS_IDX,
 // This will be the number of archs
 	STARPU_NB_TYPES
 };

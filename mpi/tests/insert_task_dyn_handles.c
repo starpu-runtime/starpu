@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 		descrs[i].handle = data_handles[i];
 		descrs[i].mode = STARPU_RW;
 	}
-	if (rank == 1) factor=FFACTOR;
+	if (rank == 1)
+		factor=FFACTOR;
 	starpu_variable_data_register(&factor_handle, STARPU_MAIN_RAM, (uintptr_t)&factor, sizeof(factor));
 	starpu_mpi_data_register(factor_handle, FFACTOR, 1);
 
@@ -113,14 +114,16 @@ int main(int argc, char **argv)
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+15,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 

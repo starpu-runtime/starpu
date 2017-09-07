@@ -65,7 +65,8 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (rank != 0 && rank != 1) goto end;
+	if (rank != 0 && rank != 1)
+		goto end;
 
 	if (rank == 0)
 	{

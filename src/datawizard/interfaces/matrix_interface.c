@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -110,7 +110,8 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.display = display_matrix_interface,
 	.pack_data = pack_matrix_handle,
 	.unpack_data = unpack_matrix_handle,
-	.describe = describe
+	.describe = describe,
+	.name = "STARPU_MATRIX_INTERFACE"
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -173,7 +174,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
                 .offset = 0
 	};
 #ifndef STARPU_SIMGRID
-	if (home_node == STARPU_MAIN_RAM)
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
 		STARPU_ASSERT_ACCESSIBLE(ptr);
 		STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);
@@ -210,9 +211,9 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((matrix_a->nx == matrix_b->nx)
-			&& (matrix_a->ny == matrix_b->ny)
-			&& (matrix_a->elemsize == matrix_b->elemsize));
+	return (matrix_a->nx == matrix_b->nx)
+		&& (matrix_a->ny == matrix_b->ny)
+		&& (matrix_a->elemsize == matrix_b->elemsize);
 }
 
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)

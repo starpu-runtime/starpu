@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2016  Université de Bordeaux
+# Copyright (C) 2013-2017  Université de Bordeaux
 # Copyright (C) 2012       CNRS
 # Copyright (C) 2012, 2017       INRIA
 #
@@ -97,10 +97,9 @@
 }
 
 {
-   mc / handle locking order. We always take handle before mc, except when we tidy memory, where we use trylock, but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
    Helgrind:LockOrder
    fun:mutex_trylock_WRK
-   fun:__starpu_spin_trylock
    ...
 }
 

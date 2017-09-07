@@ -27,12 +27,12 @@
 
 static int TAG_LOAD(int n)
 {
-	return ((n+1) << 24);
+	return (n+1) << 24;
 }
 
 static int TAG_MOV(int n)
 {
-	return ((n+1) << 20);
+	return (n+1) << 20;
 }
 
 /* Hash table of local pieces of data that has been moved out of the local MPI
@@ -96,14 +96,14 @@ static void balance(starpu_data_handle_t load_data_cpy)
 {
 	int less_loaded = -1;
 	int n;
-	double elapsed_time, ref_elapsed_time;
+	double ref_elapsed_time;
 	double my_elapsed_time = load_data_get_elapsed_time(load_data_cpy);
 
 	/* Search for the less loaded neighbor */
 	ref_elapsed_time = my_elapsed_time;
 	for (n = 0; n < nneighbors; n++)
 	{
-		elapsed_time = load_data_get_elapsed_time(neighbor_load_data_handles[n]);
+		double elapsed_time = load_data_get_elapsed_time(neighbor_load_data_handles[n]);
 		if (ref_elapsed_time > elapsed_time)
 		{
 			//fprintf(stderr,"Node%d: ref local time %lf vs neighbour%d time %lf\n", my_rank, ref_elapsed_time, neighbor_ids[n], elapsed_time);
@@ -418,7 +418,7 @@ static int init_heat(struct starpu_mpi_lb_conf *itf)
 	}
 
 	_STARPU_MPI_MALLOC(user_itf, sizeof(struct starpu_mpi_lb_conf));
-	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));;
+	memcpy(user_itf, itf, sizeof(struct starpu_mpi_lb_conf));
 
 	/* Get the neighbors of the local MPI node */
 	user_itf->get_neighbors(&neighbor_ids, &nneighbors);

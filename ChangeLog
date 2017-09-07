@@ -27,6 +27,7 @@ New features:
     --enable-mpi-master-slave option to activate it.
   * Add STARPU_CUDA_THREAD_PER_DEV environment variable to support driving all
     GPUs from only one thread when almost all kernels are asynchronous.
+  * Add starpu_replay tool to replay tasks.rec files with Simgrid.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
@@ -46,14 +47,21 @@ Small features:
   * Add a field starpu_task::where similar to starpu_codelet::where
     which allows to restrict where to execute a task. Also add
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
+  * Add SubmitOrder trace field.
+  * Add workerids and workerids_len task fields.
+  * Add priority management to StarPU-MPI.
+  * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
+    variables.
 
 Changes:
   * Vastly improve simgrid simulation time.
+  * Switch default scheduler to lws.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
   * Allow to call starpu_sched_ctx_set_policy_data on the main
     scheduler context
+  * Fonction starpu_is_initialized() is moved to the public API.
 
 StarPU 1.2.2 (svn revision xxx)
 ==============================================
@@ -70,6 +78,7 @@ New features:
     STARPU_TASK_BREAK_ON_EXEC environment variables, with the job_id
     of a task. StarPU will raise SIGTRAP when the task is being
     scheduled, pushed, or popped by the scheduler.
+  * Add per-node MPI data.
 
 Small features:
   * New function starpu_worker_get_job_id(struct starpu_task *task)
@@ -78,6 +87,10 @@ Small features:
   * MPI: Add mpi communications in dag.dot
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CPU environment variable to
     allow having one perfmodel per CPU core
+  * Add starpu_vector_filter_list_long filter.
+  * Add starpu_perfmodel_arch_comb_fetch function.
+  * Add STARPU_WATCHDOG_DELAY environment variable.
+  * Add starpu_mpi_get_data_on_all_nodes_detached function.
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

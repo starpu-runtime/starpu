@@ -45,7 +45,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 	 * that can execute task.
 	 */
 	int indexes_components[component->nchildren];
-	int size=0;
+	unsigned size=0;
 
 	/* speedup[i] is revelant only if i is in the size firsts elements of
 	 * indexes_components
@@ -54,7 +54,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 
 	double alpha_sum = 0.0;
 
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren ; i++)
 	{
 		if(starpu_sched_component_can_execute_task(component->children[i],task))

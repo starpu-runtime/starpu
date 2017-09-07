@@ -428,7 +428,9 @@ QwtThermo::ScalePos QwtThermo::scalePosition() const
 //! Notify a font change.
 void QwtThermo::fontChange( const QFont &f )
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     QWidget::fontChange( f );
+#endif
     layoutThermo();
 }
 

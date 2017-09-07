@@ -25,7 +25,7 @@
 
 
 unsigned val[2];
-pthread_mutex_t mut[2];
+starpu_pthread_mutex_t mut[2];
 
 /* Every implementation of a codelet must have this prototype, the first                                                                                                                                             * argument (buffers) describes the buffers/streams that are managed by the
  * DSM; the second arguments references read-only data that is passed as an
@@ -39,9 +39,9 @@ void cpu_func(__attribute__((unused))void *buffers[], void *cl_arg)
 	int i;
 	for(i = 0; i < NINCR; i++)
 	{
-		pthread_mutex_lock(&mut[sched_ctx - 1]);
+		STARPU_PTHREAD_MUTEX_LOCK(&mut[sched_ctx - 1]);
 		val[sched_ctx - 1]++;
-		pthread_mutex_unlock(&mut[sched_ctx - 1]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mut[sched_ctx - 1]);
 	}
 }
 
@@ -91,12 +91,12 @@ int main()
 	struct sc_hypervisor_policy policy;
 	policy.custom = 0;
 	/* indicate which strategy to use
-	   in this particular case we use app_driven which allows the user to resize 
+	   in this particular case we use app_driven which allows the user to resize
 	   the ctxs dynamically at particular moments of the execution of the application */
 	policy.name = "feft_lp";
 	void *perf_counters = sc_hypervisor_init(&policy);
 
-	/* let starpu know which performance counters should use 
+	/* let starpu know which performance counters should use
 	   to inform the hypervisor how the application and the resources are executing */
 	starpu_sched_ctx_set_perf_counters(sched_ctx1, perf_counters);
 	starpu_sched_ctx_set_perf_counters(sched_ctx2, perf_counters);
@@ -116,15 +116,15 @@ int main()
 
 	val[0] = 0;
 	val[1] = 0;
-	pthread_mutex_init(&mut[0], NULL);
-	pthread_mutex_init(&mut[1], NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut[0], NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mut[1], NULL);
 
 	/* we create two threads to simulate simultaneous submission of tasks */
-	starpu_pthread_create(&tid[0], NULL, submit_tasks_thread, (void*)&sched_ctx1);
-	starpu_pthread_create(&tid[1], NULL, submit_tasks_thread, (void*)&sched_ctx2);
+	STARPU_PTHREAD_CREATE(&tid[0], NULL, submit_tasks_thread, (void*)&sched_ctx1);
+	STARPU_PTHREAD_CREATE(&tid[1], NULL, submit_tasks_thread, (void*)&sched_ctx2);
 
-	starpu_pthread_join(tid[0], NULL);
-	starpu_pthread_join(tid[1], NULL);
+	STARPU_PTHREAD_JOIN(tid[0], NULL);
+	STARPU_PTHREAD_JOIN(tid[1], NULL);
 
 	/* free starpu and hypervisor data */
 	starpu_shutdown();

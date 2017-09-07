@@ -119,12 +119,12 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 		+ d->_gamma * d->idle_power * (exp_end - max_exp_end);
 }
 
-int starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
-				       double *estimated_lengths, double *estimated_transfer_length, int *suitable_components) 
+unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
+				       double *estimated_lengths, double *estimated_transfer_length, unsigned *suitable_components) 
 {
-	int nsuitable_components = 0;
+	unsigned nsuitable_components = 0;
 
-	int i;
+	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];
@@ -134,7 +134,7 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 				/* The perfmodel had been purged since the task was pushed
 				 * onto the mct component. */
 				continue;
-			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%d]=%p, estimated_lengths[%d]=%lf\n", component, i, c, i, estimated_lengths[i]);
+			STARPU_ASSERT_MSG(estimated_lengths[i]>=0, "component=%p, child[%u]=%p, estimated_lengths[%u]=%lf\n", component, i, c, i, estimated_lengths[i]);
 
 			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
 			suitable_components[nsuitable_components++] = i;
@@ -145,13 +145,13 @@ int starpu_mct_compute_execution_times(struct starpu_sched_component *component,
 
 void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-				       double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components, int nsuitable_components)
+				       double *min_exp_end_with_task, double *max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components)
 {
-	int i;
+	unsigned i;
 	double now = starpu_timing_now();
 	for(i = 0; i < nsuitable_components; i++)
 	{
-		int icomponent = suitable_components[i];
+		unsigned icomponent = suitable_components[i];
 		struct starpu_sched_component * c = component->children[icomponent];
 		/* Estimated availability of worker */
 		double estimated_end = c->estimated_end(c);

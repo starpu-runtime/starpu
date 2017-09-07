@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015 Université de Bordeaux
+ * Copyright (C) 2015, 2017 Université de Bordeaux
  * Copyright (C) 2015 INRIA
  * Copyright (C) 2015 CNRS
  *
@@ -60,6 +60,10 @@ int main(int argc, char **argv)
 	int ntasks = NTASKS;
 	int ret, i;
 	struct starpu_cluster_machine *clusters;
+
+	setenv("STARPU_NMIC","0",1);
+	setenv("STARPU_NSCC","0",1);
+	setenv("STARPU_NMPI_MS","0",1);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)

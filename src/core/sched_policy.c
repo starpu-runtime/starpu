@@ -195,7 +195,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 		return selected_policy;
 
 	/* If no policy was specified, we use the eager policy by default */
-	return &_starpu_sched_eager_policy;
+	return &_starpu_sched_lws_policy;
 }
 
 void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, struct starpu_sched_policy *selected_policy)
@@ -1049,17 +1049,18 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 	{
 		int workerid = starpu_worker_get_id();
 		struct _starpu_worker *worker =  _starpu_get_worker_struct(workerid);
-		struct _starpu_sched_ctx *other_sched_ctx;
-		struct _starpu_sched_ctx_elt *e = NULL;
 		struct _starpu_sched_ctx_list_iterator list_it;
-		
+
 		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
+			struct _starpu_sched_ctx *other_sched_ctx;
+			struct _starpu_sched_ctx_elt *e = NULL;
+
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
-			if (other_sched_ctx != sched_ctx && 
-			    other_sched_ctx->sched_policy != NULL && 
+			if (other_sched_ctx != sched_ctx &&
+			    other_sched_ctx->sched_policy != NULL &&
 			    other_sched_ctx->sched_policy->pre_exec_hook)
 			{
 				_STARPU_SCHED_BEGIN;
@@ -1086,17 +1087,18 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	{
 		int workerid = starpu_worker_get_id();
 		struct _starpu_worker *worker =  _starpu_get_worker_struct(workerid);
-		struct _starpu_sched_ctx *other_sched_ctx;
-		struct _starpu_sched_ctx_elt *e = NULL;
 		struct _starpu_sched_ctx_list_iterator list_it;
-		
+
 		_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
+			struct _starpu_sched_ctx *other_sched_ctx;
+			struct _starpu_sched_ctx_elt *e = NULL;
+
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
-			if (other_sched_ctx != sched_ctx && 
-			    other_sched_ctx->sched_policy != NULL && 
+			if (other_sched_ctx != sched_ctx &&
+			    other_sched_ctx->sched_policy != NULL &&
 			    other_sched_ctx->sched_policy->post_exec_hook)
 			{
 				_STARPU_SCHED_BEGIN;

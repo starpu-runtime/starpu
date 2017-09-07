@@ -157,7 +157,7 @@ examplebin_PROGRAMS 	+=	$(STARPU_EXAMPLES)
 
 TESTS			=	$(STARPU_EXAMPLES)
 
-if STARPU_NEW_CHECK
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS			+=	scheduler/schedulers.sh
 TESTS			+=	scheduler/schedulers_context.sh
 endif
@@ -218,6 +218,7 @@ STARPU_EXAMPLES +=				\
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
+	cpp/add_vectors_interface		\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
@@ -245,7 +246,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction		
+	reductions/minmax_reduction
 
 endif
 
@@ -375,10 +376,14 @@ basic_examples_vector_scal_SOURCES =		\
 
 if STARPU_HAVE_ICC
 if STARPU_CROSS_COMPILING
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 else
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(ICC) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 endif
+else
+basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 endif
 
 if STARPU_USE_CUDA
@@ -874,6 +879,9 @@ endif
 
 cpp_add_vectors_SOURCES	=	\
 	cpp/add_vectors.cpp
+
+cpp_add_vectors_interface_SOURCES	=	\
+	cpp/add_vectors_interface.cpp
 
 if STARPU_HAVE_CXX11
 cpp_add_vectors_cpp11_SOURCES	=	\

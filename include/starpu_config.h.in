@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014  INRIA
+ * Copyright (C) 2014, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,6 +88,7 @@
 #undef STARPU_MAXNODES
 #undef STARPU_NMAXBUFS
 #undef STARPU_MAXCPUS
+#undef STARPU_MAXNUMANODES
 #undef STARPU_MAXCUDADEVS
 #undef STARPU_MAXOPENCLDEVS
 #undef STARPU_MAXMICDEVS
@@ -107,6 +108,7 @@
 #undef STARPU_HAVE_SETENV
 #undef STARPU_HAVE_UNSETENV
 #undef STARPU_HAVE_UNISTD_H
+#undef STARPU_HAVE_HDF5
 
 #undef STARPU_FXT_LOCK_TRACES
 

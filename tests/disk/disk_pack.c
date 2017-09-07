@@ -41,7 +41,7 @@ int main(int argc, char **argv)
  * Here we force using the pack/unpack mechanism
  */
 
-#define NX (1024)
+#define NX (16*1024)
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
@@ -236,7 +236,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 		FPRINTF(stderr, "TEST SUCCESS\n");
 	else
 		FPRINTF(stderr, "TEST FAIL\n");
-	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
+	return try ? EXIT_SUCCESS : EXIT_FAILURE;
 
 enodev:
 	return STARPU_TEST_SKIPPED;

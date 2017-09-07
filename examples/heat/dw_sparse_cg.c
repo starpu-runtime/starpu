@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,21 +127,24 @@ void init_problem(void)
  *	cg initialization phase
  */
 
-static struct starpu_codelet cl1 = {
+static struct starpu_codelet cl1 =
+{
 	.cpu_funcs = { cpu_codelet_func_1 },
 	.cpu_funcs_name = { "cpu_codelet_func_1" },
 	.nbuffers = 4,
 	.modes = { STARPU_R, STARPU_R, STARPU_W, STARPU_R },
 };
 
-static struct starpu_codelet cl2 = {
+static struct starpu_codelet cl2 =
+{
 	.cpu_funcs = { cpu_codelet_func_2 },
 	.cpu_funcs_name = { "cpu_codelet_func_2" },
 	.nbuffers = 2,
 	.modes = { STARPU_W, STARPU_R },
 };
 
-static struct starpu_codelet cl3 = {
+static struct starpu_codelet cl3 =
+{
 	.cpu_funcs = { cpu_codelet_func_3 },
 	.cpu_funcs_name = { "cpu_codelet_func_3" },
 #ifdef STARPU_USE_CUDA
@@ -205,14 +208,16 @@ void init_cg(struct cg_problem *problem)
  *		the codelet code launcher is its own callback !
  */
 
-static struct starpu_codelet cl4 = {
+static struct starpu_codelet cl4 =
+{
 	.cpu_funcs = { cpu_codelet_func_4 },
 	.cpu_funcs_name = { "cpu_codelet_func_4" },
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_W },
 };
 
-static struct starpu_codelet cl5 = {
+static struct starpu_codelet cl5 =
+{
 	.cpu_funcs = { cpu_codelet_func_5 },
 	.cpu_funcs_name = { "cpu_codelet_func_5" },
 #ifdef STARPU_USE_CUDA
@@ -222,7 +227,8 @@ static struct starpu_codelet cl5 = {
 	.modes = { STARPU_R, STARPU_R },
 };
 
-static struct starpu_codelet cl6 = {
+static struct starpu_codelet cl6 =
+{
 	.cpu_funcs = { cpu_codelet_func_6 },
 	.cpu_funcs_name = { "cpu_codelet_func_6" },
 #ifdef STARPU_USE_CUDA
@@ -233,7 +239,8 @@ static struct starpu_codelet cl6 = {
 	.modes = { STARPU_RW, STARPU_R },
 };
 
-static struct starpu_codelet cl7 = {
+static struct starpu_codelet cl7 =
+{
 	.cpu_funcs = { cpu_codelet_func_7 },
 	.cpu_funcs_name = { "cpu_codelet_func_7" },
 #ifdef STARPU_USE_CUDA
@@ -244,7 +251,8 @@ static struct starpu_codelet cl7 = {
 	.modes = { STARPU_RW, STARPU_R },
 };
 
-static struct starpu_codelet cl8 = {
+static struct starpu_codelet cl8 =
+{
 	.cpu_funcs = { cpu_codelet_func_8 },
 	.cpu_funcs_name = { "cpu_codelet_func_8" },
 #ifdef STARPU_USE_CUDA
@@ -254,7 +262,8 @@ static struct starpu_codelet cl8 = {
 	.modes = { STARPU_R },
 };
 
-static struct starpu_codelet cl9 = {
+static struct starpu_codelet cl9 =
+{
 	.cpu_funcs = { cpu_codelet_func_9 },
 	.cpu_funcs_name = { "cpu_codelet_func_9" },
 #ifdef STARPU_USE_CUDA
@@ -438,6 +447,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	starpu_task_wait_for_all();
 
 	print_results(vecx, nrow);
 

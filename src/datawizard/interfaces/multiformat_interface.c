@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  INRIA
- * Copyright (C) 2012, 2013, 2014, 2016       CNRS
+ * Copyright (C) 2012, 2013, 2014, 2016, 2017       CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -225,18 +225,18 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_multiformat_interface *multiformat_a = (struct starpu_multiformat_interface *) data_interface_a;
 	struct starpu_multiformat_interface *multiformat_b = (struct starpu_multiformat_interface *) data_interface_b;
 
-	return ((multiformat_a->nx == multiformat_b->nx)
-			&& (multiformat_a->ops->cpu_elemsize == multiformat_b->ops->cpu_elemsize)
+	return (multiformat_a->nx == multiformat_b->nx)
+		&& (multiformat_a->ops->cpu_elemsize == multiformat_b->ops->cpu_elemsize)
 #ifdef STARPU_USE_CUDA
-			&& (multiformat_a->ops->cuda_elemsize == multiformat_b->ops->cuda_elemsize)
+		&& (multiformat_a->ops->cuda_elemsize == multiformat_b->ops->cuda_elemsize)
 #endif
 #ifdef STARPU_USE_OPENCL
-			&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
+		&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
 #endif
 #ifdef STARPU_USE_MIC
-		    && (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
+		&& (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
 #endif
-		);
+		;
 }
 
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)

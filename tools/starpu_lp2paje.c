@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2010-2011, 2013-2014, 2017  Université de Bordeaux
  * Copyright (C) 2014, 2015, 2016, 2017                  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 	{
 		if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
 		{
-			fprintf(stderr, PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n");
+			fprintf(stderr, "%s (%s) %s\n", PROGNAME, PACKAGE_NAME, PACKAGE_VERSION);
 			exit(EXIT_SUCCESS);
 		}
 		fprintf(stderr, "Convert schedule optimized by lp into the Paje format\n\n");
 		fprintf(stderr, "Usage: lp_solve file.lp | %s > paje.trace\n", PROGNAME);
-		fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+		fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
 		fprintf(stderr, "\n");
 		exit(EXIT_SUCCESS);
 	}
@@ -58,7 +58,9 @@ int main(int argc, char *argv[])
 	assert(scanf("Actual values of the variables:\n") == 0);
 	assert(scanf("tmax %lf\n", &tmax) == 1);
 	assert(scanf("nt %d\n", &nt) == 1);
+	assert(nt >= 0);
 	assert(scanf("nw %d\n", &nw) == 1);
+	assert(nw >= 0);
 	printf(
 "%%EventDef PajeDefineContainerType 1\n"
 "%%  Alias         string\n"

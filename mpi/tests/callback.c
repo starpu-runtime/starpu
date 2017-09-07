@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015  CNRS
+ * Copyright (C) 2013, 2014, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,8 @@ int main(int argc, char **argv)
 	int rank, size;
 
 	ret = starpu_initialize(NULL, &argc, &argv);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = starpu_mpi_init(&argc, &argv, 1);
@@ -87,7 +88,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	if (rank == 0) expected_x ++;
+	if (rank == 0)
+		expected_x ++;
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
 				     NULL,
 				     STARPU_EXECUTE_ON_NODE, 0,
@@ -96,7 +98,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	if (rank == 0) expected_x ++;
+	if (rank == 0)
+		expected_x ++;
 	STARPU_ASSERT_MSG(x == expected_x, "x should be equal to %d and not %d\n", expected_x, x);
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
@@ -107,7 +110,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	if (rank == 0) expected_y ++;
+	if (rank == 0)
+		expected_y ++;
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
 				     &my_codelet,
 				     STARPU_EXECUTE_ON_NODE, 0,
@@ -117,7 +121,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
-	if (rank == 0) expected_y ++;
+	if (rank == 0)
+		expected_y ++;
 	STARPU_ASSERT_MSG(y == expected_y, "y should be equal to %d and not %d\n", expected_y, y);
 
 	starpu_mpi_shutdown();

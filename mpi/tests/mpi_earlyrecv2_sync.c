@@ -223,13 +223,16 @@ int main(int argc, char **argv)
 	}
 
 	ret = exchange_variable(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_void(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_complex(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	MPI_Finalize();
 

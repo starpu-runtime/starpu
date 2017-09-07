@@ -34,7 +34,7 @@ static void usage()
 	fprintf(stderr, "\t-i, --info       display the name of the files containing the information\n");
 	fprintf(stderr, "\t-f, --force      force bus sampling and show measures \n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+	fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }
 
 static void display_combined_worker(unsigned workerid)

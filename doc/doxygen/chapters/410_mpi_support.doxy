@@ -542,6 +542,12 @@ Here we have disabled the kernel function call to skip the actual computation
 time and only keep submission time, and we have asked StarPU to fake running on
 MPI node 2 out of 1024 nodes.
 
+To tune the placement of tasks among MPI nodes, one can use
+::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
+node, or the node of a given data (e.g. one of the parameters), or use
+starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
+to provide a dynamic policy.
+
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
 function, only the node which is to execute the task will return a
@@ -562,6 +568,105 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            STARPU_R, data_handles[1],
                            0);
 \endcode
+
+\section MPITemporaryData Temporary Data
+
+To be able to use starpu_mpi_task_insert(), one has to call
+starpu_mpi_data_register(), so that StarPU-MPI can know what it needs to do for
+each data. Parameters of starpu_mpi_data_register() are normally the same on all
+nodes for a given data, so that all nodes agree on which node owns the data, and
+which tag is used to transfer its value.
+
+It can however be useful to register e.g. some temporary data on just one node,
+without having to register a dumb handle on all nodes, while only one node will
+actually need to know about it. In that case, nodes which will not need the data
+can just pass NULL to starpu_mpi_task_insert():
+
+\code{.c}
+starpu_data_handle_t data0 = NULL;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, 0, rank);
+}
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data0, 0); /* Executes on node 0 */
+\endcode
+
+Here, nodes whose rank is not 0 will simply not take care of the data, and consider it to be on another node.
+
+This can be mixed various way, for instance here node 1 determines that it does
+not have to care about data0, but knows that it should send the value of its
+data1 to node 0, which owns data and thus will need the value of data1 to execute the task:
+
+\code{.c}
+starpu_data_handle_t data0 = NULL, data1, data;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, -1, rank);
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+	starpu_variable_data_register(&data, -1, 0, sizeof(val));
+}
+starpu_mpi_data_register(data, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
+\endcode
+
+\section MPIPerNodeData Per-node Data
+
+Further than temporary data on just one node, one may want per-node data,
+to e.g. replicate some computation because that is less expensive than
+communicating the value over MPI:
+
+\code{.c}
+starpu_data_handle pernode, data0, data1;
+starpu_variable_data_register(&pernode, -1, 0, sizeof(val));
+starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
+
+/* Normal data: one on node0, one on node1 */
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+}
+starpu_mpi_data_register(data0, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, pernode, 0); /* Will be replicated on all nodes */
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data0, STARPU_R, pernode); /* Will execute on node 0, using its own pernode*/
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data1, STARPU_R, pernode); /* Will execute on node 1, using its own pernode*/
+\endcode
+
+One can turn a normal data into pernode data, by first broadcasting it to all nodes:
+
+\code{.c}
+starpu_data_handle data;
+starpu_variable_data_register(&data, -1, 0, sizeof(val));
+starpu_mpi_data_register(data, 42, 0);
+
+/* Compute some value */
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, 0); /* Node 0 computes it */
+
+/* Get it on all nodes */
+starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, data);
+/* And turn it per-node */
+starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
+\endcode
+
+The data can then be used just like pernode above.
+
+\section MPIPriorities Priorities
+
+All send functions have a <c>_prio</c> variant which takes an additional
+priority parameter, which allows to make StarPU-MPI change the order of MPI
+requests before submitting them to MPI. The default priority is 0.
+
+When using the starpu_mpi_task_insert helper, STARPU_PRIORITY defines both the
+task priority and the MPI requests priority.
 
 \section MPICache MPI cache support
 
@@ -769,27 +874,38 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 
 \section MPIMasterSlave MPI Master Slave Support
 
-StarPU includes an other way to execute the application across many nodes. The Master
-Slave support permits to use remote cores without thinking about data distribution. This
-support can be activated with the \ref enable-mpi-master-slave "--enable-mpi-master-slave". However, you should not activate
-both MPI support and MPI Master-Slave support.
+StarPU provides an other way to execute applications across many
+nodes. The Master Slave support permits to use remote cores without
+thinking about data distribution. This support can be activated with
+the configure option \ref enable-mpi-master-slave
+"--enable-mpi-master-slave". However, you should not activate both MPI
+support and MPI Master-Slave support.
 
 If a codelet contains a kernel for CPU devices, it is automatically eligible to be executed
-on a MPI Slave device. However, you can decide to execute the codelet on a MPI Slave by filling
-the \ref starpu_codelet::mpi_ms_funcs variable. The functions have to be globally-visible (i.e. not static ) for
-StarPU to be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or <c>-export-dynamic</c> to ld)
-so that symbols of the main program are visible.
+on a MPI Slave device. Moreover, you can force the execution on a MPI Slave by setting
+the field \ref starpu_codelet::mpi_ms_funcs. Functions have to be
+globally-visible (i.e. not static) for StarPU to be able to look them
+up, and <c>-rdynamic</c> must be passed to gcc (or
+<c>-export-dynamic</c> to ld) so that symbols of the main program are
+visible.
 
-By default, one core is dedicated on the master to manage the entire set of slaves. If MPI
-has a good multiple threads support, you can use \ref with-mpi-master-slave-multiple-thread "--with-mpi-master-slave-multiple-thread"  to
-dedicate one core per slave.
+By default, one core is dedicated on the master node to manage the
+entire set of slaves. If the implementation of MPI you are using has a
+good multiple threads support, you can use the configure option
+\ref with-mpi-master-slave-multiple-thread "--with-mpi-master-slave-multiple-thread"
+to dedicate one core per slave.
 
-If you want to chose the number of cores on the slave device, use the \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
-with <c>\<number\></c> is the number of cores wanted. The default value is all the slave's cores. To select
-the number of slaves nodes, change the <c>-n</c> parameter when executing the application with mpirun
-or mpiexec.
+Choosing the number of cores on each slave device is done by setting
+the environment variable \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
+with <c>\<number\></c> being the requested number of cores. By default
+all the slave's cores are used.
 
-The node chosen by default is the with the MPI rank 0. To modify this, use the environment variable
-\ref STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with <c>\<number\></c> is the MPI rank wanted.
+Setting the number of slaves nodes is done by changing the <c>-n</c>
+parameter when executing the application with mpirun or mpiexec.
+
+The master node is by default the node with the MPI rank equal to 0.
+To select another node, use the environment variable \ref
+STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
+<c>\<number\></c> being the requested MPI rank node.
 
 */

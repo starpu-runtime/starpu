@@ -55,6 +55,9 @@ static starpu_pthread_key_t current_task_key;
 static int limit_min_submitted_tasks;
 static int limit_max_submitted_tasks;
 static int watchdog_crash;
+static int watchdog_delay;
+
+#define _STARPU_TASK_MAGIC 42
 
 /* Called once at starpu_init */
 void _starpu_task_init(void)
@@ -63,6 +66,7 @@ void _starpu_task_init(void)
 	limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
 	limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
 	watchdog_crash = starpu_get_env_number("STARPU_WATCHDOG_CRASH");
+	watchdog_delay = starpu_get_env_number_default("STARPU_WATCHDOG_DELAY", 0);
 }
 
 void _starpu_task_deinit(void)
@@ -84,6 +88,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->where = -1;
 
 	/* Now we can initialise fields which recquire custom value */
+	/* Note: remember to update STARPU_TASK_INITIALIZER as well */
 #if STARPU_DEFAULT_PRIO != 0
 	task->priority = STARPU_DEFAULT_PRIO;
 #endif
@@ -98,7 +103,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->predicted_transfer = NAN;
 	task->predicted_start = NAN;
 
-	task->magic = 42;
+	task->magic = _STARPU_TASK_MAGIC;
 	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	task->flops = 0.0;
@@ -179,7 +184,7 @@ void _starpu_task_destroy(struct starpu_task *task)
 	{
 		starpu_task_clean(task);
 		/* TODO handle the case of task with detach = 1 and destroy = 1 */
-		/* TODO handle the case of non terminated tasks -> return -EINVAL */
+		/* TODO handle the case of non terminated tasks -> assertion failure, it's too dangerous to be doing something like this */
 
 		/* Does user want StarPU release cl_arg ? */
 		if (task->cl_arg_free)
@@ -566,7 +571,9 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
-			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.", task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
+			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS,
+					  "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.",
+					  task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
 
 		if (task->dyn_handles)
 		{
@@ -577,7 +584,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are valid */
-			STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already unregistered?)", handle);
+			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Provide the home interface for now if any,
@@ -617,7 +624,7 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
-	STARPU_ASSERT_MSG(task->magic == 42, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
 
 	int ret;
 	unsigned is_sync = task->synchronous;
@@ -656,10 +663,12 @@ int starpu_task_submit(struct starpu_task *task)
 		return ret;
 	}
 
-	if (!j->internal && !continuation)
+	if (!continuation)
+	{
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation)
@@ -817,6 +826,8 @@ void starpu_codelet_init(struct starpu_codelet *cl)
 	memset(cl, 0, sizeof(struct starpu_codelet));
 }
 
+#define _STARPU_CODELET_WORKER_NAME_LEN 32
+
 void starpu_codelet_display_stats(struct starpu_codelet *cl)
 {
 	unsigned worker;
@@ -834,8 +845,8 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		char name[32];
-		starpu_worker_get_name(worker, name, 32);
+		char name[_STARPU_CODELET_WORKER_NAME_LEN];
+		starpu_worker_get_name(worker, name, _STARPU_CODELET_WORKER_NAME_LEN);
 
 		fprintf(stderr, "\t%s -> %lu / %lu (%2.2f %%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
 	}
@@ -1237,19 +1248,40 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task)
 
 static starpu_pthread_t watchdog_thread;
 
+static int sleep_some(float timeout) {
+	/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
+	/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
+	float t;
+	for (t = timeout ; t > 1.; t--)
+	{
+		starpu_sleep(1.);
+		if (!_starpu_machine_is_running())
+			/* Application finished, don't bother finishing the sleep */
+			return 0;
+	}
+	/* and one final sleep (of less than 1 s) with the rest (if needed) */
+	if (t > 0.)
+		starpu_sleep(t);
+	return 1;
+}
+
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *arg)
 {
 	char *timeout_env = arg;
-	float timeout;
+	float timeout, delay;
 
 #ifdef _MSC_VER
 	timeout = ((float) _atoi64(timeout_env)) / 1000000;
 #else
 	timeout = ((float) atoll(timeout_env)) / 1000000;
 #endif
+	delay = ((float) watchdog_delay) / 1000000;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	starpu_pthread_setname("watchdog");
+
+	if (!sleep_some(delay))
+		return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())
@@ -1258,25 +1290,15 @@ static void *watchdog_func(void *arg)
 		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
-		/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
-		/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
-		float t;
-		for (t = timeout ; t > 1.; t--)
-		{
-			starpu_sleep(1.);
-			if (!_starpu_machine_is_running())
-				/* Application finished, don't bother finishing the sleep */
-				return NULL;
-		}
-		/* and one final sleep (of less than 1 s) with the rest (if needed) */
-		if (t > 0.)
-			starpu_sleep(t);
+		if (!sleep_some(timeout))
+			return NULL;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n", timeout);
+			_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n",
+				    timeout);
 			if (watchdog_crash)
 			{
 				_STARPU_MSG("Crashing the process\n");
@@ -1312,5 +1334,5 @@ void _starpu_watchdog_shutdown(void)
 	if (!timeout_env)
 		return;
 
-	starpu_pthread_join(watchdog_thread, NULL);
+	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
 }

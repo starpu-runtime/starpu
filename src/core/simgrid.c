@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2017  Université de Bordeaux
- * Copyright (C) 2016  	    Inria
- * Copyright (C) 2016, 2017  	    CNRS
+ * Copyright (C) 2016, 2017  Inria
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,7 +110,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	{
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
-		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
+		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
@@ -187,7 +187,7 @@ msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 		default:
 			STARPU_ASSERT(0);
 	}
-	snprintf(name, sizeof(name), "%s%d", prefix, worker->devid);
+	snprintf(name, sizeof(name), "%s%u", prefix, worker->devid);
 	host =  _starpu_simgrid_get_host_by_name(name);
 	STARPU_ASSERT_MSG(host, "Could not find host %s!", name);
 	return host;
@@ -241,11 +241,6 @@ static void start_simgrid(int *argc, char **argv)
 	MSG_create_environment(path);
 }
 
-struct main_args
-{
-	int argc;
-	char **argv;
-};
 static int main_ret;
 
 int do_starpu_main(int argc, char *argv[])
@@ -445,7 +440,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	unsigned workerid = (uintptr_t) starpu_pthread_getspecific(0);
+	unsigned workerid = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	struct worker_runner *w = &worker_runner[workerid];
 
 	_STARPU_DEBUG("worker runner %u started\n", workerid);
@@ -687,7 +682,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
 
-	unsigned src_dst = (uintptr_t) starpu_pthread_getspecific(0);
+	unsigned src_dst = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	unsigned src = src_dst >> 16;
 	unsigned dst = src_dst & 0xffff;
 	struct transfer_runner *t = &transfer_runner[src][dst];
@@ -957,6 +952,9 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 		case STARPU_OPENCL_RAM:
 			fmt = "OpenCL%u";
 			break;
+		case STARPU_DISK_RAM:
+			fmt = "DISK%u";
+			break;
 		default:
 			STARPU_ABORT();
 			break;
@@ -1041,8 +1039,19 @@ void _starpu_simgrid_count_ngpus(void)
 			ngpus = 0;
 			for (src2 = 1; src2 < STARPU_MAXNODES; src2++)
 			{
-				if (starpu_bus_get_id(src2, STARPU_MAIN_RAM) == -1)
+				int numa;
+				int nnumas = starpu_memory_nodes_get_numa_count();
+				int found = 0;
+				for (numa = 0; numa < nnumas; numa++)
+					if (starpu_bus_get_id(src2, numa) != -1)
+					{
+						found = 1;
+						break;
+					}
+					
+				if (!found)
 					continue;
+
 				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
 #ifdef HAVE_SG_HOST_ROUTE

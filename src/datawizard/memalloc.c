@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 #include <core/disk.h>
+#include <core/topology.h>
 #include <starpu.h>
 #include <common/uthash.h>
 
@@ -231,7 +232,8 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 		unsigned res;
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		res = may_free_subtree(child_handle, node);
-		if (!res) return 0;
+		if (!res)
+			return 0;
 	}
 
 	/* no problem was found */
@@ -381,8 +383,8 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-		if (handle && node == STARPU_MAIN_RAM)
-			_starpu_data_unregister_ram_pointer(handle);
+		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
+			_starpu_data_unregister_ram_pointer(handle, node);
 
 		_STARPU_TRACE_START_FREE(node, mc->size);
 		mc->ops->free_data_on_node(data_interface, node);
@@ -442,8 +444,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
 	if (old_replicate)
 	{
-		if (node == STARPU_MAIN_RAM)
-			_starpu_data_unregister_ram_pointer(old_replicate->handle);
+		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
@@ -526,10 +527,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else if (!(replicate && handle->per_node[node].state == STARPU_OWNER) &&
+	else if (lock_all_subtree(handle))
 	/* try to lock all the subtree */
-	         lock_all_subtree(handle))
 	{
+	    if (!(replicate && handle->per_node[node].state == STARPU_OWNER))
+	    {
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
@@ -608,16 +610,19 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 								freed = 1;
 							}
 							else
+							{
 								/* Free */
 								freed = do_free_mem_chunk(mc, node);
+							}
 						}
 					}
 				}
 			}
 		}
 
-		/* unlock the tree */
-		unlock_all_subtree(handle);
+	    }
+	    /* unlock the tree */
+	    unlock_all_subtree(handle);
 	}
 	return freed;
 }
@@ -714,7 +719,7 @@ restart:
 		if (!mc->data->is_not_important)
 			/* Important data, skip */
 			continue;
-		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1 )
+		if (mc->footprint != footprint || _starpu_data_interface_compare(data->per_node[node].data_interface, data->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
 		if (next_mc)
@@ -993,7 +998,7 @@ void starpu_memchunk_tidy(unsigned node)
 	/* Count cached allocation as being available */
 	available += mc_cache_size[node];
 
-	if (total > 0 && available >= (total * minimum_p) / 100)
+	if (total > 0 && available >= (starpu_ssize_t) (total * minimum_p) / 100)
 		/* Enough available space, do not trigger reclaiming */
 		return;
 
@@ -1153,7 +1158,7 @@ void starpu_memchunk_tidy(unsigned node)
 		{
 			char name[32];
 			_starpu_memory_node_get_name(node, name, sizeof(name));
-			_STARPU_DISP("Low memory left on node %s (%luMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (unsigned long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
+			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
 		}
 	}
 
@@ -1483,11 +1488,11 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
 
-	if (replicate->relaxed_coherency == 0 && dst_node == STARPU_MAIN_RAM)
+	if (replicate->relaxed_coherency == 0 && (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM))
 	{
 		/* We are allocating the buffer in main memory, also register it
 		 * for the gcc plugin.  */
-		void *ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+		void *ptr = starpu_data_handle_to_pointer(handle, dst_node);
 		if (ptr != NULL)
 		{
 			_starpu_data_register_ram_pointer(handle, ptr);
@@ -1614,7 +1619,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	int target = -1;
 	unsigned nnodes = starpu_memory_nodes_get_count();
 	unsigned int i;
-	double time_disk = 0;
+	double time_disk = 0.0;
 
 	for (i = 0; i < nnodes; i++)
 	{
@@ -1625,13 +1630,17 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 			/* if we can write on the disk */
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
 			{
-				/* only time can change between disk <-> main_ram
-				 * and not between main_ram <-> worker if we compare diks*/
-				double time_tmp = starpu_transfer_predict(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
-				if (target == -1 || time_disk > time_tmp)
+				unsigned numa;
+				unsigned nnumas = starpu_memory_nodes_get_numa_count();
+				for (numa = 0; numa < nnumas; numa++)
 				{
-					target = i;
-					time_disk = time_tmp;
+					/* TODO : check if starpu_transfer_predict(node, i,...) is the same */
+					double time_tmp = starpu_transfer_predict(node, numa, _starpu_data_get_size(handle)) + starpu_transfer_predict(i, numa, _starpu_data_get_size(handle));
+					if (target == -1 || time_disk > time_tmp)
+					{
+						target = i;
+						time_disk = time_tmp;
+					}
 				}
 			}
 		}
@@ -1639,6 +1648,9 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	return target;
 }
 
+#ifdef STARPU_DEVEL
+#  warning TODO: better choose NUMA node
+#endif
 
 static unsigned
 choose_target(starpu_data_handle_t handle, unsigned node)
@@ -1647,14 +1659,20 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	size_t size_handle = _starpu_data_get_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
-		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != STARPU_MAIN_RAM)
+		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		{
-			if (handle->per_node[STARPU_MAIN_RAM].allocated ||
-			    _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
+ 	                unsigned i;
+			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+			for (i=0; i<nb_numa_nodes; i++)
 			{
-				target = STARPU_MAIN_RAM;
+				if (handle->per_node[i].allocated || 
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
+				{
+					target = i;
+					break;
+				}
 			}
-			else
+			if (target == -1)
 			{
 				target = get_better_disk_can_accept_size(handle, node);
 			}
@@ -1669,19 +1687,26 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	{
 		/* handle->home_node == -1 */
 		/* no place for datas in RAM, we push on disk */
-		if (node == STARPU_MAIN_RAM)
+		if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
 		{
 			target = get_better_disk_can_accept_size(handle, node);
-		}
+		} else {
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
-		else if (handle->per_node[STARPU_MAIN_RAM].allocated ||
-			 _starpu_memory_manager_test_allocate_size(STARPU_MAIN_RAM, size_handle) == 1)
-		{
-			target = STARPU_MAIN_RAM;
+			unsigned i;
+			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+			for (i=0; i<nb_numa_nodes; i++)
+			{
+				if (handle->per_node[i].allocated || 
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
+				{
+					target = i;
+					break;
+				}
+			}
 		}
 		/* no place in RAM */
-		else
+		if (target == -1)
 		{
 			target = get_better_disk_can_accept_size(handle, node);
 		}

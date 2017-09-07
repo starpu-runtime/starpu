@@ -396,11 +396,11 @@ static int _worker_consistant(struct starpu_sched_component * component)
 
 
 
-static void simple_worker_can_pull(struct starpu_sched_component * worker_component)
+static int simple_worker_can_pull(struct starpu_sched_component * worker_component)
 {
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(worker_component);
 	int workerid = worker->workerid;
-	_starpu_wake_worker_relax(workerid);
+	return _starpu_wake_worker_relax_light(workerid);
 }
 
 static int simple_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)
@@ -435,7 +435,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
 	struct starpu_task * task;
-	int i;
+	unsigned i;
 	int n_tries = 0;
 	do
 	{
@@ -599,7 +599,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 
 
 
-static void combined_worker_can_pull(struct starpu_sched_component * component)
+static int combined_worker_can_pull(struct starpu_sched_component * component)
 {
 	(void) component;
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
@@ -610,8 +610,10 @@ static void combined_worker_can_pull(struct starpu_sched_component * component)
 	{
 		if((unsigned) i == workerid)
 			continue;
-		_starpu_wake_worker_relax(workerid);
+		if (_starpu_wake_worker_relax_light(workerid))
+			return 1;
 	}
+	return 0;
 }
 
 static int combined_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)

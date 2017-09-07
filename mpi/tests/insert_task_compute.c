@@ -53,6 +53,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
 	struct starpu_data_descr descrs[2];
+	int barrier_ret;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -124,7 +125,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 			if (task)
 			{
 				ret = starpu_task_submit(task);
-				if (ret == -ENODEV) goto enodev;
+				if (ret == -ENODEV)
+					goto enodev;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 
@@ -211,7 +213,8 @@ enodev:
 #endif
 
 nodata:
-	MPI_Barrier(MPI_COMM_WORLD);
+	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
@@ -237,7 +240,8 @@ int main(int argc, char **argv)
 			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
 				ret = test(rank, node, before, after_node[node], insert_task, data_array);
-				if (ret == -ENODEV || ret) global_ret = ret;
+				if (ret == -ENODEV || ret)
+					global_ret = ret;
 			}
 		}
 	}

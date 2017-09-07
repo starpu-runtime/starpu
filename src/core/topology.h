@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2015, 2017  CNRS
+ * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,6 +52,9 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 /* returns the number of logical cpus */
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 
+/* returns the number of NUMA nodes */
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
+
 #ifdef STARPU_HAVE_HWLOC
 /* Small convenient function to filter hwloc topology depending on HWLOC API version */
 void _starpu_topology_filter(hwloc_topology_t topology);
@@ -60,12 +64,15 @@ void _starpu_topology_filter(hwloc_topology_t topology);
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, int cpuid, int workerid);
+void _starpu_bind_thread_on_cpu(int cpuid, int workerid);
 
 struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */
-void _starpu_bind_thread_on_cpus(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, struct _starpu_combined_worker *combined_worker);
+void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker);
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
+int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
+	
 #endif // __TOPOLOGY_H__

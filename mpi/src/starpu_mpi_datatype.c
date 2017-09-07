@@ -41,26 +41,6 @@ void _starpu_mpi_datatype_shutdown(void)
 }
 
 /*
- * 	Bcsr
- */
-
-static void handle_to_datatype_bcsr(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
-{
-	int ret;
-
-	uint32_t r = starpu_bcsr_get_r(data_handle);
-	uint32_t c = starpu_bcsr_get_c(data_handle);
-	uint32_t nnz = starpu_bcsr_get_nnz(data_handle);
-	size_t elemsize = starpu_bcsr_get_elemsize(data_handle);
-
-	ret = MPI_Type_contiguous(r*c*nnz*elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
-
-	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-}
-
-/*
  * 	Matrix
  */
 
@@ -168,8 +148,8 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= handle_to_datatype_bcsr,
+	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -182,9 +162,17 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_allocate_func_t func = handle_to_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-		func(data_handle, &req->datatype);
-		req->registered_datatype = 1;
+		if (func)
+		{
+			func(data_handle, &req->datatype);
+			req->registered_datatype = 1;
+		}
+		else
+		{
+			/* The datatype is predefined by StarPU but it will be sent as a memory area */
+			req->datatype = MPI_BYTE;
+			req->registered_datatype = 0;
+		}
 	}
 	else
 	{
@@ -256,8 +244,8 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
@@ -270,8 +258,8 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		starpu_mpi_datatype_free_func_t func = handle_free_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
-		func(datatype);
+		if (func)
+			func(datatype);
 	}
 	else
 	{

@@ -1298,6 +1298,17 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: nparts
                 end subroutine fstarpu_vector_filter_block_shadow
 
+                ! void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+                subroutine fstarpu_vector_filter_list_long (father_interface,child_interface,filter,id,nparts) &
+                                bind(C,name="starpu_vector_filter_list_long")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: father_interface
+                        type(c_ptr), value, intent(in) :: child_interface
+                        type(c_ptr), value, intent(in) :: filter
+                        type(c_ptr), value, intent(in) :: id
+                        type(c_ptr), value, intent(in) :: nparts
+                end subroutine fstarpu_vector_filter_list_long
+
                 ! void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
                 subroutine fstarpu_vector_filter_list (father_interface,child_interface,filter,id,nparts) &
                                 bind(C,name="starpu_vector_filter_list")

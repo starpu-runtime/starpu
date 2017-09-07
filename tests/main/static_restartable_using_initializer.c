@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2011, 2013-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -113,6 +113,7 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_task_clean(&task);
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

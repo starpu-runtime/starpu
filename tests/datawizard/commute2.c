@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "../helper.h"
-#include "../helper.h"
 
 /*
  * Test that STARPU_RW vs STARPU_RW|STARPU_COMMUTE get proper dependency

@@ -67,6 +67,8 @@ struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
 
 static int check_entire_platform;
 
+int _starpu_worker_parallel_blocks;
+
 /* Pointers to argc and argv
  */
 static int *my_argc = 0;
@@ -90,7 +92,7 @@ char ***_starpu_get_argv()
 	return my_argv;
 }
 
-int _starpu_is_initialized(void)
+int starpu_is_initialized(void)
 {
 	return initialized == INITIALIZED;
 }
@@ -225,22 +227,22 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 
 uint32_t _starpu_can_submit_cuda_task(void)
 {
-	return (STARPU_CUDA & _starpu_config.worker_mask);
+	return STARPU_CUDA & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_cpu_task(void)
 {
-	return (STARPU_CPU & _starpu_config.worker_mask);
+	return STARPU_CPU & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_opencl_task(void)
 {
-	return (STARPU_OPENCL & _starpu_config.worker_mask);
+	return STARPU_OPENCL & _starpu_config.worker_mask;
 }
 
 uint32_t _starpu_can_submit_scc_task(void)
 {
-	return (STARPU_SCC & _starpu_config.worker_mask);
+	return STARPU_SCC & _starpu_config.worker_mask;
 }
 
 static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
@@ -265,7 +267,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		opencl_func_enabled = opencl_func != NULL && starpu_opencl_worker_get_count();
 #endif
 
-		return (cpu_func_enabled && cuda_func_enabled && opencl_func_enabled);
+		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled;
 	}
 	case STARPU_CPU_WORKER:
 	{
@@ -338,7 +340,15 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
+		return 0;
+
+	if (task->workerids_len)
+	{
+		size_t div = sizeof(*task->workerids) * 8;
+		if (workerid / div >= task->workerids_len || ! (task->workerids[workerid / div] & (1UL << workerid % div)))
+			return 0;
+	}
 
 	mask = 0;
 	arch = _starpu_config.workers[workerid].arch;
@@ -379,7 +389,8 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask)) return 0;
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
+		return 0;
 
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)
@@ -638,7 +649,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
-	_starpu_bind_thread_on_cpu(worker->config, worker->bindid, worker->workerid);
+	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid);
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
@@ -1148,6 +1159,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
 
+	STARPU_HG_DISABLE_CHECKING(_starpu_worker_parallel_blocks);
 #ifdef STARPU_SIMGRID
 	/* This initializes the simgrid thread library, thus needs to be early */
 	_starpu_simgrid_init_early(argc, argv);
@@ -1228,7 +1240,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit and limits scalability\n");
 #endif
 #ifdef STARPU_PERF_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");
@@ -1383,7 +1395,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_launch_drivers(&_starpu_config);
 
 	/* Allocate swap, if any */
-	_starpu_swap_init();
+	if (!is_a_sink)
+		_starpu_swap_init();
 
 	_starpu_watchdog_init();
 
@@ -1394,6 +1407,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Tell everybody that we initialized */
 	STARPU_PTHREAD_COND_BROADCAST(&init_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	if (main_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NOWORKERID);
 
 	_STARPU_DEBUG("Initialisation finished\n");
 
@@ -1598,8 +1615,13 @@ void starpu_shutdown(void)
 
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&_starpu_config);
-
-	_starpu_free_all_automatically_allocated_buffers(STARPU_MAIN_RAM);
+	
+	unsigned i;
+	unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+	for (i=0; i<nb_numa_nodes; i++)
+	{
+		_starpu_free_all_automatically_allocated_buffers(i);
+	}
 
 	{
 	     int stats = starpu_get_env_number("STARPU_STATS");
@@ -1706,6 +1728,8 @@ unsigned starpu_worker_get_count(void)
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
+	if (!_starpu_worker_parallel_blocks)
+		return 0;
 	int relax_own_observation_state = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
@@ -1718,7 +1742,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 		 * another worker, we must avoid race conditions between
 		 * 'blocked' state changes and state observations. This is the
 		 * purpose of this 'if' block. */
-		cur_worker = cur_workerid<starpu_worker_get_count()?_starpu_get_worker_struct(cur_workerid):NULL;
+		cur_worker = cur_workerid >= 0 ? _starpu_get_worker_struct(cur_workerid) : NULL;
 
 		relax_own_observation_state = (cur_worker != NULL) && (cur_worker->state_relax_refcnt == 0);
 		if (relax_own_observation_state && !worker->state_relax_refcnt)
@@ -2225,7 +2249,8 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 						}
 					}
 
-					if(found) break;
+					if(found)
+						break;
 				}
 			}
 			if(!found)
@@ -2345,6 +2370,7 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 		_starpu_set_current_task(NULL);
 	}
 	worker->ntasks--;
+	task->prefetched = 0;
 	int res = _starpu_push_task_to_workers(task);
 	STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
 }
@@ -2397,4 +2423,53 @@ void starpu_worker_unlock_self(void)
 int starpu_wake_worker_relax(int workerid)
 {
 	return _starpu_wake_worker_relax(workerid);
+}
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
+}
+#endif
+
+/* Light version of _starpu_wake_worker_relax, which, when possible,
+ * speculatively sets keep_awake on the target worker without waiting that
+ * worker to enter the relaxed state.
+ */
+int _starpu_wake_worker_relax_light(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	int cur_workerid = starpu_worker_get_id();
+	if (workerid != cur_workerid)
+	{
+		_starpu_worker_relax_on();
+
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+		while (!worker->state_relax_refcnt)
+		{
+			/* Attempt a fast path if the worker is not really asleep */
+			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+			{
+				_starpu_config.workers[workerid].state_keep_awake = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+				_starpu_worker_relax_off();
+				return 1;
+			}
+
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+		}
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	}
+	int ret = starpu_wake_worker_locked(workerid);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	if (workerid != cur_workerid)
+	{
+		_starpu_worker_relax_off();
+	}
+	return ret;
 }

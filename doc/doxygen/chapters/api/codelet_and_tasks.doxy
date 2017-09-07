@@ -646,6 +646,17 @@ the configuration of a task allocated with starpu_task_create().
     details. This field is ignored if the field
     starpu_task::execute_on_a_specific_worker is set to 0.
 
+\var unsigned starpu_task::workerids
+    Optional field. If the field
+    starpu_task::workerids_len is different from 0, this field indicates an
+    array of bits (stored as uint32_t values) which indicate the set of workers
+    which are allowed to execute the task. starpu_task::workerid takes
+    precedence over this.
+
+\var unsigned starpu_task::workerids_len
+    Optional field. This provides the number of uint32_t values in the
+    starpu_task::workerids array.
+
 \var starpu_task_bundle_t starpu_task::bundle
     Optional field. The bundle that includes this task. If no bundle
     is used, this should be <c>NULL</c>.

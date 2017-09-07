@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
  	 * data */
 	float *vector;
 	starpu_data_handle_t vector_handle;
-	unsigned i,j;
-	vector = malloc(NB_FLOAT * sizeof(float));
+	unsigned i;
+	vector = calloc(NB_FLOAT, sizeof(float));
 #ifndef STARPU_SIMGRID
 	for (i = 0; i < NB_FLOAT; i++)
 		vector[i] = (i+1.0f);

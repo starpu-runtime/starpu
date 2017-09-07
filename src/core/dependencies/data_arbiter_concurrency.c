@@ -302,7 +302,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 
-	if (((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
+	if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
 	{
 		/* TODO: Detect whether this is the end of a reduction phase etc. like in data_concurrency.c */
 		if (0)
@@ -442,7 +442,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 		/* Try to take handle */
 		_starpu_spin_lock(&handle->header_lock);
-		if (((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
+		if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
 		{
 			/* Got it */
 			handle->refcnt++;
@@ -588,7 +588,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
-			if (((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode))))
+			if ((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode)))
 			{
 				handle->refcnt++;
 				handle->current_mode = r_mode;

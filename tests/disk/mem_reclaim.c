@@ -36,7 +36,7 @@
 #ifdef STARPU_HAVE_MEMCHECK_H
 #include <valgrind/memcheck.h>
 #else
-#define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
+#define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
 #endif
 
 #ifdef STARPU_QUICK_CHECK
@@ -60,7 +60,16 @@ int main(int argc, char **argv)
 }
 #else
 
-const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
+static int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+
+/* We need a ram-to-ram copy for NUMA machine, use any_to_any for that */
+static int ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node) {
+	return any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+}
+
+const struct starpu_data_copy_methods my_vector_copy_data_methods_s = {
+	.ram_to_ram = ram_to_ram
+};
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
 
 void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
@@ -87,7 +96,7 @@ static void zero(void *buffers[], void *args)
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;
-	VALGRIND_MAKE_MEM_DEFINED(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
 }
 
 static void inc(void *buffers[], void *args)
@@ -106,7 +115,7 @@ static void check(void *buffers[], void *args)
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	unsigned i;
 	starpu_codelet_unpack_args(args, &i);
-	STARPU_ASSERT_MSG(*val == values[i], "Incorrect value. Value %u should be %u (index %d)", *val, values[i], i);
+	STARPU_ASSERT_MSG(*val == values[i], "Incorrect value. Value %u should be %u (index %u)", *val, values[i], i);
 }
 
 static struct starpu_codelet zero_cl =
@@ -218,6 +227,7 @@ int main(void)
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 
 	/* Build an vector-like interface which doesn't have the any_to_any helper, to force making use of pack/unpack */
+	any_to_any = starpu_interface_vector_ops.copy_methods->any_to_any;
 	memcpy(&starpu_interface_my_vector_ops, &starpu_interface_vector_ops, sizeof(starpu_interface_my_vector_ops));
 	starpu_interface_my_vector_ops.copy_methods = &my_vector_copy_data_methods_s;
 

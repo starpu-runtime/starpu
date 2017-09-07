@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 	 * register it directly. Node 0 and 1 will then exchange the content of
 	 * their blocks. */
 
-	float *block;
-	starpu_data_handle_t block_handle;
+	float *block = NULL;
+	starpu_data_handle_t block_handle = NULL;
 
 	if (rank == 0)
 	{

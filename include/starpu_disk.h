@@ -27,7 +27,7 @@ struct starpu_disk_ops
 	 void *  (*plug)   (void *parameter, starpu_ssize_t size);
 	 void    (*unplug) (void *base);
 
-	 int    (*bandwidth)    (unsigned node);
+	 int    (*bandwidth)    (unsigned node, void *base);
 
 	 void *  (*alloc)  (void *base, size_t size);
 	 void    (*free)   (void *base, void *obj, size_t size);
@@ -38,13 +38,13 @@ struct starpu_disk_ops
 	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
 	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
 
-	 int	(*full_read)    (void * base, void * obj, void ** ptr, size_t * size);
+	 int	(*full_read)    (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 	 int 	(*full_write)   (void * base, void * obj, void * ptr, size_t size);
 
 	 void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size);
 	 void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
 
-	 void *	(*async_full_read)    (void * base, void * obj, void ** ptr, size_t * size);
+	 void *	(*async_full_read)    (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 	 void *	(*async_full_write)   (void * base, void * obj, void * ptr, size_t size);
 
 	 void *  (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
@@ -57,6 +57,7 @@ struct starpu_disk_ops
 
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
+extern struct starpu_disk_ops starpu_disk_hdf5_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 extern struct starpu_disk_ops starpu_disk_leveldb_ops;
@@ -67,7 +68,7 @@ void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size);
 
-#define STARPU_DISK_SIZE_MIN (64*1024*1024)
+#define STARPU_DISK_SIZE_MIN (16*1024*1024)
 
 extern int starpu_disk_swap_node;
 

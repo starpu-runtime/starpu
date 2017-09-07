@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	/* Initialize path and name */
 	char pid_str[16];
 	int pid = getpid();
-	snprintf(pid_str, 16, "%d", pid);
+	snprintf(pid_str, sizeof(pid_str), "%d", pid);
 
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
 	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
-	
+
 	unsigned dd = (unsigned) new_dd;
 
 	printf("TEST DISK MEMORY \n");
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
 	starpu_malloc_flags((void **)&A, NX*sizeof(int), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&C, NX*sizeof(int), STARPU_MALLOC_COUNT);
- 
+
 	unsigned int j;
 	/* you register them in a vector */
 	for(j = 0; j < NX; ++j)
@@ -112,8 +112,8 @@ int main(int argc, char **argv)
 	/* register vector in starpu */
 	starpu_vector_data_register(&vector_handleA, dd, (uintptr_t) data, NX, sizeof(int));
 
-	/* and do what you want with it, here we copy it into an other vector */ 
-	starpu_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));	
+	/* and do what you want with it, here we copy it into an other vector */
+	starpu_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));
 
 	starpu_data_cpy(vector_handleC, vector_handleA, 0, NULL, NULL);
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 	starpu_disk_close(dd, data, NX*sizeof(int));
 	starpu_disk_close(dd, data_result, NX*sizeof(int));
 
-	/* check results */	
+	/* check results */
 	f = fopen(path_file_end, "rb+");
 	if (f == NULL)
 		goto enoent;
@@ -177,4 +177,3 @@ enoent:
 	return 77;
 }
 //! [To be included. You should update doxygen if you see this text.]
-

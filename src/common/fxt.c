@@ -21,6 +21,9 @@
 #include <starpu_util.h>
 #include <starpu_profiling.h>
 
+/* we need to identify each task to generate the DAG. */
+unsigned long _starpu_job_cnt = 0;
+
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>
 #include <starpu_fxt.h>
@@ -39,6 +42,9 @@ static char _STARPU_PROF_FILE_USER[128];
 int _starpu_fxt_started = 0;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 starpu_pthread_cond_t _starpu_fxt_started_cond = STARPU_PTHREAD_COND_INITIALIZER;
+
+/* and their submission order. */
+unsigned long _starpu_submit_order = 0;
 
 static int _starpu_written = 0;
 
@@ -85,16 +91,14 @@ static void _starpu_profile_set_tracefile(void)
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
 
-	snprintf(_STARPU_PROF_FILE_USER, 128, "%s", fxt_prefix);
-
 	user = starpu_getenv("USER");
 	if (!user)
 		user = "";
 
 	char suffix[128];
-	snprintf(suffix, 128, "prof_file_%s_%d", user, _starpu_id);
+	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 
-	strcat(_STARPU_PROF_FILE_USER, suffix);
+	snprintf(_STARPU_PROF_FILE_USER, sizeof(_STARPU_PROF_FILE_USER), "%s%s", fxt_prefix, suffix);
 }
 
 void starpu_profiling_set_id(int new_id)

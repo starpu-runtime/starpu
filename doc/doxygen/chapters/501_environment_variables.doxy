@@ -205,6 +205,21 @@ set.
 
 </dd>
 
+<dt>STARPU_MAIN_THREAD_CPUID</dt>
+<dd>
+\anchor STARPU_MAIN_THREAD_CPUID
+\addindex __env__STARPU_MAIN_THREAD_CPUID
+When defined, this make StarPU bind the thread that calls starpu_initialize() to
+the given CPU ID.
+</dd>
+
+<dt>STARPU_MPI_THREAD_CPUID</dt>
+<dd>
+\anchor STARPU_MPI_THREAD_CPUID
+\addindex __env__STARPU_MPI_THREAD_CPUID
+When defined, this make StarPU bind its MPI thread to the given CPU ID.
+</dd>
+
 <dt>STARPU_WORKERS_CUDAID</dt>
 <dd>
 \anchor STARPU_WORKERS_CUDAID
@@ -842,7 +857,15 @@ that have a limited amount of memory.
 \addindex __env__STARPU_LIMIT_CPU_MEM
 This variable specifies the maximum number of megabytes that should be
 available to the application in the main CPU memory. Setting it enables allocation
-cache in main memory
+cache in main memory. Setting it to zero lets StarPU overflow memory.
+</dd>
+
+<dt>STARPU_LIMIT_CPU_NUMA_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CPU_NUMA_devid_MEM
+\addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the NUMA node with the OS identifier <c>devid</c>.
 </dd>
 
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>
@@ -905,7 +928,8 @@ full.
 This specifies then backend to be used by StarPU to push data when the main
 memory is getting full. The default is unistd (i.e. using read/write functions),
 other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
-read/write with O_DIRECT), and leveldb (i.e. using a leveldb database).
+read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5 
+(i.e. using HDF5 library).
 </dd>
 
 <dt>STARPU_DISK_SWAP_SIZE</dt>
@@ -1024,6 +1048,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_WATCHDOG_DELAY</dt>
+<dd>
+\anchor STARPU_WATCHDOG_DELAY
+\addindex __env__STARPU_WATCHDOG_DELAY
+This delays the activation of the watchdog by the given time (in µs). This can
+be convenient for letting the application initialize data etc. before starting
+to look for idle time.
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_PUSH</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_PUSH
@@ -1107,6 +1140,19 @@ sum of all the workers' idle time.
 When set to a positive value, StarPU will create a arbiter, which
 implements an advanced but centralized management of concurrent data
 accesses (see \ref ConcurrentDataAccess).
+</dd>
+
+<dt>STARPU_USE_NUMA</dt>
+<dd>
+\anchor STARPU_USE_NUMA 
+\addindex __env__STARPU_USE_NUMA
+When defined, NUMA nodes are taking into account by StarPU. Otherwise, memory
+is considered as only one node. This is experimental for now.
+
+When enabled, STARPU_MAIN_MEMORY is a pointer to the NUMA node associated to the
+first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
+If StarPU doesn't find any NUMA node after these step, STARPU_MAIN_MEMORY is the first NUMA node
+discovered by StarPU.
 </dd>
 
 </dl>

@@ -55,6 +55,8 @@
 
    <host id="RAM" power="1"/>
 
+   <host id="DISK0" power="1"/>
+
    <link id="Host" bandwidth="6520981045.053596" latency="0.000000"/>
 
    <link id="RAM-CUDA0" bandwidth="5985150529.193969" latency="0.000011"/>
@@ -189,6 +191,9 @@
    <link id="PCI:0000:[83-83] down" bandwidth="6635079661.079388" latency="0.000000"/>
    <link id="PCI:0000:83:00.0 up" bandwidth="6635049330.870582" latency="0.000000"/>
    <link id="PCI:0000:83:00.0 down" bandwidth="6635079661.079388" latency="0.000000"/>
+
+   <link id="RAM-DISK0" bandwidth="400000000Bps" latency="0.002s"/>
+   <link id="DISK0-RAM" bandwidth="400000000Bps" latency="0.001s"/>
 
    <route src="CUDA0" dst="CUDA1" symmetrical="NO">
     <link_ctn id="CUDA0-CUDA1"/>
@@ -1503,5 +1508,15 @@
     <link_ctn id="Host"/>
    </route>
 
+
+   <route src="RAM" dst="DISK0" symmetrical="NO">
+	   <link_ctn id="Host"/>
+	   <link_ctn id="RAM-DISK0"/>
+   </route>
+
+   <route src="DISK0" dst="RAM" symmetrical="NO">
+	   <link_ctn id="DISK0-RAM"/>
+	   <link_ctn id="Host"/>
+   </route>
  </AS>
  </platform>

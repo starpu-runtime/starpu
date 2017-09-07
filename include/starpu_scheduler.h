@@ -60,10 +60,7 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies();
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
-/* This function must be called to wake up a worker that is sleeping on the cond. 
- * It returns 0 whenever the worker is not in a sleeping state or has the state_keep_awake flag on */
 int starpu_wake_worker_no_relax(int workerid);
-/* This is a version of starpu_wake_worker which assumes that the sched mutex is locked */
 int starpu_wake_worker_locked(int workerid);
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);

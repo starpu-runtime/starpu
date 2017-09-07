@@ -47,7 +47,7 @@ static void usage()
         fprintf(stderr, "   -o <output file>    specify the output file\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
         fprintf(stderr, "\n");
 }
 

@@ -34,7 +34,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 			if(starpu_worker_can_execute_task(workerid,task,nimpl)
 			   || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
 			{
-				int i;
+				unsigned i;
 				for (i = 0; i < component->nchildren; i++)
 				{
 					int idworker;
@@ -46,8 +46,8 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 						{
 							if(starpu_sched_component_is_worker(component->children[i]))
 							{
-								component->children[i]->can_pull(component->children[i]);
-								return 1;
+								if (component->children[i]->can_pull(component->children[i]))
+									return 1;
 							}
 							else
 							{

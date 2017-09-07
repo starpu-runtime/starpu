@@ -48,15 +48,17 @@ void parallel_region_f(void *buffers[], void *args)
 	(void) args;
 	int worker_id;
 	pthread_t tid;
+	int single_worker_id;
+	int i;
+
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	int single_worker_id;
-	int *single_data;
 	printf("[tid %p] task thread = %d -- parallel -->\n", (void *)tid, worker_id);
-	int i;
 
 	for (i=0; i<4; i++)
 	{
+		int *single_data;
+
 		if ((single_data = starpu_omp_single_copyprivate_inline_begin(&single_worker_id)) == NULL)
 		{
 			printf("[tid %p] task thread = %d -- single\n", (void *)tid, worker_id);

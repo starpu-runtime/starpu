@@ -34,6 +34,7 @@
 #include <core/errorcheck.h>
 #include <core/sched_ctx.h>
 #include <core/sched_ctx_list.h>
+#include <core/simgrid.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -84,6 +85,7 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
 	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
+	unsigned numa_memory_node; /* which numa memory node is the worker associated with? (logical index) */
 	/* condition variable used for passive waiting operations on worker
 	 * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
 	 * since the condition is shared for multiple purpose */
@@ -132,6 +134,8 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_wait_t wait;
 #endif
 
+	struct timespec cl_start; /* Codelet start time of the task currently running */
+	struct timespec cl_end; /* Codelet end time of the last task running */
 	unsigned char first_task; /* Index of first task in the pipeline */
 	unsigned char ntasks; /* number of tasks in the pipeline */
 	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
@@ -142,7 +146,7 @@ LIST_TYPE(_starpu_worker,
 	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	unsigned state_keep_awake; /* !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
 	char name[64];
-	char short_name[10];
+	char short_name[32];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;
 
@@ -398,7 +402,8 @@ struct _starpu_machine_config
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
 	/* Translation table from bindid to worker IDs */
-	struct {
+	struct
+	{
 		int *workerids;
 		unsigned nworkers; /* size of workerids */
 	} *bindid_workers;
@@ -431,6 +436,8 @@ struct _starpu_machine_config
 
 	starpu_pthread_mutex_t submitted_mutex;
 };
+
+extern int _starpu_worker_parallel_blocks;
 
 extern struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
 extern int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
@@ -541,17 +548,14 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &_starpu_config.workers[id];
 }
 
-/* Returns the starpu_sched_ctx structure that describes the state of the 
+/* Returns the starpu_sched_ctx structure that describes the state of the
  * specified ctx */
 static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	if(id > STARPU_NMAX_SCHED_CTXS) return NULL;
-	return &_starpu_config.sched_ctxs[id];
+	return (id > STARPU_NMAX_SCHED_CTXS) ? NULL : &_starpu_config.sched_ctxs[id];
 }
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
-
-int _starpu_is_initialized(void);
 
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
@@ -587,7 +591,7 @@ static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/* returns workers not belonging to any context, be careful no mutex is used, 
+/* returns workers not belonging to any context, be careful no mutex is used,
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
@@ -652,6 +656,7 @@ struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid
  */
 static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_worker * const worker)
 {
+	_starpu_worker_parallel_blocks = 1;
 	/* flush pending requests to start on a fresh transaction epoch */
 	while (worker->state_unblock_in_parallel_req)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -673,6 +678,9 @@ static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_wo
 		/* trigger the block_in_parallel_req */
 		worker->state_block_in_parallel_req = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[worker->workerid]);
+#endif
 
 		/* wait for block_in_parallel_req to be processed */
 		while (!worker->state_block_in_parallel_ack)
@@ -753,7 +761,7 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
 		STARPU_ASSERT(!worker->state_unblock_in_parallel_req);
 		STARPU_ASSERT(!worker->state_unblock_in_parallel_ack);
 		STARPU_ASSERT(worker->block_in_parallel_ref_count > 0);
-		
+
 		/* enter effective blocked state */
 		worker->state_blocked_in_parallel = 1;
 
@@ -911,6 +919,9 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 
 		/* wait for sched_op completion */
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+#ifdef STARPU_SIMGRID
+		starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[worker->workerid]);
+#endif
 		do
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -940,11 +951,9 @@ static inline void __starpu_worker_relax_on(const char*file, int line, const cha
 static inline void _starpu_worker_relax_on(void)
 #endif
 {
-	int workerid = starpu_worker_get_id();
-	if (workerid == -1)
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (worker == NULL)
 		return;
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	STARPU_ASSERT(worker != NULL);
 	if (!worker->state_sched_op_pending)
 		return;
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
@@ -964,6 +973,32 @@ static inline void _starpu_worker_relax_on(void)
 }
 #ifdef STARPU_SPINLOCK_CHECK
 #define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
+#endif
+
+/* Same, but with current worker mutex already held */
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_on_locked(struct _starpu_worker *worker, const char*file, int line, const char* func)
+#else
+static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
+#endif
+{
+	if (!worker->state_sched_op_pending)
+		return;
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(worker->state_relax_refcnt<UINT_MAX, "relax last turn on in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
+	STARPU_ASSERT(worker->state_relax_refcnt<UINT_MAX);
+#endif
+	worker->state_relax_refcnt++;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_on_file = file;
+	worker->relax_on_line = line;
+	worker->relax_on_func = func;
+#endif
+	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
+}
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
 #endif
 
 #ifdef STARPU_SPINLOCK_CHECK
@@ -997,6 +1032,35 @@ static inline void _starpu_worker_relax_off(void)
 #define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
 #endif
 
+#ifdef STARPU_SPINLOCK_CHECK
+static inline void __starpu_worker_relax_off_locked(const char*file, int line, const char* func)
+#else
+static inline void _starpu_worker_relax_off_locked(void)
+#endif
+{
+	int workerid = starpu_worker_get_id();
+	if (workerid == -1)
+		return;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	STARPU_ASSERT(worker != NULL);
+	if (!worker->state_sched_op_pending)
+		return;
+#ifdef STARPU_SPINLOCK_CHECK
+	STARPU_ASSERT_MSG(worker->state_relax_refcnt>0, "relax last turn off in %s (%s:%d)\n", worker->relax_on_func, worker->relax_on_file, worker->relax_on_line);
+#else
+	STARPU_ASSERT(worker->state_relax_refcnt>0);
+#endif
+	worker->state_relax_refcnt--;
+#ifdef STARPU_SPINLOCK_CHECK
+	worker->relax_off_file = file;
+	worker->relax_off_line = line;
+	worker->relax_off_func = func;
+#endif
+}
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
+#endif
+
 static inline int _starpu_worker_get_relax_state(void)
 {
 	int workerid = starpu_worker_get_id();
@@ -1007,7 +1071,7 @@ static inline int _starpu_worker_get_relax_state(void)
 	return worker->state_relax_refcnt != 0;
 }
 
-/* lock a worker for observing contents 
+/* lock a worker for observing contents
  *
  * notes:
  * - if the observed worker is not in state_relax_refcnt, the function block until the state is reached */
@@ -1034,22 +1098,31 @@ static inline void _starpu_worker_lock(int workerid)
 
 static inline int _starpu_worker_trylock(int workerid)
 {
+	struct _starpu_worker *cur_worker = _starpu_get_local_worker_key();
+	int cur_workerid = cur_worker->workerid;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
-	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
-	int cur_workerid = starpu_worker_get_id();
+
+	/* Start with ourself */
+	int ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&cur_worker->sched_mutex);
+	if (ret)
+		return ret;
+	if (workerid == cur_workerid)
+		/* We only needed to lock ourself */
+		return ret;
+
+	/* Now try to lock the other worker */
+	ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
 	if (!ret)
 	{
-		if (workerid != cur_workerid) {
-			ret = !worker->state_relax_refcnt;
-			if (ret)
-				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-		}
+		/* Good, check that it is relaxed */
+		ret = !worker->state_relax_refcnt;
+		if (ret)
+			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
-	if (!ret && workerid != cur_workerid)
-	{
-		_starpu_worker_relax_on();
-	}
+	if (!ret)
+		_starpu_worker_relax_on_locked(cur_worker);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 	return ret;
 }
 
@@ -1088,6 +1161,8 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	_starpu_worker_unlock(workerid);
 	return ret;
 }
+
+int _starpu_wake_worker_relax_light(int workerid);
 
 /* Allow a worker pulling a task it cannot execute to properly refuse it and
  * send it back to the scheduler.

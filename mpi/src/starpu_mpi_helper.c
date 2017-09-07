@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2015  Université de Bordeaux
+ * Copyright (C) 2010, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2014, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,13 +27,17 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 	free(tagptr);
 }
 
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr;
 	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
 	*tagptr = tag;
 
-	return starpu_mpi_isend_detached(data_handle, dest, data_tag, comm, starpu_mpi_unlock_tag_callback, tagptr);
+	return starpu_mpi_isend_detached_prio(data_handle, dest, data_tag, prio, comm, starpu_mpi_unlock_tag_callback, tagptr);
+}
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+{
+	return starpu_mpi_isend_detached_unlock_tag_prio(data_handle, dest, data_tag, 0, comm, tag);
 }
 
 
@@ -65,8 +69,8 @@ static void starpu_mpi_array_unlock_callback(void *_arg)
 	}
 }
 
-int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *dest, int *data_tag,
+int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size,
+		starpu_data_handle_t *data_handle, int *dest, int *data_tag, int *prio,
 		MPI_Comm *comm, starpu_tag_t tag)
 {
 	if (!array_size)
@@ -80,10 +84,19 @@ int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 	unsigned elem;
 	for (elem = 0; elem < array_size; elem++)
 	{
-		starpu_mpi_isend_detached(data_handle[elem], dest[elem], data_tag[elem], comm[elem], starpu_mpi_array_unlock_callback, arg);
+		int p = 0;
+		if (prio)
+			p = prio[elem];
+		starpu_mpi_isend_detached_prio(data_handle[elem], dest[elem], data_tag[elem], p, comm[elem], starpu_mpi_array_unlock_callback, arg);
 	}
 
 	return 0;
+}
+int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
+		starpu_data_handle_t *data_handle, int *dest, int *data_tag,
+		MPI_Comm *comm, starpu_tag_t tag)
+{
+	return starpu_mpi_isend_array_detached_unlock_tag_prio(array_size, data_handle, dest, data_tag, NULL, comm, tag);
 }
 
 

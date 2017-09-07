@@ -3,7 +3,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
 # Copyright (C) 2014  Université Joseph Fourier
-# Copyright (C) 2014-2015  Université Bordeaux
+# Copyright (C) 2014-2015, 2017  Université Bordeaux
 # 
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -76,6 +76,10 @@ if [[ $# < 1 ]]; then
     exit 2
 fi
 
+get_event_num() {
+    grep "^%EventDef[ 	]$2" $1 | sed -e "s/.*$2[ 	]*//"
+}
+
 #####################################
 # Transforming input files into .csv
 for file in $inputfiles; do
@@ -84,9 +88,19 @@ for file in $inputfiles; do
 	echo "Error: file $file does not exist!"
 	exit 5
     fi
+    DefCont="$(get_event_num $file PajeDefineContainerType) "
+    DefEvent="$(get_event_num $file PajeDefineEventType) "
+    DefState="$(get_event_num $file PajeDefineStateType) "
+    DefVar="$(get_event_num $file PajeDefineVariableType) "
+    DefLink="$(get_event_num $file PajeDefineLinkType) "
+    DefEnt="$(get_event_num $file PajeDefineEntityValue) "
+    CreateCont="$(get_event_num $file PajeCreateContainer) "
+    AddVar="$(get_event_num $file PajeAddVariable) "
+    grepstr="^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)"
+    grepstr=${grepstr//[ 	]/[ 	]}
 # Sorting traces
-    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\)\>\)\)' $file > start.trace
-    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\)\>\)\)' -v $file > end.trace
+    grep -e "$grepstr" $file > start.trace
+    grep -e "$grepstr" -v $file > end.trace
     sort -s -V --key=2,2 end.trace > endSorted.trace
     if grep -q start_profiling endSorted.trace
     then

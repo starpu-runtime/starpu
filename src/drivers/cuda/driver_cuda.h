@@ -32,7 +32,7 @@ extern struct _starpu_driver_ops _starpu_driver_cuda_ops;
 
 void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
-extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+1][STARPU_MAXCUDADEVS+1];
+extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);

@@ -21,7 +21,7 @@
 
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE  /* ou _BSD_SOURCE ou _SVID_SOURCE */
+#define _GNU_SOURCE  1 /* ou _BSD_SOURCE ou _SVID_SOURCE */
 #endif
 
 #include <string.h>
@@ -100,6 +100,10 @@
 #define	_STARPU_FUT_END_ALLOC_REUSE	0x5130
 
 #define	_STARPU_FUT_USED_MEM	0x512a
+
+#define _STARPU_FUT_TASK_NAME	0x512b
+
+#define _STARPU_FUT_DATA_WONT_USE	0x512c
 
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
@@ -221,6 +225,15 @@
 #define _STARPU_FUT_TASK_THROTTLE_START	0x5180
 #define _STARPU_FUT_TASK_THROTTLE_END	0x5181
 
+extern unsigned long _starpu_job_cnt;
+
+static inline unsigned long _starpu_fxt_get_job_id(void)
+{
+	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
+	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped! There are too many tasks for tracking them for profiling");
+	return ret;
+}
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -247,6 +260,15 @@ static inline void _starpu_fxt_wait_initialisation()
 	while (!_starpu_fxt_started)
 		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+}
+
+extern unsigned long _starpu_submit_order;
+
+static inline unsigned long _starpu_fxt_get_submit_order(void)
+{
+	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_submit_order, 1);
+	STARPU_ASSERT_MSG(_starpu_submit_order != 0, "Oops, submit_order wrapped! There are too many tasks for tracking them for profiling");
+	return ret;
 }
 
 long _starpu_gettid(void);
@@ -547,8 +569,10 @@ do {									\
 
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
-#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
-	FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
+#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			do {\
+	if (_starpu_fxt_started) \
+		FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid()); \
+} while (0)
 
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	\
 	FUT_DO_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid());
@@ -599,7 +623,7 @@ do {									\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
 	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
-	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _archname); \
+	_STARPU_FUT_DO_PROBE5STR(_STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
 } while(0);
 
 #define _STARPU_TRACE_START_EXECUTING()				\
@@ -653,18 +677,21 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ_id)		\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ_id))
 
-#define _STARPU_TRACE_TASK_DONE(job)						\
+#define _STARPU_TRACE_TASK_NAME(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)					                        \
 	{									\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
+		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
 	}									\
 	else {									\
-		FUT_DO_PROBE4(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
+		FUT_DO_PROBE4(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
 	}									\
 } while(0);
+
+#define _STARPU_TRACE_TASK_DONE(job)						\
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid())
 
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
@@ -682,17 +709,22 @@ do {										\
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
 	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_DATA_NAME, handle, name)
 
-#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) \
+#define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) do {\
+	if (_starpu_fxt_started) \
 	switch (dim) { \
 	case 1: FUT_DO_ALWAYS_PROBE3(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
 	case 2: FUT_DO_ALWAYS_PROBE4(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
 	case 3: FUT_DO_ALWAYS_PROBE5(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
 	case 4: FUT_DO_ALWAYS_PROBE6(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
 	default: FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
-	}
+	} \
+} while (0)
 
 #define _STARPU_TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(_STARPU_FUT_DATA_COPY, src_node, dst_node, size)
+
+#define _STARPU_TRACE_DATA_WONT_USE(handle)						\
+	FUT_DO_PROBE4(_STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid())
 
 #define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
 	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
@@ -734,7 +766,7 @@ do {										\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
-	FUT_DO_PROBE4(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, _starpu_gettid());
+	FUT_DO_PROBE6(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
@@ -1055,7 +1087,7 @@ do {										\
 		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
 	else \
 		__buf[0] = 0; \
-	FUT_DO_PROBE2STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __buf); \
+	FUT_DO_PROBE3STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, handle->home_node, __buf); \
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
@@ -1091,11 +1123,13 @@ do {										\
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_DATA_NAME(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
+#define _STARPU_TRACE_DATA_WONT_USE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)

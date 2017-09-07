@@ -144,7 +144,7 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 
 	STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
-	return (exp/alpha);
+	return exp/alpha;
 }
 
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
@@ -482,7 +482,7 @@ void _starpu_set_perf_model_dirs()
 
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */
-	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", STARPU_PERF_MODEL_DIR);
+	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", (char *)STARPU_PERF_MODEL_DIR);
 #else
 	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling/", _starpu_get_home_path());
 #endif

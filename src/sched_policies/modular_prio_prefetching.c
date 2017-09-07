@@ -16,6 +16,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <limits.h>
 
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 4
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
@@ -48,6 +49,12 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+
+	/* The application may use any integer */
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
