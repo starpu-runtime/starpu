@@ -52,7 +52,7 @@ static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *b
 static inline unsigned get_location_with_node(unsigned node);
 
 static struct disk_register **disk_register_list = NULL;
-unsigned memnode_to_disknode[STARPU_MAXNODES];
+static unsigned memnode_to_disknode[STARPU_MAXNODES];
 static int disk_number = -1;
 static int size_register_list = 2;
 
