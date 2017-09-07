@@ -49,9 +49,10 @@ struct disk_register
 };
 
 static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
-static int get_location_with_node(unsigned node);
+static inline unsigned get_location_with_node(unsigned node);
 
 static struct disk_register **disk_register_list = NULL;
+unsigned memnode_to_disknode[STARPU_MAXNODES];
 static int disk_number = -1;
 static int size_register_list = 2;
 
@@ -163,13 +164,13 @@ void _starpu_disk_unregister(void)
 
 void *_starpu_disk_alloc(unsigned node, size_t size)
 {
-	int pos = get_location_with_node(node);
+	unsigned pos = get_location_with_node(node);
 	return disk_register_list[pos]->functions->alloc(disk_register_list[pos]->base, size);
 }
 
 void _starpu_disk_free(unsigned node, void *obj, size_t size)
 {
-	int pos = get_location_with_node(node);
+	unsigned pos = get_location_with_node(node);
 	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
 }
 
@@ -177,7 +178,7 @@ void _starpu_disk_free(unsigned node, void *obj, size_t size)
 int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
         void *event = NULL;
-	int pos = get_location_with_node(src_node);
+	unsigned pos = get_location_with_node(src_node);
 
         if (channel != NULL)
 	{
@@ -207,7 +208,7 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
         void *event = NULL;
-	int pos = get_location_with_node(dst_node);
+	unsigned pos = get_location_with_node(dst_node);
 
         if (channel != NULL)
         {
@@ -235,8 +236,8 @@ int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_n
 
 int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsigned node_dst, void *obj_dst, off_t offset_dst, size_t size, struct _starpu_async_channel *channel)
 {
-	int pos_src = get_location_with_node(node_src);
-	int pos_dst = get_location_with_node(node_dst);
+	unsigned pos_src = get_location_with_node(node_src);
+	unsigned pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
         void * event;
 	channel->event.disk_event.memory_node = node_src;
@@ -252,7 +253,7 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
 {
         void *event = NULL;
-	int pos = get_location_with_node(src_node);
+	unsigned pos = get_location_with_node(src_node);
 
 	if (channel != NULL)
 	{
@@ -281,7 +282,7 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void
 int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *ptr, size_t size, struct _starpu_async_channel *channel)
 {
         void *event = NULL;
-	int pos = get_location_with_node(dst_node);
+	unsigned pos = get_location_with_node(dst_node);
 
 	if (channel != NULL)
 	{
@@ -309,19 +310,19 @@ int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
 
 void *starpu_disk_open(unsigned node, void *pos, size_t size)
 {
-	int position = get_location_with_node(node);
+	unsigned position = get_location_with_node(node);
 	return disk_register_list[position]->functions->open(disk_register_list[position]->base, pos, size);
 }
 
 void starpu_disk_close(unsigned node, void *obj, size_t size)
 {
-	int position = get_location_with_node(node);
+	unsigned position = get_location_with_node(node);
 	disk_register_list[position]->functions->close(disk_register_list[position]->base, obj, size);
 }
 
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	unsigned position = get_location_with_node(async_channel->event.disk_event.memory_node);
 
         if (async_channel->event.disk_event.requests != NULL && !_starpu_disk_backend_event_list_empty(async_channel->event.disk_event.requests))
         {
@@ -352,7 +353,7 @@ void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 
 int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	unsigned position = get_location_with_node(async_channel->event.disk_event.memory_node);
 
         if (async_channel->event.disk_event.requests != NULL && !_starpu_disk_backend_event_list_empty(async_channel->event.disk_event.requests))
         {
@@ -424,28 +425,21 @@ static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *
 	dr->functions = func;
 	n = ++disk_number;
 	disk_register_list[n] = dr;
+	memnode_to_disknode[node] = n;
 	return n;
 }
 
-static int get_location_with_node(unsigned node)
+static inline unsigned get_location_with_node(unsigned node)
 {
-#ifdef STARPU_DEVEL
-#warning optimize with a MAXNODE array
-#endif
-	int i;
-	for (i = 0; i <= disk_number; ++i)
-		if (disk_register_list[i]->node == node)
-			return i;
-	STARPU_ASSERT_MSG(false, "Disk node not found !(%u) ", node);
-	return -1;
+	return memnode_to_disknode[node];
 }
 
 int _starpu_disk_can_copy(unsigned node1, unsigned node2)
 {
 	if (starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
 	{
-		int pos1 = get_location_with_node(node1);
-		int pos2 = get_location_with_node(node2);
+		unsigned pos1 = get_location_with_node(node1);
+		unsigned pos2 = get_location_with_node(node2);
 		if (disk_register_list[pos1]->functions == disk_register_list[pos2]->functions)
 			/* they must have a copy function */
 			if (disk_register_list[pos1]->functions->copy != NULL)
@@ -456,13 +450,13 @@ int _starpu_disk_can_copy(unsigned node1, unsigned node2)
 
 void _starpu_set_disk_flag(unsigned node, int flag)
 {
-	int pos = get_location_with_node(node);
+	unsigned pos = get_location_with_node(node);
 	disk_register_list[pos]->flag = flag;
 }
 
 int _starpu_get_disk_flag(unsigned node)
 {
-	int pos = get_location_with_node(node);
+	unsigned pos = get_location_with_node(node);
 	return disk_register_list[pos]->flag;
 }
 
