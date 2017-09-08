@@ -28,6 +28,7 @@
 #include <common/thread.h>
 #include <datawizard/coherency.h>
 #include <nm_sendrecv_interface.h>
+#include <nm_mpi_private.h>
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE

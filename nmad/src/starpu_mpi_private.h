@@ -23,8 +23,9 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
-#include <nm_mpi_private.h>
-#include <piom_lock.h>
+#include <pioman.h>
+#include <nm_sendrecv_interface.h>
+#include <nm_session_interface.h>
 
 #ifdef __cplusplus
 extern "C"
