@@ -55,10 +55,17 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		condition = &descr->conditions_attached_to_node[nodeid][cond_id];
 
 		if (condition->worker == cur_worker)
+		{
+			if (condition->cond == &condition->worker->sched_cond)
+			{
+				condition->worker->state_keep_awake = 1;
+			}
+
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
+		}
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
@@ -94,10 +101,17 @@ void starpu_wake_all_blocked_workers(void)
 		condition = &descr->conditions_all[cond_id];
 
 		if (condition->worker == cur_worker)
+		{
+			if (condition->cond == &condition->worker->sched_cond)
+			{
+				condition->worker->state_keep_awake = 1;
+			}
+
 			/* No need to wake myself, and I might be called from
 			 * the scheduler with mutex locked, through
 			 * starpu_prefetch_task_input_on_node */
 			continue;
+		}
 
 		/* wake anybody waiting on that condition */
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&condition->worker->sched_mutex);
