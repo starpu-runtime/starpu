@@ -28,7 +28,7 @@
 #include <common/thread.h>
 #include <datawizard/coherency.h>
 #include <nm_sendrecv_interface.h>
-#include <nm_mpi_private.h>
+#include <nm_mpi_nmad.h>
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
@@ -86,8 +86,6 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	STARPU_ASSERT_MSG(req, "Invalid request");
 
 	STARPU_ATOMIC_ADD( &pending_request, 1);
-	nm_mpi_communicator_t*p_comm;
-	p_comm = nm_mpi_communicator_get(comm);
 
 	/* Initialize the request structure */
 	req->completed = 0;
@@ -101,8 +99,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	req->srcdst = srcdst;
 	req->mpi_tag = data_tag;
 	req->comm = comm;
-	req->session = nm_mpi_communicator_get_session(p_comm);
-	req->gate = nm_mpi_communicator_get_gate(p_comm,req->srcdst);
+	nm_mpi_nmad_dest(&req->session, &req->gate, comm, req->srcdst);
 
 	req->detached = detached;
 	req->sync = sync;
@@ -137,7 +134,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	TRACE_MPI_ISEND_SUBMIT_BEGIN(req->srcdst, req->mpi_tag, 0);
 
 	struct nm_data_s data;
-	nm_mpi_data_build(&data, (void*)req->ptr,  nm_mpi_datatype_get(req->datatype), req->count);
+	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
 	/* TODO: priority is in req->prio, set it in nm request */
 	nm_sr_send_init(req->session, &(req->request));
 	nm_sr_send_pack_data(req->session, &(req->request), &data);
@@ -324,7 +321,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	//req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	struct nm_data_s data;
-	nm_mpi_data_build(&data, (void*)req->ptr,  nm_mpi_datatype_get(req->datatype), req->count);
+	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_recv_init(req->session, &(req->request));
 	nm_sr_recv_unpack_data(req->session, &(req->request), &data);
 	nm_sr_recv_irecv(req->session, &(req->request), req->gate, req->mpi_tag,NM_TAG_MASK_FULL);
