@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012, 2014-2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2012, 2014-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -512,7 +512,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 					pivot = sub11[z+z*ld];
 				}
 			
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -561,7 +561,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 					cudaStreamSynchronize(stream);
 				}
 
-				STARPU_ASSERT(pivot != 0.0);
+				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 				
 				inv_pivot = 1.0/pivot;
 				status = CUBLAS_SCAL(handle,
