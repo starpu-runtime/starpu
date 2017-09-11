@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2012, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,10 @@
  * These are standard BLAS kernels for the LU factorization
  */
 #include "dw_factolu.h"
+
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
@@ -342,7 +346,17 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 			{
 				float pivot;
 				pivot = sub11[z+z*ld];
-				STARPU_ASSERT(pivot != 0.0f);
+
+#ifdef STARPU_HAVE_VALGRIND_H
+				if (RUNNING_ON_VALGRIND)
+				{
+					if (fpclassify(pivot) == FP_ZERO)
+						/* Running in valgrind, don't care about the result */
+						pivot = 1.0f;
+				}
+				else
+#endif
+					STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 
 				STARPU_SSCAL(nx - z - 1, (1.0f/pivot), &sub11[z+(z+1)*ld], ld);
 
@@ -362,7 +376,17 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
 				cudaStreamSynchronize(stream);
 
-				STARPU_ASSERT(pivot != 0.0f);
+#ifdef STARPU_HAVE_VALGRIND_H
+				if (RUNNING_ON_VALGRIND)
+				{
+					if (fpclassify(pivot) == FP_ZERO)
+						/* Running in valgrind, don't care about the result */
+						pivot = 1.0f;
+				}
+				else
+#endif
+					STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
+
 				float scal = 1.0f/pivot;
 
 				status = cublasSscal(starpu_cublas_get_local_handle(),
