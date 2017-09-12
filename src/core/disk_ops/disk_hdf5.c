@@ -259,20 +259,11 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 	/* HDF5 H50copy supports only same size in both areas and copies the entire object */
 	if (work->offset_src == 0 && work->offset_dst == 0 && work->size == work->obj_src->size && work->size == work->obj_dst->size)
 	{
-		/* Add creation of intermediate group. It's not really used in our case but HDF5 doc is very weird */
-		hid_t grp_prop = H5Pcreate(H5P_LINK_CREATE);
-		status = H5Pset_create_intermediate_group(grp_prop, 1);
-		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
+		/* Dirty : Delete dataspace because H5Ocopy only works if destination does not exist */
+		H5Ldelete(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);
 
-		hid_t copy_prop = H5Pcreate(H5P_OBJECT_COPY);
-		status = H5Pset_copy_object(copy_prop, H5O_COPY_SHALLOW_HIERARCHY_FLAG);
+		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT); 
 		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
-
-		status = H5Ocopy(work->obj_src->dataset, work->obj_src->path, work->obj_dst->dataset, work->obj_dst->path, copy_prop, grp_prop); 
-		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
-
-		H5Pclose(grp_prop);
-		H5Pclose(copy_prop);
 	}
 	else
 	{
@@ -282,17 +273,17 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 			warned = 1;
 		}
 
-		void ** ptr = NULL;
-		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, ptr, work->size, 0);
+		void * ptr;
+		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, &ptr, work->size, 0);
 		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %lu bytes to perform disk to disk operation", work->size);
 
 		/* buffer is only used internally to store intermediate data */
-		work->ptr = *ptr;
+		work->ptr = ptr;
 		
 		starpu_hdf5_read_internal(work);
 		starpu_hdf5_write_internal(work);
 
-		_starpu_free_flags_on_node(STARPU_MAIN_RAM, *ptr, work->size, 0);
+		_starpu_free_flags_on_node(STARPU_MAIN_RAM, ptr, work->size, 0);
 	}
 }
 
