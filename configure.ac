@@ -465,6 +465,7 @@ if test x$dsm_included != xyes; then
 	mkdir -p dsm
 	echo "dist:" > ./dsm/Makefile
 	echo "distdir:" >> ./dsm/Makefile
+	echo "distclean:" >> ./dsm/Makefile
         enable_dsm=no
 fi
 

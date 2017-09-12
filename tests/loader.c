@@ -282,13 +282,6 @@ int main(int argc, char *argv[])
 	child_pid = fork();
 	if (child_pid == 0)
 	{
-		// get a new pgid
-		if (setpgid(0, 0) == -1)
-		{
-			perror("setpgid");
-			fprintf(stderr, "[error] setpgid. Mark test as failed\n");
-			exit(EXIT_FAILURE);
-		}
 		if (launcher)
 		{
 			/* "Launchers" such as Valgrind need to be inserted

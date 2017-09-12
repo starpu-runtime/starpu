@@ -192,7 +192,7 @@ static int starpu_leveldb_write(void *base, void *obj, const void *buf, off_t of
 		memcpy(buffer, (void *) value_read, tmp->size);
 
 		/* put the new data on their new place */
-		memcpy(buffer, (void *) (buf_tmp+offset), size);
+		memcpy(buffer + offset, (void *) buf_tmp, size);
 	}
 
 	/* and write them */
