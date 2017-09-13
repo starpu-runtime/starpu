@@ -221,12 +221,15 @@ STARPU_EXAMPLES +=				\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
-	sched_ctx/sched_ctx			\
-	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
+if STARPU_NEW_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/sched_ctx			\
+	sched_ctx/two_cpu_contexts
+endif
 endif
 
 if !STARPU_SIMGRID
@@ -254,6 +257,10 @@ STARPU_EXAMPLES +=				\
 	native_fortran/nf_varbuf		\
 	native_fortran/nf_sched_ctx		\
 	native_fortran/nf_partition
+if STARPU_NEW_CHECK
+STARPU_EXAMPLES +=				\
+	native_fortran/nf_sched_ctx
+endif
 endif
 endif
 endif
@@ -318,8 +325,11 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/nested_sched_ctxs		\
 	sched_ctx/sched_ctx_without_sched_policy\
 	sched_ctx/sched_ctx_without_sched_policy_awake\
-	sched_ctx/parallel_tasks_reuse_handle	\
+	sched_ctx/parallel_tasks_reuse_handle
+if STARPU_NEW_CHECK
+STARPU_EXAMPLES +=				\
 	sched_ctx/parallel_code
+endif
 endif
 
 endif !STARPU_SIMGRID
