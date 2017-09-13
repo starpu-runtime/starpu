@@ -1361,6 +1361,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				break;
 			}
 		}
+
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
+
 		if(!found)
 		{
 			if (model->state->ncombs + 1 >= model->state->ncombs_set)
@@ -1371,8 +1374,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			}
 			model->state->combs[model->state->ncombs++] = comb;
 		}
-
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 
 		if(!model->state->per_arch[comb])
 		{
