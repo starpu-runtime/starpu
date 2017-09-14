@@ -85,9 +85,11 @@ int _starpu_mpi_fake_world_rank = -1;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
-static int posted_requests = 0, newer_requests, barrier_running = 0;
+static starpu_pthread_mutex_t mutex_ready_requests;
+static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
+#define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
 
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
@@ -212,6 +214,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 					  req->datatype_name, (int)req->count, req->registered_datatype);
 			_starpu_mpi_req_list_push_front(&ready_requests, req);
+			_STARPU_MPI_INC_READY_REQUESTS(+1);
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -278,6 +281,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 						_STARPU_MPI_MALLOC(req->ptr, req->count);
 					}
 					_starpu_mpi_req_list_push_front(&ready_requests, req);
+					_STARPU_MPI_INC_READY_REQUESTS(+1);
 					_starpu_mpi_request_destroy(sync_req);
 				}
 				else
@@ -291,6 +295,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 	else
 	{
 		_starpu_mpi_req_list_push_front(&ready_requests, req);
+		_STARPU_MPI_INC_READY_REQUESTS(+1);
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 				  req->datatype_name, (int)req->count, req->registered_datatype);
@@ -864,11 +869,10 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
-	_STARPU_MPI_LOG_IN();
-
-	int ret = posted_requests;
 	struct _starpu_mpi_req *barrier_req;
-	_starpu_mpi_request_init(&barrier_req);
+	int ret = posted_requests+ready_requests;
+
+	_STARPU_MPI_LOG_IN();
 
 	/* First wait for *both* all tasks and MPI requests to finish, in case
 	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
@@ -878,7 +882,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	barrier_running = 1;
 	do
 	{
-		while (posted_requests)
+		while (posted_requests || ready_requests)
 			/* Wait for all current MPI requests to finish */
 			STARPU_PTHREAD_COND_WAIT(&cond_finished, &mutex);
 		/* No current request, clear flag */
@@ -890,7 +894,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 		/* Check newer_requests again, in case some MPI requests
 		 * triggered by tasks completed and triggered tasks between
 		 * wait_for_all finished and we take the lock */
-	} while (posted_requests || newer_requests);
+	} while (posted_requests || ready_requests || newer_requests);
 	barrier_running = 0;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
@@ -1453,6 +1457,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				break;
 
 			req = _starpu_mpi_req_list_pop_back(&ready_requests);
+			_STARPU_MPI_INC_READY_REQUESTS(-1);
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
@@ -1691,6 +1696,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	_starpu_mpi_req_list_init(&detached_requests);
 
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
+        STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 	_starpu_mpi_comm_debug = starpu_getenv("STARPU_MPI_COMM") != NULL;
 
 #ifdef STARPU_MPI_ACTIVITY
