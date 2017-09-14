@@ -61,7 +61,7 @@ int starpu_disk_swap_node = -1;
 static void add_async_event(struct _starpu_async_channel * channel, void * event)
 {
         if (!event)
-                return; 
+                return;
 
         if (channel->event.disk_event.requests == NULL)
         {
@@ -99,7 +99,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 		_starpu_memory_node_add_nworkers(disk_memnode);
 		_starpu_worker_drives_memory_node(workerarg, disk_memnode);
 	}
-	
+
 	//Add bus for disk <-> disk copy
 	if (func->copy != NULL && disk_register_list != NULL)
 	{
@@ -137,28 +137,31 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 
 void _starpu_disk_unregister(void)
 {
-	int i;
-
-	/* search disk and delete it */
-	for (i = 0; i < size_register_list; ++i)
+	if (disk_register_list)
 	{
-		if (disk_register_list[i] == NULL)
-			continue;
+		int i;
 
-		_starpu_set_disk_flag(disk_register_list[i]->node, STARPU_DISK_NO_RECLAIM);
-		_starpu_free_all_automatically_allocated_buffers(disk_register_list[i]->node);
+		/* search disk and delete it */
+		for (i = 0; i < size_register_list; ++i)
+		{
+			if (disk_register_list[i] == NULL)
+				continue;
 
-		/* don't forget to unplug */
-		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
-		free(disk_register_list[i]);
-		disk_register_list[i] = NULL;
+			_starpu_set_disk_flag(disk_register_list[i]->node, STARPU_DISK_NO_RECLAIM);
+			_starpu_free_all_automatically_allocated_buffers(disk_register_list[i]->node);
 
-		disk_number--;
+			/* don't forget to unplug */
+			disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
+			free(disk_register_list[i]);
+			disk_register_list[i] = NULL;
+
+			disk_number--;
+		}
+
+		/* no disk in the list -> delete the list */
+		free(disk_register_list);
+		disk_register_list = NULL;
 	}
-
-	/* no disk in the list -> delete the list */
-	free(disk_register_list);
-	disk_register_list = NULL;
 
 	STARPU_ASSERT_MSG(disk_number == 0, "Some disks are not unregistered !");
 }
