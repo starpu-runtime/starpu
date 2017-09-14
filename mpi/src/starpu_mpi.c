@@ -899,6 +899,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	/* Initialize the request structure */
+	_starpu_mpi_request_init(&barrier_req);
 	STARPU_PTHREAD_MUTEX_INIT(&(barrier_req->req_mutex), NULL);
 	STARPU_PTHREAD_COND_INIT(&(barrier_req->req_cond), NULL);
 	barrier_req->func = _starpu_mpi_barrier_func;
