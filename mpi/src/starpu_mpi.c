@@ -86,10 +86,10 @@ int _starpu_mpi_fake_world_rank = -1;
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static starpu_pthread_mutex_t mutex_ready_requests;
-static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_running = 0;
+static int posted_requests = 0, nready_requests = 0, newer_requests, barrier_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
-#define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
+#define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); nready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
 
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
@@ -870,7 +870,7 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
 	struct _starpu_mpi_req *barrier_req;
-	int ret = posted_requests+ready_requests;
+	int ret = posted_requests+nready_requests;
 
 	_STARPU_MPI_LOG_IN();
 
@@ -882,7 +882,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	barrier_running = 1;
 	do
 	{
-		while (posted_requests || ready_requests)
+		while (posted_requests || nready_requests)
 			/* Wait for all current MPI requests to finish */
 			STARPU_PTHREAD_COND_WAIT(&cond_finished, &mutex);
 		/* No current request, clear flag */
@@ -894,7 +894,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 		/* Check newer_requests again, in case some MPI requests
 		 * triggered by tasks completed and triggered tasks between
 		 * wait_for_all finished and we take the lock */
-	} while (posted_requests || ready_requests || newer_requests);
+	} while (posted_requests || nready_requests || newer_requests);
 	barrier_running = 0;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
