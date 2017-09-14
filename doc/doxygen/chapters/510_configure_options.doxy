@@ -513,7 +513,7 @@ Enable linking with LevelDB if available
 Disable building HDF5 support.
 </dd>
 
-<dt>--with-hdf5-include-dir=<c>path</></dt>
+<dt>--with-hdf5-include-dir=<c>path</c></dt>
 <dd>
 \anchor with-hdf5-include-dir
 \addindex __configure__--with-hdf5-include-dir
@@ -698,9 +698,9 @@ exploring various execution paths.
 <dd>
 \anchor enable-calibration-heuristic
 \addindex __configure__--enable-calibration-heuristic
-Allows to set the maximum authorized percentage of deviation 
-for the history-based calibrator of StarPU. A correct value 
-of this parameter must be in [0..100]. The default value of 
+Allows to set the maximum authorized percentage of deviation
+for the history-based calibrator of StarPU. A correct value
+of this parameter must be in [0..100]. The default value of
 this parameter is 10. Experimental.
 </dd>
 
