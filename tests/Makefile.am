@@ -278,6 +278,7 @@ myPROGRAMS +=				\
 	datawizard/invalidate_pending_requests	\
 	datawizard/temporary_partition		\
 	disk/disk_copy				\
+	disk/disk_copy_to_disk			\
 	disk/disk_compute			\
 	disk/disk_pack				\
 	disk/mem_reclaim			\
