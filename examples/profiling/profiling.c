@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2015  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -118,8 +118,11 @@ int main(int argc, char **argv)
 
 	free(tasks);
 
-	FPRINTF(stderr, "Avg. delay : %2.2lf us\n", (delay_sum)/niter);
-	FPRINTF(stderr, "Avg. length : %2.2lf us\n", (length_sum)/niter);
+	if (niter)
+	{
+		FPRINTF(stderr, "Avg. delay : %2.2lf us\n", (delay_sum)/niter);
+		FPRINTF(stderr, "Avg. length : %2.2lf us\n", (length_sum)/niter);
+	}
 
 	/* Display the occupancy of all workers during the test */
 	unsigned worker;
