@@ -213,7 +213,6 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
         FILE * file_dst = fopen(hdf5_base_dst, "wb+");
         if (!file_dst)
 	{
-		fclose(file_src);
                 goto h5fail2;
 	}
         fclose(file_dst);
