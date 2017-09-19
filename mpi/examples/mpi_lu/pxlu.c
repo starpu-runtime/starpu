@@ -192,19 +192,24 @@ static void create_task_11_recv(unsigned k)
 	starpu_tag_t tag_array[2*nblocks];
 
 #ifdef SINGLE_TMP11
-	unsigned i, j;
 	if (k > 0)
-	for (i = (k-1)+1; i < nblocks; i++)
 	{
-		if (rank == get_block_rank(i, k-1))
-			tag_array[ndeps++] = TAG21(k-1, i);
+		unsigned i;
+		for (i = (k-1)+1; i < nblocks; i++)
+		{
+			if (rank == get_block_rank(i, k-1))
+				tag_array[ndeps++] = TAG21(k-1, i);
+		}
 	}
 
 	if (k > 0)
-	for (j = (k-1)+1; j < nblocks; j++)
 	{
-		if (rank == get_block_rank(k-1, j))
-			tag_array[ndeps++] = TAG12(k-1, j);
+		unsigned j;
+		for (j = (k-1)+1; j < nblocks; j++)
+		{
+			if (rank == get_block_rank(k-1, j))
+				tag_array[ndeps++] = TAG12(k-1, j);
+		}
 	}
 #endif
 
@@ -336,8 +341,6 @@ static void create_task_11(unsigned k)
 
 static void create_task_12_recv(unsigned k, unsigned j)
 {
-	unsigned i;
-
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
 
@@ -347,20 +350,29 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 
+	unsigned start;
+	unsigned bound;
+
 #ifdef SINGLE_TMP1221
-	if (k > 0)
-	for (i = (k-1)+1; i < nblocks; i++)
+	bound = 0;
+	start = (k-1)+1;
 #else
-	if (k > 1)
-	for (i = (k-2)+1; i < nblocks; i++)
+	bound = 1;
+	start = (k-2)+1;
 #endif
+
+	if (k > bound)
 	{
-		if (rank == get_block_rank(i, j))
+		unsigned i;
+		for (i = start; i < nblocks; i++)
+		{
+			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-			tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG22(k-1, i, j);
 #else
-			tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG22(k-2, i, j);
 #endif
+		}
 	}
 
 	int source = get_block_rank(k, j);
@@ -514,8 +526,6 @@ static void create_task_12(unsigned k, unsigned j)
 
 static void create_task_21_recv(unsigned k, unsigned i)
 {
-	unsigned j;
-
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
 
@@ -525,19 +535,27 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 
+	unsigned bound;
+	unsigned start;
+
 #ifdef SINGLE_TMP1221
-	if (k > 0)
-	for (j = (k-1)+1; j < nblocks; j++)
+	bound = 0;
+	start = (k-1)+1;
 #else
-	if (k > 1)
-	for (j = (k-2)+1; j < nblocks; j++)
+	bound = 1;
+	start = (k-2)+1;
 #endif
+	if (k > bound)
 	{
-		if (rank == get_block_rank(i, j))
+		unsigned j;
+		for (j = start; j < nblocks; j++)
+		{
+			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-			tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG22(k-1, i, j);
 #else
-			tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG22(k-2, i, j);
+		}
 #endif
 	}
 
