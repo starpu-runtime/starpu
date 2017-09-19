@@ -135,9 +135,9 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	struct nm_data_s data;
 	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
-	/* TODO: priority is in req->prio, set it in nm request */
 	nm_sr_send_init(req->session, &(req->request));
 	nm_sr_send_pack_data(req->session, &(req->request), &data);
+	nm_sr_send_set_priority(req->session, &req->request, req->prio);
 
 	if (req->sync == 0)
 	{
