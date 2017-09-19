@@ -2068,7 +2068,6 @@ int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid)
 
 int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num)
 {
-	int cnt = 0;
 	unsigned nworkers = starpu_worker_get_count();
 	int workerids[nworkers];
 
@@ -2079,10 +2078,11 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 	if(ndevice_workers > 0)
 	{
 		unsigned id, devid;
-		int curr_devid = -1;
+		int cnt = 0;
 		unsigned found = 0;
 		for(id = 0; id < ndevice_workers; id++)
 		{
+			int curr_devid;
 			curr_devid = _starpu_config.workers[workerids[id]].devid;
 			for(devid = 0; devid < ndevids; devid++)
 			{

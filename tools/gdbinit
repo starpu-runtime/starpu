@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -792,23 +792,36 @@ define starpu-mpi-print-request
     printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type %s submitted %d completed %d posted %d detached %d is_internal_req %d\n", $request, $request->data_handle, $request->data_handle ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.rank, $request_type, $request->submitted, $request->completed, $request->posted, $request->detached, $request->is_internal_req
 end
 
-define starpu-mpi-print-ready-requests
-    set $list = (struct _starpu_mpi_req_list *) ready_requests
+define starpu-mpi-print-ready-recv-requests
+    set $list = (struct _starpu_mpi_req_list) ready_recv_requests
     if $list
-	set $request = $list->_head
+	set $request = $list.list._head
         while $request
             starpu-mpi-print-request $request
 	    set $request = $request->_next
 	end
     else
-	printf "No ready requests\n"
+	printf "No ready recv requests\n"
+    end
+end
+
+define starpu-mpi-print-ready-send-requests
+    set $list = (struct _starpu_mpi_req_prio_list) ready_send_requests
+    if $list
+	set $request = $list.list._head
+        while $request
+            starpu-mpi-print-request $request
+	    set $request = $request->_next
+	end
+    else
+	printf "No ready send requests\n"
     end
 end
 
 define starpu-mpi-print-detached-requests
-    set $list = (struct _starpu_mpi_req_list *) detached_requests
+    set $list = (struct _starpu_mpi_req_list) detached_requests
     if $list
-	set $request = $list->_head
+	set $request = $list.list._head
         while $request
             starpu-mpi-print-request $request
 	    set $request = $request->_next
@@ -906,7 +919,8 @@ starpu-print-registered-models     prints all registered performance models
 starpu-print-model                 prints a given performance model
 starpu-sched-data                  prints the data of the given scheduler
 starpu-sched-print-modular         prints the hierarchy of modular scheduling components
-starpu-mpi-print-ready-requests    prints all MPI ready requests
+starpu-mpi-print-ready-recv-requests    prints all MPI ready recv requests
+starpu-mpi-print-ready-send-requests    prints all MPI ready send requests
 starpu-mpi-print-detached-requests prints all MPI detached requests
 starpu-mpi-print-early-data        prints all MPI early received data
 starpu-mpi-print-early-requests    prints all MPI early requests

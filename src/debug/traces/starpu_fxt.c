@@ -120,11 +120,11 @@ struct task_info *tasks_info;
 static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
 	struct task_info *task;
-	unsigned i;
 
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
 	{
+		unsigned i;
 		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
@@ -3032,10 +3032,10 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 	char *prefix = options->file_prefix;
 
 	/* Loop through completed communications */
-	struct _starpu_communication*itor;
 	while (!_starpu_communication_list_empty(&communication_list)
 			&& _starpu_communication_list_begin(&communication_list)->peer)
 	{
+		struct _starpu_communication*itor;
 		/* This communication is complete */
 		itor = _starpu_communication_list_pop_front(&communication_list);
 

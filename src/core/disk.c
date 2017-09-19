@@ -53,7 +53,7 @@ static inline unsigned get_location_with_node(unsigned node);
 
 static struct disk_register **disk_register_list = NULL;
 static unsigned memnode_to_disknode[STARPU_MAXNODES];
-static int disk_number = -1;
+static int disk_number = 0;
 static int size_register_list = 2;
 
 int starpu_disk_swap_node = -1;
@@ -61,7 +61,7 @@ int starpu_disk_swap_node = -1;
 static void add_async_event(struct _starpu_async_channel * channel, void * event)
 {
         if (!event)
-                return; 
+                return;
 
         if (channel->event.disk_event.requests == NULL)
         {
@@ -99,16 +99,16 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 		_starpu_memory_node_add_nworkers(disk_memnode);
 		_starpu_worker_drives_memory_node(workerarg, disk_memnode);
 	}
-	
+
 	//Add bus for disk <-> disk copy
-	if (func->copy != NULL)
+	if (func->copy != NULL && disk_register_list != NULL)
 	{
 		int disk;
-		for (disk = 0; disk < disk_number; disk++)
-			if (disk_register_list[disk]->functions->copy != NULL)
+		for (disk = 0; disk < size_register_list; disk++)
+			if (disk_register_list[disk] != NULL && disk_register_list[disk]->functions->copy != NULL && disk_register_list[disk]->functions->copy == func->copy)
 			{
-				_starpu_register_bus(disk_memnode, disk);
-				_starpu_register_bus(disk, disk_memnode);
+				_starpu_register_bus(disk_memnode, disk_register_list[disk]->node);
+				_starpu_register_bus(disk_register_list[disk]->node, disk_memnode);
 			}
 	}
 
@@ -137,27 +137,33 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 
 void _starpu_disk_unregister(void)
 {
-	int i;
-
-	/* search disk and delete it */
-	for (i = 0; i <= disk_number; ++i)
+	if (disk_register_list)
 	{
-		_starpu_set_disk_flag(disk_register_list[i]->node, STARPU_DISK_NO_RECLAIM);
-		_starpu_free_all_automatically_allocated_buffers(disk_register_list[i]->node);
+		int i;
 
-		/* don't forget to unplug */
-		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
-		free(disk_register_list[i]);
-	}
+		/* search disk and delete it */
+		for (i = 0; i < size_register_list; ++i)
+		{
+			if (disk_register_list[i] == NULL)
+				continue;
 
-	/* no disk in the list -> delete the list */
-	disk_number--;
+			_starpu_set_disk_flag(disk_register_list[i]->node, STARPU_DISK_NO_RECLAIM);
+			_starpu_free_all_automatically_allocated_buffers(disk_register_list[i]->node);
 
-	if (disk_register_list != NULL && disk_number == -1)
-	{
+			/* don't forget to unplug */
+			disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
+			free(disk_register_list[i]);
+			disk_register_list[i] = NULL;
+
+			disk_number--;
+		}
+
+		/* no disk in the list -> delete the list */
 		free(disk_register_list);
 		disk_register_list = NULL;
 	}
+
+	STARPU_ASSERT_MSG(disk_number == 0, "Some disks are not unregistered !");
 }
 
 /* interface between user and disk memory */
@@ -408,13 +414,19 @@ static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *
 	/* initialization */
 	if (disk_register_list == NULL)
 	{
-		_STARPU_MALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
+		_STARPU_CALLOC(disk_register_list, size_register_list, sizeof(struct disk_register *));
 	}
 	/* small size -> new size  */
-	if ((disk_number+1) > size_register_list)
+	if (disk_number >= size_register_list)
 	{
+		int old_size = size_register_list;
 		size_register_list *= 2;
 		_STARPU_REALLOC(disk_register_list, size_register_list*sizeof(struct disk_register *));
+
+		/* Initialize the new part */
+		int i;
+		for (i = old_size; i < size_register_list; i++)
+			disk_register_list[i] = NULL;
 	}
 
 	struct disk_register *dr;
@@ -423,7 +435,7 @@ static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
-	n = ++disk_number;
+	n = disk_number++;
 	disk_register_list[n] = dr;
 	memnode_to_disknode[node] = n;
 	return n;

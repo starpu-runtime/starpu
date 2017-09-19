@@ -156,8 +156,6 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	starpu_ssize_t limit = -1;
 
 #if defined(STARPU_HAVE_HWLOC)
-	char name[32];
-
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nnumas = starpu_memory_nodes_get_numa_count();
@@ -171,6 +169,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 		}
 		else
 		{
+			char name[32];
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
 			global_mem = obj->memory.local_memory;
 			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
