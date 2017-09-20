@@ -100,7 +100,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->ret = -1;
 	piom_cond_init(&((*req)->req_cond), 0);
 	//STARPU_PTHREAD_MUTEX_INIT(&((*req)->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&((*req)->req_cond), NULL);
+	//STARPU_PTHREAD_COND_INIT(&((*req)->req_cond), NULL);
 	//	STARPU_PTHREAD_MUTEX_INIT(&((*req)->posted_mutex), NULL);
 	//STARPU_PTHREAD_COND_INIT(&((*req)->posted_cond), NULL);
 
