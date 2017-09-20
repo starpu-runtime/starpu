@@ -34,9 +34,9 @@
 
 #define _SEND_DATA(data, mode, dest, data_tag, prio, comm, callback, arg)     \
 	do {									\
-	if (mode & STARPU_SSEND)					\
+		if (mode & STARPU_SSEND)					\
 			starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); 	\
-	else								\
+		else												\
 			starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);	\
 	} while (0)
 

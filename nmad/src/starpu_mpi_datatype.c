@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2011, 2015  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,6 @@
 #include <starpu_mpi_datatype.h>
 #include <common/uthash.h>
 #include <datawizard/coherency.h>
-#include <starpu_mpi_private.h>
-
-typedef void (*handle_to_datatype_func)(starpu_data_handle_t, MPI_Datatype *);
-typedef void (*handle_free_datatype_func)(MPI_Datatype *);
 
 struct _starpu_mpi_datatype_funcs
 {
@@ -43,7 +39,6 @@ void _starpu_mpi_datatype_shutdown(void)
 {
 	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
 }
-
 
 /*
  * 	Matrix
@@ -148,28 +143,36 @@ static void handle_to_datatype_void(starpu_data_handle_t data_handle STARPU_ATTR
  *	Generic
  */
 
-static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
+static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
 {
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype, int *user_datatype)
+void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
-		handle_to_datatype_func func = handle_to_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-		func(data_handle, datatype);
-		*user_datatype = 0;
+		starpu_mpi_datatype_allocate_func_t func = handle_to_datatype_funcs[id];
+		if (func)
+		{
+			func(data_handle, &req->datatype);
+			req->registered_datatype = 1;
+		}
+		else
+		{
+			/* The datatype is predefined by StarPU but it will be sent as a memory area */
+			req->datatype = MPI_BYTE;
+			req->registered_datatype = 0;
+		}
 	}
 	else
 	{
@@ -180,16 +183,27 @@ void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->allocate_datatype_func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-			table->allocate_datatype_func(data_handle, datatype);
-			*user_datatype = 0;
+			table->allocate_datatype_func(data_handle, &req->datatype);
+			req->registered_datatype = 1;
 		}
 		else
 		{
 			/* The datatype is not predefined by StarPU */
-			*datatype = MPI_BYTE;
-			*user_datatype = 1;
+			req->datatype = MPI_BYTE;
+			req->registered_datatype = 0;
 		}
 	}
+#ifdef STARPU_VERBOSE
+	{
+		char datatype_name[MPI_MAX_OBJECT_NAME];
+		int datatype_name_len;
+		MPI_Type_get_name(req->datatype, datatype_name, &datatype_name_len);
+		if (datatype_name_len == 0)
+			req->datatype_name = strdup("User defined datatype");
+		else
+			req->datatype_name = strdup(datatype_name);
+	}
+#endif
 }
 
 static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
@@ -199,17 +213,20 @@ static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
 
 static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 {
-	int num_ints, num_adds, num_datatypes, combiner, i;
-	int *array_of_ints;
-	MPI_Aint *array_of_adds;
-	MPI_Datatype *array_of_datatypes;
+	int num_ints, num_adds, num_datatypes, combiner;
 
 	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
 	if (combiner != MPI_COMBINER_NAMED)
 	{
-		array_of_ints = (int *) malloc(num_ints * sizeof(int));
-		array_of_adds = (MPI_Aint *) malloc(num_adds * sizeof(MPI_Aint));
-		array_of_datatypes = (MPI_Datatype *) malloc(num_datatypes * sizeof(MPI_Datatype));
+		int *array_of_ints;
+		MPI_Aint *array_of_adds;
+		MPI_Datatype *array_of_datatypes;
+		int i;
+
+		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
+		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
+		_STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
+
 		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
 		for(i=0 ; i<num_datatypes ; i++)
 		{
@@ -222,27 +239,27 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 	}
 }
 
-static handle_free_datatype_func handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
+static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
 {
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
+	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
+	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
-void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
-		handle_free_datatype_func func = handle_free_datatype_funcs[id];
-		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
-		func(datatype);
+		starpu_mpi_datatype_free_func_t func = handle_free_datatype_funcs[id];
+		if (func)
+			func(datatype);
 	}
 	else
 	{
@@ -258,41 +275,6 @@ void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Data
 
 	}
 	/* else the datatype is not predefined by StarPU */
-}
-
-char *_starpu_mpi_datatype(MPI_Datatype datatype)
-{
-     if (datatype == MPI_DATATYPE_NULL) return "MPI_DATATYPE_NULL";
-     if (datatype == MPI_CHAR) return "MPI_CHAR";
-     if (datatype == MPI_UNSIGNED_CHAR) return "MPI_UNSIGNED_CHAR";
-     if (datatype == MPI_BYTE) return "MPI_BYTE";
-     if (datatype == MPI_SHORT) return "MPI_SHORT";
-     if (datatype == MPI_UNSIGNED_SHORT) return "MPI_UNSIGNED_SHORT";
-     if (datatype == MPI_INT) return "MPI_INT";
-     if (datatype == MPI_UNSIGNED) return "MPI_UNSIGNED";
-     if (datatype == MPI_LONG) return "MPI_LONG";
-     if (datatype == MPI_UNSIGNED_LONG) return "MPI_UNSIGNED_LONG";
-     if (datatype == MPI_FLOAT) return "MPI_FLOAT";
-     if (datatype == MPI_DOUBLE) return "MPI_DOUBLE";
-     if (datatype == MPI_LONG_DOUBLE) return "MPI_LONG_DOUBLE";
-     if (datatype == MPI_LONG_LONG) return "MPI_LONG_LONG";
-     if (datatype == MPI_LONG_INT) return "MPI_LONG_INT";
-     if (datatype == MPI_SHORT_INT) return "MPI_SHORT_INT";
-     if (datatype == MPI_FLOAT_INT) return "MPI_FLOAT_INT";
-     if (datatype == MPI_DOUBLE_INT) return "MPI_DOUBLE_INT";
-     if (datatype == MPI_2INT) return "MPI_2INT";
-     if (datatype == MPI_2DOUBLE_PRECISION) return "MPI_2DOUBLE_PRECISION";
-     if (datatype == MPI_COMPLEX) return "MPI_COMPLEX";
-     if (datatype == MPI_DOUBLE_COMPLEX) return "MPI_DOUBLE_COMPLEX";
-     if (datatype == MPI_LOGICAL) return "MPI_LOGICAL";
-     if (datatype == MPI_REAL) return "MPI_REAL";
-     if (datatype == MPI_REAL4) return "MPI_REAL4";
-     if (datatype == MPI_REAL8) return "MPI_REAL8";
-     if (datatype == MPI_DOUBLE_PRECISION) return "MPI_DOUBLE_PRECISION";
-     if (datatype == MPI_INTEGER) return "MPI_INTEGER";
-     if (datatype == MPI_INTEGER4) return "MPI_INTEGER4";
-     if (datatype == MPI_PACKED) return "MPI_PACKED";
-     return "User defined MPI Datatype";
 }
 
 int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)

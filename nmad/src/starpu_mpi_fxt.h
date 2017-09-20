@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,69 +55,98 @@ extern "C"
 #define _STARPU_MPI_FUT_TEST_END			0x5220
 
 #ifdef STARPU_USE_FXT
-#define TRACE_MPI_START(rank, worldsize)	\
+#define _STARPU_MPI_TRACE_START(rank, worldsize)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
-#define TRACE_MPI_STOP(rank, worldsize)	\
+#define _STARPU_MPI_TRACE_STOP(rank, worldsize)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_STOP, (rank), (worldsize), _starpu_gettid());
-#define TRACE_MPI_BARRIER(rank, worldsize, key)	\
+#define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key)	\
 	FUT_DO_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid());
-#define TRACE_MPI_ISEND_SUBMIT_BEGIN(dest, mpi_tag, size)	\
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, mpi_tag, size)	\
 	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (mpi_tag), (size), _starpu_gettid());
-#define TRACE_MPI_ISEND_SUBMIT_END(dest, mpi_tag, size)	\
-	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (mpi_tag), (size), _starpu_gettid());
-#define TRACE_MPI_IRECV_SUBMIT_BEGIN(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(dest, mpi_tag, size, jobid)	\
+	FUT_DO_PROBE5(_STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (mpi_tag), (size), (jobid), _starpu_gettid());
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (mpi_tag), _starpu_gettid());
-#define TRACE_MPI_IRECV_SUBMIT_END(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_END, (src), (mpi_tag), _starpu_gettid());
-#define TRACE_MPI_ISEND_COMPLETE_BEGIN(dest, mpi_tag, size)	\
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(dest, mpi_tag, size)	\
 	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN, (dest), (mpi_tag), (size), _starpu_gettid());
-#define TRACE_MPI_COMPLETE_BEGIN(type, rank, mpi_tag)		\
-	if (type == RECV_REQ) { TRACE_MPI_IRECV_COMPLETE_BEGIN((rank), (mpi_tag)); } else if (type == SEND_REQ) { TRACE_MPI_ISEND_COMPLETE_BEGIN((rank), (mpi_tag), 0); }
-#define TRACE_MPI_ISEND_COMPLETE_END(dest, mpi_tag, size)	\
+#define _STARPU_MPI_TRACE_COMPLETE_BEGIN(type, rank, mpi_tag)		\
+	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN((rank), (mpi_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN((rank), (mpi_tag), 0); }
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(dest, mpi_tag, size)	\
 	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_END, (dest), (mpi_tag), (size), _starpu_gettid());
-#define TRACE_MPI_IRECV_COMPLETE_BEGIN(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN, (src), (mpi_tag), _starpu_gettid());
-#define TRACE_MPI_IRECV_COMPLETE_END(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (mpi_tag), _starpu_gettid());
-#define TRACE_MPI_COMPLETE_END(type, rank, mpi_tag)		\
-	if (type == RECV_REQ) { TRACE_MPI_IRECV_COMPLETE_END((rank), (mpi_tag)); } else if (type == SEND_REQ) { TRACE_MPI_ISEND_COMPLETE_END((rank), (mpi_tag), 0); }
-#define TRACE_MPI_SLEEP_BEGIN()	\
+#define _STARPU_MPI_TRACE_COMPLETE_END(type, rank, mpi_tag)		\
+	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_END((rank), (mpi_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_END((rank), (mpi_tag), 0); }
+#define _STARPU_MPI_TRACE_TERMINATED(req, rank, mpi_tag)		\
+	if ((req)->request_type == RECV_REQ) FUT_DO_PROBE4(_STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (mpi_tag), (req)->post_sync_jobid, _starpu_gettid()); else \
+	if ((req)->request_type == SEND_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
-#define TRACE_MPI_SLEEP_END()	\
+#define _STARPU_MPI_TRACE_SLEEP_END()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_END, _starpu_gettid());
-#define TRACE_MPI_DTESTING_BEGIN()	\
+#define _STARPU_MPI_TRACE_DTESTING_BEGIN()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_DTESTING_BEGIN,  _starpu_gettid());
-#define TRACE_MPI_DTESTING_END()	\
+#define _STARPU_MPI_TRACE_DTESTING_END()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_DTESTING_END, _starpu_gettid());
-#define TRACE_MPI_UTESTING_BEGIN(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_UTESTING_BEGIN(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UTESTING_BEGIN, (src), (mpi_tag),  _starpu_gettid());
-#define TRACE_MPI_UTESTING_END(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_UTESTING_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UTESTING_END, (src), (mpi_tag), _starpu_gettid());
-#define TRACE_MPI_UWAIT_BEGIN(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_UWAIT_BEGIN(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_BEGIN, (src), (mpi_tag),  _starpu_gettid());
-#define TRACE_MPI_UWAIT_END(src, mpi_tag)	\
+#define _STARPU_MPI_TRACE_UWAIT_END(src, mpi_tag)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_END, (src), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_DATA_SET_RANK(handle, rank)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
+#if 0
+/* This is very expensive in the trace, only enable for debugging */
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_TESTING_DETACHED_BEGIN, _starpu_gettid());
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_TESTING_DETACHED_END, _starpu_gettid());
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_TEST_BEGIN, (peer), (mpi_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_TEST_END, (peer), (mpi_tag), _starpu_gettid());
+#else
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()		do {} while(0)
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)		do {} while(0)
+#endif
 #define TRACE
 #else
-#define TRACE_MPI_START(a, b)				do {} while(0);
-#define TRACE_MPI_STOP(a, b)				do {} while(0);
-#define TRACE_MPI_BARRIER(a, b, c)			do {} while(0);
-#define TRACE_MPI_ISEND_SUBMIT_BEGIN(a, b, c)		do {} while(0);
-#define TRACE_MPI_ISEND_SUBMIT_END(a, b, c)		do {} while(0);
-#define TRACE_MPI_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
-#define TRACE_MPI_IRECV_SUBMIT_END(a, b)		do {} while(0);
-#define TRACE_MPI_ISEND_COMPLETE_BEGIN(a, b, c)		do {} while(0);
-#define TRACE_MPI_ISEND_COMPLETE_END(a, b, c)		do {} while(0);
-#define TRACE_MPI_IRECV_COMPLETE_BEGIN(a, b)		do {} while(0);
-#define TRACE_MPI_IRECV_COMPLETE_END(a, b)		do {} while(0);
-#define TRACE_MPI_SLEEP_BEGIN()				do {} while(0);
-#define TRACE_MPI_SLEEP_END()				do {} while(0);
-#define TRACE_MPI_DTESTING_BEGIN()			do {} while(0);
-#define TRACE_MPI_DTESTING_END()			do {} while(0);
-#define TRACE_MPI_UTESTING_BEGIN(a, b)			do {} while(0);
-#define TRACE_MPI_UTESTING_END(a, b)			do {} while(0);
-#define TRACE_MPI_UWAIT_BEGIN(a, b)			do {} while(0);
-#define TRACE_MPI_UWAIT_END(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
+#define _STARPU_MPI_TRACE_STOP(a, b)				do {} while(0);
+#define _STARPU_MPI_TRACE_BARRIER(a, b, c)			do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(a, b, c)		do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c, d)		do {} while(0);
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(a, b)		do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(a, b, c)		do {} while(0);
+#define _STARPU_MPI_TRACE_COMPLETE_BEGIN(a, b, c)		do {} while(0);
+#define _STARPU_MPI_TRACE_COMPLETE_END(a, b, c)			do {} while(0);
+#define _STARPU_MPI_TRACE_TERMINATED(a, b, c)			do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(a, b, c)		do {} while(0);
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(a, b)		do {} while(0);
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(a, b)		do {} while(0);
+#define _STARPU_MPI_TRACE_SLEEP_BEGIN()				do {} while(0);
+#define _STARPU_MPI_TRACE_SLEEP_END()				do {} while(0);
+#define _STARPU_MPI_TRACE_DTESTING_BEGIN()			do {} while(0);
+#define _STARPU_MPI_TRACE_DTESTING_END()			do {} while(0);
+#define _STARPU_MPI_TRACE_UTESTING_BEGIN(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_UTESTING_END(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_UWAIT_BEGIN(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_UWAIT_END(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_DATA_SET_RANK(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()		do {} while(0)
+#define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_BEGIN(peer, mpi_tag)		do {} while(0)
+#define _STARPU_MPI_TRACE_TEST_END(peer, mpi_tag)		do {} while(0)
 #endif
 
 #ifdef __cplusplus

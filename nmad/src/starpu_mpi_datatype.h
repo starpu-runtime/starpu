@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2011  Université de Bordeaux
+ * Copyright (C) 2010, 2012, 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #define __STARPU_MPI_DATATYPE_H__
 
 #include <starpu_mpi.h>
+#include <starpu_mpi_private.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -27,9 +28,9 @@ extern "C"
 
 void _starpu_mpi_datatype_init(void);
 void _starpu_mpi_datatype_shutdown(void);
-void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype, int *user_datatype);
-void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype);
-char *_starpu_mpi_datatype(MPI_Datatype datatype);
+
+void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req);
+void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *datatype);
 
 #ifdef __cplusplus
 }

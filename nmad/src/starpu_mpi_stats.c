@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,19 +32,21 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 		stats_enabled = 0;
 	}
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
-	if (!_starpu_silent) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
-	MPI_Comm_size(comm, &world_size);
+	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
-	comm_amount = (size_t *) calloc(world_size, sizeof(size_t));
+	_STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
 }
 
-void _starpu_mpi_comm_amounts_free()
+void _starpu_mpi_comm_amounts_shutdown()
 {
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 	free(comm_amount);
 }
 
@@ -52,9 +54,10 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 {
 	int src, size;
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
-	MPI_Comm_rank(comm, &src);
+	starpu_mpi_comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
 
 	_STARPU_MPI_DEBUG(1, "[%d] adding %d to %d\n", src, count*size, dst);
@@ -64,29 +67,31 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
 {
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 	memcpy(comm_amounts, comm_amount, world_size * sizeof(size_t));
 }
 
-void _starpu_mpi_comm_amounts_display(int node)
+void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 {
 	int dst;
 	size_t sum = 0;
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		sum += comm_amount[dst];
 	}
 
-	fprintf(stderr, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
+	fprintf(stream, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		if (comm_amount[dst])
 		{
-			fprintf(stderr, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
+			fprintf(stream, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
 				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
 		}
 	}

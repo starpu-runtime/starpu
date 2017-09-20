@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2011-2014, 2017  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -30,21 +30,24 @@ extern "C"
 
 extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
-void _starpu_mpi_cache_free(int world_size);
+void _starpu_mpi_cache_shutdown();
+void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle);
+void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle);
 
 /*
  * If the data is already available in the cache, return a pointer to the data
  * If the data is NOT available in the cache, add it to the cache and return NULL
  */
-void *_starpu_mpi_cache_received_data_set(starpu_data_handle_t data);
-void *_starpu_mpi_cache_received_data_get(starpu_data_handle_t data);
+int _starpu_mpi_cache_received_data_set(starpu_data_handle_t data);
+int _starpu_mpi_cache_received_data_get(starpu_data_handle_t data);
 void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data);
 
 /*
  * If the data is already available in the cache, return a pointer to the data
  * If the data is NOT available in the cache, add it to the cache and return NULL
  */
-void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
+int _starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
+int _starpu_mpi_cache_sent_data_get(starpu_data_handle_t data, int dest);
 void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data);
 
 void _starpu_mpi_cache_flush(starpu_data_handle_t data_handle);

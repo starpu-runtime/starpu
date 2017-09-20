@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,31 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) $(NMAD_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS) $(NMAD_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(NMAD_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(NMAD_LDFLAGS)
+
+ldflags =
+
+if STARPU_HAVE_WINDOWS
+
+LC_MESSAGES=C
+export LC_MESSAGES
+
+ldflags += -Xlinker --output-def -Xlinker .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.def
+
+if STARPU_HAVE_MS_LIB
+.libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib: libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la dolib
+	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.def @STARPU_EFFECTIVE_VERSION@ $(libstarpumpi_so_version) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib
+all-local: .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib
+endif STARPU_HAVE_MS_LIB
+
+install-exec-hook:
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
+if STARPU_HAVE_MS_LIB
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
+endif STARPU_HAVE_MS_LIB
+
+endif STARPU_HAVE_WINDOWS
 
 lib_LTLIBRARIES = libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
@@ -38,12 +62,13 @@ noinst_HEADERS =					\
 	starpu_mpi_stats.h				\
 	starpu_mpi_datatype.h				\
 	starpu_mpi_cache.h				\
+	starpu_mpi_select_node.h			\
 	starpu_mpi_cache_stats.h			\
-	starpu_mpi_collective.c				\
-	starpu_mpi_select_node.h
+	starpu_mpi_task_insert.h			\
+	starpu_mpi_init.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
-	starpu_mpi.c					\
+	starpu_mpi_nmad.c				\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_task_insert.c			\
@@ -52,7 +77,10 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_private.c				\
 	starpu_mpi_cache.c				\
 	starpu_mpi_select_node.c			\
-	starpu_mpi_cache_stats.c
+	starpu_mpi_cache_stats.c			\
+	starpu_mpi_fortran.c				\
+	starpu_mpi_task_insert_fortran.c		\
+	starpu_mpi_init.c
 
 showcheck:
 	-cat /dev/null
