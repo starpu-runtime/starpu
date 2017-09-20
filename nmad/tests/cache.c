@@ -60,7 +60,7 @@ struct starpu_codelet mycodelet_rw =
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)
 {
-	void* cache;
+	int cache;
 	int ret;
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
@@ -72,11 +72,11 @@ void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, sta
 	{
 	     if (in_cache)
 	     {
-		     STARPU_ASSERT_MSG(cache != NULL, "Data should be in cache\n");
+		     STARPU_ASSERT_MSG(cache == 1, "Data should be in cache\n");
 	     }
 	     else
 	     {
-		     STARPU_ASSERT_MSG(cache == NULL, "Data should NOT be in cache\n");
+		     STARPU_ASSERT_MSG(cache == 0, "Data should NOT be in cache\n");
 	     }
 	}
 }
@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	if (starpu_mpi_cache_is_enabled() == 0)
+		goto skip;
 
 	if (rank == 0)
 		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));

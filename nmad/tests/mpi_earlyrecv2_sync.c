@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 	int ret=0, global_ret=0;
 	int rank, size;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -223,13 +223,16 @@ int main(int argc, char **argv)
 	}
 
 	ret = exchange_variable(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_void(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	ret = exchange_complex(rank);
-	if (ret != 0) global_ret = ret;
+	if (ret != 0)
+		global_ret = ret;
 
 	MPI_Finalize();
 

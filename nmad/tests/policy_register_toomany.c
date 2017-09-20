@@ -32,6 +32,9 @@ int main(int argc, char **argv)
 	int ret;
 	int i;
 
+	if (RUNNING_ON_VALGRIND)
+		return STARPU_TEST_SKIPPED;
+
 	disable_coredump();
 
 	ret = starpu_init(NULL);

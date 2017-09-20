@@ -138,12 +138,12 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 
 int main(int argc, char **argv)
 {
-	int dst, rank, size;
+	int rank, size;
 	int result=0;
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0 || rank == 1)
 	{
-		dst = (rank == 0) ? 1 : 0;
+		int dst = (rank == 0) ? 1 : 0;
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
 		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}

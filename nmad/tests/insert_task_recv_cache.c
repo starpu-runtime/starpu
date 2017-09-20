@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 	if (rank == 1)
 	{
 		result = (comm_amount_with_cache[0] == comm_amount_without_cache[0] * 2);
-		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", result?"":"NOT ", comm_amount_with_cache[0], comm_amount_without_cache[0]);
+		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", result?"":"NOT ", (long)comm_amount_with_cache[0], (long)comm_amount_without_cache[0]);
 	}
 	else
 	{

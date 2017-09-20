@@ -73,14 +73,16 @@ int main(int argc, char **argv)
         starpu_data_handle_t *data_handles;
         starpu_data_handle_t factor_handle;
 	struct starpu_data_descr *descrs;
+	int mpi_init;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init(NULL, NULL, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (starpu_cpu_worker_get_count() == 0)
 	{
@@ -101,7 +103,8 @@ int main(int argc, char **argv)
 		descrs[i].handle = data_handles[i];
 		descrs[i].mode = STARPU_RW;
 	}
-	if (rank == 1) factor=FFACTOR;
+	if (rank == 1)
+		factor=FFACTOR;
 	starpu_variable_data_register(&factor_handle, STARPU_MAIN_RAM, (uintptr_t)&factor, sizeof(factor));
 	starpu_mpi_data_register(factor_handle, FFACTOR, 1);
 
@@ -111,14 +114,16 @@ int main(int argc, char **argv)
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+15,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
@@ -142,6 +147,7 @@ enodev:
 	}
 	else if (rank == 0)
 	{
+#ifndef STARPU_SIMGRID
 		for(i=0 ; i<STARPU_NMAXBUFS-1 ; i++)
 		{
 			if (x[i] != nloops * FFACTOR * 2)
@@ -162,6 +168,7 @@ enodev:
 		{
 			FPRINTF_MPI(stderr, "[end of loop] all values are correct\n");
 		}
+#endif
 		free(x);
 	}
 	else
@@ -173,6 +180,7 @@ enodev:
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-	MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 	return ret;
 }

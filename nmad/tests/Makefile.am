@@ -57,9 +57,9 @@ else
 TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
-#if STARPU_MPI_CHECK
+if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
-#endif
+endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
@@ -120,12 +120,14 @@ starpu_mpi_TESTS +=				\
 	mpi_detached_tag			\
 	mpi_irecv_detached			\
 	mpi_isend_detached			\
+	mpi_reduction				\
 	mpi_scatter_gather			\
 	policy_register				\
 	policy_register_many			\
 	policy_selection			\
-	policy_selection2
-
+	policy_selection2			\
+	ring_async_implicit			\
+	temporary
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -137,12 +139,17 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
 	mpi_redux				\
+	ring					\
+	ring_sync				\
+	ring_sync_detached			\
+	ring_async				\
 	block_interface				\
 	block_interface_pinned			\
 	matrix2					\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
+	insert_task_count			\
 	multiple_send				\
 	user_defined_datatype			\
 	tags_checking				\
@@ -170,6 +177,12 @@ noinst_PROGRAMS =				\
 	mpi_irecv_detached			\
 	mpi_detached_tag			\
 	mpi_redux				\
+	ring					\
+	ring_sync				\
+	ring_sync_detached			\
+	ring_async				\
+	ring_async_implicit			\
+	temporary				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\
@@ -186,9 +199,11 @@ noinst_PROGRAMS =				\
 	insert_task_owner2			\
 	insert_task_owner_data			\
 	insert_task_node_choice			\
+	insert_task_count			\
 	insert_task_dyn_handles			\
 	multiple_send				\
 	mpi_scatter_gather			\
+	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
 	sync					\
@@ -223,6 +238,8 @@ ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
 insert_task_count_SOURCES += ring_kernel.cu
 endif
+mpi_reduction_SOURCES = mpi_reduction.c
+mpi_reduction_SOURCES += mpi_reduction_kernels.c
 user_defined_datatype_SOURCES = user_defined_datatype.c
 user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 
