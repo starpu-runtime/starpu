@@ -948,7 +948,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	}
 
 	/* Wait for all task dependencies on this handle before putting it for free */
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_ALL_NODES, STARPU_W, _starpu_data_unregister_submit_cb, handle);
 }
 
 static void _starpu_data_invalidate(void *data)
