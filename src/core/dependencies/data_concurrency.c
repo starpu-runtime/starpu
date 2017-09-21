@@ -122,8 +122,6 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	mode &= ~STARPU_COMMUTE;
 	mode &= ~STARPU_SSEND;
 	mode &= ~STARPU_LOCALITY;
-	if (mode & STARPU_R)
-		STARPU_ASSERT_MSG(handle->initialized, "handle %p is not initialized while trying to read it", handle);
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
