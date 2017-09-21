@@ -58,12 +58,21 @@
 #define TEMP_HIERARCHY_DEPTH 2
 
 #ifndef HAVE_COPY_FILE_RANGE 
+#ifdef __NR_copy_file_range
 static loff_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
 		loff_t *off_out, size_t len, unsigned int flags)
 {
 	return syscall(__NR_copy_file_range, fd_in, off_in, fd_out,
 			off_out, len, flags);
 }
+#else
+static loff_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
+		loff_t *off_out, size_t len, unsigned int flags)
+{
+	errno = ENOSYS;
+	return -1
+}
+#endif
 #endif
 
 static unsigned starpu_unistd_opened_files;
