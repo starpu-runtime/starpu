@@ -1240,7 +1240,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit and limits scalability\n");
+	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit, limits scalability and makes worker initialization sequential\n");
 #endif
 #ifdef STARPU_PERF_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");

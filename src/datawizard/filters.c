@@ -570,7 +570,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	initial_handle->children = NULL;
 
 	/* Make sure to wait for previous tasks working on the whole data */
-	starpu_data_acquire_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE, STARPU_W);
+	starpu_data_acquire_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE, initial_handle->initialized?STARPU_RW:STARPU_W);
 	starpu_data_release_on_node(initial_handle, STARPU_ACQUIRE_NO_NODE);
 
 	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);

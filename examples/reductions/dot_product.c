@@ -359,16 +359,20 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	cublasHandle_t handle;
-	cublasCreate(&handle);
-	cublasGetVersion(handle, &cublas_version);
-	cublasDestroy(handle);
-	if (cublas_version >= 7050)
-		starpu_cublas_init();
-	else
-		/* Disable the sdot cublas kernel, it is bogus with a
-		 * non-blocking stream (Nvidia bugid 1669886) */
-		dot_codelet.cuda_funcs[0] = NULL;
+	unsigned devices = starpu_cuda_worker_get_count();
+	if (devices)
+	{
+		cublasHandle_t handle;
+		cublasCreate(&handle);
+		cublasGetVersion(handle, &cublas_version);
+		cublasDestroy(handle);
+		if (cublas_version >= 7050)
+			starpu_cublas_init();
+		else
+			/* Disable the sdot cublas kernel, it is bogus with a
+			 * non-blocking stream (Nvidia bugid 1669886) */
+			dot_codelet.cuda_funcs[0] = NULL;
+	}
 #endif
 
 	unsigned long nelems = _nblocks*_entries_per_block;
