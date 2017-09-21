@@ -257,6 +257,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		_starpu_spin_init(&child->header_lock);
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
+		child->initialized = initial_handle->initialized;
 
 		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
