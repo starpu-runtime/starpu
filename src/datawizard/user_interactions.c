@@ -26,7 +26,7 @@
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	if (!mode & STARPU_R)
+	if (!(mode & STARPU_R))
 		return;
 
 	if (!handle->initialized && handle->init_cl) {
