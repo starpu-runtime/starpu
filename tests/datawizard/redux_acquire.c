@@ -46,21 +46,32 @@ static struct starpu_codelet redux_codelet =
 	.name = "redux_codelet"
 };
 
+static void check_dot(void *dot_handle) {
+	long int *x = starpu_data_get_local_ptr(dot_handle);
+	STARPU_ASSERT_MSG(*x == 42, "Incorrect value %ld", *x);
+	starpu_data_release(dot_handle);
+}
+
 int main(int argc, char **argv)
 {
-	long int dot;
 	starpu_data_handle_t dot_handle;
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(dot));
+	starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(long int));
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
 	starpu_data_acquire(dot_handle, STARPU_R);
 	long int *x = starpu_data_get_local_ptr(dot_handle);
 	STARPU_ASSERT_MSG(*x == 42, "Incorrect value %ld", *x);
 	starpu_data_release(dot_handle);
 	starpu_data_unregister(dot_handle);
+
+	starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(long int));
+	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
+	starpu_data_acquire_cb(dot_handle, STARPU_R, check_dot, dot_handle);
+	starpu_data_unregister(dot_handle);
+
 	starpu_shutdown();
 	return 0;
 }
