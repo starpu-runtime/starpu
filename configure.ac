@@ -853,6 +853,7 @@ AC_CHECK_HEADERS([aio.h])
 AC_CHECK_LIB([rt], [aio_read])
 #AC_CHECK_HEADERS([libaio.h])
 #AC_CHECK_LIB([aio], [io_setup])
+AC_CHECK_FUNCS([copy_file_range])
 
 AC_CHECK_FUNCS([mkostemp])
 AC_CHECK_FUNCS([mkdtemp])

@@ -117,10 +117,10 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	starpu_vector_data_register(&vector_handleA, disk_src, (uintptr_t) data, NX, sizeof(int));
 
 	/* Move and invalidate copy to an other disk */
-	starpu_data_acquire_on_node(vector_handleA, disk_dst, STARPU_W);
+	starpu_data_acquire_on_node(vector_handleA, disk_dst, STARPU_RW);
 	starpu_data_release_on_node(vector_handleA, disk_dst);
 
-	starpu_data_acquire_on_node(vector_handleA, disk_src, STARPU_W);
+	starpu_data_acquire_on_node(vector_handleA, disk_src, STARPU_RW);
 	starpu_data_release_on_node(vector_handleA, disk_src);
 
 	/* free them */
@@ -285,10 +285,10 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 	starpu_vector_data_register(&vector_handleA, disk_src, (uintptr_t) data, NX, sizeof(int));
 
 	/* Move and invalidate copy to an other disk */
-	starpu_data_acquire_on_node(vector_handleA, disk_dst, STARPU_W);
+	starpu_data_acquire_on_node(vector_handleA, disk_dst, STARPU_RW);
 	starpu_data_release_on_node(vector_handleA, disk_dst);
 
-	starpu_data_acquire_on_node(vector_handleA, disk_src, STARPU_W);
+	starpu_data_acquire_on_node(vector_handleA, disk_src, STARPU_RW);
 	starpu_data_release_on_node(vector_handleA, disk_src);
 
 	starpu_data_unregister(vector_handleA);

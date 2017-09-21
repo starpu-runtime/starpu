@@ -48,4 +48,5 @@ int starpu_unistd_global_test_request(void * async_channel);
 void starpu_unistd_global_free_request(void * async_channel);
 int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t size);
+void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
 #endif

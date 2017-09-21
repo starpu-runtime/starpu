@@ -24,6 +24,18 @@
 #include <core/dependencies/data_concurrency.h>
 #include <core/sched_policy.h>
 
+static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	if (!mode & STARPU_R)
+		return;
+
+	if (!handle->initialized && handle->init_cl) {
+		int ret = starpu_task_insert(handle->init_cl, STARPU_W, handle, 0);
+		STARPU_ASSERT(ret == 0);
+	}
+	STARPU_ASSERT_MSG(handle->initialized, "handle %p is not initialized while trying to read it\n", handle);
+}
+
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
  * memory node. */
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
@@ -182,6 +194,9 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
         _STARPU_LOG_IN();
 
+	/* Check that previous tasks have set a value if needed */
+	_starpu_data_check_initialized(handle, mode);
+
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
 
@@ -274,8 +289,9 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 
 
 /*
- *	Blockin data request from application
+ *	Blocking data request from application
  */
+
 
 
 static inline void _starpu_data_acquire_continuation(void *arg)
@@ -299,6 +315,9 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
+
+	/* Check that previous tasks have set a value if needed */
+	_starpu_data_check_initialized(handle, mode);
 
 	if (node >= 0 && _starpu_data_is_multiformat_handle(handle) &&
 	    _starpu_handle_needs_conversion_task(handle, node))
@@ -390,6 +409,9 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
 	/* it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
+
+	/* Check that previous tasks have set a value if needed */
+	_starpu_data_check_initialized(handle, mode);
 
 	int ret;
 	STARPU_ASSERT_MSG(!_starpu_data_is_multiformat_handle(handle), "not supported yet");
@@ -484,6 +506,9 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 	/* it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(async || _starpu_worker_may_perform_blocking_calls(), "Synchronous prefetch is not possible from a task or a callback");
+
+	/* Check that previous tasks have set a value if needed */
+	_starpu_data_check_initialized(handle, mode);
 
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(*wrapper));
