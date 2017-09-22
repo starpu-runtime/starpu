@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <math.h>
+#include "helper.h"
 
 void init_cpu_func(void *descr[], void *cl_arg)
 {
@@ -60,6 +61,12 @@ int main(int argc, char **argv)
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(long int));
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
