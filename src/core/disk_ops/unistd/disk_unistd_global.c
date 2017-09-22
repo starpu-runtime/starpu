@@ -976,7 +976,6 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 	starpu_unistd_work_copy_list_push_front(copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].list, work);
         STARPU_PTHREAD_COND_BROADCAST(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].mutex);
-printf("\n\n\nICI \n\n\n");
 
 	return event;
 }
