@@ -57,17 +57,17 @@
 #define MAX_OPEN_FILES 64
 #define TEMP_HIERARCHY_DEPTH 2
 
-#ifndef HAVE_COPY_FILE_RANGE 
+#ifndef HAVE_COPY_FILE_RANGE
 #ifdef __NR_copy_file_range
-static ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
-		loff_t *off_out, size_t len, unsigned int flags)
+static starpu_ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
+				      loff_t *off_out, size_t len, unsigned int flags)
 {
 	return syscall(__NR_copy_file_range, fd_in, off_in, fd_out,
 			off_out, len, flags);
 }
 #else
-static ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out,
-		off_t *off_out, size_t len, unsigned int flags)
+static starpu_ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out,
+				      off_t *off_out, size_t len, unsigned int flags)
 {
 	errno = ENOSYS;
 	return -1;
@@ -86,7 +86,7 @@ LIST_TYPE(starpu_unistd_work_copy,
 	struct starpu_unistd_global_obj * obj_dst;
 	size_t len;
 	unsigned flags;
-	starpu_sem_t finished;	
+	starpu_sem_t finished;
 );
 
 struct starpu_unistd_copy_thread
@@ -94,7 +94,7 @@ struct starpu_unistd_copy_thread
 	int run;
 	starpu_pthread_t thread;
 	starpu_pthread_cond_t cond;
-	starpu_pthread_mutex_t mutex;	
+	starpu_pthread_mutex_t mutex;
 	struct starpu_unistd_work_copy_list *list;
 };
 
@@ -106,7 +106,7 @@ struct starpu_unistd_base
 	char * path;
 	int created;
 	/* To know which thread handles the copy function */
-	unsigned disk_index;	
+	unsigned disk_index;
 #if defined(HAVE_LIBAIO_H)
 	io_context_t ctx;
         struct starpu_unistd_aiocb_link * hashtable;
@@ -537,11 +537,11 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 static void * starpu_unistd_internal_thread(void * arg)
 {
 	struct starpu_unistd_copy_thread * copy_thread = (struct starpu_unistd_copy_thread *) arg;
-	
+
 	while (copy_thread->run || !starpu_unistd_work_copy_list_empty(copy_thread->list))
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&copy_thread->mutex);
-		if (copy_thread->run && starpu_unistd_work_copy_list_empty(copy_thread->list))	
+		if (copy_thread->run && starpu_unistd_work_copy_list_empty(copy_thread->list))
                         STARPU_PTHREAD_COND_WAIT(&copy_thread->cond, &copy_thread->mutex);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread->mutex);
 
@@ -554,7 +554,7 @@ static void * starpu_unistd_internal_thread(void * arg)
 			copy_file_range(work->fd_src, &work->off_src, work->fd_dst, &work->off_dst, work->len, work->flags);
 
 			starpu_sem_post(&work->finished);
-		
+
 			/* Don't free work, it's done when tested/waited are completed */
 		}
 
@@ -787,10 +787,10 @@ void starpu_unistd_global_wait_request(void *async_channel)
 #endif
 			break;
 		}
-		
+
 		case STARPU_UNISTD_COPY :
 		{
-			starpu_sem_wait(&event->event.event_copy->finished);	
+			starpu_sem_wait(&event->event.event_copy->finished);
 			break;
 		}
 
@@ -865,10 +865,10 @@ int starpu_unistd_global_test_request(void *async_channel)
 #endif
 			break;
 		}
-		
+
 		case STARPU_UNISTD_COPY :
 		{
-			return starpu_sem_trywait(&event->event.event_copy->finished) == 0;	
+			return starpu_sem_trywait(&event->event.event_copy->finished) == 0;
 			break;
 		}
 
@@ -876,7 +876,7 @@ int starpu_unistd_global_test_request(void *async_channel)
 			STARPU_ABORT_MSG();
 			break;
 	}
-	
+
 	return 0;
 }
 
@@ -903,7 +903,7 @@ void starpu_unistd_global_free_request(void *async_channel)
 #endif
 			break;
 		}
-		
+
 		case STARPU_UNISTD_COPY :
 		{
 			starpu_sem_destroy(&event->event.event_copy->finished);
