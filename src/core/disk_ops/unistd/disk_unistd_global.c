@@ -138,7 +138,9 @@ enum starpu_unistd_wait_type { STARPU_UNISTD_AIOCB, STARPU_UNISTD_COPY };
 union starpu_unistd_wait_event
 {
 	struct starpu_unistd_work_copy * event_copy;
+#if defined(HAVE_LIBAIO_H) || defined(HAVE_AIO_H)
 	struct starpu_unistd_aiocb event_aiocb;
+#endif
 };
 
 struct starpu_unistd_wait
