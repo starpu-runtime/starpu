@@ -38,6 +38,7 @@ static struct starpu_codelet init_codelet =
 	.modes = {STARPU_W},
 	.name = "init_codelet"
 };
+
 static struct starpu_codelet redux_codelet =
 {
 	.cpu_funcs = {redux_cpu_func},
@@ -46,7 +47,8 @@ static struct starpu_codelet redux_codelet =
 	.name = "redux_codelet"
 };
 
-static void check_dot(void *dot_handle) {
+static void check_dot(void *dot_handle)
+{
 	long int *x = starpu_data_get_local_ptr(dot_handle);
 	STARPU_ASSERT_MSG(*x == 42, "Incorrect value %ld", *x);
 	starpu_data_release(dot_handle);
