@@ -19,7 +19,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <stdint.h>
 #include <errno.h>
 
@@ -65,18 +64,12 @@ static starpu_ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
 	return syscall(__NR_copy_file_range, fd_in, off_in, fd_out,
 			off_out, len, flags);
 }
-#else
-static starpu_ssize_t copy_file_range(int fd_in, off_t *off_in, int fd_out,
-				      off_t *off_out, size_t len, unsigned int flags)
-{
-	errno = ENOSYS;
-	return -1;
-}
 #endif
 #endif
 
 static unsigned starpu_unistd_opened_files;
 
+#ifdef STARPU_UNISTD_USE_COPY
 LIST_TYPE(starpu_unistd_work_copy,
 	int fd_src;
 	int fd_dst;
@@ -100,13 +93,16 @@ struct starpu_unistd_copy_thread
 
 struct starpu_unistd_copy_thread copy_thread[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned starpu_unistd_nb_disk_opened = 0;
+#endif
 
 struct starpu_unistd_base
 {
 	char * path;
 	int created;
 	/* To know which thread handles the copy function */
+#ifdef STARPU_UNISTD_USE_COPY
 	unsigned disk_index;
+#endif
 #if defined(HAVE_LIBAIO_H)
 	io_context_t ctx;
         struct starpu_unistd_aiocb_link * hashtable;
@@ -534,6 +530,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
 
+#ifdef STARPU_UNISTD_USE_COPY
 static void * starpu_unistd_internal_thread(void * arg)
 {
 	struct starpu_unistd_copy_thread * copy_thread = (struct starpu_unistd_copy_thread *) arg;
@@ -571,6 +568,7 @@ static void initialize_working_thread(struct starpu_unistd_copy_thread *copy_thr
 	copy_thread->list = starpu_unistd_work_copy_list_new();
 	STARPU_PTHREAD_CREATE(&copy_thread->thread, NULL, starpu_unistd_internal_thread, copy_thread);
 }
+#endif
 
 /* create a new copy of parameter == base */
 void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
@@ -598,6 +596,7 @@ void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTR
 	STARPU_ASSERT(ret == 0);
 #endif
 
+#ifdef STARPU_UNISTD_USE_COPY
 	base->disk_index = starpu_unistd_nb_disk_opened;
 	starpu_unistd_nb_disk_opened++;
 
@@ -609,10 +608,12 @@ void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTR
 		if (i != base->disk_index)
 			initialize_working_thread(&copy_thread[base->disk_index][i]);
 	}
+#endif
 
 	return (void *) base;
 }
 
+#ifdef STARPU_UNISTD_USE_COPY
 static void ending_working_thread(struct starpu_unistd_copy_thread *copy_thread)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&copy_thread->mutex);
@@ -626,6 +627,7 @@ static void ending_working_thread(struct starpu_unistd_copy_thread *copy_thread)
 	STARPU_PTHREAD_COND_DESTROY(&copy_thread->cond);
 	starpu_unistd_work_copy_list_delete(copy_thread->list);
 }
+#endif
 
 /* free memory allocated for the base */
 void starpu_unistd_global_unplug(void *base)
@@ -638,6 +640,7 @@ void starpu_unistd_global_unplug(void *base)
 	if (fileBase->created)
 		rmdir(fileBase->path);
 
+#ifdef STARPU_UNISTD_USE_COPY
 	int i;
 	for (i = 0; i < fileBase->disk_index+1; i++)
 	{
@@ -647,6 +650,7 @@ void starpu_unistd_global_unplug(void *base)
 			ending_working_thread(&copy_thread[fileBase->disk_index][i]);
 	}
 	starpu_unistd_nb_disk_opened--;
+#endif
 
 	free(fileBase->path);
 	free(fileBase);
@@ -788,11 +792,13 @@ void starpu_unistd_global_wait_request(void *async_channel)
 			break;
 		}
 
+#ifdef STARPU_UNISTD_USE_COPY
 		case STARPU_UNISTD_COPY :
 		{
 			starpu_sem_wait(&event->event.event_copy->finished);
 			break;
 		}
+#endif
 
 		default :
 			STARPU_ABORT_MSG();
@@ -866,11 +872,13 @@ int starpu_unistd_global_test_request(void *async_channel)
 			break;
 		}
 
+#ifdef STARPU_UNISTD_USE_COPY
 		case STARPU_UNISTD_COPY :
 		{
 			return starpu_sem_trywait(&event->event.event_copy->finished) == 0;
 			break;
 		}
+#endif
 
 		default :
 			STARPU_ABORT_MSG();
@@ -904,6 +912,7 @@ void starpu_unistd_global_free_request(void *async_channel)
 			break;
 		}
 
+#ifdef STARPU_UNISTD_USE_COPY
 		case STARPU_UNISTD_COPY :
 		{
 			starpu_sem_destroy(&event->event.event_copy->finished);
@@ -919,6 +928,7 @@ void starpu_unistd_global_free_request(void *async_channel)
 			free(event);
 			break;
 		}
+#endif
 
 		default :
 			STARPU_ABORT_MSG();
@@ -927,6 +937,7 @@ void starpu_unistd_global_free_request(void *async_channel)
 }
 
 
+#ifdef STARPU_UNISTD_USE_COPY
 void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size)
 {
 	struct starpu_unistd_global_obj * unistd_obj_src = obj_src;
@@ -963,6 +974,8 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 	starpu_unistd_work_copy_list_push_front(copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].list, work);
         STARPU_PTHREAD_COND_BROADCAST(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].mutex);
+printf("\n\n\nICI \n\n\n");
 
 	return event;
 }
+#endif
