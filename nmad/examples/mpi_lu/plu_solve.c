@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2014  Université de Bordeaux
+ * Copyright (C) 2010, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -233,13 +233,13 @@ TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 	unsigned block_size = size/nblocks;
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	unsigned bi, bj;
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		TYPE *block;
+		TYPE *block = NULL;
 
 		int block_rank = get_block_rank(bi, bj);
 
@@ -247,7 +247,8 @@ TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 		{
 			block = STARPU_PLU(get_block)(bi, bj);
 		}
-		else {
+		else
+		{
 			MPI_Status status;
 
 			if (rank == 0)
@@ -257,7 +258,8 @@ TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 				int ret = MPI_Recv(block, block_size*block_size, MPI_TYPE, block_rank, 0, MPI_COMM_WORLD, &status);
 				STARPU_ASSERT(ret == MPI_SUCCESS);
 			}
-			else if (rank == block_rank) {
+			else if (rank == block_rank)
+			{
 				block = STARPU_PLU(get_block)(bi, bj);
 				int ret = MPI_Send(block, block_size*block_size, MPI_TYPE, 0, 0, MPI_COMM_WORLD);
 				STARPU_ASSERT(ret == MPI_SUCCESS);
@@ -331,7 +333,7 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 	unsigned display = STARPU_PLU(display_flag)();
 
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (rank == 0)
 	{
@@ -390,4 +392,6 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 
 		fprintf(stderr, "||A-LU|| / (||A||*N) : %e\n", residual/(matnorm*size));
 	}
+
+	free(all_r);
 }

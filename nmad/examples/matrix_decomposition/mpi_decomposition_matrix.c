@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012, 2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,10 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-#include "mpi_decomposition_matrix.h"
-#include "mpi_decomposition_params.h"
-#include "mpi_cholesky_codelets.h"
+#include "mpi_cholesky.h"
 
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
@@ -31,19 +28,21 @@ int my_distrib(int x, int y, int nb_nodes)
 
 void matrix_display(float ***bmat, int rank)
 {
-	unsigned i,j,x,y;
-
 	if (display)
 	{
+		unsigned y;
 		printf("[%d] Input :\n", rank);
 
 		for(y=0 ; y<nblocks ; y++)
 		{
+			unsigned x;
 			for(x=0 ; x<nblocks ; x++)
 			{
+				unsigned j;
 				printf("Block %u,%u :\n", x, y);
 				for (j = 0; j < BLOCKSIZE; j++)
 				{
+					unsigned i;
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
 						if (i <= j)
@@ -80,8 +79,10 @@ void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 				{
 					for (j = 0; j < BLOCKSIZE; j++)
 					{
+#ifndef STARPU_SIMGRID
 						(*bmat)[x][y][j +i*BLOCKSIZE] = (1.0f/(1.0f+(i+(x*BLOCKSIZE)+j+(y*BLOCKSIZE)))) + ((i+(x*BLOCKSIZE) == j+(y*BLOCKSIZE))?1.0f*size:0.0f);
 						//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
+#endif
 					}
 				}
 			}

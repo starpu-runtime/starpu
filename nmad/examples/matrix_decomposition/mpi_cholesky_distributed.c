@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,11 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_mpi.h>
-#include "mpi_cholesky_models.h"
-#include "mpi_cholesky_codelets.h"
-#include "mpi_decomposition_matrix.h"
-#include "mpi_decomposition_params.h"
+#include "mpi_cholesky.h"
 
 int main(int argc, char **argv)
 {
@@ -38,8 +34,8 @@ int main(int argc, char **argv)
 
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 	starpu_cublas_init();
 
 	parse_args(argc, argv, nodes);
@@ -56,8 +52,8 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
-		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
+		FPRINTF(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
+		FPRINTF(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
 	}
 
 	return 0;

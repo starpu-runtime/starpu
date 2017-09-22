@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2011, 2013, 2015, 2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,31 +67,35 @@ static starpu_data_handle_t *(tmp_21_block_handles[2]);
 static TYPE **(tmp_21_block[2]);
 #endif
 
-int get_block_rank(unsigned i, unsigned j);
-
 static void parse_args(int rank, int argc, char **argv)
 {
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-size") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-nblocks") == 0) {
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-check") == 0) {
+		if (strcmp(argv[i], "-check") == 0)
+		{
 			check = 1;
 		}
 
-		if (strcmp(argv[i], "-display") == 0) {
+		if (strcmp(argv[i], "-display") == 0)
+		{
 			display = 1;
 		}
 
-		if (strcmp(argv[i], "-numa") == 0) {
+		if (strcmp(argv[i], "-numa") == 0)
+		{
 #ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
@@ -100,17 +104,20 @@ static void parse_args(int rank, int argc, char **argv)
 #endif
 		}
 
-		if (strcmp(argv[i], "-p") == 0) {
+		if (strcmp(argv[i], "-p") == 0)
+		{
 			char *argptr;
 			p = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-q") == 0) {
+		if (strcmp(argv[i], "-q") == 0)
+		{
 			char *argptr;
 			q = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)
+		{
 			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q]\n", argv[0]);
 			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
 			exit(0);
@@ -248,11 +255,13 @@ static void init_matrix(int rank)
 				}
 
 				/* Register it to StarPU */
-				starpu_matrix_data_register(handleptr, 0,
+				starpu_matrix_data_register(handleptr, STARPU_MAIN_RAM,
 					(uintptr_t)*blockptr, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
+				starpu_data_set_coordinates(*handleptr, 2, j, i);
 			}
-			else {
+			else
+			{
 				*blockptr = STARPU_POISON_PTR;
 				*handleptr = STARPU_POISON_PTR;
 			}
@@ -267,7 +276,7 @@ static void init_matrix(int rank)
 #ifdef SINGLE_TMP11
 	starpu_malloc((void **)&tmp_11_block, blocksize);
 	allocated_memory_extra += blocksize;
-	starpu_matrix_data_register(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
+	starpu_matrix_data_register(&tmp_11_block_handle, STARPU_MAIN_RAM, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 #else
 	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
@@ -282,7 +291,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_11_block[k]);
 
-			starpu_matrix_data_register(&tmp_11_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_11_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_11_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -298,7 +307,8 @@ static void init_matrix(int rank)
 
 	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
 #else
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
 		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
 		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
@@ -317,7 +327,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[k]);
 
-			starpu_matrix_data_register(&tmp_12_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_12_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_12_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -328,19 +338,20 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[k]);
 
-			starpu_matrix_data_register(&tmp_21_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_21_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_21_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
 #else
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
 			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[i][k]);
 
-			starpu_matrix_data_register(&tmp_12_block_handles[i][k], 0,
+			starpu_matrix_data_register(&tmp_12_block_handles[i][k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_12_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -351,7 +362,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[i][k]);
 
-			starpu_matrix_data_register(&tmp_21_block_handles[i][k], 0,
+			starpu_matrix_data_register(&tmp_21_block_handles[i][k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_21_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -412,7 +423,8 @@ int main(int argc, char **argv)
 	 *	Initialization
 	 */
 	int thread_support;
-	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
+	{
 		fprintf(stderr,"MPI_Init_thread failed\n");
 		exit(1);
 	}
@@ -421,8 +433,8 @@ int main(int argc, char **argv)
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	starpu_srand48((long int)time(NULL));
 
@@ -434,7 +446,8 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init(NULL, NULL, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	STARPU_ASSERT(p*q == world_size);
 
@@ -459,10 +472,10 @@ int main(int argc, char **argv)
 	TYPE *a_r = NULL;
 //	STARPU_PLU(display_data_content)(a_r, size);
 
-	TYPE *x, *y;
-
 	if (check)
 	{
+		TYPE *x, *y;
+
 		x = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(x);
 
@@ -482,6 +495,9 @@ int main(int argc, char **argv)
 			STARPU_PLU(display_data_content)(a_r, size);
 
 //		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
+
+		free(x);
+		free(y);
 	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);

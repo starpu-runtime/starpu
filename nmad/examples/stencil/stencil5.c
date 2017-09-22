@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015              Université Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2013, 2015-2017              Université Bordeaux
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define FPRINTF_MPI(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) { \
-    						int _disp_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_disp_rank);       \
+    						int _disp_rank; starpu_mpi_comm_rank(MPI_COMM_WORLD, &_disp_rank);       \
                                                 fprintf(ofile, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __starpu_func__ ,## __VA_ARGS__); \
                                                 fflush(ofile); }} while(0);
 
@@ -37,15 +37,35 @@ void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 //	fprintf(stdout, "VALUES: %2.2f %2.2f %2.2f %2.2f %2.2f\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 }
 
+/* Dumb performance model for simgrid */
+static double stencil5_cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	(void) task;
+	(void) nimpl;
+	return 0.000001;
+}
+
+static struct starpu_perfmodel stencil5_model =
+{
+	.type = STARPU_COMMON,
+	.cost_function = stencil5_cost_function,
+	.symbol = "stencil5"
+};
+
 struct starpu_codelet stencil5_cl =
 {
 	.cpu_funcs = {stencil5_cpu},
 	.nbuffers = 5,
-	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
+	.model = &stencil5_model
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	100
+#  define NITER_DEF	10
+#  define X         	2
+#  define Y         	2
+#elif !defined(STARPU_LONG_CHECK)
+#  define NITER_DEF	10
 #  define X         	5
 #  define Y         	5
 #else
@@ -96,9 +116,18 @@ int main(int argc, char **argv)
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	starpu_mpi_init(&argc, &argv, 1);
-	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	ret = starpu_mpi_init(&argc, &argv, 1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		starpu_shutdown();
+		return 77;
+	}
 
 	parse_args(argc, argv);
 
@@ -136,14 +165,14 @@ int main(int argc, char **argv)
 			int mpi_rank = my_distrib(x, y, size);
 			if (mpi_rank == my_rank)
 			{
-				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
+				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(float));
 			}
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
 				/* I don't own that index, but will need it for my computations */
-				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
+				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(float));
 			}
 			else
@@ -153,6 +182,7 @@ int main(int argc, char **argv)
 			}
 			if (data_handles[x][y])
 			{
+				starpu_data_set_coordinates(data_handles[x][y], 2, x, y);
 				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 		}
@@ -161,18 +191,21 @@ int main(int argc, char **argv)
 	/* First computation with initial distribution */
 	for(loop=0 ; loop<niter; loop++)
 	{
+		starpu_iteration_push(loop);
+
 		for (x = 1; x < X-1; x++)
 		{
 			for (y = 1; y < Y-1; y++)
 			{
-				starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
 						       STARPU_R, data_handles[x-1][y], STARPU_R, data_handles[x+1][y],
 						       STARPU_R, data_handles[x][y-1], STARPU_R, data_handles[x][y+1],
 						       0);
 			}
 		}
+		starpu_iteration_pop();
 	}
-	fprintf(stderr, "Waiting ...\n");
+	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
 
 	/* Now migrate data to a new distribution */
@@ -192,32 +225,30 @@ int main(int argc, char **argv)
 				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 			if (data_handles[x][y] && mpi_rank != starpu_mpi_data_get_rank(data_handles[x][y]))
-			{
 				/* Migrate the data */
-				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
-				/* And register new rank of the matrix */
-				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
-			}
+				starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
 		}
 	}
 
 	/* Second computation with new distribution */
 	for(loop=0 ; loop<niter; loop++)
 	{
+		starpu_iteration_push(niter + loop);
+
 		for (x = 1; x < X-1; x++)
 		{
 			for (y = 1; y < Y-1; y++)
 			{
-				starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
 						       STARPU_R, data_handles[x-1][y], STARPU_R, data_handles[x+1][y],
 						       STARPU_R, data_handles[x][y-1], STARPU_R, data_handles[x][y+1],
 						       0);
 			}
 		}
+		starpu_iteration_pop();
 	}
-	fprintf(stderr, "Waiting ...\n");
+	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
-
 
 	/* Unregister data */
 	for(x = 0; x < X; x++)
@@ -228,9 +259,7 @@ int main(int argc, char **argv)
 			{
 				int mpi_rank = my_distrib(x, y, size);
 				/* Get back data to original place where the user-provided buffer is. */
-				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
-				/* Register original rank of the matrix (although useless) */
-				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
+				starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
 				/* And unregister it */
 				starpu_data_unregister(data_handles[x][y]);
 			}
@@ -242,15 +271,15 @@ int main(int argc, char **argv)
 
 	if (display)
 	{
-		fprintf(stdout, "[%d] mean=%2.2f\n", my_rank, mean);
+		FPRINTF(stdout, "[%d] mean=%2.2f\n", my_rank, mean);
 		for(x = 0; x < X; x++)
 		{
-			fprintf(stdout, "[%d] ", my_rank);
+			FPRINTF(stdout, "[%d] ", my_rank);
 			for (y = 0; y < Y; y++)
 			{
-				fprintf(stdout, "%2.2f ", matrix[x][y]);
+				FPRINTF(stdout, "%2.2f ", matrix[x][y]);
 			}
-			fprintf(stdout, "\n");
+			FPRINTF(stdout, "\n");
 		}
 	}
 
