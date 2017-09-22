@@ -140,7 +140,6 @@ noinst_PROGRAMS +=				\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
 	datawizard/simgrid-locality		\
-	datawizard/redux_acquire		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
@@ -257,6 +256,7 @@ noinst_PROGRAMS +=				\
 	datawizard/test_arbiter			\
 	datawizard/invalidate_pending_requests	\
 	datawizard/temporary_partition		\
+	datawizard/redux_acquire		\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	disk/disk_pack				\
