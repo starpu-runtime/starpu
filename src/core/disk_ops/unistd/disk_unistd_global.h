@@ -18,7 +18,7 @@
 #define __DISK_UNISTD_GLOBAL_H__
 
 #include <fcntl.h>
-#ifdef __linux
+#ifdef __linux__
 #include <sys/syscall.h>
 #endif
 
