@@ -252,6 +252,27 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 											       size);
         add_async_event(channel, event);
 
+
+	/* Something goes wrong with copy disk to disk... */
+	if (!event)
+	{
+		disk_register_list[pos_src]->functions->copy = NULL;
+
+		/* perform a read, and after a write... */
+		void * ptr;
+		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, &ptr, size, 0);
+		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %lu bytes to perform disk to disk operation", size);
+
+		ret = _starpu_disk_read(node_src, STARPU_MAIN_RAM, obj_src, ptr, offset_src, size, NULL);
+		STARPU_ASSERT_MSG(ret == 0, "Cannot read %lu bytes to perform disk to disk copy", size);
+		ret = _starpu_disk_write(STARPU_MAIN_RAM, node_dst, obj_dst, ptr, offset_dst, size, NULL);
+		STARPU_ASSERT_MSG(ret == 0, "Cannot write %lu bytes to perform disk to disk copy", size);
+
+		_starpu_free_flags_on_node(STARPU_MAIN_RAM, ptr, size, 0);
+
+		return 0;
+	}
+
 	STARPU_ASSERT(event);
 	return -EAGAIN;
 }

@@ -93,6 +93,10 @@ struct starpu_unistd_copy_thread
 
 struct starpu_unistd_copy_thread copy_thread[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned starpu_unistd_nb_disk_opened = 0;
+/* copy_file_range syscall can return ENOSYS. Use global var to catch
+ * and prevent StarPU using direct disk to disk copy */
+enum starpu_unistd_failed_copy { INIT, CHECKED, FAILED };
+static enum starpu_unistd_failed_copy starpu_unistd_copy_failed = INIT;
 #endif
 
 struct starpu_unistd_base
@@ -550,7 +554,20 @@ static void * starpu_unistd_internal_thread(void * arg)
 			struct starpu_unistd_work_copy * work = starpu_unistd_work_copy_list_pop_back(copy_thread->list);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread->mutex);
 
-			copy_file_range(work->fd_src, &work->off_src, work->fd_dst, &work->off_dst, work->len, work->flags);
+			starpu_ssize_t ret = copy_file_range(work->fd_src, &work->off_src, work->fd_dst, &work->off_dst, work->len, work->flags);
+
+			STARPU_PTHREAD_MUTEX_LOCK(&copy_thread->mutex);
+			if (starpu_unistd_copy_failed == INIT && ret == -1 && errno == ENOSYS)
+			{
+				starpu_unistd_copy_failed = FAILED;
+			} 
+			else
+			{
+				STARPU_ASSERT_MSG(ret == work->len, "Copy_file_range failed (value %zd instead of %zd and errno %d)", ret, work->len, errno);
+				starpu_unistd_copy_failed = CHECKED;
+			}
+			STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread->mutex);
+
 
 			starpu_sem_post(&work->finished);
 
@@ -652,6 +669,9 @@ void starpu_unistd_global_unplug(void *base)
 			ending_working_thread(&copy_thread[fileBase->disk_index][i]);
 	}
 	starpu_unistd_nb_disk_opened--;
+
+	if (starpu_unistd_nb_disk_opened == 0)
+		starpu_unistd_copy_failed = INIT;
 #endif
 
 	free(fileBase->path);
@@ -972,10 +992,36 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 
 	event->event.event_copy = work;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].mutex);
-	starpu_unistd_work_copy_list_push_front(copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].list, work);
-        STARPU_PTHREAD_COND_BROADCAST(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index].mutex);
+	struct starpu_unistd_copy_thread * thread = &copy_thread[unistd_base_src->disk_index][unistd_base_dst->disk_index];
+
+	unsigned check = 0;
+	STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
+	if (starpu_unistd_copy_failed == INIT)
+		check = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
+
+
+	STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
+	starpu_unistd_work_copy_list_push_front(thread->list, work);
+        STARPU_PTHREAD_COND_BROADCAST(&thread->cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
+
+	if (check)
+	{
+		starpu_unistd_global_wait_request((void *) event);
+		/* add token when StarPU will test/wait the request */
+		starpu_sem_post(&work->finished);
+	
+		STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
+		/* here copy_file_range does not work */
+		if (starpu_unistd_copy_failed == FAILED)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
+			starpu_unistd_global_free_request((void *) event);
+			return NULL;
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
+	}
 
 	return event;
 }
