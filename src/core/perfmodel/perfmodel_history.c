@@ -1353,6 +1353,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		unsigned found = 0;
 		int comb = _starpu_perfmodel_create_comb_if_needed(arch);
 
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
+
 		for(c = 0; c < model->state->ncombs; c++)
 		{
 			if(model->state->combs[c] == comb)
@@ -1361,8 +1363,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				break;
 			}
 		}
-
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 
 		if(!found)
 		{
