@@ -850,7 +850,7 @@ int starpu_unistd_global_test_request(void *async_channel)
 			return 0;
 #elif defined(HAVE_AIO_H)
 			struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-			struct aiocb *aiocb = &starpu_aiocb->aiocb;
+			const struct aiocb *aiocb = &starpu_aiocb->aiocb;
 			int ret;
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
