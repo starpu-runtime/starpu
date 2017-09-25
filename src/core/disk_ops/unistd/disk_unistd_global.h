@@ -18,7 +18,9 @@
 #define __DISK_UNISTD_GLOBAL_H__
 
 #include <fcntl.h>
+#ifdef __linux
 #include <sys/syscall.h>
+#endif
 
 #ifndef O_BINARY
 #define O_BINARY 0
