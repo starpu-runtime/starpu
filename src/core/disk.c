@@ -245,18 +245,21 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	unsigned pos_src = get_location_with_node(node_src);
 	unsigned pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
-        void * event;
-	channel->event.disk_event.memory_node = node_src;
-	event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src,
-											       disk_register_list[pos_dst]->base, obj_dst, offset_dst,
-											       size);
-        add_async_event(channel, event);
+        void * event = NULL;
 
+	if (channel)
+	{
+		channel->event.disk_event.memory_node = node_src;
+		event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src,
+								disk_register_list[pos_dst]->base, obj_dst, offset_dst, size);
+		add_async_event(channel, event);
+	}
 
 	/* Something goes wrong with copy disk to disk... */
 	if (!event)
 	{
-		disk_register_list[pos_src]->functions->copy = NULL;
+		if (channel || (!channel && starpu_asynchronous_copy_disabled()))
+			disk_register_list[pos_src]->functions->copy = NULL;
 
 		/* perform a read, and after a write... */
 		void * ptr;

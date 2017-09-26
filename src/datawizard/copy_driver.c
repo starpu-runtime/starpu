@@ -598,7 +598,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
                         req->async_channel.type = STARPU_DISK_RAM;
                         req->async_channel.event.disk_event.requests = NULL;
                 }
-		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 		break;
 
 	default:
@@ -954,7 +954,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		break;
 	case STARPU_CPU_RAM:
 	default:
-		STARPU_ABORT();
+		STARPU_ABORT_MSG("Memory is not recognized (kind %u) \n", kind);
 	}
 
 	return success;
