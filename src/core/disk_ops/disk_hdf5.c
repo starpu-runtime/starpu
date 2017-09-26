@@ -259,11 +259,14 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 	/* HDF5 H50copy supports only same size in both areas and copies the entire object */
 	if (work->offset_src == 0 && work->offset_dst == 0 && work->size == work->obj_src->size && work->size == work->obj_dst->size)
 	{
+		H5Dclose(work->obj_dst->dataset);
 		/* Dirty : Delete dataspace because H5Ocopy only works if destination does not exist */
 		H5Ldelete(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);
 
 		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT); 
 		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
+
+		H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);				
 	}
 	else
 	{
