@@ -2182,7 +2182,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			numa_memory_nodes_to_physicalid[memnode] = STARPU_NUMA_MAIN_RAM;
 			nb_numa_nodes++;
 #ifdef STARPU_SIMGRID
-			msg_host_t host = _starpu_simgrid_get_host_by_name("RAM");
+			host = _starpu_simgrid_get_host_by_name("RAM");
 			STARPU_ASSERT(host);
 			_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
 #endif
