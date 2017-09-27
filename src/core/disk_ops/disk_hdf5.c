@@ -266,7 +266,7 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT); 
 		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
 
-		H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);				
+		work->obj_dst->dataset = H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);				
 	}
 	else
 	{
