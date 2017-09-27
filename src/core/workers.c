@@ -2159,6 +2159,11 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }
 
+/* returns 1 if the call results in initiating a transition of worker WORKERID
+ * from sleeping state to awake
+ * returns 0 if worker WORKERID is not sleeping or the wake-up transition
+ * already has been initiated
+ */
 static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
@@ -2167,15 +2172,20 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
 	{
 		_starpu_config.workers[workerid].state_keep_awake = 1;
-		return 1;
+		return 0;
 	}
 	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
 	{
-		_starpu_config.workers[workerid].state_keep_awake = 1;
+		int ret = 0;
+		if (_starpu_config.workers[workerid].state_keep_awake != 1)
+		{
+			_starpu_config.workers[workerid].state_keep_awake = 1;
+			ret = 1;
+		}
 		/* cond_broadcast is required over cond_signal since
 		 * the condition is share for multiple purpose */
 		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
-		return 1;
+		return ret;
 	}
 	return 0;
 }
