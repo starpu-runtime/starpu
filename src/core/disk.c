@@ -47,7 +47,7 @@ struct disk_register
 	int flag;
 };
 
-static void add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
+static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
 
 static struct disk_register *disk_register_list[STARPU_MAXNODES];
 static int disk_number = 0;
@@ -112,7 +112,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	add_disk_in_list(disk_memnode, func, base);
+	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(disk_memnode, func, base);
 
 #ifdef STARPU_SIMGRID
 	char name[16];
@@ -412,15 +412,17 @@ void starpu_disk_free_request(struct _starpu_async_channel *async_channe STARPU_
 */
 }
 
-static void add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
+static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
 {
+	int n;
 	struct disk_register *dr;
 	_STARPU_MALLOC(dr, sizeof(struct disk_register));
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
-	disk_number++;
+	n = disk_number++;
 	disk_register_list[node] = dr;
+	return n;
 }
 
 
