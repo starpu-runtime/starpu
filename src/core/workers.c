@@ -1096,7 +1096,8 @@ struct starpu_tree* starpu_workers_get_tree(void)
 #ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
-	unsigned i;
+	unsigned i, j;
+	unsigned arity;
 	if (curr_obj->arity == 1)
 	{
 		/* Nothing interestin here, skip level */
@@ -1104,13 +1105,30 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 		return;
 	}
 	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
-	starpu_tree_prepare_children(curr_obj->arity, tree);
+	arity = 0;
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-/* 		char string[128]; */
-/* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
-/* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->logical_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
-		_fill_tree(&tree->nodes[i], curr_obj->children[i], depth+1, topology, tree);
+		hwloc_obj_t child = curr_obj->children[i];
+		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
+			/* I/O stuff, stop caring */
+			continue;
+		arity++;
+	}
+	starpu_tree_prepare_children(arity, tree);
+	j = 0;
+	for(i = 0; i < arity; i++)
+	{
+		hwloc_obj_t child = curr_obj->children[i];
+		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
+			/* I/O stuff, stop caring */
+			continue;
+#if 0
+		char string[128];
+		hwloc_obj_snprintf(string, sizeof(string), topology, child, "#", 0);
+		printf("%*s%s %d is_pu %d \n", 0, "", string, child->logical_index, child->type == HWLOC_OBJ_PU);
+#endif
+		_fill_tree(&tree->nodes[j], child, depth+1, topology, tree);
+		j++;
 	}
 }
 #endif
@@ -1118,27 +1136,20 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 static void _starpu_build_tree(void)
 {
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_t cpu_topo;
 	struct starpu_tree *tree;
 	_STARPU_MALLOC(tree, sizeof(struct starpu_tree));
 	_starpu_config.topology.tree = tree;
 
-	hwloc_topology_init(&cpu_topo);
-#if HWLOC_API_VERSION >= 0x20000
-	hwloc_topology_set_all_types_filter(cpu_topo, HWLOC_TYPE_FILTER_KEEP_STRUCTURE);
-#else
-	hwloc_topology_ignore_all_keep_structure(cpu_topo);
-#endif
-	hwloc_topology_load(cpu_topo);
-	hwloc_obj_t root = hwloc_get_root_obj(cpu_topo);
+	hwloc_obj_t root = hwloc_get_root_obj(_starpu_config.topology.hwtopology);
 
-/* 	char string[128]; */
-/* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
-/* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
+#if 0
+	char string[128];
+	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0);
+	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU);
+#endif
 
 	/* level, is_pu, is in the tree (it will be true only after add) */
-	_fill_tree(tree, root, 0, cpu_topo, NULL);
-	hwloc_topology_destroy(cpu_topo);
+	_fill_tree(tree, root, 0, _starpu_config.topology.hwtopology, NULL);
 #endif
 }
 
@@ -2148,6 +2159,11 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }
 
+/* returns 1 if the call results in initiating a transition of worker WORKERID
+ * from sleeping state to awake
+ * returns 0 if worker WORKERID is not sleeping or the wake-up transition
+ * already has been initiated
+ */
 static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sched_cond, starpu_pthread_mutex_t *mutex STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
@@ -2156,15 +2172,20 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
 	{
 		_starpu_config.workers[workerid].state_keep_awake = 1;
-		return 1;
+		return 0;
 	}
 	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
 	{
-		_starpu_config.workers[workerid].state_keep_awake = 1;
+		int ret = 0;
+		if (_starpu_config.workers[workerid].state_keep_awake != 1)
+		{
+			_starpu_config.workers[workerid].state_keep_awake = 1;
+			ret = 1;
+		}
 		/* cond_broadcast is required over cond_signal since
 		 * the condition is share for multiple purpose */
 		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
-		return 1;
+		return ret;
 	}
 	return 0;
 }

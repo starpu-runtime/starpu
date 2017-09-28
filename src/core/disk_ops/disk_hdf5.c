@@ -259,11 +259,14 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 	/* HDF5 H50copy supports only same size in both areas and copies the entire object */
 	if (work->offset_src == 0 && work->offset_dst == 0 && work->size == work->obj_src->size && work->size == work->obj_dst->size)
 	{
+		H5Dclose(work->obj_dst->dataset);
 		/* Dirty : Delete dataspace because H5Ocopy only works if destination does not exist */
 		H5Ldelete(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);
 
 		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT); 
 		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
+
+		work->obj_dst->dataset = H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);				
 	}
 	else
 	{
@@ -309,14 +312,17 @@ static void * _starpu_hdf5_internal_thread(void * arg)
 			if (work->base_src < work->base_dst)
 			{
 				_starpu_hdf5_protect_start(work->base_src);
-				if (work->base_src != work->base_dst)
-					_starpu_hdf5_protect_start(work->base_dst);
+#ifdef H5_HAVE_THREADSAFE
+				_starpu_hdf5_protect_start(work->base_dst);
+#endif
 			}
 			else
 			{
 				_starpu_hdf5_protect_start(work->base_dst);
+#ifdef H5_HAVE_THREADSAFE
 				if (work->base_src != work->base_dst)
 					_starpu_hdf5_protect_start(work->base_src);
+#endif
 			}
 
                         switch(work->type)
@@ -344,8 +350,22 @@ static void * _starpu_hdf5_internal_thread(void * arg)
                                 default:
                                         STARPU_ABORT();
                         }
-                        _starpu_hdf5_protect_stop(work->base_src);
-                        _starpu_hdf5_protect_stop(work->base_dst);
+
+			if (work->base_src < work->base_dst)
+			{
+				_starpu_hdf5_protect_stop(work->base_src);
+#ifdef H5_HAVE_THREADSAFE
+				_starpu_hdf5_protect_stop(work->base_dst);
+#endif
+			}
+			else
+			{
+				_starpu_hdf5_protect_stop(work->base_dst);
+#ifdef H5_HAVE_THREADSAFE
+				if (work->base_src != work->base_dst)
+					_starpu_hdf5_protect_stop(work->base_src);
+#endif
+			}
 
                         /* Update event to tell it's finished */
                         starpu_sem_post((starpu_sem_t *) work->event);
@@ -353,10 +373,6 @@ static void * _starpu_hdf5_internal_thread(void * arg)
                         free(work);
                 }
         }
-
-        STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
-        STARPU_PTHREAD_COND_BROADCAST(&HDF5_VAR_COND);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
 
         return NULL;
 }
@@ -418,11 +434,13 @@ static void starpu_hdf5_send_work(void *base_src, void *obj_src, off_t offset_sr
         work->size = size;
         work->event = event;
 
+#ifdef H5_HAVE_THREADSAFE
         struct starpu_hdf5_base * fileBase;
 	if (fileBase_src != NULL)
 		fileBase = fileBase_src;
 	else	
 		fileBase = fileBase_dst;
+#endif
 
         STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
         _starpu_hdf5_work_list_push_front(&HDF5_VAR_WORK_LIST, work);
@@ -611,6 +629,7 @@ static void starpu_hdf5_unplug(void *base)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
 		STARPU_PTHREAD_JOIN(HDF5_VAR_THREAD, NULL);
 		STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);
+		STARPU_PTHREAD_COND_DESTROY(&HDF5_VAR_COND);
 		STARPU_ASSERT(_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST));
 		/* the internal thread is deleted */
 #ifndef H5_HAVE_THREADSAFE
@@ -620,6 +639,7 @@ static void starpu_hdf5_unplug(void *base)
         status = H5Fclose(fileBase->fileID);
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
+
 #ifndef H5_HAVE_THREADSAFE
         if (actual_nb_disk == 0)
 	{

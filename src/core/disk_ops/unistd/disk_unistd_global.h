@@ -18,9 +18,17 @@
 #define __DISK_UNISTD_GLOBAL_H__
 
 #include <fcntl.h>
+#ifdef __linux__
+#include <sys/syscall.h>
+#endif
 
 #ifndef O_BINARY
 #define O_BINARY 0
+#endif
+
+#define STARPU_UNISTD_USE_COPY 1
+#if !defined(HAVE_COPY_FILE_RANGE) && !defined(__NR_copy_file_range)
+#undef STARPU_UNISTD_USE_COPY
 #endif
 
 struct starpu_unistd_global_obj
@@ -48,5 +56,7 @@ int starpu_unistd_global_test_request(void * async_channel);
 void starpu_unistd_global_free_request(void * async_channel);
 int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t size);
+#ifdef STARPU_UNISTD_USE_COPY
 void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
+#endif
 #endif

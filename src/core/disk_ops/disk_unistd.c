@@ -60,7 +60,11 @@ struct starpu_disk_ops starpu_disk_unistd_ops =
 	.write = starpu_unistd_global_write,
 	.plug = starpu_unistd_global_plug,
 	.unplug = starpu_unistd_global_unplug,
+#ifdef STARPU_UNISTD_USE_COPY
 	.copy = starpu_unistd_global_copy,
+#else
+	.copy = NULL,
+#endif
 	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
 #ifdef HAVE_AIO_H
 	.async_read = starpu_unistd_global_async_read,
