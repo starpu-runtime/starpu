@@ -109,5 +109,10 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
+	if (rank == 0)
+	{
+		FPRINTF(stderr, "[node 0] %s\n", compare==1?"SUCCESS":"FAILURE");
+	}
+
 	return (rank == 0) ? !compare : 0;
 }
