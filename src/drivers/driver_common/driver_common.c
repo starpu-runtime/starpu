@@ -403,7 +403,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		{
 			do
 			{
-				_STARPU_DEBUG("worker %u going to sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
+				//_STARPU_DEBUG("worker %u going to sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
 				cond_no_keep_awake = !worker->state_keep_awake;
@@ -419,16 +419,19 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 					&& cond_no_last_awake
 					&& cond_no_block_in_parallel_rq
 					&& cond_no_unblock_in_parallel_rq);
-			_STARPU_DEBUG("worker %u waking up: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
+			//_STARPU_DEBUG("worker %u waking up: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-		} else {
-			_STARPU_DEBUG("worker %u wont sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
+		}
+		else
+		{
+			//_STARPU_DEBUG("worker %u wont sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
-				_starpu_exponential_backoff(worker); }
+				_starpu_exponential_backoff(worker);
+		}
 
 		return NULL;
 	}
@@ -600,7 +603,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		{
 			do
 			{
-				_STARPU_DEBUG("worker %u going to sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
+				//_STARPU_DEBUG("worker %u going to sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
 				cond_no_keep_awake = !worker->state_keep_awake;
@@ -614,14 +617,14 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					&& cond_no_last_awake
 					&& cond_no_block_in_parallel_rq
 					&& cond_no_unblock_in_parallel_rq);
-			_STARPU_DEBUG("worker %u waking up: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
+			//_STARPU_DEBUG("worker %u waking up: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
 		else
-			_STARPU_DEBUG("worker %u wont sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 		{
+			//_STARPU_DEBUG("worker %u wont sleep: %d|%d|%d|%d|%d\n", worker->workerid, cond_no_keep_awake, cond_can_block, cond_no_last_awake, cond_no_block_in_parallel_rq, cond_no_unblock_in_parallel_rq);
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
