@@ -539,6 +539,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
                 {
                         req->async_channel.type = STARPU_DISK_RAM;
                         req->async_channel.event.disk_event.requests = NULL;
+                        req->async_channel.event.disk_event.ptr = NULL;
+                        req->async_channel.event.disk_event.handle = NULL;
                 }
 		if(copy_methods->any_to_any)
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
@@ -551,14 +553,22 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			handle->ops->pack_data(handle, src_node, &ptr, &size);
 			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 			if (ret == 0)
+			{
 				/* write is already finished, ptr was allocated in pack_data */
 				_starpu_free_flags_on_node(src_node, ptr, size, 0);
+			}
+			else if (ret == -EAGAIN)
+			{
+				req->async_channel.event.disk_event.ptr = ptr;
+				req->async_channel.event.disk_event.node = dst_node;
+				req->async_channel.event.disk_event.size = size;
+			}
 
 #ifdef STARPU_DEVEL
 #warning TODO: support asynchronous disk requests for packed data
 #endif
 			/* For now, asynchronous is not supported */
-			STARPU_ASSERT(ret == 0);
+			STARPU_ASSERT(ret == 0 || ret == -EAGAIN);
 		}
 		break;
 
@@ -567,6 +577,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
                 {
                         req->async_channel.type = STARPU_DISK_RAM;
                         req->async_channel.event.disk_event.requests = NULL;
+                        req->async_channel.event.disk_event.ptr = NULL;
+                        req->async_channel.event.disk_event.handle = NULL;
                 }
 		if(copy_methods->any_to_any)
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
@@ -583,12 +595,19 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				/* ptr is allocated in full_read */
 				_starpu_free_flags_on_node(dst_node, ptr, size, 0);
 			}
-
+			else if (ret == -EAGAIN)
+			{
+				req->async_channel.event.disk_event.ptr = ptr;
+				req->async_channel.event.disk_event.node = dst_node;
+				req->async_channel.event.disk_event.size = size;
+				req->async_channel.event.disk_event.handle = handle;
+			}
+			
 #ifdef STARPU_DEVEL
 #warning TODO: support asynchronous disk requests for packed data
 #endif
 			/* For now, asynchronous is not supported */
-			STARPU_ASSERT(ret == 0);
+			STARPU_ASSERT(ret == 0 || ret == -EAGAIN);
 		}
 		break;
 
@@ -597,6 +616,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
                 {
                         req->async_channel.type = STARPU_DISK_RAM;
                         req->async_channel.event.disk_event.requests = NULL;
+                        req->async_channel.event.disk_event.ptr = NULL;
+                        req->async_channel.event.disk_event.handle = NULL;
                 }
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 		break;
@@ -886,6 +907,21 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #endif
 	case STARPU_DISK_RAM:
 		starpu_disk_wait_request(async_channel);
+		if (async_channel->event.disk_event.ptr != NULL)
+		{
+			if (async_channel->event.disk_event.handle != NULL)
+			{
+				/* read is finished, we can already unpack */
+				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
+				/* ptr is allocated in full_read */
+				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
+			}
+			else
+			{
+				/* write is finished, ptr was allocated in pack_data */
+				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
+			}
+		}
 		break;
 	case STARPU_CPU_RAM:
 	default:
@@ -951,6 +987,21 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 #endif
 	case STARPU_DISK_RAM:
 		success = starpu_disk_test_request(async_channel);
+		if (async_channel->event.disk_event.ptr != NULL && success)
+		{
+			if (async_channel->event.disk_event.handle != NULL)
+			{
+				/* read is finished, we can already unpack */
+				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
+				/* ptr is allocated in full_read */
+				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
+			}
+			else
+			{
+				/* write is finished, ptr was allocated in pack_data */
+				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
+			}
+		}
 		break;
 	case STARPU_CPU_RAM:
 	default:

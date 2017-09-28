@@ -279,6 +279,7 @@ myPROGRAMS +=				\
 	datawizard/temporary_partition		\
 	datawizard/redux_acquire		\
 	disk/disk_copy				\
+	disk/disk_copy_unpack			\
 	disk/disk_copy_to_disk			\
 	disk/disk_compute			\
 	disk/disk_pack				\

@@ -69,6 +69,8 @@ struct starpu_disk_ops starpu_disk_unistd_ops =
 #ifdef HAVE_AIO_H
 	.async_read = starpu_unistd_global_async_read,
 	.async_write = starpu_unistd_global_async_write,
+	.async_full_read = starpu_unistd_global_async_full_read,
+	.async_full_write = starpu_unistd_global_async_full_write,
 	.wait_request = starpu_unistd_global_wait_request,
 	.test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,

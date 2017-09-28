@@ -75,11 +75,15 @@ LIST_TYPE(_starpu_disk_backend_event,
 	void *backend_event;
 );
         
-
 struct _starpu_disk_async_event
 {
 	unsigned memory_node;
         struct _starpu_disk_backend_event_list * requests;
+
+	void * ptr;
+	unsigned node;
+	size_t size;
+	starpu_data_handle_t handle;
 };
 
 /* this is a structure that can be queried to see whether an asynchronous

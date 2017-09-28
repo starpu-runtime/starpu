@@ -536,6 +536,53 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
 
+#if HAVE_AIO_H
+void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node)
+{
+        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	int fd = tmp->descriptor;
+
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
+#ifdef STARPU_HAVE_WINDOWS
+	*size = _filelength(fd);
+#else
+	struct stat st;
+	int ret = fstat(fd, &st);
+	STARPU_ASSERT(ret==0);
+
+	*size = st.st_size;
+#endif
+	if (tmp->descriptor < 0)
+		_starpu_unistd_reclose(fd);
+
+	/* Allocated aligned buffer */
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
+	return starpu_unistd_global_async_read(base, obj, *ptr, 0, *size);
+}
+
+void * starpu_unistd_global_async_full_write (void * base, void * obj, void * ptr, size_t size)
+{
+        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+
+        /* update file size to realise the next good full_read */
+        if(size != tmp->size)
+        {
+		int fd = tmp->descriptor;
+
+		if (fd < 0)
+			fd = _starpu_unistd_reopen(obj);
+		int val = _starpu_ftruncate(fd,size);
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
+		STARPU_ASSERT(val == 0);
+		tmp->size = size;
+        }
+
+	return starpu_unistd_global_async_write(base, obj, ptr, 0, size);
+}
+#endif
+
 #ifdef STARPU_UNISTD_USE_COPY
 static void * starpu_unistd_internal_thread(void * arg)
 {
