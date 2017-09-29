@@ -849,6 +849,37 @@ static void * starpu_hdf5_async_write(void *base, void *obj, void *buf, off_t of
         return finished;
 }
 
+void * starpu_hdf5_async_full_read (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node)
+{
+        struct starpu_hdf5_obj * dataObj = (struct starpu_hdf5_obj *) obj;
+
+        starpu_sem_t * finished;
+        _STARPU_MALLOC(finished, sizeof(*finished));
+        starpu_sem_init(finished, 0, 0);
+
+        _starpu_hdf5_protect_start(base);
+        *size = _starpu_get_size_obj(dataObj);
+        _starpu_hdf5_protect_stop(base);
+
+        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0); 
+
+        starpu_hdf5_send_work(base, obj, 0, NULL, NULL, 0, *ptr, *size, (void*) finished, FULL_READ);
+        
+        return finished;
+}
+
+void * starpu_hdf5_async_full_write (void * base, void * obj, void * ptr, size_t size)
+{
+        starpu_sem_t * finished;
+        _STARPU_MALLOC(finished, sizeof(*finished));
+        starpu_sem_init(finished, 0, 0);
+
+        starpu_hdf5_send_work(NULL, NULL, 0, base, obj, 0, ptr, size, (void*) finished, FULL_WRITE);
+
+        return finished;
+
+}
+
 void *  starpu_hdf5_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size)
 {
         starpu_sem_t * finished;
@@ -940,6 +971,8 @@ struct starpu_disk_ops starpu_disk_hdf5_ops =
 
 	.async_read = starpu_hdf5_async_read,
 	.async_write = starpu_hdf5_async_write,
+	.async_full_read = starpu_hdf5_async_full_read,
+	.async_full_write = starpu_hdf5_async_full_write,
 	.wait_request = starpu_hdf5_wait,
 	.test_request = starpu_hdf5_test,
 	.free_request = starpu_hdf5_free_request
