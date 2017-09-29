@@ -30,7 +30,7 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-extern struct _starpu_mp_node *mic_nodes[STARPU_MAXMICDEVS];
+extern struct _starpu_mp_node *_starpu_mic_nodes[STARPU_MAXMICDEVS];
 
 struct _starpu_mic_async_event *event;
 

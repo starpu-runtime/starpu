@@ -47,7 +47,7 @@ struct _starpu_mpi_ms_kernel
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
+struct _starpu_mp_node *_starpu_mpi_ms_nodes[STARPU_MAXMPIDEVS];
 
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 {
@@ -57,7 +57,7 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 	int devid = actual_worker->devid;
 	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMPIDEVS);
 
-	return mpi_ms_nodes[devid];
+	return _starpu_mpi_ms_nodes[devid];
 }
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
@@ -76,7 +76,7 @@ struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_
         int devid = _starpu_memory_node_get_devid(memory_node);
         STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
-        return mpi_ms_nodes[devid];
+        return _starpu_mpi_ms_nodes[devid];
 }
 
 int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
@@ -200,7 +200,7 @@ starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symb
 
         if (kernel->func[devid] == NULL)
         {
-                struct _starpu_mp_node *node = mpi_ms_nodes[devid];
+                struct _starpu_mp_node *node = _starpu_mpi_ms_nodes[devid];
                 int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
                 if (ret)
                         return NULL;
@@ -376,9 +376,9 @@ void *_starpu_mpi_src_worker(void *arg)
 
 
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, mpi_ms_nodes);
+        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_mpi_ms_nodes);
 #else
-        _starpu_src_common_worker(worker_set, baseworkerid, mpi_ms_nodes[devid]);
+        _starpu_src_common_worker(worker_set, baseworkerid, _starpu_mpi_ms_nodes[devid]);
 #endif
 
         return NULL;
