@@ -21,6 +21,13 @@
 set -e
 
 PREFIX=$(dirname $0)
+
+if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/locality
+	# in case libtool got into play
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/locality" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/locality
+fi
+
 test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
 STARPU_SCHED=modular-eager STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
 $PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
