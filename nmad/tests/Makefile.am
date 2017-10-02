@@ -57,9 +57,9 @@ else
 TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
-#if STARPU_MPI_CHECK
+if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
-#endif
+endif
 
 check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
