@@ -32,11 +32,6 @@ LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
 endif
 
-if USE_NMAD
-LIBS += $(top_builddir)/nmad/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS += -I$(top_srcdir)/nmad/include
-endif
-
 CC = $(CC_OR_MPICC)
 
 if STARPU_USE_CUDA
