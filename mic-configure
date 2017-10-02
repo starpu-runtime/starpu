@@ -165,14 +165,14 @@ do
 	cd "build_${arch}"
 
 	if test x$arch = xmic ; then
-		LIBRARY_PATH=$SINK_LIBRARY_PATH \
+		LIBRARY_PATH=$SINK_LIBRARY_PATH:$MIC_LIBRARY_PATH \
 		INCLUDE=$SINK_INCLUDE \
 		C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \
 		CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \
 		PKG_CONFIG_PATH=$SINK_PKG_CONFIG_PATH \
 		$command "$@" "${params[@]}" "${mic_params[@]}"
 		MIC_BUILD_ENV="\
-LIBRARY_PATH=$SINK_LIBRARY_PATH \\
+LIBRARY_PATH=$SINK_LIBRARY_PATH:$MIC_LIBRARY_PATH \\
 	INCLUDE=$SINK_INCLUDE \\
 	C_INCLUDE_PATH=$SINK_C_INCLUDE_PATH \\
 	CPLUS_INCLUDE_PATH=$SINK_CPLUS_INCLUDE_PATH \\
@@ -192,55 +192,55 @@ then
 cat > Makefile << EOF
 all:
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic
+	\$(MAKE) \$(MFLAGS) -C build_mic
 
 clean:
-	\$(MAKE) -C build_mic clean
+	\$(MAKE) \$(MFLAGS) -C build_mic clean
 
 distclean: clean
 	rm -f Makefile
 
 check:
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic check
+	\$(MAKE) \$(MFLAGS) -C build_mic check
 
 showcheck:
-	\$(MAKE) -C build_mic showcheck
+	\$(MAKE) \$(MFLAGS) -C build_mic showcheck
 
 install:
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic install
+	\$(MAKE) \$(MFLAGS) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF
 else
 cat > Makefile << EOF
 all:
-	\$(MAKE) -C build_host
+	\$(MAKE) \$(MFLAGS) -C build_host
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic
+	\$(MAKE) \$(MFLAGS) -C build_mic
 
 clean:
-	\$(MAKE) -C build_host clean
-	\$(MAKE) -C build_mic clean
+	\$(MAKE) \$(MFLAGS) -C build_host clean
+	\$(MAKE) \$(MFLAGS) -C build_mic clean
 
 distclean: clean
 	rm -f Makefile
 
 check:
-	\$(MAKE) -C build_host check
+	\$(MAKE) \$(MFLAGS) -C build_host check
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic check ; \
+	\$(MAKE) \$(MFLAGS) -C build_mic check ; \
 	RET=\$\$? ; \
-	STARPU_NCPUS=0 \$(MAKE) -C build_mic check && [ \$\$RET == 0 ]
+	STARPU_NCPUS=0 \$(MAKE) \$(MFLAGS) -C build_mic check && [ \$\$RET == 0 ]
 
 showcheck:
-	\$(MAKE) -C build_host showcheck
-	\$(MAKE) -C build_mic showcheck
+	\$(MAKE) \$(MFLAGS) -C build_host showcheck
+	\$(MAKE) \$(MFLAGS) -C build_mic showcheck
 
 install:
-	\$(MAKE) -C build_host install
+	\$(MAKE) \$(MFLAGS) -C build_host install
 	$MIC_BUILD_ENV
-	\$(MAKE) -C build_mic install
+	\$(MAKE) \$(MFLAGS) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF
 fi

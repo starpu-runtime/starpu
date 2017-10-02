@@ -21,11 +21,23 @@ set -e
 
 PREFIX=$(dirname $0)
 
+if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/lu_implicit_example_float
+	# in case libtool got into play
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_implicit_example_float" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_implicit_example_float
+fi
+
 $PREFIX/lu_implicit_example_float -size $((960 * 4)) -nblocks 4 -piv
 $PREFIX/lu_implicit_example_float -size $((960 * 4)) -nblocks 4 -no-stride
 $PREFIX/lu_implicit_example_float -size $((960 * 4)) -nblocks 4 -bound
 $PREFIX/lu_implicit_example_float -size $((960 * 2)) -nblocks 2 -bounddeps
 $PREFIX/lu_implicit_example_float -size $((960 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio
+
+if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/lu_example_float
+	# in case libtool got into play
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_example_float" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_example_float
+fi
 
 $PREFIX/lu_example_float -size $((960 * 4)) -nblocks 4 -piv
 $PREFIX/lu_example_float -size $((960 * 4)) -nblocks 4 -no-stride

@@ -533,7 +533,7 @@ _starpu_init_mpi_topology (struct _starpu_machine_config *config, long mpi_idx)
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nbcores;
-	_starpu_src_common_sink_nbcores (mpi_ms_nodes[mpi_idx], &nbcores);
+	_starpu_src_common_sink_nbcores (_starpu_mpi_ms_nodes[mpi_idx], &nbcores);
 	topology->nhwmpicores[mpi_idx] = nbcores;
 }
 
@@ -551,7 +551,7 @@ _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nbcores;
-	_starpu_src_common_sink_nbcores (mic_nodes[mic_idx], &nbcores);
+	_starpu_src_common_sink_nbcores (_starpu_mic_nodes[mic_idx], &nbcores);
 	topology->nhwmiccores[mic_idx] = nbcores;
 }
 
@@ -618,7 +618,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 
 	/* Let's create the node structure, we'll communicate with the peer
 	 * through scif thanks to it */
-	mic_nodes[mic_idx] =
+	_starpu_mic_nodes[mic_idx] =
 		_starpu_mp_common_node_create(STARPU_NODE_MIC_SOURCE, mic_idx);
 
 	return 0;
@@ -1092,6 +1092,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
 		config->worker_mask |= STARPU_MIC;
 	}
+	_starpu_mic_nodes[mic_idx]->baseworkerid = topology->nworkers;
 
 	topology->nworkers += topology->nmiccores[mic_idx];
 }
@@ -1155,7 +1156,7 @@ _starpu_init_mpi_config (struct _starpu_machine_config *config,
                 config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
                 config->worker_mask |= STARPU_MPI_MS;
         }
-	mpi_ms_nodes[mpi_idx]->baseworkerid = topology->nworkers;
+	_starpu_mpi_ms_nodes[mpi_idx]->baseworkerid = topology->nworkers;
 
         topology->nworkers += topology->nmpicores[mpi_idx];
 }
@@ -1250,7 +1251,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		{
 			unsigned i;
 			for (i = 0; i < topology->nmpidevices; i++)
-				mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+				_starpu_mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
 			for (i = 0; i < topology->nmpidevices; i++)
 				_starpu_init_mpi_config (config, user_conf, i);
@@ -1264,20 +1265,20 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 static void
 _starpu_deinit_mic_node (unsigned mic_idx)
 {
-	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_MP_COMMAND_EXIT, NULL, 0);
+	_starpu_mp_common_send_command(_starpu_mic_nodes[mic_idx], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
 	COIProcessDestroy(_starpu_mic_process[mic_idx], -1, 0, NULL, NULL);
 
-	_starpu_mp_common_node_destroy(mic_nodes[mic_idx]);
+	_starpu_mp_common_node_destroy(_starpu_mic_nodes[mic_idx]);
 }
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static void _starpu_deinit_mpi_node(int devid)
 {
-        _starpu_mp_common_send_command(mpi_ms_nodes[devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+        _starpu_mp_common_send_command(_starpu_mpi_ms_nodes[devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
-        _starpu_mp_common_node_destroy(mpi_ms_nodes[devid]);
+        _starpu_mp_common_node_destroy(_starpu_mpi_ms_nodes[devid]);
 }
 #endif
 

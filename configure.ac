@@ -3054,14 +3054,21 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 			else
 				AC_MSG_RESULT(no)
 				AC_MSG_CHECKING(min-dgels source)
-				if test ! -d $PWD/min-dgels; then
-					cp -r $srcdir/min-dgels $PWD/
+				if test "${cross_compiling}" != "no" ; then
+					# Cross-compiling is not supported by min-dgels
+					AC_MSG_RESULT(no)
+					install_min_dgels=no
+					support_mlr=no
+				else
+					if test ! -d $PWD/min-dgels; then
+						cp -r $srcdir/min-dgels $PWD/
+					fi
+					AC_MSG_RESULT(yes)
+					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
+					AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+					AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
+					install_min_dgels=yes
 				fi
-				AC_MSG_RESULT(yes)
-				DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/*.a -Wl,--end-group"
-				AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
-				AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
-				install_min_dgels=yes
 			fi
 		fi
 	fi

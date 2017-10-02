@@ -21,6 +21,13 @@
 set -e
 
 PREFIX=$(dirname $0)
+
+if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/overlap
+	# in case libtool got into play
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap
+fi
+
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];

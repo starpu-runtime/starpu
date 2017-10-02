@@ -60,6 +60,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	if(j->task_size > 1)
 	{
 		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid);
+		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&cb_worker->count_mutex);
 		count = cb_worker->count--;
