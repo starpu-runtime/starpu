@@ -21,12 +21,13 @@
 
 #include <datawizard/datawizard.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/memstats.h>
+#include <datawizard/malloc.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
-#include <datawizard/memstats.h>
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 #endif
@@ -1067,7 +1068,7 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
-	starpu_free_flags(ptr, count, 0);
+	_starpu_free_flags_on_node(_starpu_memory_node_get_local_key(), ptr, count, 0);
 	return ret;
 }
 
