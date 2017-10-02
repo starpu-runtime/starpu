@@ -26,6 +26,13 @@ versinclude_HEADERS = 					\
 	include/starpu_mpi_lb.h				\
 	include/fstarpu_mpi_mod.f90
 
+recheck:
+	RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i recheck || RET=1 ; \
+	done ; \
+	exit $$RET
+
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
