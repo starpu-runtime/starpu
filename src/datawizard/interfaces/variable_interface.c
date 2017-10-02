@@ -21,6 +21,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
@@ -172,7 +173,7 @@ static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 		memcpy(*ptr, (void*)variable_interface->ptr, variable_interface->elemsize);
 	}
 

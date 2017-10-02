@@ -108,7 +108,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 			try = 0;
 		}
 
-	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(A, NX*sizeof(unsigned), STARPU_MALLOC_COUNT);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();

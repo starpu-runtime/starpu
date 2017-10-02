@@ -21,6 +21,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
@@ -238,7 +239,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		uint32_t y;
 		char *matrix = (void *)matrix_interface->ptr;
 
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 
 		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)

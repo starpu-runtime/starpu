@@ -725,13 +725,6 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
 
-//	// We check if a tag is defined for the data handle, if not,
-//	// we define the one given for the communication.
-//	// A tag is necessary for the internal mpi engine.
-//	int tag = starpu_data_get_tag(data_handle);
-//	if (tag == -1)
-//		starpu_data_set_tag(data_handle, data_tag);
-
 	struct _starpu_mpi_req *req;
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(source, data_tag);
 	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0);
@@ -747,13 +740,6 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 {
 	_STARPU_MPI_LOG_IN();
 
-//	// We check if a tag is defined for the data handle, if not,
-//	// we define the one given for the communication.
-//	// A tag is necessary for the internal mpi engine.
-//	int tag = starpu_data_get_tag(data_handle);
-//	if (tag == -1)
-//		starpu_data_set_tag(data_handle, data_tag);
-
 	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, 1, 0, 0);
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -762,13 +748,6 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	_STARPU_MPI_LOG_IN();
-
-//	// We check if a tag is defined for the data handle, if not,
-//	// we define the one given for the communication.
-//	// A tag is necessary for the internal mpi engine.
-//	int tag = starpu_data_get_tag(data_handle);
-//	if (tag == -1)
-//		starpu_data_set_tag(data_handle, data_tag);
 
 	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, sequential_consistency, 0, 0);
 
@@ -780,13 +759,6 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int data_tag, 
 {
 	starpu_mpi_req req;
 	_STARPU_MPI_LOG_IN();
-
-//	// We check if a tag is defined for the data handle, if not,
-//	// we define the one given for the communication.
-//	// A tag is necessary for the internal mpi engine.
-//	int tag = starpu_data_get_tag(data_handle);
-//	if (tag == -1)
-//		starpu_data_set_tag(data_handle, data_tag);
 
 	starpu_mpi_irecv(data_handle, &req, source, data_tag, comm);
 	starpu_mpi_wait(&req, status);

@@ -22,6 +22,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 
 #include <starpu_hash.h>
 
@@ -362,7 +363,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 		char *tmp = *ptr;
 		memcpy(tmp, (void*)csr->colind, csr->nnz * sizeof(csr->colind[0]));
 		tmp += csr->nnz * sizeof(csr->colind[0]);
