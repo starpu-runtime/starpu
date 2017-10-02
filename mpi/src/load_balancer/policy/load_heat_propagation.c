@@ -16,7 +16,7 @@
  */
 
 #include <starpu_mpi.h>
-#include <starpu_mpi_tag.h>
+#include <mpi/starpu_mpi_tag.h>
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <math.h>

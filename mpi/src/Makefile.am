@@ -21,7 +21,7 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
+AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -DSTARPU_MPI_MPI
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
@@ -64,11 +64,11 @@ noinst_HEADERS =					\
 	starpu_mpi_cache.h				\
 	starpu_mpi_select_node.h			\
 	starpu_mpi_cache_stats.h			\
-	starpu_mpi_early_data.h				\
-	starpu_mpi_early_request.h			\
-	starpu_mpi_sync_data.h				\
-	starpu_mpi_comm.h				\
-	starpu_mpi_tag.h				\
+	mpi/starpu_mpi_early_data.h			\
+	mpi/starpu_mpi_early_request.h			\
+	mpi/starpu_mpi_sync_data.h			\
+	mpi/starpu_mpi_comm.h				\
+	mpi/starpu_mpi_tag.h				\
 	starpu_mpi_task_insert.h			\
 	starpu_mpi_init.h				\
 	load_balancer/policy/data_movements_interface.h	\
@@ -86,11 +86,11 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_cache.c				\
 	starpu_mpi_select_node.c			\
 	starpu_mpi_cache_stats.c			\
-	starpu_mpi_early_data.c				\
-	starpu_mpi_early_request.c			\
-	starpu_mpi_sync_data.c				\
-	starpu_mpi_comm.c				\
-	starpu_mpi_tag.c				\
+	mpi/starpu_mpi_early_data.c			\
+	mpi/starpu_mpi_early_request.c			\
+	mpi/starpu_mpi_sync_data.c			\
+	mpi/starpu_mpi_comm.c				\
+	mpi/starpu_mpi_tag.c				\
 	starpu_mpi_fortran.c				\
 	starpu_mpi_task_insert_fortran.c		\
 	starpu_mpi_init.c				\

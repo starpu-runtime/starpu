@@ -19,7 +19,7 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
-#include <starpu_mpi_comm.h>
+#include <mpi/starpu_mpi_comm.h>
 #include <common/list.h>
 
 struct _starpu_mpi_comm
