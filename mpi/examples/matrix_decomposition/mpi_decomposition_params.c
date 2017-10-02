@@ -86,7 +86,7 @@ void parse_args(int argc, char **argv, int nodes)
 
                 if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
                 {
-                        printf("usage : %s [-display] [-size size] [-nblocks nblocks]\n", argv[0]);
+			printf("usage : %s [-size size] [-nblocks nblocks] [-no-prio] [-display]\n", argv[0]);
                 }
         }
 
