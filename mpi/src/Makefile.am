@@ -86,14 +86,15 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_cache.c				\
 	starpu_mpi_select_node.c			\
 	starpu_mpi_cache_stats.c			\
+	starpu_mpi_fortran.c				\
+	starpu_mpi_task_insert_fortran.c		\
+	starpu_mpi_init.c				\
+	mpi/starpu_mpi_mpi.c				\
 	mpi/starpu_mpi_early_data.c			\
 	mpi/starpu_mpi_early_request.c			\
 	mpi/starpu_mpi_sync_data.c			\
 	mpi/starpu_mpi_comm.c				\
 	mpi/starpu_mpi_tag.c				\
-	starpu_mpi_fortran.c				\
-	starpu_mpi_task_insert_fortran.c		\
-	starpu_mpi_init.c				\
 	load_balancer/policy/data_movements_interface.c	\
 	load_balancer/policy/load_data_interface.c	\
 	load_balancer/policy/load_heat_propagation.c	\
