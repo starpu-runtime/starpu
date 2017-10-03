@@ -24,11 +24,7 @@
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_cache.h>
-#include <starpu_mpi_sync_data.h>
-#include <starpu_mpi_early_data.h>
-#include <starpu_mpi_early_request.h>
 #include <starpu_mpi_select_node.h>
-#include <starpu_mpi_tag.h>
 #include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>

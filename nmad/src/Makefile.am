@@ -68,7 +68,8 @@ noinst_HEADERS =					\
 	starpu_mpi_init.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
-	starpu_mpi_nmad.c				\
+	nmad/starpu_mpi_nmad.c				\
+	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_task_insert.c			\
