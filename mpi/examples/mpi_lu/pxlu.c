@@ -555,8 +555,8 @@ static void create_task_21_recv(unsigned k, unsigned i)
 				tag_array[ndeps++] = TAG22(k-1, i, j);
 #else
 				tag_array[ndeps++] = TAG22(k-2, i, j);
-		}
 #endif
+		}
 	}
 
 	int source = get_block_rank(i, k);
