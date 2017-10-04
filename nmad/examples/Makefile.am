@@ -120,11 +120,17 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 # Stencil example #
 ###################
 if BUILD_EXAMPLES
-examplebin_PROGRAMS +=				\
+examplebin_PROGRAMS +=		\
 	stencil/stencil5
-
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5
+
+if STARPU_USE_MPI_MPI
+examplebin_PROGRAMS +=		\
+	stencil/stencil5_lb
+starpu_mpi_EXAMPLES	+=	\
+	stencil/stencil5_lb
+endif
 
 endif
 

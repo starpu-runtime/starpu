@@ -101,7 +101,7 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 
 if BUILD_TESTS
 
-starpu_mpi_TESTS =				
+starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
 	cache					\
@@ -156,6 +156,11 @@ starpu_mpi_TESTS +=				\
 	sync					\
 	gather					\
 	gather2
+
+if STARPU_USE_MPI_MPI
+starpu_mpi_TESTS +=				\
+	load_balancer
+endif
 
 # Expected to fail
 starpu_mpi_TESTS +=				\
@@ -216,8 +221,8 @@ noinst_PROGRAMS =				\
 	policy_selection			\
 	policy_selection2			\
 	early_request				\
-	starpu_redefine
-
+	starpu_redefine				\
+	load_balancer
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

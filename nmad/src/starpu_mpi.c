@@ -36,6 +36,11 @@
 #include <core/topology.h>
 #include <core/workers.h>
 
+#if defined(STARPU_USE_MPI_MPI)
+#include <mpi/starpu_mpi_comm.h>
+#include <mpi/starpu_mpi_tag.h>
+#endif
+
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
 							int dest, int data_tag, MPI_Comm comm,
 							unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
@@ -211,7 +216,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 
 void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_tag_data_release(data_handle);
 #endif
 	_starpu_mpi_cache_data_clear(data_handle);
@@ -233,7 +238,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		mpi_data->node_tag.rank = -1;
 		mpi_data->node_tag.comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 		_starpu_mpi_tag_data_register(data_handle, tag);
 #endif
 		_starpu_mpi_cache_data_init(data_handle);
@@ -249,7 +254,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		_STARPU_MPI_TRACE_DATA_SET_RANK(data_handle, rank);
 		mpi_data->node_tag.rank = rank;
 		mpi_data->node_tag.comm = comm;
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 		_starpu_mpi_comm_register(comm);
 #endif
 	}

@@ -21,7 +21,7 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) $(NMAD_CFLAGS) -DSTARPU_MPI_NMAD
+AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) $(NMAD_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS) $(NMAD_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(NMAD_LDFLAGS)
@@ -65,10 +65,17 @@ noinst_HEADERS =					\
 	starpu_mpi_select_node.h			\
 	starpu_mpi_cache_stats.h			\
 	starpu_mpi_task_insert.h			\
-	starpu_mpi_init.h
+	starpu_mpi_init.h				\
+	mpi/starpu_mpi_early_data.h			\
+	mpi/starpu_mpi_early_request.h			\
+	mpi/starpu_mpi_sync_data.h			\
+	mpi/starpu_mpi_comm.h				\
+	mpi/starpu_mpi_tag.h				\
+	load_balancer/policy/data_movements_interface.h	\
+	load_balancer/policy/load_data_interface.h	\
+	load_balancer/policy/load_balancer_policy.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
-	nmad/starpu_mpi_nmad.c				\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
@@ -81,7 +88,18 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_cache_stats.c			\
 	starpu_mpi_fortran.c				\
 	starpu_mpi_task_insert_fortran.c		\
-	starpu_mpi_init.c
+	starpu_mpi_init.c				\
+	nmad/starpu_mpi_nmad.c				\
+	mpi/starpu_mpi_mpi.c				\
+	mpi/starpu_mpi_early_data.c			\
+	mpi/starpu_mpi_early_request.c			\
+	mpi/starpu_mpi_sync_data.c			\
+	mpi/starpu_mpi_comm.c				\
+	mpi/starpu_mpi_tag.c				\
+	load_balancer/policy/data_movements_interface.c	\
+	load_balancer/policy/load_data_interface.c	\
+	load_balancer/policy/load_heat_propagation.c	\
+	load_balancer/load_balancer.c
 
 showcheck:
 	-cat /dev/null

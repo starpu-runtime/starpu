@@ -26,7 +26,7 @@
 #include <common/list.h>
 #include <common/prio_list.h>
 #include <core/simgrid.h>
-#if defined(STARPU_MPI_NMAD)
+#if defined(STARPU_USE_MPI_NMAD)
 #include <pioman.h>
 #include <nm_sendrecv_interface.h>
 #include <nm_session_interface.h>
@@ -157,7 +157,7 @@ int _starpu_debug_rank;
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 extern int _starpu_mpi_tag;
 #define _STARPU_MPI_TAG_ENVELOPE  _starpu_mpi_tag
 #define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
@@ -173,7 +173,7 @@ struct _starpu_mpi_envelope
 	int data_tag;
 	unsigned sync;
 };
-#endif /* STARPU_MPI_MPI */
+#endif /* STARPU_USE_MPI_MPI */
 
 enum _starpu_mpi_request_type
 {
@@ -217,7 +217,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* who are we talking to ? */
 	struct _starpu_mpi_node_tag node_tag;
-#if defined(STARPU_MPI_NMAD)
+#if defined(STARPU_USE_MPI_NMAD)
 	nm_gate_t gate;
 	nm_session_t session;
 #endif
@@ -225,10 +225,10 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
-#if defined(STARPU_MPI_NMAD)
+#if defined(STARPU_USE_MPI_NMAD)
 	nm_sr_request_t data_request;
 	int waited;
-#elif defined(STARPU_MPI_MPI)
+#elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request data_request;
 #endif
 
@@ -236,9 +236,9 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned sync;
 
 	int ret;
-#if defined(STARPU_MPI_NMAD)
+#if defined(STARPU_USE_MPI_NMAD)
 	piom_cond_t req_cond;
-#elif defined(STARPU_MPI_MPI)
+#elif defined(STARPU_USE_MPI_MPI)
 	starpu_pthread_mutex_t req_mutex;
 	starpu_pthread_cond_t req_cond;
 	starpu_pthread_mutex_t posted_mutex;
@@ -260,13 +260,13 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*callback)(void *);
 
         /* in the case of user-defined datatypes, we need to send the size of the data */
-#if defined(STARPU_MPI_NMAD)
+#if defined(STARPU_USE_MPI_NMAD)
 	nm_sr_request_t size_req;
-#elif defined(STARPU_MPI_MPI)
+#elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request size_req;
 #endif
 
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 	struct _starpu_mpi_envelope* envelope;
 
 	unsigned is_internal_req:1;

@@ -32,6 +32,11 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
+#if defined(STARPU_USE_MPI_MPI)
+#include <mpi/starpu_mpi_comm.h>
+#include <mpi/starpu_mpi_tag.h>
+#endif
+
 #ifdef STARPU_SIMGRID
 static int _mpi_world_size;
 static int _mpi_world_rank;
@@ -177,7 +182,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();
 	_starpu_mpi_cache_shutdown(world_size);
-#if defined(STARPU_MPI_MPI)
+#if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_tag_shutdown();
 	_starpu_mpi_comm_shutdown();
 #endif

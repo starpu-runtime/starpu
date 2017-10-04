@@ -602,9 +602,17 @@ AC_SUBST(USE_MPI, $build_mpi_lib)
 AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes)
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
+	if test x$build_mpi_lib = xyes ; then
+		AC_DEFINE(STARPU_USE_MPI_MPI,[1],[whether the StarPU MPI library (with a native MPI implementation) is available])
+	else
+		AC_DEFINE(STARPU_USE_MPI_NMAD,[1],[whether the StarPU MPI library (with a NewMadeleine implementation) is available])
+	fi
 else
 	running_mpi_check=no
 fi
+
+AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
+AM_CONDITIONAL(STARPU_USE_MPI_NMADI, test x$build_nmad_lib = xyes)
 
 AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
 			[Arguments for mpiexec])],
