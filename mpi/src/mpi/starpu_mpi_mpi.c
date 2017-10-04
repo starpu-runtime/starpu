@@ -640,6 +640,52 @@ void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 	_STARPU_MPI_LOG_OUT();
 }
 
+int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
+{
+	int ret;
+	struct _starpu_mpi_req *req = *public_req;
+	struct _starpu_mpi_req *waiting_req;
+
+	_STARPU_MPI_LOG_IN();
+
+	/* We cannot try to complete a MPI request that was not actually posted
+	 * to MPI yet. */
+	STARPU_PTHREAD_MUTEX_LOCK(&(req->req_mutex));
+	while (!(req->submitted))
+		STARPU_PTHREAD_COND_WAIT(&(req->req_cond), &(req->req_mutex));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
+
+	/* Initialize the request structure */
+	 _starpu_mpi_request_init(&waiting_req);
+	waiting_req->prio = INT_MAX;
+	waiting_req->status = status;
+	waiting_req->other_request = req;
+	waiting_req->func = _starpu_mpi_wait_func;
+	waiting_req->request_type = WAIT_REQ;
+
+	_starpu_mpi_submit_ready_request_inc(waiting_req);
+
+	/* We wait for the MPI request to finish */
+	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	while (!req->completed)
+		STARPU_PTHREAD_COND_WAIT(&req->req_cond, &req->req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+
+	ret = req->ret;
+
+	/* The internal request structure was automatically allocated */
+	*public_req = NULL;
+	if (req->internal_req)
+	{
+		_starpu_mpi_request_destroy(req->internal_req);
+	}
+	_starpu_mpi_request_destroy(req);
+	_starpu_mpi_request_destroy(waiting_req);
+
+	_STARPU_MPI_LOG_OUT();
+	return ret;
+}
+
 /********************************************************/
 /*                                                      */
 /*  Test functionalities                                */
@@ -680,6 +726,69 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	STARPU_PTHREAD_COND_SIGNAL(&testing_req->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&testing_req->req_mutex);
 	_STARPU_MPI_LOG_OUT();
+}
+
+int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
+{
+	_STARPU_MPI_LOG_IN();
+	int ret = 0;
+
+	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_test needs a valid starpu_mpi_req");
+
+	struct _starpu_mpi_req *req = *public_req;
+
+	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
+
+	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	unsigned submitted = req->submitted;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+
+	if (submitted)
+	{
+		struct _starpu_mpi_req *testing_req;
+
+		/* Initialize the request structure */
+		_starpu_mpi_request_init(&testing_req);
+		testing_req->prio = INT_MAX;
+		testing_req->flag = flag;
+		testing_req->status = status;
+		testing_req->other_request = req;
+		testing_req->func = _starpu_mpi_test_func;
+		testing_req->completed = 0;
+		testing_req->request_type = TEST_REQ;
+
+		_starpu_mpi_submit_ready_request_inc(testing_req);
+
+		/* We wait for the test request to finish */
+		STARPU_PTHREAD_MUTEX_LOCK(&(testing_req->req_mutex));
+		while (!(testing_req->completed))
+			STARPU_PTHREAD_COND_WAIT(&(testing_req->req_cond), &(testing_req->req_mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(testing_req->req_mutex));
+
+		ret = testing_req->ret;
+
+		if (*(testing_req->flag))
+		{
+			/* The request was completed so we free the internal
+			 * request structure which was automatically allocated
+			 * */
+			*public_req = NULL;
+			if (req->internal_req)
+			{
+				_starpu_mpi_request_destroy(req->internal_req);
+			}
+			_starpu_mpi_request_destroy(req);
+		}
+
+		_starpu_mpi_request_destroy(testing_req);
+	}
+	else
+	{
+		*flag = 0;
+	}
+
+	_STARPU_MPI_LOG_OUT();
+	return ret;
 }
 
 /********************************************************/

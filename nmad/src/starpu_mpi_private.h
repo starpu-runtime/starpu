@@ -303,8 +303,8 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
-void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req);
-void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req);
+int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
+int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 int _starpu_mpi_barrier(MPI_Comm comm);
 
 struct _starpu_mpi_argc_argv

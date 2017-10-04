@@ -186,6 +186,7 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int data_tag, 
 	starpu_mpi_req req;
 
 	_STARPU_MPI_LOG_IN();
+
 	starpu_mpi_irecv(data_handle, &req, source, data_tag, comm);
 	starpu_mpi_wait(&req, status);
 
@@ -193,13 +194,11 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int data_tag, 
 	return 0;
 }
 
-extern int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
 	return _starpu_mpi_wait(public_req, status);
 }
 
-extern int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
 	return _starpu_mpi_test(public_req, flag, status);
@@ -207,19 +206,14 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 int starpu_mpi_barrier(MPI_Comm comm)
 {
-	_STARPU_MPI_LOG_IN();
-	int ret;
-	//	STARPU_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
-	ret = MPI_Barrier(comm);
-
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %d", ret);
-
-	_STARPU_MPI_LOG_OUT();
-	return ret;
+	return _starpu_mpi_barrier(comm);
 }
 
 void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
+#if defined(STARPU_MPI_MPI)
+	_starpu_mpi_tag_data_release(data_handle);
+#endif
 	_starpu_mpi_cache_data_clear(data_handle);
 	free(data_handle->mpi_data);
 }
@@ -239,6 +233,9 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		mpi_data->node_tag.rank = -1;
 		mpi_data->node_tag.comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
+#if defined(STARPU_MPI_MPI)
+		_starpu_mpi_tag_data_register(data_handle, tag);
+#endif
 		_starpu_mpi_cache_data_init(data_handle);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);
 	}
@@ -252,6 +249,9 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		_STARPU_MPI_TRACE_DATA_SET_RANK(data_handle, rank);
 		mpi_data->node_tag.rank = rank;
 		mpi_data->node_tag.comm = comm;
+#if defined(STARPU_MPI_MPI)
+		_starpu_mpi_comm_register(comm);
+#endif
 	}
 }
 
@@ -399,7 +399,7 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	while (task || mpi)
 	{
 		task = _starpu_task_wait_for_all_and_return_nb_waited_tasks();
-		mpi = starpu_mpi_barrier(comm);
+		mpi = _starpu_mpi_barrier(comm);
 	}
 	return 0;
 }
