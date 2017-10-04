@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2012-2017  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,9 +26,11 @@
 #include <common/list.h>
 #include <common/prio_list.h>
 #include <core/simgrid.h>
+#if defined(STARPU_MPI_NMAD)
 #include <pioman.h>
 #include <nm_sendrecv_interface.h>
 #include <nm_session_interface.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -155,6 +157,24 @@ int _starpu_debug_rank;
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
+#if defined(STARPU_MPI_MPI)
+extern int _starpu_mpi_tag;
+#define _STARPU_MPI_TAG_ENVELOPE  _starpu_mpi_tag
+#define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
+#define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2
+
+#define _STARPU_MPI_ENVELOPE_DATA       0
+#define _STARPU_MPI_ENVELOPE_SYNC_READY 1
+
+struct _starpu_mpi_envelope
+{
+	int mode;
+	starpu_ssize_t size;
+	int data_tag;
+	unsigned sync;
+};
+#endif /* STARPU_MPI_MPI */
+
 enum _starpu_mpi_request_type
 {
 	SEND_REQ=0,
@@ -181,6 +201,7 @@ struct _starpu_mpi_data
 	int cache_received;
 };
 
+struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
@@ -196,18 +217,36 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* who are we talking to ? */
 	struct _starpu_mpi_node_tag node_tag;
+#if defined(STARPU_MPI_NMAD)
 	nm_gate_t gate;
 	nm_session_t session;
+#endif
 
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
-	nm_sr_request_t request;
+#if defined(STARPU_MPI_NMAD)
+	nm_sr_request_t data_request;
+	int waited;
+#elif defined(STARPU_MPI_MPI)
+	MPI_Request data_request;
+#endif
+
 	int *flag;
 	unsigned sync;
 
 	int ret;
+#if defined(STARPU_MPI_NMAD)
 	piom_cond_t req_cond;
+#elif defined(STARPU_MPI_MPI)
+	starpu_pthread_mutex_t req_mutex;
+	starpu_pthread_cond_t req_cond;
+	starpu_pthread_mutex_t posted_mutex;
+	starpu_pthread_cond_t posted_cond;
+	/* In the case of a Wait/Test request, we are going to post a request
+	 * to test the completion of another request */
+	struct _starpu_mpi_req *other_request;
+#endif
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 
@@ -221,14 +260,26 @@ LIST_TYPE(_starpu_mpi_req,
 	void (*callback)(void *);
 
         /* in the case of user-defined datatypes, we need to send the size of the data */
+#if defined(STARPU_MPI_NMAD)
 	nm_sr_request_t size_req;
+#elif defined(STARPU_MPI_MPI)
+	MPI_Request size_req;
+#endif
+
+#if defined(STARPU_MPI_MPI)
+	struct _starpu_mpi_envelope* envelope;
+
+	unsigned is_internal_req:1;
+	unsigned to_destroy:1;
+	struct _starpu_mpi_req *internal_req;
+	struct _starpu_mpi_early_data_handle *early_data_handle;
+     	UT_hash_handle hh;
+#endif
 
 	int sequential_consistency;
 
 	long pre_sync_jobid;
 	long post_sync_jobid;
-
-	int waited;
 
 #ifdef STARPU_SIMGRID
         MPI_Status status_store;
@@ -273,14 +324,6 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
 #ifdef STARPU_SIMGRID
 void _starpu_mpi_wait_for_initialization();
 #endif
-
-#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do {			\
-	STATUS->MPI_SOURCE=PUBLIC_REQ->node_tag.rank; /**< field name mandatory by spec */ \
-	STATUS->MPI_TAG=PUBLIC_REQ->node_tag.data_tag;    /**< field name mandatory by spec */ \
-	STATUS->MPI_ERROR=PUBLIC_REQ->ret;  /**< field name mandatory by spec */ \
-	STATUS->size=PUBLIC_REQ->count;       /**< size of data received */ \
-	STATUS->cancelled=0;  /**< whether request was cancelled */	\
-} while(0)
 
 #ifdef __cplusplus
 }

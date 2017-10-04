@@ -211,18 +211,18 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	struct nm_data_s data;
 	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
-	nm_sr_send_init(req->session, &(req->request));
-	nm_sr_send_pack_data(req->session, &(req->request), &data);
-	nm_sr_send_set_priority(req->session, &req->request, req->prio);
+	nm_sr_send_init(req->session, &(req->data_request));
+	nm_sr_send_pack_data(req->session, &(req->data_request), &data);
+	nm_sr_send_set_priority(req->session, &req->data_request, req->prio);
 
 	if (req->sync == 0)
 	{
-		req->ret = nm_sr_send_isend(req->session, &(req->request), req->gate, req->node_tag.data_tag);
+		req->ret = nm_sr_send_isend(req->session, &(req->data_request), req->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
 	}
 	else
 	{
-		req->ret = nm_sr_send_issend(req->session, &(req->request), req->gate, req->node_tag.data_tag);
+		req->ret = nm_sr_send_issend(req->session, &(req->data_request), req->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
 
@@ -301,9 +301,9 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	//req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	struct nm_data_s data;
 	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
-	nm_sr_recv_init(req->session, &(req->request));
-	nm_sr_recv_unpack_data(req->session, &(req->request), &data);
-	nm_sr_recv_irecv(req->session, &(req->request), req->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
+	nm_sr_recv_init(req->session, &(req->data_request));
+	nm_sr_recv_unpack_data(req->session, &(req->data_request), &data);
+	nm_sr_recv_irecv(req->session, &(req->data_request), req->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -356,6 +356,14 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 /*  Wait functionalities                                */
 /*                                                      */
 /********************************************************/
+
+#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do {			\
+	STATUS->MPI_SOURCE=PUBLIC_REQ->node_tag.rank; /**< field name mandatory by spec */ \
+	STATUS->MPI_TAG=PUBLIC_REQ->node_tag.data_tag;    /**< field name mandatory by spec */ \
+	STATUS->MPI_ERROR=PUBLIC_REQ->ret;  /**< field name mandatory by spec */ \
+	STATUS->size=PUBLIC_REQ->count;       /**< size of data received */ \
+	STATUS->cancelled=0;  /**< whether request was cancelled */	\
+} while(0)
 
 int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
@@ -524,9 +532,9 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 	}
 	/* the if must be before, because the first callback can directly free
 	* a detached request (the second callback free if req->waited>1). */
-	nm_sr_request_set_ref(&(req->request), req);
+	nm_sr_request_set_ref(&(req->data_request), req);
 
-	nm_sr_request_monitor(req->session, &(req->request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
+	nm_sr_request_monitor(req->session, &(req->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
 static void _starpu_mpi_handle_new_request(void *arg)

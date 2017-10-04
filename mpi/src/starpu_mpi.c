@@ -25,12 +25,7 @@
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_cache.h>
-#include <mpi/starpu_mpi_sync_data.h>
-#include <mpi/starpu_mpi_early_data.h>
-#include <mpi/starpu_mpi_early_request.h>
 #include <starpu_mpi_select_node.h>
-#include <mpi/starpu_mpi_tag.h>
-#include <mpi/starpu_mpi_comm.h>
 #include <starpu_mpi_init.h>
 #include <common/config.h>
 #include <common/thread.h>
@@ -147,7 +142,7 @@ int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int d
 
 struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_data_func, STARPU_W, sequential_consistency, is_internal_req, count);
+	return _starpu_mpi_isend_irecv_common(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_size_func, STARPU_W, sequential_consistency, is_internal_req, count);
 }
 
 int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int data_tag, MPI_Comm comm)

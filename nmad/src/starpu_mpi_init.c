@@ -177,6 +177,10 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();
 	_starpu_mpi_cache_shutdown(world_size);
+#if defined(STARPU_MPI_MPI)
+	_starpu_mpi_tag_shutdown();
+	_starpu_mpi_comm_shutdown();
+#endif
 
 	return 0;
 }
@@ -226,4 +230,3 @@ int starpu_mpi_world_rank(void)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
 }
-

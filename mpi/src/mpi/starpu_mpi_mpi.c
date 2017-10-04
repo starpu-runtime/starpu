@@ -561,7 +561,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 /*                                                      */
 /********************************************************/
 
-void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -1309,7 +1309,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							new_req->sync = 1;
 							new_req->callback = NULL;
 							new_req->callback_arg = NULL;
-							new_req->func = _starpu_mpi_irecv_data_func;
+							new_req->func = _starpu_mpi_irecv_size_func;
 							new_req->sequential_consistency = 1;
 							new_req->is_internal_req = 0; // ????
 							new_req->count = envelope->size;
