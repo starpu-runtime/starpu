@@ -40,7 +40,7 @@ SUBDIRS += mpi
 endif
 
 if USE_NMAD
-SUBDIRS += nmad
+SUBDIRS += mpi
 endif
 
 if USE_DSM

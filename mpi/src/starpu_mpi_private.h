@@ -143,7 +143,7 @@ int _starpu_debug_rank;
                                              fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
                                              fflush(stderr); } while(0);
 
-#ifdef STARPU_VERBOSE
+#ifdef xSTARPU_VERBOSE
 #  define _STARPU_MPI_LOG_IN()             do { if (!_starpu_silent) { \
                                                if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__); \

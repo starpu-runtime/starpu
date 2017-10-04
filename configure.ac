@@ -3416,11 +3416,6 @@ AC_OUTPUT([
 	mpi/starpumpi-1.1.pc
 	mpi/starpumpi-1.2.pc
 	mpi/starpumpi-1.3.pc
-  nmad/libstarpumpi.pc
-  nmad/starpumpi-1.0.pc
-  nmad/starpumpi-1.1.pc
-  nmad/starpumpi-1.2.pc
-  nmad/starpumpi-1.3.pc
 	starpufft/Makefile
 	starpufft/src/Makefile
 	starpufft/tests/Makefile
@@ -3440,10 +3435,6 @@ AC_OUTPUT([
 	mpi/src/Makefile
 	mpi/tests/Makefile
 	mpi/examples/Makefile
-  nmad/Makefile
-  nmad/src/Makefile
-  nmad/tests/Makefile
-  nmad/examples/Makefile
 	starpu-top/StarPU-Top.pro
 	starpu-top/StarPU-Top-qwt-embed.pri
 	starpu-top/StarPU-Top-qwt-system.pri
