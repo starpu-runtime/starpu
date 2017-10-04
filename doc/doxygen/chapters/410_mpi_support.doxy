@@ -190,7 +190,9 @@ int main(int argc, char **argv)
 
 We have here replaced <c>MPI_Recv()</c> and <c>MPI_Send()</c> with starpu_mpi_irecv_detached()
 and starpu_mpi_isend_detached(), which just submit the communication to be
-performed. The only remaining synchronization with starpu_data_acquire() is at
+performed. The implicit sequential consistency dependencies provide
+synchronization between mpi reception and emission and the corresponding tasks.
+The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
 
 \section MPIInitialization How to Initialize StarPU-MPI
