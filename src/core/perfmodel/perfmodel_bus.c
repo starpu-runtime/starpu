@@ -626,7 +626,12 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_id);
 
-		cpu_id = find_cpu_from_numa_node(obj);
+		if (obj)
+			cpu_id = find_cpu_from_numa_node(obj);
+		else
+                        /* No such NUMA node, probably hwloc 1.x with no NUMA
+                         * node, just take one CPU from the whole system */
+			cpu_id = find_cpu_from_numa_node(hwloc_get_root_obj(hwtopology));
 #endif
 
 #ifdef STARPU_USE_CUDA
