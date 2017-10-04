@@ -123,6 +123,9 @@ $ vite paje.trace
 To get names of tasks instead of "unknown", fill the optional
 starpu_codelet::name, or use a performance model for them.
 
+One can also introduce user-defined events in the diagram thanks to the
+starpu_fxt_trace_user_event_string() function.
+
 In the MPI execution case, \ref STARPU_GENERATE_TRACE will not work as expected
 (each node will try to generate paje.trace, thus mixing outputs...), you have to
 collect the trace files from the MPI nodes, and
