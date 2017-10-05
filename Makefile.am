@@ -39,10 +39,6 @@ if USE_MPI
 SUBDIRS += mpi
 endif
 
-if USE_NMAD
-SUBDIRS += mpi
-endif
-
 if USE_DSM
 SUBDIRS += dsm
 endif
