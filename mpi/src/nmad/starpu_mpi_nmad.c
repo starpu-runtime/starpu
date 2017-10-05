@@ -213,7 +213,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.rank, req->node_tag.data_tag, 0);
 
 	struct nm_data_s data;
-	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
+	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_send_init(req->session, &(req->data_request));
 	nm_sr_send_pack_data(req->session, &(req->data_request), &data);
 	nm_sr_send_set_priority(req->session, &req->data_request, req->prio);
@@ -303,7 +303,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	//req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	struct nm_data_s data;
-	nm_mpi_nmad_data(&data, (void*)req->ptr, req->datatype, req->count);
+	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_recv_init(req->session, &(req->data_request));
 	nm_sr_recv_unpack_data(req->session, &(req->data_request), &data);
 	nm_sr_recv_irecv(req->session, &(req->data_request), req->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
@@ -474,6 +474,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
+	        nm_mpi_nmad_data_release(req->datatype);
 		if (req->registered_datatype == 0)
 		{
 			if (req->request_type == SEND_REQ)
