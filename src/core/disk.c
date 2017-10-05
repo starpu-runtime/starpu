@@ -243,7 +243,7 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	/* Something goes wrong with copy disk to disk... */
 	if (!event)
 	{
-		if (channel || (!channel && starpu_asynchronous_copy_disabled()))
+		if (channel || starpu_asynchronous_copy_disabled())
 			disk_register_list[node_src]->functions->copy = NULL;
 
 		/* perform a read, and after a write... */

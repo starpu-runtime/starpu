@@ -13,6 +13,9 @@ TODO: improve!
 To achieve good
 performance, we give below a list of features which should be checked.
 
+For a start, you can use \ref OfflinePerformanceTools to get a Gantt chart which
+will show roughly where time is spent, and focus correspondingly.
+
 \section ConfigurationImprovePerformance Configuration That May Improve Performance
 
 The \ref enable-fast "--enable-fast" configuration option disables all

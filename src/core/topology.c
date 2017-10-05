@@ -1314,13 +1314,13 @@ _starpu_topology_count_ngpus(hwloc_obj_t obj)
 		n += _starpu_topology_count_ngpus(obj->children[i]);
 
 	data->ngpus = n;
-#ifdef STARPU_VERBOSE
-	{
-		char name[64];
-		hwloc_obj_type_snprintf(name, sizeof(name), obj, 0);
-		_STARPU_DEBUG("hwloc obj %s has %u GPUs below\n", name, n);
-	}
-#endif
+//#ifdef STARPU_VERBOSE
+//	{
+//		char name[64];
+//		hwloc_obj_type_snprintf(name, sizeof(name), obj, 0);
+//		_STARPU_DEBUG("hwloc obj %s has %u GPUs below\n", name, n);
+//	}
+//#endif
 	return n;
 }
 #endif

@@ -949,7 +949,6 @@ int starpu_unistd_global_test_request(void *async_channel)
 		case STARPU_UNISTD_COPY :
 		{
 			return starpu_sem_trywait(&event->event.event_copy->finished) == 0;
-			break;
 		}
 #endif
 

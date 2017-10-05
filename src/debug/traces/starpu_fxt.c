@@ -741,7 +741,7 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
 	poti_SetState(time, container, "WS", name);
 #else
-	fprintf(out_paje_file, "10	%.9f	%sw%lu	WS	%s\n", time, prefix, workerid, name);
+	fprintf(out_paje_file, "10	%.9f	%sw%lu	WS	\"%s\"\n", time, prefix, workerid, name);
 #endif
 }
 
@@ -1474,7 +1474,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
 			poti_SetState(start_codelet_time, container, ctx, name);
 #else
-			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	%s\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name);
+			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s\"\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name);
 #endif
 		}
 	}
@@ -1636,7 +1636,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			poti_SetState(last_codelet_start[worker], container, typectx, name);
 #endif
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
 #endif
 		}
 	}
@@ -2995,7 +2995,7 @@ static void handle_string_event(struct fxt_ev_64 *ev, const char *event, struct 
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", event);
 #else
-		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
+		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	\"%s\"\n", get_event_time_stamp(ev, options), options->file_prefix, event);
 #endif
 	}
 

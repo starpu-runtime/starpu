@@ -997,7 +997,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		break;
 	case STARPU_CPU_RAM:
 	default:
-		STARPU_ABORT_MSG("Memory is not recognized (kind %u) \n", kind);
+		STARPU_ABORT_MSG("Memory is not recognized (kind %d) \n", kind);
 	}
 
 	return success;
