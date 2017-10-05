@@ -561,16 +561,24 @@ if test x$enable_simgrid = xno ; then
             # nothing was specified: look in the path
             AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
         ])
-    
+
     AC_MSG_CHECKING(whether mpiexec is available)
     AC_MSG_RESULT($mpiexec_path)
-    
+
     # We test if MPIEXEC exists
     if test ! -x $mpiexec_path; then
-        #MPIEXEC does not exists or is not executable
-        AC_MSG_RESULT(The mpiexec script is not valid)
-            running_mpi_check=no
-            mpiexec_path=""
+        # if it's not valid, it could be the parameter given to configure.ac was not a full path, let's look for it
+        AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$(dirname $mpicc_path):$PATH])
+        AC_MSG_CHECKING(whether mpiexec is available (2nd try))
+        AC_MSG_RESULT($mpiexec_path_bis)
+	if test -x $mpiexec_path_bis; then
+	   mpiexec_path=$mpiexec_path_bis
+	else
+           #MPIEXEC does not exists or is not executable
+           AC_MSG_RESULT(The mpiexec script is not valid)
+           running_mpi_check=no
+           mpiexec_path=""
+	fi
     fi
     AC_SUBST(MPIEXEC,$mpiexec_path)
 fi
