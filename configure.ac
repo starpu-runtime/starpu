@@ -420,6 +420,7 @@ else
     cc_or_mpicc=$CC
 fi
 
+build_nmad_lib=no
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 #We can only build StarPU MPI Library if User wants it and MPI is available
 if test x$use_mpi = xyes -a x$enable_nmad = xyes ; then
@@ -432,8 +433,6 @@ fi
 
 AC_MSG_CHECKING(whether the StarPU MPI nmad library should be generated)
 AC_MSG_RESULT($build_nmad_lib)
-
-AM_CONDITIONAL(USE_MPI, test "x$build_nmad_lib = xyes" -o "x$build_mpi_lib = xyes")
 
 ###############################################################################
 #                                                                             #
@@ -607,7 +606,8 @@ else
 fi
 
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
-AM_CONDITIONAL(STARPU_USE_MPI_NMADI, test x$build_nmad_lib = xyes)
+AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
+AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)
 
 AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
 			[Arguments for mpiexec])],
