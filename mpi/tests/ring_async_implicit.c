@@ -26,9 +26,6 @@
 #  define NITER	2048
 #endif
 
-int token = 42;
-starpu_data_handle_t token_handle;
-
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
@@ -61,7 +58,7 @@ static struct starpu_codelet increment_cl =
 	.model = &dumb_model
 };
 
-void increment_token(void)
+void increment_token(starpu_data_handle_t token_handle)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -75,6 +72,8 @@ void increment_token(void)
 int main(int argc, char **argv)
 {
 	int ret, rank, size;
+	int token = 42;
+	starpu_data_handle_t token_handle;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -121,7 +120,7 @@ int main(int argc, char **argv)
 			starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
 		}
 
-		increment_token();
+		increment_token(token_handle);
 
 		if (loop == last_loop && rank == last_rank)
 		{

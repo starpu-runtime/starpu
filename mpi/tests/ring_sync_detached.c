@@ -172,6 +172,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	if (rank == last_rank)
 	{
+		FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
 		STARPU_ASSERT(token == nloops*size);
 	}
 #endif
