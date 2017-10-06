@@ -226,7 +226,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			if (req->registered_datatype == 1)
 			{
 				req->count = 1;
-				req->ptr = starpu_data_get_local_ptr(req->data_handle);
+				req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 			}
 			else
 			{
@@ -296,7 +296,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 					if (req->registered_datatype == 1)
 					{
 						req->count = 1;
-						req->ptr = starpu_data_get_local_ptr(req->data_handle);
+						req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 					}
 					else
 					{
@@ -502,7 +502,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	{
 		int size;
 		req->count = 1;
-		req->ptr = starpu_data_get_local_ptr(req->data_handle);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 
 		MPI_Type_size(req->datatype, &size);
 		req->envelope->size = (starpu_ssize_t)req->count * size;
@@ -1446,7 +1446,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						if (early_request->registered_datatype == 1)
 						{
 							early_request->count = 1;
-							early_request->ptr = starpu_data_get_local_ptr(early_request->data_handle);
+							early_request->ptr = starpu_data_handle_to_pointer(early_request->data_handle, STARPU_MAIN_RAM);
 						}
 						else
 						{
