@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	int token = 42;
 	starpu_data_handle_t token_handle;
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_MULTIPLE, &mpi_init);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
