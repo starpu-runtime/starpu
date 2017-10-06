@@ -474,9 +474,10 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
-	        nm_mpi_nmad_data_release(req->datatype);
 		if (req->registered_datatype == 0)
 		{
+			if(req->waited == 1)
+			        nm_mpi_nmad_data_release(req->datatype);
 			if (req->request_type == SEND_REQ)
 			{
 				req->waited--;
@@ -497,6 +498,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 		}
 		else
 		{
+		        nm_mpi_nmad_data_release(req->datatype);
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
 		starpu_data_release(req->data_handle);
