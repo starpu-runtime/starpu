@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
 		if (loop == 0 && rank == 0)
 		{
-			starpu_data_acquire(token_handle, RW);
+			starpu_data_acquire(token_handle, STARPU_RW);
 			token = 0;
 			FPRINTF_MPI(stderr, "Start with token value %d\n", token);
 			starpu_data_release(token_handle);
