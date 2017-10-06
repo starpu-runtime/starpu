@@ -244,7 +244,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	{
 		req->waited = 1;
 		req->count = 1;
-		req->ptr = starpu_data_get_local_ptr(req->data_handle);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 	}
 	else
 	{
@@ -340,7 +340,7 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	if (req->registered_datatype == 1)
 	{
 		req->count = 1;
-		req->ptr = starpu_data_get_local_ptr(req->data_handle);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 		_starpu_mpi_irecv_data_func(req);
 	}
 	else
