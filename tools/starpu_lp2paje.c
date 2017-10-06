@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_lp2paje"
 

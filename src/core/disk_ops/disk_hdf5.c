@@ -46,7 +46,7 @@ static starpu_pthread_cond_t global_cond;
 static struct _starpu_hdf5_work_list global_work_list;        /* This list contains the work for the hdf5 thread */
 #endif
 
-#ifdef H5_HAVE_THREADSAFE						
+#ifdef H5_HAVE_THREADSAFE
 
 #define HDF5_VAR_THREAD fileBase->thread
 #define HDF5_VAR_RUN fileBase->run
@@ -54,7 +54,7 @@ static struct _starpu_hdf5_work_list global_work_list;        /* This list conta
 #define HDF5_VAR_COND fileBase->cond
 #define HDF5_VAR_WORK_LIST fileBase->work_list
 
-#else									
+#else
 
 #define HDF5_VAR_THREAD global_thread
 #define HDF5_VAR_RUN global_run
@@ -62,7 +62,7 @@ static struct _starpu_hdf5_work_list global_work_list;        /* This list conta
 #define HDF5_VAR_COND global_cond
 #define HDF5_VAR_WORK_LIST global_work_list
 
-#endif									
+#endif
 
 enum hdf5_work_type { READ, WRITE, FULL_READ, FULL_WRITE, COPY };
 
@@ -140,7 +140,7 @@ static void starpu_hdf5_full_write_internal(struct _starpu_hdf5_work * work)
 		/* Get official datatype */
 		hid_t datatype = H5Dget_type(work->obj_dst->dataset);
 		hsize_t sizeDatatype = H5Tget_size(datatype);
-		
+
 		/* Count in number of elements */
 		hsize_t extendsdim[1] = {work->size/sizeDatatype};
 		status = H5Dset_extent (work->obj_dst->dataset, extendsdim);
@@ -263,10 +263,10 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 		/* Dirty : Delete dataspace because H5Ocopy only works if destination does not exist */
 		H5Ldelete(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);
 
-		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT); 
+		status = H5Ocopy(work->base_src->fileID, work->obj_src->path, work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT, H5P_DEFAULT);
 		STARPU_ASSERT_MSG(status >= 0, "Can not copy data (%s) associed to this disk (%s) to the data (%s) on this disk (%s)\n", work->obj_src->path, work->base_src->path, work->obj_dst->path, work->base_dst->path);
 
-		work->obj_dst->dataset = H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);				
+		work->obj_dst->dataset = H5Dopen2(work->base_dst->fileID, work->obj_dst->path, H5P_DEFAULT);
 	}
 	else
 	{
@@ -278,11 +278,11 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 
 		void * ptr;
 		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, &ptr, work->size, 0);
-		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %lu bytes to perform disk to disk operation", work->size);
+		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %lu bytes to perform disk to disk operation", (unsigned long)work->size);
 
 		/* buffer is only used internally to store intermediate data */
 		work->ptr = ptr;
-		
+
 		starpu_hdf5_read_internal(work);
 		starpu_hdf5_write_internal(work);
 
@@ -342,7 +342,7 @@ static void * _starpu_hdf5_internal_thread(void * arg)
                                 case FULL_WRITE:
                                         starpu_hdf5_full_write_internal(work);
                                         break;
-				
+
 				case COPY:
 					starpu_hdf5_copy_internal(work);
 					break;
@@ -383,7 +383,7 @@ static void _starpu_hdf5_create_thread(struct starpu_hdf5_base * fileBase)
         HDF5_VAR_RUN = 1;
 
         STARPU_PTHREAD_COND_INIT(&HDF5_VAR_COND, NULL);
-        STARPU_PTHREAD_CREATE(&HDF5_VAR_THREAD, NULL, _starpu_hdf5_internal_thread, (void *) fileBase); 
+        STARPU_PTHREAD_CREATE(&HDF5_VAR_THREAD, NULL, _starpu_hdf5_internal_thread, (void *) fileBase);
 }
 
 /* returns the size in BYTES */
@@ -438,7 +438,7 @@ static void starpu_hdf5_send_work(void *base_src, void *obj_src, off_t offset_sr
         struct starpu_hdf5_base * fileBase;
 	if (fileBase_src != NULL)
 		fileBase = fileBase_src;
-	else	
+	else
 		fileBase = fileBase_dst;
 #endif
 
@@ -466,14 +466,14 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
                 free(obj);
                 return NULL;
         }
-	
+
 	hsize_t chunkdim[1] = {STARPU_CHUNK_DIM};
 	hid_t prop = H5Pcreate (H5P_DATASET_CREATE);
 	herr_t status = H5Pset_chunk (prop, 1, chunkdim);
         STARPU_ASSERT_MSG(status >= 0, "Error when setting HDF5 property \n");
 
         /* create a dataset at location name, with data described by the dataspace.
-         * Each element are like char in C (expected one byte) 
+         * Each element are like char in C (expected one byte)
          */
         obj->dataset = H5Dcreate2(fileBase->fileID, name, H5T_NATIVE_CHAR, dataspace, H5P_DEFAULT, prop, H5P_DEFAULT);
 
@@ -490,7 +490,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
 	obj->size = size;
 
         _starpu_hdf5_protect_stop((void *) fileBase);
-        
+
         return obj;
 }
 
@@ -502,7 +502,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
         _starpu_hdf5_protect_start((void *) fileBase);
 
         /* create a dataset at location name, with data described by the dataspace.
-         * Each element are like char in C (expected one byte) 
+         * Each element are like char in C (expected one byte)
          */
         obj->dataset = H5Dopen2(fileBase->fileID, name, H5P_DEFAULT);
 
@@ -516,7 +516,7 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_open(struct starpu_hdf5_base *
 
         obj->path = name;
 	obj->size = size;
-        
+
         return obj;
 }
 
@@ -528,7 +528,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 #ifndef H5_HAVE_THREADSAFE
 	int actual_nb_disk = STARPU_ATOMIC_ADD(&nb_disk_open, 1);
 	if (actual_nb_disk == 1)
-	{	
+	{
 #endif
 		STARPU_PTHREAD_MUTEX_INIT(&HDF5_VAR_MUTEX, NULL);
 #ifndef H5_HAVE_THREADSAFE
@@ -561,14 +561,14 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 
                 /* Truncate it */
                 fileBase->fileID = H5Fcreate((char *)fileBase->path, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-                if (fileBase->fileID < 0) 
+                if (fileBase->fileID < 0)
                 {
-                        free(fileBase); 
+                        free(fileBase);
                         _STARPU_ERROR("Can not create the HDF5 file (%s)", (char *) parameter);
 			return NULL;
                 }
                 fileBase->created = 1;
-        } 
+        }
         else
         {
                 /* Well, open it ! */
@@ -576,7 +576,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 		STARPU_ASSERT(path);
 
                 fileBase->fileID = H5Fopen((char *)parameter, H5F_ACC_RDWR, H5P_DEFAULT);
-                if (fileBase->fileID < 0) 
+                if (fileBase->fileID < 0)
                 {
                         free(fileBase);
 			free(path);
@@ -597,7 +597,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 	}
 #endif
 
-#if H5_VERS_MAJOR > 1 || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 10) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 10 && H5_VERS_RELEASE > 0) 
+#if H5_VERS_MAJOR > 1 || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR > 10) || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR == 10 && H5_VERS_RELEASE > 0)
 	H5Pset_file_space_strategy(fileBase->fileID, H5F_FSPACE_STRATEGY_FSM_AGGR, 0, 0);
 #endif
 
@@ -653,7 +653,7 @@ static void starpu_hdf5_unplug(void *base)
         STARPU_ASSERT_MSG(status >= 0, "Can not unplug this HDF5 disk (%s)\n", fileBase->path);
         if (fileBase->created)
         {
-                unlink(fileBase->path);        
+                unlink(fileBase->path);
         }
         else
         {
@@ -703,7 +703,7 @@ static void starpu_hdf5_free(void *base, void *obj, size_t size STARPU_ATTRIBUTE
         status = H5Dclose(dataObj->dataset);
         STARPU_ASSERT_MSG(status >= 0, "Can not free this HDF5 dataset (%s)\n", dataObj->path);
 
-        /* remove the dataset link in the HDF5 
+        /* remove the dataset link in the HDF5
          * But it doesn't delete the space in the file */
         status = H5Ldelete(fileBase->fileID, dataObj->path, H5P_DEFAULT);
         STARPU_ASSERT_MSG(status >= 0, "Can not delete the link associed to this dataset (%s)\n", dataObj->path);
@@ -774,14 +774,14 @@ static int starpu_hdf5_full_read(void *base, void *obj, void **ptr, size_t *size
         *size = _starpu_get_size_obj(dataObj);
         _starpu_hdf5_protect_stop(base);
 
-        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0); 
+        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 
         starpu_hdf5_send_work(base, obj, 0, NULL, NULL, 0, *ptr, *size, (void*) &finished, FULL_READ);
-        
+
         starpu_hdf5_wait(&finished);
 
         starpu_sem_destroy(&finished);
-        
+
         return 0;
 }
 
@@ -861,10 +861,10 @@ void * starpu_hdf5_async_full_read (void * base, void * obj, void ** ptr, size_t
         *size = _starpu_get_size_obj(dataObj);
         _starpu_hdf5_protect_stop(base);
 
-        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0); 
+        _starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 
         starpu_hdf5_send_work(base, obj, 0, NULL, NULL, 0, *ptr, *size, (void*) finished, FULL_READ);
-        
+
         return finished;
 }
 
