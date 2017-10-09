@@ -638,7 +638,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
 	struct _starpu_data_request_list new_data_requests_pending;
-	struct _starpu_data_request_list empty_list;
 	unsigned taken, kept;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -649,7 +648,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 		return 0;
 #endif
 
-	_starpu_data_request_list_init(&empty_list);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!force)
 	{
