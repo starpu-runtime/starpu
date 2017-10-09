@@ -71,6 +71,7 @@ void _starpu_deinit_data_request_lists(void)
 		_starpu_data_request_prio_list_deinit(&prefetch_requests[i]);
 		_starpu_data_request_prio_list_deinit(&idle_requests[i]);
 		STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_pending_list_mutex[i]);
+		_starpu_data_request_prio_list_deinit(&data_requests_pending[i]);
 		STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_list_mutex[i]);
 	}
 }
@@ -690,7 +691,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
 	struct _starpu_data_request_prio_list new_data_requests_pending;
-	struct _starpu_data_request_prio_list empty_list;
 	unsigned taken, kept;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -701,7 +701,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 		return 0;
 #endif
 
-	_starpu_data_request_prio_list_init(&empty_list);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!force)
 	{
