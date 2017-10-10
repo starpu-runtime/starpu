@@ -177,7 +177,7 @@ static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descri
 static int _starpu_unistd_reopen(struct starpu_unistd_global_obj *obj)
 {
 	int id = open(obj->path, obj->flags);
-	STARPU_ASSERT(id >= 0);
+	STARPU_ASSERT_MSG(id >= 0, "Reopening file %s failed: errno %d", obj->path, errno);
 	return id;
 }
 
