@@ -672,17 +672,17 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* we signal that the request is completed.*/
 
 		free(c);
-
+		
 	}
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(pending_request==0, "Request still pending.");
-
+	
 	if (argc_argv->initialize_mpi)
 	{
 		_STARPU_MPI_DEBUG(3, "Calling MPI_Finalize()\n");
 		MPI_Finalize();
 	}
-
+	
 	starpu_sem_destroy(&callback_sem);
 	free(argc_argv);
 	return NULL;
@@ -704,17 +704,17 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	int rank;
 	int worldsize;
 	int ret;
-
+	
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
-
+	
 	ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(ret));
-
+	
 	/* We generate a "unique" key so that we can make sure that different
 	 * FxT traces come from the same MPI run. */
 	int random_number;
-
+	
 	/* XXX perhaps we don't want to generate a new seed if the application
 	 * specified some reproductible behaviour ? */
 	if (rank == 0)
@@ -722,12 +722,12 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 		srand(time(NULL));
 		random_number = rand();
 	}
-
+	
 	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_error_code(ret));
-
+	
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
-
+	
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
 #endif
 }
@@ -736,18 +736,18 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
         STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
         STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
-
+	
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
-
+	
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
         while (!running)
                 STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
         STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
+	
         return 0;
 }
 
@@ -758,11 +758,11 @@ void _starpu_mpi_progress_shutdown(int *value)
         running = 0;
         STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
         STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
+	
 	starpu_sem_post(&callback_sem);
-
+	
 	starpu_pthread_join(progress_thread, &value);
-
+	
         STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
         STARPU_PTHREAD_COND_DESTROY(&progress_cond);
 }
