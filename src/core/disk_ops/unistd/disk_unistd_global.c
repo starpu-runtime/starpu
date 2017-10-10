@@ -202,6 +202,7 @@ static void _starpu_unistd_fini(struct starpu_unistd_global_obj *obj)
 	STARPU_PTHREAD_MUTEX_DESTROY(&obj->mutex);
 
 	free(obj->path);
+	obj->path = NULL;
 	free(obj);
 }
 
