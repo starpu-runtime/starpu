@@ -69,6 +69,10 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	if (argc_argv->initialize_mpi)
 	{
 		int thread_support;
+#ifdef STARPU_USE_MPI_NMAD
+		/* strat_prio is preferred for StarPU instead of default strat_aggreg */
+		setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
+#endif /* STARPU_USE_MPI_NMAD */
 		_STARPU_DEBUG("Calling MPI_Init_thread\n");
 		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
 		{
