@@ -62,7 +62,7 @@ int _callback_set(int rank, starpu_data_handle_t *data_handles, int count, int r
 			if (data_handles[x])
 			{
 				int owner = starpu_mpi_data_get_rank(data_handles[x]);
-				int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
+				int64_t data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 				STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 				if ((rank == root) && (owner != root))
 				{
@@ -103,7 +103,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		if (data_handles[x])
 		{
 			int owner = starpu_mpi_data_get_rank(data_handles[x]);
-			int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
+			int64_t data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
@@ -138,7 +138,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		if (data_handles[x])
 		{
 			int owner = starpu_mpi_data_get_rank(data_handles[x]);
-			int data_tag = starpu_mpi_data_get_tag(data_handles[x]);
+			int64_t data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{

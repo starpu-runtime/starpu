@@ -105,7 +105,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	if (data && mode & STARPU_R)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int data_tag = starpu_mpi_data_get_tag(data);
+		int64_t data_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -147,7 +147,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	if (mode & STARPU_W)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int data_tag = starpu_mpi_data_get_tag(data);
+		int64_t data_tag = starpu_mpi_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -652,7 +652,7 @@ struct _starpu_mpi_redux_data_args
 {
 	starpu_data_handle_t data_handle;
 	starpu_data_handle_t new_handle;
-	int tag;
+	int64_t data_tag;
 	int node;
 	MPI_Comm comm;
 	struct starpu_task *taskB;
@@ -715,14 +715,15 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 	struct _starpu_mpi_redux_data_args *args = (struct _starpu_mpi_redux_data_args *) callback_arg;
 	starpu_data_register_same(&args->new_handle, args->data_handle);
 
-	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
+	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->data_tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
 }
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
-	int me, rank, tag, nb_nodes;
+	int me, rank, nb_nodes;
+	int64_t tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	tag = starpu_mpi_data_get_tag(data_handle);
@@ -772,7 +773,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				struct _starpu_mpi_redux_data_args *args;
 				_STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
-				args->tag = tag;
+				args->data_tag = tag;
 				args->node = i;
 				args->comm = comm;
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2014, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 	struct _starpu_mpi_early_data_handle *early_data_handle;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
-	_STARPU_MPI_DEBUG(60, "Looking for early_data_handle with comm %ld source %d tag %d\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
+	_STARPU_MPI_DEBUG(60, "Looking for early_data_handle with comm %ld source %d tag %ld\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_data_handle_hashmap, node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
 	{
@@ -94,7 +94,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 			early_data_handle = _starpu_mpi_early_data_handle_list_pop_front(&hashlist->list);
 		}
 	}
-	_STARPU_MPI_DEBUG(60, "Found early_data_handle %p with comm %ld source %d tag %d\n", early_data_handle, (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
+	_STARPU_MPI_DEBUG(60, "Found early_data_handle %p with comm %ld source %d tag %ld\n", early_data_handle, (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 	return early_data_handle;
 }
@@ -102,7 +102,7 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
-	_STARPU_MPI_DEBUG(60, "Trying to add early_data_handle %p with comm %ld source %d tag %d\n", early_data_handle, (long int)early_data_handle->node_tag.comm,
+	_STARPU_MPI_DEBUG(60, "Trying to add early_data_handle %p with comm %ld source %d tag %ld\n", early_data_handle, (long int)early_data_handle->node_tag.comm,
 			  early_data_handle->node_tag.rank, early_data_handle->node_tag.data_tag);
 
 	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
