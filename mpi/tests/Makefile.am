@@ -104,6 +104,7 @@ starpu_mpi_TESTS =				\
 	temporary				\
 	block_interface				\
 	block_interface_pinned			\
+	attr					\
 	cache					\
 	cache_disable				\
 	callback				\
@@ -158,6 +159,7 @@ noinst_PROGRAMS =				\
 	temporary				\
 	block_interface				\
 	block_interface_pinned			\
+	attr					\
 	cache					\
 	cache_disable				\
 	callback				\

@@ -15,6 +15,15 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+
+StarPU 1.2.3 (svn revision xxx)
+==============================================
+
+Small features:
+  * New function starpu_mpi_comm_get_attr() which allows to return the
+    value of the attribute STARPU_MPI_TAG_UB, i.e the upper bound for
+    tag value.
+
 StarPU 1.2.2 (svn revision 21308)
 ==============================================
 
