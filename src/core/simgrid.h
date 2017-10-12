@@ -100,4 +100,16 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 #define _SIMGRID_TIMER_END }
 #endif
 
+/* Experimental functions for OOC stochastic analysis */
+/* disk <-> MAIN_RAM only */
+#if defined(STARPU_SIMGRID) && 0
+void _starpu_simgrid_data_new(size_t size);
+void _starpu_simgrid_data_increase(size_t size);
+void _starpu_simgrid_data_alloc(size_t size);
+void _starpu_simgrid_data_free(size_t size);
+void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_node);
+#else
+#define _starpu_simgrid_data_increase(size) (void)0
+#endif
+
 #endif // __SIMGRID_H__

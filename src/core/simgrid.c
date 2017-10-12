@@ -1155,4 +1155,37 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #endif
 				 );
 }
+
+static size_t used;
+
+void _starpu_simgrid_data_new(size_t size)
+{
+	// Note: this is just declarative
+	//_STARPU_DISP("data new: %zd, now %zd\n", size, used);
+}
+
+void _starpu_simgrid_data_increase(size_t size)
+{
+	used += size;
+	_STARPU_DISP("data increase: %zd, now %zd\n", size, used);
+}
+
+void _starpu_simgrid_data_alloc(size_t size)
+{
+	used += size;
+	_STARPU_DISP("data alloc: %zd, now %zd\n", size, used);
+}
+
+void _starpu_simgrid_data_free(size_t size)
+{
+	used -= size;
+	_STARPU_DISP("data free: %zd, now %zd\n", size, used);
+}
+
+void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_node)
+{
+	_STARPU_DISP("data transfer %zd from %u to %u\n", size, src_node, dst_node);
+}
+
+
 #endif

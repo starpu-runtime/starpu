@@ -29,6 +29,8 @@
 #define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
 #endif
 
+#include <core/simgrid.h>
+
 #define FULLSIZE (5*1024*1024ULL)
 #define INCREASE 0.80
 #ifdef STARPU_QUICK_CHECK
@@ -99,6 +101,8 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	/* Round to page size */
 	interface.size -= interface.size & (65536-1);
 
+	_starpu_simgrid_data_new(interface.size);
+
 	starpu_data_register(handleptr, -1, &interface, &starpu_interface_variable_size_ops);
 }
 
@@ -143,6 +147,8 @@ static starpu_ssize_t allocate_variable_size_on_node(void *data_interface,
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+	if (dst_node == STARPU_MAIN_RAM)
+		_starpu_simgrid_data_alloc(variable_interface->size);
 	STARPU_ASSERT(variable_interface->ptr);
 	return 0;
 }
@@ -152,6 +158,8 @@ static void free_variable_size_on_node(void *data_interface,
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	starpu_free_on_node(node, variable_interface->ptr, variable_interface->size);
+	if (node == STARPU_MAIN_RAM)
+		_starpu_simgrid_data_free(variable_interface->size);
 }
 
 static int variable_size_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
@@ -192,6 +200,9 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	.pack_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_variable_size,
+
+	/* We want to observe actual allocations/deallocations */
+	.dontcache = 1,
 };
 
 
@@ -213,6 +224,8 @@ static void kernel(void *descr[], void *cl_arg)
 	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */
 	starpu_free_on_node_flags(dst_node, old, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	variable_interface->size += increase;
+	if (increase)
+		_starpu_simgrid_data_increase(increase);
 	starpu_sleep(0.010);
 }
 
