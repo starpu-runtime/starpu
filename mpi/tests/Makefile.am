@@ -101,9 +101,10 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 
 if BUILD_TESTS
 
-starpu_mpi_TESTS =				
+starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
+	attr					\
 	cache					\
 	cache_disable				\
 	callback				\
@@ -186,6 +187,7 @@ noinst_PROGRAMS =				\
 	temporary				\
 	block_interface				\
 	block_interface_pinned			\
+	attr					\
 	cache					\
 	cache_disable				\
 	callback				\

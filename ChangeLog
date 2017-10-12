@@ -56,6 +56,9 @@ Small features:
     variables.
   * Add disk to disk copy functions and support asynchronous full read/write
     in disk backends.
+  * New function starpu_mpi_comm_get_attr() which allows to return the
+    value of the attribute STARPU_MPI_TAG_UB, i.e the upper bound for
+    tag value.
 
 Changes:
   * Vastly improve simgrid simulation time.

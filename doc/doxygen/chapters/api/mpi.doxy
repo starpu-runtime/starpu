@@ -245,6 +245,18 @@ It is important that the function is called before any communication can take pl
 \ingroup API_MPI_Support
 Unregister the MPI datatype functions stored for the interface of the given handle.
 
+\def STARPU_MPI_TAG_UB
+\ingroup API_MPI_Support
+When given to the function starpu_mpi_comm_get_attr(), retrieve the
+value for the upper bound for tag value.
+
+\fn int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
+\ingroup API_MPI_Support
+Retrieve an attribute value by key, similarly to the MPI function \c MPI_comm_get_attr().
+If an attribute is attached on \p comm to \p keyval, then the call
+returns \p flag equal to \c 1, and the attribute value in \p
+attribute_val. Otherwise, \p flag is set to \0.
+
 @name Communication Cache
 \ingroup API_MPI_Support
 

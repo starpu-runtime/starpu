@@ -138,6 +138,9 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle);
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister();
 
+#define STARPU_MPI_TAG_UB 1
+int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
+
 #ifdef __cplusplus
 }
 #endif
