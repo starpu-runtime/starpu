@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <limits.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
