@@ -42,7 +42,7 @@
 #endif
 
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
-							int dest, int data_tag, MPI_Comm comm,
+							int dest, int64_t data_tag, MPI_Comm comm,
 							unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 							int sequential_consistency)
 {
@@ -55,7 +55,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 					      sequential_consistency, 0, 0);
 }
 
-int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, int prio, MPI_Comm comm)
+int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int64_t data_tag, int prio, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_isend needs a valid starpu_mpi_req");
@@ -72,12 +72,12 @@ int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *publ
 	return 0;
 }
 
-int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
+int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int64_t data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_isend_prio(data_handle, public_req, dest, data_tag, 0, comm);
 }
 
-int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, int64_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	_starpu_mpi_isend_common(data_handle, dest, data_tag, comm, 1, 0, prio, callback, arg, 1);
@@ -85,12 +85,12 @@ int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, i
 	return 0;
 }
 
-int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, int64_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	return starpu_mpi_isend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
 }
 
-int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm)
+int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int64_t data_tag, int prio, MPI_Comm comm)
 {
 	starpu_mpi_req req;
 	MPI_Status status;
@@ -105,12 +105,12 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, int data_ta
 	return 0;
 }
 
-int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm)
+int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int64_t data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_send_prio(data_handle, dest, data_tag, 0, comm);
 }
 
-int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, int prio, MPI_Comm comm)
+int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int64_t data_tag, int prio, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_issend needs a valid starpu_mpi_req");
@@ -125,12 +125,12 @@ int starpu_mpi_issend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *pub
 	return 0;
 }
 
-int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
+int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int64_t data_tag, MPI_Comm comm)
 {
 	return starpu_mpi_issend_prio(data_handle, public_req, dest, data_tag, 0, comm);
 }
 
-int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, int64_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -140,17 +140,17 @@ int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, 
 	return 0;
 }
 
-int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, int64_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	return starpu_mpi_issend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
 }
 
-struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
+struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
 {
 	return _starpu_mpi_isend_irecv_common(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_size_func, STARPU_W, sequential_consistency, is_internal_req, count);
 }
 
-int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int data_tag, MPI_Comm comm)
+int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int64_t data_tag, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
@@ -167,7 +167,7 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	return 0;
 }
 
-int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -176,7 +176,7 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 	return 0;
 }
 
-int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
+int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -186,7 +186,7 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 	return 0;
 }
 
-int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, MPI_Status *status)
+int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, MPI_Status *status)
 {
 	starpu_mpi_req req;
 
@@ -223,7 +223,7 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 	free(data_handle->mpi_data);
 }
 
-void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm)
+void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int64_t data_tag, int rank, MPI_Comm comm)
 {
 	struct _starpu_mpi_data *mpi_data;
 	if (data_handle->mpi_data)
@@ -245,9 +245,9 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);
 	}
 
-	if (tag != -1)
+	if (data_tag != -1)
 	{
-		mpi_data->node_tag.data_tag = tag;
+		mpi_data->node_tag.data_tag = data_tag;
 	}
 	if (rank != -1)
 	{
@@ -265,9 +265,9 @@ void starpu_mpi_data_set_rank_comm(starpu_data_handle_t handle, int rank, MPI_Co
 	starpu_mpi_data_register_comm(handle, -1, rank, comm);
 }
 
-void starpu_mpi_data_set_tag(starpu_data_handle_t handle, int tag)
+void starpu_mpi_data_set_tag(starpu_data_handle_t handle, int64_t data_tag)
 {
-	starpu_mpi_data_register_comm(handle, tag, -1, MPI_COMM_WORLD);
+	starpu_mpi_data_register_comm(handle, data_tag, -1, MPI_COMM_WORLD);
 }
 
 int starpu_mpi_data_get_rank(starpu_data_handle_t data)
@@ -276,7 +276,7 @@ int starpu_mpi_data_get_rank(starpu_data_handle_t data)
 	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.rank;
 }
 
-int starpu_mpi_data_get_tag(starpu_data_handle_t data)
+int64_t starpu_mpi_data_get_tag(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
 	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.data_tag;
@@ -405,6 +405,21 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	{
 		task = _starpu_task_wait_for_all_and_return_nb_waited_tasks();
 		mpi = _starpu_mpi_barrier(comm);
+	}
+	return 0;
+}
+
+int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag)
+{
+	(void) comm;
+	if (keyval == STARPU_MPI_TAG_UB)
+	{
+		*flag = 1;
+		*(int64_t *)attribute_val = INT64_MAX;
+	}
+	else
+	{
+		*flag = 0;
 	}
 	return 0;
 }

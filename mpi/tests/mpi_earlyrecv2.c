@@ -142,6 +142,10 @@ int exchange_variable(int rank, int detached)
 
 void check_void(starpu_data_handle_t handle, int i, int rank, int *error)
 {
+	(void)handle;
+	(void)i;
+	(void)rank;
+	(void)error;
 }
 
 int exchange_void(int rank, int detached)
@@ -213,7 +217,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,30 +14,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_TAG_H__
-#define __STARPU_MPI_TAG_H__
+#include <starpu_mpi.h>
+#include "helper.h"
 
-#include <starpu.h>
-#include <stdlib.h>
-#include <mpi.h>
-
-#ifdef STARPU_USE_MPI_MPI
-
-#ifdef __cplusplus
-extern "C"
+int main(int argc, char **argv)
 {
-#endif
+	int flag;
+	int64_t value;
 
-void _starpu_mpi_tag_init(void);
-void _starpu_mpi_tag_shutdown(void);
+	(void) argc;
+	(void) argv;
 
-void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int64_t data_tag);
-int _starpu_mpi_tag_data_release(starpu_data_handle_t handle);
-starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int64_t data_tag);
+	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, 42, NULL, &flag);
+	STARPU_ASSERT_MSG(flag == 0, "starpu_mpi_comm_get_attr was called with invalid argument\n");
 
-#ifdef __cplusplus
+	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, STARPU_MPI_TAG_UB, &value, &flag);
+	STARPU_ASSERT_MSG(flag == 1, "starpu_mpi_comm_get_attr was called with valid argument\n");
+
+	FPRINTF(stderr, "Value: %ld\n", value);
+
+	return 0;
 }
-#endif
-
-#endif // STARPU_USE_MPI_MPI
-#endif // __STARPU_MPI_TAG_H__

@@ -42,6 +42,11 @@ EXTRA_DIST =					\
 	microbenchs/tasks_size_overhead_sched.sh	\
 	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
+	microbenchs/parallel_dependent_homogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_heterogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
+	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_homogeneous_tasks.sh	\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
@@ -62,6 +67,8 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
 	microbenchs/microbench.sh \
+	model-checking/prio_list.sh \
+	model-checking/barrier.sh \
 	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\

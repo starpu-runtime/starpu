@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2014, 2016  CNRS
+ * Copyright (C) 2010, 2012, 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 	free(tagptr);
 }
 
-int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dest, int data_tag, int prio, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, int dest, int64_t data_tag, int prio, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr;
 	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
@@ -35,13 +35,13 @@ int starpu_mpi_isend_detached_unlock_tag_prio(starpu_data_handle_t data_handle, 
 
 	return starpu_mpi_isend_detached_prio(data_handle, dest, data_tag, prio, comm, starpu_mpi_unlock_tag_callback, tagptr);
 }
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int64_t data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	return starpu_mpi_isend_detached_unlock_tag_prio(data_handle, dest, data_tag, 0, comm, tag);
 }
 
-
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr;
 	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
@@ -69,9 +69,7 @@ static void starpu_mpi_array_unlock_callback(void *_arg)
 	}
 }
 
-int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *dest, int *data_tag, int *prio,
-		MPI_Comm *comm, starpu_tag_t tag)
+int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int64_t *data_tag, int *prio, MPI_Comm *comm, starpu_tag_t tag)
 {
 	if (!array_size)
 		return 0;
@@ -92,15 +90,13 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size,
 
 	return 0;
 }
-int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *dest, int *data_tag,
-		MPI_Comm *comm, starpu_tag_t tag)
+
+int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int64_t *data_tag, MPI_Comm *comm, starpu_tag_t tag)
 {
 	return starpu_mpi_isend_array_detached_unlock_tag_prio(array_size, data_handle, dest, data_tag, NULL, comm, tag);
 }
 
-
-int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *data_tag, MPI_Comm *comm, starpu_tag_t tag)
+int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int64_t *data_tag, MPI_Comm *comm, starpu_tag_t tag)
 {
 	if (!array_size)
 		return 0;

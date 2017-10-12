@@ -2071,6 +2071,14 @@ unsigned starpu_sched_ctx_get_priority(int workerid, unsigned sched_ctx_id)
 
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 {
+	/* The worker being checked must have its status set to sleeping during
+	 * the check, to allow for an other worker being checked concurrently
+	 * to make the safe, pessimistic assumption that it is the last worker
+	 * awake. In the worst case, both workers will follow this pessimistic
+	 * path and perform one more scheduling loop */
+	STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
+	STARPU_ASSERT(_starpu_config.workers[worker->workerid].status == STATUS_SLEEPING);
+	STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
 	struct _starpu_sched_ctx_list_iterator list_it;
 
 	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
@@ -2087,10 +2095,23 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 		while(workers->has_next(workers, &it))
 		{
 			int workerid = workers->get_next(workers, &it);
-			if(workerid != worker->workerid && _starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+			if(workerid != worker->workerid)
 			{
-				last_worker_awake = 0;
-				break;
+				/* The worker status is intendedly checked
+				 * without taking locks. If multiple workers
+				 * are concurrently assessing whether they are
+				 * the last worker awake, they will follow the
+				 * pessimistic path and assume that they are
+				 * the last worker awake */
+				STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[workerid].status);
+				const int cond = _starpu_config.workers[workerid].status != STATUS_SLEEPING;
+				STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[workerid].status);
+
+				if (cond)
+				{
+					last_worker_awake = 0;
+					break;
+				}
 			}
 		}
 		if(last_worker_awake)

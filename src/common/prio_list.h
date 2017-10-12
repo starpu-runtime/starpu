@@ -35,6 +35,9 @@
  * * Initialize a new priority list
  * void FOO_prio_list_init(struct FOO_prio_list*)
  *
+ * * Free an empty priority list
+ * void FOO_prio_list_deinit(struct FOO_prio_list*)
+ *
  * * Add a new cell at the end of the list of the priority of the cell (O(log2 p))
  * void FOO_prio_list_push_back(struct FOO_prio_list*, struct FOO*)
  *

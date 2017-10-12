@@ -3311,10 +3311,6 @@ LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAG
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
-if test x$enable_perf_debug = xyes; then
-	# For gperf to work, we need to link statically our tests
-	LIBSTARPU_LINK=".libs/libstarpu-$STARPU_EFFECTIVE_VERSION.a $LIBSTARPU_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_OPENCL_LDFLAGS"
-fi
 AC_SUBST([LIBSTARPU_LINK])
 
 if test "x$enable_shared" = xno; then

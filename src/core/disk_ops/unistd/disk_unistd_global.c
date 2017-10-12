@@ -177,7 +177,7 @@ static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descri
 static int _starpu_unistd_reopen(struct starpu_unistd_global_obj *obj)
 {
 	int id = open(obj->path, obj->flags);
-	STARPU_ASSERT(id >= 0);
+	STARPU_ASSERT_MSG(id >= 0, "Reopening file %s failed: errno %d", obj->path, errno);
 	return id;
 }
 
@@ -202,6 +202,7 @@ static void _starpu_unistd_fini(struct starpu_unistd_global_obj *obj)
 	STARPU_PTHREAD_MUTEX_DESTROY(&obj->mutex);
 
 	free(obj->path);
+	obj->path = NULL;
 	free(obj);
 }
 
@@ -608,12 +609,12 @@ static void * starpu_unistd_internal_thread(void * arg)
 			if (starpu_unistd_copy_failed == INIT && ret == -1 && errno == ENOSYS)
 			{
 				starpu_unistd_copy_failed = FAILED;
-			} 
+			}
 			else
 			{
 #endif
 				STARPU_ASSERT_MSG(ret >= 0, "Copy_file_range failed (errno %d)", errno);
-				STARPU_ASSERT_MSG((size_t) ret == work->len, "Copy_file_range failed (value %zd instead of %zd)", ret, work->len);
+				STARPU_ASSERT_MSG((size_t) ret == work->len, "Copy_file_range failed (value %ld instead of %ld)", (long)ret, (long)work->len);
 #if !defined(HAVE_COPY_FILE_RANGE) && defined( __NR_copy_file_range)
 				starpu_unistd_copy_failed = CHECKED;
 			}
@@ -1064,7 +1065,7 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 		starpu_unistd_global_wait_request((void *) event);
 		/* add token when StarPU will test/wait the request */
 		starpu_sem_post(&work->finished);
-	
+
 		STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
 		/* here copy_file_range does not work */
 		if (starpu_unistd_copy_failed == FAILED)
