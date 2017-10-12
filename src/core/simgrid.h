@@ -109,7 +109,11 @@ void _starpu_simgrid_data_alloc(size_t size);
 void _starpu_simgrid_data_free(size_t size);
 void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_node);
 #else
+#define _starpu_simgrid_data_new(size) (void)0
 #define _starpu_simgrid_data_increase(size) (void)0
+#define _starpu_simgrid_data_alloc(size) (void)0
+#define _starpu_simgrid_data_free(size) (void)0
+#define _starpu_simgrid_data_transfer(size, src_node, dst_node) (void)0
 #endif
 
 #endif // __SIMGRID_H__
