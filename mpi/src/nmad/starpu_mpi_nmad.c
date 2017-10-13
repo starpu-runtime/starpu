@@ -773,8 +773,11 @@ int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int
 	(void) comm;
 	if (keyval == STARPU_MPI_TAG_UB)
 	{
+		const int64_t starpu_tag_max = INT64_MAX;
+		const nm_tag_t nm_tag_max = NM_TAG_MAX;
+		/* manage case where nmad max tag causes overflow if represented as starpu tag */
+		*(int64_t *)attribute_val = (nm_tag_max > starpu_tag_max) ? starpu_tag_max : nm_tag_max;
 		*flag = 1;
-		*(uint64_t *)attribute_val = NM_TAG_MAX;
 	}
 	else
 	{
