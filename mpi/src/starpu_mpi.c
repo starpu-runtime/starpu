@@ -408,18 +408,3 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	}
 	return 0;
 }
-
-int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag)
-{
-	(void) comm;
-	if (keyval == STARPU_MPI_TAG_UB)
-	{
-		*flag = 1;
-		*(int64_t *)attribute_val = INT64_MAX;
-	}
-	else
-	{
-		*flag = 0;
-	}
-	return 0;
-}
