@@ -559,6 +559,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			}
 			else if (ret == -EAGAIN)
 			{
+				STARPU_ASSERT(req);
 				req->async_channel.event.disk_event.ptr = ptr;
 				req->async_channel.event.disk_event.node = src_node;
 				req->async_channel.event.disk_event.size = size;
@@ -593,6 +594,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			}
 			else if (ret == -EAGAIN)
 			{
+				STARPU_ASSERT(req);
 				req->async_channel.event.disk_event.ptr = ptr;
 				req->async_channel.event.disk_event.node = dst_node;
 				req->async_channel.event.disk_event.size = size;
