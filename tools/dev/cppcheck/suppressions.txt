@@ -42,8 +42,8 @@ redundantAssignment:tests/main/driver_api/run_driver.c
 unreadVariable:tests/datawizard/variable_size.c
 
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
-unreadVariable:mpi/src/starpu_mpi.c:996
-unusedVariable:mpi/src/starpu_mpi.c:997
+unreadVariable:mpi/src/starpu_mpi.c:971
+unusedVariable:mpi/src/starpu_mpi.c:972
 redundantAssignment:src/core/workers.c
 
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74

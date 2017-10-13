@@ -87,7 +87,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int64_t data_tag
 	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(data_tag)),
 			  "There is already a data handle %p registered with the tag %ld\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
 
-	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %ld in hashtable\n", handle, data_tag);
+	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64"d in hashtable\n", handle, data_tag);
 
 	entry->handle = handle;
 	entry->data_tag = data_tag;
@@ -101,7 +101,7 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 {
 	int64_t data_tag = starpu_mpi_data_get_tag(handle);
 
-	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %ld from hashtable\n", handle, data_tag);
+	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %"PRIi64"d from hashtable\n", handle, data_tag);
 
 	if (data_tag != -1)
 	{
