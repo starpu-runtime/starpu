@@ -96,6 +96,12 @@
 #endif
 
 #ifdef STARPU_EXTRA_VERBOSE
+#  define _STARPU_EXTRA_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
+#else
+#  define _STARPU_EXTRA_DEBUG(fmt, ...) do { } while (0)
+#endif
+
+#ifdef STARPU_EXTRA_VERBOSE
 #  define _STARPU_LOG_IN()             do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] -->\n", starpu_pthread_self(), __starpu_func__,__FILE__,  __LINE__); }} while(0)
 #  define _STARPU_LOG_OUT()            do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <--\n", starpu_pthread_self(), __starpu_func__, __FILE__,  __LINE__); }} while(0)
 #  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <-- (%s)\n", starpu_pthread_self(), __starpu_func__, __FILE__, __LINE__, outtag); }} while(0)
