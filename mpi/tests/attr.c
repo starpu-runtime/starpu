@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, STARPU_MPI_TAG_UB, &value, &flag);
 	STARPU_ASSERT_MSG(flag == 1, "starpu_mpi_comm_get_attr was called with valid argument\n");
 
-	FPRINTF(stderr, "Value: %ld\n", value);
+	FPRINTF(stderr, "Value: %"PRIi64"d\n", value);
 
 	return 0;
 }
