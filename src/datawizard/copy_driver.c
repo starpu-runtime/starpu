@@ -156,6 +156,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	STARPU_ASSERT(dst_replicate->allocated);
 
 #ifdef STARPU_SIMGRID
+	if (src_node == STARPU_MAIN_RAM || dst_node == STARPU_MAIN_RAM)
+		_starpu_simgrid_data_transfer(handle->ops->get_size(handle), src_node, dst_node);
+
 	return _starpu_simgrid_transfer(handle->ops->get_size(handle), src_node, dst_node, req);
 #else /* !SIMGRID */
 
@@ -559,6 +562,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			}
 			else if (ret == -EAGAIN)
 			{
+				STARPU_ASSERT(req);
 				req->async_channel.event.disk_event.ptr = ptr;
 				req->async_channel.event.disk_event.node = src_node;
 				req->async_channel.event.disk_event.size = size;
@@ -593,6 +597,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			}
 			else if (ret == -EAGAIN)
 			{
+				STARPU_ASSERT(req);
 				req->async_channel.event.disk_event.ptr = ptr;
 				req->async_channel.event.disk_event.node = dst_node;
 				req->async_channel.event.disk_event.size = size;

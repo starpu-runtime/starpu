@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013, 2017  INRIA
  * Copyright (C) 2013  Simon Archipoff
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 	int can_execute = 0;
 	starpu_task_bundle_t bundle = task->bundle;
 	double len = DBL_MAX;
-	
+
 
 	int workerid;
 	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
@@ -67,7 +67,6 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 				{
 					*length = d;
 					return can_execute;
-						
 				}
 				if(_STARPU_IS_ZERO(d))
 				{
@@ -85,7 +84,7 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 	}
 
 	if(len == DBL_MAX) /* we dont have perf model */
-		len = 0.0; 
+		len = 0.0;
 	if(length)
 		*length = len;
 	return can_execute;
@@ -147,7 +146,7 @@ double starpu_sched_component_transfer_length(struct starpu_sched_component * co
 }
 
 /* This function can be called by components when they think that a prefetching request can be submitted.
- * For example, it is currently used by the MCT component to begin the prefetching on accelerators 
+ * For example, it is currently used by the MCT component to begin the prefetching on accelerators
  * on which it pushed tasks as soon as possible.
  */
 void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * component, struct starpu_task * task)
@@ -163,7 +162,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 }
 
 /* remove all child
- * for all child of component, if child->parents[x] == component, set child->parents[x] to null 
+ * for all child of component, if child->parents[x] == component, set child->parents[x] to null
  * call component->deinit_data
  */
 void starpu_sched_component_destroy(struct starpu_sched_component *component)
@@ -234,14 +233,14 @@ void set_properties(struct starpu_sched_component * component)
 	int is_all_same_component = 1;
 	for(;
 	    worker != -1;
-	    worker = starpu_bitmap_next(component->workers_in_ctx, worker))		
+	    worker = starpu_bitmap_next(component->workers_in_ctx, worker))
 	{
 		if(first_worker != _starpu_get_worker_struct(worker)->worker_mask)
 			is_homogeneous = 0;
 		if(first_memory_node != _starpu_get_worker_struct(worker)->memory_node)
 			is_all_same_component = 0;
 	}
-	
+
 
 	if(is_homogeneous)
 		component->properties |= STARPU_SCHED_COMPONENT_HOMOGENEOUS;
@@ -337,7 +336,7 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	int ret_val = starpu_sched_component_push_task(NULL, tree->root,task);
-	
+
 	return ret_val;
 }
 
@@ -369,10 +368,10 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 
 /* Pump mechanic to get the task flow rolling. Takes tasks from component and send them to the child.
    To be used by components with only one child */
-struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success) 
+struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success)
 {
 	int ret = 0;
-	
+
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 	struct starpu_task * task;
@@ -382,17 +381,17 @@ struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_c
 		task = starpu_sched_component_pull_task(component,component);
 		if (!task)
 			break;
-		ret = starpu_sched_component_push_task(component,child,task);	
+		ret = starpu_sched_component_push_task(component,child,task);
 		if (ret)
 			break;
-		if(success) 
-			* success = 1; 
+		if(success)
+			* success = 1;
 	}
 	if(task && ret)
 		return task;
 
 	return NULL;
-	
+
 }
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -580,7 +579,8 @@ static int starpu_sched_component_can_pull(struct starpu_sched_component * compo
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
 	unsigned i;
-	for(i = 0; i < component->nchildren; i++) {
+	for(i = 0; i < component->nchildren; i++)
+	{
 		if (component->children[i]->can_pull(component->children[i]))
 			return 1;
 	}
@@ -596,7 +596,7 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 {
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
-	
+
 	unsigned i;
 	int ret = 0;
 	for(i=0; i < component->nparents; i++)

@@ -16,7 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 dirname=$(dirname $0)
-cd $dirname/../../
+cd $dirname/../../../
 
 DIRS="src tools mpi/src"
 #sc_hypervisor/src"

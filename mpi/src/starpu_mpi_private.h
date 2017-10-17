@@ -57,7 +57,7 @@ extern int _starpu_debug_rank;
 char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm_debug;
 
-#ifdef STARPU_VERBOSE
+#ifdef STARPU_MPI_VERBOSE
 extern int _starpu_debug_level_min;
 extern int _starpu_debug_level_max;
 void _starpu_mpi_set_debug_level_min(int level);
@@ -99,7 +99,7 @@ int _starpu_debug_rank;
 #define _STARPU_MPI_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_MPI_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
 #define _STARPU_MPI_REALLOC(ptr, size) do { void *_new_ptr = realloc(ptr, size); STARPU_MPI_ASSERT_MSG(_new_ptr != NULL, "Cannot reallocate %ld bytes\n", (long) size); ptr = _new_ptr; } while (0)
 
-#ifdef STARPU_VERBOSE
+#ifdef STARPU_MPI_VERBOSE
 #  define _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, node, tag, utag, comm, way) \
 	do								\
 	{							\
@@ -143,7 +143,7 @@ int _starpu_debug_rank;
                                              fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
                                              fflush(stderr); } while(0);
 
-#ifdef xSTARPU_VERBOSE
+#ifdef STARPU_MPI_EXTRA_VERBOSE
 #  define _STARPU_MPI_LOG_IN()             do { if (!_starpu_silent) { \
                                                if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__); \

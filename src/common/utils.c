@@ -305,7 +305,8 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 		return NULL;
 	}
 	retpath = _starpu_mktemp(path, flags, fd);
-	if (!retpath) {
+	if (!retpath)
+	{
 		/* That failed, drop our directories */
 		_starpu_rmdir_many(path, depth);
 	}

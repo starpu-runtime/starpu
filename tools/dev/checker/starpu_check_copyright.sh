@@ -17,13 +17,18 @@
 
 REP=${1:-.}
 
-for f in $(find $REP -not -path "*svn*" -not -path "*build*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore"  -not -name "*.doxy"  -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -type f)
-do
-#    copyright=$(grep "StarPU is free software" $f 2>/dev/null)
-#    if test -z "$copyright"
-#    then
-#	echo "File $f does not include a proper copyright"
-#    fi
+find $REP -not -path "*svn*" -not -path "*build*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore"  -not -name "*.doxy"  -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
 
+for f in $(cat /tmp/list_$$)
+do
+    copyright=$(grep "StarPU is free software" $f 2>/dev/null)
+    if test -z "$copyright"
+    then
+	echo "File $f does not include a proper copyright"
+    fi
+done
+
+for f in $(cat /tmp/list_$$)
+do
     svn log $f | grep '|' | awk -F'|' '{print $2}' | sort | uniq
 done

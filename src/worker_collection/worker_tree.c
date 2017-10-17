@@ -186,7 +186,8 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 	int nworkers;
 	int w;
 
-	if (it->value) {
+	if (it->value)
+	{
 		struct starpu_tree *node = it->value;
 		/* Are there workers left to be processed in the current node? */
 		nworkers = starpu_bindid_get_workerids(node->id, &workerids);

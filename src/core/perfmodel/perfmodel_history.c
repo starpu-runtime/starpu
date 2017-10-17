@@ -1357,8 +1357,10 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 	struct _starpu_perfmodel *node;
 	for (node  = _starpu_perfmodel_list_begin(&registered_models);
 	     node != _starpu_perfmodel_list_end(&registered_models);
-	     node  = _starpu_perfmodel_list_next(node)) {
-		if (node->model == model) {
+	     node  = _starpu_perfmodel_list_next(node))
+	{
+		if (node->model == model)
+		{
 			_starpu_perfmodel_list_erase(&registered_models, node);
 			_starpu_perfmodel_delete(node);
 			break;

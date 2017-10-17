@@ -618,7 +618,8 @@ static int prefixTOnodeid (const char *prefix)
 	//if we are a single-node trace, prefix is empty, so return 0
 	if (strcmp(prefix, "")==0) return 0;
 
-	char *str = malloc(sizeof(char)*strlen(prefix));
+	char *str;
+	_STARPU_MALLOC(str, sizeof(char)*strlen(prefix));
 	strncpy (str, prefix, strlen(prefix));
 	str[strlen(prefix)-1] = '\0';
 	unsigned long nodeid = atoi(str);

@@ -1248,7 +1248,8 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task)
 
 static starpu_pthread_t watchdog_thread;
 
-static int sleep_some(float timeout) {
+static int sleep_some(float timeout)
+{
 	/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
 	/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
 	float t;

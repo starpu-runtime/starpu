@@ -1156,6 +1156,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 				 );
 }
 
+#if 0
 static size_t used;
 
 void _starpu_simgrid_data_new(size_t size)
@@ -1186,6 +1187,7 @@ void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_
 {
 	_STARPU_DISP("data transfer %zd from %u to %u\n", size, src_node, dst_node);
 }
+#endif
 
 
 #endif
