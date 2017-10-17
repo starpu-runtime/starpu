@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	/* Cholesky-like accesses */
-	for (i = 0; i < 100; i++)
+	for (i = 0; i < N; i++)
 		for (x = i; x < N; x++)
 			for (y = x; y < N; y++)
 				starpu_task_insert(&cl, STARPU_RW, handles[x][y], STARPU_PRIORITY, (2*N-x-y), 0);
