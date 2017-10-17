@@ -207,7 +207,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
 
-	_STARPU_MPI_DEBUG(3, "new req %p srcdst %d tag %ld and type %s %d\n", req, req->node_tag.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->is_internal_req);
+	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64"d and type %s %d\n", req, req->node_tag.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->is_internal_req);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
@@ -233,7 +233,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				_STARPU_MPI_MALLOC(req->ptr, req->count);
 			}
 
-			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
+			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 					  req->datatype_name, (int)req->count, req->registered_datatype);
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
@@ -265,7 +265,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req_mutex));
 				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
-				_STARPU_MPI_DEBUG(3, "The RECV request %p with tag %ld has already been received, copying previously received data into handle's pointer..\n", req, req->node_tag.data_tag);
+				_STARPU_MPI_DEBUG(3, "The RECV request %p with tag %"PRIi64"d has already been received, copying previously received data into handle's pointer..\n", req, req->node_tag.data_tag);
 				STARPU_ASSERT(req->data_handle != early_data_handle->handle);
 
 				req->internal_req = early_data_handle->req;
@@ -287,7 +287,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			else
 			{
 				struct _starpu_mpi_req *sync_req = _starpu_mpi_sync_data_find(req->node_tag.data_tag, req->node_tag.rank, req->node_tag.comm);
-				_STARPU_MPI_DEBUG(3, "----------> Looking for sync data for tag %ld and src %d = %p\n", req->node_tag.data_tag, req->node_tag.rank, sync_req);
+				_STARPU_MPI_DEBUG(3, "----------> Looking for sync data for tag %"PRIi64"d and src %d = %p\n", req->node_tag.data_tag, req->node_tag.rank, sync_req);
 				if (sync_req)
 				{
 					req->sync = 1;
@@ -309,7 +309,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				}
 				else
 				{
-					_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %ld) into the request hashmap\n", req, req->node_tag.rank, req->node_tag.data_tag);
+					_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %"PRIi64"d) into the request hashmap\n", req, req->node_tag.rank, req->node_tag.data_tag);
 					_starpu_mpi_early_request_enqueue(req);
 				}
 			}
@@ -322,7 +322,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 		else
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
 		_STARPU_MPI_INC_READY_REQUESTS(+1);
-		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
+		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 				  req->datatype_name, (int)req->count, req->registered_datatype);
 	}
@@ -452,7 +452,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(30, "post MPI isend request %p type %s tag %ld src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
+	_STARPU_MPI_DEBUG(0, "post MPI isend request %p type %s tag %"PRIi64"d src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
 
 	_starpu_mpi_comm_amounts_inc(req->node_tag.comm, req->node_tag.rank, req->datatype, req->count);
 
@@ -669,7 +669,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(20, "post MPI irecv request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+	_STARPU_MPI_DEBUG(0, "post MPI irecv request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -855,7 +855,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
-	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
+	_STARPU_MPI_DEBUG(0, "Test request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 			  req->datatype_name, (int)req->count, req->registered_datatype);
 
@@ -1051,7 +1051,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d internal_req %p\n",
+	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d internal_req %p\n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 			  req->datatype_name, (int)req->count, req->registered_datatype, req->internal_req);
 
@@ -1216,7 +1216,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		_STARPU_MPI_TRACE_TEST_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
-		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %ld - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
+		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %"PRIi64"d - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
 #ifdef STARPU_SIMGRID
 		req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, &flag);
 #else
@@ -1300,7 +1300,7 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 	STARPU_MPI_ASSERT_MSG(req, "Invalid request");
 
 	/* submit the request to MPI */
-	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
+	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %"PRIi64"d src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle,
 			  req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 	req->func(req);
@@ -1310,8 +1310,8 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope, MPI_Status status, MPI_Comm comm)
 {
-	_STARPU_MPI_DEBUG(20, "Request with tag %ld and source %d not found, creating a early_data_handle to receive incoming data..\n", envelope->data_tag, status.MPI_SOURCE);
-	_STARPU_MPI_DEBUG(20, "Request sync %d\n", envelope->sync);
+	_STARPU_MPI_DEBUG(20, "Request with tag %"PRIi64"d and source %d not found, creating a early_data_handle to receive incoming data, request sync %d\n",
+			  envelope->data_tag, status.MPI_SOURCE, envelope->sync);
 
 	struct _starpu_mpi_early_data_handle* early_data_handle = _starpu_mpi_early_data_create(envelope, status.MPI_SOURCE, comm);
 	_starpu_mpi_early_data_add(early_data_handle);
@@ -1340,7 +1340,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
-	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %ld from comm %ld src %d ..\n",
+	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %"PRIi64"d from comm %ld src %d ..\n",
 			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
@@ -1545,15 +1545,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				if (envelope->mode == _STARPU_MPI_ENVELOPE_SYNC_READY)
 				{
 					struct _starpu_mpi_req *_sync_req = _starpu_mpi_sync_data_find(envelope->data_tag, envelope_status.MPI_SOURCE, envelope_comm);
-					_STARPU_MPI_DEBUG(20, "Sending data with tag %ld to node %d\n", _sync_req->node_tag.data_tag, envelope_status.MPI_SOURCE);
-					STARPU_MPI_ASSERT_MSG(envelope->data_tag == _sync_req->node_tag.data_tag, "Tag mismatch (envelope %ld != req %ld)\n", envelope->data_tag, _sync_req->node_tag.data_tag);
+					_STARPU_MPI_DEBUG(20, "Sending data with tag %"PRIi64"d to node %d\n", _sync_req->node_tag.data_tag, envelope_status.MPI_SOURCE);
+					STARPU_MPI_ASSERT_MSG(envelope->data_tag == _sync_req->node_tag.data_tag, "Tag mismatch (envelope %"PRIi64"d != req %"PRIi64"d)\n", envelope->data_tag, _sync_req->node_tag.data_tag);
 					STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 					_starpu_mpi_isend_data_func(_sync_req);
 					STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 				}
 				else
 				{
-					_STARPU_MPI_DEBUG(3, "Searching for application request with tag %ld and source %d (size %ld)\n", envelope->data_tag, envelope_status.MPI_SOURCE, envelope->size);
+					_STARPU_MPI_DEBUG(3, "Searching for application request with tag %"PRIi64"d and source %d (size %ld)\n", envelope->data_tag, envelope_status.MPI_SOURCE, envelope->size);
 
 					struct _starpu_mpi_req *early_request = _starpu_mpi_early_request_dequeue(envelope->data_tag, envelope_status.MPI_SOURCE, envelope_comm);
 
@@ -1566,7 +1566,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					{
 						if (envelope->sync)
 						{
-							_STARPU_MPI_DEBUG(2000, "-------------------------> adding request for tag %ld\n", envelope->data_tag);
+							_STARPU_MPI_DEBUG(2000, "-------------------------> adding request for tag %"PRIi64"d\n", envelope->data_tag);
 							struct _starpu_mpi_req *new_req;
 #ifdef STARPU_DEVEL
 #warning creating a request is not really useful.
@@ -1600,7 +1600,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					 * _starpu_mpi_handle_ready_request. */
 					else
 					{
-						_STARPU_MPI_DEBUG(2000, "A matching application request has been found for the incoming data with tag %ld\n", envelope->data_tag);
+						_STARPU_MPI_DEBUG(2000, "A matching application request has been found for the incoming data with tag %"PRIi64"d\n", envelope->data_tag);
 						_STARPU_MPI_DEBUG(2000, "Request sync %d\n", envelope->sync);
 
 						early_request->sync = envelope->sync;
@@ -1675,7 +1675,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	if (argc_argv->initialize_mpi)
 	{
-		_STARPU_MPI_DEBUG(3, "Calling MPI_Finalize()\n");
+		_STARPU_MPI_DEBUG(0, "Calling MPI_Finalize()\n");
 		MPI_Finalize();
 	}
 
