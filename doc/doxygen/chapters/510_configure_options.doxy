@@ -326,6 +326,19 @@ used by StarPU data structures.
 
 <dl>
 
+<dt>--enable-mpi-verbose</dt>
+<dd>
+\anchor enable-mpi-verbose
+\addindex __configure__--enable-mpi-verbose
+Increase the verbosity of the MPI debugging messages.  This can be disabled
+at runtime by setting the environment variable \ref STARPU_SILENT to
+any value. <c>--enable-mpi-verbose=extra</c> increase even more the verbosity.
+
+\verbatim
+$ STARPU_SILENT=1 mpirun -np 2 ./insert_task
+\endverbatim
+</dd>
+
 <dt>--disable-fortran</dt>
 <dd>
 \anchor disable-fortran

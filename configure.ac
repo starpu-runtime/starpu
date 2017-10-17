@@ -2082,6 +2082,19 @@ if  test x$enable_mpi_progression_hook = xyes; then
 	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
 fi
 
+AC_MSG_CHECKING(whether MPI debug messages should be displayed)
+AC_ARG_ENABLE(mpi-verbose, [AS_HELP_STRING([--enable-mpi-verbose],
+			[display MPI verbose debug messages (--enable-mpi-verbose=extra increase the verbosity)])],
+			enable_mpi_verbose=$enableval, enable_mpi_verbose=no)
+AC_MSG_RESULT($enable_mpi_verbose)
+if test x$enable_mpi_verbose = xyes; then
+	AC_DEFINE(STARPU_MPI_VERBOSE, [1], [display MPI verbose debug messages])
+fi
+if test x$enable_mpi_verbose = xextra; then
+	AC_DEFINE(STARPU_MPI_VERBOSE, [1], [display MPI verbose debug messages])
+	AC_DEFINE(STARPU_MPI_EXTRA_VERBOSE, [1], [display MPI verbose debug messages])
+fi
+
 ###############################################################################
 #                                                                             #
 #                               StarPU-Top                                    #
