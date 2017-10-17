@@ -239,7 +239,8 @@ void schedRecInit(const char * filename)
 	}
 
 	size_t lnsize = 128;
-	char * s = malloc(sizeof(*s) * lnsize);
+	char *s;
+	_STARPU_MALLOC(s, sizeof(*s) * lnsize);
 	int eof = 0;
 
 	reset();
