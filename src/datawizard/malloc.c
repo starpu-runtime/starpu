@@ -306,7 +306,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	if (starpu_memory_nodes_get_numa_count() > 1) {
+	if (starpu_memory_nodes_get_numa_count() > 1)
+	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
@@ -495,7 +496,8 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	else if (starpu_memory_nodes_get_numa_count() > 1) {
+	else if (starpu_memory_nodes_get_numa_count() > 1)
+	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_free(hwtopology, A, dim);

@@ -1199,13 +1199,13 @@ static void _defer_ctx_change(int sched_ctx_id, enum _starpu_ctx_change_op op, i
 	chg->op = op;
 	STARPU_ASSERT(workerids_to_change != NULL);
 	chg->nworkers_to_change = nworkers_to_change;
-	chg->workerids_to_change = malloc(nworkers_to_change * sizeof(chg->workerids_to_change[0]));
+	_STARPU_MALLOC(chg->workerids_to_change, nworkers_to_change * sizeof(chg->workerids_to_change[0]));
 	memcpy(chg->workerids_to_change, workerids_to_change, nworkers_to_change * sizeof(chg->workerids_to_change[0]));
 	if (nworkers_to_notify != 0)
 	{
 		STARPU_ASSERT(workerids_to_notify != NULL);
 		chg->nworkers_to_notify = nworkers_to_notify;
-		chg->workerids_to_notify = malloc(nworkers_to_notify * sizeof(chg->workerids_to_notify[0]));
+		_STARPU_MALLOC(chg->workerids_to_notify, nworkers_to_notify * sizeof(chg->workerids_to_notify[0]));
 		memcpy(chg->workerids_to_notify, workerids_to_notify, nworkers_to_notify * sizeof(chg->workerids_to_notify[0]));
 	}
 	else
