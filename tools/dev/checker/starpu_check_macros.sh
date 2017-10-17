@@ -17,9 +17,9 @@
 
 dirname=$(dirname $0)
 
-INC_DIRS=$(find $dirname/../../ -name include -type d)
+INC_DIRS=$(find $dirname/../../../ -name include -type d)
 STARPU_H_FILES=$(find $INC_DIRS -name '*.h')
-STARPU_CONFIG=$dirname/../../include/starpu_config.h.in
+STARPU_CONFIG=$dirname/../../../include/starpu_config.h.in
 STARPU_CONFIG_DISPLAY=$(python -c "import os.path; print os.path.relpath('$STARPU_CONFIG', '.')")
 macros1=$(grep 'ifdef' $STARPU_H_FILES|grep STARPU|awk '{print $NF}')
 macros2=$(grep defined $STARPU_H_FILES | tr ' (' '\012' | grep STARPU | sed 's/defined//' | tr -d '()!,')
@@ -28,7 +28,7 @@ macros=$(echo $macros1 $macros2 | tr ' ' '\012' | sort | uniq)
 for m in $macros
 do
     count=$(grep -c $m $STARPU_CONFIG)
-    if test $count -eq 0
+    if test "$count" -eq "0"
     then
 	echo $m missing in $STARPU_CONFIG_DISPLAY
     fi

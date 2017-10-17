@@ -4,7 +4,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011 CNRS
+# Copyright (C) 2011, 2017 CNRS
 # Copyright (C) 2011 INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@ filese=$(find examples -type f -not -path "*svn*" -name '*.c')
 filest=$(find tests -type f -not -path "*svn*" -name '*.c')
 
 for file in $filest $filese ; do
-    handles=$(spatch -very_quiet -sp_file tools/dev/starpu_check_register.cocci $file)
+    handles=$(spatch -very_quiet -sp_file tools/dev/checker/starpu_check_register.cocci $file)
     if test "x$handles" != "x" ; then
 	for handle in $handles; do
 	    echo "$handle"
