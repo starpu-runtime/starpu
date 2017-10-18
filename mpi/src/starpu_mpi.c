@@ -969,9 +969,17 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
 	struct _starpu_mpi_req *barrier_req;
-	int ret = posted_requests+ready_requests;
+	int ret = 0;
 
 	_STARPU_MPI_LOG_IN();
+
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests);
+	ret += posted_requests;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests);
+
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests);
+	ret += ready_requests;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests);
 
 	/* First wait for *both* all tasks and MPI requests to finish, in case
 	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
