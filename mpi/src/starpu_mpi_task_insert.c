@@ -105,7 +105,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	if (data && mode & STARPU_R)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int64_t data_tag = starpu_mpi_data_get_tag(data);
+		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -147,7 +147,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	if (mode & STARPU_W)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int64_t data_tag = starpu_mpi_data_get_tag(data);
+		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -652,7 +652,7 @@ struct _starpu_mpi_redux_data_args
 {
 	starpu_data_handle_t data_handle;
 	starpu_data_handle_t new_handle;
-	int64_t data_tag;
+	starpu_mpi_tag_t data_tag;
 	int node;
 	MPI_Comm comm;
 	struct starpu_task *taskB;
@@ -723,7 +723,7 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int me, rank, nb_nodes;
-	int64_t tag;
+	starpu_mpi_tag_t tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	tag = starpu_mpi_data_get_tag(data_handle);

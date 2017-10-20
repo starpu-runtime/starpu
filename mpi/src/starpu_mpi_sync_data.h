@@ -32,7 +32,7 @@ void _starpu_mpi_sync_data_init(void);
 void _starpu_mpi_sync_data_check_termination(void);
 void _starpu_mpi_sync_data_shutdown(void);
 
-struct _starpu_mpi_req *_starpu_mpi_sync_data_find(int64_t data_tag, int source, MPI_Comm comm);
+struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm);
 void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *req);
 int _starpu_mpi_sync_data_count();
 
