@@ -1324,6 +1324,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	// Handle the request immediatly to make sure the mpi_irecv is
 	// posted before receiving an other envelope
 	_starpu_mpi_req_list_erase(&ready_requests, early_data_handle->req);
+	_STARPU_MPI_INC_READY_REQUESTS(-1);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_starpu_mpi_handle_ready_request(early_data_handle->req);
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
