@@ -351,6 +351,11 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list, void *);
 			(void)va_arg(varg_list, size_t);
 		}
+		else if (arg_type==STARPU_CL_ARGS_NFREE)
+		{
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
+		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);

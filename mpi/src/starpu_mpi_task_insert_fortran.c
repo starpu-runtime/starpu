@@ -176,6 +176,13 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* size_t */
 		}
+		else if (arg_type==STARPU_CL_ARGS_NFREE)
+		{
+			arg_i++;
+			/* void* */
+			arg_i++;
+			/* size_t */
+		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			arg_i++;

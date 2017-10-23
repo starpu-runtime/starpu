@@ -31,7 +31,7 @@ specifying the worker on which to execute the task (as specified by
 starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
-::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS
+::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS, ::STARPU_CL_ARGS_NFREE,
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -58,6 +58,14 @@ be followed by a memory buffer containing the arguments to be given to
 the task, and by the size of the arguments. The memory buffer should
 be the result of a previous call to starpu_codelet_pack_args(), and will be
 freed (i.e. starpu_task::cl_arg_free will be set to 1)
+
+\def STARPU_CL_ARGS_NFREE
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), similarly to ::STARPU_CL_ARGS, must
+be followed by a memory buffer containing the arguments to be given to
+the task, and by the size of the arguments. The memory buffer should
+be the result of a previous call to starpu_codelet_pack_args(), and will NOT be
+freed (i.e. starpu_task::cl_arg_free will be set to 0)
 
 \def STARPU_CALLBACK
 \ingroup API_Insert_Task

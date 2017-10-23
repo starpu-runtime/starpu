@@ -34,6 +34,7 @@ static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
 static const intptr_t fstarpu_data_array	= STARPU_DATA_ARRAY;
 static const intptr_t fstarpu_data_mode_array	= STARPU_DATA_MODE_ARRAY;
 static const intptr_t fstarpu_cl_args	= STARPU_CL_ARGS;
+static const intptr_t fstarpu_cl_args_nfree	= STARPU_CL_ARGS_NFREE;
 static const intptr_t fstarpu_callback	= STARPU_CALLBACK;
 static const intptr_t fstarpu_callback_with_arg	= STARPU_CALLBACK_WITH_ARG;
 static const intptr_t fstarpu_callback_arg	= STARPU_CALLBACK_ARG;
@@ -105,6 +106,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_DATA_ARRAY"))	{ return fstarpu_data_array; }
 	else if	(!strcmp(s, "FSTARPU_DATA_MODE_ARRAY"))	{ return fstarpu_data_mode_array; }
 	else if	(!strcmp(s, "FSTARPU_CL_ARGS"))	{ return fstarpu_cl_args; }
+	else if	(!strcmp(s, "FSTARPU_CL_ARGS_NFREE"))	{ return fstarpu_cl_args_nfree; }
 	else if	(!strcmp(s, "FSTARPU_CALLBACK"))	{ return fstarpu_callback; }
 	else if	(!strcmp(s, "FSTARPU_CALLBACK_WITH_ARG"))	{ return fstarpu_callback_with_arg; }
 	else if	(!strcmp(s, "FSTARPU_CALLBACK_ARG"))	{ return fstarpu_callback_arg; }
