@@ -348,18 +348,18 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type==STARPU_CL_ARGS)
 		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
 		}
 		else if (arg_type==STARPU_CL_ARGS_NFREE)
 		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
 		}
 		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
 		{
-			(void)va_arg(varg_list, unsigned);
-			(void)va_arg(varg_list, struct starpu_task **);
+			(void)va_arg(varg_list_copy, unsigned);
+			(void)va_arg(varg_list_copy, struct starpu_task **);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
