@@ -83,6 +83,11 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			(void)va_arg(varg_list, void *);
 			(void)va_arg(varg_list, size_t);
 		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			(void)va_arg(varg_list, unsigned);
+			(void)va_arg(varg_list, struct starpu_task **);
+		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			(void)va_arg(varg_list, _starpu_callback_func_t);
@@ -306,6 +311,8 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 	int current_buffer;
 	int nargs = 0;
 	int allocated_buffers = 0;
+	unsigned ndeps = 0;
+	struct starpu_task **task_deps_array = NULL;
 
 	_STARPU_TRACE_TASK_BUILD_START();
 
@@ -353,6 +360,12 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 			(*task)->cl_arg = va_arg(varg_list, void *);
 			(*task)->cl_arg_size = va_arg(varg_list, size_t);
 			(*task)->cl_arg_free = 0;
+		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			STARPU_ASSERT_MSG(task_deps_array == NULL, "Parameter 'STARPU_TASK_DEPS_ARRAY' cannot be set twice");
+			ndeps = va_arg(varg_list, unsigned);
+			task_deps_array = va_arg(varg_list, struct starpu_task **);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -496,6 +509,11 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **t
 		arg_buffer_ = NULL;
 	}
 
+	if (task_deps_array)
+	{
+		starpu_task_declare_deps_array((*task), ndeps, task_deps_array);
+	}
+
 	_STARPU_TRACE_TASK_BUILD_END();
 	return 0;
 }
@@ -509,6 +527,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	int current_buffer = 0;
 	int nargs = 0;
 	int allocated_buffers = 0;
+	unsigned ndeps = 0;
+	struct starpu_task **task_deps_array = NULL;
 
 	_STARPU_TRACE_TASK_BUILD_START();
 
@@ -567,6 +587,14 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			arg_i++;
 			(*task)->cl_arg_size = (size_t)(intptr_t)arglist[arg_i];
 			(*task)->cl_arg_free = 0;
+		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			STARPU_ASSERT_MSG(task_deps_array == NULL, "Parameter 'STARPU_TASK_DEPS_ARRAY' cannot be set twice");
+			arg_i++;
+			ndeps = *(unsigned *)arglist[arg_i];
+			arg_i++;
+			task_deps_array = arglist[arg_i];
 		}
 		else if (arg_type == STARPU_CALLBACK)
 		{
@@ -724,6 +752,11 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	{
 		free(arg_buffer_);
 		arg_buffer_ = NULL;
+	}
+
+	if (task_deps_array)
+	{
+		starpu_task_declare_deps_array(*task, ndeps, task_deps_array);
 	}
 
 	_STARPU_TRACE_TASK_BUILD_END();

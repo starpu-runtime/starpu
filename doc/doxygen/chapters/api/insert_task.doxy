@@ -32,6 +32,7 @@ starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
 ::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS, ::STARPU_CL_ARGS_NFREE,
+::STARPU_TASK_DEPS_ARRAY,
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -137,6 +138,13 @@ passing will not work.
 Used when calling starpu_task_insert(), must
 be followed by the id of the scheduling context to which to submit the
 task to.
+
+\def STARPU_TASK_DEPS_ARRAY
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must
+be followed by a number of tasks, and an array containing these tasks.
+The function starpu_task_declare_deps_array() will be called with the
+given values.
 
 \fn void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 \ingroup API_Insert_Task

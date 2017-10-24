@@ -183,6 +183,13 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* size_t */
 		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			arg_i++;
+			/* unsigned */
+			arg_i++;
+			/* struct starpu_task ** */
+		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			arg_i++;

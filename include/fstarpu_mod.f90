@@ -33,6 +33,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CL_ARGS
         type(c_ptr), bind(C) :: FSTARPU_CL_ARGS_NFREE
+        type(c_ptr), bind(C) :: FSTARPU_TASK_DEPS_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
@@ -2261,6 +2262,7 @@ module fstarpu_mod
                         FSTARPU_DATA_MODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_MODE_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CL_ARGS = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS"//C_NULL_CHAR)
                         FSTARPU_CL_ARGS_NFREE = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS_NFREE"//C_NULL_CHAR)
+                        FSTARPU_TASK_DEPS_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_DEPS_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CALLBACK        = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_WITH_ARG       = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)
