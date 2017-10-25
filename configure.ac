@@ -602,6 +602,7 @@ fi
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
 AC_MSG_RESULT($build_mpi_lib)
 
+AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes)
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
 	if test x$build_mpi_lib = xyes ; then
