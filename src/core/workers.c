@@ -1545,6 +1545,10 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;
 #else
+	/* do not block if a sched_ctx change operation is pending */
+	if (worker->state_changing_ctx_notice)
+		return 0;
+
 	unsigned can_block = 1;
 
 	struct starpu_driver driver;
