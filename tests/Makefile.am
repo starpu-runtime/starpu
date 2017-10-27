@@ -154,6 +154,7 @@ myPROGRAMS +=					\
 	main/codelet_null_callback		\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
+	datawizard/deps				\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\

@@ -30,6 +30,13 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 if USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
+if STARPU_SIMGRID
+MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+else
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+endif
+else
+MPI			=
 endif
 
 CC = $(CC_OR_MPICC)

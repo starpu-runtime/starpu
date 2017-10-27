@@ -31,9 +31,9 @@ extern "C"
 void _starpu_mpi_tag_init(void);
 void _starpu_mpi_tag_shutdown(void);
 
-void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int64_t data_tag);
+void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t data_tag);
 int _starpu_mpi_tag_data_release(starpu_data_handle_t handle);
-starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int64_t data_tag);
+starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t data_tag);
 
 #ifdef __cplusplus
 }

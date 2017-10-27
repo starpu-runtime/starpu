@@ -48,7 +48,7 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 	{
 		case MPI_THREAD_SERIALIZED:
 		{
-			_STARPU_DEBUG("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+			_STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
 			break;
 		}
 		case MPI_THREAD_FUNNELED:

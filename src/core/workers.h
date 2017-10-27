@@ -116,6 +116,7 @@ LIST_TYPE(_starpu_worker,
 	  * - transition from 1 to 0 triggers a unblock_req
 	  */
 	unsigned block_in_parallel_ref_count;
+	starpu_pthread_t thread_changing_ctx; /* thread currently changing a sched_ctx containing the worker */
 	/* list of deferred context changes
 	 *
 	 * when the current thread is a worker, _and_ this worker is in a
@@ -900,6 +901,7 @@ static inline int _starpu_worker_sched_op_pending(void)
  */
 static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * const worker)
 {
+	STARPU_ASSERT(!starpu_pthread_equal(worker->thread_changing_ctx, starpu_pthread_self()));
 	/* flush pending requests to start on a fresh transaction epoch */
 	while (worker->state_changing_ctx_notice)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -910,6 +912,8 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 	 * - no new sched_op may be started
 	 */
 	worker->state_changing_ctx_notice = 1;
+
+	worker->thread_changing_ctx = starpu_pthread_self();
 
 	/* allow for an already started sched_op to complete */
 	if (worker->state_sched_op_pending)
@@ -939,6 +943,7 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
  */
 static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * const worker)
 {
+	worker->thread_changing_ctx = (starpu_pthread_t)0;
 	worker->state_changing_ctx_notice = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }

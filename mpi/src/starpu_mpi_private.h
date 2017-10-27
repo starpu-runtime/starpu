@@ -170,7 +170,7 @@ struct _starpu_mpi_envelope
 {
 	int mode;
 	starpu_ssize_t size;
-	int64_t data_tag;
+	starpu_mpi_tag_t data_tag;
 	unsigned sync;
 };
 #endif /* STARPU_USE_MPI_MPI */
@@ -190,7 +190,7 @@ struct _starpu_mpi_node_tag
 {
 	MPI_Comm comm;
 	int rank;
-	int64_t data_tag;
+	starpu_mpi_tag_t data_tag;
 };
 
 struct _starpu_mpi_data

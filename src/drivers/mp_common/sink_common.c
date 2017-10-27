@@ -779,6 +779,9 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 
 	_STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
 
+#ifdef STARPU_DEVEL
+#warning TODO: use pack/unpack for user-defined interfaces
+#endif
 	/* The function needs an array pointing to each interface it needs
 	 * during execution. As in sink-side there is no mean to know which
 	 * kind of interface to expect, the array is composed of unions of

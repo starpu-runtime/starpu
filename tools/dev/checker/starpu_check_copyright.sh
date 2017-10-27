@@ -25,10 +25,6 @@ do
     if test -z "$copyright"
     then
 	echo "File $f does not include a proper copyright"
+	svn log $f | grep '|' | awk -F'|' '{print $2}' | sort | uniq
     fi
-done
-
-for f in $(cat /tmp/list_$$)
-do
-    svn log $f | grep '|' | awk -F'|' '{print $2}' | sort | uniq
 done

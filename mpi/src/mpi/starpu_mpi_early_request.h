@@ -37,7 +37,7 @@ int _starpu_mpi_early_request_count(void);
 void _starpu_mpi_early_request_check_termination(void);
 
 void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req);
-struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int64_t data_tag, int source, MPI_Comm comm);
+struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm);
 
 #ifdef __cplusplus
 }

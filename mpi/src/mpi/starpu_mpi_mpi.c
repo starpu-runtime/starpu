@@ -96,7 +96,7 @@ static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_runn
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
 #define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
 
-extern struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int64_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count);
+extern struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count);
 
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
@@ -343,7 +343,7 @@ static void nop_acquire_cb(void *arg)
 }
 
 struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
-						       int srcdst, int64_t data_tag, MPI_Comm comm,
+						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
 						       enum starpu_data_access_mode mode,

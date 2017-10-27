@@ -61,6 +61,11 @@ Small features:
     tag value.
   * New configure option enable-mpi-verbose to manage the display of
     extra MPI debug messages.
+  * New starpu_task_insert parameter STARPU_CL_ARGS_NFREE which allows
+    to set codelet parameters but without freeing them.
+  * New starpu_task_insert parameter STARPU_TASK_DEPS_ARRAY which
+    allows to declare task dependencies similarly to
+    starpu_task_declare_deps_array()
 
 Changes:
   * Vastly improve simgrid simulation time.

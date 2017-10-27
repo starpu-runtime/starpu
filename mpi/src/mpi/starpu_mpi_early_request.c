@@ -64,7 +64,7 @@ void _starpu_mpi_early_request_check_termination()
 	STARPU_ASSERT_MSG(_starpu_mpi_early_request_count() == 0, "Number of early requests left is not zero");
 }
 
-struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int64_t data_tag, int source, MPI_Comm comm)
+struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm)
 {
 	struct _starpu_mpi_node_tag node_tag;
 	struct _starpu_mpi_req *found;

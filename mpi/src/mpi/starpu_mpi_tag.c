@@ -29,7 +29,7 @@
 struct handle_tag_entry
 {
 	UT_hash_handle hh;
-	int64_t data_tag;
+	starpu_mpi_tag_t data_tag;
 	starpu_data_handle_t handle;
 };
 
@@ -57,7 +57,7 @@ void _starpu_mpi_tag_shutdown(void)
 	registered_tag_handles = NULL;
 }
 
-starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int64_t data_tag)
+starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t data_tag)
 {
 	struct handle_tag_entry *ret;
 
@@ -75,7 +75,7 @@ starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int64_t data_tag)
 	}
 }
 
-void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int64_t data_tag)
+void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t data_tag)
 {
 	if (data_tag == -1)
 	{
@@ -101,7 +101,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int64_t data_tag
 
 int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 {
-	int64_t data_tag = starpu_mpi_data_get_tag(handle);
+	starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(handle);
 
 	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %"PRIi64"d from hashtable\n", handle, data_tag);
 

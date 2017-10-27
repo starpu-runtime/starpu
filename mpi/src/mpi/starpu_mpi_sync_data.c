@@ -91,7 +91,7 @@ int _starpu_mpi_sync_data_count(void)
 	return _starpu_mpi_sync_data_handle_hashmap_count;
 }
 
-struct _starpu_mpi_req *_starpu_mpi_sync_data_find(int64_t data_tag, int source, MPI_Comm comm)
+struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm)
 {
 	struct _starpu_mpi_req *req;
 	struct _starpu_mpi_node_tag node_tag;
