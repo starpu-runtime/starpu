@@ -39,7 +39,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 
 	if (env_cpu != -1)
 	{
-		char string[10];
+		char string[11];
 		snprintf(string, sizeof(string), "%d", env_cpu);
 		setenv("STARPU_NCPUS", string, 1);
 	}
