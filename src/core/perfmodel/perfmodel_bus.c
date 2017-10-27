@@ -185,7 +185,11 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 	}
 	else
 #endif
@@ -446,7 +450,11 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 	}
 	else
 #endif
@@ -678,11 +686,19 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 
 		unsigned char *h_buffer;
 		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_src);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 
 		unsigned char *d_buffer;
 		hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_dst);
+#if HWLOC_API_VERSION >= 0x00020000
+		d_buffer = hwloc_alloc_membind(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		d_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 
 		memset(h_buffer, 0, SIZE);
 
