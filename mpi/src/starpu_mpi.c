@@ -239,7 +239,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 		mpi_data->node_tag.comm = MPI_COMM_WORLD;
 		data_handle->mpi_data = mpi_data;
 #if defined(STARPU_USE_MPI_MPI)
-		_starpu_mpi_tag_data_register(data_handle, tag);
+		_starpu_mpi_tag_data_register(data_handle, data_tag);
 #endif
 		_starpu_mpi_cache_data_init(data_handle);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);

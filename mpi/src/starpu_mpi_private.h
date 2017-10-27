@@ -290,7 +290,7 @@ LIST_TYPE(_starpu_mpi_req,
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
 struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
-						       int srcdst, int data_tag, MPI_Comm comm,
+						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
 						       enum starpu_data_access_mode mode,
