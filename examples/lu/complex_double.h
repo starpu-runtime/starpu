@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014-2015  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014-2015, 2017  Université de Bordeaux
  * Copyright (C) 2010  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,3 +46,5 @@
 #define PIVOT_THRESHHOLD	10e-5
 
 #define CAN_EXECUTE .can_execute = can_execute,
+
+#define ISZERO(f)	(fpclassify(creal(f)) == FP_ZERO && fpclassify(cimag(f)) == FP_ZERO)
