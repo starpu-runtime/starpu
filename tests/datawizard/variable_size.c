@@ -258,17 +258,6 @@ static void init(void *descr[], void *cl_arg)
 	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size);
 }
 
-static double nop_cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
-{
-	return 0.001;
-}
-
-static struct starpu_perfmodel nop_perf_model =
-{
-	.type = STARPU_PER_ARCH,
-	.arch_cost_function = nop_cost_function,
-};
-
 static struct starpu_codelet cl_init =
 {
 	.cpu_funcs = {init},
@@ -277,7 +266,7 @@ static struct starpu_codelet cl_init =
 	/*.cpu_funcs_name = {"kernel"},*/
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &nop_perf_model,
+	.model = &starpu_nop_perf_model,
 };
 
 int main(int argc, char **argv)
