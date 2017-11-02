@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		int NX=3;
 		int NY=2;
 		int matrix[NX][NY];
-		starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+		starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
 		ret = check_copy(handle, "matrix");
 	}
 
