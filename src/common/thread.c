@@ -271,7 +271,11 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#ifdef HAVE_MSG_PROCESS_SELF_NAME
+	const char *process_name = MSG_process_self_name();
+#else
 	const char *process_name = SIMIX_process_self_get_name();
+#endif
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
