@@ -17,6 +17,7 @@
  */
 
 #include <starpu.h>
+#include <core/simgrid.h>
 #include <common/config.h>
 
 #ifdef STARPU_SIMGRID
