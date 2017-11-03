@@ -34,6 +34,7 @@
 #include <xbt/synchro_core.h>
 #endif
 #include <smpi/smpi.h>
+#include <simgrid/simix.h>
 #else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
