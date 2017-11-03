@@ -1119,6 +1119,8 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	return 0;
 }
 
+/* thread_create function which implements inheritence of MPI privatization */
+/* See https://github.com/simgrid/simgrid/issues/139 */
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
 #ifdef HAVE_SMX_ACTOR_T
