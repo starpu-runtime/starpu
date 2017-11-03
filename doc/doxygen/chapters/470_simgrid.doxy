@@ -10,7 +10,8 @@
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform. This was tested with simgrid from 3.11 to 3.16,
-other versions may have compatibility issues.
+other versions may have compatibility issues. 3.17 notably does not build at
+all.
 
 \section Preparing Preparing Your Application For Simulation
 
