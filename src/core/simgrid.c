@@ -34,6 +34,9 @@
 #include <sys/resource.h>
 #endif
 #include <simgrid/simix.h>
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+#include <simgrid/host.h>
+#endif
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
@@ -1143,7 +1146,11 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
 	                         SIMIX_host_self_get_name(),
 #else
+#  ifdef HAVE_SG_HOST_SELF
+	                         sg_host_self(),
+#  else
 	                         SIMIX_host_self(),
+#  endif
 #endif
 #if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
 				 -1.0,
