@@ -1123,6 +1123,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 /* See https://github.com/simgrid/simgrid/issues/139 */
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
+#ifdef HAVE_SIMCALL_PROCESS_CREATE
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
@@ -1163,6 +1164,9 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 				 , 0
 #endif
 				 );
+#else
+	STARPU_ABORT_MSG("Can't run StarPU-Simgrid-MPI with a Simgrid version which does not provide simcall_process_create and does not fix https://github.com/simgrid/simgrid/issues/139 , sorry.");
+#endif
 }
 
 #if 0
