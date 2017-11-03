@@ -162,7 +162,7 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
-	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
    	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_environment_get_routing_root MSG_host_get_speed MSG_process_self_name])
