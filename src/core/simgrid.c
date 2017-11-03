@@ -68,13 +68,20 @@ static struct worker_runner
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
-#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
-#ifdef HAVE_MSG_GET_AS_BY_NAME
+#ifdef HAVE_MSG_ZONE_GET_BY_NAME
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return MSG_zone_get_by_name(name);
+}
+#elif defined(HAVE_MSG_GET_AS_BY_NAME)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_get_as_by_name(name);
 }
-#else /* HAVE_MSG_GET_AS_BY_NAME */
+#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 {
 	xbt_dict_t dict;
@@ -97,7 +104,6 @@ msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
-#endif /* HAVE_MSG_GET_AS_BY_NAME */
 #endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
@@ -106,11 +112,11 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	xbt_dynar_t hosts;
 	unsigned i, nb;
 	unsigned len = strlen(prefix);
-#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
-	char new_prefix[32];
 
 	if (_starpu_simgrid_running_smpi())
 	{
+#ifdef HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+		char new_prefix[32];
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
@@ -118,9 +124,11 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
 		len = strlen(prefix);
+#else
+		STARPU_ABORT_MSG("can not continue without an implementation for _starpu_simgrid_get_as_by_name");
+#endif /* HAVE_STARPU_SIMGRID_GET_AS_BY_NAME */
 	}
 	else
-#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 	nb = xbt_dynar_length(hosts);
 
