@@ -558,7 +558,7 @@ void starpu_perfmodel_free_sampling_directories(void)
 }
 
 
-static double nop_cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *a, unsigned i STARPU_ATTRIBUTE_UNUSED)
+static double nop_cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *a STARPU_ATTRIBUTE_UNUSED, unsigned i STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0.000001;
 }
