@@ -66,6 +66,8 @@ Small features:
   * New starpu_task_insert parameter STARPU_TASK_DEPS_ARRAY which
     allows to declare task dependencies similarly to
     starpu_task_declare_deps_array()
+  * Add dependency backward information in debugging mode for gdb's
+    starpu-print-task
 
 Changes:
   * Vastly improve simgrid simulation time.
