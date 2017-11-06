@@ -67,6 +67,7 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
 	microbenchs/microbench.sh \
+	model-checking/platform.xml \
 	model-checking/prio_list.sh \
 	model-checking/barrier.sh \
 	model-checking/starpu-mc.sh.in
