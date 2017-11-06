@@ -120,7 +120,12 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
+#ifdef HAVE_MSG_ZONE_GET_HOSTS
+		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
+		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#else
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
+#endif
 		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
 		len = strlen(prefix);
