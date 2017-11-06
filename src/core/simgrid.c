@@ -28,6 +28,7 @@
 
 #ifdef STARPU_SIMGRID
 #include <sys/resource.h>
+#include <simgrid/simix.h>
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
