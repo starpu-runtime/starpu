@@ -115,6 +115,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_seq				\
 	matrix					\
 	matrix2					\
 	mpi_detached_tag			\
@@ -204,6 +205,7 @@ noinst_PROGRAMS =				\
 	insert_task_node_choice			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
+	insert_task_seq				\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
