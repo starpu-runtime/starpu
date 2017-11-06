@@ -920,6 +920,13 @@ void _starpu_omp_dummy_shutdown(void)
  */
 int starpu_omp_init(void)
 {
+#ifdef STARPU_SIMGRID
+	/* XXX: ideally we'd pass the real argc/argv */
+	int argc;
+	char *argv[] = { NULL };
+	_starpu_start_simgrid(&argc, &argv);
+#endif
+
 	_starpu_omp_global_state = &_global_state;
 
 	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);

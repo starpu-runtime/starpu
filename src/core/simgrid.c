@@ -226,9 +226,12 @@ int _starpu_smpi_simulated_main_(int argc, char *argv[])
 int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 /* This is used to start a non-MPI simgrid environment */
-static void start_simgrid(int *argc, char **argv)
+void _starpu_start_simgrid(int *argc, char **argv)
 {
 	char path[256];
+
+	if (simgrid_started)
+		return;
 
 	simgrid_started = 1;
 
@@ -296,7 +299,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Managed to catch application's main, initialize simgrid first */
-	start_simgrid(&argc, argv);
+	_starpu_start_simgrid(&argc, argv);
 
 	/* Create a simgrid process for main */
 	char **argv_cpy;
@@ -338,7 +341,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* Start maestro as a separate thread */
 		SIMIX_set_maestro(maestro, NULL);
 		/* Initialize simgrid */
-		start_simgrid(argc, *argv);
+		_starpu_start_simgrid(argc, *argv);
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));

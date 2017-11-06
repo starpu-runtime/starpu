@@ -42,6 +42,8 @@ struct _starpu_pthread_args
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
+void _starpu_start_simgrid(int *argc, char **argv);
+
 void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_deinit(void);
