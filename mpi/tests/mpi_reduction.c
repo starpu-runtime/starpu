@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015  Université de Bordeaux
+ * Copyright (C) 2013, 2015, 2017  Université de Bordeaux
  * Copyright (C) 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,26 +24,13 @@ extern void redux_cpu_func(void *descr[], void *cl_arg);
 extern void dot_cpu_func(void *descr[], void *cl_arg);
 extern void display_cpu_func(void *descr[], void *cl_arg);
 
-#ifdef STARPU_SIMGRID
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-#endif
-
 static struct starpu_codelet init_codelet =
 {
 	.cpu_funcs = {init_cpu_func},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_nop_perf_model,
 #endif
 	.name = "init_codelet"
 };
@@ -54,7 +41,7 @@ static struct starpu_codelet redux_codelet =
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_nop_perf_model,
 #endif
 	.name = "redux_codelet"
 };
@@ -65,7 +52,7 @@ static struct starpu_codelet dot_codelet =
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_REDUX},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_nop_perf_model,
 #endif
 	.name = "dot_codelet"
 };
@@ -76,7 +63,7 @@ static struct starpu_codelet display_codelet =
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_nop_perf_model,
 #endif
 	.name = "display_codelet"
 };

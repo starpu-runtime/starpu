@@ -29,23 +29,12 @@ static void func_add(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	FPRINTF_MPI(stderr, "%d + %d = %d\n", *b, *c, *a);
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type          = STARPU_COMMON,
-	.cost_function = cost_function
-};
-
 static struct starpu_codelet codelet_add =
 {
 	.cpu_funcs = {func_add},
 	.nbuffers = 3,
 	.modes = {STARPU_W, STARPU_R, STARPU_R},
-	.model = &dumb_model,
+	.model = &starpu_nop_perf_model,
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 

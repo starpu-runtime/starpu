@@ -36,17 +36,6 @@ void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	(*tokenptr)++;
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
@@ -55,7 +44,7 @@ static struct starpu_codelet increment_cl =
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &dumb_model
+	.model = &starpu_nop_perf_model,
 };
 
 void increment_token(starpu_data_handle_t token_handle)
