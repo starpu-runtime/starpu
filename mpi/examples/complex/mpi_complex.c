@@ -26,27 +26,12 @@ void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	FPRINTF(stderr, "foo = %d\n", *foo);
 }
 
-/* Dumb performance model for simgrid */
-static double display_cost_function(struct starpu_task *task, unsigned nimpl)
-{
-	(void) task;
-	(void) nimpl;
-	return 0.000001;
-}
-
-static struct starpu_perfmodel display_model =
-{
-	.type = STARPU_COMMON,
-	.cost_function = display_cost_function,
-	.symbol = "display"
-};
-
 struct starpu_codelet foo_display =
 {
 	.cpu_funcs = {display_foo_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &display_model
+	.model = &starpu_nop_perf_model,
 };
 
 int main(int argc, char **argv)

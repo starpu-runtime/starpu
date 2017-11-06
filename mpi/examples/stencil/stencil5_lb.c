@@ -42,7 +42,8 @@ struct starpu_codelet stencil5_cl =
 {
 	.cpu_funcs = {stencil5_cpu},
 	.nbuffers = 5,
-	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
+	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
+	.model = &starpu_nop_perf_model,
 };
 
 #ifdef STARPU_QUICK_CHECK
