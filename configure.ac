@@ -194,6 +194,12 @@ if test x$enable_simgrid = xyes ; then
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
+	if x$enable_shared = xno ; then
+		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
+		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
+		LDFLAGS="$LDFLAGS -lstdc++"
+	fi
+
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 			  #ifdef HAVE_SIMGRID_MSG_H
 			  #include <simgrid/msg.h>
