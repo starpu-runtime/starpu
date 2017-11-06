@@ -37,6 +37,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},
+	.model = &starpu_nop_perf_model,
 };
 
 struct starpu_codelet mycodelet2 =
@@ -44,6 +45,7 @@ struct starpu_codelet mycodelet2 =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
+	.model = &starpu_nop_perf_model,
 };
 
 #define X     4
