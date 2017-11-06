@@ -21,7 +21,11 @@
 #include <common/config.h>
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
+#else
+#include <msg/msg.h>
+#endif
 #include <simgrid/simix.h>
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
