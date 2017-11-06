@@ -115,7 +115,6 @@ starpu_mpi_TESTS +=				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	insert_task_seq				\
 	matrix					\
 	matrix2					\
 	mpi_detached_tag			\
@@ -152,6 +151,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_count			\
+	insert_task_seq				\
 	multiple_send				\
 	user_defined_datatype			\
 	tags_checking				\
