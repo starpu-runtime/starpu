@@ -55,7 +55,13 @@ void _starpu_cg_list_deinit(struct _starpu_cg_list *list)
 		 * if there is no more reference. */
 		unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 		if (ntags == 0)
+		{
+#ifdef STARPU_DEBUG
+			free(list->succ[id]->deps);
+			free(list->succ[id]->done);
+#endif
 			free(list->succ[id]);
+		}
 	}
 
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
