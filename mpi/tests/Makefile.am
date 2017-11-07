@@ -151,6 +151,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_count			\
+	insert_task_seq				\
 	multiple_send				\
 	user_defined_datatype			\
 	tags_checking				\
@@ -208,6 +209,7 @@ noinst_PROGRAMS =				\
 	insert_task_node_choice			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
+	insert_task_seq				\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\

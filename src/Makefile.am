@@ -200,6 +200,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/perfmodel/multiple_regression.c			\
 	core/sched_policy.c					\
 	core/simgrid.c						\
+	core/simgrid_cpp.cpp					\
 	core/sched_ctx.c					\
 	core/sched_ctx_list.c					\
 	core/parallel_task.c					\

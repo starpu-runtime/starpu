@@ -362,13 +362,8 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			{
 				TYPE pivot;
 				pivot = sub11[z+z*ld];
-#ifdef COMPLEX_LU
-				STARPU_ASSERT(fpclassify(creal(pivot)) != FP_ZERO);
-				STARPU_ASSERT(fpclassify(cimag(pivot)) != FP_ZERO);
-#else
-				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
-#endif
-		
+				STARPU_ASSERT(!ISZERO(pivot));
+
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
 				CPU_GER(nx - z - 1, nx - z - 1, -1.0,
@@ -387,14 +382,8 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				TYPE inv_pivot;
 				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost, stream);
 				cudaStreamSynchronize(stream);
+				STARPU_ASSERT(!ISZERO(pivot));
 
-#ifdef COMPLEX_LU
-				STARPU_ASSERT(fpclassify(creal(pivot)) != FP_ZERO);
-				STARPU_ASSERT(fpclassify(cimag(pivot)) != FP_ZERO);
-#else
-				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
-#endif
-				
 				inv_pivot = 1.0/pivot;
 				status = CUBLAS_SCAL(handle,
 						nx - z - 1,
@@ -511,8 +500,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 
 					pivot = sub11[z+z*ld];
 				}
-			
-				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
+
+				STARPU_ASSERT(!ISZERO(pivot));
 
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -561,8 +550,8 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 					cudaStreamSynchronize(stream);
 				}
 
-				STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
-				
+				STARPU_ASSERT(!ISZERO(pivot));
+
 				inv_pivot = 1.0/pivot;
 				status = CUBLAS_SCAL(handle,
 						nx - z - 1,

@@ -34,6 +34,7 @@
 #include <xbt/synchro_core.h>
 #endif
 #include <smpi/smpi.h>
+#include <simgrid/simix.h>
 #else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
@@ -249,7 +250,11 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#ifdef HAVE_MSG_PROCESS_SELF_NAME
+	const char *process_name = MSG_process_self_name();
+#else
 	const char *process_name = SIMIX_process_self_get_name();
+#endif
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
@@ -267,7 +272,11 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#ifdef HAVE_MSG_PROCESS_SELF_NAME
+	const char *process_name = MSG_process_self_name();
+#else
 	const char *process_name = SIMIX_process_self_get_name();
+#endif
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);

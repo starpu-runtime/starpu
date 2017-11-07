@@ -85,6 +85,24 @@ define starpu-print-task
   printf "\tjob:\t\t\t\t<%p>\n", $job
   printf "\ttag_id:\t\t\t\t<%d>\n", $task->tag_id
   printf "\tndeps:\t\t\t\t<%u>\n", $job->job_successors->ndeps
+  printf "\tndeps_remaining:\t\t<%u>\n", $job->job_successors->ndeps - $job->job_successors->ndeps_completed
+  if _starpu_debug
+    set $n = 0
+    while $n < $job->job_successors->ndeps
+      if ! $job->job_successors->done[$n]
+        set $cg = $job->job_successors->deps[$n]
+        set $m = 0
+	while $m < $cg->ndeps
+	  if ! $cg->done[$m]
+	    set $depj = (struct _starpu_job *) $cg->deps[$m]
+            printf "\t\ttask %p\n", $depj->task
+	  end
+	  set $m = $m + 1
+	end
+      end
+      set $n = $n + 1
+    end
+  end
   printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
   printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
   if $job
@@ -243,23 +261,31 @@ end
 
 define starpu-print-all-tasks
   set language c
-  set $l = all_jobs_list->next
-  while $l != &all_jobs_list
-    set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
-    printf "task %p\n", $j->task
-    starpu-print-task $j->task
-    set $l = $l->next
+  if ! _starpu_debug
+    printf "you need to configure with --enable-debug to get starpu-print-all-tasks working"
+  else
+    set $l = all_jobs_list->next
+    while $l != &all_jobs_list
+      set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
+      printf "task %p\n", $j->task
+      starpu-print-task $j->task
+      set $l = $l->next
+    end
   end
 end
 
 define starpu-all-tasks
   set language c
-  set $l = all_jobs_list->next
-  while $l != &all_jobs_list
-    set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
-    set $task = $j->task
-    printf "task %p %s\n", $task, $task->name ? $task->name : ""
-    set $l = $l->next
+  if ! _starpu_debug
+    printf "you need to configure with --enable-debug to get starpu-all-tasks working"
+  else
+    set $l = all_jobs_list->next
+    while $l != &all_jobs_list
+      set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
+      set $task = $j->task
+      printf "task %p %s\n", $task, $task->name ? $task->name : ""
+      set $l = $l->next
+    end
   end
 end
 

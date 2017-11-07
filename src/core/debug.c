@@ -26,6 +26,14 @@ static starpu_pthread_mutex_t logfile_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile = NULL;
 #endif
 
+int _starpu_debug
+#ifdef STARPU_DEBUG
+	= 1
+#else
+	= 0
+#endif
+	;
+
 /* Tell gdb whether FXT is compiled in or not */
 int _starpu_use_fxt
 #ifdef STARPU_USE_FXT

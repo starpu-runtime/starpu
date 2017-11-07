@@ -18,6 +18,10 @@
 #ifndef __SIMGRID_H__
 #define __SIMGRID_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
@@ -37,6 +41,8 @@ struct _starpu_pthread_args
 
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
+
+void _starpu_start_simgrid(int *argc, char **argv);
 
 void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
@@ -114,6 +120,10 @@ void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_
 #define _starpu_simgrid_data_alloc(size) (void)0
 #define _starpu_simgrid_data_free(size) (void)0
 #define _starpu_simgrid_data_transfer(size, src_node, dst_node) (void)0
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // __SIMGRID_H__

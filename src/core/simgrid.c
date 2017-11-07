@@ -34,6 +34,9 @@
 #include <sys/resource.h>
 #endif
 #include <simgrid/simix.h>
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+#include <simgrid/host.h>
+#endif
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
@@ -65,13 +68,20 @@ static struct worker_runner
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
-#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
-#ifdef HAVE_MSG_GET_AS_BY_NAME
+#ifdef HAVE_MSG_ZONE_GET_BY_NAME
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return MSG_zone_get_by_name(name);
+}
+#elif defined(HAVE_MSG_GET_AS_BY_NAME)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_get_as_by_name(name);
 }
-#else /* HAVE_MSG_GET_AS_BY_NAME */
+#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 {
 	xbt_dict_t dict;
@@ -94,7 +104,6 @@ msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
-#endif /* HAVE_MSG_GET_AS_BY_NAME */
 #endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
@@ -103,21 +112,28 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	xbt_dynar_t hosts;
 	unsigned i, nb;
 	unsigned len = strlen(prefix);
-#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
-	char new_prefix[32];
 
 	if (_starpu_simgrid_running_smpi())
 	{
+#ifdef HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+		char new_prefix[32];
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
+#ifdef HAVE_MSG_ZONE_GET_HOSTS
+		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
+		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#else
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
+#endif
 		snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
 		prefix = new_prefix;
 		len = strlen(prefix);
+#else
+		STARPU_ABORT_MSG("can not continue without an implementation for _starpu_simgrid_get_as_by_name");
+#endif /* HAVE_STARPU_SIMGRID_GET_AS_BY_NAME */
 	}
 	else
-#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 	nb = xbt_dynar_length(hosts);
 
@@ -210,9 +226,12 @@ int _starpu_smpi_simulated_main_(int argc, char *argv[])
 int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
 /* This is used to start a non-MPI simgrid environment */
-static void start_simgrid(int *argc, char **argv)
+void _starpu_start_simgrid(int *argc, char **argv)
 {
 	char path[256];
+
+	if (simgrid_started)
+		return;
 
 	simgrid_started = 1;
 
@@ -280,7 +299,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Managed to catch application's main, initialize simgrid first */
-	start_simgrid(&argc, argv);
+	_starpu_start_simgrid(&argc, argv);
 
 	/* Create a simgrid process for main */
 	char **argv_cpy;
@@ -322,7 +341,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* Start maestro as a separate thread */
 		SIMIX_set_maestro(maestro, NULL);
 		/* Initialize simgrid */
-		start_simgrid(argc, *argv);
+		_starpu_start_simgrid(argc, *argv);
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
@@ -1083,77 +1102,6 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 		}
 #endif
-}
-
-typedef struct
-{
-	void_f_pvoid_t code;
-	void *userparam;
-	void *father_data;
-} thread_data_t;
-
-static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
-{
-	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
-
-#ifdef HAVE_SMX_ACTOR_T
-	smx_actor_t
-#else
-	smx_process_t
-#endif
-	self = SIMIX_process_self();
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
-	thread_data_t *t = SIMIX_process_self_get_data(self);
-#else
-	thread_data_t *t = SIMIX_process_self_get_data();
-#endif
-	simcall_process_set_data(self, t->father_data);
-	t->code(t->userparam);
-	simcall_process_set_data(self, NULL);
-	free(t);
-
-	return 0;
-}
-
-void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
-{
-#ifdef HAVE_SMX_ACTOR_T
-	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
-#else
-	smx_process_t process STARPU_ATTRIBUTE_UNUSED;
-#endif
-	thread_data_t *res;
-	_STARPU_MALLOC(res, sizeof(thread_data_t));
-	res->userparam = param;
-	res->code = code;
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
-	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
-#else
-	res->father_data = SIMIX_process_self_get_data();
-#endif
-
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
-	simcall_process_create(&process,
-#else
-	process = simcall_process_create(
-#endif
-	                         name,
-	                         _starpu_simgrid_xbt_thread_create_wrapper, res,
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
-	                         SIMIX_host_self_get_name(),
-#else
-	                         SIMIX_host_self(),
-#endif
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
-				 -1.0,
-#endif
-				 0, NULL,
-	                         /*props */ NULL
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
-				 , 0
-#endif
-				 );
 }
 
 #if 0

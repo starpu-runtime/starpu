@@ -23,23 +23,12 @@ void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED voi
 {
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type          = STARPU_COMMON,
-	.cost_function = cost_function
-};
-
 struct starpu_codelet mycodelet_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &dumb_model
+	.model = &starpu_nop_perf_model,
 };
 
 struct starpu_codelet mycodelet_w =
@@ -47,7 +36,7 @@ struct starpu_codelet mycodelet_w =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_nop_perf_model,
 };
 
 struct starpu_codelet mycodelet_rw =
@@ -55,7 +44,7 @@ struct starpu_codelet mycodelet_rw =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &dumb_model
+	.model = &starpu_nop_perf_model,
 };
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)

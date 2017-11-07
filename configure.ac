@@ -162,9 +162,11 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
-   	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_environment_get_routing_root MSG_host_get_speed xbt_mutex_try_acquire smpi_process_set_user_data sg_link_name sg_host_route])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_process_attach MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_zone_get_hosts MSG_host_get_speed MSG_process_self_name])
+	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_link_name sg_host_route sg_host_self simcall_process_create])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 	AC_CHECK_FUNCS([SIMIX_process_get_code], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE], [1], [Define to 1 if you have the `SIMIX_process_get_code' function.])])
@@ -192,6 +194,12 @@ if test x$enable_simgrid = xyes ; then
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
+	if test x$enable_shared = xno ; then
+		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
+		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
+		LDFLAGS="$LDFLAGS -lstdc++"
+	fi
+
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 			  #ifdef HAVE_SIMGRID_MSG_H
 			  #include <simgrid/msg.h>
