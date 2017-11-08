@@ -30,6 +30,7 @@ New features:
   * Add starpu_replay tool to replay tasks.rec files with Simgrid.
   * Add experimental support of NUMA nodes. Use STARPU_USE_NUMA to activate it.
   * Add a new set of functions to make Out-of-Core based on HDF5 Library.
+  * Add a new implementation of StarPU-MPI on top of NewMadeleine
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
