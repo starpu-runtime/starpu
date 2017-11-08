@@ -882,7 +882,7 @@ Since the release 1.3.0, an implementation on top of NewMadeleine, an
 optimizing communication library for high-performance networks, is
 also provided. To use it, one needs to install NewMadeleine (see
 http://pm2.gforge.inria.fr/newmadeleine/) and enable the configure
-option \ref --enable-nmad "--enable-nmad".
+option \ref enable-nmad "--enable-nmad".
 
 Both implementations provide the same public API.
 
