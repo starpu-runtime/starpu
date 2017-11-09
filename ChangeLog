@@ -77,12 +77,35 @@ Small changes:
 StarPU 1.2.3 (svn revision xxx)
 ==============================================
 
+New features:
+  * Add per-node MPI data.
+
 Small features:
-  * New function starpu_mpi_comm_get_attr() which allows to return the
-    value of the attribute STARPU_MPI_TAG_UB, i.e the upper bound for
-    tag value.
-  * New configure option enable-mpi-verbose to manage the display of
-    extra MPI debug messages.
+  * When debug is enabled, starpu data accessors first check the
+    validity of the data interface type
+  * Print disk bus performances when STARPU_BUS_STATS is set
+  * Add starpu_vector_filter_list_long filter.
+  * Data interfaces now define a name through the struct starpu_data_interface_ops
+  * StarPU-MPI :
+    - allow predefined data interface not to define a mpi datatype and
+      to be exchanged through pack/unpack operations
+    - New function starpu_mpi_comm_get_attr() which allows to return
+      the value of the attribute STARPU_MPI_TAG_UB, i.e the upper
+      bound for tag value.
+    - New configure option enable-mpi-verbose to manage the display of
+      extra MPI debug messages.
+  * Add STARPU_WATCHDOG_DELAY environment variable.
+  * Add a 'waiting' worker status
+  * Allow new value 'extra' for configure option --enable-verbose
+
+Small changes:
+  * Add data_unregister event in traces
+  * StarPU-MPI
+    - push detached requests at the back of the testing list, so they
+      are tested last since they will most probably finish latest
+  * Automatically initialize handles on data acquisition when
+    reduction methods are provided, and make sure a handle is
+    initialized before trying to read it.
 
 StarPU 1.2.2 (svn revision 21308)
 ==============================================
@@ -99,7 +122,6 @@ New features:
     STARPU_TASK_BREAK_ON_EXEC environment variables, with the job_id
     of a task. StarPU will raise SIGTRAP when the task is being
     scheduled, pushed, or popped by the scheduler.
-  * Add per-node MPI data.
 
 Small features:
   * New function starpu_worker_get_job_id(struct starpu_task *task)
@@ -108,9 +130,7 @@ Small features:
   * MPI: Add mpi communications in dag.dot
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CPU environment variable to
     allow having one perfmodel per CPU core
-  * Add starpu_vector_filter_list_long filter.
   * Add starpu_perfmodel_arch_comb_fetch function.
-  * Add STARPU_WATCHDOG_DELAY environment variable.
   * Add starpu_mpi_get_data_on_all_nodes_detached function.
 
 Small changes:
