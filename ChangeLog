@@ -21,7 +21,6 @@ StarPU 1.3.0 (svn revision xxxx)
 New features:
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
-  * Add support for Ayudame version 2.x debugging library.
   * Add support for multiple linear regression performance models
   * Add MPI Master-Slave support to use the cores of remote nodes. Use the
     --enable-mpi-master-slave option to activate it.
@@ -57,11 +56,6 @@ Small features:
     variables.
   * Add disk to disk copy functions and support asynchronous full read/write
     in disk backends.
-  * New function starpu_mpi_comm_get_attr() which allows to return the
-    value of the attribute STARPU_MPI_TAG_UB, i.e the upper bound for
-    tag value.
-  * New configure option enable-mpi-verbose to manage the display of
-    extra MPI debug messages.
   * New starpu_task_insert parameter STARPU_CL_ARGS_NFREE which allows
     to set codelet parameters but without freeing them.
   * New starpu_task_insert parameter STARPU_TASK_DEPS_ARRAY which
@@ -80,7 +74,17 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
-StarPU 1.2.2 (svn revision xxx)
+StarPU 1.2.3 (svn revision xxx)
+==============================================
+
+Small features:
+  * New function starpu_mpi_comm_get_attr() which allows to return the
+    value of the attribute STARPU_MPI_TAG_UB, i.e the upper bound for
+    tag value.
+  * New configure option enable-mpi-verbose to manage the display of
+    extra MPI debug messages.
+
+StarPU 1.2.2 (svn revision 21308)
 ==============================================
 
 New features:
