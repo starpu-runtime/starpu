@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2009, 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,27 +15,33 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_COMM_H__
-#define __STARPU_MPI_COMM_H__
+#ifndef __STARPU_MPI_EARLY_REQUEST_H__
+#define __STARPU_MPI_EARLY_REQUEST_H__
 
 #include <starpu.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include <common/config.h>
+#include <common/list.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void _starpu_mpi_comm_init(MPI_Comm comm);
-void _starpu_mpi_comm_shutdown();
-void _starpu_mpi_comm_register(MPI_Comm comm);
-void _starpu_mpi_comm_post_recv();
-int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm);
-void _starpu_mpi_comm_cancel_recv();
+void _starpu_mpi_early_request_init(void);
+void _starpu_mpi_early_request_shutdown(void);
+int _starpu_mpi_early_request_count(void);
+void _starpu_mpi_early_request_check_termination(void);
+
+void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req);
+struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_COMM_H__
+#endif /* STARPU_USE_MPI_MPI */
+#endif /* __STARPU_MPI_EARLY_REQUEST_H__ */

@@ -16,9 +16,11 @@
 
 #include <stdlib.h>
 #include <starpu_mpi.h>
-#include <starpu_mpi_sync_data.h>
+#include <mpi/starpu_mpi_sync_data.h>
 #include <starpu_mpi_private.h>
 #include <common/uthash.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 struct _starpu_mpi_sync_data_handle_hashlist
 {
@@ -148,3 +150,4 @@ void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *sync_req)
 #endif
 }
 
+#endif // STARPU_USE_MPI_MPI

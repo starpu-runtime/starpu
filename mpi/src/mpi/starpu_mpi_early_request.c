@@ -18,8 +18,10 @@
 #include <stdlib.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
-#include <starpu_mpi_early_request.h>
+#include <mpi/starpu_mpi_early_request.h>
 #include <common/uthash.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 /** stores application requests for which data have not been received yet */
 struct _starpu_mpi_early_request_hashlist
@@ -115,3 +117,5 @@ void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 	_starpu_mpi_early_request_hash_count ++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 }
+
+#endif // STARPU_USE_MPI_MPI

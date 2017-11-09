@@ -404,6 +404,44 @@ AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
 AC_MSG_RESULT($nmaxmpidev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
 
+
+###############################################################################
+#                                                                             #
+#                                NEW MADELEINE                                #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(nmad, [AS_HELP_STRING([--enable-nmad],
+                              [Enable StarPU MPI library generation using new madeleine instead of mpi])],
+            [enable_nmad=$enableval],
+            [enable_nmad=no])
+
+if test x$use_mpi = xyes -a \( x$enable_nmad \) ; then
+    cc_or_mpicc=$mpicc_path
+        # For some reason, libtool uses gcc instead of mpicc when linking
+        # libstarpumpi.
+        # On Darwin (and maybe other systems ?) the linker will fail (undefined
+        # references to MPI_*). We manually add the required flags to fix this
+        # issue.
+        AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
+else
+    cc_or_mpicc=$CC
+fi
+
+build_nmad_lib=no
+AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
+#We can only build StarPU MPI Library if User wants it and MPI is available
+if test x$use_mpi = xyes -a x$enable_nmad = xyes ; then
+    build_nmad_lib=yes
+    enable_mpi=no
+    PKG_CHECK_MODULES([NMAD],[nmad pioman tbx])
+else
+    build_nmad_lib=no
+fi
+
+AC_MSG_CHECKING(whether the StarPU MPI nmad library should be generated)
+AC_MSG_RESULT($build_nmad_lib)
+
 ###############################################################################
 #                                                                             #
 #                                    DSM                                      #
@@ -572,13 +610,21 @@ fi
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
 AC_MSG_RESULT($build_mpi_lib)
 
-AC_SUBST(USE_MPI, $build_mpi_lib)
-AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes)
-if test x$build_mpi_lib = xyes; then
+AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes)
+if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
+	if test x$build_mpi_lib = xyes ; then
+		AC_DEFINE(STARPU_USE_MPI_MPI,[1],[whether the StarPU MPI library (with a native MPI implementation) is available])
+	else
+		AC_DEFINE(STARPU_USE_MPI_NMAD,[1],[whether the StarPU MPI library (with a NewMadeleine implementation) is available])
+	fi
 else
 	running_mpi_check=no
 fi
+
+AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
+AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
+AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)
 
 AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
 			[Arguments for mpiexec])],
@@ -3467,6 +3513,7 @@ AC_MSG_NOTICE([
 
 	StarPU Extensions:
 	       StarPU MPI enabled:                            $build_mpi_lib
+	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       StarPU DSM enabled:                            $enable_dsm

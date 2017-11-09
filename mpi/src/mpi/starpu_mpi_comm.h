@@ -14,27 +14,30 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_TAG_H__
-#define __STARPU_MPI_TAG_H__
+#ifndef __STARPU_MPI_COMM_H__
+#define __STARPU_MPI_COMM_H__
 
 #include <starpu.h>
 #include <stdlib.h>
 #include <mpi.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void _starpu_mpi_tag_init(void);
-void _starpu_mpi_tag_shutdown(void);
-
-void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t data_tag);
-int _starpu_mpi_tag_data_release(starpu_data_handle_t handle);
-starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t data_tag);
+void _starpu_mpi_comm_init(MPI_Comm comm);
+void _starpu_mpi_comm_shutdown();
+void _starpu_mpi_comm_register(MPI_Comm comm);
+void _starpu_mpi_comm_post_recv();
+int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm);
+void _starpu_mpi_comm_cancel_recv();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_TAG_H__
+#endif // STARPU_USE_MPI_MPI
+#endif // __STARPU_MPI_COMM_H__

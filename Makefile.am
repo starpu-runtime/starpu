@@ -35,7 +35,7 @@ endif
 
 SUBDIRS += doc
 
-if USE_MPI
+if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 

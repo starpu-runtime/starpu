@@ -19,8 +19,10 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
-#include <starpu_mpi_comm.h>
+#include <mpi/starpu_mpi_comm.h>
 #include <common/list.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 struct _starpu_mpi_comm
 {
@@ -137,7 +139,7 @@ void _starpu_mpi_comm_post_recv()
 		if (_comm->posted == 0)
 		{
 			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %ld\n", i, (long int)_comm->comm);
-			_STARPU_MPI_COMM_FROM_DEBUG(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, (starpu_mpi_tag_t)_STARPU_MPI_TAG_ENVELOPE, _comm->comm);
+			_STARPU_MPI_COMM_FROM_DEBUG(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, (int64_t)_STARPU_MPI_TAG_ENVELOPE, _comm->comm);
 			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
 #ifdef STARPU_SIMGRID
 			_starpu_mpi_simgrid_wait_req(&_comm->request, &_comm->status, &_comm->queue, &_comm->done);
@@ -218,3 +220,5 @@ void _starpu_mpi_comm_cancel_recv()
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_comms_mutex);
 }
+
+#endif /* STARPU_USE_MPI_MPI */

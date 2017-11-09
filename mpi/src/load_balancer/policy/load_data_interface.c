@@ -17,8 +17,11 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include <common/config.h>
 
 #include "load_data_interface.h"
+
+#if defined(STARPU_USE_MPI_MPI)
 
 int load_data_get_sleep_threshold(starpu_data_handle_t handle)
 {
@@ -267,3 +270,5 @@ void load_data_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 
 	starpu_data_register(handleptr, home_node, &load_data, &interface_load_data_ops);
 }
+
+#endif

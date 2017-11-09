@@ -18,6 +18,8 @@
 #ifndef __STARPU_MPI_LOAD_BALANCER_H__
 #define __STARPU_MPI_LOAD_BALANCER_H__
 
+#include <starpu.h>
+
 #ifdef __cplusplus
 extern "C"
 {

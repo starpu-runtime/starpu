@@ -16,7 +16,7 @@
  */
 
 #include <starpu_mpi.h>
-#include <starpu_mpi_tag.h>
+#include <mpi/starpu_mpi_tag.h>
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <math.h>
@@ -24,6 +24,9 @@
 #include "load_balancer_policy.h"
 #include "data_movements_interface.h"
 #include "load_data_interface.h"
+#include <common/config.h>
+
+#if defined(STARPU_USE_MPI_MPI)
 
 static int TAG_LOAD(int n)
 {
@@ -636,3 +639,5 @@ struct load_balancer_policy load_heat_propagation_policy =
 	.finished_task_entry_point = finished_task_heat,
 	.policy_name = "heat"
 };
+
+#endif

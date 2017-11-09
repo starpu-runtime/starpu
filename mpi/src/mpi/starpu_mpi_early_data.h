@@ -25,6 +25,8 @@
 #include <common/list.h>
 #include <starpu_mpi_private.h>
 
+#ifdef STARPU_USE_MPI_MPI
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -53,4 +55,5 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 }
 #endif
 
+#endif /*  STARPU_USE_MPI_MPI */
 #endif /* __STARPU_MPI_EARLY_DATA_H__ */

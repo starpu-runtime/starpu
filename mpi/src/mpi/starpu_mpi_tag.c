@@ -23,6 +23,8 @@
 #include <common/starpu_spinlock.h>
 #include <datawizard/coherency.h>
 
+#ifdef STARPU_USE_MPI_MPI
+
 /* Entry in the `registered_tag_handles' hash table.  */
 struct handle_tag_entry
 {
@@ -85,7 +87,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
 	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(data_tag)),
-			  "There is already a data handle %p registered with the tag %"PRIi64"d\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
+			  "There is already a data handle %p registered with the tag %ld\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
 
 	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64"d in hashtable\n", handle, data_tag);
 
@@ -119,3 +121,5 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 	}
 	return 0;
 }
+
+#endif // STARPU_USE_MPI_MPI

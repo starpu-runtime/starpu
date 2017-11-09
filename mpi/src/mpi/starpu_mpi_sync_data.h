@@ -23,6 +23,8 @@
 #include <common/config.h>
 #include <common/list.h>
 
+#ifdef STARPU_USE_MPI_MPI
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -40,4 +42,5 @@ int _starpu_mpi_sync_data_count();
 }
 #endif
 
+#endif /* STARPU_USE_MPI_MPI */
 #endif /* __STARPU_MPI_SYNC_DATA_H__ */

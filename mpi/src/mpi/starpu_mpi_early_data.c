@@ -17,9 +17,11 @@
 
 #include <stdlib.h>
 #include <starpu_mpi.h>
-#include <starpu_mpi_early_data.h>
+#include <mpi/starpu_mpi_early_data.h>
 #include <starpu_mpi_private.h>
 #include <common/uthash.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 struct _starpu_mpi_early_data_handle_hashlist
 {
@@ -127,3 +129,4 @@ void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
 }
 
+#endif // STARPU_USE_MPI_MPI

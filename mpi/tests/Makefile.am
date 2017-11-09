@@ -157,8 +157,12 @@ starpu_mpi_TESTS +=				\
 	tags_checking				\
 	sync					\
 	gather					\
-	gather2					\
+	gather2
+
+if STARPU_USE_MPI_MPI
+starpu_mpi_TESTS +=				\
 	load_balancer
+endif
 
 # Expected to fail
 starpu_mpi_TESTS +=				\
@@ -223,7 +227,6 @@ noinst_PROGRAMS =				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer
-
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

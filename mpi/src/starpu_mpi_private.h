@@ -26,6 +26,11 @@
 #include <common/list.h>
 #include <common/prio_list.h>
 #include <core/simgrid.h>
+#if defined(STARPU_USE_MPI_NMAD)
+#include <pioman.h>
+#include <nm_sendrecv_interface.h>
+#include <nm_session_interface.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -152,21 +157,11 @@ int _starpu_debug_rank;
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
+#if defined(STARPU_USE_MPI_MPI)
 extern int _starpu_mpi_tag;
 #define _STARPU_MPI_TAG_ENVELOPE  _starpu_mpi_tag
 #define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
 #define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2
-
-enum _starpu_mpi_request_type
-{
-	SEND_REQ=0,
-	RECV_REQ=1,
-	WAIT_REQ=2,
-	TEST_REQ=3,
-	BARRIER_REQ=4,
-	PROBE_REQ=5,
-	UNKNOWN_REQ=6,
-};
 
 #define _STARPU_MPI_ENVELOPE_DATA       0
 #define _STARPU_MPI_ENVELOPE_SYNC_READY 1
@@ -178,8 +173,18 @@ struct _starpu_mpi_envelope
 	starpu_mpi_tag_t data_tag;
 	unsigned sync;
 };
+#endif /* STARPU_USE_MPI_MPI */
 
-struct _starpu_mpi_req;
+enum _starpu_mpi_request_type
+{
+	SEND_REQ=0,
+	RECV_REQ=1,
+	WAIT_REQ=2,
+	TEST_REQ=3,
+	BARRIER_REQ=4,
+	PROBE_REQ=5,
+	UNKNOWN_REQ=6,
+};
 
 struct _starpu_mpi_node_tag
 {
@@ -196,6 +201,7 @@ struct _starpu_mpi_data
 	int cache_received;
 };
 
+struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
@@ -211,20 +217,36 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* who are we talking to ? */
 	struct _starpu_mpi_node_tag node_tag;
+#if defined(STARPU_USE_MPI_NMAD)
+	nm_gate_t gate;
+	nm_session_t session;
+#endif
 
 	void (*func)(struct _starpu_mpi_req *);
 
 	MPI_Status *status;
+#if defined(STARPU_USE_MPI_NMAD)
+	nm_sr_request_t data_request;
+	int waited;
+#elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request data_request;
+#endif
+
 	int *flag;
 	unsigned sync;
 
 	int ret;
+#if defined(STARPU_USE_MPI_NMAD)
+	piom_cond_t req_cond;
+#elif defined(STARPU_USE_MPI_MPI)
 	starpu_pthread_mutex_t req_mutex;
 	starpu_pthread_cond_t req_cond;
-
 	starpu_pthread_mutex_t posted_mutex;
 	starpu_pthread_cond_t posted_cond;
+	/* In the case of a Wait/Test request, we are going to post a request
+	 * to test the completion of another request */
+	struct _starpu_mpi_req *other_request;
+#endif
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 
@@ -232,40 +254,58 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned completed;
 	unsigned posted;
 
-	/* In the case of a Wait/Test request, we are going to post a request
-	 * to test the completion of another request */
-	struct _starpu_mpi_req *other_request;
-
 	/* in the case of detached requests */
 	int detached;
 	void *callback_arg;
 	void (*callback)(void *);
 
         /* in the case of user-defined datatypes, we need to send the size of the data */
+#if defined(STARPU_USE_MPI_NMAD)
+	nm_sr_request_t size_req;
+#elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request size_req;
+#endif
 
-        struct _starpu_mpi_envelope* envelope;
+#if defined(STARPU_USE_MPI_MPI)
+	struct _starpu_mpi_envelope* envelope;
 
 	unsigned is_internal_req:1;
 	unsigned to_destroy:1;
 	struct _starpu_mpi_req *internal_req;
 	struct _starpu_mpi_early_data_handle *early_data_handle;
+     	UT_hash_handle hh;
+#endif
 
 	int sequential_consistency;
 
 	long pre_sync_jobid;
 	long post_sync_jobid;
 
-     	UT_hash_handle hh;
-
 #ifdef STARPU_SIMGRID
         MPI_Status status_store;
 	starpu_pthread_queue_t queue;
 	unsigned done;
 #endif
-
 );
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)
+
+struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
+						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
+						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
+						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
+						       enum starpu_data_access_mode mode,
+						       int sequential_consistency,
+						       int is_internal_req,
+						       starpu_ssize_t count);
+
+void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
+void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
+void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
+void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
+void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
+int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
+int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
+int _starpu_mpi_barrier(MPI_Comm comm);
 
 struct _starpu_mpi_argc_argv
 {

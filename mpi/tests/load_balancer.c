@@ -18,7 +18,7 @@
 #include <starpu_mpi_lb.h>
 #include "helper.h"
 
-#if !defined(STARPU_HAVE_UNSETENV)
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_MPI_MPI)
 
 #warning unsetenv is not defined. Skipping test
 int main(int argc, char **argv)

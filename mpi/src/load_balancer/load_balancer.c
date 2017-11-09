@@ -21,9 +21,12 @@
 #include <starpu_mpi.h>
 #include <starpu_scheduler.h>
 #include <common/utils.h>
+#include <common/config.h>
 
 #include <starpu_mpi_lb.h>
 #include "policy/load_balancer_policy.h"
+
+#if defined(STARPU_USE_MPI_MPI)
 
 static struct load_balancer_policy *defined_policy = NULL;
 typedef void (*_post_exec_hook_func_t)(struct starpu_task *task, unsigned sched_ctx_id);
@@ -154,3 +157,5 @@ void starpu_mpi_lb_shutdown()
 	}
 	defined_policy = NULL;
 }
+
+#endif /* STARPU_USE_MPI_MPI */
