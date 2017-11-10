@@ -642,12 +642,12 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 
 	/* GPU-GPU transfers are sequential with any RAM->GPU transfer */
 	if (new_is_gpu_gpu
-			&& old_transfer->dst_node == new_transfer->src_node
-			&& old_transfer->dst_node == new_transfer->dst_node)
+			&& (old_transfer->dst_node == new_transfer->src_node
+			 || old_transfer->dst_node == new_transfer->dst_node))
 		return 1;
 	if (old_is_gpu_gpu
-			&& new_transfer->dst_node == old_transfer->src_node
-			&& new_transfer->dst_node == old_transfer->dst_node)
+			&& (new_transfer->dst_node == old_transfer->src_node
+			 || new_transfer->dst_node == old_transfer->dst_node))
 		return 1;
 
 	/* StarPU's constraint on CUDA transfers is using one stream per
