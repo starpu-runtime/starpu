@@ -173,6 +173,9 @@ images = 	\
 	chapters/images/starpu_starpu_slu_lu_model_11.eps \
 	chapters/images/starpu_starpu_slu_lu_model_11.pdf \
 	chapters/images/starpu_starpu_slu_lu_model_11.png \
+	chapters/images/starpu_chol_model_11_type.eps \
+	chapters/images/starpu_chol_model_11_type.pdf \
+	chapters/images/starpu_chol_model_11_type.png \
 	chapters/images/tasks_size_overhead.eps \
 	chapters/images/tasks_size_overhead.pdf \
 	chapters/images/tasks_size_overhead.png \
