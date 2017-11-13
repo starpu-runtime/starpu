@@ -16,6 +16,12 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 
+StarPU 1.2.4 (svn revision xxx)
+==============================================
+
+Small features:
+   * Catch of signals SIGINT and SIGSEGV to dump fxt trace files.
+
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
 
