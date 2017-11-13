@@ -279,6 +279,9 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size);
 /* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
 
+/* Generate the trace file. Used when catching signals SIGINT and SIGSEGV */
+void _starpu_fxt_dump_file(void);
+
 /* Associate the current processing unit to the identifier of the LWP that runs
  * the worker. */
 void _starpu_fxt_register_thread(unsigned);

@@ -162,8 +162,6 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 
 	threadid = _starpu_gettid();
 
-	atexit(_starpu_stop_fxt_profiling);
-
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid) < 0)
 	{
 		perror("fut_setup");
@@ -191,6 +189,16 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 	options.file_rank = -1;
 
 	starpu_fxt_generate_trace(&options);
+}
+
+void _starpu_fxt_dump_file(void)
+{
+	if (!_starpu_fxt_started)
+		return;
+#ifdef STARPU_VERBOSE
+	_STARPU_MSG("Writing FxT traces into file %s\n", _STARPU_PROF_FILE_USER);
+#endif
+	fut_endup(_STARPU_PROF_FILE_USER);
 }
 
 void _starpu_stop_fxt_profiling(void)
