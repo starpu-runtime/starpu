@@ -30,7 +30,7 @@ static struct starpu_codelet init_codelet =
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "init_codelet"
 };
@@ -41,7 +41,7 @@ static struct starpu_codelet redux_codelet =
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "redux_codelet"
 };
@@ -52,7 +52,7 @@ static struct starpu_codelet dot_codelet =
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_REDUX},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "dot_codelet"
 };
@@ -63,7 +63,7 @@ static struct starpu_codelet display_codelet =
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "display_codelet"
 };

@@ -37,7 +37,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 #define N     1000

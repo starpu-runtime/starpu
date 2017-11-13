@@ -44,7 +44,7 @@ static struct starpu_codelet cl =
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 };
 

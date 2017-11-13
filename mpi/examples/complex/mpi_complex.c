@@ -31,7 +31,7 @@ struct starpu_codelet foo_display =
 	.cpu_funcs = {display_foo_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

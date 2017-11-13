@@ -32,7 +32,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

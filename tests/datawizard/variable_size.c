@@ -266,7 +266,7 @@ static struct starpu_codelet cl_init =
 	/*.cpu_funcs_name = {"kernel"},*/
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

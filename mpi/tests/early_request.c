@@ -67,7 +67,7 @@ static struct starpu_codelet fill_tmp_buffer_cl =
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "fill_tmp_buffer"
 };
@@ -90,7 +90,7 @@ static struct starpu_codelet read_ghost_value_cl =
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "read_ghost_value"
 };
@@ -111,7 +111,7 @@ static struct starpu_codelet submitted_order =
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "submitted_order_enforcer"
 };

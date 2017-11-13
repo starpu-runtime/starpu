@@ -28,7 +28,7 @@ struct starpu_codelet mycodelet_r =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_w =
@@ -36,7 +36,7 @@ struct starpu_codelet mycodelet_w =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_rw =
@@ -44,7 +44,7 @@ struct starpu_codelet mycodelet_rw =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)

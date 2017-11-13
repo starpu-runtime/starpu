@@ -28,7 +28,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int starpu_mpi_select_node_my_policy_0(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)

@@ -44,7 +44,7 @@ static struct starpu_codelet increment_cl =
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 void increment_token(starpu_data_handle_t handle)

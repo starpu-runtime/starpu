@@ -28,14 +28,14 @@ struct starpu_codelet mycodelet_2 =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 struct starpu_codelet mycodelet_3 =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_W, STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

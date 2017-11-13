@@ -32,7 +32,7 @@ struct starpu_codelet my_codelet =
 	.cpu_funcs = {my_func},
 	.cuda_funcs = {my_func},
 	.opencl_funcs = {my_func},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 static

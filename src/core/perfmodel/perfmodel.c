@@ -563,7 +563,7 @@ static double nop_cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, s
 	return 0.000001;
 }
 
-struct starpu_perfmodel starpu_nop_perf_model =
+struct starpu_perfmodel starpu_perfmodel_nop =
 {
 	.type = STARPU_PER_ARCH,
 	.arch_cost_function = nop_cost_function,

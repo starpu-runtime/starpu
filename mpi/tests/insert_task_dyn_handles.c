@@ -41,7 +41,7 @@ struct starpu_codelet codelet =
 	.cpu_funcs_name = {"func_cpu"},
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 #ifdef STARPU_SIMGRID
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 };
 

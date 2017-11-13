@@ -28,7 +28,7 @@ struct starpu_codelet mycodelet_r =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

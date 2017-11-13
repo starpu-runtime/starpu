@@ -333,7 +333,7 @@ Return the estimated time to transfer a given size between two memory nodes.
 \ingroup API_Performance_Model
 Return the estimated time of a task with the given model and the given footprint.
 
-\var starpu_nop_perf_model
+\var starpu_perfmodel_nop
 Performance model which just always return 1µs.
 
 */

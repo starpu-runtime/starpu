@@ -43,7 +43,7 @@ static struct starpu_codelet cl_null =
 {
 	.cpu_funcs = {null_cpu_func},
 	.cpu_funcs_name = {"null_cpu_func"},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 	.name = "null",
 };
 
@@ -54,7 +54,7 @@ static struct starpu_codelet cl_prod =
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 	.name = "prod",
 };
 

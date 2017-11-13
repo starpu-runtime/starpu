@@ -35,7 +35,7 @@ struct starpu_codelet mycodelet_r_w =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_rw_r =
@@ -43,7 +43,7 @@ struct starpu_codelet mycodelet_rw_r =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_rw_rw =
@@ -51,7 +51,7 @@ struct starpu_codelet mycodelet_rw_rw =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_w_r =
@@ -59,7 +59,7 @@ struct starpu_codelet mycodelet_w_r =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_r_r =
@@ -67,7 +67,7 @@ struct starpu_codelet mycodelet_r_r =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
-	.model = &starpu_nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)
