@@ -109,6 +109,15 @@ Disable the creation of the documentation. This should be done on a
 machine which does not have the tools <c>doxygen</c> and <c>latex</c>
 (plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
 </dd>
+
+<dt>--disable-icc</dt>
+<dd>
+\anchor disable-icc
+\addindex __configure__--disable-icc
+Disable the usage of the ICC compiler. When found, some specific ICC
+examples are compiled.
+</dd>
+
 </dl>
 
 Additionally, the script <c>configure</c> recognize many variables, which

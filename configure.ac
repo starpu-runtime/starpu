@@ -3230,8 +3230,15 @@ if test x$have_f77_h = xyes; then
         AC_DEFINE([STARPU_HAVE_F77_H], [1], [Define to 1 if you have the <f77.h> header file.])
 fi
 
-# Check if icc is available
-AC_CHECK_PROGS([ICC], [icc])
+AC_ARG_ENABLE(icc, [AS_HELP_STRING([--enable-icc],
+				[Enable the compilation of specific ICC examples])],
+				enable_icc=$enableval, enable_icc=yes)
+
+ICC=""
+if test "$enable_icc" = "yes" ; then
+   # Check if icc is available
+   AC_CHECK_PROGS([ICC], [icc])
+fi
 
 # If cuda and icc are both available, check they are compatible
 if test "$enable_cuda" = "yes" -a "$ICC" != ""; then
@@ -3258,6 +3265,7 @@ fi
 if test "x$ICC" != "x" -a "$starpu_windows" = "yes" ; then
     ICC=""
 fi
+
 if test "x$ICC" != "x"; then
   AC_DEFINE(STARPU_HAVE_ICC, [1], [Define this if icc is available])
 fi

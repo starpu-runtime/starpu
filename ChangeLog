@@ -79,6 +79,8 @@ StarPU 1.2.4 (svn revision xxx)
 
 Small features:
    * Catch of signals SIGINT and SIGSEGV to dump fxt trace files.
+   * New configure option --disable-icc to disable the compilation of
+     specific ICC examples
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
