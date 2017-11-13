@@ -74,7 +74,13 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
-StarPU 1.2.3 (svn revision xxx)
+StarPU 1.2.4 (svn revision xxx)
+==============================================
+
+Small features:
+   * Catch of signals SIGINT and SIGSEGV to dump fxt trace files.
+
+StarPU 1.2.3 (svn revision 22444)
 ==============================================
 
 New features:
