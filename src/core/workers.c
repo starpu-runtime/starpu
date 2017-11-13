@@ -1083,6 +1083,40 @@ static void _starpu_build_tree(void)
 #endif
 }
 
+static struct sigaction act_sigint;
+static struct sigaction act_sigsegv;
+
+void _starpu_handler(int sig)
+{
+#ifdef STARPU_VERBOSE
+	_STARPU_MSG("Catching signal '%s'\n", sys_siglist[sig]);
+#endif
+#ifdef STARPU_USE_FXT
+	_starpu_fxt_dump_file();
+#endif
+	if (sig == SIGINT)
+	{
+		sigaction(SIGINT, &act_sigint, NULL);
+	}
+	if (sig == SIGSEGV)
+	{
+		sigaction(SIGSEGV, &act_sigsegv, NULL);
+	}
+#ifdef STARPU_VERBOSE
+	_STARPU_MSG("Rearming signal '%s'\n", sys_siglist[sig]);
+#endif
+	raise(sig);
+}
+
+void _starpu_catch_signals(void)
+{
+	struct sigaction act;
+	act.sa_handler = _starpu_handler;
+
+	sigaction(SIGINT, &act, &act_sigint);
+	sigaction(SIGSEGV, &act, &act_sigsegv);
+}
+
 int starpu_init(struct starpu_conf *user_conf)
 {
 	return starpu_initialize(user_conf, NULL, NULL);
@@ -1335,6 +1369,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		STARPU_ASSERT(0);
 	}
 #endif
+
+	_starpu_catch_signals();
 
 	return 0;
 }
