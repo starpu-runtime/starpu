@@ -1181,6 +1181,7 @@ void _starpu_handler(int sig)
 void _starpu_catch_signals(void)
 {
 	struct sigaction act;
+	memset(&act, 0, sizeof(act));
 	act.sa_handler = _starpu_handler;
 
 	sigaction(SIGINT, &act, &act_sigint);
