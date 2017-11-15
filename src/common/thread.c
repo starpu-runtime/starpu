@@ -242,7 +242,7 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 
 /* We need it only when using smpi */
 #pragma weak smpi_process_get_user_data
-#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
+#if !defined(HAVE_DECL_SMPI_PROCESS_SET_USER_DATA)
 extern void *smpi_process_get_user_data();
 #endif
 
