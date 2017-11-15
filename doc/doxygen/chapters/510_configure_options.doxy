@@ -138,9 +138,6 @@ used by nvcc.
 By default, StarPU keeps CPU workers awake permanently, for better
 reactivity. This option makes StarPU put CPU workers to real sleep when there
 are not enough tasks to compute.
-
-Use at most <c>count</c> CPU cores.  This information is then
-available as the macro ::STARPU_MAXCPUS.
 </dd>
 
 <dt>--enable-maxcpus=<c>count</c></dt>
