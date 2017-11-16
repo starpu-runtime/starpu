@@ -36,6 +36,8 @@ multiformat_scal_cpu_func(void *buffers[], void *args)
 	struct point *aos;
 	unsigned int n, i;
 
+	(void)args;
+
 	aos = (struct point *) STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
 	n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 

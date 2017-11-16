@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015  ONERA
  * Copyright (C) 2015  Inria
- * Copyright (C) 2015  CNRS
+ * Copyright (C) 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -122,6 +122,7 @@ struct starpu_codelet cl_copy_element =
 
 void copy_element_cpu_func(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	double **ro = (double **) STARPU_MATRIX_GET_PTR(buffers[0]);
 	int Neq_max  = STARPU_MATRIX_GET_NX(buffers[0]);
 	int Np = STARPU_MATRIX_GET_NY(buffers[0]);

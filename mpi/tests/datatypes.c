@@ -50,6 +50,8 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
 void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
 	(void)error;
+	(void)handle_s;
+	(void)handle_r;
 	FPRINTF_MPI(stderr, "Success with void value\n");
 }
 

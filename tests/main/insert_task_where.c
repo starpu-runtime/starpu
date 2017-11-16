@@ -20,8 +20,9 @@
 
 extern void cuda_host_increment(void *descr[], void *_args);
 
-void cpu_increment(void *descr[], void *arg STARPU_ATTRIBUTE_UNUSED)
+void cpu_increment(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*var) += 2;
 }
@@ -38,7 +39,7 @@ static struct starpu_codelet my_codelet =
 	.nbuffers = 1
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         starpu_data_handle_t data_handles[2];
 	int x = 12;

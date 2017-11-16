@@ -125,9 +125,13 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 }
 #endif
 
-int starpu_mpi_init_comm(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED, int initialize_mpi STARPU_ATTRIBUTE_UNUSED, MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
+int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
 #ifdef STARPU_SIMGRID
+	(void)argc;
+	(void)argv;
+	(void)initialize_mpi;
+	(void)comm;
 	_starpu_mpi_wait_for_initialization();
 	return 0;
 #else

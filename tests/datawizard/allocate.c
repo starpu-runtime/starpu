@@ -172,7 +172,7 @@ void test_malloc()
 	starpu_free_flags(buffer, 1, STARPU_MALLOC_COUNT);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	unsigned memnodes, i;

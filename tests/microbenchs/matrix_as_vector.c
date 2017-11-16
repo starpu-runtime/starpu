@@ -33,8 +33,9 @@
 #define LOOPS 100
 #endif
 
-void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void vector_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -46,10 +47,11 @@ void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum/nx;
 }
 
-static
-void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
-{
 #ifdef STARPU_USE_CUDA
+static
+void vector_cuda_func(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -63,11 +65,12 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	sum /= nx;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-#endif /* STARPU_USE_CUDA */
 }
+#endif /* STARPU_USE_CUDA */
 
-void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void matrix_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -80,10 +83,11 @@ void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum / (nx*ny);
 }
 
-static
-void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
-{
 #ifdef STARPU_USE_CUDA
+static
+void matrix_cuda_func(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -98,8 +102,8 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	sum /= nx*ny;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-#endif /* STARPU_USE_CUDA */
 }
+#endif /* STARPU_USE_CUDA */
 
 static
 int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_codelet *matrix_codelet, char *device_name)
@@ -197,16 +201,26 @@ int check_size_on_device(uint32_t where, char *device_name)
 	vector_codelet.modes[0] = STARPU_RW;
 	vector_codelet.nbuffers = 1;
 	if (where == STARPU_CPU) vector_codelet.cpu_funcs[0] = vector_cpu_func;
-	if (where == STARPU_CUDA) vector_codelet.cuda_funcs[0] = vector_cuda_func;
-	if (where == STARPU_CUDA) vector_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
+#ifdef STARPU_USE_CUDA
+	if (where == STARPU_CUDA)
+	{
+		vector_codelet.cuda_funcs[0] = vector_cuda_func;
+		vector_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
+	}
+#endif
 //	if (where == STARPU_OPENCL) vector_codelet.opencl_funcs[0] = vector_opencl_func;
 
 	starpu_codelet_init(&matrix_codelet);
 	matrix_codelet.modes[0] = STARPU_RW;
 	matrix_codelet.nbuffers = 1;
 	if (where == STARPU_CPU) matrix_codelet.cpu_funcs[0] = matrix_cpu_func;
-	if (where == STARPU_CUDA) matrix_codelet.cuda_funcs[0] = matrix_cuda_func;
-	if (where == STARPU_CUDA) matrix_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
+#ifdef STARPU_USE_CUDA
+	if (where == STARPU_CUDA)
+	{
+		matrix_codelet.cuda_funcs[0] = matrix_cuda_func;
+		matrix_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
+	}
+#endif
 //	if (where == STARPU_OPENCL) matrix_codelet.opencl_funcs[0] = matrix_opencl_func;
 
 	for(nx=NX_MIN ; nx<=NX_MAX ; nx*=2)
@@ -217,7 +231,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 	return ret;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	unsigned devices;

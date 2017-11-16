@@ -25,7 +25,7 @@
  */
 
 #if ! (defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA))
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }

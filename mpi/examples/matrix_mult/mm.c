@@ -239,7 +239,7 @@ static void unregister_matrices()
 
 /* Perform the actual computation. In a real-life case, this would rather call a BLAS 'gemm' routine
  * instead. */
-static void cpu_mult(void *handles[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void cpu_mult(void *handles[], void *arg)
 {
 	double *block_A = (double *)STARPU_MATRIX_GET_PTR(handles[0]);
 	double *block_B = (double *)STARPU_MATRIX_GET_PTR(handles[1]);

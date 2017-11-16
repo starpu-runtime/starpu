@@ -24,7 +24,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -69,7 +69,7 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, (void*)"static chunk", NB_ITERS, CHUNK, starpu_omp_sched_static, 0, 1);
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 	starpu_omp_for(for_g, (void*)"static nochunk", NB_ITERS, 0, starpu_omp_sched_static, 0, 1);
-	
+
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 	starpu_omp_for(for_g, (void*)"dynamic chunk", NB_ITERS, CHUNK, starpu_omp_sched_dynamic, 0, 1);
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
@@ -82,7 +82,7 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 	memset(&attr, 0, sizeof(attr));

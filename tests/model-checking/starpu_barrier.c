@@ -18,7 +18,6 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
-//#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
@@ -57,7 +56,7 @@
 #endif
 
 int
-_starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+_starpu_simgrid_thread_start(int argc, char *argv[])
 {
 	return 0;
 }
@@ -75,7 +74,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STAR
 
 struct _starpu_barrier barrier;
 
-int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int worker(int argc, char *argv[])
 {
 	unsigned iter;
 
@@ -88,7 +87,7 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 	return 0;
 }
 
-int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int master(int argc, char *argv[])
 {
 	unsigned i;
 

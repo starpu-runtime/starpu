@@ -24,7 +24,7 @@
  */
 
 #if !defined(STARPU_OPENMP) || !defined(STARPU_USE_CUDA)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -57,7 +57,7 @@ void task_region_g(void *buffers[], void *args)
 	int *v2 = (int *)STARPU_VECTOR_GET_PTR(_vector_2);
 
 	int f = (int)(intptr_t)args;
-	
+
 	STARPU_ASSERT(nx1 == nx2);
 
 	printf("depth 1 task, entry: vector_1 ptr = %p\n", v1);
@@ -165,10 +165,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
-	(void)argc;
-	(void)argv;
 	struct starpu_omp_parallel_region_attr attr;
 
 	if (starpu_cuda_worker_get_count() < 1)

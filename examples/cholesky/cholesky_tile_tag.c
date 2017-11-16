@@ -38,9 +38,9 @@ starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
-		task->cl_arg = NULL;
-		task->use_tag = 1;
-		task->tag_id = id;
+	task->cl_arg = NULL;
+	task->use_tag = 1;
+	task->tag_id = id;
 
 	return task;
 }
@@ -51,7 +51,8 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 {
-/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
+	(void)nblocks;
+	/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11(k));
 

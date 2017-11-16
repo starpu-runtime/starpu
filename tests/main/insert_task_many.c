@@ -26,8 +26,9 @@
 
 #define NPARAMS 15
 
-void func_cpu(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	struct starpu_task *task = starpu_task_get_current();
 	int num = STARPU_TASK_GET_NBUFFERS(task);
 	int i;
@@ -88,7 +89,7 @@ struct starpu_codelet codelet_variable =
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         int *x;
         int i, ret, loop;

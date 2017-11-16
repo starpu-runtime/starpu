@@ -668,13 +668,17 @@ struct _starpu_mpi_redux_data_args
 	struct starpu_task *taskB;
 };
 
-void _starpu_mpi_redux_data_dummy_func(STARPU_ATTRIBUTE_UNUSED void *buffers[], STARPU_ATTRIBUTE_UNUSED void *cl_arg)
+void _starpu_mpi_redux_data_dummy_func(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 /* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+static double cost_function(struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	return 0.000001;
 }
 static struct starpu_perfmodel dumb_model =

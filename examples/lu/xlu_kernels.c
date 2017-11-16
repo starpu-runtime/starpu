@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012, 2014-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,12 +36,12 @@ static const TYPE m1 = -1.0f;
 #endif
 
 /*
- *   U22 
+ *   U22
  */
 
-static inline void STARPU_LU(common_u22)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_LU(common_u22)(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	TYPE *right 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *left 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *center 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -62,7 +62,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 	switch (s)
 	{
 		case 0:
-			CPU_GEMM("N", "N", dy, dx, dz, 
+			CPU_GEMM("N", "N", dy, dx, dz,
 				(TYPE)-1.0, right, ld21, left, ld12,
 				(TYPE)1.0, center, ld22);
 			break;
@@ -114,6 +114,8 @@ static struct starpu_perfmodel STARPU_LU(model_22) =
 #ifdef STARPU_USE_CUDA
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	if (type == STARPU_CPU_WORKER || type == STARPU_MIC_WORKER || type == STARPU_SCC_WORKER)
 		return 1;
@@ -161,13 +163,13 @@ struct starpu_codelet cl22 =
  * U12
  */
 
-static inline void STARPU_LU(common_u12)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_LU(common_u12)(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	TYPE *sub11;
 	TYPE *sub12;
 
-	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);	
+	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub12 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 
 	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
@@ -246,13 +248,13 @@ struct starpu_codelet cl12 =
 	.model = &STARPU_LU(model_12)
 };
 
-/* 
+/*
  * U21
  */
 
-static inline void STARPU_LU(common_u21)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_LU(common_u21)(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	TYPE *sub11;
 	TYPE *sub21;
 
@@ -264,7 +266,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 
 	unsigned nx21 = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
-	
+
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
@@ -303,7 +305,7 @@ void STARPU_LU(cublas_u21)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u21)(descr, 1, _args);
 }
-#endif 
+#endif
 
 static struct starpu_perfmodel STARPU_LU(model_21) =
 {
@@ -337,12 +339,12 @@ struct starpu_codelet cl21 =
  *	U11
  */
 
-static inline void STARPU_LU(common_u11)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	TYPE *sub11;
 
-	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -365,7 +367,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				STARPU_ASSERT(!ISZERO(pivot));
 
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
-		
+
 				CPU_GER(nx - z - 1, nx - z - 1, -1.0,
 						&sub11[(z+1)+z*ld], 1,
 						&sub11[z+(z+1)*ld], ld,
@@ -390,7 +392,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 						(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
 				if (status != CUBLAS_STATUS_SUCCESS)
 					STARPU_CUBLAS_REPORT_ERROR(status);
-				
+
 				status = CUBLAS_GER(handle,
 						nx - z - 1, nx - z - 1,
 						(CUBLAS_TYPE*)&m1,
@@ -400,7 +402,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 				if (status != CUBLAS_STATUS_SUCCESS)
 					STARPU_CUBLAS_REPORT_ERROR(status);
 			}
-			
+
 			cudaStreamSynchronize(stream);
 
 			break;
@@ -459,7 +461,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 {
 	TYPE *sub11;
 
-	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -504,7 +506,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 				STARPU_ASSERT(!ISZERO(pivot));
 
 				CPU_SCAL(nx - z - 1, (1.0/pivot), &sub11[z+(z+1)*ld], ld);
-		
+
 				CPU_GER(nx - z - 1, nx - z - 1, -1.0,
 						&sub11[(z+1)+z*ld], 1,
 						&sub11[z+(z+1)*ld], ld,
@@ -532,7 +534,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 					piv_ind -= 1;
 					if (status != CUBLAS_STATUS_SUCCESS)
 						STARPU_CUBLAS_REPORT_ERROR(status);
-	
+
 					ipiv[z + first] = piv_ind + z + first;
 
 					/* swap if needed */
@@ -559,7 +561,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
 				if (status != CUBLAS_STATUS_SUCCESS)
 					STARPU_CUBLAS_REPORT_ERROR(status);
-				
+
 				status = CUBLAS_GER(handle,
 						nx - z - 1, nx - z - 1,
 						(CUBLAS_TYPE*)&m1,
@@ -628,7 +630,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 {
 	TYPE *matrix;
 
-	matrix = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]); 
+	matrix = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
 

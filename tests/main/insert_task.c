@@ -43,7 +43,9 @@ void func_cpu_noargs(void *descr[], void *_args)
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-        *x0 = *x0 * _ifactor;
+	(void)_args;
+
+	*x0 = *x0 * _ifactor;
         *x1 = *x1 * _ffactor;
 }
 
@@ -118,7 +120,7 @@ enodev:
 	return ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
         int x; float f;
         int i, ret;

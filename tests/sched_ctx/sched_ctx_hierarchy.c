@@ -26,6 +26,7 @@ void free_codelet(void *arg)
 
 void func_cpu_bis(void *descr[], void *_args)
 {
+	(void)descr;
 	char msg;
 	char worker_name[256];
 	int worker_id = starpu_worker_get_id_check();
@@ -55,6 +56,7 @@ void func_cpu_bis(void *descr[], void *_args)
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
 	char msg;
 	char worker_name[256];
 	int worker_id = starpu_worker_get_id_check();
@@ -93,7 +95,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs_name = {"func_cpu"},
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         int i, ret;
 	int nprocs, nprocs_per_context=1;

@@ -51,6 +51,7 @@ static void parse_args(int argc, char **argv)
  * same number of rows. */
 static void csr_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 {
+	(void)f;
 	struct starpu_csr_interface *csr_father = (struct starpu_csr_interface *) father_interface;
 	struct starpu_csr_interface *csr_child = (struct starpu_csr_interface *) child_interface;
 

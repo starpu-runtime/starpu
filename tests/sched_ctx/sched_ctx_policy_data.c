@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int nprocs;

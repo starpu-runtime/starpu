@@ -33,8 +33,9 @@
  *	and construct the DAG
  */
 
-static void callback_turn_spmd_on(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_turn_spmd_on(void *arg)
 {
+	(void)arg;
 	cl22.type = STARPU_SPMD;
 }
 
@@ -356,7 +357,7 @@ int main(int argc, char **argv)
 
 	if(with_ctxs_p)
 	{
-		construct_contexts(execute_cholesky);
+		construct_contexts();
 		start_2benchs(execute_cholesky);
 	}
 	else if(with_noctxs_p)

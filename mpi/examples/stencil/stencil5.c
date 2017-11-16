@@ -24,7 +24,7 @@
                                                 fprintf(ofile, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __starpu_func__ ,## __VA_ARGS__); \
                                                 fflush(ofile); }} while(0);
 
-void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void stencil5_cpu(void *descr[], void *_args)
 {
 	float *xy = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *xm1y = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);

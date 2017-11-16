@@ -286,11 +286,9 @@ void do_test_float_int_pack(starpu_cpu_func_t func, char* func_name)
 	free(ifactor);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
         int ret;
-	(void) argc;
-	(void) argv;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

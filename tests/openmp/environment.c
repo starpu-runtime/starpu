@@ -24,13 +24,13 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
 #else
 int
-main (int argc, char *argv[])
+main (void)
 {
 	setenv("OMP_DYNAMIC","false", 1);
 	setenv("OMP_NESTED","false", 1);

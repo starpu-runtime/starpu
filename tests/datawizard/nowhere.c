@@ -28,8 +28,9 @@
 
 static int x, y;
 
-static void prod(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+static void prod(void *descr[], void *arg)
 {
+	(void)arg;
 	int *v = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*v = 1;
@@ -44,12 +45,14 @@ static struct starpu_codelet cl_prod =
 
 static void callback0(void *callback_arg)
 {
+	(void)callback_arg;
 	STARPU_ASSERT(x==0);
 	STARPU_ASSERT(y==0);
 }
 
 static void callback(void *callback_arg)
 {
+	(void)callback_arg;
 	STARPU_ASSERT(x>=1);
 	STARPU_ASSERT(y>=1);
 }
@@ -61,8 +64,10 @@ static struct starpu_codelet cl_nowhere =
 	.modes = { STARPU_R, STARPU_R },
 };
 
-static void cons(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+static void cons(void *descr[], void *_args)
 {
+	(void)_args;
+
 	int *v = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(*v == 1);

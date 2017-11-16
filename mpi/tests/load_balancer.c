@@ -39,6 +39,8 @@ void get_neighbors(int **neighbor_ids, int *nneighbors)
 
 void get_data_unit_to_migrate(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node)
 {
+	(void)handle_unit;
+	(void)dst_node;
 	*nhandles = 0;
 }
 

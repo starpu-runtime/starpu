@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2014, 2016  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012, 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,8 +34,9 @@ starpu_data_handle_t data_handle;
 
 unsigned data;
 
-void specific_kernel(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void specific_kernel(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(dataptr == &data);
@@ -53,14 +54,15 @@ static struct starpu_codelet specific_cl =
 	.nodes = {STARPU_MAIN_RAM},
 };
 
-void cpu_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet_unsigned_inc(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*dataptr)++;
 }
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg);
+void cuda_codelet_unsigned_inc(void *descr[], void *cl_arg);
 #endif
 #ifdef STARPU_USE_OPENCL
 void opencl_codelet_unsigned_inc(void *buffers[], void *args);
@@ -85,7 +87,7 @@ static struct starpu_codelet cl =
 struct starpu_opencl_program opencl_program;
 #endif
 
-int main(STARPU_ATTRIBUTE_UNUSED int argc, STARPU_ATTRIBUTE_UNUSED char **argv)
+int main(void)
 {
 #ifdef STARPU_QUICK_CHECK
 	unsigned ntasks = 10;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014, 2016  CNRS
+ * Copyright (C) 2014, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,8 @@ void func_cpu(void *descr[], void *_args)
 	char c;
 	int x;
 
+	(void)descr;
+
 	starpu_codelet_unpack_args(_args, &factor, &c, &x);
 
         FPRINTF(stderr, "values: %d %c %d\n", factor, c, x);
@@ -41,7 +43,7 @@ struct starpu_codelet mycodelet =
         .nbuffers = 0
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         int ret;
         int x=42;

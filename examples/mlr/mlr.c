@@ -148,7 +148,7 @@ static struct starpu_codelet cl_final =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	/* Initialization */
 	unsigned i;

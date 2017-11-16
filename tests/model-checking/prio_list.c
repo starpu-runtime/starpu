@@ -16,7 +16,6 @@
 
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
-#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #ifndef NOCONFIG
 #include <config.h>
@@ -92,7 +91,7 @@ void check_list_prio(struct foo_prio_list *list)
 	}
 }
 
-int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+int worker(int argc, char *argv[])
 {
 	unsigned myrank = atoi(argv[0]);
 	unsigned i, n, l, iter;
@@ -144,7 +143,7 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	return 0;
 }
 
-int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int master(int argc, char *argv[])
 {
 	unsigned i, l;
 

@@ -24,8 +24,10 @@
  * Check that pheft works with only GPUs
  */
 
-void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_null(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 struct starpu_perfmodel model =
@@ -56,8 +58,7 @@ static struct starpu_codelet cl2 =
 	.modes = {STARPU_W}
 };
 
-
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	starpu_data_handle_t handle;

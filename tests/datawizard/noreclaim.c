@@ -25,14 +25,16 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
 #else
 
-void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void dummy_func(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 static struct starpu_codelet dummy_cl =

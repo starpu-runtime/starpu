@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2011  CNRS
+ * Copyright (C) 2010, 2011, 2017  CNRS
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,33 +87,33 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 #endif
 
-void initialize_chol_model(struct starpu_perfmodel* model, char* symbol, 
-		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+void initialize_chol_model(struct starpu_perfmodel* model, char* symbol,
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
-static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-with_ctxs") == 0) 
+		if (strcmp(argv[i], "-with_ctxs") == 0)
 		{
 			with_ctxs = 1;
 			break;
 		}
-		if (strcmp(argv[i], "-with_noctxs") == 0) 
+		if (strcmp(argv[i], "-with_noctxs") == 0)
 		{
 			with_noctxs = 1;
 			break;
 		}
-		
-		if (strcmp(argv[i], "-chole1") == 0) 
+
+		if (strcmp(argv[i], "-chole1") == 0)
 		{
 			chole1 = 1;
 			break;
 		}
 
-		if (strcmp(argv[i], "-chole2") == 0) 
+		if (strcmp(argv[i], "-chole2") == 0)
 		{
 			chole2 = 1;
 			break;

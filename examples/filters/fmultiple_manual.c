@@ -30,9 +30,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void matrix_fill(void *buffers[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void matrix_fill(void *buffers[], void *cl_arg)
 {
 	unsigned i, j;
+	(void)cl_arg;
 
 	/* length of the matrix */
 	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -97,11 +98,13 @@ struct starpu_codelet cl_check_scale =
 	.name = "fmultiple_check_scale"
 };
 
-void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void empty(void *buffers[], void *cl_arg)
 {
 	/* This doesn't need to do anything, it's simply used to make coherency
 	 * between the two views, by simply running on the home node of the
 	 * data, thus getting back all data pieces there.  */
+	(void)buffers;
+	(void)cl_arg;
 }
 
 struct starpu_codelet cl_switch =
@@ -111,7 +114,7 @@ struct starpu_codelet cl_switch =
 	.name = "switch"
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned j, n=1;
 	int matrix[NX][NY];

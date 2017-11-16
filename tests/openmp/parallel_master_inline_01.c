@@ -24,7 +24,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -63,7 +63,7 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 	pthread_t tid;

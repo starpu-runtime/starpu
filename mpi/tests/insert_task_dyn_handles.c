@@ -23,6 +23,7 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int num = starpu_task_get_current()->nbuffers;
 	int *factor = (int *)STARPU_VARIABLE_GET_PTR(descr[num-1]);
 	int i;

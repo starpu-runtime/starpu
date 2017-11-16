@@ -63,18 +63,24 @@ void initSchedulerCallback(unsigned sched_ctx)
 
 void callback_a_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
@@ -82,24 +88,30 @@ void callback_c_cpu(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_OPENCL
 void callback_a_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 #endif
 
-int main(int argc, char** argv)
+int main(void)
 {
 	int ret;
 	struct starpu_conf conf;

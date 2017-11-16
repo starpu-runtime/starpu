@@ -115,8 +115,7 @@ enodev:
 	return -ENODEV;
 }
 
-int
-main(void)
+int main(void)
 {
 	struct starpu_sched_policy **policies;
 	struct starpu_sched_policy **policy;

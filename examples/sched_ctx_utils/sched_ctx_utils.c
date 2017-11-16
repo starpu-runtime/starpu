@@ -202,13 +202,11 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	printf("%2.2f %2.2f\n", rv[1].avg_timing, timing);
 }
 
-void construct_contexts(void (*bench)(unsigned, unsigned))
+void construct_contexts()
 {
 	unsigned nprocs1 = cpu1 + gpu + gpu1;
 	unsigned nprocs2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;
-
-
 	int procs[nprocs1];
 	unsigned i;
 	int k = 0;

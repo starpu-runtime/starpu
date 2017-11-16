@@ -186,7 +186,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char* symbol,
 			   double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
 			   double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
-static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)

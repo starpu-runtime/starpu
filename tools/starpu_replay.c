@@ -145,7 +145,7 @@ uint32_t get_footprint(struct starpu_task * task)
 	return ((struct task_arg*) (task->cl_arg))->footprint;
 }
 
-double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(device != -1);
@@ -166,7 +166,7 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 void dumb_kernel(void) {}
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
-static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
 	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];

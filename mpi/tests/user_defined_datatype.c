@@ -31,6 +31,7 @@ typedef void (*test_func)(starpu_data_handle_t *, int, int, int);
 void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_handles, int rank, int tag)
 {
 	int i;
+	(void)rank;
 
 	for(i=0 ; i<nb_handles ; i++)
 	{

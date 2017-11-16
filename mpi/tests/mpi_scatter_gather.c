@@ -48,13 +48,13 @@ static struct starpu_codelet cl =
 #endif
 };
 
-void scallback(void *arg STARPU_ATTRIBUTE_UNUSED)
+void scallback(void *arg)
 {
 	char *msg = arg;
 	FPRINTF_MPI(stderr, "Sending completed for <%s>\n", msg);
 }
 
-void rcallback(void *arg STARPU_ATTRIBUTE_UNUSED)
+void rcallback(void *arg)
 {
 	char *msg = arg;
 	FPRINTF_MPI(stderr, "Reception completed for <%s>\n", msg);

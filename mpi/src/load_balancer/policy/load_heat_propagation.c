@@ -350,7 +350,7 @@ static void submitted_task_heat(struct starpu_task *task)
 	/* Numbering of tasks in StarPU-MPI should be given by the application with
 	 * the STARPU_TAG_ONLY insert task option for now. */
 	/* TODO: Properly implement a solution for numbering tasks in StarPU-MPI */
-	if ((task->tag_id / load_data_get_sleep_threshold(*load_data_handle)) > phase)
+	if (((int)task->tag_id / load_data_get_sleep_threshold(*load_data_handle)) > phase)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&load_data_mutex);
 		load_data_update_wakeup_cond(*load_data_handle);

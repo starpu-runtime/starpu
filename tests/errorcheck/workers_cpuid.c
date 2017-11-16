@@ -26,7 +26,7 @@
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
 #warning unsetenv is not defined or no cpu are available. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -120,7 +120,6 @@ static int test_combination(long *combination, unsigned n)
 	return 1;
 }
 
-
 static long * generate_arrangement(int arr_size, long *set, int set_size)
 {
 	int i;
@@ -142,7 +141,6 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	return set;
 }
 
-
 static void init_array(long *a, int n)
 {
 	int i;
@@ -151,8 +149,7 @@ static void init_array(long *a, int n)
 		a[i] = i;
 }
 
-
-int main(int argc, char **argv)
+int main(void)
 {
 	int i;
 	long *cpuids;

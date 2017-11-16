@@ -75,14 +75,15 @@ static struct thread_data problem_data[NTHREADS_DEFAULT];
  * successor. */
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg);
+void cuda_codelet_unsigned_inc(void *descr[], void *cl_arg);
 #endif
 #ifdef STARPU_USE_OPENCL
-void opencl_codelet_unsigned_inc(void *buffers[], void *args);
+void opencl_codelet_unsigned_inc(void *buffers[], void *cl_arg);
 #endif
 
-void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void increment_handle_cpu_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 
@@ -216,6 +217,8 @@ static void send_handle_async(void *_thread_data)
 
 static void *progress_func(void *arg)
 {
+	(void)arg;
+
 	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 
 	progress_thread_running = 1;

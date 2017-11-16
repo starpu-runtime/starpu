@@ -59,7 +59,7 @@ void *th(void* p)
 	pthread_exit(ret);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	void* tasks_executed;

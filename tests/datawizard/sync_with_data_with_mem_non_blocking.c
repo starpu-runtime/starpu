@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,8 +39,10 @@ float *buffer[NBUFFERS_DEF];
 
 starpu_data_handle_t v_handle[NBUFFERS_DEF];
 
-void dummy_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void dummy_codelet(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 static struct starpu_codelet cl =
@@ -76,8 +78,9 @@ static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static unsigned n_synced_buffers;
 
 static
-void callback_sync_data(void *arg STARPU_ATTRIBUTE_UNUSED)
+void callback_sync_data(void *arg)
 {
+	(void)arg;
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	n_synced_buffers++;

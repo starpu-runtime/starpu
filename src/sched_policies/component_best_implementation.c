@@ -106,8 +106,9 @@ static struct starpu_task * best_implementation_pull_task(struct starpu_sched_co
 	return task;
 }
 
-struct starpu_sched_component * starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "best_impl");
 	component->push_task = best_implementation_push_task;
 	component->pull_task = best_implementation_pull_task;

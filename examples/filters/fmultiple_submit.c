@@ -30,9 +30,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void matrix_fill(void *buffers[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void matrix_fill(void *buffers[], void *cl_arg)
 {
 	unsigned i, j;
+	(void)cl_arg;
 
 	/* length of the matrix */
 	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -97,7 +98,7 @@ struct starpu_codelet cl_check_scale =
 	.name = "fmultiple_check_scale"
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned j, n=1;
 	int matrix[NX][NY];

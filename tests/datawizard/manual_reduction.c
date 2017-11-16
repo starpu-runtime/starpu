@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2016  CNRS
+ * Copyright (C) 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,8 +34,9 @@ static uintptr_t per_worker[STARPU_NMAXWORKERS];
 static starpu_data_handle_t per_worker_handle[STARPU_NMAXWORKERS];
 
 /* Create per-worker handles */
-static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void initialize_per_worker_handle(void *arg)
 {
+	(void)arg;
 	int workerid = starpu_worker_get_id_check();
 
 	/* Allocate memory on the worker, and initialize it to 0 */
@@ -87,8 +88,9 @@ static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
  *	Implement reduction method
  */
 
-void cpu_redux_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void cpu_redux_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *a = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *b = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -109,16 +111,18 @@ static struct starpu_codelet reduction_codelet =
  *	Use per-worker local copy
  */
 
-void cpu_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void cpu_func_incr(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val = *val + 1;
 }
 
 #ifdef STARPU_USE_CUDA
 /* dummy CUDA implementation */
-static void cuda_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+static void cuda_func_incr(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -133,8 +137,9 @@ static void cuda_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 
 #ifdef STARPU_USE_OPENCL
 /* dummy OpenCL implementation */
-static void opencl_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+static void opencl_func_incr(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	cl_mem d_val = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);

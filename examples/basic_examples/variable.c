@@ -28,14 +28,14 @@ static unsigned niter = 5000;
 static unsigned niter = 50000;
 #endif
 
-extern void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cpu_codelet(void *descr[], void *_args);
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cuda_codelet(void *descr[], void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-extern void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void opencl_codelet(void *descr[], void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
 

@@ -250,8 +250,7 @@ static struct starpu_sched_policy *policies[] =
 	//&_starpu_sched_peager_policy
 };
 
-int
-main(void)
+int main(void)
 {
 #ifndef STARPU_HAVE_SETENV
 /* XXX: is this macro used by all the schedulers we are interested in ? */

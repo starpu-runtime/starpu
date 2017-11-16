@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2012-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@
  * U22
  */
 
-static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
 	//printf("22\n");
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -95,7 +95,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
  * U21
  */
 
-static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
 {
 //	printf("21\n");
 	float *sub11;
@@ -146,7 +146,7 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
  *	U11
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
 {
 //	printf("11\n");
 	float *sub11;

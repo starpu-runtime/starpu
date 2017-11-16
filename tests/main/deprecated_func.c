@@ -22,16 +22,18 @@
  * Test that we support the cpu_func and where deprecated field
  */
 
-void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*valout = *valin;
 }
 
-void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu2_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -115,7 +117,7 @@ int submit_codelet(struct starpu_codelet cl, int where)
 	return x != y;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	unsigned where;

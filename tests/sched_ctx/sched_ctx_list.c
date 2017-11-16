@@ -19,7 +19,7 @@
 #include "../helper.h"
 #include "../../src/core/sched_ctx_list.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
 	struct _starpu_sched_ctx_list *ctx_list = NULL, *found_list;
 	struct _starpu_sched_ctx_elt *elt;

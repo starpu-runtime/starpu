@@ -33,18 +33,24 @@
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 400000
 
-void wait_CPU(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void wait_CPU(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	starpu_sleep(TIME);
 }
 
-void wait_CUDA(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void wait_CUDA(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	starpu_sleep(TIME/TIME_CUDA_COEFFICIENT);
 }
 
-void wait_OPENCL(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void wait_OPENCL(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	starpu_sleep(TIME/TIME_OPENCL_COEFFICIENT);
 }
 

@@ -44,6 +44,8 @@
 
 double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -59,6 +61,8 @@ double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -74,6 +78,8 @@ double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -89,6 +95,8 @@ double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -104,6 +112,8 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -119,6 +129,8 @@ double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);

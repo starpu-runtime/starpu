@@ -106,7 +106,7 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	starpu_data_register(handleptr, -1, &interface, &starpu_interface_variable_size_ops);
 }
 
-static size_t variable_size_get_size(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
+static size_t variable_size_get_size(starpu_data_handle_t handle)
 {
 	struct variable_size_interface *interface =
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -214,6 +214,8 @@ static void kernel(void *descr[], void *cl_arg)
 	uintptr_t old = variable_interface->ptr;
 	unsigned dst_node = starpu_worker_get_memory_node(workerid);
 
+	(void) cl_arg;
+
 	/* Simulate that tiles close to the diagonal fill up faster */
 	size_t increase = (FULLSIZE - variable_interface->size) * (starpu_lrand48() % 1024 + 1024) / 2048. * INCREASE;
 	/* Round to page size */
@@ -231,6 +233,7 @@ static void kernel(void *descr[], void *cl_arg)
 
 static double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
+	(void)t; (void)a; (void)i;
 	return 10000;
 }
 
@@ -254,6 +257,7 @@ static struct starpu_codelet cl =
 
 static void init(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	struct variable_size_interface *variable_interface = descr[0];
 	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size);
 }
@@ -269,7 +273,7 @@ static struct starpu_codelet cl_init =
 	.model = &starpu_perfmodel_nop,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int i;

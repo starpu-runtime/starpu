@@ -792,7 +792,7 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	}
 }
 
-void free_system(float *A, float *B, unsigned dim, unsigned pinned)
+void free_system(float *A, float *B, unsigned pinned)
 {
 	if (pinned)
 	{

@@ -24,6 +24,9 @@ struct stats global_stats;
 #ifdef STARPU_USE_CPU
 void cpu_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.cpu++;
@@ -33,6 +36,9 @@ void cpu_func(void *buffers[], void *args)
 #ifdef STARPU_USE_CUDA
 void cuda_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.cuda++;
@@ -40,6 +46,9 @@ void cuda_func(void *buffers[], void *args)
 
 void cpu_to_cuda_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.cpu_to_cuda++;
@@ -47,6 +56,9 @@ void cpu_to_cuda_func(void *buffers[], void *args)
 
 void cuda_to_cpu_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.cuda_to_cpu++;
@@ -68,6 +80,9 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.opencl++;
@@ -76,6 +91,9 @@ void opencl_func(void *buffers[], void *args)
 static
 void cpu_to_opencl_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.cpu_to_opencl++;
@@ -84,6 +102,9 @@ void cpu_to_opencl_func(void *buffers[], void *args)
 static
 void opencl_to_cpu_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.opencl_to_cpu++;
@@ -105,6 +126,8 @@ struct starpu_codelet opencl_to_cpu_cl =
 #ifdef STARPU_USE_MIC
 void mic_dummy_kernel(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)args;
 }
 
 starpu_mic_kernel_t mic_get_kernel()
@@ -136,6 +159,9 @@ starpu_mic_kernel_t cpu_to_mic_func()
 
 void mic_to_cpu_func(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	global_stats.mic_to_cpu++;

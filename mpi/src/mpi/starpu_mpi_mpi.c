@@ -55,7 +55,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-#ifdef STARPU_VERBOSE
+#ifdef STARPU_MPI_VERBOSE
 static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
@@ -869,7 +869,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 /*                                                      */
 /********************************************************/
 
-#ifdef STARPU_VERBOSE
+#ifdef STARPU_MPI_VERBOSE
 static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)

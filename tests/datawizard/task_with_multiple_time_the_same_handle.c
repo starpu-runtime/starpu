@@ -23,6 +23,7 @@
 
 void sum_cpu(void * descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	double * v_dst = (double *) STARPU_VARIABLE_GET_PTR(descr[0]);
 	double * v_src = (double *) STARPU_VARIABLE_GET_PTR(descr[1]);
 	*v_dst+=*v_src;
@@ -30,6 +31,7 @@ void sum_cpu(void * descr[], void *cl_arg)
 
 void sum3_cpu(void * descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	double * v_src1 = (double *) STARPU_VARIABLE_GET_PTR(descr[1]);
 	double * v_src2 = (double *) STARPU_VARIABLE_GET_PTR(descr[1]);
 	double * v_dst = (double *) STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -52,7 +54,7 @@ static struct starpu_codelet sum3_cl =
 	.modes={STARPU_R,STARPU_R,STARPU_RW}
 };
 
-int main(int argc, char * argv[])
+int main(void)
 {
 	starpu_data_handle_t handle;
 	int ret = 0;

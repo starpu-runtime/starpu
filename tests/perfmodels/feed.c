@@ -41,7 +41,7 @@ static struct starpu_codelet cl =
 	.modes = {STARPU_W}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	struct starpu_task task;
 	int ret;

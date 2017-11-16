@@ -41,7 +41,7 @@ float _alpha = 3.41;
 /* descriptors for StarPU */
 starpu_data_handle_t _handle_y[NITER], _handle_x[NITER];
 
-void axpy_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void axpy_cpu(void *descr[], void *arg)
 {
 	float alpha = *((float *)arg);
 
@@ -56,7 +56,7 @@ void axpy_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 }
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_axpy(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cuda_axpy(void *descr[], void *_args);
 #endif
 
 static struct starpu_perfmodel axpy_model =
@@ -98,7 +98,7 @@ check(int niter)
 	return EXIT_SUCCESS;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret, exit_value = 0;
 	int iter;

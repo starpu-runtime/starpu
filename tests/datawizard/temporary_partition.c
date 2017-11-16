@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +25,10 @@
  * Test asynchronous partitioning on a temporary data.
  */
 
-static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+static void codelet(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 static struct starpu_codelet clw =
@@ -45,7 +47,7 @@ static struct starpu_codelet clr =
 	.modes = {STARPU_R}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	starpu_data_handle_t handle, handles[NPARTS];

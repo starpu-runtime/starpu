@@ -24,7 +24,7 @@
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU)
 #warning unsetenv or setenv are not defined. Or CPU are not enabled. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -78,7 +78,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	}
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int cpu, cpu_init;

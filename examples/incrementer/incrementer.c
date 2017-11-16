@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011, 2013-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,6 @@
  * This is just a small example which increments two values of a vector several times.
  */
 #include <starpu.h>
-#include <config.h>
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 500;
@@ -32,16 +31,17 @@ static unsigned niter = 50000;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cuda_codelet(void *descr[], void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-extern void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void opencl_codelet(void *descr[], void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
 
-void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	val[0] += 1.0f; val[1] += 1.0f;

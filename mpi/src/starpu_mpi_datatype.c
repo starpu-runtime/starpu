@@ -128,9 +128,10 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
  * 	Void
  */
 
-static void handle_to_datatype_void(starpu_data_handle_t data_handle STARPU_ATTRIBUTE_UNUSED, MPI_Datatype *datatype)
+static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
+	(void)data_handle;
 
 	ret = MPI_Type_contiguous(0, MPI_BYTE, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");

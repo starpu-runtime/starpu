@@ -77,8 +77,9 @@ int starpu_sched_component_is_eager_calibration(struct starpu_sched_component * 
 	return component->push_task == eager_calibration_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "eager_calibration");
 	component->push_task = eager_calibration_push_task;
 

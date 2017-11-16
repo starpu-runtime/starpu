@@ -18,10 +18,11 @@
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
 	int node;
 	int rank;
+	(void)descr;
 
 	starpu_codelet_unpack_args(_args, &node);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

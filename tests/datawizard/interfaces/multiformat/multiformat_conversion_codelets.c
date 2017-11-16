@@ -21,6 +21,8 @@
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __starpu_func__);
@@ -52,6 +54,8 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
@@ -81,6 +85,8 @@ struct starpu_codelet opencl_to_cpu_cl =
 #ifdef STARPU_USE_MIC
 void mic_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __func__);
@@ -97,6 +103,8 @@ void mic_to_cpu(void *buffers[], void *arg)
 
 void cpu_to_mic(void *buffers[], void *args)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __func__);

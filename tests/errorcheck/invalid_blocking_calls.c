@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2013, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 
 /* mpirun may not exit if it fails, skip the test for master-slave */
 #if defined(STARPU_NO_ASSERT) || defined(STARPU_USE_MPI_MASTER_SLAVE)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -39,6 +39,8 @@ static unsigned *data;
 
 void wrong_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	/* The function is expected to fail. This is indicated in tests/Makefile.am */
 	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
@@ -58,6 +60,7 @@ static struct starpu_codelet wrong_codelet =
 
 static void wrong_callback(void *arg)
 {
+	(void)arg;
 	/* The function is expected to fail. This is indicated in tests/Makefile.am */
 	starpu_data_acquire(handle, STARPU_RW);
 	starpu_tag_wait(TAG);

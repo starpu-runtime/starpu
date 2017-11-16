@@ -238,7 +238,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 	printf("%2.2f %2.2f\n", rv[1].avg_timing, timing);
 }
 
-void construct_contexts(void (*bench)(float*, unsigned, unsigned))
+void construct_contexts()
 {
 	struct sc_hypervisor_policy policy;
 	policy.custom = 0;

@@ -22,7 +22,7 @@ int expected_x=40;
 static
 int expected_y=12;
 
-void my_func(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void my_func(void *descr[], void *_args)
 {
 	FPRINTF_MPI(stderr, "i am here\n");
 }

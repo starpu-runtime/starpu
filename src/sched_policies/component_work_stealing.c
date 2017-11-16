@@ -349,8 +349,9 @@ int starpu_sched_component_is_work_stealing(struct starpu_sched_component * comp
 	return component->push_task == push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "work_stealing");
 	struct _starpu_work_stealing_data *wsd;
 	_STARPU_CALLOC(wsd, 1, sizeof(*wsd));

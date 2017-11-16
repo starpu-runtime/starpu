@@ -35,6 +35,7 @@
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -50,6 +51,7 @@ extern void memset_opencl(void *buffers[], void *args);
 
 void memset_cpu(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);

@@ -412,7 +412,7 @@ When we want to switch to the vertical slice view, all we need to do is bring
 coherency between them by running an empty task on the home node of the data:
 
 \code{.c}
-void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void empty(void *buffers[], void *cl_arg)
 { }
 struct starpu_codelet cl_switch =
 {
@@ -822,7 +822,7 @@ starpu_task_insert(&cl_display, STARPU_R, handle1, 0);
 and used by codelets.
 
 \code{.c}
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void display_complex_codelet(void *descr[], void *_args)
 {
         int nx = STARPU_COMPLEX_GET_NX(descr[0]);
         double *real = STARPU_COMPLEX_GET_REAL(descr[0]);

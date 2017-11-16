@@ -94,8 +94,7 @@ run(struct starpu_sched_policy *p)
 	return ret;
 }
 
-int
-main(void)
+int main(void)
 {
 	struct starpu_sched_policy **policies;
 	struct starpu_sched_policy **policy;

@@ -18,13 +18,10 @@
 #include "helper.h"
 #include <inttypes.h>
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int flag;
 	int64_t value;
-
-	(void) argc;
-	(void) argv;
 
 	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, 42, NULL, &flag);
 	STARPU_ASSERT_MSG(flag == 0, "starpu_mpi_comm_get_attr was called with invalid argument\n");

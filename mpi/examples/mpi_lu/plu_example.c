@@ -69,6 +69,7 @@ static TYPE **(tmp_21_block[2]);
 
 static void parse_args(int rank, int argc, char **argv)
 {
+	(void)rank;
 	int i;
 	for (i = 1; i < argc; i++)
 	{
@@ -178,6 +179,9 @@ starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
 
 static unsigned tmp_11_block_is_needed(int rank, unsigned pnblocks, unsigned k)
 {
+	(void)rank;
+	(void)pnblocks;
+	(void)k;
 	return 1;
 }
 

@@ -38,13 +38,17 @@
 #ifdef STARPU_USE_CUDA
 extern void long_kernel_cuda(unsigned long niters);
 
-void codelet_long_kernel_async(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_long_kernel_async(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	long_kernel_cuda(NITERS);
 }
 
-void codelet_long_kernel_sync(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_long_kernel_sync(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	long_kernel_cuda(NITERS);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

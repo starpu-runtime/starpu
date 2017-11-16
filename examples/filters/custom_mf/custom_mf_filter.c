@@ -63,6 +63,7 @@ static void
 custom_filter(void *father, void *child, struct starpu_data_filter *f,
 		unsigned id, unsigned nchunks)
 {
+	(void)f;
 	struct custom_data_interface *custom_father, *custom_child;
 	custom_father = (struct custom_data_interface *) father;
 	custom_child = (struct custom_data_interface *) child;
@@ -134,6 +135,7 @@ custom_scal_cpu_func(void *buffers[], void *args)
 {
 	struct point *aos;
 	unsigned int n, i;
+	(void)args;
 
 	aos = CUSTOM_GET_CPU_PTR(buffers[0]);
 	n = CUSTOM_GET_NX(buffers[0]);

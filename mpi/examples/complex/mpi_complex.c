@@ -20,7 +20,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void display_foo_codelet(void *descr[], void *_args)
 {
 	int *foo = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	FPRINTF(stderr, "foo = %d\n", *foo);

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,7 +52,7 @@ TYPE _alpha = 3.41;
 /* descriptors for StarPU */
 starpu_data_handle_t _handle_y, _handle_x;
 
-void axpy_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void axpy_cpu(void *descr[], void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
@@ -65,7 +65,7 @@ void axpy_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 }
 
 #ifdef STARPU_USE_CUDA
-void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void axpy_gpu(void *descr[], void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
@@ -133,7 +133,7 @@ check(void)
 struct starpu_opencl_program opencl_program;
 #endif
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret, exit_value = 0;
 

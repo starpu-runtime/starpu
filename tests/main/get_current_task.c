@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@ static unsigned ntasks = 65536;
 
 void check_task_func(void *descr[], void *arg)
 {
+	(void)descr;
 	/* We check that the returned task is valid from the callback */
 	struct starpu_task *task = (struct starpu_task *) arg;
 	STARPU_ASSERT(task == starpu_task_get_current());

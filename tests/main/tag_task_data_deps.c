@@ -25,7 +25,7 @@
  * Test combinations of various tag/task/data dependencies
  */
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func(void *descr[], void *arg)
 {
 	unsigned duration = (uintptr_t) arg;
 	if (duration)
@@ -74,7 +74,7 @@ static struct starpu_task *create_dummy_task(int write, int data, unsigned durat
 	return task;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	/* We have 27 toggles to try below, thus 2^27 possibilities */

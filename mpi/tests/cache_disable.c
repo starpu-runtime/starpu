@@ -19,7 +19,7 @@
 #include "helper.h"
 #include <starpu_mpi_cache.h>
 
-void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
 }
 

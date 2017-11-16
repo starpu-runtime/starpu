@@ -170,7 +170,7 @@ typedef struct
 static fft_plan_cache plans[STARPU_NMAXWORKERS];
 
 #ifdef STARPU_USE_CUDA
-static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void band_filter_kernel_gpu(void *descr[], void *arg)
 {
 	cufftResult cures;
 
@@ -225,7 +225,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 static starpu_pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void band_filter_kernel_cpu(void *descr[], void *arg)
 {
 	float *localA = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 

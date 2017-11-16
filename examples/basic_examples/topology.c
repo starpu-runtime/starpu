@@ -20,7 +20,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;

@@ -33,6 +33,8 @@ static void cpu_memcpy(void *descr[], void *cl_arg)
 	int me = (uintptr_t)cl_arg;
 	int res;
 
+	(void)descr;
+
 	FPRINTF(stderr,"%d\n", me);
 
 	if (me == 0)
@@ -56,7 +58,7 @@ static struct starpu_codelet my_cl =
 	.nbuffers = STARPU_VARIABLE_NBUFFERS
 };
 
-int main()
+int main(void)
 {
 	double *res, *a;
 	unsigned n=100000, i;

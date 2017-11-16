@@ -24,6 +24,8 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 struct starpu_codelet codelet_w =
@@ -42,7 +44,7 @@ struct starpu_codelet codelet_r =
         .nbuffers = 1
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         int ret;
 	starpu_data_handle_t h;

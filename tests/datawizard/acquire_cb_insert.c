@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,8 @@
 
 void which_index_cpu(void *descr[], void *_args)
 {
+	(void)_args;
+
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* A real case would actually compute something */
@@ -48,6 +50,8 @@ void work_cpu(void *descr[], void *_args)
 	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
+	(void)_args;
+
 	for (i = 0; i < n; i++)
 		x0[i] = i + 1;
 }
@@ -66,6 +70,7 @@ static starpu_data_handle_t x_handle, f_handle;
 static
 void callback(void *arg)
 {
+	(void)arg;
 	starpu_task_insert(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
 	starpu_data_release(x_handle);
 }

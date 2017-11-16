@@ -37,8 +37,9 @@ int task_worker[N][ITER];
 int worker_task[STARPU_NMAXWORKERS][N*ITER];
 unsigned worker_ntask[STARPU_NMAXWORKERS];
 
-void cpu_f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void cpu_f(void *descr[], void *_args)
 {
+	(void)descr;
 	unsigned i, loop, worker = starpu_worker_get_id();
 	enum starpu_worker_archtype worker_type = starpu_worker_get_type(worker);
 

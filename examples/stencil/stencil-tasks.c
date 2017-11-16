@@ -40,7 +40,7 @@
  */
 
 /* R(z) = R(z+d) = local, just call the save kernel */
-static void create_task_save_local(unsigned iter, unsigned z, int dir, int local_rank)
+static void create_task_save_local(unsigned iter, unsigned z, int dir)
 {
 	struct starpu_task *save_task = starpu_task_create();
 	struct block_description *descr = get_block_description(z);
@@ -142,7 +142,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 	if (node_z == local_rank)
 	{
 		/* Save data from update */
-		create_task_save_local(iter, z, dir, local_rank);
+		create_task_save_local(iter, z, dir);
 		if (node_z_and_d != local_rank)
 		{
 			/* R(z) = local & R(z+d) != local, We have to send the data */
@@ -167,7 +167,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 	}
 #else /* !STARPU_USE_MPI */
 	STARPU_ASSERT((node_z == local_rank) && (node_z_and_d == local_rank));
-	create_task_save_local(iter, z, dir, local_rank);
+	create_task_save_local(iter, z, dir);
 #endif /* STARPU_USE_MPI */
 }
 
@@ -177,6 +177,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 
 void create_task_update(unsigned iter, unsigned z, int local_rank)
 {
+	(void)local_rank; // unneeded parameter, we keep it to have a similar function prototype to the implicit case
 	STARPU_ASSERT(iter != 0);
 
 	struct starpu_task *task = starpu_task_create();
@@ -221,8 +222,10 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 }
 
 /* Dummy empty codelet taking one buffer */
-void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void null_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static double null_cost_function(struct starpu_task *task, unsigned nimpl)

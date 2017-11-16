@@ -49,8 +49,9 @@ int parallel_code(int sched_ctx)
 	return t;
 }
 
-static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void sched_ctx_func(void *descr[], void *arg)
 {
+	(void)descr;
 	unsigned sched_ctx = (uintptr_t)arg;
 	int t = parallel_code(sched_ctx);
 	if (sched_ctx > 0 && sched_ctx < 3)
@@ -70,7 +71,7 @@ static struct starpu_codelet sched_ctx_codelet =
 	.name = "sched_ctx"
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	tasks_executed[0] = 0;
 	tasks_executed[1] = 0;

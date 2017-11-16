@@ -22,6 +22,7 @@
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_CUDA_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
@@ -34,6 +35,7 @@ void cuda_to_cpu(void *buffers[], void *arg)
 }
 
 extern void cpu_to_cuda_cuda_func(void *buffers[], void *args);
+
 struct starpu_codelet cpu_to_cuda_cl =
 {
 	.cuda_funcs = {cpu_to_cuda_cuda_func},
@@ -53,6 +55,7 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
 	FPRINTF(stderr, "User Entering %s\n", __starpu_func__);
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);

@@ -54,7 +54,7 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -93,6 +93,7 @@ static unsigned values[NDATA];
 
 static void zero(void *buffers[], void *args)
 {
+	(void)args;
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;

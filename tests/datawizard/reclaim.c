@@ -25,7 +25,7 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -59,7 +59,7 @@ static uint64_t get_total_memory_size(void)
 }
 #endif
 
-void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void dummy_func(void *descr[], void *_args)
 {
 }
 

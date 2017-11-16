@@ -52,6 +52,7 @@ struct element
 /* functions/codelet to fill the bufferss*/
 void fill_tmp_buffer(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
 	int i;
@@ -74,6 +75,7 @@ static struct starpu_codelet fill_tmp_buffer_cl =
 
 void read_ghost(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int nx=STARPU_VECTOR_GET_NX(buffers[0]);
 	int i;
@@ -98,10 +100,14 @@ static struct starpu_codelet read_ghost_value_cl =
 /*codelet to ensure submitted order for a given element*/
 void noop(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 void submitted_order_fun(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 static struct starpu_codelet submitted_order =

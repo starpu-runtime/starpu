@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2014, 2016  CNRS
+ * Copyright (C) 2010-2014, 2016, 2017  CNRS
  * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,20 +29,26 @@ int tasks_executed = 0;
 int ctx1_tasks_executed = 0;
 int ctx2_tasks_executed = 0;
 
-static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx_cpu_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx1_tasks_executed,1);
 }
 
-static void sched_ctx2_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx2_cpu_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
 }
 
-static void sched_ctx2_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx2_cuda_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
 }
@@ -65,7 +71,7 @@ static struct starpu_codelet sched_ctx_codelet2 =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ntasks = NTASKS;
 	int ret;

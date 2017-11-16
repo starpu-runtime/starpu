@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,6 +63,7 @@ struct params
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
 	struct params *params = (struct params *) cl_arg;
 
 	//loosing time for top example...
@@ -83,6 +84,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 void callback_name_changed(struct starpu_top_param* param)
 {
+	(void)param;
 	char* message = (char *) malloc(256);
 	sprintf(message, "Name have been changed to %s", names[name_selected]);
 	starpu_top_debug_log(message);
@@ -91,6 +93,7 @@ void callback_name_changed(struct starpu_top_param* param)
 
 void callback_number_addition_changed(struct starpu_top_param* param)
 {
+	(void)param;
 	char* message = (char *) malloc(256);
 	sprintf(message, "Number of addition is now %d", number_of_addition);
 
@@ -108,7 +111,7 @@ struct starpu_codelet cl =
 	.nbuffers = 0
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 

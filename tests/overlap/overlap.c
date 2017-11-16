@@ -47,6 +47,8 @@ static unsigned cnt = NTASKS;
 
 static void callback(void *arg)
 {
+	(void)arg;
+
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 	ANNOTATE_HAPPENS_BEFORE(&cnt);
 
@@ -60,8 +62,11 @@ static void callback(void *arg)
 	}
 }
 
-void codelet_sleep(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_sleep(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	usleep(TASKDURATION);

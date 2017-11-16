@@ -24,6 +24,9 @@
 
 int main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
+
 	_starpu_debug_display_structures_size(stderr);
 
 	return EXIT_SUCCESS;

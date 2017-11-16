@@ -24,7 +24,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -85,7 +85,7 @@ const char * get_sched_name(int sched_value)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	const int nb_cpus = starpu_cpu_worker_get_count();
 

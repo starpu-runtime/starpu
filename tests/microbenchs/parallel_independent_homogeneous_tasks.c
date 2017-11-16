@@ -30,13 +30,18 @@
 #endif
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 
-void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void wait_homogeneous(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	starpu_sleep(TIME);
 }
 
 double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
+	(void)t;
+	(void)a;
+	(void)i;
 	return TIME * 1000000;
 }
 

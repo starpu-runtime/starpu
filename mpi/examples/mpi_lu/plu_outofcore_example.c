@@ -233,6 +233,8 @@ static void init_matrix(int rank)
 
 TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
 {
+	(void)i;
+	(void)j;
 	/* This does not really make sense in out of core */
 	assert(0);
 }

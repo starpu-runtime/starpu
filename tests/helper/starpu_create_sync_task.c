@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +25,10 @@
 
 #define NITER	10
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static struct starpu_codelet dummy_codelet =
@@ -45,7 +47,7 @@ static int create_dummy_task(starpu_tag_t tag)
 	task->use_tag = 1;
 	task->tag_id = tag;
 	task->cl = &dummy_codelet;
-	
+
 	int ret = starpu_task_submit(task);
 	return ret;
 }
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
 		unsigned d;
 		for (d = 0; d < ndeps; d++)
 		{
-			deps[d] = sync_tag + d + 1; 
+			deps[d] = sync_tag + d + 1;
 
 			ret = create_dummy_task(deps[d]);
 			if (ret == -ENODEV) goto enodev;

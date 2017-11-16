@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,8 +39,7 @@
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 #ifdef CHECK_RESULTS
-static void STARPU_ATTRIBUTE_UNUSED compare_A_LU(float *A, float *LU,
-				unsigned size, unsigned ld)
+static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 {
 	unsigned i,j;
 	float *L;

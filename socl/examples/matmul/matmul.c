@@ -15,9 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-int main(int argc, const char** argv) {
-	(void) argv;
-	(void) argv;
+int main(void)
+{
 	/* testcase does not seem to support blocking drivers */
 	return 77;
 }
@@ -135,26 +134,34 @@ static void __attribute__((unused)) parse_args(int argc, const char **argv)
 }
 
 // Round Up Division function
-size_t roundUp(int group_size, int global_size) {
+size_t roundUp(int group_size, int global_size)
+{
 	int r = global_size % group_size;
-	if(r == 0) {
+	if(r == 0)
+	{
 		return global_size;
-	} else {
+	}
+	else
+	{
 		return global_size + group_size - r;
 	}
 }
 
-void fillArray(TYPE* data, int size) {
+void fillArray(TYPE* data, int size)
+{
 	int i;
 	const TYPE fScale = (TYPE)(1.0f / (float)RAND_MAX);
-	for (i = 0; i < size; ++i) {
+	for (i = 0; i < size; ++i)
+	{
 		data[i] = fScale * rand();
 	}
 }
 
-void printArray(float* data, int size) {
+void printArray(float* data, int size)
+{
 	int i;
-	for (i = 0; i < size; ++i) {
+	for (i = 0; i < size; ++i)
+	{
 		printf("%d: %.3f\n", i, data[i]);
 	}
 }
@@ -167,21 +174,24 @@ void printArray(float* data, int size) {
  * @param len        number of elements in reference and data
  * @param epsilon    epsilon to use for the comparison
 */
-int shrCompareL2fe( const float* reference, const float* data, const unsigned int len, const float epsilon ) {
+int shrCompareL2fe( const float* reference, const float* data, const unsigned int len, const float epsilon )
+{
 	assert(epsilon >= 0);
 
 	float error = 0;
 	float ref = 0;
 
 	unsigned int i;
-	for(i = 0; i < len; ++i) {
+	for(i = 0; i < len; ++i)
+	{
 		float diff = reference[i] - data[i];
 		error += diff * diff;
 		ref += reference[i] * reference[i];
 	}
 
 	float normRef = sqrtf(ref);
-	if (fabs(ref) < 1e-7) {
+	if (fabs(ref) < 1e-7)
+	{
 #ifdef _DEBUG
 		fprintf(stderr, "ERROR, reference l2-norm is 0\n");
 #endif
@@ -191,7 +201,8 @@ int shrCompareL2fe( const float* reference, const float* data, const unsigned in
 	error = normError / normRef;
 	int result = error < epsilon;
 #ifdef _DEBUG
-	if( !result) {
+	if( !result)
+	{
 		fprintf(stderr, "ERROR, l2-norm error %d is greater than epsilon %lf \n", error, epsilon);
 	}
 #endif
@@ -200,7 +211,8 @@ int shrCompareL2fe( const float* reference, const float* data, const unsigned in
 }
 
 
-int main(int argc, const char** argv) {
+int main(int argc, const char** argv)
+{
 	cl_uint platform_count;
 	cl_platform_id platforms[5];
 
@@ -240,7 +252,8 @@ int main(int argc, const char** argv) {
 	parse_args(argc, argv);
 
 	check(clGetPlatformIDs(5, platforms, &platform_count));
-	if (platform_count == 0) {
+	if (platform_count == 0)
+	{
 		printf("No platform found\n");
 		exit(77);
 	}
@@ -252,19 +265,23 @@ int main(int argc, const char** argv) {
 	cl_command_queue * commandQueue[platform_count];
 
 	device_count = 0;
-	for (p=0; p<platform_count; p++) {
+	for (p=0; p<platform_count; p++)
+	{
 		cl_platform_id platform = platforms[p];
 
 		err = clGetDeviceIDs(platform, dev_type, 0, NULL, &devs[p]);
-		if (err == CL_DEVICE_NOT_FOUND) {
+		if (err == CL_DEVICE_NOT_FOUND)
+		{
 			devs[p] = 0;
 			continue;
 		}
-		if (devs[p] == 0) {
+		if (devs[p] == 0)
+		{
 		     printf("No OpenCL device found\n");
 		     exit(77);
 		}
-		if (err != CL_SUCCESS) {
+		if (err != CL_SUCCESS)
+		{
 			fprintf(stderr, "OpenCL Error (%d) in clGetDeviceIDs()\n", err);
 			exit(EXIT_FAILURE);
 		}
@@ -288,9 +305,10 @@ int main(int argc, const char** argv) {
 			printf("Device %d: %s\n", i, name);
 
 			commandQueue[p][i] = clCreateCommandQueue(ctx[p], device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
-			if (err == CL_INVALID_VALUE) {
-			  fprintf(stderr, "Invalid property for clCreateCommandQueue\n");
-			  exit(77);
+			if (err == CL_INVALID_VALUE)
+			{
+				fprintf(stderr, "Invalid property for clCreateCommandQueue\n");
+				exit(77);
 			}
 			check3("clCreateCommandQueue", err);
 		}
@@ -310,26 +328,30 @@ int main(int argc, const char** argv) {
 
 	// allocate host memory for matrices A, B and C
 	A_data = (TYPE*)malloc(A_mem_size);
-	if (A_data == NULL) {
+	if (A_data == NULL)
+	{
 		perror("malloc");
 		exit(-1);
 	}
 
 	B_data = (TYPE*)malloc(B_mem_size);
-	if (B_data == NULL) {
+	if (B_data == NULL)
+	{
 		perror("malloc");
 		exit(-1);
 	}
 
 	C_data = (TYPE*) malloc(C_mem_size);
-	if (C_data == NULL) {
+	if (C_data == NULL)
+	{
 		perror("malloc");
 		exit(-1);
 	}
 
 	cl_program program[platform_count];
 
-	for (p=0; p<platform_count; p++) {
+	for (p=0; p<platform_count; p++)
+	{
 		if (devs[p] == 0)
 			continue;
 
@@ -353,8 +375,10 @@ int main(int argc, const char** argv) {
 
 	size_t localWorkSize[] = {BLOCK_SIZE, BLOCK_SIZE};
 	int c = 0;
-	for (p=0; p<platform_count;p++) {
-		for (i=0; i<devs[p]; i++) {
+	for (p=0; p<platform_count;p++)
+	{
+		for (i=0; i<devs[p]; i++)
+		{
 			check2(d_B[c] = clCreateBuffer(ctx[p], CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, HB * WB * sizeof(TYPE), B_data, &err));
 			c++;
 		}
@@ -367,7 +391,8 @@ int main(int argc, const char** argv) {
 
 		// determine device platform
 		int dev = d;
-		for (platform = 0; platform < platform_count; platform++) {
+		for (platform = 0; platform < platform_count; platform++)
+		{
 			if ((cl_int)(dev - devs[platform]) < 0)
 				break;
 			dev -= devs[platform];
@@ -400,9 +425,11 @@ int main(int argc, const char** argv) {
 
 
 	// CPU sync with GPU
-	for (p=0; p<platform_count;p++) {
+	for (p=0; p<platform_count;p++)
+	{
 		cl_uint dev;
-		for (dev=0; dev<devs[p]; dev++) {
+		for (dev=0; dev<devs[p]; dev++)
+		{
 			clFinish(commandQueue[p][dev]);
 		}
 	}
@@ -418,14 +445,16 @@ int main(int argc, const char** argv) {
 			gflops, dSeconds, dNumOps, device_count, BLOCKS, localWorkSize[0] * localWorkSize[1]);
 
 	// compute reference solution
-	if (check) {
+	if (check)
+	{
 		printf("Comparing results with CPU computation... ");
 		TYPE* reference = (TYPE*)malloc(C_mem_size);
 		computeReference(reference, A_data, B_data, HA, WA, WB);
 
 		// check result
 		int res = shrCompareL2fe(reference, C_data, C_size, 1.0e-6f);
-		if (res == 0) {
+		if (res == 0)
+		{
 			printf("\n\n");
 			printDiff(reference, C_data, WC, HC, 100, 1.0e-5f);
 		}
@@ -443,7 +472,8 @@ int main(int argc, const char** argv) {
 		clFinish(cqs[i]);
 	}
 
-	for (i=0; i<device_count; i++) {
+	for (i=0; i<device_count; i++)
+	{
 		clReleaseMemObject(d_B[i]);
 	}
 
@@ -456,7 +486,8 @@ int main(int argc, const char** argv) {
 	}
 
 
-	for (p=0; p<platform_count;p++) {
+	for (p=0; p<platform_count;p++)
+	{
 		if (devs[p] == 0)
 			continue;
 
@@ -477,19 +508,25 @@ int main(int argc, const char** argv) {
 	return 0;
 }
 
-void printDiff(TYPE *data1, TYPE *data2, int width, int height, int listLength, TYPE listTol) {
+void printDiff(TYPE *data1, TYPE *data2, int width, int height, int listLength, TYPE listTol)
+{
 	printf("Listing first %d Differences > %.6f...\n", listLength, listTol);
 	int i,j,k;
 	int error_count=0;
-	for (j = 0; j < height; j++) {
-		if (error_count < listLength) {
+	for (j = 0; j < height; j++)
+	{
+		if (error_count < listLength)
+		{
 			printf("\n  Row %d:\n", j);
 		}
-		for (i = 0; i < width; i++) {
+		for (i = 0; i < width; i++)
+		{
 			k = j * width + i;
 			float diff = fabs(data1[k] - data2[k]);
-			if (diff > listTol) {
-				if (error_count < listLength) {
+			if (diff > listTol)
+			{
+				if (error_count < listLength)
+				{
 					printf("    Loc(%d,%d)\tCPU=%.5f\tGPU=%.5f\tDiff=%.6f\n", i, j, data1[k], data2[k], diff);
 				}
 				error_count++;
@@ -508,12 +545,15 @@ void printDiff(TYPE *data1, TYPE *data2, int width, int height, int listLength, 
  * @param hA         height of matrix A
  * @param wB         width of matrix B
 */
-void computeReference(TYPE* C, const TYPE* A, const TYPE* B, unsigned int hA, unsigned int wA, unsigned int wB) {
+void computeReference(TYPE* C, const TYPE* A, const TYPE* B, unsigned int hA, unsigned int wA, unsigned int wB)
+{
 	unsigned int i,j,k;
 	for (i = 0; i < hA; ++i)
-		for (j = 0; j < wB; ++j) {
+		for (j = 0; j < wB; ++j)
+		{
 			double sum = 0;
-			for (k = 0; k < wA; ++k) {
+			for (k = 0; k < wA; ++k)
+			{
 				double a = A[i * wA + k];
 				double b = B[k * wB + j];
 				sum += a * b;

@@ -501,7 +501,7 @@ unsigned top_per_worker[STARPU_NMAXWORKERS];
 unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 
 /* top save, CPU version */
-void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func_top_cpu(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id_check();
@@ -517,7 +517,7 @@ void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 }
 
 /* bottom save, CPU version */
-void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func_bottom_cpu(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	(void) block;
@@ -532,7 +532,7 @@ void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 
 /* top save, CUDA version */
 #ifdef STARPU_USE_CUDA
-static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_top_cuda(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id_check();
@@ -548,7 +548,7 @@ static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 }
 
 /* bottom save, CUDA version */
-static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_bottom_cuda(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	(void) block;
@@ -564,7 +564,7 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 
 /* top save, OpenCL version */
 #ifdef STARPU_USE_OPENCL
-static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_top_opencl(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	(void) block;
@@ -581,7 +581,7 @@ static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *a
 }
 
 /* bottom save, OPENCL version */
-static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_bottom_opencl(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	(void) block;

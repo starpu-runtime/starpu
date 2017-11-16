@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012, 2014-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -323,10 +323,10 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	return 0;
 }
 
-starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp,
-			unsigned nblocks STARPU_ATTRIBUTE_UNUSED, unsigned j, unsigned i)
+starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned j, unsigned i)
 {
 	/* we use filters */
+	(void)nblocks;
 	return starpu_data_get_sub_data(*dataAp, 2, j, i);
 }
 
@@ -414,6 +414,7 @@ starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, un
 
 int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
 {
+	(void)ld;
 	if (starpu_mic_worker_get_count() || starpu_scc_worker_get_count() || starpu_mpi_ms_worker_get_count())
 		/* These won't work with pivoting: we pass a pointer in cl_args */
 		return -ENODEV;

@@ -32,6 +32,8 @@ unsigned forks[N];
 
 void eat_kernel(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static struct starpu_codelet eating_cl =

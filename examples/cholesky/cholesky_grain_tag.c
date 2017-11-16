@@ -301,7 +301,7 @@ static void initialize_system(int argc, char **argv, float **A, unsigned pinned)
 	starpu_malloc_flags((void **)A, size_p*size_p*sizeof(float), flags);
 }
 
-int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
+int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
 {
 	double start;
 	double end;
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	ret = cholesky_grain(mat, size_p, size_p, nblocks_p, nbigblocks_p, pinned_p);
+	ret = cholesky_grain(mat, size_p, size_p, nblocks_p, nbigblocks_p);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,6 +109,10 @@ static void parse_args(int argc, char **argv)
 
 static void display_matrix(TYPE *m, unsigned n, unsigned ld, char *str)
 {
+	(void)m;
+	(void)n;
+	(void)ld;
+	(void)str;
 #if 0
 	FPRINTF(stderr, "***********\n");
 	FPRINTF(stderr, "Display matrix %s\n", str);

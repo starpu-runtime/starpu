@@ -36,8 +36,9 @@
 
 static unsigned current = 1;
 
-void codelet(STARPU_ATTRIBUTE_UNUSED void *descr[], void *_args)
+void codelet(void *descr[], void *_args)
 {
+	(void)descr;
 	uintptr_t me = (uintptr_t) _args;
 	STARPU_ASSERT(current == me);
 	current++;

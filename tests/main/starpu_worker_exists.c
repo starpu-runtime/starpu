@@ -59,8 +59,7 @@ static struct starpu_codelet cl =
 	.nbuffers     = 0
 };
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_task *task;

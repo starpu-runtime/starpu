@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2012 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,13 +50,13 @@ static unsigned k=K_DEF;
  */
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
-void cuda_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void cuda_codelet_incA(void *descr[], void *_args);
+void cuda_codelet_incC(void *descr[], void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
-void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void opencl_codelet_incA(void *descr[], void *_args);
+void opencl_codelet_incC(void *descr[], void *_args);
 struct starpu_opencl_program opencl_code;
 #endif
 
@@ -65,14 +65,16 @@ struct starpu_opencl_program opencl_code;
 starpu_data_handle_t v_handle;
 static unsigned v[VECTORSIZE] STARPU_ATTRIBUTE_ALIGNED(128) = {0, 0, 0, 0};
 
-void cpu_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet_incA(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[0]++;
 }
 
-void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet_incC(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[2]++;
 }

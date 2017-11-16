@@ -34,8 +34,11 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_null(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	int worker_size = starpu_combined_worker_get_size();
@@ -65,7 +68,7 @@ static struct starpu_codelet cl =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 

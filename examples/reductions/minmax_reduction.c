@@ -51,6 +51,7 @@ static starpu_data_handle_t _minmax_handle;
 
 void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *array = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* Initialize current min to the greatest possible value. */
@@ -75,6 +76,7 @@ static struct starpu_codelet minmax_init_codelet =
 
 void minmax_redux_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *array_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *array_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -104,6 +106,7 @@ static struct starpu_codelet minmax_redux_codelet =
 
 void minmax_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	/* The array containing the values */
 	TYPE *local_array = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
@@ -139,7 +142,7 @@ static struct starpu_codelet minmax_codelet =
  *	Tasks initialization
  */
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned long i;
 	int ret;

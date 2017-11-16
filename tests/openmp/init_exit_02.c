@@ -23,7 +23,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -42,7 +42,7 @@ static void omp_destructor(void)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	return 0;
 }

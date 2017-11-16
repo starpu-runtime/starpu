@@ -102,8 +102,9 @@ int starpu_sched_component_is_random(struct starpu_sched_component *component)
 	return component->push_task == random_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_random_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "random");
 	component->push_task = random_push_task;
 	return component;

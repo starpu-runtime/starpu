@@ -43,8 +43,9 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	/* printf("22\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -114,11 +115,12 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
  * U21
  */
 
-static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
 {
 /*	printf("21\n"); */
 	float *sub11;
 	float *sub21;
+	(void)_args;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub21 = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -169,10 +171,11 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
  *	U11
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
 {
 /*	printf("11\n"); */
 	float *sub11;
+	(void)_args;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 

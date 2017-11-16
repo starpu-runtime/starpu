@@ -340,8 +340,9 @@ static void _starpu_graph_compute_bottom_up(void (*func)(struct _starpu_graph_no
 	free(next_set);
 }
 
-static void compute_depth(struct _starpu_graph_node *next_node, struct _starpu_graph_node *prev_node, void *data STARPU_ATTRIBUTE_UNUSED)
+static void compute_depth(struct _starpu_graph_node *next_node, struct _starpu_graph_node *prev_node, void *data)
 {
+	(void)data;
 	if (prev_node->depth < next_node->depth + 1)
 		prev_node->depth = next_node->depth + 1;
 }

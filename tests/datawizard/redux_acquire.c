@@ -20,12 +20,14 @@
 
 void init_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *dot = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dot = 42;
 }
 
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *dota = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	long int *dotb = (long int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -55,7 +57,7 @@ static void check_dot(void *dot_handle)
 	starpu_data_release(dot_handle);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	starpu_data_handle_t dot_handle;
 

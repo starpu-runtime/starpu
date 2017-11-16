@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -150,8 +150,9 @@ static void partition_mult_data(void)
 }
 
 #ifdef STARPU_USE_CUDA
-static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void cublas_mult(void *descr[], void *arg)
 {
+	(void)arg;
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -174,8 +175,9 @@ static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 }
 #endif
 
-void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
+void cpu_mult(void *descr[], void *arg)
 {
+	(void)arg;
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);

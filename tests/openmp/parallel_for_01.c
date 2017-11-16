@@ -24,7 +24,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -152,7 +152,7 @@ static void check_array(void)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 

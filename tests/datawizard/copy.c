@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
  * Copyright (C) 2016, 2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,14 +29,16 @@ static unsigned nloops = 10;
 static unsigned nloops = 1000;
 #endif
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static struct starpu_codelet cpu_codelet =
 {
         .cpu_funcs = {dummy_func},
-		.cpu_funcs_name = {"dummy_func"},
+	.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 1,
 	.modes = {STARPU_RW}
@@ -46,7 +48,6 @@ static struct starpu_codelet gpu_codelet =
 {
         .cuda_funcs = {dummy_func},
         .opencl_funcs = {dummy_func},
-		.cpu_funcs_name = {"dummy_func"},
         .model = NULL,
         .nbuffers = 1,
 	.modes = {STARPU_RW}

@@ -192,8 +192,7 @@ static struct starpu_sched_policy *policies[] =
 	//&_starpu_sched_peager_policy
 };
 
-int
-main(void)
+int main(void)
 {
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
