@@ -93,8 +93,7 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.o:
-	@echo "  NVCC     $@"
-	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 endif

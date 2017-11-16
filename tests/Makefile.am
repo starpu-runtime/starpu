@@ -92,12 +92,10 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include -I${includedir} $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
-	@echo "  NVCC     $@"
-	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	@echo "  NVCC     $@"
-	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 endif

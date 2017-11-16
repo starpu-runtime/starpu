@@ -49,12 +49,10 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
 
 .cu.cubin:
-	@echo "  NVCC     $@"
-	@$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	@echo "  NVCC     $@"
-	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 

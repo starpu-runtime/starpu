@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016  Université de Bordeaux
+# Copyright (C) 2016-2017  Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,11 @@ if STARPU_USE_MPI_MASTER_SLAVE
 MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
 MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 STARPU_NMPIMSTHREADS=4
 endif
+
+V_nvcc_ = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
+V_nvcc_0 = @echo "  NVCC    " $@;
+V_nvcc_1 = 
+V_nvcc = $(V_nvcc_$(V))
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
