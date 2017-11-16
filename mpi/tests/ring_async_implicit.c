@@ -32,6 +32,7 @@ extern void increment_cuda(void *descr[], void *_args);
 
 void increment_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int *tokenptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	(*tokenptr)++;
 }

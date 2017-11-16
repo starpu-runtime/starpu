@@ -45,6 +45,8 @@ static inline void STARPU_PLU(common_u22)(void *descr[], int s, void *_args)
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u\n", rank, info->k, info->i, info->j);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -154,6 +156,8 @@ static inline void STARPU_PLU(common_u12)(void *descr[], int s, void *_args)
 	//fprintf(stderr, "INPUT 12 U12\n");
 	fprintf(stderr, "INPUT 21 U21\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -264,6 +268,8 @@ static inline void STARPU_PLU(common_u21)(void *descr[], int s, void *_args)
 	//fprintf(stderr, "INPUT 21 U21\n");
 	fprintf(stderr, "INPUT 12 U12\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -363,6 +369,8 @@ static inline void STARPU_PLU(common_u11)(void *descr[], int s, void *_args)
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 11 %d - k = %u\n", rank, info->k);
+#else
+	(void)_args;
 #endif
 
 	switch (s)

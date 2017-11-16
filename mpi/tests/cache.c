@@ -21,6 +21,8 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 struct starpu_codelet mycodelet_r =

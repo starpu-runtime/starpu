@@ -24,6 +24,8 @@ int expected_y=12;
 
 void my_func(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	FPRINTF_MPI(stderr, "i am here\n");
 }
 

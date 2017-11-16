@@ -20,6 +20,7 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	unsigned *matrix = (unsigned *)STARPU_MATRIX_GET_PTR(descr[0]);
 	int nx = (int)STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = (int)STARPU_MATRIX_GET_NY(descr[0]);

@@ -241,6 +241,7 @@ static void unregister_matrices()
  * instead. */
 static void cpu_mult(void *handles[], void *arg)
 {
+	(void)arg;
 	double *block_A = (double *)STARPU_MATRIX_GET_PTR(handles[0]);
 	double *block_B = (double *)STARPU_MATRIX_GET_PTR(handles[1]);
 	double *block_C = (double *)STARPU_MATRIX_GET_PTR(handles[2]);

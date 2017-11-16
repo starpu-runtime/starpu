@@ -22,7 +22,7 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -30,6 +30,8 @@ int main(int argc, char **argv)
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 struct starpu_codelet mycodelet =

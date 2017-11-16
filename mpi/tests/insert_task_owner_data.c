@@ -20,6 +20,7 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
