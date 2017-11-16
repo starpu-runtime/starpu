@@ -95,8 +95,8 @@ if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)			\
-	  -I$(top_builddir)/include -I$(top_srcdir)/include
+	@echo "  NVCC     $@"
+	@$(NVCC) $< -c -o $@ $(NVCCFLAGS) -I$(top_builddir)/include -I$(top_srcdir)/include
 endif
 
 else !STARPU_USE_CUDA

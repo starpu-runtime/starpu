@@ -89,15 +89,15 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/src/common -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include -I${includedir} $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	@echo "  NVCC     $@"
+	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+	@echo "  NVCC     $@"
+	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 endif

@@ -103,11 +103,12 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+	@echo "  NVCC     $@"
+	@$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	@echo "  NVCC     $@"
+	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 endif
 
