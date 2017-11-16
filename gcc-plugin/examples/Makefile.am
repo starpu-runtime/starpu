@@ -92,8 +92,8 @@ if STARPU_USE_CUDA
 vector_scal_vector_scal_SOURCES += vector_scal/vector_scal_cuda.cu
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)			\
-	  -I$(top_builddir)/include -I$(top_srcdir)/include
+	@echo "  NVCC     $@"
+	@$(NVCC) $< -c -o $@ $(NVCCFLAGS) -I$(top_builddir)/include -I$(top_srcdir)/include
 
 else !STARPU_USE_CUDA
 

@@ -83,10 +83,11 @@ CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	@echo "  NVCC     $@"
+	@$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 
 endif
 
