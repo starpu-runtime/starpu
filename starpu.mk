@@ -19,10 +19,15 @@ MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
 MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 STARPU_NMPIMSTHREADS=4
 endif
 
-V_nvcc_ = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
+V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
 V_nvcc_0 = @echo "  NVCC    " $@;
-V_nvcc_1 = 
-V_nvcc = $(V_nvcc_$(V))
+V_nvcc_1 =
+V_nvcc   = $(V_nvcc_$(V))
+
+V_icc_  = $(V_icc_$(AM_DEFAULT_VERBOSITY))
+V_icc_0 = @echo "  ICC     " $@;
+V_icc_1 =
+V_icc   = $(V_icc_$(V))
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

@@ -100,8 +100,7 @@ endif
 
 if STARPU_HAVE_ICC
 .icc.o:
-	$(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
+	$(V_icc) $(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
 endif
 
 examplebindir = $(libdir)/starpu/examples/
