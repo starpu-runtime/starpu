@@ -13,10 +13,15 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-V_nvcc_ = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
+V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
 V_nvcc_0 = @echo "  NVCC    " $@;
-V_nvcc_1 = 
-V_nvcc = $(V_nvcc_$(V))
+V_nvcc_1 =
+V_nvcc   = $(V_nvcc_$(V))
+
+V_icc_  = $(V_icc_$(AM_DEFAULT_VERBOSITY))
+V_icc_0 = @echo "  ICC     " $@;
+V_icc_1 =
+V_icc   = $(V_icc_$(V))
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
