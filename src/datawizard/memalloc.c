@@ -25,6 +25,9 @@
 #include <starpu.h>
 #include <common/uthash.h>
 
+/* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
+const unsigned starpu_memstrategy_data_size_coefficient=2;
+
 /* Minimum percentage of available memory in each node */
 static unsigned minimum_p;
 static unsigned target_p;
@@ -114,9 +117,6 @@ int _starpu_is_reclaiming(unsigned node)
 {
 	return tidying[node] || reclaiming[node];
 }
-
-/* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
-const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
@@ -1370,10 +1370,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 		if (allocated_memory == -ENOMEM)
 		{
-			size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(dst_node);
 			size_t handle_size = handle->ops->get_size(handle);
-			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
-				reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
+			size_t reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
 			/* First try to flush data explicitly marked for freeing */
 			size_t freed = flush_memchunk_cache(dst_node, reclaim);
