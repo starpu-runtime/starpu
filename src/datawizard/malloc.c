@@ -824,6 +824,10 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
  */
 #define CHUNK_ALLOC_MIN (16*1024)
 
+/* Don't really deallocate chunks unless we have more than this many chunks
+ * which are completely free. */
+#define CHUNKS_NFREE 4
+
 /* Number of blocks */
 #define CHUNK_NBLOCKS (CHUNK_SIZE/CHUNK_ALLOC_MIN)
 
@@ -1088,7 +1092,7 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 	{
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
-		if (nfreechunks[dst_node] >= 1)
+		if (nfreechunks[dst_node] >= CHUNKS_NFREE)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);
