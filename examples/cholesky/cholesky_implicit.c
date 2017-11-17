@@ -204,8 +204,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	float *mat = NULL;
 	unsigned i,j;
 
-	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #ifndef STARPU_SIMGRID
+	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -239,6 +239,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 	cholesky(mat, size, size, nblocks);
 
+#ifndef STARPU_SIMGRID
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
 	for (j = 0; j < size; j++)
@@ -316,6 +317,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		free(test_mat);
 	}
 	starpu_free_flags(mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+#endif
 }
 
 int main(int argc, char **argv)
