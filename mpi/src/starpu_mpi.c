@@ -1261,6 +1261,9 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 		_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
 		break;
 	}
+	case MPI_THREAD_MULTIPLE:
+		/* No problem */
+		break;
 	}
 }
 
