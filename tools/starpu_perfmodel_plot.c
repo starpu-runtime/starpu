@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
+#include <common/config.h>
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
