@@ -20,6 +20,7 @@
  */
 
 #include <starpu.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_fxt_tool"
 

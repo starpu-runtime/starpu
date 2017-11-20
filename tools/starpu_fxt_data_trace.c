@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <starpu.h>
 #include <string.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_fxt_data_trace"
 #define MAX_LINE_SIZE 100
