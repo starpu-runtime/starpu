@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2016  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
  * Copyright (C) 2016  Inria
  *
@@ -61,6 +61,9 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 			_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
 			break;
 		}
+		case MPI_THREAD_MULTIPLE:
+			/* no problem */
+			break;
 	}
 }
 
