@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
 #include <starpu.h>
 #include <stdio.h>
 #if defined(_WIN32) && !defined(__CYGWIN__)

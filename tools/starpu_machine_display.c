@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_machine_display"
 
