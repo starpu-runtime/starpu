@@ -22,7 +22,6 @@
 #include <sys/time.h>
 
 #include <starpu.h>
-#include <config.h>
 
 #include "starpufft.h"
 #ifdef STARPU_USE_CUDA

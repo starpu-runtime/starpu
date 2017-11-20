@@ -17,7 +17,6 @@
  */
 
 #include <stdio.h>
-#include <config.h>
 #include <starpu.h>
 #include <string.h>
 

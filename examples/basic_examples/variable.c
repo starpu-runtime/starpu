@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <config.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 

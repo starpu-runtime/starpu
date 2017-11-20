@@ -16,7 +16,7 @@
 
 /* Check that defining a main makes starpu use MSG_process_attach. */
 #include "locality.c"
-#include <config.h>
+#include <common/config.h>
 #if defined(HAVE_MSG_PROCESS_ATTACH) && SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
 #undef main
 int main(int argc, char *argv[])

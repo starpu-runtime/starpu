@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>

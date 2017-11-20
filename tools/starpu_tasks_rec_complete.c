@@ -15,12 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <common/config.h>
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <starpu.h>

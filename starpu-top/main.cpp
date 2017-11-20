@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QApplication>
 #include "mainwindow.h"
 #include <string.h>
-#include <config.h>
 
 #define PROGNAME "starpu_top"
 

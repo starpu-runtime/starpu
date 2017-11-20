@@ -23,7 +23,6 @@
  */
 #include <starpu.h>
 #include <starpu_scheduler.h>
-#include <config.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS	320
