@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <common/config.h>
 #include <starpu.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
