@@ -505,7 +505,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_
 	return copy_cuda_common_async(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToHost);
 }
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 				void *dst_interface, unsigned dst_node,
 				cudaStream_t stream)
@@ -559,7 +559,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	}
 	else
 	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node,
 					     dst_interface, dst_node,
 					     NULL);
@@ -581,7 +581,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 	}
 	else
 	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node,
 					     dst_interface, dst_node,
 					     stream);

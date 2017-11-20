@@ -84,7 +84,7 @@ check_result(unsigned *t, size_t size)
 }
 
 #ifdef STARPU_USE_CUDA
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static int
 test_cuda(void)
 {
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	ret = test_cuda();
 	if (ret == 1)
 		goto fail;

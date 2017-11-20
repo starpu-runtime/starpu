@@ -366,7 +366,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		if (handle)
 			STARPU_ASSERT(replicate->allocated);
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
@@ -1354,7 +1354,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	{
 		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the

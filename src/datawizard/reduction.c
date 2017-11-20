@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014, 2016  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2016  CNRS
+ * Copyright (C) 2011, 2012, 2013, 2016, 2017  CNRS
  * Copyright (C) 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,7 +67,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			break;
 		case STARPU_CUDA_WORKER:
 			init_func = _starpu_task_get_cuda_nth_implementation(init_cl, 0);
-#if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 			/* We make sure we do manipulate the proper device */
 			starpu_cuda_set_device(starpu_worker_get_devid(workerid));
 #endif

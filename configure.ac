@@ -1384,7 +1384,7 @@ if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
     LDFLAGS="${SAVED_LDFLAGS}"
 fi
 if test x$have_cuda_memcpy_peer = xyes; then
-    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
+    AC_DEFINE(STARPU_HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
 if test x$enable_cuda = xyes; then

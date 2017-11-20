@@ -97,7 +97,7 @@ static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
@@ -284,7 +284,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	cudaThreadExit();
 }
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 {
 	size_t size = SIZE;
@@ -786,7 +786,7 @@ static void benchmark_all_gpu_devices(void)
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_per_numa, "CUDA");
 	}
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 	{
 		for (j = 0; j < ncuda; j++)
@@ -1378,7 +1378,7 @@ static void write_bus_latency_file_content(void)
 				/* ---- End NUMA ---- */
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
 					latency += cudadev_latency_dtod[src-b_low][dst-b_low];
 				else
@@ -1709,7 +1709,7 @@ static void write_bus_bandwidth_file_content(void)
 				/* End NUMA */
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
 					/* Direct GPU-GPU transfert */
 					slowness += cudadev_timing_dtod[src-b_low][dst-b_low];
@@ -2180,7 +2180,7 @@ void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen)
  * - then through all CUDA-CUDA possible transfers again to emit routes.
  */
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 
 /* Records, for each PCI link and hub, the maximum bandwidth seen through it */
 struct pci_userdata
@@ -2652,7 +2652,7 @@ static void write_bus_platform_file_content(int version)
 	{
 		fprintf(f, "   <host id=\"CUDA%u\" %s=\"2000000000%s\">\n", i, speed, flops);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
 		/* TODO: record cudadev_direct instead of assuming it's NUMA nodes */
@@ -2747,7 +2747,7 @@ static void write_bus_platform_file_content(int version)
 				search_bus_best_latency(i, "CUDA", 0)/1000000., s);
 	}
 	fprintf(f, "\n");
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	/* Write CUDA/CUDA bandwidths and latencies */
 	for (i = 0; i < ncuda; i++)
 	{
@@ -2768,7 +2768,7 @@ static void write_bus_platform_file_content(int version)
 	}
 #endif
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
 	{
@@ -2840,7 +2840,7 @@ flat_cuda:
 			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 		}
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		for (i = 0; i < ncuda; i++)
 		{
                         unsigned j;
@@ -2856,7 +2856,7 @@ flat_cuda:
 			}
 		}
 #endif
-	} /* defined(STARPU_HAVE_HWLOC) && defined(HAVE_CUDA_MEMCPY_PEER) */
+	} /* defined(STARPU_HAVE_HWLOC) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) */
 	fprintf(f, "\n");
 #endif /* STARPU_USE_CUDA */
 

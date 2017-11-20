@@ -243,14 +243,14 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			}
 			else
 				return 0;
-#elif defined(HAVE_CUDA_MEMCPY_PEER)
+#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			/* simgrid */
 			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 			return kind == STARPU_CUDA_RAM;
-#else /* HAVE_CUDA_MEMCPY_PEER */
+#else /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
-#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 		}
 		case STARPU_OPENCL_RAM:
 			return 0;
@@ -425,7 +425,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = handling_node;
 
-#if !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		STARPU_ASSERT(!(mode & STARPU_R) || starpu_node_get_kind(src_node) != STARPU_CUDA_RAM || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM);
 #endif
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2016  CNRS
+ * Copyright (C) 2010, 2011, 2013, 2016, 2017  CNRS
  * Copyright (C) 2016-2017  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -177,7 +177,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		unsigned devid;
@@ -207,7 +207,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #ifdef STARPU_USE_CUDA
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		/* only the proper CUBLAS thread can initiate this directly ! */
-#if !defined(HAVE_CUDA_MEMCPY_PEER)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		STARPU_ASSERT(_starpu_memory_node_get_local_key() == src_node);
 #endif
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
@@ -242,7 +242,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		/* STARPU_CPU_RAM -> CUBLAS_RAM */
 		/* only the proper CUBLAS thread can initiate this ! */
-#if !defined(HAVE_CUDA_MEMCPY_PEER)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node);
 #endif
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||

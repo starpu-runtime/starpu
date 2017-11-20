@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  INRIA
- * Copyright (C) 2013, 2014  CNRS
+ * Copyright (C) 2013, 2014, 2017  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -457,7 +457,7 @@ ram_to_cuda(void)
 	return current_config->copy_failed;
 }
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static enum exit_code
 cuda_to_cuda(void)
 {
@@ -585,7 +585,7 @@ run_cuda(int async)
 	if (err != SUCCESS)
 		return;
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	if (starpu_cuda_worker_get_count() >= 2)
 	{
 		err = cuda_to_cuda();
@@ -599,7 +599,7 @@ run_cuda(int async)
 	}
 #else
 	summary.cuda_to_cuda_async = UNTESTED;
-#endif /* !HAVE_CUDA_MEMCPY_PEER */
+#endif /* !STARPU_HAVE_CUDA_MEMCPY_PEER */
 
 #ifdef STARPU_USE_CPU
 	err = cuda_to_ram();

@@ -444,7 +444,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 #ifndef BUGGED_MEMCPY3D
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 
