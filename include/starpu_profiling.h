@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014, 2016  Université de Bordeaux
+ * Copyright (C) 2010-2014, 2016-2017  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -123,6 +123,8 @@ static __starpu_inline void starpu_timespec_clear(struct timespec *tsp)
 	tsp->tv_nsec = 0;
 }
 
+#define STARPU_NS_PER_S 1000000000
+
 /* Computes result = a + b */
 static __starpu_inline void starpu_timespec_add(struct timespec *a,
 						struct timespec *b,
@@ -131,10 +133,10 @@ static __starpu_inline void starpu_timespec_add(struct timespec *a,
 	result->tv_sec = a->tv_sec + b->tv_sec;
 	result->tv_nsec = a->tv_nsec + b->tv_nsec;
 
-	if (result->tv_nsec >= 1000000000)
+	if (result->tv_nsec >= STARPU_NS_PER_S)
 	{
 		++(result)->tv_sec;
-		result->tv_nsec -= 1000000000;
+		result->tv_nsec -= STARPU_NS_PER_S;
 	}
 }
 
@@ -145,10 +147,10 @@ static __starpu_inline void starpu_timespec_accumulate(struct timespec *result,
 	result->tv_sec += a->tv_sec;
 	result->tv_nsec += a->tv_nsec;
 
-	if (result->tv_nsec >= 1000000000)
+	if (result->tv_nsec >= STARPU_NS_PER_S)
 	{
 		++(result)->tv_sec;
-		result->tv_nsec -= 1000000000;
+		result->tv_nsec -= STARPU_NS_PER_S;
 	}
 }
 
@@ -163,7 +165,7 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 	if ((result)->tv_nsec < 0)
 	{
 		--(result)->tv_sec;
-		result->tv_nsec += 1000000000;
+		result->tv_nsec += STARPU_NS_PER_S;
 	}
 }
 
