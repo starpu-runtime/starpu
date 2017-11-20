@@ -16,8 +16,11 @@
 
 #ifndef _TESTS_HELPER_H
 #define _TESTS_HELPER_H
+
 #include <errno.h>
+#include <common/config.h>
 #include <common/utils.h>
+
 #ifdef HAVE_GETRLIMIT
 #include <sys/resource.h>
 #endif
