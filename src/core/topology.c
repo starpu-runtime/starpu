@@ -1527,7 +1527,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					if (
 #ifdef STARPU_SIMGRID
 						cuda_memcpy_peer && atoll(cuda_memcpy_peer)
-#elif defined(HAVE_CUDA_MEMCPY_PEER)
+#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 						1
 #else /* MEMCPY_PEER */
 						0
