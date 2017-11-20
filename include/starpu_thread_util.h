@@ -133,7 +133,7 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 	int p_ret = starpu_pthread_mutex_trylock_sched(mutex);
 	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != EBUSY)) {
 		fprintf(stderr,
-			"%s:%d starpu_pthread_mutex_trylock: %s\n",
+			"%s:%d starpu_pthread_mutex_trylock_sched: %s\n",
 			file, line, strerror(p_ret));
 		STARPU_ABORT();
 	}
