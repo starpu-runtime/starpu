@@ -27,6 +27,7 @@
 
 #include <common/fxt.h>
 #include <common/list.h>
+#include <common/config.h>
 #include <starpu.h>
 
 static fxt_t fut;
