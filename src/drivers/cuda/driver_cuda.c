@@ -597,7 +597,9 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		{
 #ifndef STARPU_SIMGRID
 			/* Record event to synchronize with task termination later */
-			cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
+			cudaError_t cures = cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 #ifdef STARPU_USE_FXT
 			int k;
