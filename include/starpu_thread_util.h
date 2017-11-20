@@ -103,7 +103,7 @@
 	int p_ret = starpu_pthread_mutex_lock_sched(mutex);		      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d starpu_pthread_mutex_lock: %s\n",               \
+			"%s:%d starpu_pthread_mutex_lock_sched: %s\n",         \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
@@ -155,7 +155,7 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 	int p_ret = starpu_pthread_mutex_unlock_sched(mutex);                  \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d starpu_pthread_mutex_unlock: %s\n",             \
+			"%s:%d starpu_pthread_mutex_unlock_sched: %s\n",       \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
