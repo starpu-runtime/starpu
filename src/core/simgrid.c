@@ -47,6 +47,8 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+/* 1 when MSG_init was done, 2 when initialized through redirected main, 3 when
+ * initialized through MSG_process_attach */
 static int simgrid_started;
 
 static int runners_running;
@@ -298,8 +300,16 @@ int main(int argc, char **argv)
 #endif
 	}
 
+        /* Already initialized?  It probably has been done through a
+         * constructor and MSG_process_attach, directly jump to real main */
+	if (simgrid_started == 3) {
+		return do_starpu_main(argc, argv);
+	}
+
 	/* Managed to catch application's main, initialize simgrid first */
 	_starpu_start_simgrid(&argc, argv);
+
+	simgrid_started = 2;
 
 	/* Create a simgrid process for main */
 	char **argv_cpy;
@@ -309,6 +319,7 @@ int main(int argc, char **argv)
 		argv_cpy[i] = strdup(argv[i]);
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+
 	/* Run the application in a separate thread */
 	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
 
@@ -328,7 +339,7 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_MSG_PROCESS_ATTACH
-	if (!simgrid_started && !_starpu_simgrid_running_smpi())
+	if (simgrid_started < 2 && !_starpu_simgrid_running_smpi())
 	{
 		/* "Cannot create_maestro with this ContextFactory.
 		 * Try using --cfg=contexts/factory:thread instead."
@@ -346,7 +357,8 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
-		simgrid_started = 2;
+		/* We initialized through MSG_process_attach */
+		simgrid_started = 3;
 	}
 #endif
 
@@ -389,6 +401,18 @@ void _starpu_simgrid_init(void)
 	}
 }
 
+void _starpu_simgrid_deinit_late(void)
+{
+#ifdef HAVE_MSG_PROCESS_ATTACH
+	if (simgrid_started == 3)
+	{
+		/* Started with MSG_process_attach, now detach */
+		MSG_process_detach();
+		simgrid_started = 0;
+	}
+#endif
+}
+
 void _starpu_simgrid_deinit(void)
 {
 	unsigned i, j;
@@ -428,14 +452,19 @@ void _starpu_simgrid_deinit(void)
 		MSG_sem_destroy(w->sem);
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
-#ifdef HAVE_MSG_PROCESS_ATTACH
-	if (simgrid_started == 2)
-	{
-		/* Started with MSG_process_attach, now detach */
-		MSG_process_detach();
-		simgrid_started = 0;
-	}
+
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+	extern xbt_cfg_t _sg_cfg_set;
 #endif
+	if (
+#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+		xbt_cfg_get_boolean(_sg_cfg_set, "clean-atexit")
+#else
+		xbt_cfg_get_boolean("clean-atexit")
+#endif
+		) {
+		_starpu_simgrid_deinit_late();
+	}
 }
 
 /*

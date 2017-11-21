@@ -921,10 +921,13 @@ void _starpu_omp_dummy_shutdown(void)
 int starpu_omp_init(void)
 {
 #ifdef STARPU_SIMGRID
-	/* XXX: ideally we'd pass the real argc/argv */
-	int argc;
-	char *argv[] = { NULL };
-	_starpu_start_simgrid(&argc, &argv);
+	/* XXX: ideally we'd pass the real argc/argv.  */
+	/* We have to tell simgrid to avoid cleaning up at exit, since that's before our destructor :/ */
+	char *argv[] = { "program", "--cfg=clean-atexit:0", NULL };
+	int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+	char **_argv = argv;
+	/* Initialize simgrid before anything else.  */
+	_starpu_simgrid_init_early(&argc, &_argv);
 #endif
 
 	_starpu_omp_global_state = &_global_state;
@@ -998,6 +1001,7 @@ void starpu_omp_shutdown(void)
 	_starpu_omp_environment_exit();
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+	_starpu_simgrid_deinit_late();
 }
 
 static void implicit_task__destroy_callback(void *_task)

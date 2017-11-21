@@ -170,6 +170,7 @@ myPROGRAMS +=					\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
 	openmp/init_exit_01			\
+	openmp/init_exit_02			\
 	perfmodels/value_nan
 
 if STARPU_SIMGRID
@@ -303,7 +304,6 @@ myPROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
-	openmp/init_exit_02			\
 	openmp/environment			\
 	openmp/api_01				\
 	openmp/parallel_01			\
