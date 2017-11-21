@@ -86,7 +86,9 @@ main (void)
 	pthread_t tid;
 	tid = pthread_self();
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
 	attr.cl.model        = &starpu_perfmodel_nop;
+#endif
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;

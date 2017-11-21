@@ -121,7 +121,9 @@ void task_region_g(void *buffers[], void *args)
 		printf("depth 1 task, block 2: vector_slice_2_handle = %p\n", vector_slice_2_handle);
 
 		memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
 		attr.cl.model         = &starpu_perfmodel_nop;
+#endif
 		attr.cl.cpu_funcs[0]  = task_region_h;
 		attr.cl.where         = STARPU_CPU;
 		attr.cl.nbuffers      = 1;
@@ -180,7 +182,9 @@ void master_g2(void *arg)
 	printf("master_g2: region_vector_handle = %p\n", region_vector_handle);
 
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
 	attr.cl.model         = &starpu_perfmodel_nop;
+#endif
 	attr.cl.cpu_funcs[0]  = task_region_g;
 	attr.cl.where         = STARPU_CPU;
 	attr.cl.nbuffers      = 1;
@@ -233,7 +237,9 @@ main (void)
 
 	assert(NX >= 2);
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
 	attr.cl.model        = &starpu_perfmodel_nop;
+#endif
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;
