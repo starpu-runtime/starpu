@@ -147,6 +147,7 @@ noinst_PROGRAMS +=				\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
 	overlap/overlap				\
+	openmp/init_exit_01			\
 	perfmodels/value_nan
 
 if !STARPU_SIMGRID
@@ -269,7 +270,6 @@ noinst_PROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
-	openmp/init_exit_01			\
 	openmp/init_exit_02			\
 	openmp/environment			\
 	openmp/api_01				\
