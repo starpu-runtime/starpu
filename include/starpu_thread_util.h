@@ -329,6 +329,34 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
 	}                                                                      \
 } while (0)
 
+/* pthread_cond_timedwait not yet available on windows, but we don't run simgrid there anyway */
+#ifdef STARPU_SIMGRID
+#define STARPU_PTHREAD_COND_TIMEDWAIT(cond, mutex, abstime) \
+	_starpu_pthread_cond_timedwait(cond, mutex, abstime, __FILE__, __LINE__)
+static STARPU_INLINE
+int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime, char *file, int line)
+{
+	int p_ret = starpu_pthread_cond_timedwait(cond, mutex, abstime);
+	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != ETIMEDOUT)) {
+		fprintf(stderr,
+			"%s:%d starpu_pthread_cond_timedwait: %s\n",
+			file, line, strerror(p_ret));
+		STARPU_ABORT();
+	}
+	return p_ret;
+}
+#endif
+
+#define STARPU_PTHREAD_COND_TIMED_WAIT(cond, mutex, abstime) do {              \
+	int p_ret = starpu_pthread_cond_timedwait((cond), (mutex), (abstime)); \
+	if (STARPU_UNLIKELY(p_ret && p_ret != ETIMEDOUT)) {                    \
+		fprintf(stderr,                                                \
+			"%s:%d starpu_pthread_cond_timedwait: %s\n",           \
+			__FILE__, __LINE__, strerror(p_ret));                  \
+		STARPU_ABORT();                                                \
+	}                                                                      \
+} while (0)
+
 /*
  * Encapsulation of the starpu_pthread_barrier_* functions.
  */

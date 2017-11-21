@@ -23,6 +23,7 @@
 #endif
 #include <common/thread.h>
 #include <common/fxt.h>
+#include <common/timing.h>
 
 #include <errno.h>
 #include <limits.h>
@@ -340,6 +341,26 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	return 0;
 }
 
+int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
+{
+	struct timespec now, delta;
+	double delay;
+	_starpu_clock_gettime(&now);
+	delta.tv_sec = abstime->tv_sec - now.tv_sec;
+	delta.tv_nsec = abstime->tv_nsec - now.tv_nsec;
+	delay = (double) delta.tv_sec + (double) delta.tv_nsec / 1000000000.;
+
+	_STARPU_TRACE_COND_WAIT_BEGIN();
+
+	_starpu_pthread_cond_auto_init(cond);
+	xbt_cond_timedwait(*cond, *mutex, delay);
+	STARPU_ASSERT(0, "FIXME: we don't have a return value for ETIMEOUT");
+
+	_STARPU_TRACE_COND_WAIT_END();
+
+	return 0;
+}
+
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 {
 	if (*cond)
@@ -507,6 +528,18 @@ int starpu_pthread_wait_wait(starpu_pthread_wait_t *w)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
 	return 0;
 }
+
+/* pthread_cond_timedwait not yet available on windows, but we don't run simgrid there anyway */
+#ifdef STARPU_SIMGRID
+int starpu_pthread_wait_timedwait(starpu_pthread_wait_t *w, const struct timespec *abstime)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+	while (w->block == 1)
+		STARPU_PTHREAD_COND_TIMEDWAIT(&w->cond, &w->mutex, abstime);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	return 0;
+}
+#endif
 
 int starpu_pthread_queue_signal(starpu_pthread_queue_t *q)
 {

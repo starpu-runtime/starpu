@@ -405,6 +405,7 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q);
 int starpu_pthread_wait_reset(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_wait(starpu_pthread_wait_t *w);
+int starpu_pthread_wait_timedwait(starpu_pthread_wait_t *w, const struct timespec *abstime);
 int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
 #endif
 
