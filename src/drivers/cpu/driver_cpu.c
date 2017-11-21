@@ -344,14 +344,25 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
 
 #ifdef STARPU_SIMGRID
-#ifdef STARPU_OPENMP
+ #ifdef WHEN_starpu_pthread_wait_timedwait_IS_FIXED_WITH_SIMGRID
+	if (!res && !task)
+	{
+		/* No progress, wait (but at most 1s for OpenMP support) */
+		struct timespec abstime;
+		_starpu_clock_gettime(&abstime);
+		abstime.tv_sec++;
+		starpu_pthread_wait_timedwait(&cpu_worker->wait, &abstime);
+	}
+ #else
+  #ifdef STARPU_OPENMP
 	/* FIXME: properly test termination for caller */
 	MSG_process_sleep(0.001);
-#else
+  #else
 	if (!res && !task)
 		/* No progress, wait */
 		starpu_pthread_wait_wait(&cpu_worker->wait);
-#endif
+  #endif
+ #endif
 #endif
 
 	if (!task)
