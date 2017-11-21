@@ -18,7 +18,7 @@
 #define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
 
 #ifndef NOCONFIG
-#include <config.h>
+#include <common/config.h>
 #else
 #define _GNU_SOURCE 1
 // Assuming recent simgrid

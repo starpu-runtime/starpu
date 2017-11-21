@@ -29,7 +29,7 @@
 #define STARPU_UYIELD() ((void)0)
 
 #ifndef NOCONFIG
-#include <config.h>
+#include <common/config.h>
 #else
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
