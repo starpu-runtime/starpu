@@ -354,7 +354,7 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 
 	_starpu_pthread_cond_auto_init(cond);
 	xbt_cond_timedwait(*cond, *mutex, delay);
-	STARPU_ASSERT(0, "FIXME: we don't have a return value for ETIMEOUT");
+	STARPU_ASSERT_MSG(0, "FIXME: we don't have a return value for ETIMEOUT");
 
 	_STARPU_TRACE_COND_WAIT_END();
 
