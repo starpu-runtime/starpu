@@ -344,9 +344,14 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_OPENMP
+	/* FIXME: properly test termination for caller */
+	MSG_process_sleep(0.001);
+#else
 	if (!res && !task)
 		/* No progress, wait */
 		starpu_pthread_wait_wait(&cpu_worker->wait);
+#endif
 #endif
 
 	if (!task)
