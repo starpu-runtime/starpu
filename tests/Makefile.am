@@ -173,6 +173,36 @@ myPROGRAMS +=					\
 	openmp/init_exit_02			\
 	openmp/environment			\
 	openmp/api_01				\
+	openmp/parallel_01			\
+	openmp/parallel_02			\
+	openmp/parallel_03			\
+	openmp/parallel_barrier_01		\
+	openmp/parallel_master_01		\
+	openmp/parallel_master_inline_01	\
+	openmp/parallel_single_wait_01		\
+	openmp/parallel_single_nowait_01	\
+	openmp/parallel_single_inline_01	\
+	openmp/parallel_single_copyprivate_01	\
+	openmp/parallel_single_copyprivate_inline_01	\
+	openmp/parallel_critical_01		\
+	openmp/parallel_critical_inline_01	\
+	openmp/parallel_critical_named_01	\
+	openmp/parallel_critical_named_inline_01\
+	openmp/parallel_simple_lock_01		\
+	openmp/parallel_nested_lock_01		\
+	openmp/parallel_for_01			\
+	openmp/parallel_for_02			\
+	openmp/parallel_for_ordered_01		\
+	openmp/parallel_sections_01		\
+	openmp/parallel_sections_combined_01	\
+	openmp/task_01				\
+	openmp/task_02				\
+	openmp/task_03				\
+	openmp/taskwait_01			\
+	openmp/taskgroup_01			\
+	openmp/taskgroup_02			\
+	openmp/array_slice_01			\
+	openmp/cuda_task_01			\
 	perfmodels/value_nan
 
 if STARPU_SIMGRID
@@ -306,36 +336,6 @@ myPROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
-	openmp/parallel_01			\
-	openmp/parallel_02			\
-	openmp/parallel_03			\
-	openmp/parallel_barrier_01		\
-	openmp/parallel_master_01		\
-	openmp/parallel_master_inline_01	\
-	openmp/parallel_single_wait_01		\
-	openmp/parallel_single_nowait_01	\
-	openmp/parallel_single_inline_01	\
-	openmp/parallel_single_copyprivate_01	\
-	openmp/parallel_single_copyprivate_inline_01	\
-	openmp/parallel_critical_01		\
-	openmp/parallel_critical_inline_01	\
-	openmp/parallel_critical_named_01	\
-	openmp/parallel_critical_named_inline_01\
-	openmp/parallel_simple_lock_01		\
-	openmp/parallel_nested_lock_01		\
-	openmp/parallel_for_01			\
-	openmp/parallel_for_02			\
-	openmp/parallel_for_ordered_01		\
-	openmp/parallel_sections_01		\
-	openmp/parallel_sections_combined_01	\
-	openmp/task_01				\
-	openmp/task_02				\
-	openmp/task_03				\
-	openmp/taskwait_01			\
-	openmp/taskgroup_01			\
-	openmp/taskgroup_02			\
-	openmp/array_slice_01			\
-	openmp/cuda_task_01			\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
