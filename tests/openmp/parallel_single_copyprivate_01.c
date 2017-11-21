@@ -86,6 +86,7 @@ main (void)
 #ifdef STARPU_SIMGRID
 	attr.cl.model        = &starpu_perfmodel_nop;
 #endif
+	attr.cl.flags        = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;

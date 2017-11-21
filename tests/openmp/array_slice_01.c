@@ -124,6 +124,7 @@ void task_region_g(void *buffers[], void *args)
 #ifdef STARPU_SIMGRID
 		attr.cl.model         = &starpu_perfmodel_nop;
 #endif
+		attr.cl.flags         = STARPU_CODELET_SIMGRID_EXECUTE;
 		attr.cl.cpu_funcs[0]  = task_region_h;
 		attr.cl.where         = STARPU_CPU;
 		attr.cl.nbuffers      = 1;

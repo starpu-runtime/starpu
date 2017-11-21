@@ -69,6 +69,7 @@ void parallel_region_f(void *buffers[], void *args)
 #ifdef STARPU_SIMGRID
 	attr.cl.model         = &starpu_perfmodel_nop;
 #endif
+	attr.cl.flags         = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0]  = task_region_g;
 	attr.cl.where         = STARPU_CPU;
 	attr.if_clause        = 1;
@@ -89,6 +90,7 @@ main (void)
 #ifdef STARPU_SIMGRID
 	attr.cl.model        = &starpu_perfmodel_nop;
 #endif
+	attr.cl.flags        = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;
