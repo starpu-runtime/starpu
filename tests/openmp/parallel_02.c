@@ -64,6 +64,7 @@ void parallel_region_1_f(void *buffers[], void *args)
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] parallel region 1: task thread = %d\n", (void *)tid, worker_id);
 	memset(&attr, 0, sizeof(attr));
+	attr.cl.model        = &starpu_perfmodel_nop;
 	attr.cl.cpu_funcs[0] = parallel_region_2_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;
@@ -75,6 +76,7 @@ main (void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 	memset(&attr, 0, sizeof(attr));
+	attr.cl.model        = &starpu_perfmodel_nop;
 	attr.cl.cpu_funcs[0] = parallel_region_1_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;

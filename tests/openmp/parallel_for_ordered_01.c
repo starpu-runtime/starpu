@@ -175,6 +175,7 @@ main (void)
 	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));
+	attr.cl.model        = &starpu_perfmodel_nop;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;
 
