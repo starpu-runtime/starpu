@@ -19,7 +19,6 @@
  * This is just a small example which increments two values of a vector several times.
  */
 #include <starpu.h>
-#include <common/config.h>
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 500;
