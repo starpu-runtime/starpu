@@ -235,6 +235,7 @@ void fut_set_filename(char *filename);
 #endif
 
 extern int _starpu_fxt_started;
+extern int _starpu_fxt_willstart;
 extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
 extern starpu_pthread_cond_t _starpu_fxt_started_cond;
 
