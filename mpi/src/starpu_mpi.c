@@ -1392,22 +1392,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 	smpi_process_set_user_data(tsd);
 #endif
-#ifdef STARPU_USE_FXT
-	/* Wait for FxT initialization before emitting FxT probes */
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	while (!_starpu_fxt_started)
-		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
-#endif //STARPU_USE_FXT
 
-	{
-		_STARPU_MPI_TRACE_START(rank, worldsize);
-#ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(rank);
-#endif //STARPU_USE_FXT
-	}
-
-	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(argc_argv->comm);
 	_starpu_mpi_cache_init(argc_argv->comm);
 	_starpu_mpi_select_node_init();
@@ -1425,6 +1410,22 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
+#ifdef STARPU_USE_FXT
+	/* Wait for FxT initialization before emitting FxT probes */
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
+	while (!_starpu_fxt_started)
+		STARPU_PTHREAD_COND_WAIT(&_starpu_fxt_started_cond, &_starpu_fxt_started_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+#endif //STARPU_USE_FXT
+
+	{
+		_STARPU_MPI_TRACE_START(rank, worldsize);
+#ifdef STARPU_USE_FXT
+		starpu_profiling_set_id(rank);
+#endif //STARPU_USE_FXT
+	}
+
+	_starpu_mpi_add_sync_point_in_fxt();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
