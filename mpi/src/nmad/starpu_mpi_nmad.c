@@ -606,6 +606,17 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	smpi_process_set_user_data(tsd);
 #endif
 
+	_starpu_mpi_comm_amounts_init(argc_argv->comm);
+	_starpu_mpi_cache_init(argc_argv->comm);
+	_starpu_mpi_select_node_init();
+	_starpu_mpi_datatype_init();
+
+	/* notify the main thread that the progression thread is ready */
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	running = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_wait_initialisation();
 #endif //STARPU_USE_FXT
@@ -618,16 +629,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 
 	_starpu_mpi_add_sync_point_in_fxt();
-	_starpu_mpi_comm_amounts_init(argc_argv->comm);
-	_starpu_mpi_cache_init(argc_argv->comm);
-	_starpu_mpi_select_node_init();
-	_starpu_mpi_datatype_init();
-
-	/* notify the main thread that the progression thread is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-	running = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	while (1)
 	{
