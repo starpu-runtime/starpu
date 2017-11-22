@@ -17,7 +17,6 @@
 
 #include <starpu.h>
 #include "../helper.h"
-#include <common/config.h>
 
 /*
  * Check that we detect that with only a CPU we can't submit a GPU-only task

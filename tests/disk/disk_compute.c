@@ -24,7 +24,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
-#include <common/config.h>
 #include "../helper.h"
 
 #ifdef STARPU_HAVE_HDF5

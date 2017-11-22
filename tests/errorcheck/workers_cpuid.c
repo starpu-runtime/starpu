@@ -17,7 +17,6 @@
 
 #include <starpu.h>
 #include "../helper.h"
-#include <common/config.h>
 
 /*
  * Try various values for STARPU_WORKERS_CPUID, checking that the

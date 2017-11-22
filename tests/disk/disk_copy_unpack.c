@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
-#include <common/config.h>
 #include "../helper.h"
 
 /*

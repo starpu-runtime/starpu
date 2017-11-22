@@ -18,7 +18,6 @@
 #ifndef _STARPU_TESTS_MPI_LIKE_H
 #define _STARPU_TESTS_MPI_LIKE_H
 
-#include <common/config.h>
 #include <starpu.h>
 
 #ifdef STARPU_USE_CUDA

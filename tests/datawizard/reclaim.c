@@ -17,7 +17,6 @@
 
 #include <assert.h>
 #include <starpu.h>
-#include <common/config.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
