@@ -18,7 +18,7 @@
 #include "helper.h"
 #include <inttypes.h>
 
-int main(void)
+int main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	int flag;
 	int64_t value;
