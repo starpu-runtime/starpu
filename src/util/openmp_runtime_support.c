@@ -1001,7 +1001,9 @@ void starpu_omp_shutdown(void)
 	_starpu_omp_environment_exit();
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+#ifdef STARPU_SIMGRID
 	_starpu_simgrid_deinit_late();
+#endif
 }
 
 static void implicit_task__destroy_callback(void *_task)
