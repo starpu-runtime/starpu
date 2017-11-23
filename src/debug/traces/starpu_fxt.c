@@ -158,6 +158,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 
 static void task_dump(struct task_info *task, struct starpu_fxt_options *options)
 {
+	char *prefix = options->file_prefix;
 	unsigned i;
 
 	if (task->exclude_from_dag)
@@ -177,7 +178,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
 		free(task->model_name);
 	}
-	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
+	fprintf(tasks_file, "JobId: %s%lu\n", prefix, task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
 	if (task->priority)
@@ -186,7 +187,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	{
 		fprintf(tasks_file, "DependsOn:");
 		for (i = 0; i < task->ndeps; i++)
-			fprintf(tasks_file, " %lu", task->dependencies[i]);
+			fprintf(tasks_file, " %s%lu", prefix, task->dependencies[i]);
 		fprintf(tasks_file, "\n");
 		free(task->dependencies);
 	}
