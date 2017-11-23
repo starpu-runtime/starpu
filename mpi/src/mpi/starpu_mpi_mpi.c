@@ -98,12 +98,14 @@ static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_runn
 
 extern struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count);
 
+#ifdef STARPU_SIMGRID
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
 
 #pragma weak smpi_process_set_user_data
-#if !defined(HAVE_DECL_SMPI_PROCESS_SET_USER_DATA)
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
 extern void smpi_process_set_user_data(void *);
+#endif
 #endif
 
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
