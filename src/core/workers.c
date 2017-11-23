@@ -1151,8 +1151,8 @@ static void _starpu_build_tree(void)
 #endif
 }
 
-static struct sigaction act_sigint;
-static struct sigaction act_sigsegv;
+static void (*act_sigint)(int);
+static void (*act_sigsegv)(int);
 
 void _starpu_handler(int sig)
 {
@@ -1164,11 +1164,11 @@ void _starpu_handler(int sig)
 #endif
 	if (sig == SIGINT)
 	{
-		sigaction(SIGINT, &act_sigint, NULL);
+		signal(SIGINT, act_sigint);
 	}
 	if (sig == SIGSEGV)
 	{
-		sigaction(SIGSEGV, &act_sigsegv, NULL);
+		signal(SIGSEGV, act_sigsegv);
 	}
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Rearming signal '%s'\n", sys_siglist[sig]);
@@ -1178,12 +1178,8 @@ void _starpu_handler(int sig)
 
 void _starpu_catch_signals(void)
 {
-	struct sigaction act;
-	memset(&act, 0, sizeof(act));
-	act.sa_handler = _starpu_handler;
-
-	sigaction(SIGINT, &act, &act_sigint);
-	sigaction(SIGSEGV, &act, &act_sigsegv);
+	act_sigint  = signal(SIGINT, _starpu_handler);
+	act_sigsegv = signal(SIGSEGV, _starpu_handler);
 }
 
 int starpu_init(struct starpu_conf *user_conf)
