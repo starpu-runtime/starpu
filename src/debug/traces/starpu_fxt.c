@@ -142,7 +142,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	return task;
 }
 
-static void task_dump(struct task_info *task)
+static void task_dump(struct task_info *task, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	unsigned i;
@@ -2166,7 +2166,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 
-	task_dump(task);
+	task_dump(task, options);
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3213,7 +3213,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		struct task_info *task, *tmp;
 		HASH_ITER(hh, tasks_info, task, tmp)
 		{
-			task_dump(task);
+			task_dump(task, options);
 		}
 	}
 
