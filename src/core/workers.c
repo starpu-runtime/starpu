@@ -1157,7 +1157,11 @@ static void (*act_sigsegv)(int);
 void _starpu_handler(int sig)
 {
 #ifdef STARPU_VERBOSE
+#  ifdef STARPU_HAVE_WINDOWS
+	_STARPU_MSG("Catching signal '%d'\n", sig);
+#  else
 	_STARPU_MSG("Catching signal '%s'\n", sys_siglist[sig]);
+#  endif
 #endif
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_dump_file();
