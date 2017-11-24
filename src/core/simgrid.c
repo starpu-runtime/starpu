@@ -453,18 +453,12 @@ void _starpu_simgrid_deinit(void)
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
 
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
-	extern xbt_cfg_t _sg_cfg_set;
-#endif
-	if (
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
-		xbt_cfg_get_boolean(_sg_cfg_set, "clean-atexit")
-#else
-		xbt_cfg_get_boolean("clean-atexit")
-#endif
-		) {
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13)
+	/* clean-atexit introduced in simgrid 3.13 */
+	if ( xbt_cfg_get_boolean("clean-atexit")) {
 		_starpu_simgrid_deinit_late();
 	}
+#endif
 }
 
 /*
