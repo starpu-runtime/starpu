@@ -1171,7 +1171,7 @@ void _starpu_handler(int sig)
 		signal(SIGSEGV, act_sigsegv);
 	}
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Rearming signal '%s'\n", sys_siglist[sig]);
+	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
 	raise(sig);
 }
