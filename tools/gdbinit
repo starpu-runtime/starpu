@@ -757,7 +757,7 @@ define starpu-sched-print-component
     if $c->push_task == prio_push_task
       set $q = &((struct _starpu_prio_data *) $c->data)->prio
       starpu-print-spaces $arg0
-      printf "%d tasks start %f len %f end %f processed %d\n", $q->ntasks, $q->exp_start, $q->exp_end, $q->exp_len, $q->nprocessed
+      printf "%d tasks start %f len %f end %f processed %d\n", $q->ntasks, $q->exp_start, $q->exp_len, $q->exp_end, $q->nprocessed
     end
     if $c->push_task == simple_worker_push_task
       set $d = (struct _starpu_worker_component_data *) $c->data
