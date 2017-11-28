@@ -245,7 +245,8 @@ bin_PROGRAMS += 			\
 	starpu_machine_display		\
 	starpu_sched_display		\
 	starpu_tasks_rec_complete	\
-	starpu_lp2paje
+	starpu_lp2paje			\
+	starpu_perfmodel_recdump
 
 if STARPU_SIMGRID
 bin_PROGRAMS += 			\

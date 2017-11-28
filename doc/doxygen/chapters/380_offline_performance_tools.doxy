@@ -210,6 +210,12 @@ the performance models, it needs to be run the same way as the application
 execution, or at least with <c>STARPU_HOSTNAME</c> set to the hostname of the
 machine used for execution, to get the performance models of that machine.
 
+Another possibility is to obtain the performance models as an auxiliary <c>perfmodel.rec</c> file, by using the <c>starpu_perfmodel_recdump</c> utility:
+
+\verbatim
+$ starpu_perfmodel_recdump tasks.rec -o perfmodel.rec
+\endverbatim
+
 \subsection MonitoringActivity Monitoring Activity
 
 When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
