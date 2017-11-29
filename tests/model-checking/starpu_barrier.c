@@ -61,6 +61,13 @@ _starpu_simgrid_thread_start(int argc, char *argv[])
 	return 0;
 }
 
+static void _starpu_clock_gettime(struct timespec *ts)
+{
+	double now = MSG_get_clock();
+	ts->tv_sec = floor(now);
+	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
+}
+
 #include <common/barrier.c>
 #include <common/thread.c>
 
