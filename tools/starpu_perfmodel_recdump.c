@@ -45,7 +45,7 @@ struct _footprint_list
 {
 	struct _footprint_list* next;
 	uint32_t footprint;
-}
+};
 
 struct _footprint_list* add_footprint(struct _footprint_list* list, uint32_t footprint)
 {
