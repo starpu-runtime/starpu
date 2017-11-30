@@ -248,12 +248,12 @@ struct _starpu_machine_topology
 	/* custom hwloc tree*/
 	struct starpu_tree *tree;
 
-	/* Total number of CPUs, as detected by the topology code. May
+	/* Total number of CPU cores, as detected by the topology code. May
 	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwcpus;
 
-	/* Total number of PUs, as detected by the topology code. May
+	/* Total number of PUs (i.e. threads), as detected by the topology code. May
 	 * be different from the actual number of PU workers.
 	 */
 	unsigned nhwpus;
