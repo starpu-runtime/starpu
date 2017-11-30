@@ -1818,15 +1818,6 @@ _starpu_bind_thread_on_cpu (
 	if (cpuid < 0)
 		return;
 
-	if (workerid != STARPU_NOWORKERID && cpuid < STARPU_MAXCPUS)
-	{
-		int previous = cpu_worker[cpuid];
-		if (previous != STARPU_NOWORKERID && previous != workerid)
-			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance. Maybe check starpu_machine_display's output to determine what wrong binding happened\n", previous, workerid, cpuid);
-		else
-			cpu_worker[cpuid] = workerid;
-	}
-
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
 
@@ -1838,6 +1829,15 @@ _starpu_bind_thread_on_cpu (
 #endif
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_init_topology(config);
+
+	if (workerid != STARPU_NOWORKERID && cpuid < STARPU_MAXCPUS)
+	{
+		int previous = cpu_worker[cpuid];
+		if (previous != STARPU_NOWORKERID && previous != workerid)
+			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance. Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", previous, workerid, cpuid, config->topology.nhwcpus, config->topology.nhwpus);
+		else
+			cpu_worker[cpuid] = workerid;
+	}
 
 	support = hwloc_topology_get_support (config->topology.hwtopology);
 	if (support->cpubind->set_thisthread_cpubind)
