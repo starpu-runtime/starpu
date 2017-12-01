@@ -260,24 +260,15 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			/* This is the only copy, push it to destination */
 			struct _starpu_data_request *r;
 			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0, "transfer_subtree_to_node");
-			/* r may be NULL if we are tidying a replicate that was
-			 * allocated on a GPU but has not yet been initialized
-			 */
-			if (r != NULL)
-			{
-				/* Keep the handle alive while we are working on it */
-				handle->busy_count++;
-				_starpu_spin_unlock(&handle->header_lock);
-				_starpu_wait_data_request_completion(r, 1);
-				_starpu_spin_lock(&handle->header_lock);
-				handle->busy_count--;
-			}
-			else
-			{
-				/* _starpu_create_request_to_fetch_data unlocks the handle
-				 * when bailing out */
-				_starpu_spin_lock(&handle->header_lock);
-			}
+			/* There is no way we don't need a request, since
+			 * source is OWNER, destination can't be having it */
+			STARPU_ASSERT(r);
+			/* Keep the handle alive while we are working on it */
+			handle->busy_count++;
+			_starpu_spin_unlock(&handle->header_lock);
+			_starpu_wait_data_request_completion(r, 1);
+			_starpu_spin_lock(&handle->header_lock);
+			handle->busy_count--;
 			if (_starpu_data_check_not_busy(handle))
 				/* Actually disappeared, abort completely */
 				return -1;

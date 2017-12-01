@@ -101,14 +101,8 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	{
 		/* Could estimate through cost, return that */
 		STARPU_ASSERT(handle->per_node[src_node].allocated);
-		if (handle->per_node[src_node].initialized)
-		{
-			return src_node;
-		}
-		else
-		{
-			return -1;
-		}
+		STARPU_ASSERT(handle->per_node[src_node].initialized);
+		return src_node;
 	}
 	
 	int i_ram = -1;
@@ -171,10 +165,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 
 	STARPU_ASSERT(src_node != -1);
 	STARPU_ASSERT(handle->per_node[src_node].allocated);
-	if (!handle->per_node[src_node].initialized)
-	{
-		return -1;
-	}
+	STARPU_ASSERT(handle->per_node[src_node].initialized);
 	return src_node;
 }
 
@@ -587,25 +578,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	if (dst_replicate && mode & STARPU_R)
 	{
 		if (dst_replicate->state == STARPU_INVALID)
-		{
 			src_node = _starpu_select_src_node(handle, requesting_node);
-			if (src_node == -1 && requesting_node == STARPU_MAIN_RAM && !nwait)
-			{
-				/* And this is the main RAM, really no need for a
-				 * request, just allocate */
-				if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
-				{
-					_starpu_update_data_state(handle, dst_replicate, mode);
-
-					_starpu_spin_unlock(&handle->header_lock);
-
-					if (callback_func)
-						callback_func(callback_arg);
-					_STARPU_LOG_OUT_TAG("data immediately allocated");
-					return NULL;
-				}
-			}
-		}
 		else
 			src_node = requesting_node;
 		if (src_node < 0)
@@ -784,6 +757,28 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
+
+	if (is_prefetch > 0)
+	{
+		unsigned src_node_mask = 0;
+
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		for (node = 0; node < nnodes; node++)
+		{
+			if (handle->per_node[node].state != STARPU_INVALID)
+			{
+				/* we found a copy ! */
+				src_node_mask |= (1<<node);
+			}
+		}
+
+		if (src_node_mask == 0)
+		{
+			/* no valid copy, nothing to prefetch */
+			_starpu_spin_unlock(&handle->header_lock);
+			return 0;
+		}
+	}
 
 	if (!detached)
 	{
