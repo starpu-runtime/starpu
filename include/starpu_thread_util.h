@@ -347,16 +347,6 @@ int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_m
 }
 #endif
 
-#define STARPU_PTHREAD_COND_TIMED_WAIT(cond, mutex, abstime) do {              \
-	int p_ret = starpu_pthread_cond_timedwait((cond), (mutex), (abstime)); \
-	if (STARPU_UNLIKELY(p_ret && p_ret != ETIMEDOUT)) {                    \
-		fprintf(stderr,                                                \
-			"%s:%d starpu_pthread_cond_timedwait: %s\n",           \
-			__FILE__, __LINE__, strerror(p_ret));                  \
-		STARPU_ABORT();                                                \
-	}                                                                      \
-} while (0)
-
 /*
  * Encapsulation of the starpu_pthread_barrier_* functions.
  */

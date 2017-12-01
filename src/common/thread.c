@@ -345,6 +345,7 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 {
 	struct timespec now, delta;
 	double delay;
+	int ret = 0;
 	_starpu_clock_gettime(&now);
 	delta.tv_sec = abstime->tv_sec - now.tv_sec;
 	delta.tv_nsec = abstime->tv_nsec - now.tv_nsec;
@@ -353,12 +354,13 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
-	xbt_cond_timedwait(*cond, *mutex, delay);
-	STARPU_ASSERT_MSG(0, "FIXME: we don't have a return value for ETIMEOUT");
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
+	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? -ETIMEDOUT : 0;
+#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
-	return 0;
+	return ret;
 }
 
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
