@@ -365,6 +365,14 @@ static int determine_request_path(starpu_data_handle_t handle,
 		return 1;
 	}
 
+	if (src_node < 0) {
+		/* Will just initialize the destination */
+		STARPU_ASSERT(max_len >= 1);
+		src_nodes[0] = src_node; // ignored
+		dst_nodes[0] = dst_node;
+		return 1;
+	}
+
 	unsigned handling_node;
 	int link_is_valid = link_supports_direct_transfers(handle, src_node, dst_node, &handling_node);
 
