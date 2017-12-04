@@ -356,6 +356,8 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_starpu_pthread_cond_auto_init(cond);
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
 	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? -ETIMEDOUT : 0;
+#else
+	STARPU_ASSERT_MSG(0, "simgrid version is too old for this");
 #endif
 
 	_STARPU_TRACE_COND_WAIT_END();
