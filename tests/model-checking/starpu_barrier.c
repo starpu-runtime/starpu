@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
 #include <common/barrier.h>
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
