@@ -37,6 +37,9 @@ EXTRA_DIST =					\
 	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
+	regression/profiles.in			\
+	regression/regression.sh.in			
+	regression/profiles.build.only.in	\
 	microbenchs/tasks_size_overhead.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
