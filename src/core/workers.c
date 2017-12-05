@@ -2529,3 +2529,17 @@ int _starpu_wake_worker_relax_light(int workerid)
 	}
 	return ret;
 }
+
+#ifdef STARPU_WORKER_CALLBACKS
+void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid))
+{
+	STARPU_ASSERT(_starpu_config.conf.callback_worker_going_to_sleep);
+	_starpu_config.conf.callback_worker_going_to_sleep = callback;
+}
+
+void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
+{
+	STARPU_ASSERT(_starpu_config.conf.callback_worker_waking_up);
+	_starpu_config.conf.callback_worker_waking_up = callback;
+}
+#endif

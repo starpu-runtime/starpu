@@ -235,6 +235,20 @@ if test x$enable_blocking = xno ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
+if test x$enable_blocking = xyes ; then
+AC_MSG_CHECKING(whether worker callbacks should be enabled)
+AC_ARG_ENABLE(worker-callbacks, [AS_HELP_STRING([--enable-worker-callbacks], [enable worker callbacks])],
+				enable_worker_cb=$enableval, enable_worker_cb=no)
+AC_MSG_RESULT($enable_worker_cb)
+else
+	# worker sleep/wake-up callbacks only make sense if blocking drivers are enabled
+	enable_worker_cb=no
+fi
+
+if test x$enable_worker_cb = xyes ; then
+	AC_DEFINE(STARPU_WORKER_CALLBACKS, [1], [workers must call callbacks on sleep/wake-up])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                    MPI                                      #

@@ -49,6 +49,9 @@
 #undef STARPU_VALGRIND_FULL
 #undef STARPU_SANITIZE_LEAK
 #undef STARPU_NON_BLOCKING_DRIVERS
+/* workers must call callbacks on sleep/wake-up */
+#undef STARPU_WORKER_CALLBACKS
+
 
 #undef STARPU_HAVE_ICC
 

@@ -140,6 +140,14 @@ reactivity. This option makes StarPU put CPU workers to real sleep when there
 are not enough tasks to compute.
 </dd>
 
+<dt>--enable-worker-callbacks</dt>
+<dd>
+\anchor enable-worker-callbacks
+\addindex __configure__--enable-worker-callbacks
+If blocking drivers are enabled, enable callbacks to notify an external resource manager
+about workers going to sleep and waking up.
+</dd>
+
 <dt>--enable-maxcpus=<c>count</c></dt>
 <dd>
 \anchor enable-maxcpus

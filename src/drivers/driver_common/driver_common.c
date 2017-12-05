@@ -396,6 +396,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			&& !worker->state_unblock_in_parallel_req
 			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
+
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_going_to_sleep != NULL)
+			{
+				_starpu_config.conf.callback_worker_going_to_sleep(workerid);
+			}
+#endif
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -416,6 +423,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				}
 			}
 			while (1);
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -591,6 +604,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			&& !worker->state_unblock_in_parallel_req
 			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_going_to_sleep != NULL)
+			{
+				_starpu_config.conf.callback_worker_going_to_sleep(workerid);
+			}
+#endif
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
@@ -611,6 +630,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				}
 			}
 			while (1);
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);

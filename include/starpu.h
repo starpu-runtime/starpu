@@ -140,6 +140,11 @@ struct starpu_conf
 	unsigned trace_buffer_size;
 	int global_sched_ctx_min_priority;
 	int global_sched_ctx_max_priority;
+
+#ifdef STARPU_WORKER_CALLBACKS
+	void (*callback_worker_going_to_sleep)(unsigned workerid);
+	void (*callback_worker_waking_up)(unsigned workerid);
+#endif
 };
 
 int starpu_conf_init(struct starpu_conf *conf);

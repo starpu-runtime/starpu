@@ -166,6 +166,12 @@ void starpu_worker_unlock_self(void);
 
 int starpu_wake_worker_relax(int workerid);
 
+#ifdef STARPU_WORKER_CALLBACKS
+void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid));
+
+void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
+#endif
+
 #ifdef STARPU_HAVE_HWLOC
 hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);
 #endif

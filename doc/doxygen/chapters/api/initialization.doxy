@@ -228,6 +228,16 @@ The environment variables overwrite the equivalent parameters.
 \var starpu_conf::global_sched_ctx_max_priority
     todo
 
+\var starpu_conf::callback_worker_going_to_sleep
+    If StarPU was compiler with blocking drivers support and worker
+    callbacks support enabled, allow to specify an external resource
+    manager callback to be notified about workers going to sleep.
+
+\var starpu_conf::callback_worker_waking_up
+    If StarPU was compiler with blocking drivers support and worker
+    callbacks support enabled, allow to specify an external resource
+    manager callback to be notified about workers waking-up.
+
 \fn int starpu_init(struct starpu_conf *conf)
 \ingroup API_Initialization_and_Termination
 This is StarPU initialization method, which must be called prior to
