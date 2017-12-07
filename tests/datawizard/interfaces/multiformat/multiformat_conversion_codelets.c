@@ -101,7 +101,7 @@ void mic_to_cpu(void *buffers[], void *arg)
 	}
 }
 
-void cpu_to_mic(void *buffers[], void *args)
+void cpu_to_mic(void *buffers[], void *arg)
 {
 	(void)arg;
 
