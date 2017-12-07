@@ -272,10 +272,12 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
        if test x$withval = xyes; then
            AC_MSG_ERROR(--with-mpicc must be given a pathname)
        else
+	   mpi_requested=yes
            mpicc_path=$withval
        fi
    ],
    [
+       mpi_requested=no
        if test x$enable_simgrid = xyes ; then
            DEFAULT_MPICC=smpicc
        else
@@ -284,6 +286,11 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
        # nothing was specified: default value is used
        AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
    ])
+
+# in case MPI was explicitely required, but is not available, this is an error
+if test x$mpi_requested = xyes -a ! -x $mpicc_path; then
+   AC_MSG_ERROR([Compiler MPI not valid])
+fi
 
 # We test if the MPICC compiler exists
 if test ! -x $mpicc_path; then
@@ -452,6 +459,12 @@ if test x$use_mpi = xyes -a x$enable_nmad = xyes ; then
 else
     build_nmad_lib=no
 fi
+
+# in case NMAD was explicitely required, but the compiler MPI, this is an error
+if test x$enable_nmad = xyes -a ! -x $mpicc_path; then
+   AC_MSG_ERROR([Compiler MPI not valid])
+fi
+
 
 AC_MSG_CHECKING(whether the StarPU MPI nmad library should be generated)
 AC_MSG_RESULT($build_nmad_lib)
