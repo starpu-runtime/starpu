@@ -344,13 +344,13 @@ using \c hwloc_bitmap_free().
 
 \fn void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid))
 \ingroup API_Workers_Properties
-If StarPU was compiler with blocking drivers support and worker callbacks support
+If StarPU was compiled with blocking drivers support and worker callbacks support
 enabled, allow to specify an external resource manager callback to be notified
 about workers going to sleep.
 
 \fn void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 \ingroup API_Workers_Properties
-If StarPU was compiler with blocking drivers support and worker callbacks support
+If StarPU was compiled with blocking drivers support and worker callbacks support
 enabled, allow to specify an external resource manager callback to be notified
 about workers waking-up.
 

@@ -229,12 +229,12 @@ The environment variables overwrite the equivalent parameters.
     todo
 
 \var starpu_conf::callback_worker_going_to_sleep
-    If StarPU was compiler with blocking drivers support and worker
+    If StarPU was compiled with blocking drivers support and worker
     callbacks support enabled, allow to specify an external resource
     manager callback to be notified about workers going to sleep.
 
 \var starpu_conf::callback_worker_waking_up
-    If StarPU was compiler with blocking drivers support and worker
+    If StarPU was compiled with blocking drivers support and worker
     callbacks support enabled, allow to specify an external resource
     manager callback to be notified about workers waking-up.
 
