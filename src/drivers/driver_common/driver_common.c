@@ -423,15 +423,18 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 				}
 			}
 			while (1);
-#ifdef STARPU_WORKER_CALLBACKS
-			if (_starpu_config.conf.callback_worker_waking_up != NULL)
-			{
-				_starpu_config.conf.callback_worker_waking_up(workerid);
-			}
-#endif
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				/* the wake up callback should be called once the sched_mutex has been unlocked,
+				 * so that an external resource manager can potentially defer the wake-up momentarily if
+				 * the corresponding computing unit is still in use by another runtime system */
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
 		}
 		else
 #endif
@@ -630,15 +633,18 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				}
 			}
 			while (1);
-#ifdef STARPU_WORKER_CALLBACKS
-			if (_starpu_config.conf.callback_worker_waking_up != NULL)
-			{
-				_starpu_config.conf.callback_worker_waking_up(workerid);
-			}
-#endif
 			worker->state_keep_awake = 0;
 			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				/* the wake up callback should be called once the sched_mutex has been unlocked,
+				 * so that an external resource manager can potentially defer the wake-up momentarily if
+				 * the corresponding computing unit is still in use by another runtime system */
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
 		}
 		else
 		{
