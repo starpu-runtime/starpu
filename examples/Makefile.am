@@ -3,7 +3,7 @@
 # Copyright (C) 2009-2017  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011-2012  INRIA
+# Copyright (C) 2011-2012  Inria
 # Copyright (C) 2015-2016  Inria
 # Copyright (C) 2016  Uppsala University
 #
