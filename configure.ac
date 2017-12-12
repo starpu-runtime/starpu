@@ -271,13 +271,15 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
    [
        if test x$withval = xyes; then
            AC_MSG_ERROR(--with-mpicc must be given a pathname)
+       elif test x$withval = xno ; then
+           mpi_requested=no
        else
 	   mpi_requested=yes
            mpicc_path=$withval
        fi
    ],
    [
-       mpi_requested=no
+       mpi_requested=maybe
        if test x$enable_simgrid = xyes ; then
            DEFAULT_MPICC=smpicc
        else
