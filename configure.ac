@@ -273,6 +273,8 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
            AC_MSG_ERROR(--with-mpicc must be given a pathname)
        elif test x$withval = xno ; then
            mpi_requested=no
+	   mpicc_path=""
+	   use_mpi=no
        else
 	   mpi_requested=yes
            mpicc_path=$withval
@@ -290,33 +292,34 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
    ])
 
 # in case MPI was explicitely required, but is not available, this is an error
-if test x$mpi_requested = xyes -a ! -x $mpicc_path; then
+if test x$mpi_requested = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI not valid])
 fi
 
-# We test if the MPICC compiler exists
-if test ! -x $mpicc_path; then
-    #MPICC does not exists or is not executable
-    AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
-    use_mpi=no
-else
-    use_mpi=yes
-    if test x$enable_simgrid = xyes ; then
-        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]],
-                    [Path of the smpirun helper])],
-            [
-                if test x$withval = xyes; then
-                    AC_MSG_ERROR(--with-smpirun must be given a pathname)
-                else
-                    smpirun_path=$withval
-                fi
-            ],
-            [
-                # nothing was specified: default value is used
-                AC_PATH_PROG(smpirun_path, smpirun, [no], [$simgrid_dir/bin:$PATH])
-            ])
-
-    fi
+if test x$mpi_requested != xno ; then
+   # We test if the MPICC compiler exists
+     if test ! -x $mpicc_path; then
+         #MPICC does not exists or is not executable
+	 AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
+	 use_mpi=no
+     else
+	 use_mpi=yes
+	 if test x$enable_simgrid = xyes ; then
+             AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]],
+						  [Path of the smpirun helper])],
+			 [
+			     if test x$withval = xyes; then
+				 AC_MSG_ERROR(--with-smpirun must be given a pathname)
+			     else
+				 smpirun_path=$withval
+			     fi
+			 ],
+			 [
+			     # nothing was specified: default value is used
+			     AC_PATH_PROG(smpirun_path, smpirun, [no], [$simgrid_dir/bin:$PATH])
+			 ])
+	 fi
+     fi
 fi
 
 AC_MSG_CHECKING(mpicc path)
@@ -463,7 +466,7 @@ else
 fi
 
 # in case NMAD was explicitely required, but the compiler MPI, this is an error
-if test x$enable_nmad = xyes -a ! -x $mpicc_path; then
+if test x$enable_nmad = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI not valid])
 fi
 
@@ -595,8 +598,13 @@ if test x$enable_simgrid = xno ; then
             fi
         ],
         [
-            # nothing was specified: look in the path
-            AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
+            # nothing was specified: look in the path
+	    if test x$mpicc_path = x
+	    then
+		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$PATH])
+	    else
+		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
+	    fi
         ])
 
     AC_MSG_CHECKING(whether mpiexec is available)
@@ -605,7 +613,12 @@ if test x$enable_simgrid = xno ; then
     # We test if MPIEXEC exists
     if test ! -x $mpiexec_path; then
         # if it's not valid, it could be the parameter given to configure.ac was not a full path, let's look for it
-        AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$(dirname $mpicc_path):$PATH])
+	if test x$mpicc_path = x
+	then
+            AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$PATH])
+	else
+            AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$(dirname $mpicc_path):$PATH])
+	fi
         AC_MSG_CHECKING(whether mpiexec is available (2nd try))
         AC_MSG_RESULT($mpiexec_path_bis)
 	if test -x $mpiexec_path_bis; then
