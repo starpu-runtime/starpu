@@ -123,7 +123,7 @@ struct starpu_codelet opencl_to_cpu_cl =
 #endif /* !STARPU_USE_OPENCL */
 
 #ifdef STARPU_USE_MIC
-void mic_dummy_kernel(void *buffers[], void *cl_arg)
+void mic_dummy_kernel(void *buffers[], void *args)
 {
 	(void)buffers;
 	(void)args;
