@@ -39,10 +39,6 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
-if USE_DSM
-SUBDIRS += dsm
-endif
-
 if BUILD_EXAMPLES
 SUBDIRS += examples
 endif
@@ -185,7 +181,7 @@ endif
 txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
-DISTCLEANFILES = STARPU-REVISION dsm/Makefile
+DISTCLEANFILES = STARPU-REVISION
 
 
 include starpu-top/extradist

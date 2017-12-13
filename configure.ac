@@ -476,39 +476,6 @@ AC_MSG_RESULT($build_nmad_lib)
 
 ###############################################################################
 #                                                                             #
-#                                    DSM                                      #
-#                                                                             #
-###############################################################################
-
-AC_ARG_ENABLE(dsm, [AS_HELP_STRING([--enable-dsm],
-                              [Enable StarPU DSM library generation])],
-            [enable_dsm=$enableval],
-            [enable_dsm=no])
-
-if test x$enable_dsm = xyes; then
-        # rule out StarPU DSM + StarPU MPI for now
-        if test x$build_mpi_lib = xyes; then
-                AC_MSG_ERROR(StarPU DSM library generation is incompatible with StarPU MPI lib generation)
-        fi
-fi
-
-dsm_included=no
-sinclude(dsm/config-inc.ac)
-if test x$dsm_included != xyes; then
-        if test x$enable_dsm = xyes; then
-                AC_MSG_ERROR(StarPU DSM library generation needs DSM source in STARPU/dsm subdirectory)
-        fi
-	mkdir -p dsm
-	echo "dist:" > ./dsm/Makefile
-	echo "distdir:" >> ./dsm/Makefile
-	echo "distclean:" >> ./dsm/Makefile
-        enable_dsm=no
-fi
-
-AM_CONDITIONAL(USE_DSM, [test x$enable_dsm != xno])
-
-###############################################################################
-#                                                                             #
 #                                LIBTOOLS                                     #
 #                                                                             #
 ###############################################################################
@@ -3566,7 +3533,6 @@ AC_MSG_NOTICE([
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
-	       StarPU DSM enabled:                            $enable_dsm
 	       FFT Support:                                   $fft_support
 	       GCC plug-in:                                   $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite

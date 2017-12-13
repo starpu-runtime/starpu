@@ -28,6 +28,5 @@ then
 		export LIBTOOLIZE=glibtoolize
 	fi
 fi
-mkdir -p dsm
 autoreconf -ivf -I m4
 
