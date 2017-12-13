@@ -70,12 +70,12 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_
 	struct _starpu_mpi_req *found;
 	struct _starpu_mpi_early_request_hashlist *hashlist;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
 	memset(&node_tag, 0, sizeof(struct _starpu_mpi_node_tag));
 	node_tag.comm = comm;
 	node_tag.rank = source;
 	node_tag.data_tag = data_tag;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
 	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %ld\n", (long int)node_tag.comm, node_tag.rank, node_tag.data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
