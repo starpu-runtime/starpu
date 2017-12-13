@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014-2016  Université de Bordeaux
+# Copyright (C) 2014-2017  Université de Bordeaux
 # Copyright (C) 2012-2016  CNRS
 # Copyright (C) 2012       Inria
 #
@@ -217,6 +217,15 @@
    fun:ompi_free_list_grow
    ...
    fun:PMPI_Isend
+}
+
+{
+   suppr20
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_free_list_grow
+   ...
+   fun:PMPI_Barrier
 }
 
 {
