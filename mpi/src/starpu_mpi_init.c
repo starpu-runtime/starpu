@@ -186,7 +186,7 @@ int starpu_mpi_shutdown(void)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
-	_starpu_mpi_progress_shutdown(value);
+	_starpu_mpi_progress_shutdown(&value);
 
 	_STARPU_MPI_TRACE_STOP(rank, world_size);
 
