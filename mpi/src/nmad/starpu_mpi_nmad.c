@@ -752,7 +752,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         return 0;
 }
 
-void _starpu_mpi_progress_shutdown(int *value)
+void _starpu_mpi_progress_shutdown(uintptr_t *value)
 {
 	/* kill the progression thread */
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
@@ -762,7 +762,7 @@ void _starpu_mpi_progress_shutdown(int *value)
 
 	starpu_sem_post(&callback_sem);
 
-	starpu_pthread_join(progress_thread, &value);
+	STARPU_PTHREAD_JOIN(progress_thread, value);
 
         STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
         STARPU_PTHREAD_COND_DESTROY(&progress_cond);

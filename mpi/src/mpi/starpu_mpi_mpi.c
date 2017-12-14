@@ -1615,7 +1615,7 @@ void _starpu_mpi_wait_for_initialization()
 }
 #endif
 
-void _starpu_mpi_progress_shutdown(int *value)
+void _starpu_mpi_progress_shutdown(uintptr_t *value)
 {
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
         running = 0;
