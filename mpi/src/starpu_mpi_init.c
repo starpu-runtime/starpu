@@ -178,7 +178,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 
 int starpu_mpi_shutdown(void)
 {
-	int value;
+	uintptr_t value;
 	int rank, world_size;
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
@@ -186,7 +186,7 @@ int starpu_mpi_shutdown(void)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
-	_starpu_mpi_progress_shutdown((uintptr_t)&value);
+	_starpu_mpi_progress_shutdown(value);
 
 	_STARPU_MPI_TRACE_STOP(rank, world_size);
 

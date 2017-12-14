@@ -319,7 +319,7 @@ struct _starpu_mpi_argc_argv
 	int world_size;
 };
 
-void _starpu_mpi_progress_shutdown(uintptr_t *value);
+void _starpu_mpi_progress_shutdown(uintptr_t value);
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
 #ifdef STARPU_SIMGRID
 void _starpu_mpi_wait_for_initialization();
