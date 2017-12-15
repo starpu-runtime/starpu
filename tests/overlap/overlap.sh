@@ -30,6 +30,8 @@ fi
 
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
+[ -f perfs.rec ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
@@ -62,5 +64,8 @@ then
 	if [ -x $PREFIX/../../tools/starpu_replay ]; then
 		$PREFIX/../../tools/starpu_replay tasks.rec
 	fi
+
+	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $PREFIX/../../tools/starpu_perfmodel_recdump tasks.rec -o perfs2.rec
+	[ -f perfs2.rec ]
 fi
 
