@@ -347,13 +347,16 @@ int main(int argc, char **argv)
 				{
 					int comb, nb_combs;
 					char* symbol = strdup(ep->d_name);
-					char *dot = strchr(symbol, '.');
+					char *dot = strrchr(symbol, '.');
 					struct starpu_perfmodel model = {.type = STARPU_PERFMODEL_INVALID };
 
 					if(dot) *dot = '\0';
-					STARPU_ASSERT(starpu_perfmodel_load_symbol(symbol, &model) == 0);
+					if (starpu_perfmodel_load_symbol(symbol, &model) != 0)
+						continue;
 					if(model.state == NULL)
 						continue;
+
+					_STARPU_DISP("Dumping %s\n", symbol);
 
 					nb_combs = starpu_perfmodel_get_narch_combs();
 					for(comb = 0; comb < nb_combs; ++comb)
@@ -386,6 +389,7 @@ int main(int argc, char **argv)
 							     ptr=ptr->next;
 						     }
 					}
+					starpu_perfmodel_unload_model(&model);
 				}
 			}
 			closedir (dp);
