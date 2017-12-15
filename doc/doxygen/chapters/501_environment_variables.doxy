@@ -585,6 +585,14 @@ it prints messages on the standard output when data are added or removed from th
 communication cache.
 </dd>
 
+<dt>STARPU_MPI_PRIORITIES</dt>
+<dd>
+\anchor STARPU_MPI_PRIORITIES
+\addindex __env__STARPU_MPI_PRIORITIES
+When set to 0, the use of priorities to order MPI communications is disabled
+(\ref MPISupport).
+</dd>
+
 <dt>STARPU_MPI_FAKE_SIZE</dt>
 <dd>
 \anchor STARPU_MPI_FAKE_SIZE

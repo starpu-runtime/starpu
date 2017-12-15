@@ -53,7 +53,8 @@ Small features:
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
-  * Add priority management to StarPU-MPI.
+  * Add priority management to StarPU-MPI. Can be disabled with
+  the STARPU_MPI_PRIORITIES environment variable.
   * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
     variables.
   * Add disk to disk copy functions and support asynchronous full read/write

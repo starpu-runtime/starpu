@@ -680,6 +680,10 @@ requests before submitting them to MPI. The default priority is 0.
 When using the starpu_mpi_task_insert helper, STARPU_PRIORITY defines both the
 task priority and the MPI requests priority.
 
+To test how much MPI priorities have a good effect on performance, you can
+set the environment variable STARPU_MPI_PRIORITIES to 0 to disable the use of
+priorities in StarPU-MPI.
+
 \section MPICache MPI cache support
 
 StarPU-MPI automatically optimizes duplicate data transmissions: if an MPI

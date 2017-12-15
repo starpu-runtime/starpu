@@ -50,6 +50,7 @@ static unsigned nready_process;
 static unsigned ndetached_send;
 
 static int mpi_thread_cpuid = -1;
+static int use_prio = 1;
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
@@ -371,7 +372,8 @@ struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data
 	_starpu_mpi_request_init(&req);
 	req->request_type = request_type;
 	/* prio_list is sorted by increasing values */
-	req->prio = prio;
+	if (use_prio)
+		req->prio = prio;
 	req->data_handle = data_handle;
 	req->node_tag.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
@@ -1583,6 +1585,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
 	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
+	use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);

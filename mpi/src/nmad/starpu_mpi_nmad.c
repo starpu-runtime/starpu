@@ -47,6 +47,7 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 
 static int mpi_thread_cpuid = -1;
+static int use_prio = 1;
 int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
 
@@ -174,7 +175,8 @@ struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data
 	_starpu_mpi_request_init(&req);
 	req->request_type = request_type;
 	/* prio_list is sorted by increasing values */
-	req->prio = prio;
+	if (use_prio)
+		req->prio = prio;
 	req->data_handle = data_handle;
 	req->node_tag.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
@@ -741,6 +743,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
+	use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
