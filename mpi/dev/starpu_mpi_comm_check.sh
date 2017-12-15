@@ -1,8 +1,7 @@
 #!/bin/bash
-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017 CNRS
+# Copyright (C) 2017                                     CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 # Script to check MPI communications are done properly
 # The application should be launched with STARPU_MPI_COMM=1
 # e.g
