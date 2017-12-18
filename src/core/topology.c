@@ -1456,7 +1456,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	{
 		unsigned memory_node = -1;
 		struct _starpu_worker *workerarg = &config->workers[worker];
-		unsigned devid = workerarg->devid;
+		unsigned devid STARPU_ATTRIBUTE_UNUSED = workerarg->devid;
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 		/* Perhaps the worker has some "favourite" bindings  */
