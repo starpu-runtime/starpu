@@ -1,11 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
-# Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011-2012  Inria
-# Copyright (C) 2015-2016  Inria
-# Copyright (C) 2016  Uppsala University
+# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2017                                     Erwan Leria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2015,2017                           CNRS
+# Copyright (C) 2011                                     Télécom-SudParis
+# Copyright (C) 2016                                     Uppsala University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
