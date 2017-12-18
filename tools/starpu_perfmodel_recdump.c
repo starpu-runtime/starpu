@@ -76,7 +76,6 @@ static struct model
 
 void get_comb_name(int comb, char* name, int name_size)
 {
-	char* space;
 	struct starpu_perfmodel_arch *arch_comb = starpu_perfmodel_arch_comb_fetch(comb);
 	STARPU_ASSERT_MSG(arch_comb->ndevices == 1, "Cannot work with multi-device workers\n");
 	snprintf(name, name_size, "%s%u", starpu_perfmodel_get_archtype_name(arch_comb->devices[0].type), arch_comb->devices[0].devid);
@@ -94,13 +93,13 @@ void print_archs(FILE* output)
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 	{
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
-		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+		comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 		STARPU_ASSERT(comb >= 0);
 		nb_workers_per_comb[comb] += 1;
 	}
 	for(comb = 0; comb < nb_combs; comb++)
 	{
-		if(nb_workers_per_comb > 0 )
+		if(nb_workers_per_comb[comb] > 0 )
 		{
 			char name[32];
 			get_comb_name(comb, name, 32);
