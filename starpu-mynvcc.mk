@@ -1,5 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
+# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2016                                     Université de Bordeaux
+#
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation; either version 2.1 of the License, or (at
@@ -10,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 # Avoid using nvcc when making a coverity build, nvcc produces millions of
 # lines of code which we don't want to analyze.  Instead, build dumb .o files
 # containing empty functions.
