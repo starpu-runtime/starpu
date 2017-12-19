@@ -352,9 +352,15 @@ int main(int argc, char **argv)
 
 					if(dot) *dot = '\0';
 					if (starpu_perfmodel_load_symbol(symbol, &model) != 0)
+					{
+						free(symbol);
 						continue;
+					}
 					if(model.state == NULL)
+					{
+						free(symbol);
 						continue;
+					}
 
 					_STARPU_DISP("Dumping %s\n", symbol);
 
@@ -390,6 +396,7 @@ int main(int argc, char **argv)
 						     }
 					}
 					starpu_perfmodel_unload_model(&model);
+					free(symbol);
 				}
 			}
 			closedir (dp);
