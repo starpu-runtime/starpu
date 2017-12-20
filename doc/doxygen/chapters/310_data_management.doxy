@@ -380,6 +380,12 @@ different partitioning to coexist. As soon as a data is accessed in read-write
 mode, StarPU will automatically unpartition everything and activate only the
 partitioning leading to the data being written to.
 
+For instance, for a stencil application, one can split a subdomain into
+its interior and halos, and then just submit a task updating the whole
+subdomain, then submit MPI sends/receives to update the halos, then submit
+again a task updating the whole subdomain, etc. and StarPU will automatically
+partition/unpartition each time.
+
 \section ManualPartitioning Manual Partitioning
 
 One can also handle partitioning by hand, by registering several views on the
