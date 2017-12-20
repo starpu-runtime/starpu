@@ -44,7 +44,11 @@ static uint64_t get_total_memory_size(void)
 	hwloc_topology_init(&hwtopology);
 	hwloc_topology_load(hwtopology);
 	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);
+#if HWLOC_API_VERSION >= 0x00020000
+	size = root->total_memory;
+#else
 	size = root->memory.total_memory;
+#endif
 	hwloc_topology_destroy(hwtopology);
 	return size;
 }

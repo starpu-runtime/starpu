@@ -64,6 +64,32 @@ static unsigned may_bind_automatically[STARPU_OPENCL_WORKER+1] = { 0 };
 
 #endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
+#if defined(STARPU_HAVE_HWLOC)
+static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
+{
+#if HWLOC_API_VERSION >= 0x00020000
+	while (obj->memory_first_child == NULL)
+	{
+		obj = obj->parent;
+		if (!obj)
+			return NULL;
+	}
+	return obj->memory_first_child;
+#else
+	while (obj->type != HWLOC_OBJ_NUMANODE)
+	{
+		obj = obj->parent;
+
+		/* If we don't find a "node" obj before the root, this means
+		 * hwloc does not know whether there are numa nodes or not, so
+		 * we should not use a per-node sampling in that case. */
+		if (!obj)
+			return NULL;
+	}
+	return obj;
+#endif
+}
+#endif
 
 /*
  * Discover the topology of the machine
