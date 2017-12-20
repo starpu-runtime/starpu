@@ -585,10 +585,13 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+			int node = task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
+			/* Make sure the specified node exists */
+			STARPU_ASSERT_MSG(node == -1 || (node >= 0 && node < starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
