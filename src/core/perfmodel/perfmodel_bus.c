@@ -510,7 +510,11 @@ static int find_numa_node(hwloc_obj_t obj)
 	STARPU_ASSERT(obj);
 	hwloc_obj_t current = obj;
 
+#if HWLOC_API_VERSION >= 0x00020000
+	while (current->memory_first_child == NULL)
+#else
 	while (current->depth != HWLOC_OBJ_NUMANODE)
+#endif
 	{
 		current = current->parent;
 
@@ -519,8 +523,11 @@ static int find_numa_node(hwloc_obj_t obj)
 		 * we should not use a per-node sampling in that case. */
 		STARPU_ASSERT(current);
 	}
-
+#if HWLOC_API_VERSION >= 0x00020000
+	current = current->memory_first_child;
+#else
 	STARPU_ASSERT(current->depth == HWLOC_OBJ_NUMANODE);
+#endif
 
 	return current->logical_index;
 }
