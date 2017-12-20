@@ -700,7 +700,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	initial_handle->partitioned++;
 	initial_handle->readonly = 1;
 	if (initial_handle->nactive_readonly_children < initial_handle->partitioned) {
-		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children));
+		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
 		initial_handle->nactive_readonly_children = initial_handle->partitioned;
 	}
 	initial_handle->active_readonly_children[initial_handle->partitioned-1] = children[0]->siblings;
