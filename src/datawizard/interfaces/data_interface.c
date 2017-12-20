@@ -901,6 +901,7 @@ retry_busy:
 	_starpu_spin_destroy(&handle->header_lock);
 
 	_starpu_data_clear_implicit(handle);
+	free(handle->active_readonly_children);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
