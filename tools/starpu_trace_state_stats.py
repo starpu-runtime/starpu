@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding=utf-8
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     CNRS
