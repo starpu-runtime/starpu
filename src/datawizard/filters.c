@@ -885,6 +885,7 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 	if (ancestor->partitioned &&
 			/* Not the right children, unpartition ourself */
 			((target && write && ancestor->active_children != target->siblings) ||
+			 (target && !write && !ancestor->readonly) ||
 			/* We are partitioned and we want to write or some child
 			 * is writing and we want to read, unpartition ourself*/
 			(!target && (write || !ancestor->readonly))))
