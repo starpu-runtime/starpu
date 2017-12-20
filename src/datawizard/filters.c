@@ -834,10 +834,12 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gatheri
 	_STARPU_DEBUG("ancestor %p needs unpartitioning\n", ancestor);
 	if (ancestor->readonly)
 	{
+		unsigned n = ancestor->partitioned;
 		/* Uh, has to go through all read-only partitions */
-		for (i = 0; i < ancestor->partitioned; i++) {
-			starpu_data_handle_t *children = ancestor->active_readonly_children[i];
-			_STARPU_DEBUG("unpartition readonly children %p\n", children);
+		for (i = 0; i < n; i++) {
+			/* Note: active_readonly_children is emptied by starpu_data_unpartition_submit calls */
+			starpu_data_handle_t *children = ancestor->active_readonly_children[0];
+			_STARPU_DEBUG("unpartition readonly children %p etc.\n", children[0]);
 			nsiblings = children[0]->nsiblings;
 			for (j = 0; j < nsiblings; j++) {
 				/* Make sure our children are unpartitioned */
