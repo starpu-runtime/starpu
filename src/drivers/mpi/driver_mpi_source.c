@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Mathieu Lirzin <mthl@openmailbox.org>
+ * Copyright (C) 2015  Mathieu Lirzin
  * Copyright (C) 2016, 2017  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
