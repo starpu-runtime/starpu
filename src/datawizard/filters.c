@@ -19,7 +19,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define STARPU_VERBOSE
+//#define STARPU_VERBOSE
 
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
