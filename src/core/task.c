@@ -584,6 +584,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
@@ -592,6 +593,14 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
+			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
+			    ((handle->nplans && !handle->nchildren) || handle->siblings))
+				/* This handle is involved with asynchronous
+				 * partitioning as a parent or a child, make
+				 * sure the right plan is active, submit
+				 * appropiate partitioning / unpartitioning if
+				 * not */
+				_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
 		}
 
 		/* Check the type of worker(s) required by the task exist */

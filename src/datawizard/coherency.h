@@ -144,9 +144,16 @@ struct _starpu_data_state
 	/* In case we user filters, the handle may describe a sub-data */
 	struct _starpu_data_state *root_handle; /* root of the tree */
 	struct _starpu_data_state *father_handle; /* father of the node, NULL if the current node is the root */
+	starpu_data_handle_t *active_children; /* The currently active set of read-write children */
+	starpu_data_handle_t **active_readonly_children; /* The currently active set of read-only children */
+	unsigned nactive_readonly_children; /* Size of active_readonly_children array */
+	/* Our siblings in the father partitioning */
+	unsigned nsiblings; /* How many siblings */
+	starpu_data_handle_t *siblings;
 	unsigned sibling_index; /* indicate which child this node is from the father's perpsective (if any) */
 	unsigned depth; /* what's the depth of the tree ? */
 
+	/* Synchronous partitioning */
 	starpu_data_handle_t children;
 	unsigned nchildren;
 	/* How many partition plans this handle has */
@@ -163,7 +170,11 @@ struct _starpu_data_state
 	 */
 	unsigned partitioned;
 	/* Whether a partition plan is currently submitted in readonly mode */
-	unsigned readonly;
+	unsigned readonly:1;
+
+	/* Whether our father is currently partitioned into ourself */
+	unsigned active:1;
+	unsigned active_ro:1;
 
 	/* describe the state of the data in term of coherency */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];

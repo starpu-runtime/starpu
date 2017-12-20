@@ -150,6 +150,11 @@ Value to be set in starpu_codelet::flags to execute the codelet functions even i
 Value to be set in starpu_codelet::flags to execute the codelet functions even in simgrid mode,
 and later inject the measured timing inside the simulation.
 
+\def STARPU_CODELET_NOPLANS
+\ingroup API_Codelet_And_Tasks
+Value to be set in starpu_codelet::flags to make starpu_task_submit not submit
+automatic asynchronous partitioning/unpartitioning.
+
 \typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.

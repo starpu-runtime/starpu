@@ -18,9 +18,17 @@
 /*
  * This examplifies how to access the same matrix with different partitioned
  * views, doing the coherency through partition planning.
- * We first run a kernel on the whole matrix to fill it, then run a kernel on
- * each vertical slice to check the value and multiply it by two, then run a
- * kernel on each horizontal slice to do the same.
+ *
+ * We first run a kernel on the whole matrix to fill it, then check the value
+ * in parallel from the whole handle, from the horizontal slices, and from the
+ * vertical slices. Then we switch back to the whole matrix to check and scale
+ * it. Then we check the result again from the whole handle, the horizontal
+ * slices, and the vertical slices. Then we switch to read-write on the
+ * horizontal slices to check and scale them. Then we check again from the
+ * whole handle, the horizontal slices, and the vertical slices. Eventually we
+ * switch back to the whole matrix to check and scale it.
+ *
+ * Please keep this in sync with fmultiple_submit_readonly.c
  */
 
 #include <starpu.h>
@@ -97,8 +105,47 @@ struct starpu_codelet cl_check_scale =
 	.name = "fmultiple_check_scale"
 };
 
+void fmultiple_check(void *buffers[], void *cl_arg)
+{
+	int start, factor;
+	unsigned i, j;
+
+	/* length of the matrix */
+	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+
+	starpu_codelet_unpack_args(cl_arg, &start, &factor);
+
+	for(j=0; j<ny ; j++)
+	{
+		for(i=0; i<nx ; i++)
+		{
+			STARPU_ASSERT(val[(j*ld)+i] == start + factor*((int)(i+100*j)));
+		}
+	}
+}
+
+#ifdef STARPU_USE_CUDA
+extern void fmultiple_check_cuda(void *buffers[], void *cl_arg);
+#endif
+struct starpu_codelet cl_check =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {fmultiple_check_cuda},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+	.cpu_funcs = {fmultiple_check},
+	.cpu_funcs_name = {"fmultiple_check"},
+	.nbuffers = 1,
+	.modes = {STARPU_R},
+	.name = "fmultiple_check"
+};
+
 int main(void)
 {
+	int start, factor;
 	unsigned j, n=1;
 	int matrix[NX][NY];
 	int ret, i;
@@ -120,6 +167,8 @@ int main(void)
 	if (starpu_cuda_worker_get_count()) {
 		cl_check_scale.cpu_funcs[0] = NULL;
 		cl_check_scale.cpu_funcs_name[0] = NULL;
+		cl_check.cpu_funcs[0] = NULL;
+		cl_check.cpu_funcs_name[0] = NULL;
 	}
 
 	/* Declare the whole matrix to StarPU */
@@ -145,35 +194,99 @@ int main(void)
 	ret = starpu_task_insert(&cl_fill, STARPU_W, handle, 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	factor = 1;
 
-	/* Now switch to vertical view of the matrix */
-	starpu_data_partition_submit(handle, PARTS, vert_handle);
+	/* Look at readonly vertical and horizontal view of the matrix */
 
 	/* Check the values of the vertical slices */
 	for (i = 0; i < PARTS; i++)
 	{
-		int factor = 1;
-		int start = i*(NX/PARTS);
-		ret = starpu_task_insert(&cl_check_scale,
-				STARPU_RW, vert_handle[i],
+		start = i*(NX/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, vert_handle[i],
 				STARPU_VALUE, &start, sizeof(start),
 				STARPU_VALUE, &factor, sizeof(factor),
 				0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-
-	/* Now switch back to total view of the matrix */
-	starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
-
-	/* And switch to horizontal view of the matrix */
-	starpu_data_partition_submit(handle, PARTS, horiz_handle);
-
 	/* Check the values of the horizontal slices */
 	for (i = 0; i < PARTS; i++)
 	{
-		int factor = 2;
-		int start = factor*100*i*(NY/PARTS);
+		start = factor*100*i*(NY/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, horiz_handle[i],
+				STARPU_VALUE, &start, sizeof(start),
+				STARPU_VALUE, &factor, sizeof(factor),
+				0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	/* And of the main matrix */
+	start = 0;
+	ret = starpu_task_insert(&cl_check,
+			STARPU_R, handle,
+			STARPU_VALUE, &start, sizeof(start),
+			STARPU_VALUE, &factor, sizeof(factor),
+			0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+	/* Now look at the total view of the matrix */
+
+	/* Check and scale it */
+	start = 0;
+	ret = starpu_task_insert(&cl_check_scale,
+			STARPU_RW, handle,
+			STARPU_VALUE, &start, sizeof(start),
+			STARPU_VALUE, &factor, sizeof(factor),
+			0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	factor = 2;
+
+	/* Look again readonly vertical and horizontal slices */
+
+	/* Check the values of the vertical slices */
+	for (i = 0; i < PARTS; i++)
+	{
+		start = factor*i*(NX/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, vert_handle[i],
+				STARPU_VALUE, &start, sizeof(start),
+				STARPU_VALUE, &factor, sizeof(factor),
+				0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	/* Check the values of the horizontal slices */
+	for (i = 0; i < PARTS; i++)
+	{
+		start = factor*100*i*(NY/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, horiz_handle[i],
+				STARPU_VALUE, &start, sizeof(start),
+				STARPU_VALUE, &factor, sizeof(factor),
+				0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	/* And of the main matrix */
+	start = 0;
+	ret = starpu_task_insert(&cl_check,
+			STARPU_R, handle,
+			STARPU_VALUE, &start, sizeof(start),
+			STARPU_VALUE, &factor, sizeof(factor),
+			0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+	/* Now try to touch horizontal slices */
+
+	/* Check and scale the values of the horizontal slices */
+	for (i = 0; i < PARTS; i++)
+	{
+		start = factor*100*i*(NY/PARTS);
 		ret = starpu_task_insert(&cl_check_scale,
 				STARPU_RW, horiz_handle[i],
 				STARPU_VALUE, &start, sizeof(start),
@@ -182,13 +295,48 @@ int main(void)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
+	factor = 4;
 
-	/* Now switch back to total view of the matrix */
-	starpu_data_unpartition_submit(handle, PARTS, horiz_handle, -1);
+	/* And come back to read-only */
+
+	/* Check the values of the vertical slices */
+	for (i = 0; i < PARTS; i++)
+	{
+		start = factor*i*(NX/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, vert_handle[i],
+				STARPU_VALUE, &start, sizeof(start),
+				STARPU_VALUE, &factor, sizeof(factor),
+				0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	/* Check the values of the horizontal slices */
+	for (i = 0; i < PARTS; i++)
+	{
+		start = factor*100*i*(NY/PARTS);
+		ret = starpu_task_insert(&cl_check,
+				STARPU_R, horiz_handle[i],
+				STARPU_VALUE, &start, sizeof(start),
+				STARPU_VALUE, &factor, sizeof(factor),
+				0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	/* And of the main matrix */
+	start = 0;
+	ret = starpu_task_insert(&cl_check,
+			STARPU_R, handle,
+			STARPU_VALUE, &start, sizeof(start),
+			STARPU_VALUE, &factor, sizeof(factor),
+			0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+	/* And access the whole matrix again */
 
 	/* And check and scale the values of the whole matrix */
-	int factor = 4;
-	int start = 0;
+	start = 0;
 	ret = starpu_task_insert(&cl_check_scale,
 			STARPU_RW, handle,
 			STARPU_VALUE, &start, sizeof(start),
@@ -196,6 +344,7 @@ int main(void)
 			0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	factor = 8;
 
 	/*
 	 * Unregister data from StarPU and shutdown.

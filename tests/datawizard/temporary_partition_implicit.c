@@ -23,7 +23,8 @@
 #define NPARTS 16
 
 /*
- * Test asynchronous partitioning on a temporary data.
+ * Test asynchronous partitioning on a temporary data without submitting explit
+ * partitioning/unpartitioning.
  */
 
 static void codelet(void *descr[], void *_args)
@@ -67,7 +68,6 @@ int main(void)
 		.nchildren = NPARTS
 	};
 	starpu_data_partition_plan(handle, &f, handles);
-	starpu_data_partition_submit(handle, NPARTS, handles);
 
 	/* Process in parallel */
 	for (i = 0; i < NPARTS; i++)

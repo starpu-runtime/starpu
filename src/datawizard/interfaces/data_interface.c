@@ -280,8 +280,15 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->switch_cl = NULL;
 	handle->partitioned = 0;
 	handle->readonly = 0;
+	handle->active = 1;
+	handle->active_ro = 0;
 	handle->root_handle = handle;
 	handle->father_handle = NULL;
+	handle->active_children = NULL;
+	handle->active_readonly_children = NULL;
+	handle->nactive_readonly_children = 0;
+	handle->nsiblings = 0;
+	handle->siblings = NULL;
 	handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
         handle->mpi_data = NULL; /* invalid until set */

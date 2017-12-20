@@ -32,6 +32,9 @@ New features:
   * Add a new implementation of StarPU-MPI on top of NewMadeleine
   * Add optional callbacks to notify an external resource manager
     about workers going to sleep and waking up
+  * Add implicit support for asynchronous partition planning. This means one
+    does not need to call starpu_data_partition_submit etc. explicitly any
+    more, StarPU will make the appropriate calls as needed.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation

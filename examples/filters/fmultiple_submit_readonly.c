@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2015                                     Université de Bordeaux
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,8 @@
 
 /*
  * This examplifies how to access the same matrix with different partitioned
- * views, doing the coherency through partition planning.
+ * views, doing the coherency through partition planning, but without having to
+ * explicitly submit partitioning/unpartitioning.
  *
  * We first run a kernel on the whole matrix to fill it, then check the value
  * in parallel from the whole handle, from the horizontal slices, and from the
@@ -27,6 +28,8 @@
  * horizontal slices to check and scale them. Then we check again from the
  * whole handle, the horizontal slices, and the vertical slices. Eventually we
  * switch back to the whole matrix to check and scale it.
+ *
+ * Please keep this in sync with fmultiple_submit_implicit.c
  */
 
 #include <starpu.h>
@@ -95,11 +98,9 @@ struct starpu_codelet cl_check_scale =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {fmultiple_check_scale_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-#else
-	/* Only enable it on CPUs if we don't have a CUDA device, to force remote execution on the CUDA device */
+#endif
 	.cpu_funcs = {fmultiple_check_scale},
 	.cpu_funcs_name = {"fmultiple_check_scale"},
-#endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.name = "fmultiple_check_scale"
@@ -135,11 +136,9 @@ struct starpu_codelet cl_check =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {fmultiple_check_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-#else
-	/* Only enable it on CPUs if we don't have a CUDA device, to force remote execution on the CUDA device */
+#endif
 	.cpu_funcs = {fmultiple_check},
 	.cpu_funcs_name = {"fmultiple_check"},
-#endif
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "fmultiple_check"
@@ -164,6 +163,14 @@ int main(void)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	/* Disable codelet on CPUs if we have a CUDA device, to force remote execution on the CUDA device */
+	if (starpu_cuda_worker_get_count()) {
+		cl_check_scale.cpu_funcs[0] = NULL;
+		cl_check_scale.cpu_funcs_name[0] = NULL;
+		cl_check.cpu_funcs[0] = NULL;
+		cl_check.cpu_funcs_name[0] = NULL;
+	}
 
 	/* Declare the whole matrix to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));

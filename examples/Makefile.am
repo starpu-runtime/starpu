@@ -224,6 +224,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
+	filters/fmultiple_submit_implicit	\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -566,6 +567,14 @@ filters_fmultiple_submit_readonly_SOURCES =	\
 
 if STARPU_USE_CUDA
 filters_fmultiple_submit_readonly_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+endif
+
+filters_fmultiple_submit_implicit_SOURCES =		\
+	filters/fmultiple_submit_implicit.c
+
+if STARPU_USE_CUDA
+filters_fmultiple_submit_implicit_SOURCES +=		\
 	filters/fmultiple_cuda.cu
 endif
 
