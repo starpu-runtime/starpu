@@ -635,7 +635,13 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_id);
 
 		if (obj)
+		{
+#if HWLOC_API_VERSION >= 0x00020000
+			/* From hwloc 2.0, NUMAnode objects do not contain CPUs, they are contained in a group which contain the CPUs. */
+			obj = obj->parent;
+#endif
 			cpu_id = find_cpu_from_numa_node(obj);
+		}
 		else
                         /* No such NUMA node, probably hwloc 1.x with no NUMA
                          * node, just take one CPU from the whole system */

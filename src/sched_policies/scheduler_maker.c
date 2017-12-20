@@ -71,6 +71,7 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	switch(obj->type)
 	{
 		CASE(HWLOC_OBJ_MACHINE,hwloc_machine_composed_sched_component);
+		CASE(HWLOC_OBJ_GROUP,hwloc_component_composed_sched_component);
 		CASE(HWLOC_OBJ_NODE,hwloc_component_composed_sched_component);
 		CASE(HWLOC_OBJ_SOCKET,hwloc_socket_composed_sched_component);
 		CASE(HWLOC_OBJ_CACHE,hwloc_cache_composed_sched_component);
@@ -144,6 +145,7 @@ static struct starpu_sched_component * find_mem_component(struct starpu_sched_co
 {
 	struct starpu_sched_component * component = worker_component;
 	while(component->obj->type != HWLOC_OBJ_NODE
+	      && component->obj->type != HWLOC_OBJ_GROUP
 	      && component->obj->type != HWLOC_OBJ_MACHINE)
 	{
 		hwloc_obj_t tmp = component->obj;
@@ -172,7 +174,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 		   && is_same_kind_of_all(parent->children[i], worker_component->data))
 			return parent->children[i];
 	}
-	if(obj->type == HWLOC_OBJ_NODE)
+	if(obj->type == HWLOC_OBJ_NODE || obj->type == HWLOC_OBJ_GROUP)
 	{
 		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(root->tree, specs.hwloc_component_composed_sched_component);
 		component->obj = obj;

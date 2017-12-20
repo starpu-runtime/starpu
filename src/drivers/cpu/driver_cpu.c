@@ -165,13 +165,21 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 
 		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 		{
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
 			global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
 		}
 		else
 		{
 			char name[32];
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = obj->attr->numanode.local_memory;
+#else
 			global_mem = obj->memory.local_memory;
+#endif
 			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
 			limit = starpu_get_env_number(name);
 		}
@@ -179,7 +187,11 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	else
 	{
 		/* Do not limit ourself to a single NUMA node */
+#if HWLOC_API_VERSION >= 0x00020000
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
 		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
 	}
 
 #else /* STARPU_HAVE_HWLOC */

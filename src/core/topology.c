@@ -111,9 +111,17 @@ int starpu_memory_nodes_get_numa_count(void)
 }
 
 #if defined(STARPU_HAVE_HWLOC)
-static int numa_get_logical_id(hwloc_obj_t obj)
+static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 {
-	STARPU_ASSERT(obj);
+#if HWLOC_API_VERSION >= 0x00020000
+	while (obj->memory_first_child == NULL)
+	{
+		obj = obj->parent;
+		/* There should always be memory objects with hwloc 2 */
+		STARPU_ASSERT(obj);
+	}
+	return obj->memory_first_child;
+#else
 	while (obj->type != HWLOC_OBJ_NODE)
 	{
 		obj = obj->parent;
@@ -122,24 +130,25 @@ static int numa_get_logical_id(hwloc_obj_t obj)
 		 * hwloc does not know whether there are numa nodes or not, so
 		 * we should not use a per-node sampling in that case. */
 		if (!obj)
-			return STARPU_NUMA_MAIN_RAM;
+			return NULL;
 	}
+#endif
+}
+static int numa_get_logical_id(hwloc_obj_t obj)
+{
+	STARPU_ASSERT(obj);
+	obj = numa_get_obj(obj);
+	if (!obj)
+		return 0;
 	return obj->logical_index;
 }
 
 static int numa_get_physical_id(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
-	while (obj->type != HWLOC_OBJ_NODE)
-	{
-		obj = obj->parent;
-
-		/* If we don't find a "node" obj before the root, this means
-		 * hwloc does not know whether there are numa nodes or not, so
-		 * we should not use a per-node sampling in that case. */
-		if (!obj)
-			return STARPU_NUMA_MAIN_RAM;
-	}
+	obj = numa_get_obj(obj);
+	if (!obj)
+		return 0;
 	return obj->os_index;
 }
 #endif
@@ -2027,12 +2036,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		for (i = 0; i < config->topology.ncudagpus; i++)
 		{
 			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, i);
-
-			/* If we don't find a "node" obj before the root, this means
-			 * hwloc does not know whether there are numa nodes or not, so
-			 * we should not use a per-node sampling in that case. */
-			while (obj && obj->type != HWLOC_OBJ_NODE)
-				obj = obj->parent;
+			obj = numa_get_obj(obj);
 			/* Hwloc cannot recognize some devices */
 			if (!obj)
 				continue;
@@ -2090,12 +2094,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				for (i = 0; i < num; i++)
 				{
 					hwloc_obj_t obj = hwloc_opencl_get_device_osdev_by_index(config->topology.hwtopology, platform, i);
-
-					/* If we don't find a "node" obj before the root, this means
-					 * hwloc does not know whether there are numa nodes or not, so
-					 * we should not use a per-node sampling in that case. */
-					while (obj && obj->type != HWLOC_OBJ_NODE)
-						obj = obj->parent;
+					obj = numa_get_obj(obj);
 					/* Hwloc cannot recognize some devices */
 					if (!obj)
 						continue;
@@ -2717,7 +2716,7 @@ starpu_topology_print (FILE *output)
 	{
 #ifdef STARPU_HAVE_HWLOC
 		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
-		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NODE, pu_obj);
+		numa_obj = numa_get_obj(pu_obj);
 		if (numa_obj != last_numa_obj)
 		{
 			fprintf(output, "numa %u", numa_obj->logical_index);
