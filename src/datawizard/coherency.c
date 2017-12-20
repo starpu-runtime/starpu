@@ -772,12 +772,13 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 		unsigned src_node_mask = 0;
 
 		unsigned nnodes = starpu_memory_nodes_get_count();
-		for (node = 0; node < nnodes; node++)
+		unsigned n;
+		for (n = 0; n < nnodes; n++)
 		{
-			if (handle->per_node[node].state != STARPU_INVALID)
+			if (handle->per_node[n].state != STARPU_INVALID)
 			{
 				/* we found a copy ! */
-				src_node_mask |= (1<<node);
+				src_node_mask |= (1<<n);
 			}
 		}
 
