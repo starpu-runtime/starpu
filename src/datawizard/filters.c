@@ -742,7 +742,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	for (i = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
-		children[i].active_ro = 0;
+		children[i]->active_ro = 0;
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 	}
