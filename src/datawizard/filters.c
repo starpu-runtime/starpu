@@ -710,6 +710,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	{
 		_starpu_spin_lock(&children[i]->header_lock);
 		children[i]->active = 1;
+		children[i]->active_ro = 1;
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
@@ -778,6 +779,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 	{
 		_starpu_spin_lock(&children[i]->header_lock);
 		children[i]->active = 0;
+		children[i]->active_ro = 0;
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
@@ -917,7 +919,7 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 		}
 		else
 		{
-			_STARPU_DEBUG("ancestor %p is already partitioned RO, but not to target, partition towards target\n", ancestor);
+			_STARPU_DEBUG("ancestor %p is already partitioned RO, but not to target, partition towards target too\n", ancestor);
 			/* So we just need to upgrade ro to rw */
 			starpu_data_partition_readonly_submit(ancestor, target->nsiblings, target->siblings);
 		}

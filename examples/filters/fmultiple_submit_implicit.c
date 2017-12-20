@@ -232,7 +232,7 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* Now look at the total view of the matrix */
+	/* Now look at the total view of the matrix, and modify it. StarPU has to unpartition everything */
 
 	/* Check and scale it */
 	start = 0;
