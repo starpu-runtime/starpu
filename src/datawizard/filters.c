@@ -880,7 +880,7 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 	/* Then unpartition ancestor if needed */
 	if (ancestor->partitioned &&
 			/* Not the right children, unpartition ourself */
-			((target && ancestor->active_children != target->siblings) ||
+			((target && write && ancestor->active_children != target->siblings) ||
 			/* We are partitioned and we want to write or some child
 			 * is writing and we want to read, unpartition ourself*/
 			(!target && (write || !ancestor->readonly))))
@@ -898,16 +898,27 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 		return;
 	}
 
-	/* Then partition ancestor towards target */
+	/* Then partition ancestor towards target, if needed */
 	if (ancestor->partitioned)
 	{
-		_STARPU_DEBUG("ancestor %p is already partitioned RO, turn RW\n", ancestor);
-		/* Already partitioned, normally it's already for the target */
-		STARPU_ASSERT(ancestor->active_children == target->siblings);
-		/* And we are here just because we haven't partitioned rw */
-		STARPU_ASSERT(ancestor->readonly && write);
-		/* So we just need to upgrade ro to rw */
-		starpu_data_partition_readwrite_upgrade_submit(ancestor, target->nsiblings, target->siblings);
+		/* That must be readonly, otherwise we would have unpartitioned it */
+		STARPU_ASSERT(ancestor->readonly);
+		if (write)
+		{
+			_STARPU_DEBUG("ancestor %p is already partitioned RO, turn RW\n", ancestor);
+			/* Already partitioned, normally it's already for the target */
+			STARPU_ASSERT(ancestor->active_children == target->siblings);
+			/* And we are here just because we haven't partitioned rw */
+			STARPU_ASSERT(ancestor->readonly && write);
+			/* So we just need to upgrade ro to rw */
+			starpu_data_partition_readwrite_upgrade_submit(ancestor, target->nsiblings, target->siblings);
+		}
+		else
+		{
+			_STARPU_DEBUG("ancestor %p is already partitioned RO, but not to target, partition towards target\n", ancestor);
+			/* So we just need to upgrade ro to rw */
+			starpu_data_partition_readonly_submit(ancestor, target->nsiblings, target->siblings);
+		}
 	}
 	else
 	{
