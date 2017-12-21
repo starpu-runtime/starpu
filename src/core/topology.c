@@ -132,6 +132,7 @@ static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 		if (!obj)
 			return NULL;
 	}
+	return obj;
 #endif
 }
 static int numa_get_logical_id(hwloc_obj_t obj)
