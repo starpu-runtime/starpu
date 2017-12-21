@@ -343,6 +343,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
 int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
 {
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
 	struct timespec now, delta;
 	double delay;
 	int ret = 0;
@@ -354,15 +355,14 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
 	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? -ETIMEDOUT : 0;
-#else
-	STARPU_ASSERT_MSG(0, "simgrid version is too old for this");
-#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
 	return ret;
+#else
+	STARPU_ASSERT_MSG(0, "simgrid version is too old for this");
+#endif
 }
 
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
