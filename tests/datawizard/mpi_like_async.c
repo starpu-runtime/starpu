@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2010-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2010-2014,2016-2017                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -160,7 +160,6 @@ static void recv_handle_async(void *_thread_data)
 	struct data_req *req = (struct data_req *) malloc(sizeof(struct data_req));
 	req->test_func = test_recv_handle_async;
 	req->test_arg = thread_data;
-	req->next = NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	req->next = data_req_list;
@@ -206,7 +205,6 @@ static void send_handle_async(void *_thread_data)
 	struct data_req *req = (struct data_req *) malloc(sizeof(struct data_req));
 	req->test_func = test_send_handle_async;
 	req->test_arg = thread_data;
-	req->next = NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	req->next = data_req_list;
