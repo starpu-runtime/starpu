@@ -19,8 +19,7 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclReleaseCommandQueue(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0
 {
+	gc_entity_release(cq);
 
-  gc_entity_release(cq);
-
-  return CL_SUCCESS;
+	return CL_SUCCESS;
 }

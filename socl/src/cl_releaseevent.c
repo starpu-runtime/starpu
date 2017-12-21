@@ -19,10 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclReleaseEvent(cl_event event) CL_API_SUFFIX__VERSION_1_0
 {
-  if (event == NULL)
-    return CL_INVALID_EVENT;
+	if (event == NULL)
+		return CL_INVALID_EVENT;
 
-  gc_entity_release(event);
+	gc_entity_release(event);
 
-  return CL_SUCCESS;
+	return CL_SUCCESS;
 }

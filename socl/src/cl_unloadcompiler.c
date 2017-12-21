@@ -19,5 +19,5 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclUnloadCompiler(void) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

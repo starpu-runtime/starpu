@@ -25,7 +25,7 @@ soclEnqueueMarker(cl_command_queue  cq,
 
 	command_marker cmd = command_marker_create();
 
-   cl_event ev = command_event_get(cmd);
+	cl_event ev = command_event_get(cmd);
 
 	command_queue_enqueue(cq, cmd, 0, NULL);
 
@@ -34,7 +34,8 @@ soclEnqueueMarker(cl_command_queue  cq,
 	return CL_SUCCESS;
 }
 
-cl_int command_marker_submit(command_marker cmd) {
+cl_int command_marker_submit(command_marker cmd)
+{
 	struct starpu_task *task;
 	task = task_create(CL_COMMAND_MARKER);
 

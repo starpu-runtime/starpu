@@ -24,27 +24,27 @@
  *
  * \param[in] platform StarPU platform ID or NULL
  */
-CL_API_ENTRY cl_int CL_API_CALL 
-soclGetPlatformInfo(cl_platform_id   platform, 
-                  cl_platform_info param_name,
-                  size_t           param_value_size, 
-                  void *           param_value,
-                  size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+CL_API_ENTRY cl_int CL_API_CALL
+soclGetPlatformInfo(cl_platform_id   platform,
+		    cl_platform_info param_name,
+		    size_t           param_value_size,
+		    void *           param_value,
+		    size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (platform != NULL && platform != &socl_platform)
-	return CL_INVALID_PLATFORM;
+	if (platform != NULL && platform != &socl_platform)
+		return CL_INVALID_PLATFORM;
 
-   switch (param_name)
-   {
-	INFO_CASE_STRING(CL_PLATFORM_PROFILE, SOCL_PROFILE);
-	INFO_CASE_STRING(CL_PLATFORM_VERSION, SOCL_VERSION);
-	INFO_CASE_STRING(CL_PLATFORM_NAME,    SOCL_PLATFORM_NAME);
-	INFO_CASE_STRING(CL_PLATFORM_VENDOR,  SOCL_VENDOR);
-	INFO_CASE_STRING(CL_PLATFORM_EXTENSIONS, SOCL_PLATFORM_EXTENSIONS);
-	INFO_CASE_STRING(CL_PLATFORM_ICD_SUFFIX_KHR, SOCL_PLATFORM_ICD_SUFFIX_KHR);
-   default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE_STRING(CL_PLATFORM_PROFILE, SOCL_PROFILE);
+		INFO_CASE_STRING(CL_PLATFORM_VERSION, SOCL_VERSION);
+		INFO_CASE_STRING(CL_PLATFORM_NAME,    SOCL_PLATFORM_NAME);
+		INFO_CASE_STRING(CL_PLATFORM_VENDOR,  SOCL_VENDOR);
+		INFO_CASE_STRING(CL_PLATFORM_EXTENSIONS, SOCL_PLATFORM_EXTENSIONS);
+		INFO_CASE_STRING(CL_PLATFORM_ICD_SUFFIX_KHR, SOCL_PLATFORM_ICD_SUFFIX_KHR);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

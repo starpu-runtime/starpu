@@ -18,14 +18,14 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueCopyImageToBuffer(cl_command_queue UNUSED(command_queue),
-                           cl_mem           UNUSED(src_image),
-                           cl_mem           UNUSED(dst_buffer), 
-                           const size_t *   UNUSED(src_origin),
-                           const size_t *   UNUSED(region), 
-                           size_t           UNUSED(dst_offset),
-                           cl_uint          UNUSED(num_events_in_wait_list),
-                           const cl_event * UNUSED(event_wait_list),
-                           cl_event *       UNUSED(event)) CL_API_SUFFIX__VERSION_1_0
+			     cl_mem           UNUSED(src_image),
+			     cl_mem           UNUSED(dst_buffer),
+			     const size_t *   UNUSED(src_origin),
+			     const size_t *   UNUSED(region),
+			     size_t           UNUSED(dst_offset),
+			     cl_uint          UNUSED(num_events_in_wait_list),
+			     const cl_event * UNUSED(event_wait_list),
+			     cl_event *       UNUSED(event)) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_INVALID_OPERATION;
+	return CL_INVALID_OPERATION;
 }

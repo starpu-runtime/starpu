@@ -18,15 +18,15 @@
 
 CL_API_ENTRY cl_mem CL_API_CALL
 soclCreateImage2D(cl_context              UNUSED(context),
-                cl_mem_flags            UNUSED(flags),
-                const cl_image_format * UNUSED(image_format),
-                size_t                  UNUSED(image_width),
-                size_t                  UNUSED(image_height),
-                size_t                  UNUSED(image_row_pitch), 
-                void *                  UNUSED(host_ptr),
-                cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		  cl_mem_flags            UNUSED(flags),
+		  const cl_image_format * UNUSED(image_format),
+		  size_t                  UNUSED(image_width),
+		  size_t                  UNUSED(image_height),
+		  size_t                  UNUSED(image_row_pitch),
+		  void *                  UNUSED(host_ptr),
+		  cl_int *                errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (errcode_ret != NULL)
-      *errcode_ret = CL_INVALID_OPERATION;
-   return NULL;
+	if (errcode_ret != NULL)
+		*errcode_ret = CL_INVALID_OPERATION;
+	return NULL;
 }

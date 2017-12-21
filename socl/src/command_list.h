@@ -18,7 +18,8 @@
 
 typedef struct command_list_t * command_list;
 
-struct command_list_t {
+struct command_list_t
+{
 	cl_command cmd;
 	command_list next;
 	command_list prev;

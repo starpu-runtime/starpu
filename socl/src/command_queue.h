@@ -17,12 +17,11 @@
 #ifndef SOCL_COMMAND_QUEUE_H
 #define SOCL_COMMAND_QUEUE_H
 
-void command_queue_enqueue_ex(
-	cl_command_queue 	cq,		/* Command queue */
-	cl_command		cmd,		/* Command to enqueue */
-	cl_uint			num_events,	/* Number of explicit dependencies */
-	const cl_event *	events		/* Explicit dependencies */
-	);
+void command_queue_enqueue_ex(cl_command_queue 	cq,		/* Command queue */
+			      cl_command		cmd,		/* Command to enqueue */
+			      cl_uint			num_events,	/* Number of explicit dependencies */
+			      const cl_event *	events		/* Explicit dependencies */
+			      );
 
 #define command_queue_enqueue(cq, cmd, num_events, events)\
 	command_queue_enqueue_ex(cq, (cl_command)cmd, num_events, events)

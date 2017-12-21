@@ -18,15 +18,15 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueNativeKernel(cl_command_queue  UNUSED(command_queue),
-					       __attribute__((unused)) void (*user_func)(void *), 
-                      void *            UNUSED(args),
-                      size_t            UNUSED(cb_args), 
-                      cl_uint           UNUSED(num_mem_objects),
-                      const cl_mem *    UNUSED(mem_list),
-                      const void **     UNUSED(args_mem_loc),
-                      cl_uint           UNUSED(num_events_in_wait_list),
-                      const cl_event *  UNUSED(event_wait_list),
-                      cl_event *        UNUSED(event)) CL_API_SUFFIX__VERSION_1_0
+			__attribute__((unused)) void (*user_func)(void *),
+			void *            UNUSED(args),
+			size_t            UNUSED(cb_args),
+			cl_uint           UNUSED(num_mem_objects),
+			const cl_mem *    UNUSED(mem_list),
+			const void **     UNUSED(args_mem_loc),
+			cl_uint           UNUSED(num_events_in_wait_list),
+			const cl_event *  UNUSED(event_wait_list),
+			cl_event *        UNUSED(event)) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_INVALID_OPERATION;
+	return CL_INVALID_OPERATION;
 }

@@ -19,11 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclReleaseContext(cl_context context) CL_API_SUFFIX__VERSION_1_0
 {
+	if (context == NULL)
+		return CL_INVALID_CONTEXT;
 
-  if (context == NULL)
-    return CL_INVALID_CONTEXT;
+	gc_entity_release(context);
 
-  gc_entity_release(context);
-
-  return CL_SUCCESS;
+	return CL_SUCCESS;
 }

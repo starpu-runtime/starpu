@@ -26,12 +26,11 @@
  * its command queue.
  */
 
-
-void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_events, const cl_event * events) {
-
-  cl_event ev = command_event_get_ex(cmd);
-  ev->prof_queued = _socl_nanotime();
-  gc_entity_release(ev);
+void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_events, const cl_event * events)
+{
+	cl_event ev = command_event_get_ex(cmd);
+	ev->prof_queued = _socl_nanotime();
+	gc_entity_release(ev);
 
 	/* Check if the command is a barrier */
 	int is_barrier = (cmd->typ == CL_COMMAND_BARRIER || !(cq->properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE));
@@ -50,9 +49,11 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 		ndeps++;
 
 	/* Add dependencies to out-of-order events (if any) */
-	if (is_barrier) {
+	if (is_barrier)
+	{
 		command_list cl = cq->commands;
-		while (cl != NULL) {
+		while (cl != NULL)
+		{
 			ndeps++;
 			cl = cl->next;
 		}
@@ -64,13 +65,15 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	int n = 0;
 
 	/* Add dependency to last barrier if applicable */
-	if (cq->barrier != NULL) 
-      gc_entity_store(&deps[n++], cq->barrier->event);
+	if (cq->barrier != NULL)
+		gc_entity_store(&deps[n++], cq->barrier->event);
 
 	/* Add dependencies to out-of-order events (if any) */
-	if (is_barrier) {
+	if (is_barrier)
+	{
 		command_list cl = cq->commands;
-		while (cl != NULL) {
+		while (cl != NULL)
+		{
 			gc_entity_store(&deps[n++], cl->cmd->event);
 			cl = cl->next;
 		}
@@ -78,7 +81,8 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 
 	/* Add explicit dependencies */
 	unsigned i;
-	for (i=0; i<num_events; i++) {
+	for (i=0; i<num_events; i++)
+	{
 		gc_entity_store(&deps[n++], events[i]);
 	}
 
@@ -87,18 +91,20 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	cmd->events = deps;
 
 	/* Insert command in the queue */
-	if (is_barrier) {
+	if (is_barrier)
+	{
 		/* Remove out-of-order commands */
 		cq->commands = NULL;
 		/* Register the command as the last barrier */
 		cq->barrier = cmd;
 	}
-	else {
+	else
+	{
 		/* Add command to the list of out-of-order commands */
 		cq->commands = command_list_cons(cmd, cq->commands);
 	}
 
-	/* Submit command 
+	/* Submit command
 	 * We need to do it before unlocking because we don't want events to get
 	 * released while we use them to set dependencies
 	 */

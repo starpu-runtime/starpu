@@ -18,10 +18,9 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueWaitForEvents(cl_command_queue cq,
-                       cl_uint          num_events,
-                       const cl_event * events) CL_API_SUFFIX__VERSION_1_0
+			 cl_uint          num_events,
+			 const cl_event * events) CL_API_SUFFIX__VERSION_1_0
 {
-
 	command_marker cmd = command_marker_create();
 
 	command_queue_enqueue(cq, cmd, num_events, events);

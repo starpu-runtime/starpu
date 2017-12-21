@@ -19,7 +19,7 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclReleaseMemObject(cl_mem mem) CL_API_SUFFIX__VERSION_1_0
 {
-  gc_entity_release(mem);
+	gc_entity_release(mem);
 
-  return CL_SUCCESS;
+	return CL_SUCCESS;
 }

@@ -19,10 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclRetainProgram(cl_program program) CL_API_SUFFIX__VERSION_1_0
 {
-   if (program == NULL)
-      return CL_INVALID_PROGRAM;
+	if (program == NULL)
+		return CL_INVALID_PROGRAM;
 
-   gc_entity_retain(program);
+	gc_entity_retain(program);
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

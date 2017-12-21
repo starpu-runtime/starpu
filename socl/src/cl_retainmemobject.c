@@ -19,10 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclRetainMemObject(cl_mem mem) CL_API_SUFFIX__VERSION_1_0
 {
-   if (mem == NULL)
-      return CL_INVALID_MEM_OBJECT;
+	if (mem == NULL)
+		return CL_INVALID_MEM_OBJECT;
 
-   gc_entity_retain(mem);
-   
-   return CL_SUCCESS;
+	gc_entity_retain(mem);
+
+	return CL_SUCCESS;
 }

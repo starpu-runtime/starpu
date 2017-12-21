@@ -26,7 +26,8 @@ soclEnqueueBarrier(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0
 	return CL_SUCCESS;
 }
 
-cl_int command_barrier_submit(command_barrier cmd) {
+cl_int command_barrier_submit(command_barrier cmd)
+{
 	struct starpu_task *task;
 	task = task_create(CL_COMMAND_BARRIER);
 

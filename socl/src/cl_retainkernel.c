@@ -19,10 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclRetainKernel(cl_kernel    kernel) CL_API_SUFFIX__VERSION_1_0
 {
-   if (kernel == NULL)
-      return CL_INVALID_KERNEL;
+	if (kernel == NULL)
+		return CL_INVALID_KERNEL;
 
-   gc_entity_retain(kernel);
+	gc_entity_retain(kernel);
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

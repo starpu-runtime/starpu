@@ -19,10 +19,10 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetSamplerInfo(cl_sampler       UNUSED(sampler),
-                 cl_sampler_info    UNUSED(param_name),
-                 size_t             UNUSED(param_value_size),
-                 void *             UNUSED(param_value),
-                 size_t *           UNUSED(param_value_size_ret)) CL_API_SUFFIX__VERSION_1_0
+		   cl_sampler_info    UNUSED(param_name),
+		   size_t             UNUSED(param_value_size),
+		   void *             UNUSED(param_value),
+		   size_t *           UNUSED(param_value_size_ret)) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_INVALID_OPERATION;
+	return CL_INVALID_OPERATION;
 }

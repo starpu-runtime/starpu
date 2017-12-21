@@ -18,11 +18,11 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetSupportedImageFormats(cl_context           UNUSED(context),
-                           cl_mem_flags         UNUSED(flags),
-                           cl_mem_object_type   UNUSED(image_type),
-                           cl_uint              UNUSED(num_entries),
-                           cl_image_format *    UNUSED(image_formats),
-                           cl_uint *            UNUSED(num_image_formats)) CL_API_SUFFIX__VERSION_1_0
+			     cl_mem_flags         UNUSED(flags),
+			     cl_mem_object_type   UNUSED(image_type),
+			     cl_uint              UNUSED(num_entries),
+			     cl_image_format *    UNUSED(image_formats),
+			     cl_uint *            UNUSED(num_image_formats)) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_INVALID_OPERATION;
+	return CL_INVALID_OPERATION;
 }

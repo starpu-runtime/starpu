@@ -19,10 +19,10 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetImageInfo(cl_mem           UNUSED(image),
-               cl_image_info    UNUSED(param_name), 
-               size_t           UNUSED(param_value_size),
-               void *           UNUSED(param_value),
-               size_t *         UNUSED(param_value_size_ret)) CL_API_SUFFIX__VERSION_1_0
+		 cl_image_info    UNUSED(param_name),
+		 size_t           UNUSED(param_value_size),
+		 void *           UNUSED(param_value),
+		 size_t *         UNUSED(param_value_size_ret)) CL_API_SUFFIX__VERSION_1_0
 {
-   return CL_INVALID_OPERATION;
+	return CL_INVALID_OPERATION;
 }

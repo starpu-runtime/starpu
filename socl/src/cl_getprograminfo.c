@@ -19,26 +19,27 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetProgramInfo(cl_program       program,
-                 cl_program_info    param_name,
-                 size_t             param_value_size,
-                 void *             param_value,
-                 size_t *           param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+		   cl_program_info    param_name,
+		   size_t             param_value_size,
+		   void *             param_value,
+		   size_t *           param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (program == NULL)
-      return CL_INVALID_PROGRAM;
+	if (program == NULL)
+		return CL_INVALID_PROGRAM;
 
-   switch (param_name) {
-      INFO_CASE(CL_PROGRAM_REFERENCE_COUNT, program->_entity.refs);
-      INFO_CASE(CL_PROGRAM_CONTEXT, program->context);
-      INFO_CASE(CL_PROGRAM_NUM_DEVICES, program->context->num_devices);
-      INFO_CASE_EX(CL_PROGRAM_DEVICES, program->context->devices, sizeof(cl_device_id)*program->context->num_devices);
-      //TODO
-      /*INFO_CASE(CL_PROGRAM_SOURCE, program->source);
-      INFO_CASE(CL_PROGRAM_BINARY_SIZE, program->binary_sizes);
-      INFO_CASE(CL_PROGRAM_BINARIES, program->binaries);*/
-      default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE(CL_PROGRAM_REFERENCE_COUNT, program->_entity.refs);
+		INFO_CASE(CL_PROGRAM_CONTEXT, program->context);
+		INFO_CASE(CL_PROGRAM_NUM_DEVICES, program->context->num_devices);
+		INFO_CASE_EX(CL_PROGRAM_DEVICES, program->context->devices, sizeof(cl_device_id)*program->context->num_devices);
+		//TODO
+		/*INFO_CASE(CL_PROGRAM_SOURCE, program->source);
+		  INFO_CASE(CL_PROGRAM_BINARY_SIZE, program->binary_sizes);
+		  INFO_CASE(CL_PROGRAM_BINARIES, program->binaries);*/
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

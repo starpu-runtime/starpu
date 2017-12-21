@@ -19,25 +19,25 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetProgramBuildInfo(cl_program          program,
-                      cl_device_id          UNUSED(device),
-                      cl_program_build_info param_name,
-                      size_t                param_value_size,
-                      void *                param_value,
-                      size_t *              param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+			cl_device_id          UNUSED(device),
+			cl_program_build_info param_name,
+			size_t                param_value_size,
+			void *                param_value,
+			size_t *              param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (program == NULL)
-      return CL_INVALID_PROGRAM;
+	if (program == NULL)
+		return CL_INVALID_PROGRAM;
 
+	switch (param_name)
+	{
+		//TODO
+		//INFO_CASE(CL_PROGRAM_BUILD_STATUS, program->build_status);
+		INFO_CASE_EX(CL_PROGRAM_BUILD_OPTIONS, program->options, program->options_size);
+		//TODO
+		//INFO_CASE(CL_PROGRAM_BUILD_LOG, program->build_log);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   switch (param_name) {
-      //TODO
-      //INFO_CASE(CL_PROGRAM_BUILD_STATUS, program->build_status);
-      INFO_CASE_EX(CL_PROGRAM_BUILD_OPTIONS, program->options, program->options_size);
-      //TODO
-      //INFO_CASE(CL_PROGRAM_BUILD_LOG, program->build_log);
-      default:
-         return CL_INVALID_VALUE;
-   }
-
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

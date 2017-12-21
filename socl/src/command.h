@@ -31,7 +31,7 @@ typedef struct cl_command_t * cl_command;
  * Implicit and explicit dependencies must be passed as parameters
  */
 void command_init_ex(cl_command cmd, cl_command_type typ, void (*cb)(void*));
-#define command_init(cmd,typ,cb) \
+#define command_init(cmd,typ,cb)		\
 	command_init_ex((cl_command)cmd,typ,cb)
 
 void command_release(cl_command cmd);
@@ -51,7 +51,8 @@ void command_graph_dump_ex(cl_command cmd);
 /**************************
  * OpenCL Commands
  **************************/
-struct cl_command_t {
+struct cl_command_t
+{
 	CL_ENTITY;
 	cl_command_type	typ;	 	/* Command type */
 	cl_uint 	num_events;	/* Number of dependencies */
@@ -76,7 +77,8 @@ cl_event command_event_get_ex(cl_command cmd);
 
 #define CL_COMMAND struct cl_command_t _command;
 
-typedef struct command_ndrange_kernel_t {
+typedef struct command_ndrange_kernel_t
+{
 	CL_COMMAND
 
 	cl_kernel        kernel;
@@ -94,17 +96,18 @@ typedef struct command_ndrange_kernel_t {
 } * command_ndrange_kernel;
 
 
-typedef struct command_read_buffer_t {
+typedef struct command_read_buffer_t
+{
 	CL_COMMAND
-	
+
 	cl_mem buffer;
 	size_t offset;
 	size_t cb;
 	void * ptr;
 } * command_read_buffer;
 
-
-typedef struct command_write_buffer_t {
+typedef struct command_write_buffer_t
+{
 	CL_COMMAND
 
 	cl_mem buffer;
@@ -113,10 +116,10 @@ typedef struct command_write_buffer_t {
 	const void * ptr;
 } * command_write_buffer;
 
-
-typedef struct command_copy_buffer_t {
+typedef struct command_copy_buffer_t
+{
 	CL_COMMAND
-	
+
 	cl_mem src_buffer;
 	cl_mem dst_buffer;
 	size_t src_offset;
@@ -124,8 +127,8 @@ typedef struct command_copy_buffer_t {
 	size_t cb;
 } * command_copy_buffer;
 
-
-typedef struct command_map_buffer_t {
+typedef struct command_map_buffer_t
+{
 	CL_COMMAND
 
 	cl_mem buffer;
@@ -134,20 +137,21 @@ typedef struct command_map_buffer_t {
 	size_t cb;
 } * command_map_buffer;
 
-
-typedef struct command_unmap_mem_object_t {
+typedef struct command_unmap_mem_object_t
+{
 	CL_COMMAND
 
 	cl_mem buffer;
 	void * ptr;
 } * command_unmap_mem_object;
 
-
-typedef struct command_marker_t {
+typedef struct command_marker_t
+{
 	CL_COMMAND
 } * command_marker;
 
-typedef struct command_barrier_t {
+typedef struct command_barrier_t
+{
 	CL_COMMAND
 } * command_barrier;
 
@@ -155,12 +159,11 @@ typedef struct command_barrier_t {
  * Constructor functions
  *************************/
 
-command_ndrange_kernel command_ndrange_kernel_create (
-		cl_kernel        kernel,
-		cl_uint          work_dim,
-		const size_t *   global_work_offset,
-		const size_t *   global_work_size,
-		const size_t *   local_work_size);
+command_ndrange_kernel command_ndrange_kernel_create (cl_kernel        kernel,
+						      cl_uint          work_dim,
+						      const size_t *   global_work_offset,
+						      const size_t *   global_work_size,
+						      const size_t *   local_work_size);
 
 command_ndrange_kernel command_task_create (cl_kernel kernel);
 
@@ -168,34 +171,29 @@ command_barrier command_barrier_create ();
 
 command_marker command_marker_create ();
 
-command_map_buffer command_map_buffer_create(
-		cl_mem buffer,
-		cl_map_flags map_flags,
-		size_t offset,
-		size_t cb);
+command_map_buffer command_map_buffer_create(cl_mem buffer,
+					     cl_map_flags map_flags,
+					     size_t offset,
+					     size_t cb);
 
-command_unmap_mem_object command_unmap_mem_object_create(
-		cl_mem buffer,
-		void * ptr);
+command_unmap_mem_object command_unmap_mem_object_create(cl_mem buffer,
+							 void * ptr);
 
-command_read_buffer command_read_buffer_create(
-		cl_mem buffer,
-		size_t offset,
-		size_t cb,
-		void * ptr);
+command_read_buffer command_read_buffer_create(cl_mem buffer,
+					       size_t offset,
+					       size_t cb,
+					       void * ptr);
 
-command_write_buffer command_write_buffer_create(
-		cl_mem buffer,
-		size_t offset,
-		size_t cb,
-		const void * ptr);
+command_write_buffer command_write_buffer_create(cl_mem buffer,
+						 size_t offset,
+						 size_t cb,
+						 const void * ptr);
 
-command_copy_buffer command_copy_buffer_create(
-		cl_mem src_buffer,
-		cl_mem dst_buffer,
-		size_t src_offset,
-		size_t dst_offset,
-		size_t cb);
+command_copy_buffer command_copy_buffer_create(cl_mem src_buffer,
+					       cl_mem dst_buffer,
+					       size_t src_offset,
+					       size_t dst_offset,
+					       size_t cb);
 
 /*************************
  * Submit functions
@@ -211,4 +209,3 @@ cl_int command_barrier_submit(command_barrier cmd);
 
 
 #endif /* SOCL_COMMANDS_H */
-

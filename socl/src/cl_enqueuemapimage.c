@@ -18,20 +18,20 @@
 
 CL_API_ENTRY void * CL_API_CALL
 soclEnqueueMapImage(cl_command_queue  UNUSED(command_queue),
-                  cl_mem            UNUSED(image), 
-                  cl_bool           UNUSED(blocking_map), 
-                  cl_map_flags      UNUSED(map_flags), 
-                  const size_t *    UNUSED(origin),
-                  const size_t *    UNUSED(region),
-                  size_t *          UNUSED(image_row_pitch),
-                  size_t *          UNUSED(image_slice_pitch),
-                  cl_uint           UNUSED(num_events_in_wait_list),
-                  const cl_event *  UNUSED(event_wait_list),
-                  cl_event *        UNUSED(event),
-                  cl_int *          errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		    cl_mem            UNUSED(image),
+		    cl_bool           UNUSED(blocking_map),
+		    cl_map_flags      UNUSED(map_flags),
+		    const size_t *    UNUSED(origin),
+		    const size_t *    UNUSED(region),
+		    size_t *          UNUSED(image_row_pitch),
+		    size_t *          UNUSED(image_slice_pitch),
+		    cl_uint           UNUSED(num_events_in_wait_list),
+		    const cl_event *  UNUSED(event_wait_list),
+		    cl_event *        UNUSED(event),
+		    cl_int *          errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (errcode_ret != NULL)
-      *errcode_ret = CL_INVALID_OPERATION;
+	if (errcode_ret != NULL)
+		*errcode_ret = CL_INVALID_OPERATION;
 
-   return NULL;
+	return NULL;
 }

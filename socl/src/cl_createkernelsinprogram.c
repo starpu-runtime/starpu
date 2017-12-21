@@ -18,10 +18,10 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclCreateKernelsInProgram(cl_program   UNUSED(program),
-                         cl_uint        UNUSED(num_kernels),
-                         cl_kernel *    UNUSED(kernels),
-                         cl_uint *      UNUSED(num_kernels_ret)) CL_API_SUFFIX__VERSION_1_0
+			   cl_uint        UNUSED(num_kernels),
+			   cl_kernel *    UNUSED(kernels),
+			   cl_uint *      UNUSED(num_kernels_ret)) CL_API_SUFFIX__VERSION_1_0
 {
-   //TODO
-   return CL_INVALID_OPERATION;
+	//TODO
+	return CL_INVALID_OPERATION;
 }

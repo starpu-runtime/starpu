@@ -19,10 +19,10 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclRetainCommandQueue(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0
 {
-   if (cq == NULL)
-      return CL_INVALID_COMMAND_QUEUE;
+	if (cq == NULL)
+	   return CL_INVALID_COMMAND_QUEUE;
 
-   gc_entity_retain(cq);
+	gc_entity_retain(cq);
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

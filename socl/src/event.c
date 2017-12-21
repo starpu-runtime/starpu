@@ -20,10 +20,11 @@
 
 static void release_callback_event(void * e);
 
-int event_unique_id() {
-   static int id = 1;
+int event_unique_id()
+{
+	static int id = 1;
 
-   return __sync_fetch_and_add(&id,1);
+	return __sync_fetch_and_add(&id,1);
 }
 
 /**
@@ -31,39 +32,41 @@ int event_unique_id() {
  *
  * Events have one-to-one relation with tag. Tag number is event ID
  */
-cl_event event_create(void) {
-   cl_event ev;
-   ev = gc_entity_alloc(sizeof(struct _cl_event), release_callback_event, "event");
+cl_event event_create(void)
+{
+	cl_event ev;
+	ev = gc_entity_alloc(sizeof(struct _cl_event), release_callback_event, "event");
 
-   ev->id = event_unique_id();
-   ev->status = CL_SUBMITTED;
-   ev->command = NULL;
-   ev->prof_queued = 0L;
-   ev->prof_submit = 0L;
-   ev->prof_start = 0L;
-   ev->prof_end = 0L;
-   ev->cq = NULL;
+	ev->id = event_unique_id();
+	ev->status = CL_SUBMITTED;
+	ev->command = NULL;
+	ev->prof_queued = 0L;
+	ev->prof_submit = 0L;
+	ev->prof_start = 0L;
+	ev->prof_end = 0L;
+	ev->cq = NULL;
 
-   return ev;
+	return ev;
 }
 
-void event_complete(cl_event ev) {
-  ev->status = CL_COMPLETE;
-  
-  ev->prof_end = _socl_nanotime();
+void event_complete(cl_event ev)
+{
+	ev->status = CL_COMPLETE;
 
-  /* Trigger the tag associated to the command event */
-  DEBUG_MSG("Trigger event %d\n", ev->id);
-  starpu_tag_notify_from_apps(ev->id);
+	ev->prof_end = _socl_nanotime();
+
+	/* Trigger the tag associated to the command event */
+	DEBUG_MSG("Trigger event %d\n", ev->id);
+	starpu_tag_notify_from_apps(ev->id);
 }
 
-static void release_callback_event(void * e) {
-  cl_event event = (cl_event)e;
+static void release_callback_event(void * e)
+{
+	cl_event event = (cl_event)e;
 
-  gc_entity_unstore(&event->cq);
+	gc_entity_unstore(&event->cq);
 
-  /* Destruct object */
-  //FIXME
-  //starpu_tag_remove(event->id);
+	/* Destruct object */
+	//FIXME
+	//starpu_tag_remove(event->id);
 }
-

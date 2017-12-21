@@ -18,13 +18,13 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueBarrierWithWaitList(cl_command_queue  cq,
-                cl_uint num_events,
-                const cl_event * events,
-                cl_event *          event) CL_API_SUFFIX__VERSION_1_2
+			       cl_uint num_events,
+			       const cl_event * events,
+			       cl_event *          event) CL_API_SUFFIX__VERSION_1_2
 {
 	command_barrier cmd = command_barrier_create();
 
-   cl_event ev = command_event_get(cmd);
+	cl_event ev = command_event_get(cmd);
 
 	command_queue_enqueue(cq, cmd, num_events, events);
 

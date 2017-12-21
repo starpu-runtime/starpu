@@ -18,18 +18,16 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetKernelWorkGroupInfo(cl_kernel                kernel,
-                         cl_device_id               device,
-                         cl_kernel_work_group_info  param_name,
-                         size_t                     param_value_size,
-                         void *                     param_value,
-                         size_t *                   param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+			   cl_device_id               device,
+			   cl_kernel_work_group_info  param_name,
+			   size_t                     param_value_size,
+			   void *                     param_value,
+			   size_t *                   param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   int range = starpu_worker_get_range_by_id(device->worker_id);
-   cl_device_id dev;
-   starpu_opencl_get_device(device->device_id, &dev);
+	int range = starpu_worker_get_range_by_id(device->worker_id);
+	cl_device_id dev;
+	starpu_opencl_get_device(device->device_id, &dev);
 
-   return clGetKernelWorkGroupInfo(kernel->cl_kernels[range], dev, 
-      param_name, param_value_size, param_value, param_value_size_ret);
+	return clGetKernelWorkGroupInfo(kernel->cl_kernels[range], dev,
+					param_name, param_value_size, param_value, param_value_size_ret);
 }
-
-

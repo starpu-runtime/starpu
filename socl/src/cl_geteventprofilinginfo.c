@@ -19,19 +19,20 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetEventProfilingInfo(cl_event          event,
-                        cl_profiling_info   param_name,
-                        size_t              param_value_size,
-                        void *              param_value,
-                        size_t *            param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+			  cl_profiling_info   param_name,
+			  size_t              param_value_size,
+			  void *              param_value,
+			  size_t *            param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   switch (param_name) {
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_QUEUED, cl_ulong, event->prof_queued);
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_SUBMIT, cl_ulong, event->prof_submit);
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_START, cl_ulong, event->prof_start);
-      INFO_CASE_VALUE(CL_PROFILING_COMMAND_END, cl_ulong, event->prof_end);
-      default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE_VALUE(CL_PROFILING_COMMAND_QUEUED, cl_ulong, event->prof_queued);
+		INFO_CASE_VALUE(CL_PROFILING_COMMAND_SUBMIT, cl_ulong, event->prof_submit);
+		INFO_CASE_VALUE(CL_PROFILING_COMMAND_START, cl_ulong, event->prof_start);
+		INFO_CASE_VALUE(CL_PROFILING_COMMAND_END, cl_ulong, event->prof_end);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }
