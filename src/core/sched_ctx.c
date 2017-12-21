@@ -983,7 +983,6 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
 #endif //STARPU_HAVE_HWLOC
 
-	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 	config->topology.nsched_ctxs--;
 }
 
