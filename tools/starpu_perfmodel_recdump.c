@@ -78,7 +78,7 @@ void get_comb_name(int comb, char* name, int name_size)
 {
 	struct starpu_perfmodel_arch *arch_comb = starpu_perfmodel_arch_comb_fetch(comb);
 	STARPU_ASSERT_MSG(arch_comb->ndevices == 1, "Cannot work with multi-device workers\n");
-	snprintf(name, name_size, "%s%u", starpu_perfmodel_get_archtype_name(arch_comb->devices[0].type), arch_comb->devices[0].devid);
+	snprintf(name, name_size, "%s%d", starpu_perfmodel_get_archtype_name(arch_comb->devices[0].type), arch_comb->devices[0].devid);
 }
 
 void print_archs(FILE* output)
@@ -167,13 +167,13 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	FILE* output;
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
 #else
+	FILE* output;
 	parse_args(argc, argv);
 
 	if(poutput != NULL)
@@ -330,6 +330,7 @@ int main(int argc, char **argv)
 				HASH_DEL(models, model);
 			}
 		}
+		fclose(input);
 	}
 	else
 	{
@@ -412,6 +413,7 @@ int main(int argc, char **argv)
 	starpu_resume();
 	starpu_shutdown();
 
-	  return 0;
+	fclose(output);
+	return 0;
 #endif
 }
