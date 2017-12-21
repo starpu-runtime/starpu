@@ -2037,7 +2037,8 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		for (i = 0; i < config->topology.ncudagpus; i++)
 		{
 			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, i);
-			obj = numa_get_obj(obj);
+			if (obj)
+				obj = numa_get_obj(obj);
 			/* Hwloc cannot recognize some devices */
 			if (!obj)
 				continue;
@@ -2095,7 +2096,8 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				for (i = 0; i < num; i++)
 				{
 					hwloc_obj_t obj = hwloc_opencl_get_device_osdev_by_index(config->topology.hwtopology, platform, i);
-					obj = numa_get_obj(obj);
+					if (obj)
+						obj = numa_get_obj(obj);
 					/* Hwloc cannot recognize some devices */
 					if (!obj)
 						continue;
