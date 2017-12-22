@@ -1,8 +1,8 @@
 #!/bin/sh
-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012  CNRS
+# Copyright (C) 2012                                     Inria
+# Copyright (C) 2011-2012,2015,2017                      CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 grep --exclude-dir=.svn -rs "\bstarpu_mpi_req_t\b" ./
 grep --exclude-dir=.svn -rs "\bstarpu_mpi_req_s\b" ./
 grep --exclude-dir=.svn -rs "\bstarpu_mpi_req_list_t\b" ./
