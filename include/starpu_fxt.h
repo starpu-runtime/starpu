@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2016                           Inria
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2015                                CNRS
+ * Copyright (C) 2010-2015,2017                           CNRS
  * Copyright (C) 2010-2011,2013-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
