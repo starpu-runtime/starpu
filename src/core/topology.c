@@ -122,7 +122,7 @@ static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 	}
 	return obj->memory_first_child;
 #else
-	while (obj->type != HWLOC_OBJ_NODE)
+	while (obj->type != HWLOC_OBJ_NUMANODE)
 	{
 		obj = obj->parent;
 
@@ -999,7 +999,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
 	{
 		struct _starpu_machine_topology *topology = &config->topology ;
-		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NODE) ;
+		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE) ;
 		res = nnumanodes > 0 ? nnumanodes : 1 ;
 	}
 	else

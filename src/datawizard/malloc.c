@@ -36,6 +36,16 @@
 #include <smpi/smpi.h>
 #endif
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
+#endif
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -310,7 +320,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
-		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
 #if HWLOC_API_VERSION >= 0x00020000
 		*A = hwloc_alloc_membind(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags | HWLOC_MEMBIND_BYNODESET);

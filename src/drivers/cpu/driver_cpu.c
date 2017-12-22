@@ -40,6 +40,9 @@
 #ifndef HWLOC_API_VERSION
 #define HWLOC_OBJ_PU HWLOC_OBJ_PROC
 #endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
 #endif
 
 #ifdef STARPU_HAVE_WINDOWS
@@ -161,7 +164,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	int nnumas = starpu_memory_nodes_get_numa_count();
 	if (nnumas > 1)
 	{
-		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 
 		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 		{
