@@ -571,29 +571,6 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	return (timing_sum2_left > timing_sum2_right);
 }
 
-#ifdef STARPU_HAVE_HWLOC
-#if 0
-static int find_numa_node(hwloc_obj_t obj)
-{
-	STARPU_ASSERT(obj);
-	hwloc_obj_t current = obj;
-
-	while (current->depth != HWLOC_OBJ_NODE)
-	{
-		current = current->parent;
-
-		/* If we don't find a "node" obj before the root, this means
-		 * hwloc does not know whether there are numa nodes or not, so
-		 * we should not use a per-node sampling in that case. */
-		STARPU_ASSERT(current);
-	}
-
-	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
-
-	return current->logical_index;
-}
-#endif
-
 static int find_cpu_from_numa_node(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
