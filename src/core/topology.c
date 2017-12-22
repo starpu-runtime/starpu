@@ -646,6 +646,11 @@ _starpu_allocate_topology_userdata(hwloc_obj_t obj)
 	_STARPU_CALLOC(obj->userdata,  1, sizeof(struct _starpu_hwloc_userdata));
 	for (i = 0; i < obj->arity; i++)
 		_starpu_allocate_topology_userdata(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t child;
+	for (child = obj->io_first_child; child; child = child->next_sibling)
+		_starpu_allocate_topology_userdata(child);
+#endif
 }
 
 static void
@@ -658,6 +663,11 @@ _starpu_deallocate_topology_userdata(hwloc_obj_t obj)
 	free(data);
 	for (i = 0; i < obj->arity; i++)
 		_starpu_deallocate_topology_userdata(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t child;
+	for (child = obj->io_first_child; child; child = child->next_sibling)
+		_starpu_deallocate_topology_userdata(child);
+#endif
 }
 #endif
 #endif
