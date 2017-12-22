@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -1784,7 +1784,7 @@ starpu_topology_print (FILE *output)
 	{
 #ifdef STARPU_HAVE_HWLOC
 		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
-		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NODE, pu_obj);
+		numa_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_NUMANODE, pu_obj);
 		if (numa_obj != last_numa_obj)
 		{
 			fprintf(output, "numa %u", numa_obj->logical_index);

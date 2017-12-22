@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016                           Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Corentin Salingue
  *
@@ -44,6 +44,16 @@
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
 #endif
 
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
@@ -499,7 +509,7 @@ static int find_numa_node(hwloc_obj_t obj)
 	STARPU_ASSERT(obj);
 	hwloc_obj_t current = obj;
 
-	while (current->depth != HWLOC_OBJ_NODE)
+	while (current->depth != HWLOC_OBJ_NUMANODE)
 	{
 		current = current->parent;
 
@@ -509,7 +519,7 @@ static int find_numa_node(hwloc_obj_t obj)
 		STARPU_ASSERT(current);
 	}
 
-	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
+	STARPU_ASSERT(current->depth == HWLOC_OBJ_NUMANODE);
 
 	return current->logical_index;
 }
@@ -523,7 +533,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	 * */
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_PU);
-	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NODE);
+	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NUMANODE);
 
 	/* If no NUMA node was found, we assume that we have a single memory
 	 * bank. */
