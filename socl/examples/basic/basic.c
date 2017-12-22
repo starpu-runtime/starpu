@@ -98,7 +98,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    for (i=0; i<num_platforms;i++) {
     char vendor[256];
     clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
-    if (strcmp(vendor, "INRIA") ==  0) {
+    if (strcmp(vendor, "Inria") ==  0) {
       platform_idx = i;
     }
   }

@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
 	// Application description
-	QCoreApplication::setOrganizationName("INRIA Bordeaux Sud-Ouest");
+	QCoreApplication::setOrganizationName("Inria Bordeaux Sud-Ouest");
 	QCoreApplication::setOrganizationDomain("runtime.bordeaux.inria.fr");
 	QCoreApplication::setApplicationName("StarPU-Top");
 	QCoreApplication::setApplicationVersion("0.1");
