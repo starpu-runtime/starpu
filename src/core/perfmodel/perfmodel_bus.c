@@ -571,6 +571,7 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	return (timing_sum2_left > timing_sum2_right);
 }
 
+#ifdef STARPU_HAVE_HWLOC
 static int find_cpu_from_numa_node(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
