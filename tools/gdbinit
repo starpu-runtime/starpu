@@ -262,7 +262,7 @@ end
 define starpu-print-all-tasks
   set language c
   if ! _starpu_debug
-    printf "you need to configure with --enable-debug to get starpu-print-all-tasks working"
+    printf "you need to configure with --enable-debug to get starpu-print-all-tasks working\n"
   else
     set $l = all_jobs_list->next
     while $l != &all_jobs_list
@@ -277,7 +277,7 @@ end
 define starpu-all-tasks
   set language c
   if ! _starpu_debug
-    printf "you need to configure with --enable-debug to get starpu-all-tasks working"
+    printf "you need to configure with --enable-debug to get starpu-all-tasks working\n"
   else
     set $l = all_jobs_list->next
     while $l != &all_jobs_list
