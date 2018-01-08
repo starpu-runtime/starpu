@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2012-2013,2015-2018                      CNRS
  * Copyright (C) 2010-2013,2015,2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -204,7 +204,7 @@ int shrCompareL2fe( const float* reference, const float* data, const unsigned in
 #ifdef _DEBUG
 	if( !result)
 	{
-		fprintf(stderr, "ERROR, l2-norm error %d is greater than epsilon %lf \n", error, epsilon);
+		fprintf(stderr, "ERROR, l2-norm error %lf is greater than epsilon %lf \n", error, epsilon);
 	}
 #endif
 
@@ -303,7 +303,7 @@ int main(int argc, const char** argv)
 			char name[2048];
 			name[0] = '\0';
 			clGetDeviceInfo(device, CL_DEVICE_NAME, 2048, name, NULL);
-			printf("Device %d: %s\n", i, name);
+			printf("Device %u: %s\n", i, name);
 
 			commandQueue[p][i] = clCreateCommandQueue(ctx[p], device, CL_QUEUE_PROFILING_ENABLE | CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &err);
 			if (err == CL_INVALID_VALUE)
