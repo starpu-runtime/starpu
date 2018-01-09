@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
  * Copyright (C) 2010-2013                                Université de Bordeaux
- * Copyright (C) 2012                                     Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+ * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
