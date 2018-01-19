@@ -2014,7 +2014,12 @@ else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
 fi
-if test x$GCC = xyes; then
+
+AC_MSG_CHECKING(whether full gdb information should be enabled)
+AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-information], [disable full gdb information])],
+			enable_full_gdb_information=$enableval, enable_full_gdb_information=yes)
+AC_MSG_RESULT($enable_full_gdb_information)
+if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	CFLAGS+=" -gdwarf-2 -g3"
 	CXXFLAGS+=" -gdwarf-2 -g3"
 	LDFLAGS+=" -gdwarf-2 -g3"
