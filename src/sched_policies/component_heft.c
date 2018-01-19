@@ -108,7 +108,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		double max_benefit =  max_exp_end_with_task[0] - min_exp_end_with_task[0];
 
 		/* Find the task which provides the most computation time benefit */
-		for (n = 0; n < ntasks; n++)
+		for (n = 1; n < ntasks; n++)
 		{
 			double benefit = max_exp_end_with_task[n] - min_exp_end_with_task[n];
 			if (max_benefit < benefit)
