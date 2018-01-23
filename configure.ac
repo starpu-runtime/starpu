@@ -101,29 +101,17 @@ AC_C_RESTRICT
 # Check if bash is available
 AC_CHECK_PROGS([BASH], [bash])
 
-# Check whether subversion is installed
-AC_PATH_PROG(svncommand, svn)
-AC_PATH_PROG(svnversioncommand, svnversion)
-
-# find out if we are are in a subversion directory
-svndir=0
-if test "$svncommand" != "" ; then
-   $svncommand info $srcdir >/dev/null 2>&1
-   if test $? -eq 0; then
-      svndir=1
-   fi
-fi
-
-# use svnversion to record the current repository revision only if
-# subversion is installed and we are in a working copy
-if test "$svnversioncommand" = "" || test "`LC_ALL=C $svnversioncommand -n $srcdir`" = "exported" ; then
+# Record git version
+AC_PATH_PROG(gitcommand, git)
+if test "$gitcommand" = "" ; then
+>>>>>>> 4fdd0b7... configure.ac: update to git
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
       echo "unknown" > ./STARPU-REVISION
    fi
 else
-   LC_ALL=C svnversion $srcdir > ./STARPU-REVISION
+   git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION
 fi
 
 AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
