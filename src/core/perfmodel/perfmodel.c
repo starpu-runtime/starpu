@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -342,6 +342,9 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
+		unsigned node = memory_node;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, buffer);
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}
