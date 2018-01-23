@@ -104,7 +104,6 @@ AC_CHECK_PROGS([BASH], [bash])
 # Record git version
 AC_PATH_PROG(gitcommand, git)
 if test "$gitcommand" = "" ; then
->>>>>>> 4fdd0b7... configure.ac: update to git
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
@@ -2010,7 +2009,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
-if test $svndir = 1 -o -d "$srcdir/.git" ; then
+if test -d "$srcdir/.git" ; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
