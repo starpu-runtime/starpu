@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -748,6 +748,9 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	}
 	else
 	{
+#ifdef STARPU_DEVEL
+#warning FIXME use a prio_list
+#endif
 		if (prio)
 			starpu_task_list_push_front(&worker->local_tasks, task);
 		else
