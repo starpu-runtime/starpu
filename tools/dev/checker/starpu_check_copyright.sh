@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013,2017                                CNRS
+# Copyright (C) 2013,2017,2018                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
 #
 REP=${1:-.}
 
-find $REP -not -path "*svn*" -not -path "*build*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
+find $REP -not -path "*build*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
 
 for f in $(cat /tmp/list_$$)
 do
@@ -24,6 +24,6 @@ do
     if test -z "$copyright"
     then
 	echo "File $f does not include a proper copyright"
-	svn log $f | grep '|' | awk -F'|' '{print $2}' | sort | uniq
+	git log $f | grep '^Author:' | sort | uniq
     fi
 done
