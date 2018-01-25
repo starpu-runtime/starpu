@@ -1485,7 +1485,7 @@ fi
 
 AC_ARG_ENABLE([starpu-top],
   [AS_HELP_STRING([--disable-starpu-top],
-    [build StarPU-Top])],
+    [disable StarPU-Top])],
   [enable_starpu_top="$enableval"],
   [enable_starpu_top="maybe"])
 
@@ -1958,7 +1958,7 @@ fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
-			[disable execution of StarPU FFT examples])],
+			[enable build of StarPU FFT examples])],
 			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
 AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 
