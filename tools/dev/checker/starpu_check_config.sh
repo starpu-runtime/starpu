@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2017, 2018                                     CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
 #
 DIR=$(echo $(dirname $0)/../../../)
 
-SGREP="grep --exclude-dir=.svn --exclude-dir=.git --binary-files=without-match"
+SGREP="grep --exclude-dir=.git --binary-files=without-match"
 
 for m in $(grep undef $DIR/src/common/config.h.in | awk '{print $2}' | grep -v "^PACKAGE")
 do

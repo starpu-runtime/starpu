@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2017                                CNRS
+# Copyright (C) 2016-2018                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,10 +24,10 @@ STARPU_H_FILES=$(find $dirname/../../../include $dirname/../../../mpi/include -n
 SC_H_FILES=$(find $dirname/../../../sc_hypervisor/include -name '*.h')
 SRC="$dirname/../../../src $dirname/../../../mpi/src $dirname/../../../sc_hypervisor/src"
 
-#grep --exclude-dir=.svn --exclude-dir=.git --binary-files=without-match -rsF "\ref" $dirname/../chapters|grep -v "\\ref [a-zA-Z]"
+#grep --exclude-dir=.git --binary-files=without-match -rsF "\ref" $dirname/../chapters|grep -v "\\ref [a-zA-Z]"
 #echo continue && read
 
-GREP="grep --exclude-dir=.svn --exclude-dir=.git --binary-files=without-match -rsF"
+GREP="grep --exclude-dir=.git --binary-files=without-match -rsF"
 
 REFS=$($GREP "\ref" $dirname/../chapters| tr ':' '\012' | tr '.' '\012'  | tr ',' '\012'  | tr '(' '\012' | tr ')' '\012' | tr ' ' '\012'|grep -F '\ref' -A1 | grep -v '^--$' | sed 's/\\ref/=\\ref/' | tr '\012' ':' | tr '=' '\012' | sort | uniq)
 find $dirname/../chapters -name "*doxy" -exec cat {} \; > /tmp/DOXYGEN_$$
