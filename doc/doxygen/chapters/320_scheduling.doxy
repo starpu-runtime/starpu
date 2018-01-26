@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,8 +97,8 @@ The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also
 into account data transfer time.
 
 The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
-but it also sorts tasks on per-worker queues by number of already-available data
-buffers on the target device.
+but it also privileges tasks whose data buffers are already available
+on the target device.
 
 The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmdar,
 except that it sorts tasks by priority order, which allows to become even closer
