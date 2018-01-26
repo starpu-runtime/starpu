@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2016-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  * Copyright (C) 2010-2017                                CNRS
  *
@@ -1619,7 +1619,7 @@ void _starpu_mpi_wait_for_initialization()
 }
 #endif
 
-void _starpu_mpi_progress_shutdown(uintptr_t value)
+void _starpu_mpi_progress_shutdown(void **value)
 {
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
         running = 0;
@@ -1635,7 +1635,7 @@ void _starpu_mpi_progress_shutdown(uintptr_t value)
 	(void) value;
 	MSG_process_sleep(1);
 #else
-	STARPU_PTHREAD_JOIN(progress_thread, (void *)value);
+	STARPU_PTHREAD_JOIN(progress_thread, value);
 #endif
 
         STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
