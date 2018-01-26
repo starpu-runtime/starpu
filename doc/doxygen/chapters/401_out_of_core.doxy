@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014,2016-2017                      CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2013-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2013-2014,2017-2018                           Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -89,5 +89,21 @@ All structures are in \ref API_Out_Of_Core.
 \section ExampleDiskCompute Examples: disk_compute
 
 \snippet disk_compute.c To be included. You should update doxygen if you see this text.
+
+\section Performances
+
+Scheduling heuristics for Out-of-core are still relatively experimental. The
+tricky part is that you usually have to find a compromise between privileging
+locality (which avoids back and forth with the disk) and privileging the
+critical path, i.e. taking into account priorities to avoid lack of parallelism
+at the end of the task graph.
+
+It is notably better to avoid defining different priorities to tasks with low
+priority, since that will make the scheduler want to schedule them by levels of
+priority, at the depense of locality.
+
+The scheduling algorithms worth trying are thus <code>dmdar</code> and
+<code>lws</code>, which privilege data locality over priorities. There will be
+work on this area in the coming future.
 
 */
