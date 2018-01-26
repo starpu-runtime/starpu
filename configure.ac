@@ -101,29 +101,16 @@ AC_C_RESTRICT
 # Check if bash is available
 AC_CHECK_PROGS([BASH], [bash])
 
-# Check whether subversion is installed
-AC_PATH_PROG(svncommand, svn)
-AC_PATH_PROG(svnversioncommand, svnversion)
-
-# find out if we are are in a subversion directory
-svndir=0
-if test "$svncommand" != "" ; then
-   $svncommand info $srcdir >/dev/null 2>&1
-   if test $? -eq 0; then
-      svndir=1
-   fi
-fi
-
-# use svnversion to record the current repository revision only if
-# subversion is installed and we are in a working copy
-if test "$svnversioncommand" = "" || test "`LC_ALL=C $svnversioncommand -n $srcdir`" = "exported" ; then
+# Record git version
+AC_PATH_PROG(gitcommand, git)
+if test "$gitcommand" = "" ; then
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
       echo "unknown" > ./STARPU-REVISION
    fi
 else
-   LC_ALL=C svnversion $srcdir > ./STARPU-REVISION
+   git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION
 fi
 
 AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
@@ -138,7 +125,7 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 AC_ARG_ENABLE(mic, [AS_HELP_STRING([--enable-mic],
 	      [use MIC device(s)])], [enable_mic=$enableval], [enable_mic=no])
 AC_ARG_ENABLE(mic-rma, [AS_HELP_STRING([--disable-mic-rma],
-	      [use MIC RMA transfer])], [enable_mic_rma=$enableval], [enable_mic_rma=yes])
+	      [disable MIC RMA transfer])], [enable_mic_rma=$enableval], [enable_mic_rma=yes])
 
 if test x$enable_mic = xyes ; then
 	AC_DEFINE(STARPU_USE_MIC, [1], [MIC workers support is enabled])
@@ -2022,7 +2009,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
-if test $svndir = 1 -o -d "$srcdir/.git" ; then
+if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
@@ -2110,7 +2097,7 @@ fi
 
 AC_ARG_ENABLE([starpu-top],
   [AS_HELP_STRING([--disable-starpu-top],
-    [build StarPU-Top])],
+    [disable StarPU-Top])],
   [enable_starpu_top="$enableval"],
   [enable_starpu_top="maybe"])
 
@@ -2715,7 +2702,7 @@ fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
-			[disable execution of StarPU FFT examples])],
+			[enable build of StarPU FFT examples])],
 			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
 AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 

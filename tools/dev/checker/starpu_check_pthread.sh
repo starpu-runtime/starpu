@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013,2017,2018                                CNRS
+# Copyright (C) 2017, 2018                                     CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,17 +14,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-REP=${1:-.}
+dirname=$(dirname $0)
+sgrep="grep --exclude-dir=.git --binary-files=without-match"
 
-find $REP -not -path "*build*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
-
-for f in $(cat /tmp/list_$$)
+macros=$(grep define $dirname/../../../include/starpu_thread_util.h | grep "define STARPU" | awk -F'(' '{print $1}' |awk '{print $2}')
+for m in $macros
 do
-    copyright=$(grep "StarPU is free software" $f 2>/dev/null)
-    if test -z "$copyright"
-    then
-	echo "File $f does not include a proper copyright"
-	git log $f | grep '^Author:' | sort | uniq
-    fi
+    func=$(echo $m | tr '[A-Z]' '[a-z]')
+    echo processing $func
+    pthread=$(echo $func | sed 's/starpu_//')
+    $sgrep -rsl $func
+    echo
+    $sgrep -rs $pthread | grep -v $func
+    read
 done
-

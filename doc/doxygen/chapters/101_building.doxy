@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
@@ -73,20 +73,18 @@ The latest nightly snapshot can be downloaded from the StarPU gforge website (ht
 $ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
 \endverbatim
 
-And finally, current development version is also accessible via svn.
+And finally, current development version is also accessible via git.
 It should be used only if you need the very latest changes (i.e. less
-than a day!). Note that the client side of the software Subversion can
-be obtained from http://subversion.tigris.org. If you
-are running on Windows, you will probably prefer to use TortoiseSVN (http://tortoisesvn.tigris.org/).
+than a day!).
 
 \verbatim
-$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
+$ git clone https://scm.gforge.inria.fr/anonscm/git/starpu/starpu.git
 \endverbatim
 
 \subsection ConfiguringStarPU Configuring StarPU
 
 Running <c>autogen.sh</c> is not necessary when using the tarball
-releases of StarPU.  If you are using the source code from the svn
+releases of StarPU.  If you are using the source code from the git
 repository, you first need to generate the configure scripts and the
 Makefiles. This requires the availability of <c>autoconf</c> and
 <c>automake</c> >= 2.60.
