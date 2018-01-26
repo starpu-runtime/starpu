@@ -534,7 +534,7 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
 	      [enable_mpi_check=$enableval], [enable_mpi_check=$default_enable_mpi_check])
 running_mpi_check=no
-if test -d "$srcdir/.git" ; then
+if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
@@ -658,7 +658,7 @@ fi
 AC_ARG_ENABLE(mic, [AS_HELP_STRING([--enable-mic],
 	      [use MIC device(s)])], [enable_mic=$enableval], [enable_mic=no])
 AC_ARG_ENABLE(mic-rma, [AS_HELP_STRING([--disable-mic-rma],
-	      [use MIC RMA transfer])], [enable_mic_rma=$enableval], [enable_mic_rma=yes])
+	      [disable MIC RMA transfer])], [enable_mic_rma=$enableval], [enable_mic_rma=yes])
 
 if test x$enable_mic = xyes ; then
 	AC_DEFINE(STARPU_USE_MIC, [1], [MIC workers support is enabled])
@@ -2469,7 +2469,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
 
 AC_ARG_ENABLE([starpu-top],
   [AS_HELP_STRING([--disable-starpu-top],
-    [build StarPU-Top])],
+    [disable StarPU-Top])],
   [enable_starpu_top="$enableval"],
   [enable_starpu_top="maybe"])
 
@@ -3158,7 +3158,7 @@ fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
-			[disable execution of StarPU FFT examples])],
+			[enable build of StarPU FFT examples])],
 			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
 AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 

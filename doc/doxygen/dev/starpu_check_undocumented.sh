@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017                                CNRS
+# Copyright (C) 2011-2018                                CNRS
 # Copyright (C) 2011                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@ if [ "$1" == "--macro" ] || [ "$1" == "" ] ; then
 fi
 
 if [ "$1" == "--var" ] || [ "$1" == "" ] ; then
-    variables=$(grep --exclude-dir=.svn -rs -E "(getenv|get_env)" $SRC| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|tr -d '",'|sort|uniq)
+    variables=$(grep -rs -E "(getenv|get_env)" $SRC| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|tr -d '",'|sort|uniq)
     for variable in $variables ; do
 	x=$(grep "$variable" $dirname/../chapters/501_environment_variables.doxy | grep "\\anchor")
 	if test "$x" == "" ; then
