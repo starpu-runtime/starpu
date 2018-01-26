@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2014, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2010-2011,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,7 +100,7 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 
 	int rank_array[world_size];
 	MPI_Comm comm_array[world_size];
-	int mpi_tag_array[world_size];
+	starpu_mpi_tag_t mpi_tag_array[world_size];
 	starpu_data_handle_t handle_array[world_size];
 
 	int r;
@@ -192,19 +193,24 @@ static void create_task_11_recv(unsigned k)
 	starpu_tag_t tag_array[2*nblocks];
 
 #ifdef SINGLE_TMP11
-	unsigned i, j;
 	if (k > 0)
-	for (i = (k-1)+1; i < nblocks; i++)
 	{
-		if (rank == get_block_rank(i, k-1))
-			tag_array[ndeps++] = TAG21(k-1, i);
+		unsigned i;
+		for (i = (k-1)+1; i < nblocks; i++)
+		{
+			if (rank == get_block_rank(i, k-1))
+				tag_array[ndeps++] = TAG21(k-1, i);
+		}
 	}
 
 	if (k > 0)
-	for (j = (k-1)+1; j < nblocks; j++)
 	{
-		if (rank == get_block_rank(k-1, j))
-			tag_array[ndeps++] = TAG12(k-1, j);
+		unsigned j;
+		for (j = (k-1)+1; j < nblocks; j++)
+		{
+			if (rank == get_block_rank(k-1, j))
+				tag_array[ndeps++] = TAG12(k-1, j);
+		}
 	}
 #endif
 
@@ -336,8 +342,6 @@ static void create_task_11(unsigned k)
 
 static void create_task_12_recv(unsigned k, unsigned j)
 {
-	unsigned i;
-
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
 
@@ -347,20 +351,29 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 
+	unsigned start;
+	unsigned bound;
+
 #ifdef SINGLE_TMP1221
-	if (k > 0)
-	for (i = (k-1)+1; i < nblocks; i++)
+	bound = 0;
+	start = (k-1)+1;
 #else
-	if (k > 1)
-	for (i = (k-2)+1; i < nblocks; i++)
+	bound = 1;
+	start = (k-2)+1;
 #endif
+
+	if (k > bound)
 	{
-		if (rank == get_block_rank(i, j))
+		unsigned i;
+		for (i = start; i < nblocks; i++)
+		{
+			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-			tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG22(k-1, i, j);
 #else
-			tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG22(k-2, i, j);
 #endif
+		}
 	}
 
 	int source = get_block_rank(k, j);
@@ -514,8 +527,6 @@ static void create_task_12(unsigned k, unsigned j)
 
 static void create_task_21_recv(unsigned k, unsigned i)
 {
-	unsigned j;
-
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
 
@@ -525,20 +536,28 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 
+	unsigned bound;
+	unsigned start;
+
 #ifdef SINGLE_TMP1221
-	if (k > 0)
-	for (j = (k-1)+1; j < nblocks; j++)
+	bound = 0;
+	start = (k-1)+1;
 #else
-	if (k > 1)
-	for (j = (k-2)+1; j < nblocks; j++)
+	bound = 1;
+	start = (k-2)+1;
 #endif
+	if (k > bound)
 	{
-		if (rank == get_block_rank(i, j))
+		unsigned j;
+		for (j = start; j < nblocks; j++)
+		{
+			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-			tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG22(k-1, i, j);
 #else
-			tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG22(k-2, i, j);
 #endif
+		}
 	}
 
 	int source = get_block_rank(i, k);

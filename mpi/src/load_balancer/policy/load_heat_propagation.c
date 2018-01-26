@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
- * Copyright (C) 2017  CNRS
+ * Copyright (C) 2016                                     Inria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +17,7 @@
  */
 
 #include <starpu_mpi.h>
-#include <starpu_mpi_tag.h>
+#include <mpi/starpu_mpi_tag.h>
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <math.h>
@@ -24,15 +25,18 @@
 #include "load_balancer_policy.h"
 #include "data_movements_interface.h"
 #include "load_data_interface.h"
+#include <common/config.h>
+
+#if defined(STARPU_USE_MPI_MPI)
 
 static int TAG_LOAD(int n)
 {
-	return ((n+1) << 24);
+	return (n+1) << 24;
 }
 
 static int TAG_MOV(int n)
 {
-	return ((n+1) << 20);
+	return (n+1) << 20;
 }
 
 /* Hash table of local pieces of data that has been moved out of the local MPI
@@ -286,12 +290,12 @@ static void update_data_ranks()
 				//        fprintf(stderr,"Bring back data %p (tag %d) from node %d on node %d\n", handle, (data_movements_get_tags_table(data_movements_handles[i]))[j], starpu_mpi_data_get_rank(handle), my_rank);
 				//}
 
-				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%d,%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
+				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%"PRIi64"d,%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
 
 				/* Migrate the data handle */
 				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handle, dst_rank, NULL, NULL);
 
-				_STARPU_DEBUG("New rank (%d) of data %d upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
+				_STARPU_DEBUG("New rank (%d) of data %"PRIi64"d upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
 				starpu_mpi_data_set_rank_comm(handle, dst_rank, MPI_COMM_WORLD);
 			}
 		}
@@ -347,7 +351,7 @@ static void submitted_task_heat(struct starpu_task *task)
 	/* Numbering of tasks in StarPU-MPI should be given by the application with
 	 * the STARPU_TAG_ONLY insert task option for now. */
 	/* TODO: Properly implement a solution for numbering tasks in StarPU-MPI */
-	if ((task->tag_id / load_data_get_sleep_threshold(*load_data_handle)) > phase)
+	if (((int)task->tag_id / load_data_get_sleep_threshold(*load_data_handle)) > phase)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&load_data_mutex);
 		load_data_update_wakeup_cond(*load_data_handle);
@@ -636,3 +640,5 @@ struct load_balancer_policy load_heat_propagation_policy =
 	.finished_task_entry_point = finished_task_heat,
 	.policy_name = "heat"
 };
+
+#endif

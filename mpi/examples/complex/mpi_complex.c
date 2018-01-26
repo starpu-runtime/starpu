@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2013                                     Inria
+ * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,33 +22,19 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void display_foo_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	int *foo = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	FPRINTF(stderr, "foo = %d\n", *foo);
 }
-
-/* Dumb performance model for simgrid */
-static double display_cost_function(struct starpu_task *task, unsigned nimpl)
-{
-	(void) task;
-	(void) nimpl;
-	return 0.000001;
-}
-
-static struct starpu_perfmodel display_model =
-{
-	.type = STARPU_COMMON,
-	.cost_function = display_cost_function,
-	.symbol = "display"
-};
 
 struct starpu_codelet foo_display =
 {
 	.cpu_funcs = {display_foo_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &display_model
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)
@@ -122,5 +110,5 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	if (rank == 0) return !compare; else return 0;
+	return (rank == 0) ? !compare : 0;
 }

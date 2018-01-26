@@ -1,9 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2017  CNRS
-# Copyright (C) 2011, 2014  INRIA
-# Copyright (C) 2016  Inria
+# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -200,6 +199,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/perfmodel/multiple_regression.c			\
 	core/sched_policy.c					\
 	core/simgrid.c						\
+	core/simgrid_cpp.cpp					\
 	core/sched_ctx.c					\
 	core/sched_ctx_list.c					\
 	core/parallel_task.c					\

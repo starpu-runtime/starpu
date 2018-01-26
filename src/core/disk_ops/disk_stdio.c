@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016, 2017 CNRS
+ * Copyright (C) 2013,2015-2017                           CNRS
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -233,7 +235,7 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	return 0;
 }
 
-static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size)
+static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
 	struct starpu_stdio_obj *tmp = (struct starpu_stdio_obj *) obj;
 	FILE *f = tmp->file;
@@ -253,7 +255,7 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 	/* Alloc aligned buffer */
-	starpu_malloc_flags(ptr, *size, 0);
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 	if (tmp->file)
 		STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
@@ -352,13 +354,14 @@ static void starpu_stdio_unplug(void *base)
 	free(fileBase);
 }
 
-static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
+static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
 {
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	double start;
 	double end;
 	char *buf;
+	struct starpu_stdio_base * fileBase = (struct starpu_stdio_base *) base;
 
 	srand(time(NULL));
 	starpu_malloc_flags((void **) &buf, STARPU_DISK_SIZE_MIN, 0);
@@ -440,7 +443,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	starpu_free_flags(buf, sizeof(char), 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
-					       timing_latency/NITER, timing_latency/NITER, node);
+			timing_latency/NITER, timing_latency/NITER, node, fileBase->path);
 	return 1;
 }
 

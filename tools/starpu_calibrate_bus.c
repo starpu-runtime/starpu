@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2009-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
+#include <common/config.h>
 #include <starpu.h>
 #include <stdio.h>
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -28,13 +30,13 @@ static void usage(void)
 		(void) fprintf(stdout,
 "Force a bus calibration.\n\
 \n\
-Usage: " PROGNAME " [OPTION]\n\
+Usage: %s [OPTION]\n\
 \n\
 Options:\n\
 	-h, --help       display this help and exit\n\
 	-v, --version    output version information and exit\n\
 \n\
-Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+Report bugs to <%s>.\n", PROGNAME, PACKAGE_BUGREPORT);
 }
 
 static void parse_args(int argc, char **argv)

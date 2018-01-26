@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010,2013-2014,2016                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,55 +24,57 @@
  */
 
 #ifdef STARPU_USE_OPENCL
-static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+static void codelet(void *descr[], void *_args)
 {
-     FPRINTF(stderr, "codelet\n");
+	(void)descr;
+	(void)_args;
+	FPRINTF(stderr, "codelet\n");
 }
 #endif
 
 static struct starpu_codelet cl =
 {
 #ifdef STARPU_USE_OPENCL
-     .opencl_funcs = {codelet},
+	.opencl_funcs = {codelet},
 #endif
-     .nbuffers = 1,
-     .modes = {STARPU_R}
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
-     int ret;
-     int var = 42;
-     starpu_data_handle_t handle;
+	int ret;
+	int var = 42;
+	starpu_data_handle_t handle;
 
-     ret = starpu_init(NULL);
-     if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-     int copy = starpu_asynchronous_copy_disabled();
-     FPRINTF(stderr, "copy %d\n", copy);
+	int copy = starpu_asynchronous_copy_disabled();
+	FPRINTF(stderr, "copy %d\n", copy);
 
-     starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 
-     ret = starpu_task_insert(&cl,
-			      STARPU_R, handle,
-			      0);
-     if (ret == -ENODEV) goto enodev;
-     STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(&cl,
+				 STARPU_R, handle,
+				 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-     starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
-     starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 
-     starpu_shutdown();
+	starpu_shutdown();
 
-     return 0;
+	return 0;
 
 enodev:
-     starpu_data_unregister(handle);
-     starpu_shutdown();
-     /* yes, we do not perform the computation but we did detect that no one
-      * could perform the kernel, so this is not an error from StarPU */
-     fprintf(stderr, "WARNING: No one can execute this task\n");
-     return STARPU_TEST_SKIPPED;
+	starpu_data_unregister(handle);
+	starpu_shutdown();
+	/* yes, we do not perform the computation but we did detect that no one
+	 * could perform the kernel, so this is not an error from StarPU */
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	return STARPU_TEST_SKIPPED;
 }

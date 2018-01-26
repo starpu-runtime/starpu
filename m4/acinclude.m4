@@ -1,22 +1,22 @@
-dnl Copyright (C) Free Software Foundation, Inc.
-dnl
-dnl This program is free software; you can redistribute it and/or modify
-dnl it under the terms of the GNU General Public License as published by
-dnl the Free Software Foundation; either version 2 of the License, or
-dnl (at your option) any later version.
-dnl 
-dnl This program is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl GNU General Public License for more details.
-dnl 
-dnl You should have received a copy of the GNU General Public License
-dnl along with this program; if not, write to the Free Software
-dnl Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-dnl
-dnl This test is taken from libgfortran
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2012                                     Inria
+# Copyright (C) 2012,2017                                CNRS
+# Copyright (C) 2014                                     Université de Bordeaux
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 
-dnl Check whether the target supports __sync_val_compare_and_swap.
+# Check whether the target supports __sync_val_compare_and_swap.
 AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
   AC_CACHE_CHECK([whether the target supports __sync_val_compare_and_swap],
 		 ac_cv_have_sync_val_compare_and_swap, [
@@ -29,7 +29,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
 	      [Define to 1 if the target supports __sync_val_compare_and_swap])
   fi])
 
-dnl Check whether the target supports __sync_bool_compare_and_swap.
+# Check whether the target supports __sync_bool_compare_and_swap.
 AC_DEFUN([STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP], [
   AC_CACHE_CHECK([whether the target supports __sync_bool_compare_and_swap],
 		 ac_cv_have_sync_bool_compare_and_swap, [
@@ -42,7 +42,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP], [
 	      [Define to 1 if the target supports __sync_bool_compare_and_swap])
   fi])
 
-dnl Check whether the target supports __sync_val_compare_and_swap.
+# Check whether the target supports __sync_val_compare_and_swap.
 AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
   AC_CACHE_CHECK([whether the target supports __sync_val_compare_and_swap],
 		 ac_cv_have_sync_val_compare_and_swap, [
@@ -55,7 +55,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
 	      [Define to 1 if the target supports __sync_val_compare_and_swap])
   fi])
 
-dnl Check whether the target supports __sync_fetch_and_add.
+# Check whether the target supports __sync_fetch_and_add.
 AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_ADD], [
   AC_CACHE_CHECK([whether the target supports __sync_fetch_and_add],
 		 ac_cv_have_sync_fetch_and_add, [
@@ -68,7 +68,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_ADD], [
 	      [Define to 1 if the target supports __sync_fetch_and_add])
   fi])
 
-dnl Check whether the target supports __sync_fetch_and_or.
+# Check whether the target supports __sync_fetch_and_or.
 AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_OR], [
   AC_CACHE_CHECK([whether the target supports __sync_fetch_and_or],
 		 ac_cv_have_sync_fetch_and_or, [
@@ -81,7 +81,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_OR], [
 	      [Define to 1 if the target supports __sync_fetch_and_or])
   fi])
 
-dnl Check whether the target supports __sync_lock_test_and_set.
+# Check whether the target supports __sync_lock_test_and_set.
 AC_DEFUN([STARPU_CHECK_SYNC_LOCK_TEST_AND_SET], [
   AC_CACHE_CHECK([whether the target supports __sync_lock_test_and_set],
 		 ac_cv_have_sync_lock_test_and_set, [
@@ -94,7 +94,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_LOCK_TEST_AND_SET], [
 	      [Define to 1 if the target supports __sync_lock_test_and_set])
   fi])
 
-dnl Check whether the target supports __sync_synchronize.
+# Check whether the target supports __sync_synchronize.
 AC_DEFUN([STARPU_CHECK_SYNC_SYNCHRONIZE], [
   AC_CACHE_CHECK([whether the target supports __sync_synchronize],
 		 ac_cv_have_sync_synchronize, [

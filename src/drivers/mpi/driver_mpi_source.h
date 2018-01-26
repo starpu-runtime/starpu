@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Mathieu Lirzin <mthl@openmailbox.org>
- * Copyright (C) 2016, 2017  Inria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2016-2017                                Inria
+ * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2015                                     Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +27,7 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-extern struct _starpu_mp_node *mpi_ms_nodes[STARPU_MAXMPIDEVS];
+extern struct _starpu_mp_node *_starpu_mpi_ms_nodes[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node();
 

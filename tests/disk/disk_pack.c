@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016, 2017 CNRS
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,12 +26,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
-#include <common/config.h>
 #include "../helper.h"
 
 #if !defined(STARPU_HAVE_UNSETENV)
 #warning unsetenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -236,7 +237,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 		FPRINTF(stderr, "TEST SUCCESS\n");
 	else
 		FPRINTF(stderr, "TEST FAIL\n");
-	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
+	return try ? EXIT_SUCCESS : EXIT_FAILURE;
 
 enodev:
 	return STARPU_TEST_SKIPPED;

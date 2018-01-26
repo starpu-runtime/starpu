@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2016, 2017  Inria
+ * Copyright (C) 2011-2013,2016-2017                      Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,9 @@
 #include <core/topology.h>
 #include <starpu.h>
 #include <common/uthash.h>
+
+/* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
+const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 /* Minimum percentage of available memory in each node */
 static unsigned minimum_p;
@@ -114,9 +117,6 @@ int _starpu_is_reclaiming(unsigned node)
 {
 	return tidying[node] || reclaiming[node];
 }
-
-/* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
-const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
@@ -374,7 +374,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			STARPU_ASSERT(!replicate->mapped);
 		}
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
@@ -535,10 +535,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else if (!(replicate && handle->per_node[node].state == STARPU_OWNER) &&
+	else if (lock_all_subtree(handle))
 	/* try to lock all the subtree */
-	         lock_all_subtree(handle))
 	{
+	    if (!(replicate && handle->per_node[node].state == STARPU_OWNER))
+	    {
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
@@ -627,8 +628,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 			}
 		}
 
-		/* unlock the tree */
-		unlock_all_subtree(handle);
+	    }
+	    /* unlock the tree */
+	    unlock_all_subtree(handle);
 	}
 	return freed;
 }
@@ -1361,7 +1363,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	{
 		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 		{
 			/* To facilitate the design of interface, we set the
@@ -1377,10 +1379,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 		if (allocated_memory == -ENOMEM)
 		{
-			size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(dst_node);
 			size_t handle_size = handle->ops->get_size(handle);
-			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
-				reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
+			size_t reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
 			/* First try to flush data explicitly marked for freeing */
 			size_t freed = flush_memchunk_cache(dst_node, reclaim);

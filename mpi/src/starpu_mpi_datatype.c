@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2011-2012,2015                           Inria
+ * Copyright (C) 2009-2011,2014-2015                      Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -128,9 +129,10 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
  * 	Void
  */
 
-static void handle_to_datatype_void(starpu_data_handle_t data_handle STARPU_ATTRIBUTE_UNUSED, MPI_Datatype *datatype)
+static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
+	(void)data_handle;
 
 	ret = MPI_Type_contiguous(0, MPI_BYTE, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");

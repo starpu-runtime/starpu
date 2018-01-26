@@ -1,9 +1,19 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012, 2017  INRIA
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011-2013,2017                           Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \defgroup API_Workers_Properties Workers’ Properties
@@ -16,6 +26,11 @@ Define the maximum number of workers managed by StarPU.
 \ingroup API_Workers_Properties
 Define the maximum number of CPU workers managed by StarPU. The default value can be modified at
 configure by using the option \ref enable-maxcpus "--enable-maxcpus".
+
+\def STARPU_MAXNUMANODES
+\ingroup API_Workers_Properties
+Define the maximum number of NUMA nodes managed by StarPU. The default value can be modified at
+configure by using the option \ref enable-maxnumanodes "--enable-maxnumanodes".
 
 \def STARPU_MAXNODES
 \ingroup API_Workers_Properties
@@ -336,5 +351,17 @@ If StarPU was compiled with hwloc support, returns a duplicate of the
 hwloc cpuset associated with the worker \p workerid. The returned cpuset is obtained
 from a \c hwloc_bitmap_dup() function call. It must be freed by the caller
 using \c hwloc_bitmap_free().
+
+\fn void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid))
+\ingroup API_Workers_Properties
+If StarPU was compiled with blocking drivers support and worker callbacks support
+enabled, allow to specify an external resource manager callback to be notified
+about workers going to sleep.
+
+\fn void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
+\ingroup API_Workers_Properties
+If StarPU was compiled with blocking drivers support and worker callbacks support
+enabled, allow to specify an external resource manager callback to be notified
+about workers waking-up.
 
 */

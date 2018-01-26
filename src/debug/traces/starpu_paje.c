@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
+ * Copyright (C) 2011-2014,2016-2017                      Inria
+ * Copyright (C) 2012,2014,2017                           CNRS
+ * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2010-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -245,7 +248,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("U", "S", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "S", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "S", "Building task", ".5 .18 .0");
-	poti_DefineEntityValue("Su", "S", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Su", "S", "Submitting task", ".3 .09 .0");
 	poti_DefineEntityValue("Th", "S", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "S", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "S", "Preparing task for MPI", ".4 .14 .2");
@@ -265,7 +268,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("U", "WS", "Unpartitioning", ".0 .0 1.0");
 	poti_DefineEntityValue("H", "WS", "Hypervisor", ".5 .18 .0");
 	poti_DefineEntityValue("Bu", "WS", "Building task", ".5 .18 .0");
-	poti_DefineEntityValue("Su", "WS", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Su", "WS", "Submitting task", ".3 .09 .0");
 	poti_DefineEntityValue("Th", "WS", "Throttling task submission", ".8 .6 .6");
 
 	/* Types for the MPI Communication Thread of the Memory Node */
@@ -284,7 +287,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEntityValue("TD", "CtS", "Testing Detached", ".0 .0 .6");
 	poti_DefineEntityValue("MT", "CtS", "MPI Test", ".0 .0 .8");
 	poti_DefineEntityValue("Bu", "CtS", "Building task", ".5 .18 .0");
-	poti_DefineEntityValue("Su", "CtS", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Su", "CtS", "Submitting task", ".3 .09 .0");
 	poti_DefineEntityValue("Th", "CtS", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("C", "CtS", "Callback", ".0 .3 .8");
 
@@ -293,7 +296,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEventType("user_thread_event", "UT", "thread event type");
 	poti_DefineStateType("US", "UT", "User Thread State");
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
-	poti_DefineEntityValue("Su", "US", "Submiting task", ".3 .09 .0");
+	poti_DefineEntityValue("Su", "US", "Submitting task", ".3 .09 .0");
 	poti_DefineEntityValue("C", "US", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("Th", "US", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "US", "Decoding task for MPI", ".5 .18 .2");

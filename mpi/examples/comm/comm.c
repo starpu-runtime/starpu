@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +23,10 @@
 #include <starpu_mpi.h>
 #include "../helper.h"
 
-void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+#define DATA0_TAG 12
+#define DATA1_TAG 22
+
+void func_cpu(void *descr[], void *_args)
 {
 	int *value = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int rank;
@@ -36,7 +40,8 @@ struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
-	.modes = {STARPU_RW}
+	.modes = {STARPU_RW},
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)
@@ -94,17 +99,17 @@ int main(int argc, char **argv)
 	{
 		starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
 		starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
-		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
+		starpu_mpi_data_register_comm(data[1], DATA1_TAG, 0, newcomm);
 	}
 	else
 		starpu_variable_data_register(&data[0], -1, (uintptr_t)NULL, sizeof(int));
-	starpu_mpi_data_register_comm(data[0], 12, 0, newcomm);
+	starpu_mpi_data_register_comm(data[0], DATA0_TAG, 0, newcomm);
 
 	if (newrank == 0)
 	{
 		starpu_mpi_req req[2];
-		starpu_mpi_issend(data[1], &req[0], 1, 22, newcomm);
-		starpu_mpi_isend(data[0], &req[1], 1, 12, newcomm);
+		starpu_mpi_issend(data[1], &req[0], 1, DATA1_TAG, newcomm);
+		starpu_mpi_isend(data[0], &req[1], 1, DATA0_TAG, newcomm);
 		starpu_mpi_wait(&req[0], MPI_STATUS_IGNORE);
 		starpu_mpi_wait(&req[1], MPI_STATUS_IGNORE);
 	}
@@ -112,7 +117,7 @@ int main(int argc, char **argv)
 	{
 		int *xx;
 
-		starpu_mpi_recv(data[0], 0, 12, newcomm, MPI_STATUS_IGNORE);
+		starpu_mpi_recv(data[0], 0, DATA0_TAG, newcomm, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		starpu_data_release(data[0]);
@@ -120,8 +125,8 @@ int main(int argc, char **argv)
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
-		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
-		starpu_mpi_recv(data[0], 0, 22, newcomm, MPI_STATUS_IGNORE);
+		starpu_mpi_data_register_comm(data[1], DATA1_TAG, 0, newcomm);
+		starpu_mpi_recv(data[0], 0, DATA1_TAG, newcomm, MPI_STATUS_IGNORE);
 		starpu_data_acquire(data[0], STARPU_RW);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		starpu_data_release(data[0]);

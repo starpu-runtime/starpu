@@ -1,11 +1,11 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016  Uppsala University
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2011-2012,2014,2016-2017                 Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -233,11 +233,11 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 #else
 	cudaError_t cures;
 	struct starpu_conf *conf = &_starpu_get_machine_config()->conf;
-#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 	unsigned i;
 #endif
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	if (conf->n_cuda_opengl_interoperability)
 	{
 		_STARPU_MSG("OpenGL interoperability was requested, but StarPU was built with multithread GPU control support, please reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
@@ -262,7 +262,7 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 
 	cures = cudaSetDevice(devid);
 
-#if !defined(HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 done:
 #endif
 	if (STARPU_UNLIKELY(cures
@@ -306,7 +306,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
 #ifndef STARPU_SIMGRID
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		int nworkers = starpu_worker_get_count();
@@ -348,7 +348,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	cures = cudaGetDeviceProperties(&props[devid], devid);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	if (props[devid].computeMode == cudaComputeModeExclusive)
 	{
 		_STARPU_MSG("CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
@@ -494,7 +494,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 	}
 
-#if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
 	starpu_cuda_set_device(worker->devid);
 #endif
@@ -597,7 +597,9 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		{
 #ifndef STARPU_SIMGRID
 			/* Record event to synchronize with task termination later */
-			cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
+			cudaError_t cures = cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 #ifdef STARPU_USE_FXT
 			int k;
@@ -1072,7 +1074,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			    size_t ssize, cudaStream_t stream,
 			    enum cudaMemcpyKind kind)
 {
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
 #endif
@@ -1080,7 +1082,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	if (kind == cudaMemcpyDeviceToDevice && src_node != dst_node)
 	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		peer_copy = 1;
 		src_dev = _starpu_memory_node_get_devid(src_node);
 		dst_dev = _starpu_memory_node_get_devid(dst_node);
@@ -1092,7 +1094,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 	if (stream)
 	{
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		if (peer_copy)
 		{
 			cures = cudaMemcpyPeerAsync((char *) dst_ptr, dst_dev,
@@ -1111,7 +1113,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 	if (stream == NULL || cures)
 	{
 		/* do it in a synchronous fashion */
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		if (peer_copy)
 		{
 			cures = cudaMemcpyPeer((char *) dst_ptr, dst_dev,

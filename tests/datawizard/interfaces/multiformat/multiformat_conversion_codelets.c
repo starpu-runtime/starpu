@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2012-2013,2015,2017                      CNRS
+ * Copyright (C) 2013-2014,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +15,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#include <config.h>
+
 #include <starpu.h>
 #include "multiformat_types.h"
 #include "../../../helper.h"
@@ -21,6 +23,8 @@
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __starpu_func__);
@@ -52,6 +56,8 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
@@ -81,6 +87,8 @@ struct starpu_codelet opencl_to_cpu_cl =
 #ifdef STARPU_USE_MIC
 void mic_to_cpu(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __func__);
@@ -95,8 +103,10 @@ void mic_to_cpu(void *buffers[], void *arg)
 	}
 }
 
-void cpu_to_mic(void *buffers[], void *args)
+void cpu_to_mic(void *buffers[], void *arg)
 {
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	FPRINTF(stderr, "Entering %s\n", __func__);

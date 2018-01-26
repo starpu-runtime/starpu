@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2014, 2016  CNRS
+ * Copyright (C) 2014-2015                                Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,8 +49,9 @@ int parallel_code(int sched_ctx)
 	return t;
 }
 
-static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void sched_ctx_func(void *descr[], void *arg)
 {
+	(void)descr;
 	unsigned sched_ctx = (uintptr_t)arg;
 	tasks_executed[sched_ctx-1] += parallel_code(sched_ctx);
 }
@@ -64,7 +66,7 @@ static struct starpu_codelet sched_ctx_codelet =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	tasks_executed[0] = 0;
 	tasks_executed[1] = 0;

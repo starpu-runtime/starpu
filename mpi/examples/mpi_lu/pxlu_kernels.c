@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux
- * Copyright (C) 2010, 2012, 2017  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2015                                Université de Bordeaux
+ * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +26,7 @@
  * U22
  */
 
-static inline void STARPU_PLU(common_u22)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_PLU(common_u22)(void *descr[], int s, void *_args)
 {
 	TYPE *right 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *left 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -46,6 +46,8 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u\n", rank, info->k, info->i, info->j);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -126,8 +128,7 @@ struct starpu_codelet STARPU_PLU(cl22) =
  * U12
  */
 
-static inline void STARPU_PLU(common_u12)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_PLU(common_u12)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub12;
@@ -156,6 +157,8 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	//fprintf(stderr, "INPUT 12 U12\n");
 	fprintf(stderr, "INPUT 21 U21\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -237,8 +240,7 @@ struct starpu_codelet STARPU_PLU(cl12) =
  * U21
  */
 
-static inline void STARPU_PLU(common_u21)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_PLU(common_u21)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub21;
@@ -267,6 +269,8 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	//fprintf(stderr, "INPUT 21 U21\n");
 	fprintf(stderr, "INPUT 12 U12\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
+#else
+	(void)_args;
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -349,8 +353,7 @@ struct starpu_codelet STARPU_PLU(cl21) =
  *	U11
  */
 
-static inline void STARPU_PLU(common_u11)(void *descr[],
-				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void STARPU_PLU(common_u11)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 
@@ -367,6 +370,8 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "KERNEL 11 %d - k = %u\n", rank, info->k);
+#else
+	(void)_args;
 #endif
 
 	switch (s)

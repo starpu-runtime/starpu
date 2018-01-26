@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2017  Université de Bordeaux
- * Copyright (C) 2016  INRIA
+ * Copyright (C) 2013,2017                                CNRS
+ * Copyright (C) 2016-2017                                Inria
+ * Copyright (C) 2012-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +19,10 @@
 #ifndef __SIMGRID_H__
 #define __SIMGRID_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
@@ -38,9 +43,12 @@ struct _starpu_pthread_args
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
+void _starpu_start_simgrid(int *argc, char **argv);
+
 void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_deinit(void);
+void _starpu_simgrid_deinit_late(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 struct _starpu_job;
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished);
@@ -98,6 +106,26 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 #else // !STARPU_SIMGRID
 #define _SIMGRID_TIMER_BEGIN(cond) {
 #define _SIMGRID_TIMER_END }
+#endif
+
+/* Experimental functions for OOC stochastic analysis */
+/* disk <-> MAIN_RAM only */
+#if defined(STARPU_SIMGRID) && 0
+void _starpu_simgrid_data_new(size_t size);
+void _starpu_simgrid_data_increase(size_t size);
+void _starpu_simgrid_data_alloc(size_t size);
+void _starpu_simgrid_data_free(size_t size);
+void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_node);
+#else
+#define _starpu_simgrid_data_new(size) (void)0
+#define _starpu_simgrid_data_increase(size) (void)0
+#define _starpu_simgrid_data_alloc(size) (void)0
+#define _starpu_simgrid_data_free(size) (void)0
+#define _starpu_simgrid_data_transfer(size, src_node, dst_node) (void)0
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // __SIMGRID_H__

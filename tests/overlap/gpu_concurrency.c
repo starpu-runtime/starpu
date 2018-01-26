@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2016  Université de Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2014                                     Inria
+ * Copyright (C) 2014-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -38,13 +39,17 @@
 #ifdef STARPU_USE_CUDA
 extern void long_kernel_cuda(unsigned long niters);
 
-void codelet_long_kernel_async(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_long_kernel_async(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	long_kernel_cuda(NITERS);
 }
 
-void codelet_long_kernel_sync(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_long_kernel_sync(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	long_kernel_cuda(NITERS);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

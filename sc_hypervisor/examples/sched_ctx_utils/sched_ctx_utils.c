@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  INRIA
+ * Copyright (C) 2011-2013,2016                           Inria
+ * Copyright (C) 2012-2013,2017                           CNRS
+ * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -238,7 +240,7 @@ void start_2ndbench(void (*bench)(float*, unsigned, unsigned))
 	printf("%2.2f %2.2f\n", rv[1].avg_timing, timing);
 }
 
-void construct_contexts(void (*bench)(float*, unsigned, unsigned))
+void construct_contexts()
 {
 	struct sc_hypervisor_policy policy;
 	policy.custom = 0;

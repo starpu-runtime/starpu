@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2016  Université de Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2013-2014,2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
@@ -24,8 +24,10 @@
  * Check that pheft works with only GPUs
  */
 
-void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_null(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 struct starpu_perfmodel model =
@@ -56,8 +58,7 @@ static struct starpu_codelet cl2 =
 	.modes = {STARPU_W}
 };
 
-
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	starpu_data_handle_t handle;

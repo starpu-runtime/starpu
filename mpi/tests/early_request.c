@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016, 2017  CNRS
- * Copyright (C) 2015  INRIA
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2015                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,6 +53,7 @@ struct element
 /* functions/codelet to fill the bufferss*/
 void fill_tmp_buffer(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
 	int i;
@@ -60,19 +62,6 @@ void fill_tmp_buffer(void *buffers[], void *cl_arg)
 		tmp[i]=nx+i;
 }
 
-#ifdef STARPU_SIMGRID
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-#endif
-
 static struct starpu_codelet fill_tmp_buffer_cl =
 {
 	.where = STARPU_CPU,
@@ -80,13 +69,14 @@ static struct starpu_codelet fill_tmp_buffer_cl =
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "fill_tmp_buffer"
 };
 
 void read_ghost(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int nx=STARPU_VECTOR_GET_NX(buffers[0]);
 	int i;
@@ -103,7 +93,7 @@ static struct starpu_codelet read_ghost_value_cl =
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "read_ghost_value"
 };
@@ -111,10 +101,14 @@ static struct starpu_codelet read_ghost_value_cl =
 /*codelet to ensure submitted order for a given element*/
 void noop(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 void submitted_order_fun(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 static struct starpu_codelet submitted_order =
@@ -124,7 +118,7 @@ static struct starpu_codelet submitted_order =
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 	.name = "submitted_order_enforcer"
 };
@@ -197,7 +191,7 @@ int main(int argc, char * argv[])
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &mpi_rank);

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2016  Université de Bordeaux
- * Copyright (C) 2015  INRIA
- * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017                                Inria
+ * Copyright (C) 2015-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -521,9 +521,10 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 			     struct starpu_cluster_machine *machine)
 {
 	struct _starpu_cluster_group *g;
-	int ret = 0;
+	int ret;
 
-	if ((ret = _starpu_cluster_topology(cluster_level, machine)))
+	ret = _starpu_cluster_topology(cluster_level, machine);
+	if (ret)
 		return ret;
 
 	for (g = _starpu_cluster_group_list_begin(machine->groups) ;

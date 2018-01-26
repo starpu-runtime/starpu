@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2013,2015-2017                           Inria
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010,2012-2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -405,6 +406,7 @@ int starpu_pthread_queue_register(starpu_pthread_wait_t *w, starpu_pthread_queue
 int starpu_pthread_queue_unregister(starpu_pthread_wait_t *w, starpu_pthread_queue_t *q);
 int starpu_pthread_wait_reset(starpu_pthread_wait_t *w);
 int starpu_pthread_wait_wait(starpu_pthread_wait_t *w);
+int starpu_pthread_wait_timedwait(starpu_pthread_wait_t *w, const struct timespec *abstime);
 int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
 #endif
 

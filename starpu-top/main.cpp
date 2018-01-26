@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <QApplication>
 #include "mainwindow.h"
 #include <string.h>
-#include <config.h>
+#include <../src/common/config.h>
 
 #define PROGNAME "starpu_top"
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
 	// Application description
-	QCoreApplication::setOrganizationName("INRIA Bordeaux Sud-Ouest");
+	QCoreApplication::setOrganizationName("Inria Bordeaux Sud-Ouest");
 	QCoreApplication::setOrganizationDomain("runtime.bordeaux.inria.fr");
 	QCoreApplication::setApplicationName("StarPU-Top");
 	QCoreApplication::setApplicationVersion("0.1");

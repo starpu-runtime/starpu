@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2017  Université de Bordeaux
- * Copyright (C) 2017  Erwan Leria
+ * Copyright (C) 2017                                     Erwan Leria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2016-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -145,7 +146,7 @@ uint32_t get_footprint(struct starpu_task * task)
 	return ((struct task_arg*) (task->cl_arg))->footprint;
 }
 
-double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(device != -1);
@@ -166,10 +167,10 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 void dumb_kernel(void) {}
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
-static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
-	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[(starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices))];
+	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];
 	if (!(expected_time == 0 || isnan(expected_time)))
 	{
 		return 1;
@@ -205,7 +206,7 @@ static struct starpu_codelet cl =
 /* The following function checks if the program has to use static or dynamic arrays*/
 static int set_alloc_mode(int total_parameters)
 {
-	return (total_parameters <= STARPU_NMAXBUFS);
+	return total_parameters <= STARPU_NMAXBUFS;
 }
 
 /* According to the allocation mode, modify handles_ptr and modes_ptr in static or dynamic */
@@ -241,9 +242,9 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 			STARPU_ASSERT(handles_cell != NULL);
 
 			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
-			
+
 			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
-			
+
 			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
 
 			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
@@ -304,9 +305,12 @@ void reset(void)
 
 void fix_wontuse_handle(struct task * wontuseTask)
 {
-	struct handle * handle_tmp;
-	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	struct handle *handle_tmp;
 	STARPU_ASSERT(wontuseTask);
+
+	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
+	STARPU_ASSERT(handle_tmp);
+
 	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
 }
 
@@ -314,7 +318,7 @@ void fix_wontuse_handle(struct task * wontuseTask)
 int submit_tasks(void)
 {
 	/* Add dependencies */
-	
+
 	const struct starpu_rbtree * tmptree = &tree;
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
 	unsigned long last_submitorder = 0;
@@ -793,7 +797,7 @@ eof:
 		HASH_DEL(handles_hash, handle);
 		free(handle);
         }
-	
+
 	struct perfmodel * model_s, * modeltmp;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{

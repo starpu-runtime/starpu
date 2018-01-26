@@ -1,18 +1,20 @@
-dnl -*- Autoconf -*-
-dnl
-dnl Copyright (C) 2011, 2012, 2013 INRIA
-dnl
-dnl StarPU is free software; you can redistribute it and/or modify
-dnl it under the terms of the GNU Lesser General Public License as published by
-dnl the Free Software Foundation; either version 2.1 of the License, or (at
-dnl your option) any later version.
-dnl
-dnl StarPU is distributed in the hope that it will be useful, but
-dnl WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-dnl
-dnl See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2011-2012                                Inria
+# Copyright (C) 2012-2013,2015,2017                      CNRS
+# Copyright (C) 2013                                     Université de Bordeaux
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 dnl Run its argument with CPPFLAGS pointing to GCC's plug-in API.
 AC_DEFUN([_STARPU_WITH_GCC_PLUGIN_API], [
   GCC_PLUGIN_INCLUDE_DIR="`"$CC" -print-file-name=plugin`/include"

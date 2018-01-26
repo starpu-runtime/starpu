@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010-2013, 2016, 2017  CNRS
- * Copyright (C) 2011, 2017  INRIA
+ * Copyright (C) 2010-2013,2016-2017                      CNRS
+ * Copyright (C) 2011,2017                                Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -223,7 +223,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Wake each worker */
 		unsigned worker = workers->get_next(workers, &it);
-		_starpu_wake_worker_relax(worker);
+		_starpu_wake_worker_relax_light(worker);
 	}
 #endif
 }
@@ -303,7 +303,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 		{
-			if (_starpu_wake_worker_relax(worker))
+			if (_starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 		}
 	}

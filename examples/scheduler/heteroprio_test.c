@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  INRIA
- * Copyright (C) 2016, 2017  CNRS
+ * Copyright (C) 2015-2016                                Inria
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,18 +64,24 @@ void initSchedulerCallback(unsigned sched_ctx)
 
 void callback_a_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_cpu(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
@@ -82,24 +89,30 @@ void callback_c_cpu(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_OPENCL
 void callback_a_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_b_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
 void callback_c_opencl(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 	usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 #endif
 
-int main(int argc, char** argv)
+int main(void)
 {
 	int ret;
 	struct starpu_conf conf;

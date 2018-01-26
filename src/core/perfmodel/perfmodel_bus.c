@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2017  Inria
- * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2011-2014,2016-2017                      Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,16 @@
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
 #endif
 
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
@@ -97,7 +107,7 @@ static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
@@ -184,8 +194,12 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
-		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 	}
 	else
 #endif
@@ -280,7 +294,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	cudaThreadExit();
 }
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 {
 	size_t size = SIZE;
@@ -445,8 +459,12 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
-		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa);
+		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, size, obj->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 	}
 	else
 #endif
@@ -564,28 +582,6 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 }
 
 #ifdef STARPU_HAVE_HWLOC
-#if 0
-static int find_numa_node(hwloc_obj_t obj)
-{
-	STARPU_ASSERT(obj);
-	hwloc_obj_t current = obj;
-
-	while (current->depth != HWLOC_OBJ_NODE)
-	{
-		current = current->parent;
-
-		/* If we don't find a "node" obj before the root, this means
-		 * hwloc does not know whether there are numa nodes or not, so
-		 * we should not use a per-node sampling in that case. */
-		STARPU_ASSERT(current);
-	}
-
-	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
-
-	return current->logical_index;
-}
-#endif
-
 static int find_cpu_from_numa_node(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
@@ -624,9 +620,20 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		/* Chose one CPU connected to this NUMA node */
 		unsigned cpu_id = 0;
 #ifdef STARPU_HAVE_HWLOC
-		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_id);
+		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_id);
 
-		cpu_id = find_cpu_from_numa_node(obj);
+		if (obj)
+		{
+#if HWLOC_API_VERSION >= 0x00020000
+			/* From hwloc 2.0, NUMAnode objects do not contain CPUs, they are contained in a group which contain the CPUs. */
+			obj = obj->parent;
+#endif
+			cpu_id = find_cpu_from_numa_node(obj);
+		}
+		else
+                        /* No such NUMA node, probably hwloc 1.x with no NUMA
+                         * node, just take one CPU from the whole system */
+			cpu_id = find_cpu_from_numa_node(hwloc_get_root_obj(hwtopology));
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -672,12 +679,20 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		unsigned iter;
 
 		unsigned char *h_buffer;
-		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_src);
+		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_src);
+#if HWLOC_API_VERSION >= 0x00020000
+		h_buffer = hwloc_alloc_membind(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		h_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_src->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 
 		unsigned char *d_buffer;
-		hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, numa_dst);
+		hwloc_obj_t obj_dst = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_dst);
+#if HWLOC_API_VERSION >= 0x00020000
+		d_buffer = hwloc_alloc_membind(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+#else
 		d_buffer = hwloc_alloc_membind_nodeset(hwtopology, SIZE, obj_dst->nodeset, HWLOC_MEMBIND_BIND, 0);
+#endif
 
 		memset(h_buffer, 0, SIZE);
 
@@ -765,7 +780,7 @@ static void benchmark_all_gpu_devices(void)
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_per_numa, "CUDA");
 	}
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
 	{
 		for (j = 0; j < ncuda; j++)
@@ -1357,7 +1372,7 @@ static void write_bus_latency_file_content(void)
 				/* ---- End NUMA ---- */
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
 					latency += cudadev_latency_dtod[src-b_low][dst-b_low];
 				else
@@ -1688,7 +1703,7 @@ static void write_bus_bandwidth_file_content(void)
 				/* End NUMA */
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
 					/* Direct GPU-GPU transfert */
 					slowness += cudadev_timing_dtod[src-b_low][dst-b_low];
@@ -2159,7 +2174,7 @@ void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen)
  * - then through all CUDA-CUDA possible transfers again to emit routes.
  */
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 
 /* Records, for each PCI link and hub, the maximum bandwidth seen through it */
 struct pci_userdata
@@ -2631,7 +2646,7 @@ static void write_bus_platform_file_content(int version)
 	{
 		fprintf(f, "   <host id=\"CUDA%u\" %s=\"2000000000%s\">\n", i, speed, flops);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
 #endif
 		/* TODO: record cudadev_direct instead of assuming it's NUMA nodes */
@@ -2726,7 +2741,7 @@ static void write_bus_platform_file_content(int version)
 				search_bus_best_latency(i, "CUDA", 0)/1000000., s);
 	}
 	fprintf(f, "\n");
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	/* Write CUDA/CUDA bandwidths and latencies */
 	for (i = 0; i < ncuda; i++)
 	{
@@ -2747,7 +2762,7 @@ static void write_bus_platform_file_content(int version)
 	}
 #endif
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
 	{
@@ -2819,7 +2834,7 @@ flat_cuda:
 			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 		}
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		for (i = 0; i < ncuda; i++)
 		{
                         unsigned j;
@@ -2835,7 +2850,7 @@ flat_cuda:
 			}
 		}
 #endif
-	} /* defined(STARPU_HAVE_HWLOC) && defined(HAVE_CUDA_MEMCPY_PEER) */
+	} /* defined(STARPU_HAVE_HWLOC) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) */
 	fprintf(f, "\n");
 #endif /* STARPU_USE_CUDA */
 
@@ -2998,7 +3013,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 
 /* calculate save bandwidth and latency */
 /* bandwidth in MB/s - latency in µs */
-void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node)
+void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name)
 {
 	unsigned int i, j;
 	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
@@ -3007,7 +3022,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 	if (print_stats)
 	{
 		fprintf(stderr, "\n#---------------------\n");
-		fprintf(stderr, "Data transfer speed for %u:\n", node);
+		fprintf(stderr, "Data transfer speed for %s (node %u):\n", name, node);
 	}
 
 	/* save bandwith */

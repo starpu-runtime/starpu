@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017  Université de Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -22,6 +23,14 @@
  * This is a dumb test for variable size
  * We defined a dumb interface for data whose size increase over kernel execution
  */
+
+#ifdef STARPU_HAVE_MEMCHECK_H
+#include <valgrind/memcheck.h>
+#else
+#define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
+#endif
+
+#include <core/simgrid.h>
 
 #define FULLSIZE (5*1024*1024ULL)
 #define INCREASE 0.80
@@ -93,10 +102,12 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	/* Round to page size */
 	interface.size -= interface.size & (65536-1);
 
+	_starpu_simgrid_data_new(interface.size);
+
 	starpu_data_register(handleptr, -1, &interface, &starpu_interface_variable_size_ops);
 }
 
-static size_t variable_size_get_size(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
+static size_t variable_size_get_size(starpu_data_handle_t handle)
 {
 	struct variable_size_interface *interface =
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -114,7 +125,7 @@ static int variable_size_compare(void *data_interface_a, void *data_interface_b)
 	struct variable_size_interface *variable_b = data_interface_b;
 
 	/* Two variables are considered compatible if they have the same size */
-	return (variable_a->size == variable_b->size);
+	return variable_a->size == variable_b->size;
 }
 
 static void display_variable_size(starpu_data_handle_t handle, FILE *f)
@@ -137,6 +148,8 @@ static starpu_ssize_t allocate_variable_size_on_node(void *data_interface,
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+	if (dst_node == STARPU_MAIN_RAM)
+		_starpu_simgrid_data_alloc(variable_interface->size);
 	STARPU_ASSERT(variable_interface->ptr);
 	return 0;
 }
@@ -146,6 +159,8 @@ static void free_variable_size_on_node(void *data_interface,
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	starpu_free_on_node(node, variable_interface->ptr, variable_interface->size);
+	if (node == STARPU_MAIN_RAM)
+		_starpu_simgrid_data_free(variable_interface->size);
 }
 
 static int variable_size_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
@@ -186,6 +201,9 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	.pack_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_variable_size,
+
+	/* We want to observe actual allocations/deallocations */
+	.dontcache = 1,
 };
 
 
@@ -197,20 +215,26 @@ static void kernel(void *descr[], void *cl_arg)
 	uintptr_t old = variable_interface->ptr;
 	unsigned dst_node = starpu_worker_get_memory_node(workerid);
 
+	(void) cl_arg;
+
 	/* Simulate that tiles close to the diagonal fill up faster */
 	size_t increase = (FULLSIZE - variable_interface->size) * (starpu_lrand48() % 1024 + 1024) / 2048. * INCREASE;
 	/* Round to page size */
 	increase -= increase & (65536-1);
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size + increase);
 	STARPU_ASSERT(variable_interface->ptr);
 	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */
 	starpu_free_on_node_flags(dst_node, old, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	variable_interface->size += increase;
+	if (increase)
+		_starpu_simgrid_data_increase(increase);
 	starpu_sleep(0.010);
 }
 
 static double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
+	(void)t; (void)a; (void)i;
 	return 10000;
 }
 
@@ -232,33 +256,25 @@ static struct starpu_codelet cl =
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
-static void nop(void *descr[], void *cl_arg)
+static void init(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
+	struct variable_size_interface *variable_interface = descr[0];
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size);
 }
-
-static double nop_cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
-{
-	return 0.001;
-}
-
-static struct starpu_perfmodel nop_perf_model =
-{
-	.type = STARPU_PER_ARCH,
-	.arch_cost_function = nop_cost_function,
-};
 
 static struct starpu_codelet cl_init =
 {
-	.cpu_funcs = {nop},
+	.cpu_funcs = {init},
 
 	/* dynamic size doesn't work on MIC */
 	/*.cpu_funcs_name = {"kernel"},*/
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &nop_perf_model,
+	.model = &starpu_perfmodel_nop,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int i;
@@ -297,7 +313,7 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	/* Cholesky-like accesses */
-	for (i = 0; i < 100; i++)
+	for (i = 0; i < N; i++)
 		for (x = i; x < N; x++)
 			for (y = x; y < N; y++)
 				starpu_task_insert(&cl, STARPU_RW, handles[x][y], STARPU_PRIORITY, (2*N-x-y), 0);

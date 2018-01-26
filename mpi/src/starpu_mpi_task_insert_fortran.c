@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016, 2017  CNRS
- * Copyright (C) 2016 Inria
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,6 +177,20 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* size_t */
 		}
+		else if (arg_type==STARPU_CL_ARGS_NFREE)
+		{
+			arg_i++;
+			/* void* */
+			arg_i++;
+			/* size_t */
+		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			arg_i++;
+			/* unsigned */
+			arg_i++;
+			/* struct starpu_task ** */
+		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			arg_i++;
@@ -291,12 +306,12 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		// We need to find out which node is going to execute the codelet.
 		_STARPU_MPI_DISP("Different nodes are owning W data. The node to execute the codelet is going to be selected with the current selection node policy. See starpu_mpi_node_selection_set_current_policy() to change the policy, or use STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify the node\n");
 		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	else
 	{
 		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, *xrank);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	_STARPU_MPI_DEBUG(100, "do_execute=%d\n", *do_execute);
 
@@ -325,7 +340,8 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, arglist);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
@@ -334,17 +350,23 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
-	if (xrank_p) *xrank_p = xrank;
-	if (nb_data_p) *nb_data_p = nb_data;
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
 	if (descrs_p)
 		*descrs_p = descrs;
 	else
 		free(descrs);
-	if (prio_p)
-		*prio_p = prio;
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	if (do_execute == 0) return 1;
+	if (do_execute == 0)
+	{
+		return 1;
+	}
 	else
 	{
 		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
@@ -369,7 +391,8 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	int prio;
 
 	ret = _fstarpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, arglist);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	if (ret == 0)
 	{
@@ -420,7 +443,7 @@ struct starpu_task *fstarpu_mpi_task_build(MPI_Fint comm, void ***_arglist)
 
 	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, NULL, arglist+1);
 	STARPU_ASSERT(ret >= 0);
-	if (ret > 0) return NULL; else return task;
+	return (ret > 0) ? NULL : task;
 }
 
 int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
@@ -443,7 +466,8 @@ int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, arglist);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 }

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,22 +21,23 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetCommandQueueInfo(cl_command_queue    cq,
-                      cl_command_queue_info param_name,
-                      size_t                param_value_size,
-                      void *                param_value,
-                      size_t *              param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+			cl_command_queue_info param_name,
+			size_t                param_value_size,
+			void *                param_value,
+			size_t *              param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (cq == NULL)
-      return CL_INVALID_COMMAND_QUEUE;
+	if (cq == NULL)
+		return CL_INVALID_COMMAND_QUEUE;
 
-   switch (param_name) {
-      INFO_CASE(CL_QUEUE_CONTEXT, cq->context);
-      INFO_CASE(CL_QUEUE_DEVICE, cq->device);
-      INFO_CASE(CL_QUEUE_REFERENCE_COUNT, cq->_entity.refs);
-      INFO_CASE(CL_QUEUE_PROPERTIES, cq->properties);
-      default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE(CL_QUEUE_CONTEXT, cq->context);
+		INFO_CASE(CL_QUEUE_DEVICE, cq->device);
+		INFO_CASE(CL_QUEUE_REFERENCE_COUNT, cq->_entity.refs);
+		INFO_CASE(CL_QUEUE_PROPERTIES, cq->properties);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS; 
+	return CL_SUCCESS;
 }

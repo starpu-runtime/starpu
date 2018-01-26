@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013  CNRS
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2011,2013,2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,12 @@ struct _starpu_cg_list
 	/* Number of notifications to be waited for */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
+#ifdef STARPU_DEBUG
+	/* Array of the notifications, size ndeps */
+	struct _starpu_cg **deps;
+	/* Which ones have notified, size ndeps */
+	char *done;
+#endif
 
 	/* Whether the completion is finished.
 	 * For restartable/restarted tasks, only the first iteration is taken into account here.
@@ -72,6 +78,12 @@ struct _starpu_cg
 {
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
+
+#ifdef STARPU_DEBUG
+	unsigned ndeps;
+	void **deps; /* array of predecessors, size ndeps */
+	char *done;  /* which ones have notified, size ndeps */
+#endif
 
 	enum _starpu_cg_type cg_type;
 
@@ -102,8 +114,8 @@ int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct 
 int _starpu_list_task_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, struct starpu_task *task_array[]);
 int _starpu_list_task_scheduled_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, struct starpu_task *task_array[]);
 int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, starpu_tag_t tag_array[]);
-void _starpu_notify_cg(struct _starpu_cg *cg);
-void _starpu_notify_cg_list(struct _starpu_cg_list *successors);
+void _starpu_notify_cg(void *pred, struct _starpu_cg *cg);
+void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors);
 void _starpu_notify_task_dependencies(struct _starpu_job *j);
 
 #endif // __CG_H__

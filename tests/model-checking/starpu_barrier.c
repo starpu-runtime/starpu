@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017  Université de Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +19,6 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
-//#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
@@ -30,7 +30,7 @@
 #define STARPU_UYIELD() ((void)0)
 
 #ifndef NOCONFIG
-#include <config.h>
+#include <common/config.h>
 #else
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h>
 #include <common/barrier.h>
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
@@ -57,9 +58,16 @@
 #endif
 
 int
-_starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+_starpu_simgrid_thread_start(int argc, char *argv[])
 {
 	return 0;
+}
+
+static void _starpu_clock_gettime(struct timespec *ts)
+{
+	double now = MSG_get_clock();
+	ts->tv_sec = floor(now);
+	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
 }
 
 #include <common/barrier.c>
@@ -75,7 +83,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STAR
 
 struct _starpu_barrier barrier;
 
-int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int worker(int argc, char *argv[])
 {
 	unsigned iter;
 
@@ -88,7 +96,7 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSE
 	return 0;
 }
 
-int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int master(int argc, char *argv[])
 {
 	unsigned i;
 

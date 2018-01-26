@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2011-2012,2017                           Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +23,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <starpu_hash.h>
 
 #include <starpu_cuda.h>
@@ -161,11 +163,11 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_bcsr_interface *bcsr_b = (struct starpu_bcsr_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((bcsr_a->nnz == bcsr_b->nnz)
-			&& (bcsr_a->nrow == bcsr_b->nrow)
-			&& (bcsr_a->r == bcsr_b->r)
-			&& (bcsr_a->c == bcsr_b->c)
-			&& (bcsr_a->elemsize == bcsr_b->elemsize));
+	return (bcsr_a->nnz == bcsr_b->nnz)
+		&& (bcsr_a->nrow == bcsr_b->nrow)
+		&& (bcsr_a->r == bcsr_b->r)
+		&& (bcsr_a->c == bcsr_b->c)
+		&& (bcsr_a->elemsize == bcsr_b->elemsize);
 }
 
 /* offer an access to the data parameters */
@@ -424,7 +426,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 		char *tmp = *ptr;
 		memcpy(tmp, (void*)bcsr->colind, bcsr->nnz * sizeof(bcsr->colind[0]));
 		tmp += bcsr->nnz * sizeof(bcsr->colind[0]);

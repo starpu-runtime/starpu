@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2011-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,8 +25,8 @@
 
 #ifdef STARPU_USE_CUDA
 #include <starpu_cublas_v2.h>
-static const TYPE p1 = 1.0;
-static const TYPE m1 = -1.0;
+static const TYPE gp1 = 1.0;
+static const TYPE gm1 = -1.0;
 #endif
 
 #if 0
@@ -56,6 +57,8 @@ static void print_matrix_from_descr(unsigned nx, unsigned ny, unsigned ld, TYPE 
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER || type == STARPU_MIC_WORKER || type == STARPU_SCC_WORKER)
 		return 1;
@@ -84,10 +87,11 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 #ifdef STARPU_USE_CUDA
 static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
- 
-	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), 1, &p1, v_src, 1, v_dst, 1);
+
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), 1, &gp1, v_src, 1, v_dst, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -95,9 +99,10 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 
 void accumulate_variable_cpu(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
- 
+
 	*v_dst = *v_dst + *v_src;
 }
 
@@ -124,11 +129,12 @@ struct starpu_codelet accumulate_variable_cl =
 #ifdef STARPU_USE_CUDA
 static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), n, &p1, v_src, 1, v_dst, 1);
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), n, &gp1, v_src, 1, v_dst, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -136,10 +142,11 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 
 void accumulate_vector_cpu(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	AXPY(n, (TYPE)1.0, v_src, 1, v_dst, 1);
 }
 
@@ -172,6 +179,7 @@ extern void zero_vector(TYPE *x, unsigned nelems);
 
 static void bzero_variable_cuda(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	size_t size = STARPU_VARIABLE_GET_ELEMSIZE(descr[0]);
 
@@ -181,6 +189,7 @@ static void bzero_variable_cuda(void *descr[], void *cl_arg)
 
 void bzero_variable_cpu(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*v = (TYPE)0.0;
 }
@@ -208,6 +217,7 @@ struct starpu_codelet bzero_variable_cl =
 #ifdef STARPU_USE_CUDA
 static void bzero_vector_cuda(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
@@ -218,9 +228,10 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 
 void bzero_vector_cpu(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	memset(v, 0, n*sizeof(TYPE));
 }
 
@@ -251,7 +262,8 @@ struct starpu_codelet bzero_vector_cl =
 #ifdef STARPU_USE_CUDA
 static void dot_kernel_cuda(void *descr[], void *cl_arg)
 {
-	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]); 
+	(void)cl_arg;
+	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
 
@@ -269,7 +281,8 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 
 void dot_kernel_cpu(void *descr[], void *cl_arg)
 {
-	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]); 
+	(void)cl_arg;
+	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
 
@@ -346,7 +359,7 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
 	cublasStatus_t status = cublasscal(starpu_cublas_get_local_handle(), n, &alpha, v1, 1);
@@ -387,7 +400,7 @@ static struct starpu_codelet scal_kernel_cl =
 };
 
 /*
- *	GEMV kernel : v1 = p1 * v1 + p2 * M v2 
+ *	GEMV kernel : v1 = p1 * v1 + p2 * M v2
  */
 
 #ifdef STARPU_USE_CUDA
@@ -400,7 +413,7 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 	unsigned ld = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned nx = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[1]);
- 
+
 	TYPE alpha, beta;
 	starpu_codelet_unpack_args(cl_arg, &beta, &alpha);
 
@@ -431,7 +444,7 @@ void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	{
 		/* Parallel CPU task */
 		unsigned rank = starpu_combined_worker_get_rank();
-		
+
 		unsigned block_size = (ny + worker_size - 1)/worker_size;
 		unsigned new_nx = STARPU_MIN(nx, block_size*(rank+1)) - block_size*rank;
 
@@ -506,7 +519,7 @@ int gemv_kernel(starpu_data_handle_t v1,
 }
 
 /*
- *	AXPY + SCAL kernel : v1 = p1 * v1 + p2 * v2 
+ *	AXPY + SCAL kernel : v1 = p1 * v1 + p2 * v2
  */
 #ifdef STARPU_USE_CUDA
 static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
@@ -518,7 +531,7 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	/* Compute v1 = p1 * v1 + p2 * v2.
 	 *	v1 = p1 v1
 	 *	v1 = v1 + p2 v2
@@ -542,7 +555,7 @@ void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	/* Compute v1 = p1 * v1 + p2 * v2.
 	 *	v1 = p1 v1
 	 *	v1 = v1 + p2 v2
@@ -593,7 +606,7 @@ int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
 
 
 /*
- *	AXPY kernel : v1 = v1 + p1 * v2 
+ *	AXPY kernel : v1 = v1 + p1 * v2
  */
 #ifdef STARPU_USE_CUDA
 static void axpy_kernel_cuda(void *descr[], void *cl_arg)
@@ -605,7 +618,7 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	/* Compute v1 = v1 + p1 * v2.
 	 */
 	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(),
@@ -624,7 +637,7 @@ void axpy_kernel_cpu(void *descr[], void *cl_arg)
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
- 
+
 	/* Compute v1 = p1 * v1 + p2 * v2.
 	 */
 	AXPY(nx, p1, v2, 1, v1, 1);

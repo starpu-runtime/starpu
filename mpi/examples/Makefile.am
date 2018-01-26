@@ -1,8 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
-# Copyright (C) 2016  Inria
+# Copyright (C) 2012,2014,2016                           Inria
+# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -103,16 +104,15 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
@@ -120,19 +120,17 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 # Stencil example #
 ###################
 if BUILD_EXAMPLES
-examplebin_PROGRAMS +=				\
-	stencil/stencil5			\
-	stencil/stencil5_lb
-
-stencil_stencil5_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
-
-stencil_stencil5_lb_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
-
+examplebin_PROGRAMS +=		\
+	stencil/stencil5
 starpu_mpi_EXAMPLES	+=	\
-	stencil/stencil5	\
+	stencil/stencil5
+
+if STARPU_USE_MPI_MPI
+examplebin_PROGRAMS +=		\
 	stencil/stencil5_lb
+starpu_mpi_EXAMPLES	+=	\
+	stencil/stencil5_lb
+endif
 
 endif
 
@@ -152,7 +150,6 @@ examplebin_PROGRAMS += 			\
 	mpi_lu/plu_outofcore_example_double
 
 mpi_lu_plu_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -164,7 +161,6 @@ mpi_lu_plu_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -176,7 +172,6 @@ mpi_lu_plu_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -188,7 +183,6 @@ mpi_lu_plu_implicit_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -200,7 +194,6 @@ mpi_lu_plu_implicit_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_float_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -212,7 +205,6 @@ mpi_lu_plu_outofcore_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_double_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -245,7 +237,6 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
@@ -258,7 +249,6 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 if !STARPU_SIMGRID
@@ -281,7 +271,6 @@ matrix_mult_mm_SOURCES	=		\
 	matrix_mult/mm.c
 
 matrix_mult_mm_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 if !STARPU_SIMGRID
@@ -308,7 +297,6 @@ native_fortran_nf_mm_SOURCES	=			\
 	native_fortran/nf_mm.f90
 
 native_fortran_nf_mm_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 native_fortran_nf_basic_ring_SOURCES	=			\
@@ -317,7 +305,6 @@ native_fortran_nf_basic_ring_SOURCES	=			\
 	native_fortran/nf_basic_ring.f90
 
 native_fortran_nf_basic_ring_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	-lm
 
 if !STARPU_SIMGRID
@@ -341,9 +328,6 @@ complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
 	../../examples/interface/complex_interface.c
 
-complex_mpi_complex_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
 endif
@@ -360,9 +344,6 @@ user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
 	user_datatype/my_interface.c
 
-user_datatype_user_datatype_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype
@@ -377,11 +358,6 @@ if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	comm/comm			\
 	comm/mix_comm
-
-comm_comm_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-comm_mix_comm_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\

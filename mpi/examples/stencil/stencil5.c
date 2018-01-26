@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013, 2015-2017              Université Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,8 +25,9 @@
                                                 fprintf(ofile, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __starpu_func__ ,## __VA_ARGS__); \
                                                 fflush(ofile); }} while(0);
 
-void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void stencil5_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	float *xy = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *xm1y = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	float *xp1y = (float *)STARPU_VARIABLE_GET_PTR(descr[2]);
@@ -37,27 +39,12 @@ void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 //	fprintf(stdout, "VALUES: %2.2f %2.2f %2.2f %2.2f %2.2f\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 }
 
-/* Dumb performance model for simgrid */
-static double stencil5_cost_function(struct starpu_task *task, unsigned nimpl)
-{
-	(void) task;
-	(void) nimpl;
-	return 0.000001;
-}
-
-static struct starpu_perfmodel stencil5_model =
-{
-	.type = STARPU_COMMON,
-	.cost_function = stencil5_cost_function,
-	.symbol = "stencil5"
-};
-
 struct starpu_codelet stencil5_cl =
 {
 	.cpu_funcs = {stencil5_cpu},
 	.nbuffers = 5,
 	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R},
-	.model = &stencil5_model
+	.model = &starpu_perfmodel_nop,
 };
 
 #ifdef STARPU_QUICK_CHECK

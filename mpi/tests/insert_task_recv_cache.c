@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2014-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <common/config.h>
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <math.h>
@@ -22,33 +22,24 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
 #else
 
-void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
-
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
 
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 #define N     1000

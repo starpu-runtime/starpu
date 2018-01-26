@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2010-2014, 2016, 2017  CNRS
- * Copyright (C) 2014       INRIA
+ * Copyright (C) 2013-2014                                Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2015                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,7 +61,9 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_NODE_SELECTION_POLICY (23<<STARPU_MODE_SHIFT)
 #define STARPU_NAME		 (24<<STARPU_MODE_SHIFT)
 #define STARPU_CL_ARGS		(25<<STARPU_MODE_SHIFT)
-#define STARPU_SHIFTED_MODE_MAX (26<<STARPU_MODE_SHIFT)
+#define STARPU_CL_ARGS_NFREE	(26<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_DEPS_ARRAY	(27<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (28<<STARPU_MODE_SHIFT)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  INRIA
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2015                                     Inria
+ * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,12 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 #include "../../src/core/sched_ctx_list.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
 	struct _starpu_sched_ctx_list *ctx_list = NULL, *found_list;
 	struct _starpu_sched_ctx_elt *elt;

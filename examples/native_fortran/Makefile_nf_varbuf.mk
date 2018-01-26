@@ -1,6 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2015-2016  Inria
+# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2015-2016                                Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -12,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 PROG = nf_varbuf
 
 FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^\([^ ]*starpu\/1.3\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90

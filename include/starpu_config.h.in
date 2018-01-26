@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014, 2017  INRIA
+ * Copyright (C) 2011-2012,2014,2016-2017                 Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,14 +40,24 @@
 #undef STARPU_OPENMP
 
 #undef STARPU_SIMGRID
+#undef STARPU_SIMGRID_MC
 #undef STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT
 #undef STARPU_HAVE_SIMGRID_MSG_H
 #undef STARPU_HAVE_XBT_SYNCHRO_H
+#undef STARPU_HAVE_VALGRIND_H
+#undef STARPU_HAVE_MEMCHECK_H
+#undef STARPU_VALGRIND_FULL
+#undef STARPU_SANITIZE_LEAK
 #undef STARPU_NON_BLOCKING_DRIVERS
+/* workers must call callbacks on sleep/wake-up */
+#undef STARPU_WORKER_CALLBACKS
+
 
 #undef STARPU_HAVE_ICC
 
 #undef STARPU_USE_MPI
+#undef STARPU_USE_MPI_MPI
+#undef STARPU_USE_MPI_NMAD
 
 #undef STARPU_ATLAS
 #undef STARPU_GOTO
@@ -75,13 +85,17 @@
 #undef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
 #undef STARPU_HAVE_SYNC_SYNCHRONIZE
 
+#undef STARPU_DEVEL
 #undef STARPU_MODEL_DEBUG
 #undef STARPU_NO_ASSERT
 #undef STARPU_DEBUG
+#undef STARPU_VERBOSE
+#undef STARPU_GDB_PATH
 
 #undef STARPU_HAVE_FFTW
 #undef STARPU_HAVE_FFTWF
 #undef STARPU_HAVE_FFTWL
+#undef STARPU_HAVE_CUFFTDOUBLECOMPLEX
 
 #undef STARPU_HAVE_CURAND
 
@@ -101,6 +115,7 @@
 #undef STARPU_SC_HYPERVISOR_DEBUG
 #undef STARPU_HAVE_GLPK_H
 
+#undef STARPU_HAVE_CUDA_MEMCPY_PEER
 #undef STARPU_HAVE_LIBNUMA
 
 #undef STARPU_HAVE_WINDOWS
@@ -110,6 +125,7 @@
 #undef STARPU_HAVE_UNISTD_H
 #undef STARPU_HAVE_HDF5
 
+#undef STARPU_USE_FXT
 #undef STARPU_FXT_LOCK_TRACES
 
 #ifdef _MSC_VER
@@ -131,6 +147,7 @@ typedef ssize_t starpu_ssize_t;
 #endif
 
 #undef STARPU_QUICK_CHECK
+#undef STARPU_LONG_CHECK
 #undef STARPU_USE_DRAND48
 #undef STARPU_USE_ERAND48_R
 #undef STARPU_HAVE_NEARBYINTF
@@ -154,5 +171,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_CXX11
 #undef STARPU_HAVE_STRERROR_R
 #undef STARPU_HAVE_STATEMENT_EXPRESSIONS
+#undef STARPU_PERF_MODEL_DIR
 
 #endif

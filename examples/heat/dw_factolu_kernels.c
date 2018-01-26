@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2016, 2017  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +20,10 @@
  * These are standard BLAS kernels for the LU factorization
  */
 #include "dw_factolu.h"
+
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
@@ -113,8 +118,9 @@ void display_stat_heat(void)
  *   U22
  */
 
-static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -178,8 +184,9 @@ void dw_cublas_codelet_update_u22(void *descr[], void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void dw_common_codelet_update_u12(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	float *sub11;
 	float *sub12;
 
@@ -242,8 +249,9 @@ void dw_cublas_codelet_update_u12(void *descr[], void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void dw_common_codelet_update_u21(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	float *sub11;
 	float *sub21;
 
@@ -318,8 +326,9 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	FPRINTF(stderr, "\n");
 }
 
-static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void dw_common_codelet_update_u11(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	float *sub11;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -342,7 +351,17 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 			{
 				float pivot;
 				pivot = sub11[z+z*ld];
-				STARPU_ASSERT(pivot != 0.0f);
+
+#ifdef STARPU_HAVE_VALGRIND_H
+				if (RUNNING_ON_VALGRIND)
+				{
+					if (fpclassify(pivot) == FP_ZERO)
+						/* Running in valgrind, don't care about the result */
+						pivot = 1.0f;
+				}
+				else
+#endif
+					STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
 
 				STARPU_SSCAL(nx - z - 1, (1.0f/pivot), &sub11[z+(z+1)*ld], ld);
 
@@ -362,7 +381,17 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATT
 				cudaMemcpyAsync(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
 				cudaStreamSynchronize(stream);
 
-				STARPU_ASSERT(pivot != 0.0f);
+#ifdef STARPU_HAVE_VALGRIND_H
+				if (RUNNING_ON_VALGRIND)
+				{
+					if (fpclassify(pivot) == FP_ZERO)
+						/* Running in valgrind, don't care about the result */
+						pivot = 1.0f;
+				}
+				else
+#endif
+					STARPU_ASSERT(fpclassify(pivot) != FP_ZERO);
+
 				float scal = 1.0f/pivot;
 
 				status = cublasSscal(starpu_cublas_get_local_handle(),

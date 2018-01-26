@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2017  INRIA
+ * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2013-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +33,7 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-extern struct _starpu_mp_node *mic_nodes[STARPU_MAXMICDEVS];
+extern struct _starpu_mp_node *_starpu_mic_nodes[STARPU_MAXMICDEVS];
 
 struct _starpu_mic_async_event *event;
 

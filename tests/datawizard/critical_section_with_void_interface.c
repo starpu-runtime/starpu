@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2016  Université de Bordeaux
- * Copyright (C) 2012, 2013  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2011,2013-2014,2016                 Université de Bordeaux
+ * Copyright (C) 2011-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -31,8 +31,11 @@ starpu_data_handle_t void_handle;
 
 int critical_var;
 
-void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void critical_section(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
+
 	/* We do not protect this variable because it is only accessed when the
 	 * "void_handle" piece of data is accessed. */
 	critical_var++;
@@ -47,7 +50,7 @@ static struct starpu_codelet cl =
 	.modes = {STARPU_RW}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 #ifdef STARPU_QUICK_CHECK
 	int ntasks = 10;

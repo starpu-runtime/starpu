@@ -1,7 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2013                                     Joris Pablo
+ * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2009-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,11 +123,11 @@ struct task_info *tasks_info;
 static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
 	struct task_info *task;
-	unsigned i;
 
 	HASH_FIND(hh, tasks_info, &job_id, sizeof(job_id), task);
 	if (!task)
 	{
+		unsigned i;
 		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
@@ -156,8 +159,9 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 	return task;
 }
 
-static void task_dump(struct task_info *task)
+static void task_dump(struct task_info *task, struct starpu_fxt_options *options)
 {
+	char *prefix = options->file_prefix;
 	unsigned i;
 
 	if (task->exclude_from_dag)
@@ -177,7 +181,7 @@ static void task_dump(struct task_info *task)
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
 		free(task->model_name);
 	}
-	fprintf(tasks_file, "JobId: %lu\n", task->job_id);
+	fprintf(tasks_file, "JobId: %s%lu\n", prefix, task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
 	if (task->priority)
@@ -186,7 +190,7 @@ static void task_dump(struct task_info *task)
 	{
 		fprintf(tasks_file, "DependsOn:");
 		for (i = 0; i < task->ndeps; i++)
-			fprintf(tasks_file, " %lu", task->dependencies[i]);
+			fprintf(tasks_file, " %s%lu", prefix, task->dependencies[i]);
 		fprintf(tasks_file, "\n");
 		free(task->dependencies);
 	}
@@ -618,7 +622,8 @@ static int prefixTOnodeid (const char *prefix)
 	//if we are a single-node trace, prefix is empty, so return 0
 	if (strcmp(prefix, "")==0) return 0;
 
-	char *str = malloc(sizeof(char)*strlen(prefix));
+	char *str;
+	_STARPU_MALLOC(str, sizeof(char)*strlen(prefix));
 	strncpy (str, prefix, strlen(prefix));
 	str[strlen(prefix)-1] = '\0';
 	unsigned long nodeid = atoi(str);
@@ -741,7 +746,7 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
 	poti_SetState(time, container, "WS", name);
 #else
-	fprintf(out_paje_file, "10	%.9f	%sw%lu	WS	%s\n", time, prefix, workerid, name);
+	fprintf(out_paje_file, "10	%.9f	%sw%lu	WS	\"%s\"\n", time, prefix, workerid, name);
 #endif
 }
 
@@ -1287,11 +1292,20 @@ static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 }
 
 #ifdef STARPU_HAVE_POTI
-static void create_paje_state_color(char *name, char *type, float red, float green, float blue)
+static void create_paje_state_color(char *name, char *type, int ctx, float red, float green, float blue)
 {
 	char color[STARPU_POTI_STR_LEN];
+	char alias[STARPU_POTI_STR_LEN];
 	snprintf(color, sizeof(color), "%f %f %f", red, green, blue);
-	poti_DefineEntityValue(name, type, name, color);
+	if (ctx)
+	{
+		snprintf(alias, sizeof(alias), "%s_%d", name, ctx);
+	}
+	else
+	{
+		snprintf(alias, sizeof(alias), "%s", name);
+	}
+	poti_DefineEntityValue(alias, type, name, color);
 }
 #endif
 
@@ -1342,82 +1356,82 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	if (out_paje_file)
 	{
 #ifdef STARPU_HAVE_POTI
-		create_paje_state_color(name, "WS", red, green, blue);
+		create_paje_state_color(name, "WS", 0, red, green, blue);
 		int i;
 		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			char ctx[10];
 			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
 			if(i%10 == 1)
-				create_paje_state_color(name, ctx, 255.0, 102.0, 255.0);
+				create_paje_state_color(name, ctx, i, 1.0, 0.39, 1.0);
 			if(i%10 == 2)
-				create_paje_state_color(name, ctx, .0, 255.0, 0.0);
+				create_paje_state_color(name, ctx, i, .0, 1.0, 0.0);
 			if(i%10 == 3)
-				create_paje_state_color(name, ctx, 255.0, 255.0, .0);
+				create_paje_state_color(name, ctx, i, 1.0, 1.0, .0);
 			if(i%10 == 4)
-				create_paje_state_color(name, ctx, .0, 245.0, 255.0);
+				create_paje_state_color(name, ctx, i, .0, 0.95, 1.0);
 			if(i%10 == 5)
-				create_paje_state_color(name, ctx, .0, .0, .0);
+				create_paje_state_color(name, ctx, i, .0, .0, .0);
 			if(i%10 == 6)
-				create_paje_state_color(name, ctx, .0, .0, 128.0);
+				create_paje_state_color(name, ctx, i, .0, .0, 0.5);
 			if(i%10 == 7)
-				create_paje_state_color(name, ctx, 105.0, 105.0, 105.0);
+				create_paje_state_color(name, ctx, i, 0.41, 0.41, 0.41);
 			if(i%10 == 8)
-				create_paje_state_color(name, ctx, 255.0, .0, 255.0);
+				create_paje_state_color(name, ctx, i, 1.0, .0, 1.0);
 			if(i%10 == 9)
-				create_paje_state_color(name, ctx, .0, .0, 1.0);
+				create_paje_state_color(name, ctx, i, .0, .0, 1.0);
 			if(i%10 == 0)
-				create_paje_state_color(name, ctx, 154.0, 205.0, 50.0);
+				create_paje_state_color(name, ctx, i, 0.6, 0.80, 50.0);
 
 		}
-/* 		create_paje_state_color(name, "Ctx1", 255.0, 102.0, 255.0); */
-/* 		create_paje_state_color(name, "Ctx2", .0, 255.0, 0.0); */
-/* 		create_paje_state_color(name, "Ctx3", 255.0, 255.0, .0); */
-/* 		create_paje_state_color(name, "Ctx4", .0, 245.0, 255.0); */
+/* 		create_paje_state_color(name, "Ctx1", 1.0, 0.39, 1.0); */
+/* 		create_paje_state_color(name, "Ctx2", .0, 1.0, 0.0); */
+/* 		create_paje_state_color(name, "Ctx3", 1.0, 1.0, .0); */
+/* 		create_paje_state_color(name, "Ctx4", .0, 0.95, 1.0); */
 /* 		create_paje_state_color(name, "Ctx5", .0, .0, .0); */
-/* 		create_paje_state_color(name, "Ctx6", .0, .0, 128.0); */
-/* 		create_paje_state_color(name, "Ctx7", 105.0, 105.0, 105.0); */
-/* 		create_paje_state_color(name, "Ctx8", 255.0, .0, 255.0); */
+/* 		create_paje_state_color(name, "Ctx6", .0, .0, 0.5); */
+/* 		create_paje_state_color(name, "Ctx7", 0.41, 0.41, 0.41); */
+/* 		create_paje_state_color(name, "Ctx8", 1.0, .0, 1.0); */
 /* 		create_paje_state_color(name, "Ctx9", .0, .0, 1.0); */
-/* 		create_paje_state_color(name, "Ctx10", 154.0, 205.0, 50.0); */
+/* 		create_paje_state_color(name, "Ctx10", 0.6, 0.80, 0.19); */
 #else
 		fprintf(out_paje_file, "6	%s	WS	%s	\"%f %f %f\" \n", name, name, red, green, blue);
 		int i;
 		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			if(i%10 == 1)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"255.0 102.0 255.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 0.39 1.0\" \n", name, i, i, name);
 			if(i%10 == 2)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 255.0 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 1.0 .0\" \n", name, i, i, name);
 			if(i%10 == 3)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"225.0 225.0 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.87 0.87 .0\" \n", name, i, i, name);
 			if(i%10 == 4)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 245.0 255.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 0.95 1.0\" \n", name, i, i, name);
 			if(i%10 == 5)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 .0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 .0\" \n", name, i, i, name);
 			if(i%10 == 6)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 128.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 0.5\" \n", name, i, i, name);
 			if(i%10 == 7)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"105.0 105.0 105.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.41 0.41 0.41\" \n", name, i, i, name);
 			if(i%10 == 8)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"255.0 .0 255.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 .0 1.0\" \n", name, i, i, name);
 			if(i%10 == 9)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, i, name);
 			if(i%10 == 0)
-				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"154.0 205.0 50.0\" \n", name, i, name);
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, i, name);
 
 		}
 
-/* 		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 102.0 255.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 255.0 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"225.0 225.0 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 245.0 255.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"1.0 0.39 1.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 1.0 .0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"0.87 0.87 .0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 0.95 1.0\" \n", name, name); */
 /* 		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 128.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx7	%s	\"105.0 105.0 105.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx8	%s	\"255.0 .0 255.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 0.5\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx7	%s	\"0.41 0.41 0.41\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx8	%s	\"1.0 .0 1.0\" \n", name, name); */
 /* 		fprintf(out_paje_file, "6	%s	Ctx9	%s	\".0 .0 1.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"154.0 205.0 50.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"0.6 0.80 0.19\" \n", name, name); */
 #endif
 	}
 
@@ -1465,7 +1479,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
 			poti_SetState(start_codelet_time, container, ctx, name);
 #else
-			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	%s\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name);
+			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s\"\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name);
 #endif
 		}
 	}
@@ -1627,7 +1641,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			poti_SetState(last_codelet_start[worker], container, typectx, name);
 #endif
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	%s	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
 #endif
 		}
 	}
@@ -2622,7 +2636,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 
-	task_dump(task);
+	task_dump(task, options);
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2986,7 +3000,7 @@ static void handle_string_event(struct fxt_ev_64 *ev, const char *event, struct 
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", event);
 #else
-		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
+		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	\"%s\"\n", get_event_time_stamp(ev, options), options->file_prefix, event);
 #endif
 	}
 
@@ -3023,10 +3037,10 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 	char *prefix = options->file_prefix;
 
 	/* Loop through completed communications */
-	struct _starpu_communication*itor;
 	while (!_starpu_communication_list_empty(&communication_list)
 			&& _starpu_communication_list_begin(&communication_list)->peer)
 	{
+		struct _starpu_communication*itor;
 		/* This communication is complete */
 		itor = _starpu_communication_list_pop_front(&communication_list);
 
@@ -3781,7 +3795,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		struct task_info *task, *tmp;
 		HASH_ITER(hh, tasks_info, task, tmp)
 		{
-			task_dump(task);
+			task_dump(task, options);
 		}
 	}
 

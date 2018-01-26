@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2011-2013                                Inria
+ * Copyright (C) 2010-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <errno.h>
 #include <common/thread.h>
@@ -55,8 +55,9 @@ static struct thread_data problem_data[NTHREADS];
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
 
-void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void increment_handle_cpu_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 }

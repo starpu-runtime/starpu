@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016  CNRS
- * Copyright (C) 2014, 2016  INRIA
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2014,2016                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,21 @@ static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
+#ifdef STARPU_DEBUG
+	cg->ndeps = ntags;
+	cg->deps = NULL;
+	cg->done = NULL;
+#endif
 	cg->cg_type = STARPU_CG_TASK;
 
 	cg->succ.job = j;
 	j->job_successors.ndeps++;
+#ifdef STARPU_DEBUG
+	_STARPU_REALLOC(j->job_successors.deps, j->job_successors.ndeps * sizeof(j->job_successors.deps[0]));
+	_STARPU_REALLOC(j->job_successors.done, j->job_successors.ndeps * sizeof(j->job_successors.done[0]));
+	j->job_successors.deps[j->job_successors.ndeps-1] = cg;
+	j->job_successors.done[j->job_successors.ndeps-1] = 0;
+#endif
 
 	return cg;
 }
@@ -49,12 +60,12 @@ static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 
 	if (_starpu_add_successor_to_cg_list(&j->job_successors, cg))
 		/* the task was already completed sooner */
-		_starpu_notify_cg(cg);
+		_starpu_notify_cg(j, cg);
 }
 
 void _starpu_notify_task_dependencies(struct _starpu_job *j)
 {
-	_starpu_notify_cg_list(&j->job_successors);
+	_starpu_notify_cg_list(j, &j->job_successors);
 }
 
 /* task depends on the tasks in task array */
@@ -81,6 +92,11 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 	struct _starpu_cg *cg = create_cg_task(ndeps, job);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 
+#ifdef STARPU_DEBUG
+	_STARPU_MALLOC(cg->deps, ndeps * sizeof(cg->deps[0]));
+	_STARPU_MALLOC(cg->done, ndeps * sizeof(cg->done[0]));
+#endif
+
 	unsigned i;
 	for (i = 0; i < ndeps; i++)
 	{
@@ -90,6 +106,11 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		struct _starpu_cg *back_cg = NULL;
 
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
+
+#ifdef STARPU_DEBUG
+		cg->deps[i] = dep_job;
+		cg->done[i] = 0;
+#endif
 
 		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
 		STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);

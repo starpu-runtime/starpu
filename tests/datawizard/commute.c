@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014, 2016 Université de Bordeaux
+ * Copyright (C) 2013-2014,2017                           CNRS
+ * Copyright (C) 2013,2015                                Inria
+ * Copyright (C) 2013-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +17,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -22,8 +24,9 @@
  * Trigger various STARPU_R / STARPU_RW / STARPU_RW|COMMUTE patterns
  */
 
-void begin(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void begin(void *descr[], void *arg)
 {
+	(void)arg;
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*x = 0;
@@ -37,8 +40,9 @@ static struct starpu_codelet codelet_begin =
 	.name = "begin",
 };
 
-void commute1(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void commute1(void *descr[], void *arg)
 {
+	(void)arg;
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*x = 1;
@@ -53,8 +57,9 @@ static struct starpu_codelet codelet_commute1 =
 	.name = "commute1",
 };
 
-void commute2(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void commute2(void *descr[], void *arg)
 {
+	(void)arg;
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*x = 2;
@@ -69,8 +74,10 @@ static struct starpu_codelet codelet_commute2 =
 	.name = "commute2",
 };
 
-void commute3(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
+void commute3(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static struct starpu_codelet codelet_commute3 =
@@ -83,7 +90,7 @@ static struct starpu_codelet codelet_commute3 =
 };
 
 static struct starpu_codelet codelet_end;
-void end(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void end(void *descr[], void *_args)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 

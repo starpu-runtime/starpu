@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  Université Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,9 +31,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void matrix_fill(void *buffers[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void matrix_fill(void *buffers[], void *cl_arg)
 {
 	unsigned i, j;
+	(void)cl_arg;
 
 	/* length of the matrix */
 	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -87,17 +89,15 @@ struct starpu_codelet cl_check_scale =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {fmultiple_check_scale_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-#else
-	/* Only enable it on CPUs if we don't have a CUDA device, to force remote execution on the CUDA device */
+#endif
 	.cpu_funcs = {fmultiple_check_scale},
 	.cpu_funcs_name = {"fmultiple_check_scale"},
-#endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.name = "fmultiple_check_scale"
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned j, n=1;
 	int matrix[NX][NY];
@@ -115,6 +115,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	/* Disable codelet on CPUs if we have a CUDA device, to force remote execution on the CUDA device */
+	if (starpu_cuda_worker_get_count()) {
+		cl_check_scale.cpu_funcs[0] = NULL;
+		cl_check_scale.cpu_funcs_name[0] = NULL;
+	}
 
 	/* Declare the whole matrix to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
@@ -180,7 +186,7 @@ int main(int argc, char **argv)
 	/* Now switch back to total view of the matrix */
 	starpu_data_unpartition_submit(handle, PARTS, horiz_handle, -1);
 
-	/* And check the values of the whole matrix */
+	/* And check and scale the values of the whole matrix */
 	int factor = 4;
 	int start = 0;
 	ret = starpu_task_insert(&cl_check_scale,

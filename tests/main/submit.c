@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,8 +27,10 @@
 
 static int i = 0, j;
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	int old_i = STARPU_ATOMIC_ADD(&i, 1);
 	FPRINTF(stdout, "called third task, i = %d\n", old_i+1);
 }
@@ -41,8 +44,9 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-static void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback(void *arg)
 {
+	(void)arg;
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &dummy_codelet;
 	task->detach = 1;
@@ -60,8 +64,10 @@ static struct starpu_codelet callback_submit_codelet =
 	.nbuffers = 0
 };
 
-static void task_submit_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void task_submit_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &callback_submit_codelet;
 	task->callback_func = callback;
@@ -81,7 +87,7 @@ static struct starpu_codelet task_submit_codelet =
 	.nbuffers = 0
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 

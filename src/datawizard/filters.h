@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
- * Copyright (C) 2010  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2008-2011,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2010,2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,4 +31,8 @@ _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
 					     unsigned ld, unsigned *chunk_size,
 					     size_t *offset);
+
+
+/* submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
+void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write);
 #endif

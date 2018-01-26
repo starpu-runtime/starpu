@@ -1,9 +1,19 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012, 2017  INRIA
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011-2013,2015-2017                      Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page CompilationConfiguration Compilation Configuration
@@ -109,6 +119,15 @@ Disable the creation of the documentation. This should be done on a
 machine which does not have the tools <c>doxygen</c> and <c>latex</c>
 (plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
 </dd>
+
+<dt>--disable-icc</dt>
+<dd>
+\anchor disable-icc
+\addindex __configure__--disable-icc
+Disable the usage of the ICC compiler. When found, some specific ICC
+examples are compiled.
+</dd>
+
 </dl>
 
 Additionally, the script <c>configure</c> recognize many variables, which
@@ -121,6 +140,23 @@ used by nvcc.
 \section ConfiguringWorkers Configuring Workers
 
 <dl>
+
+<dt>--enable-blocking-drivers</dt>
+<dd>
+\anchor enable-blocking-drivers
+\addindex __configure__--enable-blocking-drivers
+By default, StarPU keeps CPU workers awake permanently, for better
+reactivity. This option makes StarPU put CPU workers to real sleep when there
+are not enough tasks to compute.
+</dd>
+
+<dt>--enable-worker-callbacks</dt>
+<dd>
+\anchor enable-worker-callbacks
+\addindex __configure__--enable-worker-callbacks
+If blocking drivers are enabled, enable callbacks to notify an external resource manager
+about workers going to sleep and waking up.
+</dd>
 
 <dt>--enable-maxcpus=<c>count</c></dt>
 <dd>
@@ -370,6 +406,26 @@ Enable the MPI Master-Slave support. By default, it is disabled.
 Create one thread per MPI Slave on the MPI master to manage communications.
 </dd>
 
+<dt>--enable-mpi-verbose</dt>
+<dd>
+\anchor enable-mpi-verbose
+\addindex __configure__--enable-mpi-verbose
+Increase the verbosity of the MPI debugging messages.  This can be disabled
+at runtime by setting the environment variable \ref STARPU_SILENT to
+any value. <c>--enable-mpi-verbose=extra</c> increase even more the verbosity.
+
+\verbatim
+$ STARPU_SILENT=1 mpirun -np 2 ./insert_task
+\endverbatim
+</dd>
+
+<dt>--enable-nmad</dt>
+<dd>
+\anchor enable-nmad
+\addindex __configure__--enable-nmad
+Enable the NewMadeleine implementation for StarPU-MPI.
+</dd>
+
 <dt>--disable-fortran</dt>
 <dd>
 \anchor disable-fortran
@@ -501,7 +557,7 @@ Enable linking with LevelDB if available
 Disable building HDF5 support.
 </dd>
 
-<dt>--with-hdf5-include-dir=<c>path</></dt>
+<dt>--with-hdf5-include-dir=<c>path</c></dt>
 <dd>
 \anchor with-hdf5-include-dir
 \addindex __configure__--with-hdf5-include-dir
@@ -686,9 +742,9 @@ exploring various execution paths.
 <dd>
 \anchor enable-calibration-heuristic
 \addindex __configure__--enable-calibration-heuristic
-Allows to set the maximum authorized percentage of deviation 
-for the history-based calibrator of StarPU. A correct value 
-of this parameter must be in [0..100]. The default value of 
+Allows to set the maximum authorized percentage of deviation
+for the history-based calibrator of StarPU. A correct value
+of this parameter must be in [0..100]. The default value of
 this parameter is 10. Experimental.
 </dd>
 

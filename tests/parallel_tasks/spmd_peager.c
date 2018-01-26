@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2015-2016  Université de Bordeaux
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2011,2013-2016                           Université de Bordeaux
+ * Copyright (C) 2011-2013,2017                           CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +17,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <limits.h>
 #include <unistd.h>
@@ -34,8 +36,11 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_null(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	int worker_size = starpu_combined_worker_get_size();
@@ -65,7 +70,7 @@ static struct starpu_codelet cl =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 

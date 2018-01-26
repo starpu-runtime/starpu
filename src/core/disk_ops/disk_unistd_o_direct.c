@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,6 +103,18 @@ void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf
 }
 #endif
 
+#ifdef STARPU_UNISTD_USE_COPY
+void *  starpu_unistd_o_direct_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size)
+{
+
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
+			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+
+	return starpu_unistd_global_copy(base_src, obj_src, offset_src, base_dst, obj_dst, offset_dst, size);
+}
+
+#endif
+
 struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 {
 	.alloc = starpu_unistd_o_direct_alloc,
@@ -110,7 +125,11 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 	.write = starpu_unistd_o_direct_write,
 	.plug = starpu_unistd_o_direct_plug,
 	.unplug = starpu_unistd_global_unplug,
+#ifdef STARPU_UNISTD_USE_COPY
+	.copy = starpu_unistd_o_direct_global_copy,
+#else
 	.copy = NULL,
+#endif
 	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
 #if defined(HAVE_AIO_H) || defined(HAVE_LIBAIO_H)
         .async_read = starpu_unistd_o_direct_global_async_read,
@@ -118,6 +137,8 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
         .wait_request = starpu_unistd_global_wait_request,
         .test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,
+	.async_full_read = starpu_unistd_global_async_full_read,
+	.async_full_write = starpu_unistd_global_async_full_write,
 #endif
 	.full_read = starpu_unistd_global_full_read,
 	.full_write = starpu_unistd_global_full_write

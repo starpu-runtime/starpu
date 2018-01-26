@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2017  CNRS
+ * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,23 +24,12 @@ void func_cpu(void *descr[], void *_args)
 	(void)_args;
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 int starpu_mpi_select_node_my_policy_0(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
@@ -75,7 +65,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016, 2017  CNRS
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,27 +20,18 @@
 #include "helper.h"
 #include <starpu_mpi_cache.h>
 
-void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
-
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type          = STARPU_COMMON,
-	.cost_function = cost_function
-};
 
 struct starpu_codelet mycodelet_r =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_w =
@@ -47,7 +39,7 @@ struct starpu_codelet mycodelet_w =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 struct starpu_codelet mycodelet_rw =
@@ -55,7 +47,7 @@ struct starpu_codelet mycodelet_rw =
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, starpu_data_handle_t data, int rank, int in_cache)
@@ -94,7 +86,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	if (starpu_mpi_cache_is_enabled() == 0)
+		goto skip;
 
 	if (rank == 0)
 		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));

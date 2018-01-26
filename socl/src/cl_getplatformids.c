@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,27 +25,27 @@ extern int _starpu_init_failed;
  */
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetPlatformIDs(cl_uint          num_entries,
-                 cl_platform_id * platforms,
-                 cl_uint *        num_platforms) CL_API_SUFFIX__VERSION_1_0
+		   cl_platform_id * platforms,
+		   cl_uint *        num_platforms) CL_API_SUFFIX__VERSION_1_0
 {
-     if (_starpu_init_failed)
-     {
-	  if (num_platforms != NULL)
-	       *num_platforms = 0;
-	  return CL_SUCCESS;
-     }
+	if (_starpu_init_failed)
+	{
+		if (num_platforms != NULL)
+			*num_platforms = 0;
+		return CL_SUCCESS;
+	}
 
-     if ((num_entries == 0 && platforms != NULL)
-	 || (num_platforms == NULL && platforms == NULL))
-	  return CL_INVALID_VALUE;
+	if ((num_entries == 0 && platforms != NULL)
+	    || (num_platforms == NULL && platforms == NULL))
+		return CL_INVALID_VALUE;
+	else
+	{
+		if (platforms != NULL)
+			platforms[0] = &socl_platform;
 
-     else {
-	  if (platforms != NULL)
-	       platforms[0] = &socl_platform;
+		if (num_platforms != NULL)
+			*num_platforms = 1;
+	}
 
-	  if (num_platforms != NULL)
-	       *num_platforms = 1;
-     }
-
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

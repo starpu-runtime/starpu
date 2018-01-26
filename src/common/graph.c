@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2017  Université de Bordeaux
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2016-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -340,8 +341,9 @@ static void _starpu_graph_compute_bottom_up(void (*func)(struct _starpu_graph_no
 	free(next_set);
 }
 
-static void compute_depth(struct _starpu_graph_node *next_node, struct _starpu_graph_node *prev_node, void *data STARPU_ATTRIBUTE_UNUSED)
+static void compute_depth(struct _starpu_graph_node *next_node, struct _starpu_graph_node *prev_node, void *data)
 {
+	(void)data;
 	if (prev_node->depth < next_node->depth + 1)
 		prev_node->depth = next_node->depth + 1;
 }

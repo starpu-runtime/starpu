@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012 INRIA
+# Copyright (C) 2011, 2012 Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -95,8 +95,7 @@ if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)			\
-	  -I$(top_builddir)/include -I$(top_srcdir)/include
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS) -I$(top_builddir)/include -I$(top_srcdir)/include
 endif
 
 else !STARPU_USE_CUDA

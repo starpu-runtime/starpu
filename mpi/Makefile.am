@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
-# Copyright (C) 2016  Inria
+# Copyright (C) 2011-2012,2016                           Inria
+# Copyright (C) 2009-2015                                Université de Bordeaux
+# Copyright (C) 2010-2013,2015,2017                      CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 SUBDIRS=src tests examples
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -25,6 +25,13 @@ versinclude_HEADERS = 					\
 	include/starpu_mpi.h				\
 	include/starpu_mpi_lb.h				\
 	include/fstarpu_mpi_mod.f90
+
+recheck:
+	RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i recheck || RET=1 ; \
+	done ; \
+	exit $$RET
 
 showcheck:
 	RET=0 ; \

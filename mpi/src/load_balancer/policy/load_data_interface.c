@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
- * Copyright (C) 2017  CNRS
+ * Copyright (C) 2016                                     Inria
+ * Copyright (C) 2017                                     CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +17,11 @@
 
 #include <starpu.h>
 #include <stdlib.h>
+#include <common/config.h>
 
 #include "load_data_interface.h"
+
+#if defined(STARPU_USE_MPI_MPI)
 
 int load_data_get_sleep_threshold(starpu_data_handle_t handle)
 {
@@ -124,7 +127,7 @@ int load_data_wakeup_cond(starpu_data_handle_t handle)
 	struct load_data_interface *ld_interface =
 		(struct load_data_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	return ((ld_interface->wakeup_task_threshold > 0) && (ld_interface->nfinished_tasks == ld_interface->wakeup_task_threshold));
+	return (ld_interface->wakeup_task_threshold > 0) && (ld_interface->nfinished_tasks == ld_interface->wakeup_task_threshold);
 }
 
 static void load_data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -166,7 +169,7 @@ static void load_data_free_data_on_node(void *data_interface, unsigned node)
 static size_t load_data_get_size(starpu_data_handle_t handle)
 {
 	(void) handle;
-	return (sizeof(struct load_data_interface));
+	return sizeof(struct load_data_interface);
 }
 
 static uint32_t load_data_footprint(starpu_data_handle_t handle)
@@ -267,3 +270,5 @@ void load_data_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 
 	starpu_data_register(handleptr, home_node, &load_data, &interface_load_data_ops);
 }
+
+#endif

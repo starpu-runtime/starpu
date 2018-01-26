@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010-2014, 2017  CNRS
- * Copyright (C) 2016, 2017  INRIA
- * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2013-2017                                Inria
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2009-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -165,6 +165,12 @@ void starpu_worker_lock_self(void);
 void starpu_worker_unlock_self(void);
 
 int starpu_wake_worker_relax(int workerid);
+
+#ifdef STARPU_WORKER_CALLBACKS
+void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid));
+
+void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
+#endif
 
 #ifdef STARPU_HAVE_HWLOC
 hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);

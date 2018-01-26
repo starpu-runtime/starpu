@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -301,7 +302,7 @@ static void initialize_system(int argc, char **argv, float **A, unsigned pinned)
 	starpu_malloc_flags((void **)A, size_p*size_p*sizeof(float), flags);
 }
 
-int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned pinned)
+int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
 {
 	double start;
 	double end;
@@ -380,7 +381,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	ret = cholesky_grain(mat, size_p, size_p, nblocks_p, nbigblocks_p, pinned_p);
+	ret = cholesky_grain(mat, size_p, size_p, nblocks_p, nbigblocks_p);
 
 #ifdef CHECK_OUTPUT
 	FPRINTF(stdout, "Results :\n");

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2014,2017                           CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,67 +27,75 @@ static starpu_pthread_spinlock_t p_mem_objects_spinlock[mem_object_hash_key];
 #define LOCK(i) starpu_pthread_spin_lock(&p_mem_objects_spinlock[i]);
 #define UNLOCK(i) starpu_pthread_spin_unlock(&p_mem_objects_spinlock[i]);
 
-void mem_object_init(void) {
-  int i;
-  for (i=0; i<mem_object_hash_key; i++) {
-    starpu_pthread_spin_init(&p_mem_objects_spinlock[i], 0);
-  }
+void mem_object_init(void)
+{
+	int i;
+	for (i=0; i<mem_object_hash_key; i++)
+	{
+		starpu_pthread_spin_init(&p_mem_objects_spinlock[i], 0);
+	}
 }
 
-static int mem_object_hash(const void * addr) {
-  uintptr_t t = (uintptr_t)addr;
-  uintptr_t t2 = t >> 4;
-  uintptr_t t3 = t2 % mem_object_hash_key;
-  return (int)t3;
+static int mem_object_hash(const void * addr)
+{
+	uintptr_t t = (uintptr_t)addr;
+	uintptr_t t2 = t >> 4;
+	uintptr_t t3 = t2 % mem_object_hash_key;
+	return (int)t3;
 }
 
-void mem_object_store(cl_mem m) {
-   int hash = mem_object_hash(m);
+void mem_object_store(cl_mem m)
+{
+	int hash = mem_object_hash(m);
 
-   LOCK(hash);
+	LOCK(hash);
 
-   m->prev = NULL;
-   m->next = p_mem_objects[hash];
-   if (p_mem_objects[hash] != NULL)
-      p_mem_objects[hash]->prev = m;
-   p_mem_objects[hash] = m;
+	m->prev = NULL;
+	m->next = p_mem_objects[hash];
+	if (p_mem_objects[hash] != NULL)
+		p_mem_objects[hash]->prev = m;
+	p_mem_objects[hash] = m;
 
-   UNLOCK(hash);
+	UNLOCK(hash);
 }
 
-void mem_object_release(cl_mem m) {
+void mem_object_release(cl_mem m)
+{
+	int hash = mem_object_hash(m);
 
-   int hash = mem_object_hash(m);
+	LOCK(hash);
 
-   LOCK(hash);
+	if (m->prev != NULL)
+		m->prev->next = m->next;
+	if (m->next != NULL)
+		m->next->prev = m->prev;
 
-   if (m->prev != NULL)
-     m->prev->next = m->next;
-   if (m->next != NULL)
-     m->next->prev = m->prev;
+	if (p_mem_objects[hash] == m)
+	{
+		p_mem_objects[hash] = m->next;
+	}
 
-   if (p_mem_objects[hash] == m) {
-      p_mem_objects[hash] = m->next;
-   }
-
-   UNLOCK(hash)
+	UNLOCK(hash)
 }
 
-cl_mem mem_object_fetch(const void * addr) {
-   int hash = mem_object_hash(*(cl_mem*)addr);
+cl_mem mem_object_fetch(const void * addr)
+{
+	int hash = mem_object_hash(*(cl_mem*)addr);
 
-   LOCK(hash);
+	LOCK(hash);
 
-   cl_mem buf;
-   for (buf = p_mem_objects[hash]; buf != NULL; buf = buf->next) {
-      if (*(cl_mem*)addr == buf) {
-         UNLOCK(hash);
-         return buf;
-      }
-   }
+	cl_mem buf;
+	for (buf = p_mem_objects[hash]; buf != NULL; buf = buf->next)
+	{
+		if (*(cl_mem*)addr == buf)
+		{
+			UNLOCK(hash);
+			return buf;
+		}
+	}
 
-   UNLOCK(hash);
-   return NULL;
+	UNLOCK(hash);
+	return NULL;
 }
 
 #undef LOCK

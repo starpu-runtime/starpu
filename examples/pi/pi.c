@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2011,2013-2015                      Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +43,7 @@ static unsigned long long nshot_per_task = 16*1024*1024ULL;
 
 void cpu_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *directions = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned nx = nshot_per_task;
 
@@ -74,6 +76,8 @@ void cpu_kernel(void *descr[], void *cl_arg)
 /* The amount of work does not depend on the data size at all :) */
 static size_t size_base(struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	return nshot_per_task;
 }
 

@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
- * Copyright (C) 2016  INRIA
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011,2016-2017                           Inria
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,6 +72,7 @@ void _starpu_deinit_data_request_lists(void)
 		_starpu_data_request_prio_list_deinit(&prefetch_requests[i]);
 		_starpu_data_request_prio_list_deinit(&idle_requests[i]);
 		STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_pending_list_mutex[i]);
+		_starpu_data_request_prio_list_deinit(&data_requests_pending[i]);
 		STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_list_mutex[i]);
 	}
 }
@@ -637,6 +639,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 		/* Prefetch requests might have gotten promoted while in tmp list */
 		_starpu_data_request_prio_list_push_back(&new_data_requests[r->prefetch], r);
 	}
+	_starpu_data_request_prio_list_deinit(&local_list);
 
 	for (i = 0; i <= prefetch; i++)
 		if (!_starpu_data_request_prio_list_empty(&new_data_requests[i]))
@@ -702,7 +705,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
 	struct _starpu_data_request_prio_list new_data_requests_pending;
-	struct _starpu_data_request_prio_list empty_list;
 	unsigned taken, kept;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -713,7 +715,6 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 		return 0;
 #endif
 
-	_starpu_data_request_prio_list_init(&empty_list);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!force)
 	{
@@ -800,6 +801,7 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 			}
 		}
 	}
+	_starpu_data_request_prio_list_deinit(&local_list);
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 	data_requests_npending[src_node] -= taken - kept;
 	if (kept)
@@ -835,7 +837,7 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	no_pending = !data_requests_npending[node];
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node]);
 
-	return (no_request && no_pending);
+	return no_request && no_pending;
 }
 
 /* Note: the returned value will be outdated since the locks are not taken at

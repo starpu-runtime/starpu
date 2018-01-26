@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2016-2017                                Inria
+ * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2010,2013-2015                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,7 +98,7 @@ void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
  * Schedule saving boundaries of blocks to communication buffers
  */
 
-static void create_task_save_local(unsigned iter, unsigned z, int dir, int local_rank)
+static void create_task_save_local(unsigned z, int dir)
 {
 	struct block_description *descr = get_block_description(z);
 	struct starpu_codelet *codelet;
@@ -194,10 +195,10 @@ void create_tasks(int rank)
 			     int node_z_and_t = get_block_mpi_node(bz+1);
 
 			     if ((node_z == rank) || ((node_z != node_z_and_b) && (node_z_and_b == rank)))
-				     create_task_save_local(iter, bz, +1, rank);
+				     create_task_save_local(bz, +1);
 
 			     if ((node_z == rank) || ((node_z != node_z_and_t) && (node_z_and_t == rank)))
-				     create_task_save_local(iter, bz, -1, rank);
+				     create_task_save_local(bz, -1);
 		     }
 	     }
 	}

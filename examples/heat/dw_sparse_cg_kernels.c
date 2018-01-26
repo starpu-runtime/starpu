@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
- * Copyright (C) 2010, 2017  CNRS
+ * Copyright (C) 2008-2011,2013-2014,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,8 +55,9 @@
  *		descr[0] = A, descr[1] = x, descr [2] = r, descr[3] = b
  */
 
-void cpu_codelet_func_1(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void cpu_codelet_func_1(void *descr[], void *arg)
 {
+	(void)arg;
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
@@ -97,8 +98,9 @@ void cpu_codelet_func_1(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
  *	compute d = r
  *		descr[0] = d, descr[1] = r
  */
-void cpu_codelet_func_2(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void cpu_codelet_func_2(void *descr[], void *arg)
 {
+	(void)arg;
 	/* simply copy r into d */
 	uint32_t nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
@@ -167,8 +169,9 @@ void cublas_codelet_func_3(void *descr[], void *arg)
  *		descr[0] = A, descr[1] = d, descr [2] = q
  */
 
-void cpu_codelet_func_4(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void cpu_codelet_func_4(void *descr[], void *arg)
 {
+	(void)arg;
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);

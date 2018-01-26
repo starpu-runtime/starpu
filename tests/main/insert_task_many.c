@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2011-2015,2017                           CNRS
+ * Copyright (C) 2015-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <starpu_config.h>
 #include "../helper.h"
@@ -26,8 +26,9 @@
 
 #define NPARAMS 15
 
-void func_cpu(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
+void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	struct starpu_task *task = starpu_task_get_current();
 	int num = STARPU_TASK_GET_NBUFFERS(task);
 	int i;
@@ -88,7 +89,7 @@ struct starpu_codelet codelet_variable =
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
         int *x;
         int i, ret, loop;
@@ -133,8 +134,10 @@ int main(int argc, char **argv)
 	for (loop = 0; loop < nloops; loop++)
 	{
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_dyn,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],
@@ -157,8 +160,10 @@ int main(int argc, char **argv)
 
 		/* Same, but using the toomany codelet */
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_toomany,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],
@@ -181,8 +186,10 @@ int main(int argc, char **argv)
 
 		/* Same, but using the variable codelet */
 		for (i = 0; i < NPARAMS; i++)
-			if ((codelet_dyn.dyn_modes[i] & STARPU_W))
+		{
+			if (codelet_dyn.dyn_modes[i] & STARPU_W)
 				expected[i]++;
+		}
 		ret = starpu_task_insert(&codelet_variable,
 					 STARPU_R, data_handles[0],
 					 STARPU_R, data_handles[1],

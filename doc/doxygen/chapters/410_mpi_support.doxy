@@ -1,9 +1,19 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012, 2017  INRIA
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011-2013,2017                           Inria
+ * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page MPISupport MPI Support
@@ -190,7 +200,9 @@ int main(int argc, char **argv)
 
 We have here replaced <c>MPI_Recv()</c> and <c>MPI_Send()</c> with starpu_mpi_irecv_detached()
 and starpu_mpi_isend_detached(), which just submit the communication to be
-performed. The only remaining synchronization with starpu_data_acquire() is at
+performed. The implicit sequential consistency dependencies provide
+synchronization between mpi reception and emission and the corresponding tasks.
+The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
 
 \section MPIInitialization How to Initialize StarPU-MPI
@@ -569,6 +581,96 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+\section MPITemporaryData Temporary Data
+
+To be able to use starpu_mpi_task_insert(), one has to call
+starpu_mpi_data_register(), so that StarPU-MPI can know what it needs to do for
+each data. Parameters of starpu_mpi_data_register() are normally the same on all
+nodes for a given data, so that all nodes agree on which node owns the data, and
+which tag is used to transfer its value.
+
+It can however be useful to register e.g. some temporary data on just one node,
+without having to register a dumb handle on all nodes, while only one node will
+actually need to know about it. In that case, nodes which will not need the data
+can just pass NULL to starpu_mpi_task_insert():
+
+\code{.c}
+starpu_data_handle_t data0 = NULL;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, 0, rank);
+}
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data0, 0); /* Executes on node 0 */
+\endcode
+
+Here, nodes whose rank is not 0 will simply not take care of the data, and consider it to be on another node.
+
+This can be mixed various way, for instance here node 1 determines that it does
+not have to care about data0, but knows that it should send the value of its
+data1 to node 0, which owns data and thus will need the value of data1 to execute the task:
+
+\code{.c}
+starpu_data_handle_t data0 = NULL, data1, data;
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_mpi_data_register(data0, -1, rank);
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+	starpu_variable_data_register(&data, -1, 0, sizeof(val));
+}
+starpu_mpi_data_register(data, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
+\endcode
+
+\section MPIPerNodeData Per-node Data
+
+Further than temporary data on just one node, one may want per-node data,
+to e.g. replicate some computation because that is less expensive than
+communicating the value over MPI:
+
+\code{.c}
+starpu_data_handle pernode, data0, data1;
+starpu_variable_data_register(&pernode, -1, 0, sizeof(val));
+starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
+
+/* Normal data: one on node0, one on node1 */
+if (rank == 0) {
+	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+} else if (rank == 1) {
+	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
+	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+}
+starpu_mpi_data_register(data0, 42, 0);
+starpu_mpi_data_register(data1, 43, 1);
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, pernode, 0); /* Will be replicated on all nodes */
+
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data0, STARPU_R, pernode); /* Will execute on node 0, using its own pernode*/
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data1, STARPU_R, pernode); /* Will execute on node 1, using its own pernode*/
+\endcode
+
+One can turn a normal data into pernode data, by first broadcasting it to all nodes:
+
+\code{.c}
+starpu_data_handle data;
+starpu_variable_data_register(&data, -1, 0, sizeof(val));
+starpu_mpi_data_register(data, 42, 0);
+
+/* Compute some value */
+starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, 0); /* Node 0 computes it */
+
+/* Get it on all nodes */
+starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, data);
+/* And turn it per-node */
+starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
+\endcode
+
+The data can then be used just like pernode above.
+
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional
@@ -577,6 +679,10 @@ requests before submitting them to MPI. The default priority is 0.
 
 When using the starpu_mpi_task_insert helper, STARPU_PRIORITY defines both the
 task priority and the MPI requests priority.
+
+To test how much MPI priorities have a good effect on performance, you can
+set the environment variable STARPU_MPI_PRIORITIES to 0 to disable the use of
+priorities in StarPU-MPI.
 
 \section MPICache MPI cache support
 
@@ -782,6 +888,18 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 </li>
 </ul>
 
+\section MPIImplementation Notes about the Implementation
+
+StarPU-MPI is implemented directly on top of MPI.
+
+Since the release 1.3.0, an implementation on top of NewMadeleine, an
+optimizing communication library for high-performance networks, is
+also provided. To use it, one needs to install NewMadeleine (see
+http://pm2.gforge.inria.fr/newmadeleine/) and enable the configure
+option \ref enable-nmad "--enable-nmad".
+
+Both implementations provide the same public API.
+
 \section MPIMasterSlave MPI Master Slave Support
 
 StarPU provides an other way to execute applications across many
@@ -791,13 +909,13 @@ the configure option \ref enable-mpi-master-slave
 "--enable-mpi-master-slave". However, you should not activate both MPI
 support and MPI Master-Slave support.
 
-If a codelet contains a kernel for CPU devices, it is automatically eligible to be executed
-on a MPI Slave device. Moreover, you can force the execution on a MPI Slave by setting
-the field \ref starpu_codelet::mpi_ms_funcs. Functions have to be
-globally-visible (i.e. not static) for StarPU to be able to look them
-up, and <c>-rdynamic</c> must be passed to gcc (or
-<c>-export-dynamic</c> to ld) so that symbols of the main program are
-visible.
+The existing kernels for CPU devices can be used as such. They only have to be
+exposed through the name of the function in the \ref starpu_codelet::cpu_funcs_name field.
+Functions have to be globally-visible (i.e. not static) for StarPU to
+be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
+<c>-export-dynamic</c> to ld) so that symbols of the main program are visible.
+Optionally, you can choose the use of another function on slaves thanks to
+the field \ref starpu_codelet::mpi_ms_funcs.
 
 By default, one core is dedicated on the master node to manage the
 entire set of slaves. If the implementation of MPI you are using has a

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013-2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2011,2013-2014,2016                 Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -49,13 +49,13 @@ static unsigned k=K_DEF;
  */
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
-void cuda_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void cuda_codelet_incA(void *descr[], void *_args);
+void cuda_codelet_incC(void *descr[], void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
-void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void opencl_codelet_incA(void *descr[], void *_args);
+void opencl_codelet_incC(void *descr[], void *_args);
 struct starpu_opencl_program opencl_code;
 #endif
 
@@ -64,14 +64,16 @@ struct starpu_opencl_program opencl_code;
 starpu_data_handle_t v_handle;
 static unsigned v[VECTORSIZE] STARPU_ATTRIBUTE_ALIGNED(128) = {0, 0, 0, 0};
 
-void cpu_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet_incA(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[0]++;
 }
 
-void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet_incC(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[2]++;
 }

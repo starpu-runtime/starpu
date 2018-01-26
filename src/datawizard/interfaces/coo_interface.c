@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2017  Université Bordeaux
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2012-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,10 +177,10 @@ coo_compare(void *a, void *b)
 	coo_a = (struct starpu_coo_interface *) a;
 	coo_b = (struct starpu_coo_interface *) b;
 
-	return (coo_a->nx == coo_b->nx &&
+	return coo_a->nx == coo_b->nx &&
 		coo_a->ny == coo_b->ny &&
 		coo_a->n_values == coo_b->n_values &&
-		coo_a->elemsize == coo_b->elemsize);
+		coo_a->elemsize == coo_b->elemsize;
 }
 
 static void

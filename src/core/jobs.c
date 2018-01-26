@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014, 2016-2017  INRIA
+ * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +34,7 @@
 #include <limits.h>
 
 static int max_memory_use;
-static int njobs, maxnjobs;
+static unsigned long njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
 /* List of all jobs, for debugging */
@@ -53,7 +54,7 @@ void _starpu_job_fini(void)
 {
 	if (max_memory_use)
 	{
-		_STARPU_DISP("Memory used for %d tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
+		_STARPU_DISP("Memory used for %lu tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
 		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
 }
@@ -97,7 +98,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	}
 	if (max_memory_use)
 	{
-		int jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
+		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs, 1);
 		if (jobs > maxnjobs)
 			maxnjobs = jobs;
 	}
@@ -213,7 +214,7 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	else
 	{
 		STARPU_SYNCHRONIZE();
-		return (j->terminated == 2);
+		return j->terminated == 2;
 	}
 }
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
@@ -747,6 +748,9 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	}
 	else
 	{
+#ifdef STARPU_DEVEL
+#warning FIXME use a prio_list
+#endif
 		if (prio)
 			starpu_task_list_push_front(&worker->local_tasks, task);
 		else

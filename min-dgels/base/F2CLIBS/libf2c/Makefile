@@ -21,7 +21,7 @@ include $(TOPDIR)/make.inc
 # compile, then strip unnecessary symbols
 .c.o:
 	$(CC) -c -DSkip_f2c_Undefs $(CFLAGS) $*.c
-	ld -r -x -o $*.xxx $*.o
+	$(LD) -r -x -o $*.xxx $*.o
 	mv $*.xxx $*.o
 ## Under Solaris (and other systems that do not understand ld -x),
 ## omit -x in the ld line above.
@@ -83,7 +83,7 @@ libminf2c.a: $(OFILES)
 ## of "cc -shared".
 
 libf2c.so: $(OFILES)
-	cc -shared -o libf2c.so $(OFILES)
+	$(CC) -shared -o libf2c.so $(OFILES)
 
 ### If your system lacks ranlib, you don't need it; see README.
 

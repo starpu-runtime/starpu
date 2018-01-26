@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2009-2016                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +17,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -47,6 +47,8 @@ static unsigned cnt = NTASKS;
 
 static void callback(void *arg)
 {
+	(void)arg;
+
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 	ANNOTATE_HAPPENS_BEFORE(&cnt);
 
@@ -60,8 +62,11 @@ static void callback(void *arg)
 	}
 }
 
-void codelet_sleep(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_sleep(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	usleep(TASKDURATION);

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2011-2013,2015,2017                      CNRS
+ * Copyright (C) 2013-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -43,7 +44,9 @@ void func_cpu_noargs(void *descr[], void *_args)
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-        *x0 = *x0 * _ifactor;
+	(void)_args;
+
+	*x0 = *x0 * _ifactor;
         *x1 = *x1 * _ffactor;
 }
 
@@ -115,10 +118,10 @@ enodev:
         }
 
         FPRINTF(stderr, "values: %d (should be %d) %f (should be %f)\n\n", xx, x*_ifactor, ff, f*_ffactor);
-	return (ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor);
+	return ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
         int x; float f;
         int i, ret;

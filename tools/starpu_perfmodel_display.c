@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2014, 2017  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2009-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +17,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <assert.h>
 #include <getopt.h>
 #include <unistd.h>
 #include <stdio.h>
 
+#include <common/config.h>
 #include <starpu.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -59,7 +60,7 @@ static void usage()
 	fprintf(stderr, "   -d                  display the directory storing performance models\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
         fprintf(stderr, "\n");
 }
 

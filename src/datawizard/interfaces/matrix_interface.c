@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2011-2012,2017                           Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +22,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <starpu_hash.h>
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
@@ -211,9 +213,9 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((matrix_a->nx == matrix_b->nx)
-			&& (matrix_a->ny == matrix_b->ny)
-			&& (matrix_a->elemsize == matrix_b->elemsize));
+	return (matrix_a->nx == matrix_b->nx)
+		&& (matrix_a->ny == matrix_b->ny)
+		&& (matrix_a->elemsize == matrix_b->elemsize);
 }
 
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
@@ -238,7 +240,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		uint32_t y;
 		char *matrix = (void *)matrix_interface->ptr;
 
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 
 		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)
@@ -443,7 +445,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 #ifndef BUGGED_MEMCPY3D
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 

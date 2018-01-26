@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2011-2012,2017                           Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +23,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 
 #include <starpu_hash.h>
 
@@ -137,9 +139,9 @@ static int csr_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_csr_interface *csr_b = (struct starpu_csr_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((csr_a->nnz == csr_b->nnz)
-			&& (csr_a->nrow == csr_b->nrow)
-			&& (csr_a->elemsize == csr_b->elemsize));
+	return (csr_a->nnz == csr_b->nnz)
+		&& (csr_a->nrow == csr_b->nrow)
+		&& (csr_a->elemsize == csr_b->elemsize);
 }
 
 /* offer an access to the data parameters */
@@ -362,7 +364,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 		char *tmp = *ptr;
 		memcpy(tmp, (void*)csr->colind, csr->nnz * sizeof(csr->colind[0]));
 		tmp += csr->nnz * sizeof(csr->colind[0]);

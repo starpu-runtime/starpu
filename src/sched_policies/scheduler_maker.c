@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Simon Archipoff
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2013                                     Simon Archipoff
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +20,15 @@
 #include <starpu_sched_component.h>
 #include <common/list.h>
 #include <core/workers.h>
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
 
 #include "sched_component.h"
 
@@ -69,7 +80,8 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	switch(obj->type)
 	{
 		CASE(HWLOC_OBJ_MACHINE,hwloc_machine_composed_sched_component);
-		CASE(HWLOC_OBJ_NODE,hwloc_component_composed_sched_component);
+		CASE(HWLOC_OBJ_GROUP,hwloc_component_composed_sched_component);
+		CASE(HWLOC_OBJ_NUMANODE,hwloc_component_composed_sched_component);
 		CASE(HWLOC_OBJ_SOCKET,hwloc_socket_composed_sched_component);
 		CASE(HWLOC_OBJ_CACHE,hwloc_cache_composed_sched_component);
 	default:
@@ -141,7 +153,8 @@ static int is_same_kind_of_all(struct starpu_sched_component * root, struct _sta
 static struct starpu_sched_component * find_mem_component(struct starpu_sched_component * root, struct starpu_sched_component * worker_component)
 {
 	struct starpu_sched_component * component = worker_component;
-	while(component->obj->type != HWLOC_OBJ_NODE
+	while(component->obj->type != HWLOC_OBJ_NUMANODE
+	      && component->obj->type != HWLOC_OBJ_GROUP
 	      && component->obj->type != HWLOC_OBJ_MACHINE)
 	{
 		hwloc_obj_t tmp = component->obj;
@@ -170,7 +183,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 		   && is_same_kind_of_all(parent->children[i], worker_component->data))
 			return parent->children[i];
 	}
-	if(obj->type == HWLOC_OBJ_NODE)
+	if(obj->type == HWLOC_OBJ_NUMANODE || obj->type == HWLOC_OBJ_GROUP)
 	{
 		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(root->tree, specs.hwloc_component_composed_sched_component);
 		component->obj = obj;

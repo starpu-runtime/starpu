@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016, 2017  INRIA
+ * Copyright (C) 2013-2017                                CNRS
+ * Copyright (C) 2012,2016-2017                           Inria
+ * Copyright (C) 2013-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +63,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	if(j->task_size > 1)
 	{
 		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid);
+		(void) STARPU_ATOMIC_ADD(&j->after_work_busy_barrier, -1);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&cb_worker->count_mutex);
 		count = cb_worker->count--;

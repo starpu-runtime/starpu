@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2015                    Université Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2013                                     Inria
+ * Copyright (C) 2012-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +20,9 @@
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	int *x2 = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
@@ -33,23 +35,12 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 4,
 	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014, 2017  INRIA
+ * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017                                Inria
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -920,6 +922,16 @@ void _starpu_omp_dummy_shutdown(void)
  */
 int starpu_omp_init(void)
 {
+#ifdef STARPU_SIMGRID
+	/* XXX: ideally we'd pass the real argc/argv.  */
+	/* We have to tell simgrid to avoid cleaning up at exit, since that's before our destructor :/ */
+	char *argv[] = { "program", "--cfg=clean-atexit:0", NULL };
+	int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+	char **_argv = argv;
+	/* Initialize simgrid before anything else.  */
+	_starpu_simgrid_init_early(&argc, &_argv);
+#endif
+
 	_starpu_omp_global_state = &_global_state;
 
 	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
@@ -991,6 +1003,9 @@ void starpu_omp_shutdown(void)
 	_starpu_omp_environment_exit();
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_deinit_late();
+#endif
 }
 
 static void implicit_task__destroy_callback(void *_task)
@@ -1987,7 +2002,7 @@ int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long 
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
-	return (*_nb_i != 0);
+	return *_nb_i != 0;
 }
 
 int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
@@ -2001,7 +2016,7 @@ int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long l
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
-	return (*_nb_i != 0);
+	return *_nb_i != 0;
 }
 
 int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i)

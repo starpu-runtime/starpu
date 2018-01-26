@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1093,7 +1094,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 #endif /* STARPU_HAVE_GLPK_H */
 
 /* Print the computed bound as well as the optimized distribution of tasks */
-void starpu_bound_print(FILE *output, int integer STARPU_ATTRIBUTE_UNUSED)
+void starpu_bound_print(FILE *output, int integer)
 {
 #ifdef STARPU_HAVE_GLPK_H
 	if (recorddeps)
@@ -1139,12 +1140,13 @@ void starpu_bound_print(FILE *output, int integer STARPU_ATTRIBUTE_UNUSED)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 #else /* STARPU_HAVE_GLPK_H */
+	(void) integer;
 	fprintf(output, "Please rebuild StarPU with glpk installed.\n");
 #endif /* STARPU_HAVE_GLPK_H */
 }
 
 /* Compute and return the bound */
-void starpu_bound_compute(double *res, double *integer_res STARPU_ATTRIBUTE_UNUSED, int integer STARPU_ATTRIBUTE_UNUSED)
+void starpu_bound_compute(double *res, double *integer_res, int integer)
 {
 #ifdef STARPU_HAVE_GLPK_H
 	double ret;
@@ -1169,6 +1171,8 @@ void starpu_bound_compute(double *res, double *integer_res STARPU_ATTRIBUTE_UNUS
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	*res = ret;
 #else /* STARPU_HAVE_GLPK_H */
+	(void) integer_res;
+	(void) integer;
 	*res = 0.;
 #endif /* STARPU_HAVE_GLPK_H */
 }

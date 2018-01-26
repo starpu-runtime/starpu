@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2016-2017  Université de Bordeaux
- * Copyright (C) 2012-2014, 2016, 2017  CNRS
- * Copyright (C) 2011-2013, 2017  INRIA
+ * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2013-2014,2016-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,8 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 	int nworkers;
 	int w;
 
-	if (it->value) {
+	if (it->value)
+	{
 		struct starpu_tree *node = it->value;
 		/* Are there workers left to be processed in the current node? */
 		nworkers = starpu_bindid_get_workerids(node->id, &workerids);

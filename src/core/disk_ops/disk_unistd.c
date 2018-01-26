@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2013-2014                                Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,11 +63,17 @@ struct starpu_disk_ops starpu_disk_unistd_ops =
 	.write = starpu_unistd_global_write,
 	.plug = starpu_unistd_global_plug,
 	.unplug = starpu_unistd_global_unplug,
+#ifdef STARPU_UNISTD_USE_COPY
+	.copy = starpu_unistd_global_copy,
+#else
 	.copy = NULL,
+#endif
 	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
 #ifdef HAVE_AIO_H
 	.async_read = starpu_unistd_global_async_read,
 	.async_write = starpu_unistd_global_async_write,
+	.async_full_read = starpu_unistd_global_async_full_read,
+	.async_full_write = starpu_unistd_global_async_full_write,
 	.wait_request = starpu_unistd_global_wait_request,
 	.test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,

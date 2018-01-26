@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013,2015                           Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,8 +34,9 @@
  *	and construct the DAG
  */
 
-static void callback_turn_spmd_on(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_turn_spmd_on(void *arg)
 {
+	(void)arg;
 	cl22.type = STARPU_SPMD;
 }
 
@@ -201,10 +203,10 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	float *mat = NULL;
-	unsigned i,j;
 
-	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #ifndef STARPU_SIMGRID
+	unsigned i,j;
+	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	for (i = 0; i < size; i++)
 	{
 		for (j = 0; j < size; j++)
@@ -213,7 +215,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
-#endif
 
 /* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
@@ -235,9 +236,11 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		FPRINTF(stdout, "\n");
 	}
 #endif
+#endif
 
 	cholesky(mat, size, size, nblocks);
 
+#ifndef STARPU_SIMGRID
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
 	for (j = 0; j < size; j++)
@@ -315,6 +318,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		free(test_mat);
 	}
 	starpu_free_flags(mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+#endif
 }
 
 int main(int argc, char **argv)
@@ -356,7 +360,7 @@ int main(int argc, char **argv)
 
 	if(with_ctxs_p)
 	{
-		construct_contexts(execute_cholesky);
+		construct_contexts();
 		start_2benchs(execute_cholesky);
 	}
 	else if(with_noctxs_p)

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2015-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2015                                     Inria
+ * Copyright (C) 2010-2013,2016-2017                      CNRS
+ * Copyright (C) 2010-2012,2015-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +18,6 @@
 
 #include <starpu.h>
 #include "../helper.h"
-#include <common/config.h>
 
 /*
  * Try various values for STARPU_WORKERS_CPUID, checking that the
@@ -26,7 +26,7 @@
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
 #warning unsetenv is not defined or no cpu are available. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -77,13 +77,14 @@ static void copy_cpuid_array(long *dst, long *src, unsigned n)
 static char *array_to_str(long *array, int n)
 {
 	int i;
-	char *str = malloc(n * 3 * sizeof(long));
+	int len = n * 3 * sizeof(long);
+	char *str = malloc(len);
 	char *ptr = str;
 
 	for (i=0; i<n; i++)
 	{
 		int nchar;
-		nchar = sprintf(ptr, "%ld ", array[i]);
+		nchar = snprintf(ptr, len - (ptr-str), "%ld ", array[i]);
 		ptr += nchar;
 	}
 
@@ -119,7 +120,6 @@ static int test_combination(long *combination, unsigned n)
 	return 1;
 }
 
-
 static long * generate_arrangement(int arr_size, long *set, int set_size)
 {
 	int i;
@@ -141,7 +141,6 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	return set;
 }
 
-
 static void init_array(long *a, int n)
 {
 	int i;
@@ -150,8 +149,7 @@ static void init_array(long *a, int n)
 		a[i] = i;
 }
 
-
-int main(int argc, char **argv)
+int main(void)
 {
 	int i;
 	long *cpuids;

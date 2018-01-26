@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,18 +24,18 @@
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_cache.h>
-#include <starpu_mpi_sync_data.h>
-#include <starpu_mpi_early_data.h>
-#include <starpu_mpi_early_request.h>
 #include <starpu_mpi_select_node.h>
-#include <starpu_mpi_tag.h>
-#include <starpu_mpi_comm.h>
 #include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 #include <core/simgrid.h>
 #include <core/task.h>
+
+#if defined(STARPU_USE_MPI_MPI)
+#include <mpi/starpu_mpi_comm.h>
+#include <mpi/starpu_mpi_tag.h>
+#endif
 
 #ifdef STARPU_SIMGRID
 static int _mpi_world_size;
@@ -48,7 +48,7 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 	{
 		case MPI_THREAD_SERIALIZED:
 		{
-			_STARPU_DEBUG("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+			_STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
 			break;
 		}
 		case MPI_THREAD_FUNNELED:
@@ -61,6 +61,9 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 			_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
 			break;
 		}
+		case MPI_THREAD_MULTIPLE:
+			/* no problem */
+			break;
 	}
 }
 
@@ -69,6 +72,10 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	if (argc_argv->initialize_mpi)
 	{
 		int thread_support;
+#ifdef STARPU_USE_MPI_NMAD
+		/* strat_prio is preferred for StarPU instead of default strat_aggreg */
+		setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
+#endif /* STARPU_USE_MPI_NMAD */
 		_STARPU_DEBUG("Calling MPI_Init_thread\n");
 		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
 		{
@@ -121,9 +128,13 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 }
 #endif
 
-int starpu_mpi_init_comm(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED, int initialize_mpi STARPU_ATTRIBUTE_UNUSED, MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
+int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
 #ifdef STARPU_SIMGRID
+	(void)argc;
+	(void)argv;
+	(void)initialize_mpi;
+	(void)comm;
 	_starpu_mpi_wait_for_initialization();
 	return 0;
 #else
@@ -167,7 +178,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 
 int starpu_mpi_shutdown(void)
 {
-	int value;
+	uintptr_t value;
 	int rank, world_size;
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
@@ -182,8 +193,10 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();
 	_starpu_mpi_cache_shutdown(world_size);
+#if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_tag_shutdown();
 	_starpu_mpi_comm_shutdown();
+#endif
 
 	return 0;
 }
@@ -233,4 +246,3 @@ int starpu_mpi_world_rank(void)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
 }
-

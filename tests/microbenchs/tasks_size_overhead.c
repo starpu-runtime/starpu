@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2014,2016-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,8 +55,9 @@ static unsigned mintime = START, maxtime = STOP, factortime = FACTOR;
 
 struct starpu_task *tasks;
 
-void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void func(void *descr[], void *arg)
 {
+	(void)descr;
 	unsigned n = (uintptr_t)arg;
 	long usec = 0;
 	double tv1 = starpu_timing_now();
@@ -69,7 +71,7 @@ void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 
 double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
-	(void) t; (void) i;
+	(void) t; (void) i; (void) a;
 	unsigned n = (uintptr_t) t->cl_arg;
 	return n;
 }

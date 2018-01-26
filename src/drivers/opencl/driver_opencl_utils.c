@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2011-2012,2016                           Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -169,9 +170,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
 	}
 	source[x] = '\0';
 
-#ifdef STARPU_EXTRA_VERBOSE
-	_STARPU_DEBUG("OpenCL kernel <%s>\n", source);
-#endif
+	_STARPU_EXTRA_DEBUG("OpenCL kernel <%s>\n", source);
 
 	fclose(fh);
 
@@ -429,11 +428,11 @@ int _starpu_opencl_compile_or_load_opencl_from_file(const char *source_file_name
 
 	if (!strcmp(located_dir_name, ""))
 	{
-		sprintf(new_build_options, "%s", build_options);
+		snprintf(new_build_options, sizeof(new_build_options), "%s", build_options);
 	}
 	else
 	{
-		sprintf(new_build_options, "-I %s %s", located_dir_name, build_options);
+		snprintf(new_build_options, sizeof(new_build_options), "-I %s %s", located_dir_name, build_options);
 	}
 	_STARPU_DEBUG("Build options: <%s>\n", new_build_options);
 

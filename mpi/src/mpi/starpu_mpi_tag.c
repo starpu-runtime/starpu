@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011-2015  Université de Bordeaux
- * Copyright (C) 2014 INRIA
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2014                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,11 +23,13 @@
 #include <common/starpu_spinlock.h>
 #include <datawizard/coherency.h>
 
+#ifdef STARPU_USE_MPI_MPI
+
 /* Entry in the `registered_tag_handles' hash table.  */
 struct handle_tag_entry
 {
 	UT_hash_handle hh;
-	int tag;
+	starpu_mpi_tag_t data_tag;
 	starpu_data_handle_t handle;
 };
 
@@ -55,12 +57,12 @@ void _starpu_mpi_tag_shutdown(void)
 	registered_tag_handles = NULL;
 }
 
-starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int tag)
+starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t data_tag)
 {
 	struct handle_tag_entry *ret;
 
 	_starpu_spin_lock(&registered_tag_handles_lock);
-	HASH_FIND_INT(registered_tag_handles, &tag, ret);
+	HASH_FIND_INT(registered_tag_handles, &data_tag, ret);
 	_starpu_spin_unlock(&registered_tag_handles_lock);
 
 	if (ret)
@@ -73,37 +75,43 @@ starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(int tag)
 	}
 }
 
-void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, int tag)
+void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t data_tag)
 {
+	if (data_tag == -1)
+	{
+		/* No tag for this data, probably a temporary data not to be communicated */
+		return;
+	}
+
 	struct handle_tag_entry *entry;
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
-	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(tag)),
-			  "There is already a data handle %p registered with the tag %d\n", _starpu_mpi_tag_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(data_tag)),
+			  "There is already a data handle %p registered with the tag %ld\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
 
-	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %d in hashtable\n", handle, tag);
+	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64"d in hashtable\n", handle, data_tag);
 
 	entry->handle = handle;
-	entry->tag = tag;
+	entry->data_tag = data_tag;
 
 	_starpu_spin_lock(&registered_tag_handles_lock);
-	HASH_ADD_INT(registered_tag_handles, tag, entry);
+	HASH_ADD_INT(registered_tag_handles, data_tag, entry);
 	_starpu_spin_unlock(&registered_tag_handles_lock);
 }
 
 int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 {
-	int tag = starpu_mpi_data_get_tag(handle);
+	starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(handle);
 
-	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %d from hashtable\n", handle, tag);
+	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %"PRIi64"d from hashtable\n", handle, data_tag);
 
-	if (tag != -1)
+	if (data_tag != -1)
 	{
 		struct handle_tag_entry *tag_entry;
 
 		_starpu_spin_lock(&registered_tag_handles_lock);
 		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->node_tag.data_tag), tag_entry);
-		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,tag);
+		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %"PRIi64"d isn't in the hashmap !", handle, data_tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
 
@@ -113,3 +121,5 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 	}
 	return 0;
 }
+
+#endif // STARPU_USE_MPI_MPI

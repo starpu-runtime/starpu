@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2017  INRIA
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -124,7 +126,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	else
 		exp_len = prio->exp_len;
 
-	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
+	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) &&
 			((prio->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
 	{
 		static int warned;
@@ -146,15 +148,16 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 			starpu_sched_component_prefetch_on_node(component, task);
 			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, prio->ntasks, exp_len);
 		}
-		
-		if(!isnan(task->predicted_transfer)) {
-			double end = prio_estimated_end(component); 
-			double tfer_end = now + task->predicted_transfer; 
-			if(tfer_end < end) 
-				task->predicted_transfer = 0.0; 
-			else 
-				task->predicted_transfer = tfer_end - end; 
-			exp_len += task->predicted_transfer; 
+
+		if(!isnan(task->predicted_transfer))
+		{
+			double end = prio_estimated_end(component);
+			double tfer_end = now + task->predicted_transfer;
+			if(tfer_end < end)
+				task->predicted_transfer = 0.0;
+			else
+				task->predicted_transfer = tfer_end - end;
+			exp_len += task->predicted_transfer;
 		}
 
 		if(!isnan(task->predicted))
@@ -165,7 +168,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(prio->exp_end));
 		STARPU_ASSERT(!isnan(prio->exp_len));
 		STARPU_ASSERT(!isnan(prio->exp_start));
-		
+
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
@@ -206,7 +209,8 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 			}
 		}
 		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
-		if(!isnan(task->predicted_transfer)){
+		if(!isnan(task->predicted_transfer))
+		{
 			if (prio->exp_len > task->predicted_transfer)
 			{
 				prio->exp_start += task->predicted_transfer;
@@ -222,7 +226,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 		prio->exp_end = prio->exp_start + prio->exp_len;
 		if(prio->ntasks == 0)
 			prio->exp_len = 0.0;
-		
+
 		STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component, prio->ntasks, prio->exp_len);
 	}
 	STARPU_ASSERT(!isnan(prio->exp_end));
@@ -233,8 +237,8 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
 
-	starpu_sched_component_send_can_push_to_parents(component); 
-	
+	starpu_sched_component_send_can_push_to_parents(component);
+
 	if(task)
 		return task;
 
@@ -252,7 +256,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 	int res = 0;
 	struct starpu_task * task;
 
-	task = starpu_sched_component_pump_downstream(component, &res); 
+	task = starpu_sched_component_pump_downstream(component, &res);
 
 	if(task)
 	{

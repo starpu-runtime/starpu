@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2016  CNRS
- * Copyright (C) 2011, 2014, 2016  Université de Bordeaux
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2011,2013-2014,2016                      Université de Bordeaux
+ * Copyright (C) 2010,2012,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -25,8 +25,9 @@
 
 extern struct starpu_opencl_program opencl_code;
 
-void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void opencl_codelet_incA(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);
@@ -52,8 +53,9 @@ void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	starpu_opencl_release_kernel(kernel);
 }
 
-void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void opencl_codelet_incC(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[0]);

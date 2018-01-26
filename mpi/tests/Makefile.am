@@ -1,7 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012, 2015-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -82,16 +83,15 @@ else
 NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
@@ -101,7 +101,7 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 
 if BUILD_TESTS
 
-starpu_mpi_TESTS =				
+starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
 	cache					\
@@ -126,10 +126,12 @@ starpu_mpi_TESTS +=				\
 	policy_register_many			\
 	policy_selection			\
 	policy_selection2			\
-	ring_async_implicit
+	ring_async_implicit			\
+	temporary
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
+	attr					\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
@@ -149,13 +151,18 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_count			\
+	insert_task_seq				\
 	multiple_send				\
 	user_defined_datatype			\
 	tags_checking				\
 	sync					\
 	gather					\
-	gather2					\
+	gather2
+
+if STARPU_USE_MPI_MPI
+starpu_mpi_TESTS +=				\
 	load_balancer
+endif
 
 # Expected to fail
 starpu_mpi_TESTS +=				\
@@ -182,8 +189,10 @@ noinst_PROGRAMS =				\
 	ring_sync_detached			\
 	ring_async				\
 	ring_async_implicit			\
+	temporary				\
 	block_interface				\
 	block_interface_pinned			\
+	attr					\
 	cache					\
 	cache_disable				\
 	callback				\
@@ -200,6 +209,7 @@ noinst_PROGRAMS =				\
 	insert_task_node_choice			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
+	insert_task_seq				\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
@@ -218,116 +228,10 @@ noinst_PROGRAMS =				\
 	starpu_redefine				\
 	load_balancer
 
-
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\
 	starpu_redefine
-
-mpi_isend_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_earlyrecv_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_earlyrecv2_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_earlyrecv2_sync_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_irecv_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_isend_detached_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_irecv_detached_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_detached_tag_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_redux_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-datatypes_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-pingpong_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_test_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-ring_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-ring_sync_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-ring_sync_detached_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-ring_async_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-ring_async_implicit_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-block_interface_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-block_interface_pinned_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-cache_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-cache_disable_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-callback_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-matrix_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-matrix2_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_compute_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_sent_cache_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_recv_cache_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_block_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_owner_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_owner2_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_owner_data_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_node_choice_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_count_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-insert_task_dyn_handles_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-multiple_send_LDADD =				\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_scatter_gather_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_reduction_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-user_defined_datatype_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-tags_checking_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-sync_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-gather_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-gather2_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_register_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_register_many_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_register_toomany_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_unregister_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_selection_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-policy_selection2_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-early_request_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-starpu_redefine_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-load_balancer_LDADD =					\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c

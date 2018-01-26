@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2014, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2015                                     Inria
+ * Copyright (C) 2010,2014,2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,75 +24,77 @@
  */
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+static void codelet(void *descr[], void *arg)
 {
-     FPRINTF(stderr, "%lx\n", (unsigned long) STARPU_VARIABLE_GET_PTR(descr[0]));
-     FPRINTF(stderr, "codelet\n");
+	(void)descr;
+	(void)arg;
+	FPRINTF(stderr, "%lx\n", (unsigned long) STARPU_VARIABLE_GET_PTR(descr[0]));
+	FPRINTF(stderr, "codelet\n");
 }
 #endif
 
 #ifdef STARPU_USE_CUDA
 static struct starpu_codelet cuda_cl =
 {
-     .cuda_funcs = {codelet},
-     .nbuffers = 1,
-     .modes = {STARPU_R}
+	.cuda_funcs = {codelet},
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 #endif
 
 #ifdef STARPU_USE_OPENCL
 static struct starpu_codelet opencl_cl =
 {
-     .opencl_funcs = {codelet},
-     .nbuffers = 1,
-     .modes = {STARPU_R}
+	.opencl_funcs = {codelet},
+	.nbuffers = 1,
+	.modes = {STARPU_R}
 };
 #endif
 
 void dotest(struct starpu_codelet *cl)
 {
-     int ret;
-     int var = 42;
-     starpu_data_handle_t handle;
+	int ret;
+	int var = 42;
+	starpu_data_handle_t handle;
 
-     starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 
-     ret = starpu_task_insert(cl, STARPU_R, handle, 0);
-     if (ret == -ENODEV) goto enodev;
-     STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(cl, STARPU_R, handle, 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-     starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
-     starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 
-     starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 
-     ret = starpu_task_insert(cl, STARPU_R, handle, 0);
-     if (ret == -ENODEV) goto enodev;
-     STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(cl, STARPU_R, handle, 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-     starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
 enodev:
-     starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 }
 
-int main(int argc, char **argv)
+int main()
 {
-     int ret;
+	int ret;
 
-     ret = starpu_init(NULL);
-     if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
-     dotest(&cuda_cl);
+	dotest(&cuda_cl);
 #endif
 #ifdef STARPU_USE_OPENCL
-     dotest(&opencl_cl);
+	dotest(&opencl_cl);
 #endif
 
-     starpu_shutdown();
+	starpu_shutdown();
 
-     return 0;
+	return 0;
 }

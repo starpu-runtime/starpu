@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  INRIA
- * Copyright (C) 2012, 2013, 2014, 2016       CNRS
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2013,2015-2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -225,18 +226,18 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_multiformat_interface *multiformat_a = (struct starpu_multiformat_interface *) data_interface_a;
 	struct starpu_multiformat_interface *multiformat_b = (struct starpu_multiformat_interface *) data_interface_b;
 
-	return ((multiformat_a->nx == multiformat_b->nx)
-			&& (multiformat_a->ops->cpu_elemsize == multiformat_b->ops->cpu_elemsize)
+	return (multiformat_a->nx == multiformat_b->nx)
+		&& (multiformat_a->ops->cpu_elemsize == multiformat_b->ops->cpu_elemsize)
 #ifdef STARPU_USE_CUDA
-			&& (multiformat_a->ops->cuda_elemsize == multiformat_b->ops->cuda_elemsize)
+		&& (multiformat_a->ops->cuda_elemsize == multiformat_b->ops->cuda_elemsize)
 #endif
 #ifdef STARPU_USE_OPENCL
-			&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
+		&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
 #endif
 #ifdef STARPU_USE_MIC
-		    && (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
+		&& (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
 #endif
-		);
+		;
 }
 
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)
@@ -505,7 +506,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_
 	return copy_cuda_common_async(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToHost);
 }
 
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 				void *dst_interface, unsigned dst_node,
 				cudaStream_t stream)
@@ -559,7 +560,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	}
 	else
 	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node,
 					     dst_interface, dst_node,
 					     NULL);
@@ -581,7 +582,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 	}
 	else
 	{
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		return copy_cuda_peer_common(src_interface, src_node,
 					     dst_interface, dst_node,
 					     stream);

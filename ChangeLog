@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
-# Copyright (C) 2014, 2016, 2017  INRIA
+# Copyright (C) 2012-2014,2016-2017                      Inria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2017                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+StarPU 1.4.0 (svn revision xxxx)
+==============================================
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================
@@ -21,13 +25,20 @@ StarPU 1.3.0 (svn revision xxxx)
 New features:
   * New scheduler with heterogeneous priorities
   * Support priorities for data transfers.
-  * Add support for Ayudame version 2.x debugging library.
   * Add support for multiple linear regression performance models
   * Add MPI Master-Slave support to use the cores of remote nodes. Use the
     --enable-mpi-master-slave option to activate it.
   * Add STARPU_CUDA_THREAD_PER_DEV environment variable to support driving all
     GPUs from only one thread when almost all kernels are asynchronous.
   * Add starpu_replay tool to replay tasks.rec files with Simgrid.
+  * Add experimental support of NUMA nodes. Use STARPU_USE_NUMA to activate it.
+  * Add a new set of functions to make Out-of-Core based on HDF5 Library.
+  * Add a new implementation of StarPU-MPI on top of NewMadeleine
+  * Add optional callbacks to notify an external resource manager
+    about workers going to sleep and waking up
+  * Add implicit support for asynchronous partition planning. This means one
+    does not need to call starpu_data_partition_submit etc. explicitly any
+    more, StarPU will make the appropriate calls as needed.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
@@ -49,9 +60,19 @@ Small features:
     STARPU_TASK_WHERE to be used when calling starpu_task_insert().
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
-  * Add priority management to StarPU-MPI.
+  * Add priority management to StarPU-MPI. Can be disabled with
+  the STARPU_MPI_PRIORITIES environment variable.
   * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
     variables.
+  * Add disk to disk copy functions and support asynchronous full read/write
+    in disk backends.
+  * New starpu_task_insert parameter STARPU_CL_ARGS_NFREE which allows
+    to set codelet parameters but without freeing them.
+  * New starpu_task_insert parameter STARPU_TASK_DEPS_ARRAY which
+    allows to declare task dependencies similarly to
+    starpu_task_declare_deps_array()
+  * Add dependency backward information in debugging mode for gdb's
+    starpu-print-task
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -63,7 +84,48 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
-StarPU 1.2.2 (svn revision xxx)
+StarPU 1.2.4 (svn revision xxx)
+==============================================
+
+Small features:
+   * Catch of signals SIGINT and SIGSEGV to dump fxt trace files.
+   * New configure option --disable-icc to disable the compilation of
+     specific ICC examples
+
+StarPU 1.2.3 (svn revision 22444)
+==============================================
+
+New features:
+  * Add per-node MPI data.
+
+Small features:
+  * When debug is enabled, starpu data accessors first check the
+    validity of the data interface type
+  * Print disk bus performances when STARPU_BUS_STATS is set
+  * Add starpu_vector_filter_list_long filter.
+  * Data interfaces now define a name through the struct starpu_data_interface_ops
+  * StarPU-MPI :
+    - allow predefined data interface not to define a mpi datatype and
+      to be exchanged through pack/unpack operations
+    - New function starpu_mpi_comm_get_attr() which allows to return
+      the value of the attribute STARPU_MPI_TAG_UB, i.e the upper
+      bound for tag value.
+    - New configure option enable-mpi-verbose to manage the display of
+      extra MPI debug messages.
+  * Add STARPU_WATCHDOG_DELAY environment variable.
+  * Add a 'waiting' worker status
+  * Allow new value 'extra' for configure option --enable-verbose
+
+Small changes:
+  * Add data_unregister event in traces
+  * StarPU-MPI
+    - push detached requests at the back of the testing list, so they
+      are tested last since they will most probably finish latest
+  * Automatically initialize handles on data acquisition when
+    reduction methods are provided, and make sure a handle is
+    initialized before trying to read it.
+
+StarPU 1.2.2 (svn revision 21308)
 ==============================================
 
 New features:
@@ -86,9 +148,8 @@ Small features:
   * MPI: Add mpi communications in dag.dot
   * Add STARPU_PERF_MODEL_HOMOGENEOUS_CPU environment variable to
     allow having one perfmodel per CPU core
-  * Add starpu_vector_filter_list_long filter.
   * Add starpu_perfmodel_arch_comb_fetch function.
-  * Add STARPU_WATCHDOG_DELAY environment variable.
+  * Add starpu_mpi_get_data_on_all_nodes_detached function.
 
 Small changes:
   * Output generated through STARPU_MPI_COMM has been modified to

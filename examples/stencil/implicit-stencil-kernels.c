@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2016-2017                                Inria
+ * Copyright (C) 2012-2013,2016-2017                      CNRS
+ * Copyright (C) 2010-2015                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,14 +27,14 @@
  *   the boundaries into the block and perform some update loops:
  *
  *     comp. buffer      save. buffers        comp. buffer        save. buffers        comp. buffer
- *   |     ...     |                                                                                      
- *   |             | +------------------+ +------------------+                                            
- *   |     #N+1    | | #N+1 bottom copy====>#N+1 bottom copy |                                            
- *   +-------------+ +------------------+ +------------------+                                            
- *   | #N top copy | |   #N top copy    | |                  |                                            
- *   +-------------+ +------------------+ |                  |                                            
- *                                        | #N               |                                            
- *                                                 ...                                                    
+ *   |     ...     |
+ *   |             | +------------------+ +------------------+
+ *   |     #N+1    | | #N+1 bottom copy====>#N+1 bottom copy |
+ *   +-------------+ +------------------+ +------------------+
+ *   | #N top copy | |   #N top copy    | |                  |
+ *   +-------------+ +------------------+ |                  |
+ *                                        | #N               |
+ *                                                 ...
  *                                        |                  | +----------------+ +----------------------+
  *                                        |                  | | #N bottom copy | | block #N bottom copy |
  * ^                                      +------------------+ +----------------+ +----------------------+
@@ -46,14 +47,14 @@
  *   this block).
  *
  *     comp. buffer      save. buffers        comp. buffer        save. buffers        comp. buffer
- *   |     ...     |                                                                                      
- *   |             | +------------------+ +------------------+                                            
- *   |     #N+1    | | #N+1 bottom copy | | #N+1 bottom copy |                                            
- *   +-------------+ +------------------+ +------------------+                                            
- *   | #N top copy | |   #N top copy   <====                 |                                            
- *   +-------------+ +------------------+ |..................|                                            
- *                                        | #N               |                                            
- *                                                 ...                                                    
+ *   |     ...     |
+ *   |             | +------------------+ +------------------+
+ *   |     #N+1    | | #N+1 bottom copy | | #N+1 bottom copy |
+ *   +-------------+ +------------------+ +------------------+
+ *   | #N top copy | |   #N top copy   <====                 |
+ *   +-------------+ +------------------+ |..................|
+ *                                        | #N               |
+ *                                                 ...
  *                                        |                  | +----------------+ +----------------------+
  *                                        |                  | | #N bottom copy | | block #N bottom copy |
  * ^                                      +------------------+ +----------------+ +----------------------+
@@ -63,14 +64,14 @@
  *
  * - save_cl_bottom, same for the bottom
  *     comp. buffer      save. buffers        comp. buffer        save. buffers        comp. buffer
- *   |     ...     |                                                                                      
- *   |             | +------------------+ +------------------+                                            
- *   |     #N+1    | | #N+1 bottom copy | | #N+1 bottom copy |                                            
- *   +-------------+ +------------------+ +------------------+                                            
- *   | #N top copy | |   #N top copy    | |                  |                                            
- *   +-------------+ +------------------+ |                  |                                            
- *                                        | #N               |                                            
- *                                                 ...                                                    
+ *   |     ...     |
+ *   |             | +------------------+ +------------------+
+ *   |     #N+1    | | #N+1 bottom copy | | #N+1 bottom copy |
+ *   +-------------+ +------------------+ +------------------+
+ *   | #N top copy | |   #N top copy    | |                  |
+ *   +-------------+ +------------------+ |                  |
+ *                                        | #N               |
+ *                                                 ...
  *                                        |..................| +----------------+ +----------------------+
  *                                        |                 ====>#N bottom copy | | block #N bottom copy |
  * ^                                      +------------------+ +----------------+ +----------------------+
@@ -182,8 +183,8 @@ static void load_subblock_from_buffer_cuda(void *_block,
  */
 static void update_func_cuda(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
@@ -272,8 +273,8 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
  */
 static void update_func_opencl(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
@@ -421,7 +422,7 @@ void update_func_cpu(void *descr[], void *arg)
 static struct starpu_perfmodel cl_update_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "cl_update" 
+	.symbol = "cl_update"
 };
 
 struct starpu_codelet cl_update =
@@ -510,7 +511,7 @@ unsigned top_per_worker[STARPU_NMAXWORKERS];
 unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 
 /* top save, CPU version */
-void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func_top_cpu(void *descr[], void *arg)
 {
     unsigned z;
     starpu_codelet_unpack_args(arg, &z);
@@ -529,7 +530,7 @@ void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 }
 
 /* bottom save, CPU version */
-void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func_bottom_cpu(void *descr[], void *arg)
 {
     unsigned z;
     starpu_codelet_unpack_args(arg, &z);
@@ -547,7 +548,7 @@ void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 
 /* top save, CUDA version */
 #ifdef STARPU_USE_CUDA
-static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_top_cuda(void *descr[], void *arg)
 {
     unsigned z;
     starpu_codelet_unpack_args(arg, &z);
@@ -566,7 +567,7 @@ static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 }
 
 /* bottom save, CUDA version */
-static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_bottom_cuda(void *descr[], void *arg)
 {
 	unsigned z;
 	starpu_codelet_unpack_args(arg, &z);
@@ -585,7 +586,7 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 
 /* top save, OpenCL version */
 #ifdef STARPU_USE_OPENCL
-static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_top_opencl(void *descr[], void *arg)
 {
     unsigned z;
     starpu_codelet_unpack_args(arg, &z);
@@ -604,7 +605,7 @@ static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *a
 }
 
 /* bottom save, OPENCL version */
-static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void dummy_func_bottom_opencl(void *descr[], void *arg)
 {
 	unsigned z;
 	starpu_codelet_unpack_args(arg, &z);
@@ -625,13 +626,13 @@ static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void
 static struct starpu_perfmodel save_cl_bottom_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "save_cl_bottom" 
+	.symbol = "save_cl_bottom"
 };
 
 static struct starpu_perfmodel save_cl_top_model =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "save_cl_top" 
+	.symbol = "save_cl_top"
 };
 
 struct starpu_codelet save_cl_bottom =
@@ -667,45 +668,45 @@ struct starpu_codelet save_cl_top =
 };
 
 /* Memset a block's buffers */
-static void memset_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void memset_func(void *descr[], void *arg)
 {
-    unsigned sizex, sizey, bz;
-    starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
+	(void)descr;
+    	unsigned sizex, sizey, bz;
+    	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
 	struct block_description *block = get_block_description(bz);
-    unsigned size_bz = get_block_size(bz);
+    	unsigned size_bz = get_block_size(bz);
 
-    unsigned x,y,z;
-    for (x = 0; x < sizex + 2*K; x++)
-    {
-        for (y = 0; y < sizey + 2*K; y++)
-        {
-            /* Main blocks */
-            for (z = 0; z < size_bz + 2*K; z++)
-            {
-                block->layers[0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
-                block->layers[1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
-            }
-            for (z = 0; z < K; z++)
-            {
-                /* Boundary blocks : Top */
-                block->boundaries[T][0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
-                block->boundaries[T][1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
+	unsigned x,y,z;
+	for (x = 0; x < sizex + 2*K; x++)
+	{
+		for (y = 0; y < sizey + 2*K; y++)
+		{
+			/* Main blocks */
+			for (z = 0; z < size_bz + 2*K; z++)
+			{
+				block->layers[0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
+				block->layers[1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
+			}
+			for (z = 0; z < K; z++)
+			{
+				/* Boundary blocks : Top */
+				block->boundaries[T][0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
+				block->boundaries[T][1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
 
-                /* Boundary blocks : Bottom */
-                block->boundaries[B][0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
-                block->boundaries[B][1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0; 
-            }
+				/* Boundary blocks : Bottom */
+				block->boundaries[B][0][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
+				block->boundaries[B][1][(x)+(y)*(sizex + 2*K)+(z)*(sizex+2*K)*(sizey+2*K)] = 0;
+			}
+		}
+	}
+	//memset(block->layers[0], 0, (sizex + 2*K)*(sizey + 2*K)*(size_bz + 2*K)*sizeof(block->layers[0]));
+	//memset(block->layers[1], 0, (sizex + 2*K)*(sizey + 2*K)*(size_bz + 2*K)*sizeof(block->layers[1]));
 
-        }
-    }
-    //memset(block->layers[0], 0, (sizex + 2*K)*(sizey + 2*K)*(size_bz + 2*K)*sizeof(block->layers[0]));
-    //memset(block->layers[1], 0, (sizex + 2*K)*(sizey + 2*K)*(size_bz + 2*K)*sizeof(block->layers[1]));
+	//memset(block->boundaries[T][0], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[T][0]));
+	//memset(block->boundaries[T][1], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[T][1]));
 
-    //memset(block->boundaries[T][0], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[T][0]));
-    //memset(block->boundaries[T][1], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[T][1]));
-
-    //memset(block->boundaries[B][0], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[B][0]));
-    //memset(block->boundaries[B][1], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[B][1]));
+	//memset(block->boundaries[B][0], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[B][0]));
+	//memset(block->boundaries[B][1], 0, (sizex + 2*K)*(sizey + 2*K)*K*sizeof(block->boundaries[B][1]));
 }
 
 static double memset_cost_function(struct starpu_task *task, unsigned nimpl)
@@ -731,20 +732,21 @@ struct starpu_codelet cl_memset =
 };
 
 /* Initialize a block's layer */
-static void initlayer_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+static void initlayer_func(void *descr[], void *arg)
 {
-    unsigned sizex, sizey, bz;
-    starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
+	(void)descr;
+	unsigned sizex, sizey, bz;
+	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
 	struct block_description *block = get_block_description(bz);
-    unsigned size_bz = get_block_size(bz);
+	unsigned size_bz = get_block_size(bz);
 
-    /* Initialize layer with some random data */
-    unsigned x, y, z;
-    unsigned sum = 0;
-    for (x = 0; x < sizex; x++)
-        for (y = 0; y < sizey; y++)
-            for (z = 0; z < size_bz; z++)
-                sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)] = (int)((x/7.+y/13.+(bz*size_bz + z)/17.) * 10.) % 2;
+	/* Initialize layer with some random data */
+	unsigned x, y, z;
+	unsigned sum = 0;
+	for (x = 0; x < sizex; x++)
+		for (y = 0; y < sizey; y++)
+			for (z = 0; z < size_bz; z++)
+				sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)] = (int)((x/7.+y/13.+(bz*size_bz + z)/17.) * 10.) % 2;
 }
 
 static double initlayer_cost_function(struct starpu_task *task, unsigned nimpl)

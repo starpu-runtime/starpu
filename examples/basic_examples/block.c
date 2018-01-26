@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2011-2013                                Inria
+ * Copyright (C) 2010-2011,2013-2014                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -79,7 +80,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         return 0;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
         float *block, n=1.0;
         int i, j, k, ret;

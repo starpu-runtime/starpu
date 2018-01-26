@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Simon Archipoff
+ * Copyright (C) 2013                                     Simon Archipoff
+ * Copyright (C) 2013                                     Inria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2014,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,6 +73,15 @@ static inline int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *p
 }
 int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *, struct starpu_task *);
 
+
+static inline struct starpu_task * _starpu_prio_deque_highest_task(struct _starpu_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_front_highest(&pdeque->list);
+	return task;
+}
 
 /* all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
  * in O(lg(nb priorities))

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015  CNRS
+ * Copyright (C) 2013-2015,2017                           CNRS
+ * Copyright (C) 2014-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,28 +23,19 @@ int expected_x=40;
 static
 int expected_y=12;
 
-void my_func(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void my_func(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	FPRINTF_MPI(stderr, "i am here\n");
 }
-
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
 
 struct starpu_codelet my_codelet =
 {
 	.cpu_funcs = {my_func},
 	.cuda_funcs = {my_func},
 	.opencl_funcs = {my_func},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 static
@@ -72,7 +64,8 @@ int main(int argc, char **argv)
 	int rank, size;
 
 	ret = starpu_initialize(NULL, &argc, &argv);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (ret == -ENODEV)
+		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ret = starpu_mpi_init(&argc, &argv, 1);
@@ -87,7 +80,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	if (rank == 0) expected_x ++;
+	if (rank == 0)
+		expected_x ++;
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
 				     NULL,
 				     STARPU_EXECUTE_ON_NODE, 0,
@@ -96,7 +90,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	if (rank == 0) expected_x ++;
+	if (rank == 0)
+		expected_x ++;
 	STARPU_ASSERT_MSG(x == expected_x, "x should be equal to %d and not %d\n", expected_x, x);
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
@@ -107,7 +102,8 @@ int main(int argc, char **argv)
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	if (rank == 0) expected_y ++;
+	if (rank == 0)
+		expected_y ++;
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD,
 				     &my_codelet,
 				     STARPU_EXECUTE_ON_NODE, 0,
@@ -117,7 +113,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
-	if (rank == 0) expected_y ++;
+	if (rank == 0)
+		expected_y ++;
 	STARPU_ASSERT_MSG(y == expected_y, "y should be equal to %d and not %d\n", expected_y, y);
 
 	starpu_mpi_shutdown();

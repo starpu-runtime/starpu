@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2011-2012,2017                           Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +22,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 
 #include <starpu_hash.h>
 
@@ -207,10 +209,10 @@ static int block_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_block_interface *block_b = (struct starpu_block_interface *) data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
-	return ((block_a->nx == block_b->nx)
-			&& (block_a->ny == block_b->ny)
-			&& (block_a->nz == block_b->nz)
-			&& (block_a->elemsize == block_b->elemsize));
+	return (block_a->nx == block_b->nx)
+		&& (block_a->ny == block_b->ny)
+		&& (block_a->nz == block_b->nz)
+		&& (block_a->elemsize == block_b->elemsize);
 }
 
 static void display_block_interface(starpu_data_handle_t handle, FILE *f)
@@ -236,7 +238,7 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		uint32_t z, y;
 		char *block = (void *)block_interface->ptr;
 
-		starpu_malloc_flags(ptr, *count, 0);
+		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
 
 		char *cur = *ptr;
 		for(z=0 ; z<block_interface->nz ; z++)

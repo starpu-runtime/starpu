@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2016  CNRS
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2010-2012,2015-2017                      CNRS
+ * Copyright (C) 2009-2011,2013-2015                      Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +29,7 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err, n;
+	(void)args;
 
 	int nnz = (int) STARPU_CSR_GET_NNZ(descr[0]);
 	int nrow = (int) STARPU_CSR_GET_NROW(descr[0]);
@@ -109,8 +111,9 @@ void compile_spmv_opencl_kernel(void)
 }
 #endif
 
-void spmv_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
+void spmv_kernel_cpu(void *descr[], void *arg)
 {
+	(void)arg;
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);

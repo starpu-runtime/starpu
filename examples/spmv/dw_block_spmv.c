@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014-2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,12 +121,12 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, starpu_data_handle_t handle)
+unsigned get_bcsr_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle)
 {
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops *get_bcsr_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+struct starpu_data_interface_ops *get_bcsr_child_ops(struct starpu_data_filter *f, unsigned child)
 {
   return &starpu_interface_matrix_ops;
 }
@@ -295,8 +296,7 @@ void print_results(void)
 	}
 }
 
-int main(STARPU_ATTRIBUTE_UNUSED int argc,
-	STARPU_ATTRIBUTE_UNUSED char **argv)
+int main(int argc, char *argv[])
 {
 	int ret;
 

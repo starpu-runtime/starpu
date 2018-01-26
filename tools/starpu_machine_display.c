@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012, 2014-2015, 2017  Université de Bordeaux
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2011-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2012-2014,2016-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,10 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_machine_display"
 
@@ -34,7 +36,7 @@ static void usage()
 	fprintf(stderr, "\t-i, --info       display the name of the files containing the information\n");
 	fprintf(stderr, "\t-f, --force      force bus sampling and show measures \n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+	fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }
 
 static void display_combined_worker(unsigned workerid)

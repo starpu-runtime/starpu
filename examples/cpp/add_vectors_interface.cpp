@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2012, 2017  INRIA
+ * Copyright (C) 2010-2014,2016-2017                      CNRS
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2009-2011,2013-2015,2017                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,12 @@
  * transfers between objects.
  */
 
+#if defined(__GNUC__) && (__GNUC__ < 4 || __GNU_MINOR < 9)
+int main(int argc, char **argv)
+{
+	return 77;
+}
+#else
 #include <cassert>
 #include <vector>
 
@@ -647,3 +653,4 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 }
+#endif

@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016, 2017  Inria
+ * Copyright (C) 2011-2013,2016-2017                      Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1357,8 +1358,10 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 	struct _starpu_perfmodel *node;
 	for (node  = _starpu_perfmodel_list_begin(&registered_models);
 	     node != _starpu_perfmodel_list_end(&registered_models);
-	     node  = _starpu_perfmodel_list_next(node)) {
-		if (node->model == model) {
+	     node  = _starpu_perfmodel_list_next(node))
+	{
+		if (node->model == model)
+		{
 			_starpu_perfmodel_list_erase(&registered_models, node);
 			_starpu_perfmodel_delete(node);
 			break;
@@ -1405,7 +1408,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	STARPU_ASSERT(comb != -1);
 	char devices[STR_VERY_LONG_LENGTH];
 	int written = 0;
-	strcpy(devices, "");
+	devices[0] = '\0';
 	for(i=0 ; i<arch->ndevices ; i++)
 	{
 		written += snprintf(devices + written, sizeof(devices)-written, "%s%d%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
@@ -1650,6 +1653,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		unsigned found = 0;
 		int comb = _starpu_perfmodel_create_comb_if_needed(arch);
 
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
+
 		for(c = 0; c < model->state->ncombs; c++)
 		{
 			if(model->state->combs[c] == comb)
@@ -1658,6 +1663,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				break;
 			}
 		}
+
 		if(!found)
 		{
 			if (model->state->ncombs + 1 >= model->state->ncombs_set)
@@ -1668,8 +1674,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			}
 			model->state->combs[model->state->ncombs++] = comb;
 		}
-
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 
 		if(!model->state->per_arch[comb])
 		{
@@ -1907,8 +1911,11 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl)
 {
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	if(comb == -1) return NULL;
-	if(!model->state->per_arch[comb]) return NULL;
+	if (comb == -1)
+		return NULL;
+
+	if (!model->state->per_arch[comb])
+		return NULL;
 
 	return &model->state->per_arch[comb][impl];
 }

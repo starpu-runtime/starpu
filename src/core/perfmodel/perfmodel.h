@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2011-2013,2016-2017                      Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,9 +96,9 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read,
-					    double latency_write, double latency_read, unsigned node);
+					     double latency_write, double latency_read, unsigned node, const char *name);
 
-void _starpu_write_double(FILE *f, char *format, double val);
+void _starpu_write_double(FILE *f, const char *format, double val);
 int _starpu_read_double(FILE *f, char *format, double *val);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 

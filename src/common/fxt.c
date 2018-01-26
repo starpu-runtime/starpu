@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013,2015                           Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +41,7 @@ unsigned long _starpu_job_cnt = 0;
 
 static char _STARPU_PROF_FILE_USER[128];
 int _starpu_fxt_started = 0;
+int _starpu_fxt_willstart = 1;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 starpu_pthread_cond_t _starpu_fxt_started_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
@@ -138,10 +140,14 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
-	if (!starpu_get_env_number_default("STARPU_FXT_TRACE", 1))
-		return;
-
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
+	if (!(_starpu_fxt_willstart = starpu_get_env_number_default("STARPU_FXT_TRACE", 1)))
+	{
+		STARPU_PTHREAD_COND_BROADCAST(&_starpu_fxt_started_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
+		return;
+	}
+
 	STARPU_ASSERT(!_starpu_fxt_started);
 
 	_starpu_fxt_started = 1;
@@ -161,8 +167,6 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 #endif
 
 	threadid = _starpu_gettid();
-
-	atexit(_starpu_stop_fxt_profiling);
 
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid) < 0)
 	{
@@ -191,6 +195,16 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 	options.file_rank = -1;
 
 	starpu_fxt_generate_trace(&options);
+}
+
+void _starpu_fxt_dump_file(void)
+{
+	if (!_starpu_fxt_started)
+		return;
+#ifdef STARPU_VERBOSE
+	_STARPU_MSG("Writing FxT traces into file %s\n", _STARPU_PROF_FILE_USER);
+#endif
+	fut_endup(_STARPU_PROF_FILE_USER);
 }
 
 void _starpu_stop_fxt_profiling(void)

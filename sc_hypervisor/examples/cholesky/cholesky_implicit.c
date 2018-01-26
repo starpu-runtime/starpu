@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
- * Copyright (C) 2011, 2012  INRIA
+ * Copyright (C) 2011-2013,2016                           Inria
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2009-2014                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,7 @@ static struct starpu_codelet cl22 =
  *	and construct the DAG
  */
 
-static void callback_turn_spmd_on(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_turn_spmd_on(void *arg)
 {
 	cl22.type = STARPU_SPMD;
 }
@@ -366,7 +366,7 @@ int main(int argc, char **argv)
 
 	if(with_ctxs)
 	{
-		construct_contexts(execute_cholesky);
+		construct_contexts();
 		start_2benchs(execute_cholesky);
 	}
 	else if(with_noctxs)

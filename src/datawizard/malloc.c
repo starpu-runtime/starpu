@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2011-2014,2016-2017                      Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,16 @@
 #include <smpi/smpi.h>
 #endif
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
+#endif
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -64,7 +74,7 @@ void starpu_malloc_set_align(size_t align)
 		_malloc_align = align;
 }
 
-#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
 struct malloc_pinned_codelet_struct
 {
 	void **ptr;
@@ -83,7 +93,7 @@ struct malloc_pinned_codelet_struct
 //}
 //#endif
 
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
@@ -104,7 +114,7 @@ static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, 
 }
 #endif
 
-#if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER)) && !defined(STARPU_SIMGRID)// || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)) && !defined(STARPU_SIMGRID)// || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel malloc_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -171,7 +181,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				MSG_process_sleep((float) dim * 0.000650 / 1048576.);
 #else /* STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
-#ifdef HAVE_CUDA_MEMCPY_PEER
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 			cudaError_t cures;
 #if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
 			/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
@@ -217,7 +227,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			push_res = _starpu_task_submit_internally(task);
 			STARPU_ASSERT(push_res != -ENODEV);
 			goto end;
-#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
 //		}
 //		else if (_starpu_can_submit_opencl_task())
@@ -325,12 +335,17 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	if (starpu_memory_nodes_get_numa_count() > 1) {
+	if (starpu_memory_nodes_get_numa_count() > 1)
+	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
-		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
+#if HWLOC_API_VERSION >= 0x00020000
+		*A = hwloc_alloc_membind(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags | HWLOC_MEMBIND_BYNODESET);
+#else
 		*A = hwloc_alloc_membind_nodeset(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND | HWLOC_MEMBIND_NOCPUBIND, flags);
+#endif
 		//fprintf(stderr, "Allocation %lu bytes on NUMA node %d [%p]\n", (unsigned long) dim, starpu_memnode_get_numaphysid(dst_node), *A);
 		if (!*A)
 			ret = -ENOMEM;
@@ -382,7 +397,7 @@ int starpu_malloc(void **A, size_t dim)
 	return starpu_malloc_flags(A, dim, STARPU_MALLOC_PINNED);
 }
 
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	cudaError_t cures;
@@ -405,7 +420,7 @@ static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, vo
 //}
 //#endif
 
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID) // || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID) // || defined(STARPU_USE_OPENCL)
 static struct starpu_perfmodel free_pinned_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -438,7 +453,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 			/* TODO: simulate CUDA barrier */
 #else /* !STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
-#ifndef HAVE_CUDA_MEMCPY_PEER
+#ifndef STARPU_HAVE_CUDA_MEMCPY_PEER
 			if (!starpu_is_initialized())
 			{
 #endif
@@ -454,7 +469,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 				if (STARPU_UNLIKELY(cures))
 					STARPU_CUDA_REPORT_ERROR(cures);
 				goto out;
-#ifndef HAVE_CUDA_MEMCPY_PEER
+#ifndef STARPU_HAVE_CUDA_MEMCPY_PEER
 			}
 			else
 			{
@@ -476,7 +491,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 				STARPU_ASSERT(push_res != -ENODEV);
 				goto out;
 			}
-#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
 #endif /* STARPU_SIMGRID */
 		}
@@ -523,7 +538,8 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 #endif
 	}
 #ifdef STARPU_HAVE_HWLOC
-	else if (starpu_memory_nodes_get_numa_count() > 1) {
+	else if (starpu_memory_nodes_get_numa_count() > 1)
+	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_free(hwtopology, A, dim);
@@ -575,8 +591,8 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	{
 		case STARPU_CPU_RAM:
 		{
-			_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,			
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+			_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 					/* without memcpy_peer, we can not
 					 * allocated pinned memory, since it
 					 * requires waiting for a task, and we
@@ -609,7 +625,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-#if defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			starpu_cuda_set_device(devid);
 #else
 			struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -706,7 +722,7 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 	{
 		case STARPU_CPU_RAM:
 			_starpu_free_flags_on_node(dst_node, (void*)addr, size,
-#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 					flags & ~STARPU_MALLOC_PINNED
 #else
 					flags
@@ -727,7 +743,7 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 #else
 			cudaError_t err;
 			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-#if defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			starpu_cuda_set_device(devid);
 #else
 			struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -803,7 +819,7 @@ starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBU
 {
 	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostRegister(addr, size, cudaHostRegisterPortable) != cudaSuccess)
 			return -1;
 #endif
@@ -816,7 +832,7 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
 {
 	if (STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostUnregister(addr) != cudaSuccess)
 			return -1;
 #endif
@@ -845,6 +861,10 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
  * 16KiB (i.e. 64x64 float) granularity eats 2MiB RAM for managing a 4GiB GPU.
  */
 #define CHUNK_ALLOC_MIN (16*1024)
+
+/* Don't really deallocate chunks unless we have more than this many chunks
+ * which are completely free. */
+#define CHUNKS_NFREE 4
 
 /* Number of blocks */
 #define CHUNK_NBLOCKS (CHUNK_SIZE/CHUNK_ALLOC_MIN)
@@ -1110,7 +1130,7 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 	{
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
-		if (nfreechunks[dst_node] >= 1)
+		if (nfreechunks[dst_node] >= CHUNKS_NFREE)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);

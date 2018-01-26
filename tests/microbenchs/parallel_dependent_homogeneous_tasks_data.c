@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Bérangère Subervie
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2016                                     Université de Bordeaux
+ * Copyright (C) 2016                                     Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,13 +35,16 @@
 #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
 #define NB_FLOAT 4000000
 
-void wait_homogeneous(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args)
+void wait_homogeneous(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 	starpu_sleep(TIME);
 }
 
 double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
+	(void)t; (void)a; (void)i;
 	return TIME * 1000000;
 }
 

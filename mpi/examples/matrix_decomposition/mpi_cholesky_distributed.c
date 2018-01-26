@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2009-2011,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +18,10 @@
  */
 
 #include "mpi_cholesky.h"
+
+/* This is the same as matrix_decomposition, but the matrix is not allocated in
+ * totality on all nodes, thus allowing much bigger matrices, but doesn't allow
+ * trivial checks */
 
 int main(int argc, char **argv)
 {

@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016  INRIA
+ * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2012,2016-2017                           Inria
+ * Copyright (C) 2013,2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,11 +69,13 @@ int _starpu_scc_common_mp_init()
 {
 	int rckncm_fd;
 
+	rcce_initialized = 0;
+
 	/* "/dev/rckncm" is to access shared memory on SCC. */
 	if ((rckncm_fd = open("/dev/rckncm", O_RDWR | O_SYNC)) < 0)
 	{
 		/* It seems that we're not on a SCC system. */
-		return (rcce_initialized = 0);
+		return rcce_initialized;
 	}
 
 	int page_size = getpagesize();
@@ -80,7 +85,7 @@ int _starpu_scc_common_mp_init()
 	{
 		perror("mmap");
 		close(rckncm_fd);
-		return (rcce_initialized = 0);
+		return rcce_initialized;
 	}
 
 	int *argc = _starpu_get_argc();
@@ -91,7 +96,7 @@ int _starpu_scc_common_mp_init()
 	{
 		close(rckncm_fd);
 		munmap((void*)rckncm_map, SHMSIZE);
-		return (rcce_initialized = 0);
+		return 0;
 	}
 
 	unsigned int page_offset = (SHM_ADDR) - aligne_addr;
@@ -104,7 +109,8 @@ int _starpu_scc_common_mp_init()
 
 	close(rckncm_fd);
 
-	return (rcce_initialized = 1);
+	rcce_initialized = 1;
+	return rcce_initialized;
 }
 
 void *_starpu_scc_common_get_shared_memory_addr()

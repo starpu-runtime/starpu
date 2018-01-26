@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011-2017  Université de Bordeaux
- * Copyright (C) 2014, 2016 Inria
+ * Copyright (C) 2012,2014,2016-2017                      Inria
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,10 +33,12 @@
 #include "starpu_mpi_task_insert.h"
 
 #define _SEND_DATA(data, mode, dest, data_tag, prio, comm, callback, arg)     \
-	if (mode & STARPU_SSEND)					\
-		starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); \
-	else								\
-		starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);
+	do {									\
+		if (mode & STARPU_SSEND)					\
+			starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); 	\
+		else												\
+			starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);	\
+	} while (0)
 
 static void (*pre_submit_hook)(struct starpu_task *task) = NULL;
 
@@ -82,11 +84,11 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			// No node has been selected yet
 			*xrank = mpi_rank;
 			_STARPU_MPI_DEBUG(100, "Codelet is going to be executed by node %d\n", *xrank);
-			*do_execute = (mpi_rank == me);
+			*do_execute = mpi_rank == STARPU_MPI_PER_NODE || (mpi_rank == me);
 		}
 		else if (mpi_rank != *xrank)
 		{
-			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet\n", *xrank);
+			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet, can't now set %d\n", *xrank, mpi_rank);
 			*inconsistent_execute = 1;
 		}
 	}
@@ -96,16 +98,20 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 
 void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
+	if (data && xrank == STARPU_MPI_PER_NODE)
+	{
+		STARPU_ASSERT_MSG(starpu_mpi_data_get_rank(data) == STARPU_MPI_PER_NODE, "If task is replicated, it has to access only per-node data");
+	}
 	if (data && mode & STARPU_R)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int data_tag = starpu_mpi_data_get_tag(data);
+		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
 
-		if (do_execute && mpi_rank != me)
+		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
 		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
 			int already_received = _starpu_mpi_cache_received_data_set(data);
@@ -141,14 +147,18 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	if (mode & STARPU_W)
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
-		int data_tag = starpu_mpi_data_get_tag(data);
+		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
+		if (mpi_rank == STARPU_MPI_PER_NODE)
+		{
+			mpi_rank = me;
+		}
 		if (mpi_rank == me)
 		{
-			if (xrank != -1 && me != xrank)
+			if (xrank != -1 && (xrank != STARPU_MPI_PER_NODE && me != xrank))
 			{
 				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
 				if(data_tag == -1)
@@ -184,6 +194,10 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		if ((mode & STARPU_R) && do_execute)
 		{
 			int mpi_rank = starpu_mpi_data_get_rank(data);
+			if (mpi_rank == STARPU_MPI_PER_NODE)
+			{
+				mpi_rank = me;
+			}
 			if (mpi_rank != me && mpi_rank != -1)
 			{
 				starpu_data_invalidate_submit(data);
@@ -195,6 +209,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 static
 int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nodes, int *xrank, int *do_execute, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, va_list varg_list)
 {
+	/* XXX: _fstarpu_mpi_task_decode_v needs to be updated at the same time */
 	va_list varg_list_copy;
 	int inconsistent_execute = 0;
 	int arg_type;
@@ -333,8 +348,18 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type==STARPU_CL_ARGS)
 		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
+		}
+		else if (arg_type==STARPU_CL_ARGS_NFREE)
+		{
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
+		}
+		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			(void)va_arg(varg_list_copy, struct starpu_task **);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -436,12 +461,12 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		// We need to find out which node is going to execute the codelet.
 		_STARPU_MPI_DEBUG(100, "Different nodes are owning W data. The node to execute the codelet is going to be selected with the current selection node policy. See starpu_mpi_node_selection_set_current_policy() to change the policy, or use STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA to specify the node\n");
 		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	else
 	{
 		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, *xrank);
-		*do_execute = (me == *xrank);
+		*do_execute = *xrank == STARPU_MPI_PER_NODE || (me == *xrank);
 	}
 	_STARPU_MPI_DEBUG(100, "do_execute=%d\n", *do_execute);
 
@@ -470,7 +495,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
@@ -479,18 +505,25 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
-	if (xrank_p) *xrank_p = xrank;
-	if (nb_data_p) *nb_data_p = nb_data;
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
 	if (descrs_p)
 		*descrs_p = descrs;
 	else
 		free(descrs);
-	if (prio_p)
-		*prio_p = prio;
+
 
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	if (do_execute == 0) return 1;
+	if (do_execute == 0)
+	{
+		return 1;
+	}
 	else
 	{
 		va_list varg_list_copy;
@@ -539,7 +572,8 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	int prio;
 
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	if (ret == 0)
 	{
@@ -599,7 +633,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
 	va_end(varg_list);
 	STARPU_ASSERT(ret >= 0);
-	if (ret > 0) return NULL; else return task;
+	return (ret > 0) ? NULL : task;
 }
 
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
@@ -618,7 +652,8 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, varg_list);
 	va_end(varg_list);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 }
@@ -627,19 +662,23 @@ struct _starpu_mpi_redux_data_args
 {
 	starpu_data_handle_t data_handle;
 	starpu_data_handle_t new_handle;
-	int tag;
+	starpu_mpi_tag_t data_tag;
 	int node;
 	MPI_Comm comm;
 	struct starpu_task *taskB;
 };
 
-void _starpu_mpi_redux_data_dummy_func(STARPU_ATTRIBUTE_UNUSED void *buffers[], STARPU_ATTRIBUTE_UNUSED void *cl_arg)
+void _starpu_mpi_redux_data_dummy_func(void *buffers[], void *cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 /* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
+static double cost_function(struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	return 0.000001;
 }
 static struct starpu_perfmodel dumb_model =
@@ -690,14 +729,15 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 	struct _starpu_mpi_redux_data_args *args = (struct _starpu_mpi_redux_data_args *) callback_arg;
 	starpu_data_register_same(&args->new_handle, args->data_handle);
 
-	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
+	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->data_tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
 }
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
-	int me, rank, tag, nb_nodes;
+	int me, rank, nb_nodes;
+	starpu_mpi_tag_t tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	tag = starpu_mpi_data_get_tag(data_handle);
@@ -747,7 +787,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				struct _starpu_mpi_redux_data_args *args;
 				_STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
-				args->tag = tag;
+				args->data_tag = tag;
 				args->node = i;
 				args->comm = comm;
 
@@ -757,7 +797,8 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				args->taskB->cl = args->data_handle->redux_cl;
 				args->taskB->sequential_consistency = 0;
 				STARPU_TASK_SET_HANDLE(args->taskB, args->data_handle, 0);
-				taskBs[j] = args->taskB; j++;
+				taskBs[j] = args->taskB;
+				j++;
 
 				// Submit taskA
 				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,

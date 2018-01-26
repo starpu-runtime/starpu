@@ -1,10 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2016, 2017  Inria
- * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2011-2012,2016-2017                      Inria
+ * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -144,7 +144,7 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 
 	STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
-	return (exp/alpha);
+	return exp/alpha;
 }
 
 void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
@@ -342,6 +342,9 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
+		unsigned node = memory_node;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, buffer);
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}
@@ -556,3 +559,16 @@ void starpu_perfmodel_free_sampling_directories(void)
 	_perf_model_dir_debug = NULL;
 	directory_existence_was_tested = 0;
 }
+
+
+static double nop_cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *a STARPU_ATTRIBUTE_UNUSED, unsigned i STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0.000001;
+}
+
+struct starpu_perfmodel starpu_perfmodel_nop =
+{
+	.type = STARPU_PER_ARCH,
+	.arch_cost_function = nop_cost_function,
+};
+

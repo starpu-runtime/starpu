@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2011-2013                                Inria
+ * Copyright (C) 2010-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -35,8 +35,11 @@ starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 static unsigned var = 0;
 starpu_data_handle_t var_handle;
 
-void f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
+void f(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
+
 	STARPU_SKIP_IF_VALGRIND;
 
 	usleep(200000);
@@ -52,8 +55,10 @@ static struct starpu_codelet cl_f =
 	.nbuffers = 3,
 };
 
-void g(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void g(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -63,8 +68,9 @@ void g(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 }
 
 #ifdef STARPU_USE_CUDA
-void g_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void g_cuda(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -88,8 +94,9 @@ static struct starpu_codelet cl_g =
 	.nbuffers = 3,
 };
 
-void h(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void h(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -99,8 +106,9 @@ void h(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 }
 
 #ifdef STARPU_USE_CUDA
-void h_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void h_cuda(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);

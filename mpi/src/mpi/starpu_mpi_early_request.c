@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2014, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2014,2016-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,10 @@
 #include <stdlib.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
-#include <starpu_mpi_early_request.h>
+#include <mpi/starpu_mpi_early_request.h>
 #include <common/uthash.h>
+
+#ifdef STARPU_USE_MPI_MPI
 
 /** stores application requests for which data have not been received yet */
 struct _starpu_mpi_early_request_hashlist
@@ -62,19 +64,19 @@ void _starpu_mpi_early_request_check_termination()
 	STARPU_ASSERT_MSG(_starpu_mpi_early_request_count() == 0, "Number of early requests left is not zero");
 }
 
-struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int data_tag, int source, MPI_Comm comm)
+struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm)
 {
 	struct _starpu_mpi_node_tag node_tag;
 	struct _starpu_mpi_req *found;
 	struct _starpu_mpi_early_request_hashlist *hashlist;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
 	memset(&node_tag, 0, sizeof(struct _starpu_mpi_node_tag));
 	node_tag.comm = comm;
 	node_tag.rank = source;
 	node_tag.data_tag = data_tag;
 
-	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %d\n", (long int)node_tag.comm, node_tag.rank, node_tag.data_tag);
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
+	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %ld\n", (long int)node_tag.comm, node_tag.rank, node_tag.data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
 	if (hashlist == NULL)
 	{
@@ -92,7 +94,7 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int data_tag, int sour
 			_starpu_mpi_early_request_hash_count --;
 		}
 	}
-	_STARPU_MPI_DEBUG(100, "Found early_request %p with comm %ld source %d tag %d\n", found, (long int)node_tag.comm, node_tag.rank, node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Found early_request %p with comm %ld source %d tag %ld\n", found, (long int)node_tag.comm, node_tag.rank, node_tag.data_tag);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 	return found;
 }
@@ -100,7 +102,7 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(int data_tag, int sour
 void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
-	_STARPU_MPI_DEBUG(100, "Adding request %p with comm %ld source %d tag %d in the application request hashmap\n", req, (long int)req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Adding request %p with comm %ld source %d tag %ld in the application request hashmap\n", req, (long int)req->node_tag.comm, req->node_tag.rank, req->node_tag.data_tag);
 
 	struct _starpu_mpi_early_request_hashlist *hashlist;
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);
@@ -115,3 +117,5 @@ void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 	_starpu_mpi_early_request_hash_count ++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 }
+
+#endif // STARPU_USE_MPI_MPI

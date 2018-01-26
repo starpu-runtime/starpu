@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,35 +20,40 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclSetCommandQueueProperty(cl_command_queue            command_queue,
-                          cl_command_queue_properties   properties, 
-                          cl_bool                       enable,
-                          cl_command_queue_properties * old_properties) CL_API_SUFFIX__VERSION_1_0
+			    cl_command_queue_properties   properties,
+			    cl_bool                       enable,
+			    cl_command_queue_properties * old_properties) CL_API_SUFFIX__VERSION_1_0
 {
-   if (command_queue == NULL)
-      return CL_INVALID_COMMAND_QUEUE;
+	if (command_queue == NULL)
+		return CL_INVALID_COMMAND_QUEUE;
 
-   if (old_properties != NULL)
-      *old_properties = command_queue->properties;
+	if (old_properties != NULL)
+		*old_properties = command_queue->properties;
 
-   if (enable) {
-      //Enable StarPU profiling if necessary
-      if (properties & (~command_queue->properties) & CL_QUEUE_PROFILING_ENABLE) {
-         if (profiling_queue_count == 0)
-            starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
-         profiling_queue_count += 1;
-      }  
-      //Set new properties
-      command_queue->properties |= properties;
-   } else {
-      //Disable StarPU profiling if necessary
-      if ((~properties) & command_queue->properties & CL_QUEUE_PROFILING_ENABLE) {
-         profiling_queue_count -= 1;
-         if (profiling_queue_count == 0)
-            starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
-      }  
-      //Set new properties
-      command_queue->properties &= ~properties;
-   }
+	if (enable)
+	{
+		//Enable StarPU profiling if necessary
+		if (properties & (~command_queue->properties) & CL_QUEUE_PROFILING_ENABLE)
+		{
+			if (profiling_queue_count == 0)
+				starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
+			profiling_queue_count += 1;
+		}
+		//Set new properties
+		command_queue->properties |= properties;
+	}
+	else
+	{
+		//Disable StarPU profiling if necessary
+		if ((~properties) & command_queue->properties & CL_QUEUE_PROFILING_ENABLE)
+		{
+			profiling_queue_count -= 1;
+			if (profiling_queue_count == 0)
+				starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
+		}
+		//Set new properties
+		command_queue->properties &= ~properties;
+	}
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

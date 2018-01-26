@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012, 2014, 2016  Université de Bordeaux
- * Copyright (C) 2012, 2013, 2015, 2016  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2011-2013,2015-2017                      CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +17,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -42,8 +43,9 @@ static starpu_data_handle_t v_handle;
  */
 
 #ifdef STARPU_USE_CUDA
-static void cuda_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+static void cuda_memset_codelet(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -81,8 +83,9 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 }
 #endif /* !STARPU_USE_OPENCL */
 
-void cpu_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_memset_codelet(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -111,8 +114,9 @@ static struct starpu_codelet memset_cl =
  *	Check content
  */
 
-void cpu_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_check_content_codelet(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);

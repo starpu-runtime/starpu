@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 INRIA
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2012-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -290,6 +291,8 @@ copy_cuda_common_async(void *src_interface, unsigned src_node,
 		       void *dst_interface, unsigned dst_node,
 		       cudaStream_t stream, enum cudaMemcpyKind kind)
 {
+	(void)src_node;
+	(void)dst_node;
 	struct custom_data_interface *src_custom, *dst_custom;
 
 	src_custom = (struct custom_data_interface *) src_interface;
@@ -358,12 +361,21 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node,
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node,
 			     void *dst_interface, unsigned dst_node)
 {
+	(void)src_interface;
+	(void)src_node;
+	(void)dst_interface;
+	(void)dst_node;
 	assert(0);
 }
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,
 				   void *dst_interface, unsigned dst_node,
 				   cudaStream_t stream)
 {
+	(void)src_interface;
+	(void)src_node;
+	(void)dst_interface;
+	(void)dst_node;
+	(void)stream;
 	assert(0);
 }
 #endif /* !STARPU_USE_CUDA */
@@ -403,6 +415,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
 				    cl_event *event)
 {
+	(void)event;
 	starpu_ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
 
@@ -446,6 +459,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
 				    cl_event *event)
 {
+	(void)event;
 	starpu_ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
 

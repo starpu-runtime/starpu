@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2015  CNRS
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2012-2013,2015,2017                      CNRS
+ * Copyright (C) 2013                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +26,7 @@
  */
 void init_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *dot = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dot = 0;
 	FPRINTF_MPI(stderr, "Init dot\n");
@@ -34,6 +37,7 @@ void init_cpu_func(void *descr[], void *cl_arg)
  */
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *dota = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	long int *dotb = (long int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -46,6 +50,7 @@ void redux_cpu_func(void *descr[], void *cl_arg)
  */
 void dot_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *local_x = (long int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
@@ -66,6 +71,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
  */
 void display_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	long int *local_x = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	FPRINTF_MPI(stderr, "Local=%ld\n", *local_x);

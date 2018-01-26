@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +26,7 @@
  * Test combinations of various tag/task/data dependencies
  */
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func(void *descr[], void *arg)
 {
 	unsigned duration = (uintptr_t) arg;
 	if (duration)
@@ -74,7 +75,7 @@ static struct starpu_task *create_dummy_task(int write, int data, unsigned durat
 	return task;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	/* We have 27 toggles to try below, thus 2^27 possibilities */

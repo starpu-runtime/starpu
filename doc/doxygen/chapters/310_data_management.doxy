@@ -1,9 +1,19 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012 INRIA
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2011-2012                                Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page DataManagement Data Management
@@ -331,11 +341,15 @@ currently working on the data.  This can be a bottleneck for the application.
 
 An asynchronous API also exists, it works only on handles with sequential
 consistency. The principle is to first plan the partitioning, which returns
-data handles of the partition, which are not functional yet. Along other task
-submission, one can submit the actual partitioning, and then use the handles
-of the partition. Before using the handle of the whole data, one has to submit
-the unpartitioning. <c>fmultiple_submit</c> is a complete example using this
-technique.
+data handles of the partition, which are not functional yet. When submitting
+tasks, one can mix using the handles of the partition, of the whole data. One
+can even partition recursively and mix using handles at different levels of the
+recursion. Of course, StarPU will have to introduce coherency synchronization.
+
+<c>fmultiple_submit_implicit</c> is a complete example using this technique.
+One can also look at <c>fmultiple_submit_readonly</c> which contains the
+explicit coherency synchronization which are automatically introduced by StarPU
+for <c>fmultiple_submit_implicit</c>.
 
 In short, we first register a matrix and plan the partitioning:
 
@@ -351,33 +365,26 @@ starpu_data_partition_plan(handle, &f_vert, vert_handle);
 
 starpu_data_partition_plan() returns the handles for the partition in <c>vert_handle</c>.
 
-One can submit tasks working on the main handle, but not yet on the <c>vert_handle</c>
-handles. Now we submit the partitioning:
-
-\code{.c}
-starpu_data_partition_submit(handle, PARTS, vert_handle);
-\endcode
-
-And now we can submit tasks working on <c>vert_handle</c> handles (and not on the main
-handle any more). Eventually we want to work on the main handle again, so we
-submit the unpartitioning:
-
-\code{.c}
-starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
-\endcode
-
-And now we can submit tasks working on the main handle again.
+One can then submit tasks working on the main handle, and tasks working on
+<c>vert_handle</c> handles. Between using the main handle and <c>vert_handle</c>
+handles, StarPU will automatically call starpu_data_partition_submit and
+starpu_data_unpartition_submit.
 
 All this code is asynchronous, just submitting which tasks, partitioning and
-unpartitioning should be done at runtime.
+unpartitioning will be done at runtime.
 
-Planning several partitioning of the same data is also possible, one just has
-to submit unpartitioning (to get back to the initial handle) before submitting
-another partitioning.
+Planning several partitioning of the same data is also possible, StarPU will
+unpartition and repartition as needed when mixing accesses of different
+partitions. If data access is done in read-only mode, StarPU will allow the
+different partitioning to coexist. As soon as a data is accessed in read-write
+mode, StarPU will automatically unpartition everything and activate only the
+partitioning leading to the data being written to.
 
-It is also possible to activate several partitioning at the same time, in
-read-only mode, by using starpu_data_partition_readonly_submit(). A complete
-example is available in <c>examples/filters/fmultiple_submit_readonly.c</c>.
+For instance, for a stencil application, one can split a subdomain into
+its interior and halos, and then just submit a task updating the whole
+subdomain, then submit MPI sends/receives to update the halos, then submit
+again a task updating the whole subdomain, etc. and StarPU will automatically
+partition/unpartition each time.
 
 \section ManualPartitioning Manual Partitioning
 
@@ -412,7 +419,7 @@ When we want to switch to the vertical slice view, all we need to do is bring
 coherency between them by running an empty task on the home node of the data:
 
 \code{.c}
-void empty(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void empty(void *buffers[], void *cl_arg)
 { }
 struct starpu_codelet cl_switch =
 {
@@ -822,7 +829,7 @@ starpu_task_insert(&cl_display, STARPU_R, handle1, 0);
 and used by codelets.
 
 \code{.c}
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void display_complex_codelet(void *descr[], void *_args)
 {
         int nx = STARPU_COMPLEX_GET_NX(descr[0]);
         double *real = STARPU_COMPLEX_GET_REAL(descr[0]);

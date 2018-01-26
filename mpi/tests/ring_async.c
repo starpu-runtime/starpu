@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2014-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,29 +27,16 @@
 #  define NITER	2048
 #endif
 
-int token = 42;
-starpu_data_handle_t token_handle;
-
 #ifdef STARPU_USE_CUDA
-extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void increment_cuda(void *descr[], void *_args);
 #endif
 
-void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void increment_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int *tokenptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	(*tokenptr)++;
 }
-
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
 
 static struct starpu_codelet increment_cl =
 {
@@ -58,10 +46,10 @@ static struct starpu_codelet increment_cl =
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
-void increment_token(void)
+void increment_token(starpu_data_handle_t token_handle)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -77,12 +65,14 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int mpi_init;
+	int token = 42;
+	starpu_data_handle_t token_handle;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -118,8 +108,10 @@ int main(int argc, char **argv)
 
 		if (loop == 0 && rank == 0)
 		{
+			starpu_data_acquire(token_handle, STARPU_W);
 			token = 0;
 			FPRINTF(stdout, "Start with token value %d\n", token);
+			starpu_data_release(token_handle);
 		}
 		else
 		{
@@ -129,7 +121,7 @@ int main(int argc, char **argv)
 			starpu_mpi_wait(&req, &status);
 		}
 
-		increment_token();
+		increment_token(token_handle);
 
 		if (loop == last_loop && rank == last_rank)
 		{
@@ -156,6 +148,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	if (rank == last_rank)
 	{
+		FPRINTF(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
 		STARPU_ASSERT(token == nloops*size);
 	}
 #endif

@@ -1,9 +1,9 @@
 #!/bin/sh -x
-#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017  Université de Bordeaux
-# Copyright (C) 2017  Inria
+# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2017                                     Université de Bordeaux
+# Copyright (C) 2017                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +15,23 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 # Test parsing of FxT traces
 
 set -e
 
 PREFIX=$(dirname $0)
+
+if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/overlap
+	# in case libtool got into play
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap
+fi
+
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
+[ -f perfs.rec ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
@@ -55,5 +64,8 @@ then
 	if [ -x $PREFIX/../../tools/starpu_replay ]; then
 		$PREFIX/../../tools/starpu_replay tasks.rec
 	fi
+
+	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $PREFIX/../../tools/starpu_perfmodel_recdump tasks.rec -o perfs2.rec
+	[ -f perfs2.rec ]
 fi
 

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015, 2016  CNRS
+ * Copyright (C) 2013,2015-2017                           CNRS
+ * Copyright (C) 2014-2015                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +23,15 @@
 #include <core/perfmodel/perfmodel.h>
 #include <ctype.h>
 
-#ifdef STARPU_HAVE_WINDOWS
+/** Some systems cannot read NAN values, yes, it is really bad ... */
+
+#if defined(STARPU_HAVE_WINDOWS) || defined(STARPU_OPENBSD_SYS)
+#  define _STARPU_OWN_NAN 1
+#else
+#  define _STARPU_OWN_NAN 0
+#endif
+
+#if _STARPU_OWN_NAN == 1
 static
 void _starpu_read_spaces(FILE *f)
 {
@@ -37,11 +46,11 @@ void _starpu_read_spaces(FILE *f)
 		ungetc(c, f);
 	}
 }
-#endif /* STARPU_HAVE_WINDOWS */
+#endif /* _STARPU_OWN_NAN */
 
-void _starpu_write_double(FILE *f, char *format, double val)
+void _starpu_write_double(FILE *f, const char *format, double val)
 {
-#ifdef STARPU_HAVE_WINDOWS
+#if _STARPU_OWN_NAN == 1
         if (isnan(val))
         {
                 fprintf(f, "NaN");
@@ -57,8 +66,7 @@ void _starpu_write_double(FILE *f, char *format, double val)
 
 int _starpu_read_double(FILE *f, char *format, double *val)
 {
-#ifdef STARPU_HAVE_WINDOWS
-/** Windows cannot read NAN values, yes, it is really bad ... */
+#if _STARPU_OWN_NAN == 1
 	_starpu_read_spaces(f);
 
 	int x1 = getc(f);

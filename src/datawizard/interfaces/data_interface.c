@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014, 2016  Inria
+ * Copyright (C) 2011-2012,2014-2017                      Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,12 +21,13 @@
 
 #include <datawizard/datawizard.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/memstats.h>
+#include <datawizard/malloc.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/uthash.h>
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
-#include <datawizard/memstats.h>
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 #endif
@@ -279,8 +280,15 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->switch_cl = NULL;
 	handle->partitioned = 0;
 	handle->readonly = 0;
+	handle->active = 1;
+	handle->active_ro = 0;
 	handle->root_handle = handle;
 	handle->father_handle = NULL;
+	handle->active_children = NULL;
+	handle->active_readonly_children = NULL;
+	handle->nactive_readonly_children = 0;
+	handle->nsiblings = 0;
+	handle->siblings = NULL;
 	handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
         handle->mpi_data = NULL; /* invalid until set */
@@ -901,6 +909,7 @@ retry_busy:
 	_starpu_spin_destroy(&handle->header_lock);
 
 	_starpu_data_clear_implicit(handle);
+	free(handle->active_readonly_children);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
@@ -968,7 +977,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	}
 
 	/* Wait for all task dependencies on this handle before putting it for free */
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_RW, _starpu_data_unregister_submit_cb, handle);
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
 }
 
 static void _starpu_data_invalidate(void *data)
@@ -1075,7 +1084,7 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
-	starpu_free_flags(ptr, count, 0);
+	_starpu_free_flags_on_node(_starpu_memory_node_get_local_key(), ptr, count, 0);
 	return ret;
 }
 

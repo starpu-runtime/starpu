@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2013-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +44,7 @@ struct starpu_leveldb_obj
 
 struct starpu_leveldb_base
 {
+	char *path;
 	leveldb::DB* db;
 	/* if StarPU creates the leveldb */
 	bool created;
@@ -135,7 +139,7 @@ static int starpu_leveldb_read(void *base, void *obj, void *buf, off_t offset, s
 	return 0;
 }
 
-static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *size)
+static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
         struct starpu_leveldb_obj *tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
@@ -149,7 +153,7 @@ static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *s
 	STARPU_ASSERT(s.ok());
 
 	*size = value.length();
-	*ptr = malloc(*size);
+	_starpu_malloc_flags_on_node(dst_node, ptr, *size, 0);
 	STARPU_ASSERT(*ptr);
 
 	/* use buffer */
@@ -191,7 +195,7 @@ static int starpu_leveldb_write(void *base, void *obj, const void *buf, off_t of
 		memcpy(buffer, (void *) value_read, tmp->size);
 
 		/* put the new data on their new place */
-		memcpy(buffer, (void *) (buf_tmp+offset), size);
+		memcpy((void *) ((uintptr_t) buffer + offset), (void *) buf_tmp, size);
 	}
 
 	/* and write them */
@@ -249,6 +253,7 @@ static void *starpu_leveldb_plug(void *parameter, starpu_ssize_t size STARPU_ATT
 	}
 
 	tmp->db = db;
+	tmp->path = strdup((const char*) parameter);
 	STARPU_ASSERT(status.ok());
 	return (void *) tmp;
 }
@@ -259,15 +264,17 @@ static void starpu_leveldb_unplug(void *base)
 	struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
 	if(base_tmp->created)
 		delete base_tmp->db;
+	free(base_tmp->path);
 	free(base);
 }
 
-static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
+static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
 {
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	double start;
 	double end;
+        struct starpu_leveldb_base *base_tmp = (struct starpu_leveldb_base *) base;
 
 	srand(time (NULL));
 	char *buf = (char *)malloc(STARPU_DISK_SIZE_MIN*sizeof(char));
@@ -311,7 +318,7 @@ static int get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	free(buf);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
-					       timing_latency/NITER, timing_latency/NITER, node);
+			timing_latency/NITER, timing_latency/NITER, node, base_tmp->path);
 	return 1;
 }
 

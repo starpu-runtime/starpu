@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2016                                     Inria
+ * Copyright (C) 2016                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +20,9 @@
 #include <stdlib.h>
 
 /* This example case follows the same pattern its native Fortran version nf_sched_ctx.f90 */
-static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *cl_args)
+static void sched_ctx_cpu_func(void *descr[], void *cl_args)
 {
+	(void)descr;
 	int task_id;
 	starpu_codelet_unpack_args(cl_args, &task_id);
 	printf("task: %d, workerid: %d\n", task_id, starpu_worker_get_id());
@@ -33,7 +36,7 @@ static struct starpu_codelet sched_ctx_codelet =
 	.name = "sched_ctx"
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ncpu;
 	int nprocs1;

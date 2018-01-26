@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2013,2015,2017                           Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010,2012-2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@
 #endif
 #include <common/thread.h>
 #include <common/fxt.h>
+#include <common/timing.h>
 
 #include <errno.h>
 #include <limits.h>
@@ -34,6 +35,7 @@
 #include <xbt/synchro_core.h>
 #endif
 #include <smpi/smpi.h>
+#include <simgrid/simix.h>
 #else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
@@ -249,7 +251,11 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#ifdef HAVE_MSG_PROCESS_SELF_NAME
+	const char *process_name = MSG_process_self_name();
+#else
 	const char *process_name = SIMIX_process_self_get_name();
+#endif
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
@@ -267,7 +273,11 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
+#ifdef HAVE_MSG_PROCESS_SELF_NAME
+	const char *process_name = MSG_process_self_name();
+#else
 	const char *process_name = SIMIX_process_self_get_name();
+#endif
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
@@ -329,6 +339,30 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	_STARPU_TRACE_COND_WAIT_END();
 
 	return 0;
+}
+
+int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
+{
+#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
+	struct timespec now, delta;
+	double delay;
+	int ret = 0;
+	_starpu_clock_gettime(&now);
+	delta.tv_sec = abstime->tv_sec - now.tv_sec;
+	delta.tv_nsec = abstime->tv_nsec - now.tv_nsec;
+	delay = (double) delta.tv_sec + (double) delta.tv_nsec / 1000000000.;
+
+	_STARPU_TRACE_COND_WAIT_BEGIN();
+
+	_starpu_pthread_cond_auto_init(cond);
+	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? -ETIMEDOUT : 0;
+
+	_STARPU_TRACE_COND_WAIT_END();
+
+	return ret;
+#else
+	STARPU_ASSERT_MSG(0, "simgrid version is too old for this");
+#endif
 }
 
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
@@ -498,6 +532,18 @@ int starpu_pthread_wait_wait(starpu_pthread_wait_t *w)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
 	return 0;
 }
+
+/* pthread_cond_timedwait not yet available on windows, but we don't run simgrid there anyway */
+#ifdef STARPU_SIMGRID
+int starpu_pthread_wait_timedwait(starpu_pthread_wait_t *w, const struct timespec *abstime)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&w->mutex);
+	while (w->block == 1)
+		STARPU_PTHREAD_COND_TIMEDWAIT(&w->cond, &w->mutex, abstime);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&w->mutex);
+	return 0;
+}
+#endif
 
 int starpu_pthread_queue_signal(starpu_pthread_queue_t *q)
 {

@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2011,2013                                Inria
+ * Copyright (C) 2009-2011,2013-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,8 +57,9 @@ void parse_args(int argc, char **argv)
 #define FRAMESIZE	sizeof(struct yuv_frame)
 #define NEW_FRAMESIZE	sizeof(struct yuv_new_frame)
 
-void ds_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+void ds_kernel_cpu(void *descr[], void *arg)
 {
+	(void)arg;
 	uint8_t *input = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[0]);
 	const unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
 

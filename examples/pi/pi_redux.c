@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015, 2017  Université de Bordeaux
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2012-2013,2015                           Inria
+ * Copyright (C) 2012-2013,2016-2017                      CNRS
+ * Copyright (C) 2010-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,8 +66,9 @@ static unsigned short xsubi[STARPU_NMAXWORKERS*PADDING];
 static starpu_drand48_data randbuffer[STARPU_NMAXWORKERS*PADDING];
 
 /* Function to initialize the random number generator in the current worker */
-static void init_rng(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void init_rng(void *arg)
 {
+	(void)arg;
 #ifdef STARPU_HAVE_CURAND
 	curandStatus_t res;
 #endif
@@ -108,6 +110,8 @@ static void init_rng(void *arg STARPU_ATTRIBUTE_UNUSED)
 /* The amount of work does not depend on the data size at all :) */
 static size_t size_base(struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	return nshot_per_task;
 }
 
@@ -151,8 +155,9 @@ static void parse_args(int argc, char **argv)
  *	Monte-carlo kernel
  */
 
-void pi_func_cpu(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+void pi_func_cpu(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	int workerid = starpu_worker_get_id_check();
 
 	unsigned short *worker_xsub;
@@ -188,8 +193,9 @@ void pi_func_cpu(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *shot_cnt);
 
 #ifdef STARPU_HAVE_CURAND
-static void pi_func_cuda(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+static void pi_func_cuda(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	curandStatus_t res;
 
 	int workerid = starpu_worker_get_id_check();
@@ -256,6 +262,7 @@ static struct starpu_codelet pi_cl_redux =
 
 void init_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
         *val = 0;
 }
@@ -263,6 +270,7 @@ void init_cpu_func(void *descr[], void *cl_arg)
 #ifdef STARPU_HAVE_CURAND
 static void init_cuda_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
         cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
 }
@@ -284,6 +292,7 @@ static struct starpu_codelet init_codelet =
 /* Dummy implementation of the addition of two unsigned longs in CUDA */
 static void redux_cuda_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned long *d_a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned long *d_b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -301,6 +310,7 @@ static void redux_cuda_func(void *descr[], void *cl_arg)
 
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned long *a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned long *b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
 

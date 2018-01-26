@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013                                     Inria
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2014-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,8 +71,9 @@ int starpu_sched_component_is_eager(struct starpu_sched_component * component)
 	return component->push_task == eager_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "eager");
 	component->push_task = eager_push_task;
 

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,23 +21,24 @@
 
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetKernelInfo(cl_kernel       kernel,
-                cl_kernel_info  param_name,
-                size_t          param_value_size,
-                void *          param_value,
-                size_t *        param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+		  cl_kernel_info  param_name,
+		  size_t          param_value_size,
+		  void *          param_value,
+		  size_t *        param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (kernel == NULL)
-      return CL_INVALID_KERNEL;
+	if (kernel == NULL)
+		return CL_INVALID_KERNEL;
 
-   switch (param_name) {
-      INFO_CASE_EX(CL_KERNEL_FUNCTION_NAME, kernel->kernel_name, strlen(kernel->kernel_name)+1)
-      INFO_CASE(CL_KERNEL_NUM_ARGS, kernel->num_args)
-      INFO_CASE(CL_KERNEL_REFERENCE_COUNT, kernel->_entity.refs)
-      INFO_CASE(CL_KERNEL_PROGRAM, kernel->program)
-      INFO_CASE(CL_KERNEL_CONTEXT, kernel->program->context)
-      default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE_EX(CL_KERNEL_FUNCTION_NAME, kernel->kernel_name, strlen(kernel->kernel_name)+1);
+		INFO_CASE(CL_KERNEL_NUM_ARGS, kernel->num_args);
+		INFO_CASE(CL_KERNEL_REFERENCE_COUNT, kernel->_entity.refs);
+		INFO_CASE(CL_KERNEL_PROGRAM, kernel->program);
+		INFO_CASE(CL_KERNEL_CONTEXT, kernel->program->context);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

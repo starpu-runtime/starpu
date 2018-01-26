@@ -444,6 +444,7 @@ do {                                                                            
      /* FALLTHRU */                                                              \
      case 1:  _hj_i += _hj_key[0];                                               \
      /* FALLTHRU */                                                              \
+     default: break;                                                             \
   }                                                                              \
   HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                             \
   bkt = hashv & (num_bkts-1);                                                    \
@@ -492,6 +493,8 @@ do {                                                                            
     case 1: hashv += *_sfh_key;                                                  \
             hashv ^= hashv << 10;                                                \
             hashv += hashv >> 1;                                                 \
+            break;                                                               \
+    default: break;                                                              \
   }                                                                              \
                                                                                  \
     /* Force "avalanching" of final 127 bits */                                  \
@@ -543,9 +546,13 @@ do {                                                                            
   switch(_mur_len)                                                               \
   {                                                                              \
     case 3: hashv ^= _mur_key[2] << 16;                                          \
+    /* FALLTHRU */                                                               \
     case 2: hashv ^= _mur_key[1] << 8;                                           \
+    /* FALLTHRU */                                                               \
     case 1: hashv ^= _mur_key[0];                                                \
             hashv *= _mur_m;                                                     \
+    /* FALLTHRU */                                                               \
+    default: break;                                                              \
   };                                                                             \
                                                                                  \
   hashv ^= hashv >> 13;                                                          \
@@ -569,8 +576,12 @@ do {                                                                            
     unsigned _mur_t = 0, _mur_d = 0;                                             \
     switch(_mur_align) {                                                         \
       case 1: _mur_t |= _mur_key[2] << 16;                                       \
+      /* FALLTHRU */                                                             \
       case 2: _mur_t |= _mur_key[1] << 8;                                        \
+      /* FALLTHRU */                                                             \
       case 3: _mur_t |= _mur_key[0];                                             \
+      /* FALLTHRU */                                                             \
+      default: break;                                                            \
     }                                                                            \
     _mur_t <<= (8 * _mur_align);                                                 \
     _mur_key += 4-_mur_align;                                                    \
@@ -594,8 +605,12 @@ do {                                                                            
     if(_mur_len >= _mur_align) {                                                 \
       switch(_mur_align) {                                                       \
         case 3: _mur_d |= _mur_key[2] << 16;                                     \
+        /* FALLTHRU */                                                           \
         case 2: _mur_d |= _mur_key[1] << 8;                                      \
+        /* FALLTHRU */                                                           \
         case 1: _mur_d |= _mur_key[0];                                           \
+        /* FALLTHRU */                                                           \
+        default: break;                                                          \
       }                                                                          \
       unsigned _mur_k = (_mur_t >> _mur_sr) | (_mur_d << _mur_sl);               \
       _mur_k *= _mur_m;                                                          \
@@ -609,18 +624,27 @@ do {                                                                            
       switch(_mur_len)                                                           \
       {                                                                          \
         case 3: hashv ^= _mur_key[2] << 16;                                      \
+        /* FALLTHRU */                                                           \
         case 2: hashv ^= _mur_key[1] << 8;                                       \
+        /* FALLTHRU */                                                           \
         case 1: hashv ^= _mur_key[0];                                            \
                 hashv *= _mur_m;                                                 \
+        /* FALLTHRU */                                                           \
+        default: break;                                                          \
       }                                                                          \
     } else {                                                                     \
       switch(_mur_len)                                                           \
       {                                                                          \
         case 3: _mur_d ^= _mur_key[2] << 16;                                     \
+        /* FALLTHRU */                                                           \
         case 2: _mur_d ^= _mur_key[1] << 8;                                      \
+        /* FALLTHRU */                                                           \
         case 1: _mur_d ^= _mur_key[0];                                           \
+        /* FALLTHRU */                                                           \
         case 0: hashv ^= (_mur_t >> _mur_sr) | (_mur_d << _mur_sl);              \
         hashv *= _mur_m;                                                         \
+        /* FALLTHRU */                                                           \
+        default: break;                                                          \
       }                                                                          \
     }                                                                            \
                                                                                  \
@@ -640,9 +664,13 @@ do {                                                                            
     switch(_mur_len)                                                             \
     {                                                                            \
       case 3: hashv ^= _mur_key[2] << 16;                                        \
+      /* FALLTHRU */                                                             \
       case 2: hashv ^= _mur_key[1] << 8;                                         \
+      /* FALLTHRU */                                                             \
       case 1: hashv ^= _mur_key[0];                                              \
       hashv *= _mur_m;                                                           \
+      /* FALLTHRU */                                                             \
+      default: break;                                                            \
     }                                                                            \
                                                                                  \
     hashv ^= hashv >> 13;                                                        \

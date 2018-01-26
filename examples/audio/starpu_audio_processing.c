@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2009-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -170,7 +171,7 @@ typedef struct
 static fft_plan_cache plans[STARPU_NMAXWORKERS];
 
 #ifdef STARPU_USE_CUDA
-static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void band_filter_kernel_gpu(void *descr[], void *arg)
 {
 	cufftResult cures;
 
@@ -225,7 +226,7 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 static starpu_pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void band_filter_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void band_filter_kernel_cpu(void *descr[], void *arg)
 {
 	float *localA = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 

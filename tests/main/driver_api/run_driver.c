@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012-2013,2016                           Inria
+ * Copyright (C) 2012-2013,2015,2017                      CNRS
+ * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +23,7 @@
 
 #if !defined(STARPU_HAVE_UNSETENV)
 #warning unsetenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }

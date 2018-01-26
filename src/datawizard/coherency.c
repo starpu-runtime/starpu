@@ -1,7 +1,8 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2014, 2017  INRIA
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011-2014,2017                           Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -252,14 +253,14 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 			}
 			else
 				return 0;
-#elif defined(HAVE_CUDA_MEMCPY_PEER)
+#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			/* simgrid */
 			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 			return kind == STARPU_CUDA_RAM;
-#else /* HAVE_CUDA_MEMCPY_PEER */
+#else /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
-#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 		}
 		case STARPU_OPENCL_RAM:
 			return 0;
@@ -395,6 +396,14 @@ static int determine_request_path(starpu_data_handle_t handle,
 		return 1;
 	}
 
+	if (src_node < 0) {
+		/* Will just initialize the destination */
+		STARPU_ASSERT(max_len >= 1);
+		src_nodes[0] = src_node; // ignored
+		dst_nodes[0] = dst_node;
+		return 1;
+	}
+
 	unsigned handling_node;
 	int link_is_valid = link_supports_direct_transfers(handle, src_node, dst_node, &handling_node);
 
@@ -455,7 +464,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = handling_node;
 
-#if !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		STARPU_ASSERT(!(mode & STARPU_R) || starpu_node_get_kind(src_node) != STARPU_CUDA_RAM || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM);
 #endif
 
@@ -798,6 +807,29 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
 
+	if (is_prefetch > 0)
+	{
+		unsigned src_node_mask = 0;
+
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		unsigned n;
+		for (n = 0; n < nnodes; n++)
+		{
+			if (handle->per_node[n].state != STARPU_INVALID)
+			{
+				/* we found a copy ! */
+				src_node_mask |= (1<<n);
+			}
+		}
+
+		if (src_node_mask == 0)
+		{
+			/* no valid copy, nothing to prefetch */
+			_starpu_spin_unlock(&handle->header_lock);
+			return 0;
+		}
+	}
+
 	if (!detached)
 	{
 		/* Take references which will be released by _starpu_release_data_on_node */
@@ -874,7 +906,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	unsigned memory_node = replicate->memory_node;
 
 	if (replicate->state != STARPU_INVALID && handle->current_mode & STARPU_W)
-	if ((wt_mask & ~(1<<memory_node)))
+	if (wt_mask & ~(1<<memory_node))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	int cpt = 0;
@@ -929,6 +961,10 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned n
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
 			continue;
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
@@ -1167,8 +1203,10 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		struct _starpu_data_replicate *local_replicate;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 			local_replicate->mc->diduse = 1;
+		_starpu_spin_unlock(&handle->header_lock);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 

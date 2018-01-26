@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013, 2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2016, 2017  CNRS
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2011-2012,2016                           Inria
+ * Copyright (C) 2008-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -246,7 +246,7 @@ static void _starpu_tag_add_succ(struct _starpu_tag *tag, struct _starpu_cg *cg)
 	if (tag->state == STARPU_DONE)
 	{
 		/* the tag was already completed sooner */
-		_starpu_notify_cg(cg);
+		_starpu_notify_cg(tag, cg);
 	}
 }
 
@@ -263,7 +263,7 @@ void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 	tag->state = STARPU_DONE;
 	_STARPU_TRACE_TAG_DONE(tag);
 
-	_starpu_notify_cg_list(&tag->tag_successors);
+	_starpu_notify_cg_list(tag, &tag->tag_successors);
 
 	_starpu_spin_unlock(&tag->lock);
 }

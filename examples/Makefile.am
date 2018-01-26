@@ -1,11 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
-# Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011-2012  INRIA
-# Copyright (C) 2015-2016  Inria
-# Copyright (C) 2016  Uppsala University
+# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2017                                     Erwan Leria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2015,2017                           CNRS
+# Copyright (C) 2011                                     Télécom-SudParis
+# Copyright (C) 2016                                     Uppsala University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -90,18 +90,17 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 endif
 
 if STARPU_HAVE_ICC
 .icc.o:
-	$(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
+	$(V_icc) $(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
 endif
 
 examplebindir = $(libdir)/starpu/examples/
@@ -157,8 +156,10 @@ examplebin_PROGRAMS 	+=	$(STARPU_EXAMPLES)
 
 TESTS			=	$(STARPU_EXAMPLES)
 
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS			+=	scheduler/schedulers.sh
 TESTS			+=	scheduler/schedulers_context.sh
+endif
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS		=	$(STARPU_EXAMPLES)
@@ -223,6 +224,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
+	filters/fmultiple_submit_implicit	\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -565,6 +567,14 @@ filters_fmultiple_submit_readonly_SOURCES =	\
 
 if STARPU_USE_CUDA
 filters_fmultiple_submit_readonly_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+endif
+
+filters_fmultiple_submit_implicit_SOURCES =		\
+	filters/fmultiple_submit_implicit.c
+
+if STARPU_USE_CUDA
+filters_fmultiple_submit_implicit_SOURCES +=		\
 	filters/fmultiple_cuda.cu
 endif
 

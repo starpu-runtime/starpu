@@ -1,6 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016  Inria
+# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2015-2016                                Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -12,31 +13,26 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
-PROG = nf_vector
+#
+PROG = nf_sched_ctx
 
 FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^\([^ ]*starpu\/1.3\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
 
-SRCSF = nf_vector.f90		\
-	nf_codelets.f90
+SRCSF = nf_sched_ctx_cl.f90	\
+	nf_sched_ctx.f90
 
 FC = gfortran
-CC = gcc
 
-CFLAGS = -g $(shell pkg-config --cflags starpu-1.3)
 FCFLAGS = -fdefault-real-8 -J. -g
 LDLIBS =  $(shell pkg-config --libs starpu-1.3)
 
-OBJS = $(SRCSC:%.c=%.o) fstarpu_mod.o $(SRCSF:%.f90=%.o)
+OBJS = fstarpu_mod.o $(SRCSF:%.f90=%.o)
 
 .phony: all clean
 all: $(PROG)
 
 $(PROG): $(OBJS)
 	$(FC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
 fstarpu_mod.o: $(FSTARPU_MOD)
 	$(FC) $(FCFLAGS) -c -o $@ $<
@@ -47,5 +43,6 @@ fstarpu_mod.o: $(FSTARPU_MOD)
 clean:
 	rm -fv *.o *.mod $(PROG)
 
-nf_vector.o: nf_vector.f90 nf_codelets.o fstarpu_mod.o
-nf_codelets.o: fstarpu_mod.o
+# modfiles generation dependences
+nf_sched_ctx_cl.o: nf_sched_ctx_cl.f90 fstarpu_mod.o
+nf_sched_ctx.o: nf_sched_ctx.f90 fstarpu_mod.o

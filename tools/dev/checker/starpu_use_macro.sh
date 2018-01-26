@@ -1,8 +1,8 @@
 #!/bin/bash
-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012 INRIA
+# Copyright (C) 2012                                     Inria
+# Copyright (C) 2012,2017,2018                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,5 +14,5 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
-find . -type f -name "*.c" -not -path "*svn*" -exec sed -i 's/^#if STARPU_USE_/#ifdef STARPU_USE_/' {} \;
+#
+find . -type f -name "*.c" -exec sed -i 's/^#if STARPU_USE_/#ifdef STARPU_USE_/' {} \;

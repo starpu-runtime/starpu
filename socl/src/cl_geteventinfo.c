@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,29 +19,29 @@
 #include "socl.h"
 #include "getinfo.h"
 
-
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetEventInfo(cl_event       event,
-               cl_event_info    param_name,
-               size_t           param_value_size,
-               void *           param_value,
-               size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+		 cl_event_info    param_name,
+		 size_t           param_value_size,
+		 void *           param_value,
+		 size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   if (event == NULL)
-      return CL_INVALID_EVENT;
+	if (event == NULL)
+		return CL_INVALID_EVENT;
 
-   #define STAT_CASE(starpu,opencl) case starpu: \
-      status = opencl; \
-      break;
+#define STAT_CASE(starpu,opencl) case starpu:	\
+	status = opencl;			\
+	break;
 
-   switch (param_name) {
-      INFO_CASE(CL_EVENT_COMMAND_QUEUE, event->cq);
-      INFO_CASE(CL_EVENT_COMMAND_TYPE, event->command->typ);
-      INFO_CASE(CL_EVENT_COMMAND_EXECUTION_STATUS, event->status);
-      INFO_CASE(CL_EVENT_REFERENCE_COUNT, event->_entity.refs);
-      default:
-         return CL_INVALID_VALUE;
-   }
+	switch (param_name)
+	{
+		INFO_CASE(CL_EVENT_COMMAND_QUEUE, event->cq);
+		INFO_CASE(CL_EVENT_COMMAND_TYPE, event->command->typ);
+		INFO_CASE(CL_EVENT_COMMAND_EXECUTION_STATUS, event->status);
+		INFO_CASE(CL_EVENT_REFERENCE_COUNT, event->_entity.refs);
+	default:
+		return CL_INVALID_VALUE;
+	}
 
-   return CL_SUCCESS; 
+	return CL_SUCCESS;
 }

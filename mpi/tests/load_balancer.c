@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017  CNRS
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +19,7 @@
 #include <starpu_mpi_lb.h>
 #include "helper.h"
 
-#if !defined(STARPU_HAVE_UNSETENV)
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_MPI_MPI)
 
 #warning unsetenv is not defined. Skipping test
 int main(int argc, char **argv)
@@ -39,6 +40,8 @@ void get_neighbors(int **neighbor_ids, int *nneighbors)
 
 void get_data_unit_to_migrate(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node)
 {
+	(void)handle_unit;
+	(void)dst_node;
 	*nhandles = 0;
 }
 
@@ -54,7 +57,7 @@ int main(int argc, char **argv)
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	unsetenv("STARPU_MPI_LB");

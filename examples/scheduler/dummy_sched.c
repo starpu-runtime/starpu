@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010-2013, 2016  CNRS
+ * Copyright (C) 2012-2013,2015                           Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +24,6 @@
  */
 #include <starpu.h>
 #include <starpu_scheduler.h>
-#include <config.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS	320
@@ -140,8 +140,10 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.worker_type = STARPU_WORKER_LIST,
 };
 
-void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 static struct starpu_codelet dummy_codelet =
@@ -156,7 +158,7 @@ static struct starpu_codelet dummy_codelet =
 };
 
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ntasks = NTASKS;
 	int ret;

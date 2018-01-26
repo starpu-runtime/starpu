@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2012-2013,2015,2017                      CNRS
+ * Copyright (C) 2013-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +22,10 @@
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-       if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
-               return 1;
+	(void) task;
+	(void) nimpl;
+	if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
+		return 1;
 
 #ifdef STARPU_USE_CUDA
 #ifdef STARPU_SIMGRID
@@ -29,26 +33,26 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	return 1;
 #else
        /* Cuda device */
-       const struct cudaDeviceProp *props;
-       props = starpu_cuda_get_device_properties(workerid);
-       if (props->major >= 2 || props->minor >= 3)
-       {
-               /* At least compute capability 1.3, supports doubles */
-               return 1;
-       }
-       else
-       {
-               /* Old card does not support doubles */
-               return 0;
-       }
+	const struct cudaDeviceProp *props;
+	props = starpu_cuda_get_device_properties(workerid);
+	if (props->major >= 2 || props->minor >= 3)
+	{
+		/* At least compute capability 1.3, supports doubles */
+		return 1;
+	}
+	else
+	{
+		/* Old card does not support doubles */
+		return 0;
+	}
 #endif
 #else
-       return 1;
+	return 1;
 #endif
 }
 
 #ifdef STARPU_USE_CUDA
-extern void copy_complex_codelet_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void copy_complex_codelet_cuda(void *descr[], void *_args);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void copy_complex_codelet_opencl(void *buffers[], void *args);
@@ -74,7 +78,7 @@ struct starpu_codelet cl_copy =
 struct starpu_opencl_program opencl_program;
 #endif
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret = 0;
 	starpu_data_handle_t handle1;

@@ -1,10 +1,11 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011, 2014, 2016-2017  INRIA
- * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2017                                     Erwan Leria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -583,14 +584,26 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+			int node = task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
+			/* Make sure the specified node exists */
+			STARPU_ASSERT_MSG(node == -1 || (node >= 0 && node < starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
+			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
+			    ((handle->nplans && !handle->nchildren) || handle->siblings))
+				/* This handle is involved with asynchronous
+				 * partitioning as a parent or a child, make
+				 * sure the right plan is active, submit
+				 * appropiate partitioning / unpartitioning if
+				 * not */
+				_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
 		}
 
 		/* Check the type of worker(s) required by the task exist */
@@ -1248,7 +1261,8 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task)
 
 static starpu_pthread_t watchdog_thread;
 
-static int sleep_some(float timeout) {
+static int sleep_some(float timeout)
+{
 	/* If we do a sleep(timeout), we might have to wait too long at the end of the computation. */
 	/* To avoid that, we do several sleep() of 1s (and check after each if starpu is still running) */
 	float t;

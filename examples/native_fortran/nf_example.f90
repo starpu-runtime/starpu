@@ -1,7 +1,9 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2015  ONERA
-! Copyright (C) 2015-2016  Inria
+! Copyright (C) 2017                                     CNRS
+! Copyright (C) 2015-2016                                Inria
+! Copyright (C) 2016                                     Université de Bordeaux
+! Copyright (C) 2015                                     ONERA
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +15,7 @@
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+!
 ! This is an example of Fortran90 program making use of StarPU.
 ! It registers a few matrices for each element of a domain, performs
 ! update computations on them, and checks the result.

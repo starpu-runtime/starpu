@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux
- * Copyright (C) 2010  CNRS
+ * Copyright (C) 2010-2011,2013-2014                      Université de Bordeaux
+ * Copyright (C) 2010,2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +17,9 @@
 
 #include <starpu.h>
 
-void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	float *val = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*val += 1.0f;

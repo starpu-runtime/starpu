@@ -1,7 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2017 INRIA
- * Copyright (C) 2015, 2016 CNRS
+ * Copyright (C)                                          Inria
+ * Copyright (C)                                          CNRS
+ * Copyright (C) 2015-2016                                Université de Bordeaux
+ * Copyright (C) 2015,2017                                Inria
+ * Copyright (C) 2015-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +63,8 @@ void parallel_task_prologue_init_once_and_for_all(void * sched_ctx_)
 
 void noop(void * buffers[], void * cl_arg)
 {
+	(void)buffers;
+	(void)cl_arg;
 }
 
 static struct starpu_codelet init_parallel_worker_cl=
@@ -144,6 +149,7 @@ void parallel_task_deinit()
 /* Codelet SUM */
 static void sum_cpu(void * descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	double *v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
 	double *v_src0 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
 	double *v_src1 = (double *) STARPU_VECTOR_GET_PTR(descr[2]);
@@ -167,7 +173,7 @@ static struct starpu_codelet sum_cl =
 	.modes={STARPU_RW,STARPU_R, STARPU_R}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ntasks = NTASKS;
 	int ret, j, k;

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014, 2016  INRIA
+ * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2014-2016                                Inria
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +26,7 @@
  */
 
 #if !defined(STARPU_OPENMP) || !defined(STARPU_USE_CUDA)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -57,7 +59,7 @@ void task_region_g(void *buffers[], void *args)
 	int *v2 = (int *)STARPU_VECTOR_GET_PTR(_vector_2);
 
 	int f = (int)(intptr_t)args;
-	
+
 	STARPU_ASSERT(nx1 == nx2);
 
 	printf("depth 1 task, entry: vector_1 ptr = %p\n", v1);
@@ -113,8 +115,12 @@ void master_g2(void *arg)
 	printf("master_g2: region_vector_handles[1] = %p\n", region_vector_handles[1]);
 
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
+	attr.cl.model         = &starpu_perfmodel_nop;
+	attr.cl.flags         = STARPU_CODELET_SIMGRID_EXECUTE;
+#endif
 	attr.cl.cpu_funcs[0]  = NULL;
-	attr.cl.cuda_funcs[0]  = task_region_g;
+	attr.cl.cuda_funcs[0] = task_region_g;
 	attr.cl.where         = STARPU_CUDA;
 	attr.cl.nbuffers      = 2;
 	attr.cl.modes[0]      = STARPU_R;
@@ -165,10 +171,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
-	(void)argc;
-	(void)argv;
 	struct starpu_omp_parallel_region_attr attr;
 
 	if (starpu_cuda_worker_get_count() < 1)
@@ -177,6 +181,10 @@ main (int argc, char *argv[])
 	}
 
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
+	attr.cl.model        = &starpu_perfmodel_nop;
+#endif
+	attr.cl.flags        = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;

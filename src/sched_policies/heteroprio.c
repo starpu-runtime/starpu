@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2017  INRIA
- * Copyright (C) 2016, 2017  CNRS
- * Copyright (C) 2016  Uppsala University
+ * Copyright (C) 2015-2017                                Inria
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -445,7 +446,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (_starpu_wake_worker_relax(worker))
+			if (_starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 	}
 #endif
@@ -643,7 +644,7 @@ done:		;
 /* TOTO berenger: iterate in the other sense */
 		struct starpu_task *task_to_prefetch = NULL;
 		for (task_to_prefetch  = starpu_task_prio_list_begin(&worker->tasks_queue.list);
-			(task_to_prefetch != starpu_task_prio_list_end(&worker->tasks_queue.list) &&
+		     (task_to_prefetch != starpu_task_prio_list_end(&worker->tasks_queue.list) &&
 		      nb_added_tasks && hp->nb_remaining_tasks_per_arch_index[worker->arch_index] != 0);
 		     task_to_prefetch  = starpu_task_prio_list_next(&worker->tasks_queue.list, task_to_prefetch))
 		{

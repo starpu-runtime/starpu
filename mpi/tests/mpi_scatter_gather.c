@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,36 +40,23 @@ void cpu_codelet(void *descr[], void *_args)
 	}
 }
 
-#ifdef STARPU_SIMGRID
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-#endif
-
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 };
 
-void scallback(void *arg STARPU_ATTRIBUTE_UNUSED)
+void scallback(void *arg)
 {
 	char *msg = arg;
 	FPRINTF_MPI(stderr, "Sending completed for <%s>\n", msg);
 }
 
-void rcallback(void *arg STARPU_ATTRIBUTE_UNUSED)
+void rcallback(void *arg)
 {
 	char *msg = arg;
 	FPRINTF_MPI(stderr, "Reception completed for <%s>\n", msg);
@@ -121,7 +110,7 @@ int main(int argc, char **argv)
 		{
 			starpu_vector_data_register(&data_handles[x], 0, (uintptr_t)&vector[x], 1, sizeof(int));
 		}
-		else if ((mpi_rank == rank))
+		else if (mpi_rank == rank)
 		{
 			/* I do not own that index but i will need it for my computations */
 			starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL, 1, sizeof(int));

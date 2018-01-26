@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +27,7 @@
 
 #if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU)
 #warning unsetenv or setenv are not defined. Or CPU are not enabled. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -39,7 +42,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 
 	if (env_cpu != -1)
 	{
-		char string[10];
+		char string[11];
 		snprintf(string, sizeof(string), "%d", env_cpu);
 		setenv("STARPU_NCPUS", string, 1);
 	}
@@ -74,11 +77,11 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	else
 	{
 		FPRINTF(stderr, "Number of CPUS: %3d -- Number of expected CPUs: %3d\n", *cpu, expected_cpu);
-		return (*cpu != expected_cpu);
+		return *cpu != expected_cpu;
 	}
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int cpu, cpu_init;

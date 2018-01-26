@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2016                                     Inria
+ * Copyright (C) 2016-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -239,8 +241,9 @@ static void unregister_matrices()
 
 /* Perform the actual computation. In a real-life case, this would rather call a BLAS 'gemm' routine
  * instead. */
-static void cpu_mult(void *handles[], STARPU_ATTRIBUTE_UNUSED void *arg)
+static void cpu_mult(void *handles[], void *arg)
 {
+	(void)arg;
 	double *block_A = (double *)STARPU_MATRIX_GET_PTR(handles[0]);
 	double *block_B = (double *)STARPU_MATRIX_GET_PTR(handles[1]);
 	double *block_C = (double *)STARPU_MATRIX_GET_PTR(handles[2]);

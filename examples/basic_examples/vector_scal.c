@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015  CNRS
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2011-2013                                Inria
+ * Copyright (C) 2009-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,7 +115,7 @@ static int approximately_equal(float a, float b)
 	return ai == bi;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	/* We consider a vector of float that is initialized just as any of C
  	 * data */

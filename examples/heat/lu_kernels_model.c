@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
- * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2008-2011,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +45,7 @@
 
 double task_11_cost(struct starpu_task *task, unsigned nimpl)
 {
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -55,6 +57,7 @@ double task_11_cost(struct starpu_task *task, unsigned nimpl)
 
 double task_12_cost(struct starpu_task *task, unsigned nimpl)
 {
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -69,6 +72,7 @@ double task_12_cost(struct starpu_task *task, unsigned nimpl)
 
 double task_21_cost(struct starpu_task *task, unsigned nimpl)
 {
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -84,6 +88,7 @@ double task_21_cost(struct starpu_task *task, unsigned nimpl)
 
 double task_22_cost(struct starpu_task *task, unsigned nimpl)
 {
+	(void)nimpl;
 	uint32_t nx, ny, nz;
 
 	nx = starpu_matrix_get_nx(task->handles[2]);
@@ -104,6 +109,8 @@ double task_22_cost(struct starpu_task *task, unsigned nimpl)
 
 double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -116,6 +123,8 @@ double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -129,6 +138,8 @@ double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -143,6 +154,8 @@ double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t nx, ny, nz;
 
 	nx = starpu_matrix_get_nx(task->handles[2]);
@@ -163,6 +176,8 @@ double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -175,6 +190,8 @@ double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -188,6 +205,8 @@ double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -202,6 +221,8 @@ double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t nx, ny, nz;
 
 	nx = starpu_matrix_get_nx(task->handles[2]);
@@ -219,6 +240,7 @@ void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol,
 				 double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
 				 double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
+	(void)cost_function;
 	model->symbol = symbol;
 	model->type = STARPU_HISTORY_BASED;
 

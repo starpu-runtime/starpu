@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014, 2016-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -103,7 +104,7 @@
 	int p_ret = starpu_pthread_mutex_lock_sched(mutex);		      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d starpu_pthread_mutex_lock: %s\n",               \
+			"%s:%d starpu_pthread_mutex_lock_sched: %s\n",         \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
@@ -133,7 +134,7 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 	int p_ret = starpu_pthread_mutex_trylock_sched(mutex);
 	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != EBUSY)) {
 		fprintf(stderr,
-			"%s:%d starpu_pthread_mutex_trylock: %s\n",
+			"%s:%d starpu_pthread_mutex_trylock_sched: %s\n",
 			file, line, strerror(p_ret));
 		STARPU_ABORT();
 	}
@@ -155,7 +156,7 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 	int p_ret = starpu_pthread_mutex_unlock_sched(mutex);                  \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d starpu_pthread_mutex_unlock: %s\n",             \
+			"%s:%d starpu_pthread_mutex_unlock_sched: %s\n",       \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
@@ -328,6 +329,24 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
+
+/* pthread_cond_timedwait not yet available on windows, but we don't run simgrid there anyway */
+#ifdef STARPU_SIMGRID
+#define STARPU_PTHREAD_COND_TIMEDWAIT(cond, mutex, abstime) \
+	_starpu_pthread_cond_timedwait(cond, mutex, abstime, __FILE__, __LINE__)
+static STARPU_INLINE
+int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime, char *file, int line)
+{
+	int p_ret = starpu_pthread_cond_timedwait(cond, mutex, abstime);
+	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != ETIMEDOUT)) {
+		fprintf(stderr,
+			"%s:%d starpu_pthread_cond_timedwait: %s\n",
+			file, line, strerror(p_ret));
+		STARPU_ABORT();
+	}
+	return p_ret;
+}
+#endif
 
 /*
  * Encapsulation of the starpu_pthread_barrier_* functions.

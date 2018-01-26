@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2013,2015-2017                 CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,7 +96,8 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 		gordon_job->buffers[in] = (uint64_t)task->cl_arg;
 		gordon_job->ss[in].size = (uint32_t)task->cl_arg_size;
 
-		nin++; in++;
+		nin++;
+		in++;
 	}
 
 	/* count the number of in/inout/out buffers */

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016  Université de Bordeaux
-# Copyright (C) 2016, 2017  CNRS
+# Copyright (C) 2016-2017                                CNRS
+# Copyright (C) 2016-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 
 # This provides a helper function to be used for microbenchs that should be run
 # under the various schedulers.
@@ -32,6 +32,12 @@ test_scheds()
 	failed=""
 	pass=""
 	skip=""
+
+	if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
+		STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/$TEST
+		# in case libtool got into play
+		[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/$TEST" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/$TEST
+	fi
 
 	RESULT=0
 	for sched in $SCHEDS;

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017  Université de Bordeaux
- * Copyright (C) 2015  Inria
+ * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2013,2015,2017                           Inria
+ * Copyright (C) 2010-2013,2016-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -302,7 +303,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 
-	if (((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
+	if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
 	{
 		/* TODO: Detect whether this is the end of a reduction phase etc. like in data_concurrency.c */
 		if (0)
@@ -442,7 +443,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 		/* Try to take handle */
 		_starpu_spin_lock(&handle->header_lock);
-		if (((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
+		if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
 		{
 			/* Got it */
 			handle->refcnt++;
@@ -588,7 +589,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
-			if (((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode))))
+			if ((handle->refcnt == 0) || (!(r_mode == STARPU_W) && (handle->current_mode == r_mode)))
 			{
 				handle->refcnt++;
 				handle->current_mode = r_mode;

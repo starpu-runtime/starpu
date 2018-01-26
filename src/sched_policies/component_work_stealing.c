@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2017  INRIA
- * Copyright (C) 2013, 2016, 2017  CNRS
- * Copyright (C) 2013  Simon Archipoff
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2013-2014,2016-2017                      CNRS
+ * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -328,7 +329,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;
 	struct starpu_task * task;
-	while((task = _starpu_prio_deque_pop_task(tmp_fifo)))
+	while ((task = _starpu_prio_deque_pop_task(tmp_fifo)))
 	{
 		starpu_sched_component_push_task(NULL, component, task);
 	}
@@ -349,8 +350,9 @@ int starpu_sched_component_is_work_stealing(struct starpu_sched_component * comp
 	return component->push_task == push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "work_stealing");
 	struct _starpu_work_stealing_data *wsd;
 	_STARPU_CALLOC(wsd, 1, sizeof(*wsd));

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2013, 2015  CNRS
- * Copyright (C) 2016  INRIA
+ * Copyright (C) 2012,2016-2017                           Inria
+ * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2013,2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,11 +75,15 @@ LIST_TYPE(_starpu_disk_backend_event,
 	void *backend_event;
 );
         
-
 struct _starpu_disk_async_event
 {
 	unsigned memory_node;
         struct _starpu_disk_backend_event_list * requests;
+
+	void * ptr;
+	unsigned node;
+	size_t size;
+	starpu_data_handle_t handle;
 };
 
 /* this is a structure that can be queried to see whether an asynchronous

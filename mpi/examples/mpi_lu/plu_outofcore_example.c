@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2014, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016, 2017  CNRS
+ * Copyright (C) 2012-2014                                Inria
+ * Copyright (C) 2010-2011,2013-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -188,6 +190,7 @@ static void init_matrix(int rank)
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
 	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(1024*1024, size*size*sizeof(TYPE)));
+	assert(disk_node >= 0);
 
 	char filename[sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1];
 
@@ -232,6 +235,8 @@ static void init_matrix(int rank)
 
 TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
 {
+	(void)i;
+	(void)j;
 	/* This does not really make sense in out of core */
 	assert(0);
 }

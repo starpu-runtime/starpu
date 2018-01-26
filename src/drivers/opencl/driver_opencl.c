@@ -1,10 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2011-2012,2015,2017                      Inria
+ * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,6 +63,8 @@ static cl_event task_events[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 static unsigned task_finished[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_SIMGRID */
 
+#define _STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err) do { if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err); } while(0)
+
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 {
@@ -86,8 +88,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	cl_int err;
 	cl_ulong size;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(size), &size, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 	totalGlobalMem = size;
 #endif
 
@@ -95,7 +96,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	if (limit == -1)
 	{
 		char name[30];
-		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+		snprintf(name, sizeof(name), "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -167,32 +168,33 @@ int _starpu_opencl_init_context(int devid)
         // Create a compute context
 	err = 0;
         contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clGetDeviceInfo(devices[devid], CL_DEVICE_MEM_BASE_ADDR_ALIGN, sizeof(uint), &uint, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 	starpu_malloc_set_align(uint/8);
 
         // Create execution queue for the given device
         queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         // Create transfer queue for the given device
         cl_command_queue_properties props;
         err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         props &= ~CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         in_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         out_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         peer_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         alloc_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
 	map_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
@@ -216,35 +218,40 @@ int _starpu_opencl_deinit_context(int devid)
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
         err = clFinish(queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         err = clReleaseCommandQueue(queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clFinish(in_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         err = clReleaseCommandQueue(in_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clFinish(out_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         err = clReleaseCommandQueue(out_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clFinish(peer_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         err = clReleaseCommandQueue(peer_transfer_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clFinish(alloc_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
         err = clReleaseCommandQueue(alloc_queues[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(map_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseContext(contexts[devid]);
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
 
@@ -264,9 +271,11 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
         cl_mem memory;
 
 	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
-	if (err == CL_OUT_OF_HOST_MEMORY) return err;
-	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE) return err;
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	if (err == CL_OUT_OF_HOST_MEMORY)
+		return err;
+	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+		return err;
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
 	/*
 	 * OpenCL uses lazy memory allocation: we will only know if the
@@ -282,8 +291,7 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
 		return err;
 	if (err == CL_OUT_OF_RESOURCES)
 		return err;
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
 	clWaitForEvents(1, &ev);
 	clReleaseEvent(ev);
@@ -313,11 +321,10 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTR
 		{
 			/* We want a synchronous copy, let's synchronise the queue */
 			err = clWaitForEvents(1, &ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
 			err = clReleaseEvent(ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		}
 		else
 		{
@@ -349,11 +356,10 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 		{
 			/* We want a synchronous copy, let's synchronise the queue */
 			err = clWaitForEvents(1, &ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
 			err = clReleaseEvent(ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		}
 		else
 		{
@@ -385,11 +391,10 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 		{
 			/* We want a synchronous copy, let's synchronise the queue */
 			err = clWaitForEvents(1, &ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+
 			err = clReleaseEvent(ev);
-			if (STARPU_UNLIKELY(err))
-				STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		}
 		else
 		{
@@ -418,8 +423,7 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 				(cl_mem) src, src_node,
 				(void*) (dst + dst_offset), dst_node,
 				size, src_offset, event, &ret);
-		if (STARPU_UNLIKELY(err))
-			STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		return ret;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
@@ -427,8 +431,7 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 				(void*) (src + src_offset), src_node,
 				(cl_mem) dst, dst_node,
 				size, dst_offset, event, &ret);
-		if (STARPU_UNLIKELY(err))
-			STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		return ret;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
@@ -436,8 +439,7 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 				(cl_mem) src, src_node, src_offset,
 				(cl_mem) dst, dst_node, dst_offset,
 				size, event, &ret);
-		if (STARPU_UNLIKELY(err))
-			STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		return ret;
 
 	default:
@@ -556,7 +558,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }
@@ -576,7 +578,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }
@@ -669,7 +671,7 @@ void _starpu_opencl_init(void)
 					}
 					else
 					{
-						if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+						_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 						_STARPU_DEBUG("  %u devices detected\n", num);
 						nb_devices += num;
 					}
@@ -832,7 +834,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 #else /* !STARPU_SIMGRID */
 		cl_int status;
 		err = clGetEventInfo(task_events[worker->devid][worker->first_task], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		STARPU_ASSERT(size == sizeof(cl_int));
 
 		if (status != CL_COMPLETE)
@@ -844,7 +846,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_END_PROGRESS(memnode);
 #ifndef STARPU_SIMGRID
 			err = clReleaseEvent(task_events[worker->devid][worker->first_task]);
-			if (STARPU_UNLIKELY(err)) STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 			task_events[worker->devid][worker->first_task] = 0;
 #endif
 
@@ -981,7 +983,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 
 	// Get device name
 	err = clGetDeviceInfo(devices[dev], CL_DEVICE_NAME, lname, name, NULL);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
 	_STARPU_DEBUG("Device %d : [%s]\n", dev, name);
 	return EXIT_SUCCESS;
@@ -1051,7 +1053,9 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 #endif
 			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
-#ifdef HAVE_MSG_HOST_GET_SPEED
+#ifdef HAVE_SG_HOST_SPEED
+			length = ((double) profiling_info->used_cycles)/sg_host_speed(MSG_host_self());
+#elif defined HAVE_MSG_HOST_GET_SPEED
 			length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
 #else
 			length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
@@ -1161,7 +1165,7 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 			 * ICD and not in the device implementation.
 			 */
 			err = clEnqueueMarker(queue, &task_events[worker->devid][pipeline_idx]);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 #endif
 			_STARPU_TRACE_START_EXECUTING();
 		}

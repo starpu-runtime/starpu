@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2016  Université de Bordeaux
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2011-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +17,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
@@ -35,6 +35,7 @@
 #ifdef STARPU_USE_CUDA
 static void memset_cuda(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -50,6 +51,7 @@ extern void memset_opencl(void *buffers[], void *args);
 
 void memset_cpu(void *descr[], void *arg)
 {
+	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);

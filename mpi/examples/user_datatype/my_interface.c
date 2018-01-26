@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2016  CNRS
+ * Copyright (C) 2015-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,15 +44,13 @@ void starpu_my_interface_compare_codelet_cpu(void *descr[], void *_args)
 	*compare = (d0 == d1 && c0 == c1);
 }
 
-static struct starpu_my_interface *myinterface = NULL;
-
 void _starpu_my_interface_datatype_allocate(MPI_Datatype *mpi_datatype)
 {
 	int ret;
-
 	int blocklengths[2] = {1, 1};
 	MPI_Aint displacements[2];
 	MPI_Datatype types[2] = {MPI_INT, MPI_CHAR};
+	struct starpu_my_interface *myinterface = NULL;
 	myinterface = malloc(sizeof(struct starpu_my_interface));
 
 	MPI_Address(myinterface, displacements);
@@ -65,18 +63,19 @@ void _starpu_my_interface_datatype_allocate(MPI_Datatype *mpi_datatype)
 
 	ret = MPI_Type_commit(mpi_datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	free(myinterface);
 }
 
 void starpu_my_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
 {
-	(handle);
+	(void)handle;
 	_starpu_my_interface_datatype_allocate(mpi_datatype);
 }
 
 void starpu_my_interface_datatype_free(MPI_Datatype *mpi_datatype)
 {
 	MPI_Type_free(mpi_datatype);
-	free(myinterface);
 }
 
 int starpu_my_interface_get_int(starpu_data_handle_t handle)
@@ -120,20 +119,20 @@ static void data_register_data_handle(starpu_data_handle_t handle, unsigned home
 
 static starpu_ssize_t data_allocate_data_on_node(void *data_interface, unsigned node)
 {
-	(data_interface);
-	(node);
+	(void)data_interface;
+	(void)node;
 	return 0;
 }
 
 static void data_free_data_on_node(void *data_interface, unsigned node)
 {
-	(data_interface);
-	(node);
+	(void)data_interface;
+	(void)node;
 }
 
 static size_t data_get_size(starpu_data_handle_t handle)
 {
-	(handle);
+	(void)handle;
 	return sizeof(int) + sizeof(char);
 }
 
@@ -144,20 +143,20 @@ static uint32_t data_footprint(starpu_data_handle_t handle)
 
 static int data_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
-	(handle);
-	(node);
-	(ptr);
-	(count);
+	(void)handle;
+	(void)node;
+	(void)ptr;
+	(void)count;
 	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the pack_data function should not happen\n");
 	return 0;
 }
 
 static int data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
-	(handle);
-	(node);
-	(ptr);
-	(count);
+	(void)handle;
+	(void)node;
+	(void)ptr;
+	(void)count;
 	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the unpack_data function should not happen\n");
 	return 0;
 }

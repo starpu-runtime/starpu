@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2013-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -22,16 +23,18 @@
  * Test that we support the cpu_func and where deprecated field
  */
 
-void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*valout = *valin;
 }
 
-void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void cpu2_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -112,10 +115,10 @@ int submit_codelet(struct starpu_codelet cl, int where)
 	{
 		FPRINTF(stderr, "success when executing codelet <%s> with where=%d\n", cl.name, where);
 	}
-	return (x != y);
+	return x != y;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	unsigned where;

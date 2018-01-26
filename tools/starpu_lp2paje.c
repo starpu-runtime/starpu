@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013-2014, 2017  Université de Bordeaux
- * Copyright (C) 2014, 2015, 2016, 2017                  CNRS
+ * Copyright (C) 2011,2014-2017                           CNRS
+ * Copyright (C) 2010-2011,2013-2014,2017                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <common/config.h>
 
 #define PROGNAME "starpu_lp2paje"
 
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 	{
 		if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
 		{
-			fprintf(stderr, PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n");
+			fprintf(stderr, "%s (%s) %s\n", PROGNAME, PACKAGE_NAME, PACKAGE_VERSION);
 			exit(EXIT_SUCCESS);
 		}
 		fprintf(stderr, "Convert schedule optimized by lp into the Paje format\n\n");
 		fprintf(stderr, "Usage: lp_solve file.lp | %s > paje.trace\n", PROGNAME);
-		fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+		fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
 		fprintf(stderr, "\n");
 		exit(EXIT_SUCCESS);
 	}

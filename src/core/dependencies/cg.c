@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012, 2014-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
- * Copyright (C) 2012 INRIA
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2010-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,10 @@ void _starpu_cg_list_init(struct _starpu_cg_list *list)
 	_starpu_spin_init(&list->lock);
 	list->ndeps = 0;
 	list->ndeps_completed = 0;
+#ifdef STARPU_DEBUG
+	list->deps = NULL;
+	list->done = NULL;
+#endif
 
 	list->terminated = 0;
 
@@ -51,11 +55,21 @@ void _starpu_cg_list_deinit(struct _starpu_cg_list *list)
 		 * if there is no more reference. */
 		unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 		if (ntags == 0)
+		{
+#ifdef STARPU_DEBUG
+			free(list->succ[id]->deps);
+			free(list->succ[id]->done);
+#endif
 			free(list->succ[id]);
+		}
 	}
 
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	free(list->succ);
+#endif
+#ifdef STARPU_DEBUG
+	free(list->deps);
+	free(list->done);
 #endif
 	_starpu_spin_destroy(&list->lock);
 }
@@ -158,7 +172,7 @@ int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, u
 }
 
 /* Note: in case of a tag, it must be already locked */
-void _starpu_notify_cg(struct _starpu_cg *cg)
+void _starpu_notify_cg(void *pred, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
@@ -222,6 +236,26 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 				job_successors = &j->job_successors;
+#ifdef STARPU_DEBUG
+				if (!j->task->regenerate) {
+					unsigned i;
+					/* Remove backward cg pointers for easier debugging */
+					if (job_successors->deps) {
+						for (i = 0; i < job_successors->ndeps; i++)
+							if (job_successors->deps[i] == cg)
+								break;
+						STARPU_ASSERT(i < job_successors->ndeps);
+						job_successors->done[i] = 1;
+					}
+					if (cg->deps) {
+						for (i = 0; i < cg->ndeps; i++)
+							if (cg->deps[i] == pred)
+								break;
+						STARPU_ASSERT(i < cg->ndeps);
+						cg->done[i] = 1;
+					}
+				}
+#endif
 
 				unsigned ndeps_completed =
 					STARPU_ATOMIC_ADD(&job_successors->ndeps_completed, 1);
@@ -255,7 +289,7 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
  * _starpu_notify_cg_list protects the list itself.
  * No job lock should be held, since we might want to immediately call the callback of an empty task.
  */
-void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
+void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors)
 {
 	unsigned succ;
 
@@ -285,7 +319,7 @@ void _starpu_notify_cg_list(struct _starpu_cg_list *successors)
 			_starpu_spin_lock(&cgtag->lock);
 		}
 
-		_starpu_notify_cg(cg);
+		_starpu_notify_cg(pred, cg);
 
 		if (cg_type == STARPU_CG_TAG)
 			_starpu_spin_unlock(&cgtag->lock);

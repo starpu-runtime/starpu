@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2016  Université de Bordeaux
+ * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2015,2017                                Inria
+ * Copyright (C) 2014-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,14 +27,16 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
 #else
 
-void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void dummy_func(void *descr[], void *_args)
 {
+	(void)descr;
+	(void)_args;
 }
 
 static struct starpu_codelet dummy_cl =

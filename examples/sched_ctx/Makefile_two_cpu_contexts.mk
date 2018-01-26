@@ -1,6 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016  Inria
+# Copyright (C) 2017                                     CNRS
+# Copyright (C) 2015-2016                                Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -12,17 +13,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+PROG = two_cpu_contexts
 
-PROG = add_vectors
+SRCSC = two_cpu_contexts.c
 
-SRCCXX = add_vectors.cpp
+CC = gcc
 
-CC = g++
-
-CFLAGS = -g -DPRINT_OUTPUT $(shell pkg-config --cflags starpu-1.3)
+CFLAGS = -Wall -g $(shell pkg-config --cflags starpu-1.3)
 LDLIBS =  $(shell pkg-config --libs starpu-1.3)
 
-OBJS = $(SRCCXX:%.cpp=%.o)
+OBJS = $(SRCSC:%.c=%.o)
 
 .phony: all clean
 all: $(PROG)
@@ -30,7 +31,7 @@ all: $(PROG)
 $(PROG): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-%.o: %.cpp
+%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:

@@ -1,10 +1,20 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011, 2012, 2016, 2017  INRIA
- * Copyright (C) 2016 Uppsala University
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2011-2013,2015-2017                      Inria
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2016                                     Uppsala University
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page ExecutionConfigurationThroughEnvironmentVariables Execution Configuration Through Environment Variables
@@ -581,6 +591,14 @@ to 1, and StarPU has been configured with the option
 When set to 1, statistics are enabled for the communication cache (\ref MPISupport). For now,
 it prints messages on the standard output when data are added or removed from the received
 communication cache.
+</dd>
+
+<dt>STARPU_MPI_PRIORITIES</dt>
+<dd>
+\anchor STARPU_MPI_PRIORITIES
+\addindex __env__STARPU_MPI_PRIORITIES
+When set to 0, the use of priorities to order MPI communications is disabled
+(\ref MPISupport).
 </dd>
 
 <dt>STARPU_MPI_FAKE_SIZE</dt>

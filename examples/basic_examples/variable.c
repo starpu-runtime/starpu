@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2013, 2015-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +17,6 @@
  */
 
 #include <starpu.h>
-#include <config.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -28,14 +28,14 @@ static unsigned niter = 5000;
 static unsigned niter = 50000;
 #endif
 
-extern void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cpu_codelet(void *descr[], void *_args);
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void cuda_codelet(void *descr[], void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-extern void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+extern void opencl_codelet(void *descr[], void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
 

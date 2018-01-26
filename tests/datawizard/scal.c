@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2014, 2016  Université de Bordeaux
- * Copyright (C) 2016  CNRS
+ * Copyright (C) 2012                                     Inria
+ * Copyright (C) 2012-2013,2016-2017                      CNRS
+ * Copyright (C) 2011,2013-2014,2016                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "scal.h"
 #include "helper.h"
@@ -26,6 +26,7 @@
 
 void scal_func_cpu(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned i;
 
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
@@ -40,8 +41,9 @@ void scal_func_cpu(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 
-void scal_func_opencl(void *buffers[], void *_args)
+void scal_func_opencl(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;

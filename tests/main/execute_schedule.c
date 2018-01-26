@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2016  Université de Bordeaux
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2013-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,8 +38,9 @@
 
 static unsigned current = 1;
 
-void codelet(STARPU_ATTRIBUTE_UNUSED void *descr[], void *_args)
+void codelet(void *descr[], void *_args)
 {
+	(void)descr;
 	uintptr_t me = (uintptr_t) _args;
 	STARPU_ASSERT(current == me);
 	current++;

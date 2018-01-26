@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2015, 2016  CNRS
+ * Copyright (C) 2013,2015-2017                           CNRS
+ * Copyright (C) 2013,2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
+#include <common/config.h>
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 #include <unistd.h>
@@ -91,7 +92,7 @@ int _check_number(double val, int checknan)
 	return pass?0:1;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret1, ret2;
 	double nanvalue = nan("");

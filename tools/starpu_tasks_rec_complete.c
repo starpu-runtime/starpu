@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014, 2016  Universite de Bordeaux
- * Copyright (C) 2012-2015, 2017  CNRS
+ * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2011-2014,2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <common/config.h>
 #include <common/uthash.h>
 #include <common/utils.h>
 #include <starpu.h>
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\n");
 			fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 			fprintf(stderr, "\n");
-			fprintf(stderr, "Report bugs to <" PACKAGE_BUGREPORT ">.\n");
+			fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 			exit(EXIT_SUCCESS);
 		}
 	}

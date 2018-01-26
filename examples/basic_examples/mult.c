@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013, 2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2017  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2009-2011,2013-2015                      Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,8 +83,9 @@ static unsigned zdim = 512;
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
 
-void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
+void cpu_mult(void *descr[], void *arg)
 {
+	(void)arg;
 	float *subA, *subB, *subC;
 	uint32_t nxC, nyC, nyA;
 	uint32_t ldA, ldB, ldC;
@@ -340,8 +342,7 @@ static int launch_tasks(void)
 	return 0;
 }
 
-int main(STARPU_ATTRIBUTE_UNUSED int argc, 
-	 STARPU_ATTRIBUTE_UNUSED char **argv)
+int main(void)
 {
 	int ret;
 

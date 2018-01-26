@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
-# Copyright (C) 2010, 2011, 2012  INRIA
+# Copyright (C) 2010-2017                                Inria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2017                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -38,10 +38,18 @@ EXTRA_DIST =					\
 	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
+	regression/profiles.in			\
+	regression/regression.sh.in		\
+	regression/profiles.build.only.in	\
 	microbenchs/tasks_size_overhead.sh	\
 	microbenchs/tasks_size_overhead_sched.sh	\
 	microbenchs/tasks_size_overhead_scheds.sh	\
 	microbenchs/tasks_size_overhead.gp	\
+	microbenchs/parallel_dependent_homogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_heterogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
+	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
+	microbenchs/parallel_independent_homogeneous_tasks.sh	\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
@@ -62,10 +70,13 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
 	microbenchs/microbench.sh \
+	model-checking/platform.xml \
+	model-checking/prio_list.sh \
+	model-checking/barrier.sh \
 	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -81,15 +92,13 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/src/common -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include -I${includedir} $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 endif
@@ -147,6 +156,7 @@ myPROGRAMS +=					\
 	main/codelet_null_callback		\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
+	datawizard/deps				\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
 	datawizard/locality			\
@@ -162,6 +172,40 @@ myPROGRAMS +=					\
 	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
+	openmp/init_exit_01			\
+	openmp/init_exit_02			\
+	openmp/environment			\
+	openmp/api_01				\
+	openmp/parallel_01			\
+	openmp/parallel_02			\
+	openmp/parallel_03			\
+	openmp/parallel_barrier_01		\
+	openmp/parallel_master_01		\
+	openmp/parallel_master_inline_01	\
+	openmp/parallel_single_wait_01		\
+	openmp/parallel_single_nowait_01	\
+	openmp/parallel_single_inline_01	\
+	openmp/parallel_single_copyprivate_01	\
+	openmp/parallel_single_copyprivate_inline_01	\
+	openmp/parallel_critical_01		\
+	openmp/parallel_critical_inline_01	\
+	openmp/parallel_critical_named_01	\
+	openmp/parallel_critical_named_inline_01\
+	openmp/parallel_simple_lock_01		\
+	openmp/parallel_nested_lock_01		\
+	openmp/parallel_for_01			\
+	openmp/parallel_for_02			\
+	openmp/parallel_for_ordered_01		\
+	openmp/parallel_sections_01		\
+	openmp/parallel_sections_combined_01	\
+	openmp/task_01				\
+	openmp/task_02				\
+	openmp/task_03				\
+	openmp/taskwait_01			\
+	openmp/taskgroup_01			\
+	openmp/taskgroup_02			\
+	openmp/array_slice_01			\
+	openmp/cuda_task_01			\
 	perfmodels/value_nan
 
 if STARPU_SIMGRID
@@ -277,7 +321,11 @@ myPROGRAMS +=				\
 	datawizard/test_arbiter			\
 	datawizard/invalidate_pending_requests	\
 	datawizard/temporary_partition		\
+	datawizard/temporary_partition_implicit	\
+	datawizard/redux_acquire		\
 	disk/disk_copy				\
+	disk/disk_copy_unpack			\
+	disk/disk_copy_to_disk			\
 	disk/disk_compute			\
 	disk/disk_pack				\
 	disk/mem_reclaim			\
@@ -292,40 +340,6 @@ myPROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
-	openmp/init_exit_01			\
-	openmp/init_exit_02			\
-	openmp/environment			\
-	openmp/api_01				\
-	openmp/parallel_01			\
-	openmp/parallel_02			\
-	openmp/parallel_03			\
-	openmp/parallel_barrier_01		\
-	openmp/parallel_master_01		\
-	openmp/parallel_master_inline_01	\
-	openmp/parallel_single_wait_01		\
-	openmp/parallel_single_nowait_01	\
-	openmp/parallel_single_inline_01	\
-	openmp/parallel_single_copyprivate_01	\
-	openmp/parallel_single_copyprivate_inline_01	\
-	openmp/parallel_critical_01		\
-	openmp/parallel_critical_inline_01	\
-	openmp/parallel_critical_named_01	\
-	openmp/parallel_critical_named_inline_01\
-	openmp/parallel_simple_lock_01		\
-	openmp/parallel_nested_lock_01		\
-	openmp/parallel_for_01			\
-	openmp/parallel_for_02			\
-	openmp/parallel_for_ordered_01		\
-	openmp/parallel_sections_01		\
-	openmp/parallel_sections_combined_01	\
-	openmp/task_01				\
-	openmp/task_02				\
-	openmp/task_03				\
-	openmp/taskwait_01			\
-	openmp/taskgroup_01			\
-	openmp/taskgroup_02			\
-	openmp/array_slice_01			\
-	openmp/cuda_task_01			\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\

@@ -2,7 +2,7 @@
 
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
-REM Copyright (C) 2013, 2014, 2015  CNRS
+REM Copyright (C) 2013-2015,2017                           CNRS
 REM
 REM StarPU is free software; you can redistribute it and/or modify
 REM it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@ REM WITHOUT ANY WARRANTY; without even the implied warranty of
 REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+REM
 TITLE MSVC StarPU Execution
 ECHO.
 ECHO MSVC StarPU Execution
@@ -29,7 +29,7 @@ FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu\%%~nF
 FOR %%F IN (%HWLOC%\bin\*dll) DO COPY %%F starpu
 
 set STARPU_OLDPATH=%PATH%
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86
 cl %1 %STARPU_CFLAGS% %STARPU_LDFLAGS%
 
 set PATH=starpu;c:\MinGW\bin;%PATH%

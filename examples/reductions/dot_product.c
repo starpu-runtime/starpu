@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015, 2017  Université de Bordeaux
- * Copyright (C) 2012 INRIA
- * Copyright (C) 2016, 2017  CNRS
+ * Copyright (C) 2012-2013,2015                           Inria
+ * Copyright (C) 2010-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2011-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +58,8 @@ static int cublas_version;
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER || type == STARPU_MIC_WORKER || type == STARPU_SCC_WORKER)
 		return 1;
@@ -85,6 +87,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 
 void init_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dot = 0.0f;
 }
@@ -92,14 +95,16 @@ void init_cpu_func(void *descr[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 void init_cuda_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	cudaMemsetAsync(dot, 0, sizeof(DOT_TYPE), starpu_cuda_get_local_stream());
 }
 #endif
 
 #ifdef STARPU_USE_OPENCL
-void init_opencl_func(void *buffers[], void *args)
+void init_opencl_func(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
         cl_int err;
 	cl_command_queue queue;
 
@@ -145,6 +150,7 @@ static struct starpu_codelet init_codelet =
 
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	DOT_TYPE *dota = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	DOT_TYPE *dotb = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -158,6 +164,7 @@ extern void redux_cuda_func(void *descr[], void *_args);
 #ifdef STARPU_USE_OPENCL
 void redux_opencl_func(void *buffers[], void *args)
 {
+	(void)args;
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;
@@ -224,6 +231,7 @@ static struct starpu_codelet redux_codelet =
 
 void dot_cpu_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	float *local_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *local_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[2]);
@@ -244,6 +252,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 void dot_cuda_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	DOT_TYPE current_dot;
 	float local_dot;
 
@@ -270,8 +279,9 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-void dot_opencl_func(void *buffers[], void *args)
+void dot_opencl_func(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	int id, devid;
         cl_int err;
 	cl_kernel kernel;
@@ -339,7 +349,7 @@ static struct starpu_codelet dot_codelet =
  *	Tasks initialization
  */
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 
@@ -359,16 +369,20 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	cublasHandle_t handle;
-	cublasCreate(&handle);
-	cublasGetVersion(handle, &cublas_version);
-	cublasDestroy(handle);
-	if (cublas_version >= 7050)
-		starpu_cublas_init();
-	else
-		/* Disable the sdot cublas kernel, it is bogus with a
-		 * non-blocking stream (Nvidia bugid 1669886) */
-		dot_codelet.cuda_funcs[0] = NULL;
+	unsigned devices = starpu_cuda_worker_get_count();
+	if (devices)
+	{
+		cublasHandle_t handle;
+		cublasCreate(&handle);
+		cublasGetVersion(handle, &cublas_version);
+		cublasDestroy(handle);
+		if (cublas_version >= 7050)
+			starpu_cublas_init();
+		else
+			/* Disable the sdot cublas kernel, it is bogus with a
+			 * non-blocking stream (Nvidia bugid 1669886) */
+			dot_codelet.cuda_funcs[0] = NULL;
+	}
 #endif
 
 	unsigned long nelems = _nblocks*_entries_per_block;

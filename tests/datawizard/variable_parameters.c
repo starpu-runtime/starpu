@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014  CNRS
+ * Copyright (C) 2010-2012,2014-2015,2017                 CNRS
+ * Copyright (C) 2010,2012-2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -33,6 +32,7 @@ static starpu_data_handle_t handle1, handle2, handle3, handle4;
 /* dummy OpenCL implementation */
 static void increment_opencl_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	int num = starpu_task_get_current()->nbuffers;
 	int i;
 
@@ -52,10 +52,10 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg)
 }
 #endif
 
-
 #ifdef STARPU_USE_CUDA
-static void increment_cuda_kernel(void *descr[], void *arg)
+static void increment_cuda_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	int num = starpu_task_get_current()->nbuffers;
 	int i;
 
@@ -78,6 +78,7 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 
 void increment_cpu_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	int num = starpu_task_get_current()->nbuffers;
 	int i;
 
@@ -103,7 +104,7 @@ static struct starpu_codelet increment_cl =
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned *pvar = NULL;
 	int ret;

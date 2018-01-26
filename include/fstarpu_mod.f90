@@ -1,6 +1,8 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2017  Inria
+! Copyright (C) 2017                                     CNRS
+! Copyright (C) 2016-2017                                Inria
+! Copyright (C) 2016-2017                                Université de Bordeaux
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -12,7 +14,7 @@
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+!
 module fstarpu_mod
         use iso_c_binding
         implicit none
@@ -32,6 +34,8 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_DATA_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CL_ARGS
+        type(c_ptr), bind(C) :: FSTARPU_CL_ARGS_NFREE
+        type(c_ptr), bind(C) :: FSTARPU_TASK_DEPS_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
@@ -2259,6 +2263,8 @@ module fstarpu_mod
                         FSTARPU_DATA_ARRAY      = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_ARRAY"//C_NULL_CHAR)
                         FSTARPU_DATA_MODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_MODE_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CL_ARGS = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS"//C_NULL_CHAR)
+                        FSTARPU_CL_ARGS_NFREE = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS_NFREE"//C_NULL_CHAR)
+                        FSTARPU_TASK_DEPS_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_DEPS_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CALLBACK        = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_WITH_ARG       = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)

@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2012,2015,2017                           Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,6 +97,12 @@
 #endif
 
 #ifdef STARPU_EXTRA_VERBOSE
+#  define _STARPU_EXTRA_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
+#else
+#  define _STARPU_EXTRA_DEBUG(fmt, ...) do { } while (0)
+#endif
+
+#ifdef STARPU_EXTRA_VERBOSE
 #  define _STARPU_LOG_IN()             do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] -->\n", starpu_pthread_self(), __starpu_func__,__FILE__,  __LINE__); }} while(0)
 #  define _STARPU_LOG_OUT()            do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <--\n", starpu_pthread_self(), __starpu_func__, __FILE__,  __LINE__); }} while(0)
 #  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <-- (%s)\n", starpu_pthread_self(), __starpu_func__, __FILE__, __LINE__, outtag); }} while(0)
@@ -136,6 +143,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd);
  * creating a lot of temporary files to be stored in the same place */
 char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd);
 void _starpu_rmtemp_many(char *path, int depth);
+void _starpu_rmdir_many(char *path, int depth);
 int _starpu_fftruncate(FILE *file, size_t length);
 int _starpu_ftruncate(int fd, size_t length);
 int _starpu_frdlock(FILE *file);

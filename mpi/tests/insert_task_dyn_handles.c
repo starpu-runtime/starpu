@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
+#include <starpu.h>
 #include <starpu_mpi.h>
 #include <starpu_config.h>
 #include "helper.h"
@@ -23,6 +24,7 @@
 
 void func_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int num = starpu_task_get_current()->nbuffers;
 	int *factor = (int *)STARPU_VARIABLE_GET_PTR(descr[num-1]);
 	int i;
@@ -35,26 +37,13 @@ void func_cpu(void *descr[], void *_args)
 	}
 }
 
-#ifdef STARPU_SIMGRID
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-#endif
-
 struct starpu_codelet codelet =
 {
 	.cpu_funcs = {func_cpu},
 	.cpu_funcs_name = {"func_cpu"},
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 #ifdef STARPU_SIMGRID
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 #endif
 };
 
@@ -79,7 +68,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -103,7 +92,8 @@ int main(int argc, char **argv)
 		descrs[i].handle = data_handles[i];
 		descrs[i].mode = STARPU_RW;
 	}
-	if (rank == 1) factor=FFACTOR;
+	if (rank == 1)
+		factor=FFACTOR;
 	starpu_variable_data_register(&factor_handle, STARPU_MAIN_RAM, (uintptr_t)&factor, sizeof(factor));
 	starpu_mpi_data_register(factor_handle, FFACTOR, 1);
 
@@ -113,14 +103,16 @@ int main(int argc, char **argv)
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+15,
 					     STARPU_R, factor_handle,
 					     0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 

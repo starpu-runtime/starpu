@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014, 2016  INRIA
+ * Copyright (C) 2014-2015,2017                           CNRS
+ * Copyright (C) 2014,2016                                Inria
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +26,7 @@
  */
 
 #if !defined(STARPU_OPENMP)
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -152,11 +154,15 @@ static void check_array(void)
 }
 
 int
-main (int argc, char *argv[])
+main (void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));
+#ifdef STARPU_SIMGRID
+	attr.cl.model        = &starpu_perfmodel_nop;
+#endif
+	attr.cl.flags        = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.where        = STARPU_CPU;
 	attr.if_clause       = 1;
 

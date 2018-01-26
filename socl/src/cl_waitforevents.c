@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2013                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,20 +22,21 @@ CL_API_ENTRY cl_int CL_API_CALL
 soclWaitForEvents(cl_uint           num_events,
                 const cl_event *    event_list) CL_API_SUFFIX__VERSION_1_0
 {
-   unsigned int i;
+	unsigned int i;
 
-   #ifdef DEBUG
-   DEBUG_MSG("Waiting for events: ");
-   for (i=0; i<num_events; i++) {
-      char * sep = i == (num_events-1) ? "" : ", ";
-      DEBUG_MSG_NOHEAD("%d%s", event_list[i]->id, sep);
-   }
-   DEBUG_MSG_NOHEAD("\n");
-   #endif
+#ifdef DEBUG
+	DEBUG_MSG("Waiting for events: ");
+	for (i=0; i<num_events; i++)
+	{
+		char * sep = i == (num_events-1) ? "" : ", ";
+		DEBUG_MSG_NOHEAD("%d%s", event_list[i]->id, sep);
+	}
+	DEBUG_MSG_NOHEAD("\n");
+#endif
 
-   for (i=0; i<num_events; i++)
-      starpu_tag_wait(event_list[i]->id);
+	for (i=0; i<num_events; i++)
+		starpu_tag_wait(event_list[i]->id);
 
-   DEBUG_MSG("Stop waiting :)\n");
-   return CL_SUCCESS;
+	DEBUG_MSG("Stop waiting :)\n");
+	return CL_SUCCESS;
 }

@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2013-2015  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2017  CNRS
+ * Copyright (C) 2011-2013                                Inria
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2009-2011,2013-2015                      Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,6 +52,7 @@ static void parse_args(int argc, char **argv)
  * same number of rows. */
 static void csr_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 {
+	(void)f;
 	struct starpu_csr_interface *csr_father = (struct starpu_csr_interface *) father_interface;
 	struct starpu_csr_interface *csr_child = (struct starpu_csr_interface *) child_interface;
 

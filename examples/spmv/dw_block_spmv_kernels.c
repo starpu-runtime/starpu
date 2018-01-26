@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2015, 2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2017  CNRS
+ * Copyright (C) 2008-2011,2013-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,7 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-static inline void common_block_spmv(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
+static inline void common_block_spmv(void *descr[], int s, void *_args)
 {
 	/* printf("22\n"); */
 	float *block 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);

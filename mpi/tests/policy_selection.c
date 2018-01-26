@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015, 2017  CNRS
+ * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,30 +25,19 @@ void func_cpu(void *descr[], void *_args)
 	(void)_args;
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 struct starpu_codelet mycodelet_2 =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 struct starpu_codelet mycodelet_3 =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_W, STARPU_W},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 int main(int argc, char **argv)

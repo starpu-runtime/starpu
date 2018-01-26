@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,8 +57,9 @@ static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 extern void cuda_host_increment(void *descr[], void *_args);
 
-void cpu_increment(void *descr[], void *arg STARPU_ATTRIBUTE_UNUSED)
+void cpu_increment(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*var)++;
 }
@@ -77,20 +79,23 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 1
 };
 
-static void callback_task_B(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_task_B(void *arg)
 {
+	(void)arg;
 	if (++loop_cntB == niter)
 		taskB.regenerate = 0;
 }
 
-static void callback_task_C(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_task_C(void *arg)
 {
+	(void)arg;
 	if (++loop_cntC == niter)
 		taskC.regenerate = 0;
 }
 
-static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
+static void callback_task_D(void *arg)
 {
+	(void)arg;
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	loop_cntD++;
 

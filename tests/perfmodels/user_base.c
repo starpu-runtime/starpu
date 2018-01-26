@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2016  Université Bordeaux
- * Copyright (C) 2012, 2013, 2014, 2016  CNRS
+ * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2014-2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
@@ -26,10 +25,14 @@
 
 void func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 }
 
 size_t get_size_base(struct starpu_task *task, unsigned nimpl)
 {
+	(void)task;
+	(void)nimpl;
 	return 3;
 };
 
@@ -107,7 +110,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	return EXIT_SUCCESS;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 

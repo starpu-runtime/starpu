@@ -1,7 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Corentin Salingue
- * Copyright (C) 2015, 2016, 2017 CNRS
+ * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +26,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
-#include <common/config.h>
 #include "../helper.h"
 
 /*
@@ -36,7 +37,7 @@
 #ifdef STARPU_HAVE_MEMCHECK_H
 #include <valgrind/memcheck.h>
 #else
-#define VALGRIND_MAKE_MEM_DEFINED(addr, size) (void)0
+#define VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(addr, size) (void)0
 #endif
 
 #ifdef STARPU_QUICK_CHECK
@@ -54,7 +55,7 @@
 
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
-int main(int argc, char **argv)
+int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
@@ -93,10 +94,11 @@ static unsigned values[NDATA];
 
 static void zero(void *buffers[], void *args)
 {
+	(void)args;
 	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 	unsigned *val = (unsigned*) STARPU_VECTOR_GET_PTR(vector);
 	*val = 0;
-	VALGRIND_MAKE_MEM_DEFINED(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
+	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE(val, STARPU_VECTOR_GET_NX(vector) * STARPU_VECTOR_GET_ELEMSIZE(vector));
 }
 
 static void inc(void *buffers[], void *args)

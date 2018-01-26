@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017  Université de Bordeaux
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,10 +18,9 @@
 
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
-#define STARPU_ATTRIBUTE_UNUSED __attribute((__unused__))
 
 #ifndef NOCONFIG
-#include <config.h>
+#include <common/config.h>
 #else
 #define _GNU_SOURCE 1
 // Assuming recent simgrid
@@ -92,7 +93,7 @@ void check_list_prio(struct foo_prio_list *list)
 	}
 }
 
-int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
+int worker(int argc, char *argv[])
 {
 	unsigned myrank = atoi(argv[0]);
 	unsigned i, n, l, iter;
@@ -144,7 +145,7 @@ int worker(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	return 0;
 }
 
-int master(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+int master(int argc, char *argv[])
 {
 	unsigned i, l;
 

@@ -1,6 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2016-2017  INRIA
+ * Copyright (C) 2013,2015-2017                           CNRS
+ * Copyright (C) 2012,2016-2017                           Inria
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +37,7 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
-struct _starpu_mp_node *mic_nodes[STARPU_MAXMICDEVS];
+struct _starpu_mp_node *_starpu_mic_nodes[STARPU_MAXMICDEVS];
 
 static COIENGINE handles[STARPU_MAXMICDEVS];
 
@@ -82,7 +85,7 @@ struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 	int devid = actual_worker->devid;
 	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMICDEVS);
 
-	return mic_nodes[devid];
+	return _starpu_mic_nodes[devid];
 }
 
 struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
@@ -90,7 +93,7 @@ struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_
 	int devid = _starpu_memory_node_get_devid(memory_node);
 	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMICDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
-	return mic_nodes[devid];
+	return _starpu_mic_nodes[devid];
 }
 
 static void _starpu_mic_src_free_kernel(void *kernel)
@@ -175,7 +178,7 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol)
 
 	if (kernel->func[devid] == NULL)
 	{
-		struct _starpu_mp_node *node = mic_nodes[devid];
+		struct _starpu_mp_node *node = _starpu_mic_nodes[devid];
 		int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
 		if (ret)
 			return NULL;
@@ -554,7 +557,7 @@ void *_starpu_mic_src_worker(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
-	_starpu_src_common_worker(worker_set, baseworkerid, mic_nodes[devid]);
+	_starpu_src_common_worker(worker_set, baseworkerid, _starpu_mic_nodes[devid]);
 
 	return NULL;
 

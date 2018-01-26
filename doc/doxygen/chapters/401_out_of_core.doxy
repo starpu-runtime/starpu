@@ -1,7 +1,20 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2013 Corentin Salingue
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2013-2014,2016-2017                      CNRS
+ * Copyright (C) 2013                                     Inria
+ * Copyright (C) 2013-2014,2017-2018                           Université de Bordeaux
+ * Copyright (C) 2013                                     Corentin Salingue
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page OutOfCore Out Of Core
@@ -76,5 +89,21 @@ All structures are in \ref API_Out_Of_Core.
 \section ExampleDiskCompute Examples: disk_compute
 
 \snippet disk_compute.c To be included. You should update doxygen if you see this text.
+
+\section Performances
+
+Scheduling heuristics for Out-of-core are still relatively experimental. The
+tricky part is that you usually have to find a compromise between privileging
+locality (which avoids back and forth with the disk) and privileging the
+critical path, i.e. taking into account priorities to avoid lack of parallelism
+at the end of the task graph.
+
+It is notably better to avoid defining different priorities to tasks with low
+priority, since that will make the scheduler want to schedule them by levels of
+priority, at the depense of locality.
+
+The scheduling algorithms worth trying are thus <code>dmdar</code> and
+<code>lws</code>, which privilege data locality over priorities. There will be
+work on this area in the coming future.
 
 */

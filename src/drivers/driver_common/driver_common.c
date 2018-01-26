@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014, 2016-2017  INRIA
+ * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -390,26 +391,60 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		_starpu_worker_leave_sched_op(worker);
 		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		if (_starpu_worker_can_block(memnode, worker)
-			&& !_starpu_sched_ctx_last_worker_awake(worker)
 			&& !worker->state_block_in_parallel_req
-			&& !worker->state_unblock_in_parallel_req)
+			&& !worker->state_unblock_in_parallel_req
+			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
+
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_going_to_sleep != NULL)
+			{
+				_starpu_config.conf.callback_worker_going_to_sleep(workerid);
+			}
+#endif
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-			}
-			/* do not check status != SLEEPING here since status is
-			 * not changed by other threads/workers */
-			while (!worker->state_keep_awake
+				if (!worker->state_keep_awake
+					&& _starpu_worker_can_block(memnode, worker)
 					&& !worker->state_block_in_parallel_req
-					&& !worker->state_unblock_in_parallel_req);
+					&& !worker->state_unblock_in_parallel_req)
+				{
+					_starpu_worker_set_status_sleeping(workerid);
+					if (_starpu_sched_ctx_last_worker_awake(worker))
+					{
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+			while (1);
 			worker->state_keep_awake = 0;
+			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-		} else {
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				/* the wake up callback should be called once the sched_mutex has been unlocked,
+				 * so that an external resource manager can potentially defer the wake-up momentarily if
+				 * the corresponding computing unit is still in use by another runtime system */
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
+		}
+		else
+#endif
+		{
+			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
-				_starpu_exponential_backoff(worker); }
+				_starpu_exponential_backoff(worker);
+		}
 
 		return NULL;
 	}
@@ -569,22 +604,52 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		_starpu_worker_leave_sched_op(worker);
 
 		if (_starpu_worker_can_block(memnode, worker)
-				&& !_starpu_sched_ctx_last_worker_awake(worker)
-				&& !worker->state_block_in_parallel_req
-				&& !worker->state_unblock_in_parallel_req)
+			&& !worker->state_block_in_parallel_req
+			&& !worker->state_unblock_in_parallel_req
+			&& !_starpu_sched_ctx_last_worker_awake(worker))
 		{
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_going_to_sleep != NULL)
+			{
+				_starpu_config.conf.callback_worker_going_to_sleep(workerid);
+			}
+#endif
 			do
 			{
 				STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
-			}
-			while (!worker->state_keep_awake
+				if (!worker->state_keep_awake
+					&& _starpu_worker_can_block(memnode, worker)
 					&& !worker->state_block_in_parallel_req
-					&& !worker->state_unblock_in_parallel_req);
+					&& !worker->state_unblock_in_parallel_req)
+				{
+					_starpu_worker_set_status_sleeping(workerid);
+					if (_starpu_sched_ctx_last_worker_awake(worker))
+					{
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+			while (1);
 			worker->state_keep_awake = 0;
+			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+#ifdef STARPU_WORKER_CALLBACKS
+			if (_starpu_config.conf.callback_worker_waking_up != NULL)
+			{
+				/* the wake up callback should be called once the sched_mutex has been unlocked,
+				 * so that an external resource manager can potentially defer the wake-up momentarily if
+				 * the corresponding computing unit is still in use by another runtime system */
+				_starpu_config.conf.callback_worker_waking_up(workerid);
+			}
+#endif
 		}
 		else
 		{
+			_starpu_worker_set_status_scheduling_done(workerid);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 				_starpu_exponential_backoff(worker);

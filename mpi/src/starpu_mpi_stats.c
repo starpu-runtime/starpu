@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2016, 2017  CNRS
+ * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +33,8 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 		stats_enabled = 0;
 	}
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
 	_STARPU_DISP("Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
@@ -44,7 +46,8 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 
 void _starpu_mpi_comm_amounts_shutdown()
 {
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 	free(comm_amount);
 }
 
@@ -52,7 +55,8 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 {
 	int src, size;
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
 	starpu_mpi_comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
@@ -64,7 +68,8 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
 {
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 	memcpy(comm_amounts, comm_amount, world_size * sizeof(size_t));
 }
 
@@ -73,7 +78,8 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 	int dst;
 	size_t sum = 0;
 
-	if (stats_enabled == 0) return;
+	if (stats_enabled == 0)
+		return;
 
 	for (dst = 0; dst < world_size; dst++)
 	{

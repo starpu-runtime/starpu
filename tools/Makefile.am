@@ -1,8 +1,10 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
-# Copyright (C) 2016  Inria
+# Copyright (C) 2011-2012,2016-2017                      Inria
+# Copyright (C) 2017                                     Erwan Leria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2013                                     Joris Pablo
+# Copyright (C) 2010-2017                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +16,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -141,6 +143,7 @@ EXTRA_DIST =				\
 	dev/checker/rename.sh		\
 	dev/cppcheck/suppressions.txt	\
 	dev/valgrind/fxt.suppr		\
+	dev/valgrind/hdf5.suppr		\
 	dev/valgrind/hwloc.suppr	\
 	dev/valgrind/libc.suppr		\
 	dev/valgrind/libgomp.suppr	\
@@ -244,7 +247,8 @@ bin_PROGRAMS += 			\
 	starpu_machine_display		\
 	starpu_sched_display		\
 	starpu_tasks_rec_complete	\
-	starpu_lp2paje
+	starpu_lp2paje			\
+	starpu_perfmodel_recdump
 
 if STARPU_SIMGRID
 bin_PROGRAMS += 			\

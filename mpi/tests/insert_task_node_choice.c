@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014, 2015, 2017  CNRS
+ * Copyright (C) 2011-2015,2017                           CNRS
+ * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +19,11 @@
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
 	int node;
 	int rank;
+	(void)descr;
 
 	starpu_codelet_unpack_args(_args, &node);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -30,23 +32,12 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	assert(node == rank);
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
-	.model = &dumb_model,
+	.model = &starpu_perfmodel_nop,
 	.name = "insert_task_node_choice"
 };
 
@@ -65,7 +56,8 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (rank != 0 && rank != 1) goto end;
+	if (rank != 0 && rank != 1)
+		goto end;
 
 	if (rank == 0)
 	{

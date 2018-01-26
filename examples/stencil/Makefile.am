@@ -1,6 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2012, 2015-2017  Université de Bordeaux
+# Copyright (C) 2011,2016-2017                           Inria
+# Copyright (C) 2011-2017                                CNRS
+# Copyright (C) 2010-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -12,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 include $(top_srcdir)/starpu.mk
 
 if STARPU_SIMGRID
@@ -30,6 +32,13 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 if USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
+if STARPU_SIMGRID
+MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+else
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+endif
+else
+MPI			=
 endif
 
 CC = $(CC_OR_MPICC)
@@ -39,15 +48,13 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += $(HWLOC_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  $(HWLOC_CFLAGS)
 
 .cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
 .cu.o:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
 

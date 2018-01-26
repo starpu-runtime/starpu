@@ -1,10 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017  Université de Bordeaux
- * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2014, 2017  INRIA
+ * Copyright (C) 2011-2012,2014-2015,2017                 Inria
+ * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2010                                     Mehdi Juhoor
+ * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,6 +39,9 @@
 #include <hwloc.h>
 #ifndef HWLOC_API_VERSION
 #define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
+#if HWLOC_API_VERSION < 0x00010b00
+#define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
 #endif
 #endif
 
@@ -156,23 +159,30 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	starpu_ssize_t limit = -1;
 
 #if defined(STARPU_HAVE_HWLOC)
-	char name[32];
-
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nnumas = starpu_memory_nodes_get_numa_count();
 	if (nnumas > 1)
 	{
-		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 
 		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 		{
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
 			global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
 		}
 		else
 		{
+			char name[32];
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = obj->attr->numanode.local_memory;
+#else
 			global_mem = obj->memory.local_memory;
+#endif
 			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
 			limit = starpu_get_env_number(name);
 		}
@@ -180,7 +190,11 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	else
 	{
 		/* Do not limit ourself to a single NUMA node */
+#if HWLOC_API_VERSION >= 0x00020000
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
 		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
 	}
 
 #else /* STARPU_HAVE_HWLOC */
@@ -345,9 +359,26 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
 
 #ifdef STARPU_SIMGRID
+ #ifndef STARPU_OPENMP
 	if (!res && !task)
 		/* No progress, wait */
 		starpu_pthread_wait_wait(&cpu_worker->wait);
+ #else
+  #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
+	if (!res && !task)
+	{
+		/* No progress, wait (but at most 1s for OpenMP support) */
+		/* TODO: ideally, make OpenMP wake worker when run_once should return */
+		struct timespec abstime;
+		_starpu_clock_gettime(&abstime);
+		abstime.tv_sec++;
+		starpu_pthread_wait_timedwait(&cpu_worker->wait, &abstime);
+	}
+  #else
+	/* Previous simgrid versions don't really permit to use wait_timedwait in C */
+	MSG_process_sleep(0.001);
+  #endif
+ #endif
 #endif
 
 	if (!task)

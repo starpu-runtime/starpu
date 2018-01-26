@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2013-2017                                CNRS
+ * Copyright (C) 2014-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +50,9 @@ void send_recv_and_check(int rank, int node, starpu_data_handle_t handle_s, int 
  */
 void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
+	(void)error;
+	(void)handle_s;
+	(void)handle_r;
 	FPRINTF_MPI(stderr, "Success with void value\n");
 }
 
@@ -580,7 +584,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, mpi_init);
+	ret = starpu_mpi_init(&argc, &argv, mpi_init);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

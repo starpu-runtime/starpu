@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Simon Archipoff
- * Copyright (C) 2014  CNRS
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2013-2014,2017                           Inria
+ * Copyright (C) 2014-2015,2017                           CNRS
+ * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,17 +141,17 @@ struct starpu_sched_component_prio_data
 struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_prio(struct starpu_sched_component *component);
 
-struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_work_stealing(struct starpu_sched_component *component);
 int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
 
-struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_random(struct starpu_sched_component *);
 
-struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager(struct starpu_sched_component *);
 
-struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager_calibration(struct starpu_sched_component *);
 
 struct starpu_sched_component_mct_data
@@ -166,7 +167,7 @@ int starpu_sched_component_is_mct(struct starpu_sched_component *component);
 struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_heft(struct starpu_sched_component *component);
 
-struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 
 struct starpu_sched_component_perfmodel_select_data
 {

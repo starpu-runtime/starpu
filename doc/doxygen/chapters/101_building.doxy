@@ -1,9 +1,19 @@
-/*
- * This file is part of the StarPU Handbook.
- * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016  CNRS
- * Copyright (C) 2011, 2012 INRIA
- * See the file version.doxy for copying conditions.
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2011-2012                                Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 /*! \page BuildingAndInstallingStarPU Building and Installing StarPU
@@ -51,10 +61,10 @@ StarPU's sources can be obtained from the download page of
 the StarPU website (http://starpu.gforge.inria.fr/files/).
 
 All releases and the development tree of StarPU are freely available
-on INRIA's gforge under the LGPL license. Some releases are available
+on Inria's gforge under the LGPL license. Some releases are available
 under the BSD license.
 
-The latest release can be downloaded from the INRIA's gforge (http://gforge.inria.fr/frs/?group_id=1570) or
+The latest release can be downloaded from the Inria's gforge (http://gforge.inria.fr/frs/?group_id=1570) or
 directly from the StarPU download page (http://starpu.gforge.inria.fr/files/).
 
 The latest nightly snapshot can be downloaded from the StarPU gforge website (http://starpu.gforge.inria.fr/testing/).
@@ -63,20 +73,18 @@ The latest nightly snapshot can be downloaded from the StarPU gforge website (ht
 $ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
 \endverbatim
 
-And finally, current development version is also accessible via svn.
+And finally, current development version is also accessible via git.
 It should be used only if you need the very latest changes (i.e. less
-than a day!). Note that the client side of the software Subversion can
-be obtained from http://subversion.tigris.org. If you
-are running on Windows, you will probably prefer to use TortoiseSVN (http://tortoisesvn.tigris.org/).
+than a day!).
 
 \verbatim
-$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
+$ git clone https://scm.gforge.inria.fr/anonscm/git/starpu/starpu.git
 \endverbatim
 
 \subsection ConfiguringStarPU Configuring StarPU
 
 Running <c>autogen.sh</c> is not necessary when using the tarball
-releases of StarPU.  If you are using the source code from the svn
+releases of StarPU.  If you are using the source code from the git
 repository, you first need to generate the configure scripts and the
 Makefiles. This requires the availability of <c>autoconf</c> and
 <c>automake</c> >= 2.60.

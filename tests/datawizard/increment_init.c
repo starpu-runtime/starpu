@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2016  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2014  CNRS
- * Copyright (C) 2017  Inria
+ * Copyright (C) 2012,2017                                Inria
+ * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -35,6 +34,8 @@ static starpu_data_handle_t handle;
 #ifdef STARPU_USE_CUDA
 static void neutral_cuda_kernel(void *descr[], void *arg)
 {
+	(void)arg;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* This is a dummy technique of course */
@@ -47,6 +48,8 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 #ifdef STARPU_USE_OPENCL
 static void neutral_opencl_kernel(void *descr[], void *arg)
 {
+	(void)arg;
+
 	unsigned h_dst = 0;
 	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 
@@ -58,10 +61,10 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 }
 #endif
 
-
-
 void neutral_cpu_kernel(void *descr[], void *arg)
 {
+	(void)arg;
+
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dst = 0;
 }
@@ -86,8 +89,9 @@ static struct starpu_codelet neutral_cl =
 
 #ifdef STARPU_USE_OPENCL
 /* dummy OpenCL implementation */
-static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
+static void increment_opencl_kernel(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_token;
 
@@ -105,6 +109,7 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE
 #ifdef STARPU_USE_CUDA
 static void increment_cuda_kernel(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned host_token;
 
@@ -121,6 +126,7 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 
 void increment_cpu_kernel(void *descr[], void *arg)
 {
+	(void)arg;
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*tokenptr = *tokenptr + 1;
 }
@@ -139,11 +145,11 @@ static struct starpu_codelet increment_cl =
 	.modes = {STARPU_RW}
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned *pvar = NULL;
 	int ret;
-	
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

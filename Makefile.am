@@ -1,9 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016, 2017  CNRS
-# Copyright (C) 2014  INRIA
-# Copyright (C) 2016  Inria
+# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2010-2017                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
@@ -35,7 +34,7 @@ endif
 
 SUBDIRS += doc
 
-if USE_MPI
+if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 

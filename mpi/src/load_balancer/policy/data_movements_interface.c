@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016  Inria
- * Copyright (C) 2017  CNRS
+ * Copyright (C) 2016                                     Inria
+ * Copyright (C) 2017                                     CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,11 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <starpu_mpi_private.h>
+#include <common/config.h>
 
 #include "data_movements_interface.h"
+
+#if defined(STARPU_USE_MPI_MPI)
 
 int **data_movements_get_ref_tags_table(starpu_data_handle_t handle)
 {
@@ -279,3 +282,5 @@ void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home
 
 	starpu_data_register(handleptr, home_node, &data_movements, &interface_data_movements_ops);
 }
+
+#endif

@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011 University of Bordeaux
+ * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2010-2011,2013                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,10 +24,10 @@ soclEnqueueMarker(cl_command_queue  cq,
 {
 	if (event == NULL)
 		return CL_INVALID_VALUE;
-	
+
 	command_marker cmd = command_marker_create();
 
-   cl_event ev = command_event_get(cmd);
+	cl_event ev = command_event_get(cmd);
 
 	command_queue_enqueue(cq, cmd, 0, NULL);
 
@@ -34,7 +36,8 @@ soclEnqueueMarker(cl_command_queue  cq,
 	return CL_SUCCESS;
 }
 
-cl_int command_marker_submit(command_marker cmd) {
+cl_int command_marker_submit(command_marker cmd)
+{
 	struct starpu_task *task;
 	task = task_create(CL_COMMAND_MARKER);
 

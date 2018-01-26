@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  CNRS
+ * Copyright (C) 2008-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@ extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks
 extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio);
 extern void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks);
 extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
-extern void free_system(float *A, float *B, unsigned dim, unsigned pinned);
+extern void free_system(float *A, float *B, unsigned pinned);
 
 void display_stat_heat(void);
 

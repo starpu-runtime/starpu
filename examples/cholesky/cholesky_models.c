@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2017  CNRS
- * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2011                                     Inria
+ * Copyright (C) 2008-2011,2014-2015                      Université de Bordeaux
+ * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +45,8 @@
 
 double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -59,6 +62,8 @@ double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -74,6 +79,8 @@ double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -89,6 +96,8 @@ double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -104,6 +113,8 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -119,6 +130,8 @@ double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);

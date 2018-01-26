@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2017  Université de Bordeaux
- * Copyright (C) 2013, 2017  INRIA
- * Copyright (C) 2013  Simon Archipoff
+ * Copyright (C) 2013,2017                                Inria
+ * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,15 +45,21 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	struct _starpu_prio_deque * prio = &data->prio;
 	struct starpu_task * (tasks[NTASKS]);
-	unsigned ntasks;
+	unsigned ntasks = 0;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	/* Try to look at NTASKS from the queue */
-	for (ntasks = 0; ntasks < NTASKS; ntasks++)
+	tasks[0] = _starpu_prio_deque_pop_task(prio);
+	if (tasks[0])
 	{
-		tasks[ntasks] = _starpu_prio_deque_pop_task(prio);
-		if (!tasks[ntasks])
-			break;
+		int priority = tasks[0]->priority;
+		/* Try to look at NTASKS from the queue */
+		for (ntasks = 1; ntasks < NTASKS; ntasks++)
+		{
+			tasks[ntasks] = _starpu_prio_deque_highest_task(prio);
+ 			if (!tasks[ntasks] || tasks[ntasks]->priority < priority)
+ 				break;
+ 			_starpu_prio_deque_pop_task(prio);		
+		}
 	}
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
@@ -107,7 +114,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		double max_benefit = 0;
 
 		/* Find the task which provides the most computation time benefit */
-		for (n = 1; n < ntasks; n++)
+		for (n = 0; n < ntasks; n++)
 		{
 			double benefit = max_exp_end_with_task[n] - min_exp_end_with_task[n];
 			if (max_benefit < benefit)

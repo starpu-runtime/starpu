@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015  INRIA
+ * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2015,2017                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,11 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <config.h>
 #include <starpu.h>
 #include "../helper.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret;
 	int nprocs;

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014, 2015, 2016, 2017  CNRS
+ * Copyright (C) 2013-2017                                CNRS
+ * Copyright (C) 2014-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,23 +30,12 @@ void func_cpu(void *descr[], void *_args)
 	*x = *x * *y;
 }
 
-/* Dummy cost function for simgrid */
-static double cost_function(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0.000001;
-}
-static struct starpu_perfmodel dumb_model =
-{
-	.type		= STARPU_COMMON,
-	.cost_function	= cost_function
-};
-
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R},
-	.model = &dumb_model
+	.model = &starpu_perfmodel_nop,
 };
 
 int test(int rank, int node, int *before, int *after, int task_insert, int data_array)
@@ -125,7 +115,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 			if (task)
 			{
 				ret = starpu_task_submit(task);
-				if (ret == -ENODEV) goto enodev;
+				if (ret == -ENODEV)
+					goto enodev;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 
@@ -239,7 +230,8 @@ int main(int argc, char **argv)
 			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
 				ret = test(rank, node, before, after_node[node], insert_task, data_array);
-				if (ret == -ENODEV || ret) global_ret = ret;
+				if (ret == -ENODEV || ret)
+					global_ret = ret;
 			}
 		}
 	}
