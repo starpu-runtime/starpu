@@ -534,7 +534,7 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
 	      [enable_mpi_check=$enableval], [enable_mpi_check=$default_enable_mpi_check])
 running_mpi_check=no
-if test -d "$srcdir/.git" ; then
+if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
