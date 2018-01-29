@@ -21,31 +21,56 @@
 #include <common/utils.h>
 #include <core/task.h>
 
-static void _starpu_pack_arguments(size_t *current_offset, size_t *arg_buffer_size_, char **arg_buffer_, void *ptr, size_t ptr_size)
+void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state)
 {
-	if (*current_offset + sizeof(ptr_size) + ptr_size > *arg_buffer_size_)
-	{
-		if (*arg_buffer_size_ == 0)
-			*arg_buffer_size_ = 128 + sizeof(ptr_size) + ptr_size;
-		else
-			*arg_buffer_size_ = 2 * *arg_buffer_size_ + sizeof(ptr_size) + ptr_size;
-		_STARPU_REALLOC(*arg_buffer_, *arg_buffer_size_);
-	}
-	memcpy(*arg_buffer_+*current_offset, (void *)&ptr_size, sizeof(ptr_size));
-	*current_offset += sizeof(ptr_size);
+	state->arg_buffer = NULL;
+	state->arg_buffer_size = 0;
+	state->current_offset = sizeof(int);
+	state->nargs = 0;
+}
 
-	memcpy(*arg_buffer_+*current_offset, ptr, ptr_size);
-	*current_offset += ptr_size;
-	STARPU_ASSERT(*current_offset <= *arg_buffer_size_);
+void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, const void *ptr, size_t ptr_size)
+{
+	STARPU_ASSERT_MSG(state->current_offset >= sizeof(int), "struct starpu_codelet_pack_arg has to be initialized with starpu_codelet_pack_arg_init");
+	if (state->current_offset + sizeof(ptr_size) + ptr_size > state->arg_buffer_size)
+	{
+		if (state->arg_buffer_size == 0)
+			state->arg_buffer_size = 128 + sizeof(ptr_size) + ptr_size;
+		else
+			state->arg_buffer_size = 2 * state->arg_buffer_size + sizeof(ptr_size) + ptr_size;
+		_STARPU_REALLOC(state->arg_buffer, state->arg_buffer_size);
+	}
+	memcpy(state->arg_buffer+state->current_offset, (void *)&ptr_size, sizeof(ptr_size));
+	state->current_offset += sizeof(ptr_size);
+
+	memcpy(state->arg_buffer+state->current_offset, ptr, ptr_size);
+	state->current_offset += ptr_size;
+	STARPU_ASSERT(state->current_offset <= state->arg_buffer_size);
+	state->nargs++;
+}
+
+void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg *state, void **cl_arg, size_t *cl_arg_size)
+{
+	if (state->nargs)
+	{
+		memcpy(state->arg_buffer, &state->nargs, sizeof(state->nargs));
+	}
+	else
+	{
+		free(state->arg_buffer);
+		state->arg_buffer = NULL;
+	}
+
+	*cl_arg = state->arg_buffer;
+	*cl_arg_size = state->arg_buffer_size;
 }
 
 int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
-	int nargs = 0;
-	char *_arg_buffer = NULL; // We would like a void* but we use a char* to allow pointer arithmetic
-	size_t _arg_buffer_size = 0;
-	size_t current_offset = sizeof(nargs);
+
+	struct starpu_codelet_pack_arg state;
+	starpu_codelet_pack_arg_init(&state);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -69,8 +94,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			void *ptr = va_arg(varg_list, void *);
 			size_t ptr_size = va_arg(varg_list, size_t);
 
-			nargs++;
-			_starpu_pack_arguments(&current_offset, &_arg_buffer_size, &_arg_buffer, ptr, ptr_size);
+			starpu_codelet_pack_arg(&state, ptr, ptr_size);
 		}
 		else if (arg_type==STARPU_CL_ARGS)
 		{
@@ -174,18 +198,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		}
 	}
 
-	if (nargs)
-	{
-		memcpy(_arg_buffer, (int *)&nargs, sizeof(nargs));
-	}
-	else
-	{
-		free(_arg_buffer);
-		_arg_buffer = NULL;
-	}
-
-	*arg_buffer = _arg_buffer;
-	*arg_buffer_size = _arg_buffer_size;
+	starpu_codelet_pack_arg_fini(&state, arg_buffer, arg_buffer_size);
 	return 0;
 }
 
@@ -304,11 +317,7 @@ static inline void starpu_task_insert_process_data_mode_array_arg(struct starpu_
 int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list)
 {
 	int arg_type;
-	char *arg_buffer_ = NULL;
-	size_t arg_buffer_size_ = 0;
-	size_t current_offset = sizeof(int);
 	int current_buffer;
-	int nargs = 0;
 	int allocated_buffers = 0;
 	unsigned ndeps = 0;
 	struct starpu_task **task_deps_array = NULL;
@@ -317,6 +326,9 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 
 	task->cl = cl;
 	current_buffer = 0;
+
+	struct starpu_codelet_pack_arg state;
+	starpu_codelet_pack_arg_init(&state);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -344,9 +356,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			void *ptr = va_arg(varg_list, void *);
 			size_t ptr_size = va_arg(varg_list, size_t);
-
-			nargs++;
-			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
+			starpu_codelet_pack_arg(&state, ptr, ptr_size);
 		}
 		else if (arg_type==STARPU_CL_ARGS)
 		{
@@ -489,23 +499,13 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		}
 	}
 
-	if (nargs)
-	{
-		if (task->cl_arg != NULL)
-		{
+	if (state.nargs) {
+		if (task->cl_arg != NULL) {
 			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
-			free(arg_buffer_);
-			arg_buffer_ = NULL;
+			free(state.arg_buffer);
 			return -EINVAL;
 		}
-		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
-		task->cl_arg = arg_buffer_;
-		task->cl_arg_size = arg_buffer_size_;
-	}
-	else
-	{
-		free(arg_buffer_);
-		arg_buffer_ = NULL;
+		starpu_codelet_pack_arg_fini(&state, &task->cl_arg, &task->cl_arg_size);
 	}
 
 	if (task_deps_array)
@@ -520,16 +520,15 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, void **arglist)
 {
 	int arg_i = 0;
-	char *arg_buffer_ = NULL;
-	size_t arg_buffer_size_ = 0;
-	size_t current_offset = sizeof(int);
 	int current_buffer = 0;
-	int nargs = 0;
 	int allocated_buffers = 0;
 	unsigned ndeps = 0;
 	struct starpu_task **task_deps_array = NULL;
 
 	_STARPU_TRACE_TASK_BUILD_START();
+
+	struct starpu_codelet_pack_arg state;
+	starpu_codelet_pack_arg_init(&state);
 
 	task->cl = cl;
 	task->name = NULL;
@@ -568,8 +567,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			void *ptr = arglist[arg_i];
 			arg_i++;
 			size_t ptr_size = (size_t)(intptr_t)arglist[arg_i];
-			nargs++;
-			_starpu_pack_arguments(&current_offset, &arg_buffer_size_, &arg_buffer_, ptr, ptr_size);
+			starpu_codelet_pack_arg(&state, ptr, ptr_size);
 		}
 		else if (arg_type == STARPU_CL_ARGS)
 		{
@@ -734,23 +732,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		}
 	}
 
-	if (nargs)
-	{
-		if (task->cl_arg != NULL)
-		{
+	if (state.nargs) {
+		if (task->cl_arg != NULL) {
 			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
-			free(arg_buffer_);
-			arg_buffer_ = NULL;
+			free(state.arg_buffer);
 			return -EINVAL;
 		}
-		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
-		task->cl_arg = arg_buffer_;
-		task->cl_arg_size = arg_buffer_size_;
-	}
-	else
-	{
-		free(arg_buffer_);
-		arg_buffer_ = NULL;
+		starpu_codelet_pack_arg_fini(&state, &task->cl_arg, &task->cl_arg_size);
 	}
 
 	if (task_deps_array)

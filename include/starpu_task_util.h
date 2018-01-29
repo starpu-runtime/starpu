@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014                                Inria
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2010-2015                                Université de Bordeaux
+ * Copyright (C) 2010-2015, 2018                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,9 +70,21 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 /* the function starpu_insert_task has the same semantics as starpu_task_insert, it is kept to avoid breaking old codes */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 
+void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
+
+struct starpu_codelet_pack_arg {
+	char *arg_buffer;
+	size_t arg_buffer_size;
+	size_t current_offset;
+	int nargs;
+};
+
+void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state);
+void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, const void *ptr, size_t ptr_size);
+void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg *state, void **cl_arg, size_t *cl_arg_size);
+
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...);
-void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }
