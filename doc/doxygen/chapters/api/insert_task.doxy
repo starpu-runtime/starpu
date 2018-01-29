@@ -156,6 +156,33 @@ be followed by a number of tasks, and an array containing these tasks.
 The function starpu_task_declare_deps_array() will be called with the
 given values.
 
+\fn void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
+\ingroup API_Insert_Task
+Assuming that there are already \p current_buffer data handles passed to
+the task, and if *allocated_buffers is not 0, the <c>task->dyn_handles</c>
+array has size \p *allocated_buffers, this function makes room for \p room
+other data handles, allocating or reallocating <c>task->dyn_handles</c> as
+necessary and updating \p *allocated_buffers accordingly. One can thus start
+with *allocated_buffers equal to 0 and current_buffer equal to 0, then make room
+by calling this function, then store handles with STARPU_TASK_SET_HANDLE(), make
+room again with this function, store yet more handles, etc.
+
+\fn void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle)
+\ingroup API_Insert_Task
+This stores data handle \p handle into task \p task with mode \p arg_type,
+updating \p *allocated_buffers and \p *current_buffer accordingly.
+
+\fn void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles)
+\ingroup API_Insert_Task
+This stores \p nb_handles data handles \p handles into task \p task, updating \p
+*allocated_buffers and \p *current_buffer accordingly.
+
+
+\fn void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs);
+\ingroup API_Insert_Task
+This stores \p nb_descrs data handles described by \p descrs into task \p task,
+updating \p *allocated_buffers and \p *current_buffer accordingly.
+
 \fn void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 \ingroup API_Insert_Task
 Pack arguments of type ::STARPU_VALUE into a buffer which can be

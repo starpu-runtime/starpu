@@ -93,6 +93,10 @@ Small features:
      specific ICC examples
    * Add starpu_codelet_pack_arg_init, starpu_codelet_pack_arg,
      starpu_codelet_pack_arg_fini for more fine-grain packing capabilities.
+   * Add starpu_task_insert_data_make_room,
+   starpu_task_insert_data_process_arg,
+   starpu_task_insert_data_process_array_arg,
+   starpu_task_insert_data_process_mode_array_arg
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
