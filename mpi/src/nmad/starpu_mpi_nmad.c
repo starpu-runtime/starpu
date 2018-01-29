@@ -3,7 +3,7 @@
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
  * Copyright (C) 2010-2015,2017                           CNRS
- * Copyright (C) 2009-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2009-2014,2017-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -615,22 +615,18 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_select_node_init();
 	_starpu_mpi_datatype_init();
 
+#ifdef STARPU_USE_FXT
+	_starpu_fxt_wait_initialisation();
+	/* We need to record our ID in the trace before the main thread makes any MPI call */
+	_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
+	starpu_profiling_set_id(argc_argv->rank);
+#endif //STARPU_USE_FXT
+
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_wait_initialisation();
-#endif //STARPU_USE_FXT
-
-	{
-		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
-#ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(argc_argv->rank);
-#endif //STARPU_USE_FXT
-	}
 
 	_starpu_mpi_add_sync_point_in_fxt();
 
@@ -757,7 +753,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         return 0;
 }
 
-void _starpu_mpi_progress_shutdown(uintptr_t value)
+void _starpu_mpi_progress_shutdown(void *value)
 {
 	/* kill the progression thread */
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
