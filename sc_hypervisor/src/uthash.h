@@ -81,7 +81,7 @@ typedef unsigned int uint32_t;
 
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                     \
 do {                                                                             \
-  unsigned _hf_bkt,_hf_hashv;                                                    \
+  unsigned _hf_bkt=0,_hf_hashv=0;                                                \
   out=NULL;                                                                      \
   if (head) {                                                                    \
      HASH_FCN(keyptr,keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt);   \
