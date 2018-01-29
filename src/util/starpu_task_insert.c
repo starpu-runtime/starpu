@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -121,7 +121,7 @@ struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* 
 	task->cl_arg_free = cl_arg_free;
 
 	va_copy(varg_list_copy, varg_list);
-	ret = _starpu_task_insert_create(cl, &task, varg_list_copy);
+	ret = _starpu_task_insert_create(cl, task, varg_list_copy);
 	va_end(varg_list_copy);
 
 	if (ret != 0)
