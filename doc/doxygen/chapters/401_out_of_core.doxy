@@ -25,19 +25,26 @@ When using StarPU, one may need to store more data than what the main memory
 (RAM) can store. This part describes the method to add a new memory node on a
 disk and to use it.
 
-The principle is that one first registers a disk location, seen by StarPU as
-a <c>void*</c>, which can be for instance a Unix path for the stdio, unistd or unistd_o_direct case,
-or a database file path for a leveldb case, etc. The disk backend opens this
-place with the plug method.
+Similarly to what happens with GPUs (it's actually exactly the same code), when
+available main memory becomes scarse, StarPU will evict unused data to the disk,
+thus leaving room for new allocations. Whenever some evicted data is needed
+again for a task, StarPU will automatically fetch it back from the disk.
 
-If the disk backend provides an alloc method, StarPU can then start using it
-to allocate room and store data there with the write method, without user
-intervention.
+
+The principle is that one first registers a disk location, seen by StarPU as a
+<c>void*</c>, which can be for instance a Unix path for the stdio, unistd or
+unistd_o_direct backends, or a leveldb database for the leveldb backend, an HDF5
+file path for the HDF5 backend, etc. The disk backend opens this place with the
+plug method.
+
+StarPU can then start using it to allocate room and store data there with the
+disk write method, without user intervention.
 
 The user can also use starpu_disk_open() to explicitly open an object within the
 disk, e.g. a file name in the stdio or unistd cases, or a database key in the
 leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
-data handle. StarPU will then automatically read and write data as appropriate.
+data handle. StarPU will then use this file as external source of data, and
+automatically read and write data as appropriate.
 
 \section UseANewDiskMemory Use a new disk memory
 
@@ -61,26 +68,58 @@ export STARPU_DISK_SWAP_BACKEND=unistd
 export STARPU_DISK_SWAP_SIZE=200
 \endverbatim
 
-The backend can be set to stdio, unistd, unistd_o_direct, or leveldb.
+The backend can be set to stdio (some caching is done by libc), unistd (only
+caching in the kernel), unistd_o_direct (no caching), leveldb, or hdf5.
 
-When the register function is called, StarPU will benchmark the disk. This can
+When that register call is made, StarPU will benchmark the disk. This can
 take some time.
 
 <strong>Warning: the size thus has to be at least \ref STARPU_DISK_SIZE_MIN bytes ! </strong> 
 
-StarPU will automatically try to evict unused data to this new disk. One can
-also use the standard StarPU memory node API, see the \ref API_Standard_Memory_Library
-and the \ref API_Data_Interfaces .
+StarPU will then automatically try to evict unused data to this new disk. One
+can also use the standard StarPU memory node API to prefetch data etc., see the
+\ref API_Standard_Memory_Library and the \ref API_Data_Interfaces .
 
 The disk is unregistered during the starpu_shutdown().
 
-\section DiskFunctions Disk functions
+\section OOCDataRegistration Data Registration
 
-There are various ways to operate a disk memory node, described by the structure
-starpu_disk_ops. For instance, the variable #starpu_disk_unistd_ops
-uses read/write functions.
+StarPU will only be able to achieve Out-Of-Core eviction if it controls memory
+allocation. For instance, if the application does the following:
 
-All structures are in \ref API_Out_Of_Core.
+<code>
+p = malloc(1024*1024*sizeof(float));
+fill_with_data(p);
+starpu_matrix_data_register(&h, STARPU_MAIN_RAM, (uintptr_t) p, 1024, 1024, 1024, sizeof(float));
+</code>
+
+StarPU will not be able to release the corresponding memory since it's the
+application which allocated it, and StarPU can not know how, and thus how to
+release it. One thus have to use the following instead:
+
+<code>
+starpu_matrix_data_register(&h, -1, NULL, 1024, 1024, 1024, sizeof(float));
+starpu_task_insert(cl_fill_with_data, STARPU_W, h, 0);
+</code>
+
+Which makes StarPU automatically do the allocation when the task running
+cl_fill_with_data gets executed. And then if its needs to, it will be able to
+release it after having pushed the data to the disk.
+
+\section OOCWontUse Using Wont Use
+
+By default, StarPU uses a Least-Recently-Used (LRU) algorithm to determine
+which data should be evicted to the disk. This algorithm can be hinted
+by telling which data will no be used in the coming future thanks to
+starpu_data_wont_use(), for instance:
+
+<code>
+starpu_task_insert(&cl_work, STARPU_RW, h, 0);
+starpu_data_wont_use(h);
+</code>
+
+StarPU will mark the data as "inactive" and tend to evict to the disk that data
+rather than others.
 
 \section ExampleDiskCopy Examples: disk_copy
 
@@ -105,5 +144,13 @@ priority, at the depense of locality.
 The scheduling algorithms worth trying are thus <code>dmdar</code> and
 <code>lws</code>, which privilege data locality over priorities. There will be
 work on this area in the coming future.
+
+\section DiskFunctions Disk functions
+
+There are various ways to operate a disk memory node, described by the structure
+starpu_disk_ops. For instance, the variable #starpu_disk_unistd_ops
+uses read/write functions.
+
+All structures are in \ref API_Out_Of_Core.
 
 */
