@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2016, 2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -167,6 +167,19 @@ Data transfer stats:
 	CUDA 1 -> CUDA 2	175.78 MB	117.09 MB/s	(transfers : 50 - avg 3.52 MB)
 	CUDA 2 -> CUDA 1	203.91 MB	135.82 MB/s	(transfers : 58 - avg 3.52 MB)
 Total transfers: 2.27 GB
+\endverbatim
+
+\subsection MPI-relatedFeedback MPI-related Feedback
+
+Statistics about the data transfers which were performed over MPI can be
+obtained by setting the environment variable \ref STARPU_COMM_STATS to <c>1</c>;
+a summary will then be displayed at program termination:
+
+\verbatim
+[starpu_comm_stats][0] TOTAL:	4.000000 GB	4.000000 GB
+[starpu_comm_stats][0->1]	4.000000 GB	4.000000 GB
+[starpu_comm_stats][1] TOTAL:	8.000000 GB	8.000000 GB
+[starpu_comm_stats][1->0]	8.000000 GB	8.000000 GB
 \endverbatim
 
 \subsection StarPU-TopInterface StarPU-Top Interface
