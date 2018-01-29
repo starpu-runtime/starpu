@@ -70,6 +70,11 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 /* the function starpu_insert_task has the same semantics as starpu_task_insert, it is kept to avoid breaking old codes */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 
+void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room);
+void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle);
+void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles);
+void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs);
+
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
 struct starpu_codelet_pack_arg {
