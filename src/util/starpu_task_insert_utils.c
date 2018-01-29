@@ -203,15 +203,15 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 }
 
 static
-void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer)
+void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 {
-	if (current_buffer >= STARPU_NMAXBUFS)
+	if (current_buffer + room > STARPU_NMAXBUFS)
 	{
 		if (*allocated_buffers == 0)
 		{
 			int i;
 			struct starpu_codelet *cl2 = task->cl;
-			*allocated_buffers = STARPU_NMAXBUFS * 2;
+			*allocated_buffers = (current_buffer + room) * 2;
 			_STARPU_MALLOC(task->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			for(i=0 ; i<current_buffer ; i++)
 			{
@@ -226,9 +226,9 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 				}
 			}
 		}
-		else if (current_buffer >= *allocated_buffers)
+		else if (current_buffer + room > *allocated_buffers)
 		{
-			*allocated_buffers *= 2;
+			*allocated_buffers = (current_buffer + room) * 2;
 			_STARPU_REALLOC(task->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
 			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_modes)
 			{
@@ -244,7 +244,7 @@ static inline void starpu_task_insert_process_data_arg(struct starpu_codelet *cl
 	STARPU_ASSERT(cl != NULL);
 	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
-	_starpu_task_insert_check_nb_buffers(cl, task, allocated_buffers, *current_buffer);
+	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
 
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
@@ -272,10 +272,11 @@ static inline void starpu_task_insert_process_data_array_arg(struct starpu_codel
 {
 	STARPU_ASSERT(cl != NULL);
 
+	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_handles);
+
 	int i;
 	for(i=0 ; i<nb_handles ; i++)
 	{
-		_starpu_task_insert_check_nb_buffers(cl, task, allocated_buffers, *current_buffer);
 		STARPU_TASK_SET_HANDLE(task, handles[i], *current_buffer);
 		(*current_buffer)++;
 	}
@@ -285,11 +286,12 @@ static inline void starpu_task_insert_process_data_mode_array_arg(struct starpu_
 {
 	STARPU_ASSERT(cl != NULL);
 
+	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_descrs);
+
 	int i;
 	for(i=0 ; i<nb_descrs ; i++)
 	{
 		STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
-		_starpu_task_insert_check_nb_buffers(cl, task, allocated_buffers, *current_buffer);
 		STARPU_TASK_SET_HANDLE(task, descrs[i].handle, *current_buffer);
 		if (task->dyn_modes)
 		{
