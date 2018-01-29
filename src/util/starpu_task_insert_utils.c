@@ -188,8 +188,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 	return 0;
 }
 
-static
-void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
+void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 {
 	if (current_buffer + room > STARPU_NMAXBUFS)
 	{
@@ -222,13 +221,13 @@ void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu
 	}
 }
 
-static inline void starpu_task_insert_process_data_arg(struct starpu_codelet *cl, struct starpu_task *task, int arg_type, starpu_data_handle_t handle, int *current_buffer, int *allocated_buffers)
+void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle)
 {
 	enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
 	STARPU_ASSERT(cl != NULL);
 	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
-	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
+	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
 
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
@@ -252,11 +251,11 @@ static inline void starpu_task_insert_process_data_arg(struct starpu_codelet *cl
 	(*current_buffer)++;
 }
 
-static inline void starpu_task_insert_process_data_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int nb_handles, starpu_data_handle_t *handles, int *current_buffer, int *allocated_buffers)
+void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles)
 {
 	STARPU_ASSERT(cl != NULL);
 
-	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_handles);
+	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_handles);
 
 	int i;
 	for(i=0 ; i<nb_handles ; i++)
@@ -266,11 +265,11 @@ static inline void starpu_task_insert_process_data_array_arg(struct starpu_codel
 	}
 }
 
-static inline void starpu_task_insert_process_data_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int nb_descrs, struct starpu_data_descr *descrs, int *current_buffer, int *allocated_buffers)
+void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs)
 {
 	STARPU_ASSERT(cl != NULL);
 
-	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_descrs);
+	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_descrs);
 
 	int i;
 	for(i=0 ; i<nb_descrs ; i++)
@@ -320,21 +319,21 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
-			starpu_task_insert_process_data_arg(cl, task, arg_type, handle, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_arg(cl, task, &allocated_buffers, &current_buffer, arg_type, handle);
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
 			// Expect to find a array of handles and its size
 			starpu_data_handle_t *handles = va_arg(varg_list, starpu_data_handle_t *);
 			int nb_handles = va_arg(varg_list, int);
-			starpu_task_insert_process_data_array_arg(cl, task, nb_handles, handles, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_handles, handles);
 		}
 		else if (arg_type==STARPU_DATA_MODE_ARRAY)
 		{
 			// Expect to find a array of descr and its size
 			struct starpu_data_descr *descrs = va_arg(varg_list, struct starpu_data_descr *);
 			int nb_descrs = va_arg(varg_list, int);
-			starpu_task_insert_process_data_mode_array_arg(cl, task, nb_descrs, descrs, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -504,7 +503,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];
-			starpu_task_insert_process_data_arg(cl, task, arg_type, handle, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_arg(cl, task, &allocated_buffers, &current_buffer, arg_type, handle);
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
@@ -512,7 +511,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			starpu_data_handle_t *handles = arglist[arg_i];
 			arg_i++;
 			int nb_handles = *(int *)arglist[arg_i];
-			starpu_task_insert_process_data_array_arg(cl, task, nb_handles, handles, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_handles, handles);
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
@@ -520,7 +519,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			struct starpu_data_descr *descrs = arglist[arg_i];
 			arg_i++;
 			int nb_descrs = *(int *)arglist[arg_i];
-			starpu_task_insert_process_data_mode_array_arg(cl, task, nb_descrs, descrs, &current_buffer, &allocated_buffers);
+			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
 		}
 		else if (arg_type == STARPU_VALUE)
 		{
