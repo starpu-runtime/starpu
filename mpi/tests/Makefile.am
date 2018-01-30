@@ -104,7 +104,6 @@ if BUILD_TESTS
 starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
-	broadcast				\
 	cache					\
 	cache_disable				\
 	callback				\
@@ -133,6 +132,7 @@ starpu_mpi_TESTS +=				\
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
 	attr					\
+	broadcast				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
