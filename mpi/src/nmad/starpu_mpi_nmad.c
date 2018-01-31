@@ -39,7 +39,6 @@
 #include <nm_sendrecv_interface.h>
 #include <nm_mpi_nmad.h>
 
-static void _starpu_mpi_submit_ready_request(void *arg);
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
@@ -50,7 +49,7 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 
 static int mpi_thread_cpuid = -1;
-static int use_prio = 1;
+int _starpu_mpi_use_prio = 1;
 int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
 
@@ -84,52 +83,9 @@ static void nop_acquire_cb(void *arg)
 	starpu_data_release(arg);
 }
 
-struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
-						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
-						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
-						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-						       enum starpu_data_access_mode mode,
-						       int sequential_consistency,
-						       int is_internal_req,
-						       starpu_ssize_t count)
+void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_mpi_req *req;
-
-	if (_starpu_mpi_fake_world_size != -1)
-	{
-		/* Don't actually do the communication */
-		starpu_data_acquire_on_node_cb_sequential_consistency(data_handle, STARPU_MAIN_RAM, mode, nop_acquire_cb, data_handle, sequential_consistency);
-		return NULL;
-	}
-
-	_STARPU_MPI_LOG_IN();
 	STARPU_ATOMIC_ADD( &pending_request, 1);
-
-	/* Initialize the request structure */
-	_starpu_mpi_request_init(&req);
-	req->request_type = request_type;
-	/* prio_list is sorted by increasing values */
-	if (use_prio)
-		req->prio = prio;
-	req->data_handle = data_handle;
-	req->node_tag.rank = srcdst;
-	req->node_tag.data_tag = data_tag;
-	req->node_tag.comm = comm;
-	req->detached = detached;
-	req->sync = sync;
-	req->callback = callback;
-	req->callback_arg = arg;
-	req->func = func;
-	req->sequential_consistency = sequential_consistency;
-	nm_mpi_nmad_dest(&req->session, &req->gate, comm, req->node_tag.rank);
-
-	/* Asynchronously request StarPU to fetch the data in main memory: when
-	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
-	 * the request is actually submitted */
-	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
-
-	_STARPU_MPI_LOG_OUT();
-	return req;
 }
 
 /********************************************************/
@@ -492,7 +448,7 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 	nm_sr_request_monitor(req->session, &(req->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
-static void _starpu_mpi_submit_ready_request(void *arg)
+void _starpu_mpi_submit_ready_request(void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
@@ -673,7 +629,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
-	use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
+	_starpu_mpi_use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 

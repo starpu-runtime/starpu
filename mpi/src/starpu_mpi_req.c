@@ -19,6 +19,9 @@
 
 #include <starpu.h>
 #include <starpu_mpi_private.h>
+#if defined(STARPU_USE_MPI_MPI)
+#include <mpi/starpu_mpi_comm.h>
+#endif
 #if defined(STARPU_USE_MPI_NMAD)
 #include <pioman.h>
 #endif
@@ -91,6 +94,48 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	starpu_pthread_queue_register(&wait, &((*req)->queue));
 	(*req)->done = 0;
 #endif
+}
+
+struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handle,
+						 int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
+						 unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
+						 enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
+						 int sequential_consistency,
+						 int is_internal_req,
+						 starpu_ssize_t count)
+{
+	struct _starpu_mpi_req *req;
+
+#ifdef STARPU_USE_MPI_MPI
+	_starpu_mpi_comm_register(comm);
+#endif
+
+	/* Initialize the request structure */
+	_starpu_mpi_request_init(&req);
+	req->request_type = request_type;
+	/* prio_list is sorted by increasing values */
+	if (_starpu_mpi_use_prio)
+		req->prio = prio;
+	req->data_handle = data_handle;
+	req->node_tag.rank = srcdst;
+	req->node_tag.data_tag = data_tag;
+	req->node_tag.comm = comm;
+	req->detached = detached;
+	req->sync = sync;
+	req->callback = callback;
+	req->callback_arg = arg;
+	req->func = func;
+	req->sequential_consistency = sequential_consistency;
+#ifdef STARPU_USE_MPI_NMAD
+	nm_mpi_nmad_dest(&req->session, &req->gate, comm, req->node_tag.rank);
+#elif defined(STARPU_USE_MPI_MPI)
+	req->is_internal_req = is_internal_req;
+	/* For internal requests, we wait for both the request completion and the matching application request completion */
+	req->to_destroy = !is_internal_req;
+	req->count = count;
+#endif
+
+	return req;
 }
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)

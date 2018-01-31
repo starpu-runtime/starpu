@@ -66,6 +66,7 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
+extern int _starpu_mpi_use_prio;
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
@@ -290,17 +291,22 @@ LIST_TYPE(_starpu_mpi_req,
 );
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
-struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
+/* To be called before actually queueing a request, so the communication layer knows it has something to look at */
+void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req);
+
+void _starpu_mpi_submit_ready_request(void *arg);
+
+void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
+void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
+struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_handle,
 						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-						       enum starpu_data_access_mode mode,
 						       int sequential_consistency,
 						       int is_internal_req,
 						       starpu_ssize_t count);
 
-void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
-void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
+
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
