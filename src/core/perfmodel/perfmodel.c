@@ -346,7 +346,7 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 		if (task->cl->specific_nodes)
 			node = STARPU_CODELET_GET_NODE(task->cl, buffer);
 
-		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
+		penalty += starpu_data_expected_transfer_time(handle, node, mode);
 	}
 
 	return penalty;
