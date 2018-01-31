@@ -109,6 +109,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 	argc_argv->comm = comm;
+	_starpu_implicit_data_deps_write_hook(_starpu_mpi_data_flush);
 
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid

@@ -388,7 +388,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 		        nm_mpi_nmad_data_release(req->datatype);
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
-		starpu_data_release(req->data_handle);
+		_starpu_mpi_release_req_data(req);
 	}
 
 	/* Execute the specified callback, if any */

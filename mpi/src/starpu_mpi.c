@@ -59,18 +59,26 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 		return NULL;
 	}
 
+#ifdef STARPU_MPI_PEDANTIC_ISEND
+	enum starpu_data_access_mode mode = STARPU_RW;
+#else
+	enum starpu_data_access_mode mode = STARPU_R;
+#endif
+
 	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(
 	                                      data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
 					      sequential_consistency, 0, 0);
 	_starpu_mpi_req_willpost(req);
-	_starpu_mpi_isend_irecv_common(req,
-#ifdef STARPU_MPI_PEDANTIC_ISEND
-					      STARPU_RW,
-#else
-					      STARPU_R,
-#endif
-					      sequential_consistency
-			);
+
+	if (_starpu_mpi_use_coop_sends && detached == 1 && sync == 0 && callback == NULL)
+	{
+		/* It's a send & forget send, we can perhaps optimize its distribution over several nodes */
+		_starpu_mpi_coop_send(data_handle, req, mode, sequential_consistency);
+		return req;
+	}
+
+	/* Post normally */
+	_starpu_mpi_isend_irecv_common(req, mode, sequential_consistency);
 	return req;
 }
 
@@ -249,6 +257,7 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 #endif
 	_starpu_mpi_cache_data_clear(data_handle);
 	free(data_handle->mpi_data);
+	data_handle->mpi_data = NULL;
 }
 
 struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle) {
@@ -264,6 +273,7 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle) 
 		mpi_data->node_tag.data_tag = -1;
 		mpi_data->node_tag.rank = -1;
 		mpi_data->node_tag.comm = MPI_COMM_WORLD;
+		_starpu_spin_init(&mpi_data->coop_lock);
 		data_handle->mpi_data = mpi_data;
 		_starpu_mpi_cache_data_init(data_handle);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);
@@ -404,9 +414,6 @@ void starpu_mpi_get_data_on_all_nodes_detached(MPI_Comm comm, starpu_data_handle
 {
 	int size, i;
 	starpu_mpi_comm_size(comm, &size);
-#ifdef STARPU_DEVEL
-#warning TODO: use binary communication tree to optimize broadcast
-#endif
 	for (i = 0; i < size; i++)
 		starpu_mpi_get_data_on_node_detached(comm, data_handle, i, NULL, NULL);
 }

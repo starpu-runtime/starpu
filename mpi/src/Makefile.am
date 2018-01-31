@@ -79,6 +79,7 @@ noinst_HEADERS =					\
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
 	starpu_mpi_req.c				\
+	starpu_mpi_coop_sends.c				\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_task_insert.c			\

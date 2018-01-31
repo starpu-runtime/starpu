@@ -26,6 +26,7 @@
 #include <starpu_mpi_fxt.h>
 #include <common/list.h>
 #include <common/prio_list.h>
+#include <common/starpu_spinlock.h>
 #include <core/simgrid.h>
 #if defined(STARPU_USE_MPI_NMAD)
 #include <pioman.h>
@@ -68,6 +69,7 @@ extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
 extern int _starpu_mpi_thread_cpuid;
+extern int _starpu_mpi_use_coop_sends;
 void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
@@ -197,6 +199,15 @@ struct _starpu_mpi_node_tag
 	starpu_mpi_tag_t data_tag;
 };
 
+MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
+/* One bag of cooperative sends */
+struct _starpu_mpi_coop_sends
+{
+	/* List of send requests */
+	struct _starpu_mpi_req_multilist_coop_sends reqs;
+	struct _starpu_mpi_data *mpi_data;
+};
+
 /* Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
@@ -204,6 +215,10 @@ struct _starpu_mpi_data
 	struct _starpu_mpi_node_tag node_tag;
 	int *cache_sent;
 	int cache_received;
+
+	/* Rendez-vous data for opportunistic cooperative sends */
+	struct _starpu_spinlock coop_lock; /* Needed to synchronize between submit thread and workers */
+	struct _starpu_mpi_coop_sends *coop_sends; /* Current cooperative send bag */
 };
 
 struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
@@ -238,6 +253,8 @@ LIST_TYPE(_starpu_mpi_req,
 #elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request data_request;
 #endif
+	struct _starpu_mpi_req_multilist_coop_sends coop_sends;
+	struct _starpu_mpi_coop_sends *coop_sends_head;
 
 	int *flag;
 	unsigned sync;
@@ -296,10 +313,17 @@ LIST_TYPE(_starpu_mpi_req,
 );
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
+MULTILIST_CREATE_INLINES(struct _starpu_mpi_req, _starpu_mpi_req, coop_sends)
+
 /* To be called before actually queueing a request, so the communication layer knows it has something to look at */
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req);
-
+/* To be called to actually submit the request */
 void _starpu_mpi_submit_ready_request(void *arg);
+/* To be called when request is completed */
+void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
+
+/* Try to merge with send request with other send requests */
+void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
 
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
@@ -336,6 +360,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
 #ifdef STARPU_SIMGRID
 void _starpu_mpi_wait_for_initialization();
 #endif
+void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 #ifdef __cplusplus
 }

@@ -51,6 +51,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->data_request = 0;
 #endif
 	(*req)->flag = NULL;
+	_starpu_mpi_req_multilist_init_coop_sends(*req);
 
 	(*req)->ret = -1;
 #ifdef STARPU_USE_MPI_NMAD
