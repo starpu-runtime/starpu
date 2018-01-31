@@ -349,9 +349,9 @@ LIST_INLINE int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMB
 	return head->next == head; \
 } \
 \
-/* Test whether the element is alone in a detached list.  */ \
+/* Test whether the element is alone in a list.  */ \
 LIST_INLINE int ENAME##_multilist_alone_##MEMBER(TYPE *e) { \
-	return (e)->MEMBER.next == &e->MEMBER && (e)->MEMBER.prev == &(e)->MEMBER; \
+	return (e)->MEMBER.next == (e)->MEMBER.prev; \
 } \
 \
 /* Return the first element of the list.  */ \
