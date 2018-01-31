@@ -260,12 +260,11 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 	data_handle->mpi_data = NULL;
 }
 
-void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag, int rank, MPI_Comm comm)
-{
-	struct _starpu_mpi_data *mpi_data;
-	if (data_handle->mpi_data)
+struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle) {
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	if (mpi_data)
 	{
-		mpi_data = data_handle->mpi_data;
+		STARPU_ASSERT(mpi_data->magic == 42);
 	}
 	else
 	{
@@ -276,15 +275,21 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 		mpi_data->node_tag.comm = MPI_COMM_WORLD;
 		_starpu_spin_init(&mpi_data->coop_lock);
 		data_handle->mpi_data = mpi_data;
-#if defined(STARPU_USE_MPI_MPI)
-		_starpu_mpi_tag_data_register(data_handle, data_tag);
-#endif
 		_starpu_mpi_cache_data_init(data_handle);
 		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_data_clear);
 	}
+	return mpi_data;
+}
+
+void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag, int rank, MPI_Comm comm)
+{
+	struct _starpu_mpi_data *mpi_data = _starpu_mpi_data_get(data_handle);
 
 	if (data_tag != -1)
 	{
+#if defined(STARPU_USE_MPI_MPI)
+		_starpu_mpi_tag_data_register(data_handle, data_tag);
+#endif
 		mpi_data->node_tag.data_tag = data_tag;
 	}
 	if (rank != -1)

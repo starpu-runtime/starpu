@@ -227,6 +227,8 @@ struct _starpu_mpi_data
 	struct _starpu_mpi_coop_sends *coop_sends; /* Current cooperative send bag */
 };
 
+struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
+
 struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
 	/* description of the data at StarPU level */
