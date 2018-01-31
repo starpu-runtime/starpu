@@ -67,6 +67,8 @@ void _starpu_mpi_set_debug_level_max(int level);
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
+extern int _starpu_mpi_thread_cpuid;
+void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)

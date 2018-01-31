@@ -48,11 +48,6 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 
-static int mpi_thread_cpuid = -1;
-int _starpu_mpi_use_prio = 1;
-int _starpu_mpi_fake_world_size = -1;
-int _starpu_mpi_fake_world_rank = -1;
-
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_t progress_thread;
 static starpu_pthread_cond_t progress_cond;
@@ -469,16 +464,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_setname("MPI");
 
 #ifndef STARPU_SIMGRID
-	if (mpi_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+	if (_starpu_mpi_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 	_starpu_mpi_do_initialize(argc_argv);
-	if (mpi_thread_cpuid >= 0)
+	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 #endif
 
-	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
-	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
+	_starpu_mpi_env_init();
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -628,8 +622,6 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
-	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
-	_starpu_mpi_use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
