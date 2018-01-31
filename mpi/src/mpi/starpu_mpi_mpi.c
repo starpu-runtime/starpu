@@ -50,9 +50,6 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
-static int mpi_thread_cpuid = -1;
-int _starpu_mpi_use_prio = 1;
-
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
@@ -86,8 +83,6 @@ static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
 #endif
-int _starpu_mpi_fake_world_size = -1;
-int _starpu_mpi_fake_world_rank = -1;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
@@ -1100,16 +1095,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_setname("MPI");
 
 #ifndef STARPU_SIMGRID
-	if (mpi_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+	if (_starpu_mpi_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 	_starpu_mpi_do_initialize(argc_argv);
-	if (mpi_thread_cpuid >= 0)
+	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 #endif
 
-	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
-	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
+	_starpu_mpi_env_init();
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -1454,11 +1448,8 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
         STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 
-        _starpu_mpi_comm_debug = starpu_getenv("STARPU_MPI_COMM") != NULL;
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
-	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
-	_starpu_mpi_use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
