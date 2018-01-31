@@ -39,11 +39,12 @@
 #include <nm_sendrecv_interface.h>
 #include <nm_mpi_nmad.h>
 
+static void _starpu_mpi_submit_ready_request(void *arg);
+
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
 static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
-static void _starpu_mpi_handle_new_request(void *arg);
 
 static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_add_sync_point_in_fxt(void);
@@ -92,7 +93,6 @@ struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data
 						       int is_internal_req,
 						       starpu_ssize_t count)
 {
-
 	struct _starpu_mpi_req *req;
 
 	if (_starpu_mpi_fake_world_size != -1)
@@ -124,9 +124,9 @@ struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data
 	nm_mpi_nmad_dest(&req->session, &req->gate, comm, req->node_tag.rank);
 
 	/* Asynchronously request StarPU to fetch the data in main memory: when
-	 * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
+	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
 	 * the request is actually submitted */
-	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_handle_new_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
+	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
 
 	_STARPU_MPI_LOG_OUT();
 	return req;
@@ -492,13 +492,13 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 	nm_sr_request_monitor(req->session, &(req->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
-static void _starpu_mpi_handle_new_request(void *arg)
+static void _starpu_mpi_submit_ready_request(void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
 	STARPU_ASSERT_MSG(req, "Invalid request");
 
-	/* submit the request to MPI */
+	/* submit the request to MPI directly from submitter */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 	req->func(req);
