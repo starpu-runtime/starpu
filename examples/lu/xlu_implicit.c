@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011,2014-2015,2017                 Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,9 +22,7 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-static unsigned no_prio = 0;
-
-static int create_task_11(starpu_data_handle_t dataA, unsigned k)
+static int create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -44,7 +42,7 @@ static int create_task_11(starpu_data_handle_t dataA, unsigned k)
 	return ret;
 }
 
-static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j)
+static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -64,7 +62,7 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j)
 	return ret;
 }
 
-static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i)
+static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -85,7 +83,7 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i)
 	return ret;
 }
 
-static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
+static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -111,7 +109,7 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
  *	code to bootstrap the factorization
  */
 
-static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
+static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, unsigned no_prio)
 {
 	double start;
 	double end;
@@ -130,14 +128,14 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 
 		starpu_iteration_push(k);
 
-		ret = create_task_11(dataA, k);
+		ret = create_task_11(dataA, k, no_prio);
 		if (ret == -ENODEV) return ret;
 
 		for (i = k+1; i<nblocks; i++)
 		{
-		     ret = create_task_12(dataA, k, i);
+			ret = create_task_12(dataA, k, i, no_prio);
 		     if (ret == -ENODEV) return ret;
-		     ret = create_task_21(dataA, k, i);
+		     ret = create_task_21(dataA, k, i, no_prio);
 		     if (ret == -ENODEV) return ret;
 		}
 		starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, k));
@@ -145,7 +143,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		for (i = k+1; i<nblocks; i++)
 		     for (j = k+1; j<nblocks; j++)
 		     {
-			  ret = create_task_22(dataA, k, i, j);
+			     ret = create_task_22(dataA, k, i, j, no_prio);
 			  if (ret == -ENODEV) return ret;
 		     }
 		for (i = k+1; i<nblocks; i++)
@@ -184,7 +182,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	return 0;
 }
 
-int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks)
+int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
 	starpu_data_handle_t dataA;
 
@@ -206,7 +204,7 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	int ret = dw_codelet_facto_v3(dataA, nblocks);
+	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
