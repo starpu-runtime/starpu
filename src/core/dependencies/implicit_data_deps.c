@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016                                Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,14 @@
 #else
 # define _STARPU_DEP_DEBUG(fmt, ...)
 #endif
+
+static void (*write_hook)(starpu_data_handle_t);
+
+void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t))
+{
+	STARPU_ASSERT_MSG(!write_hook || write_hook == func, "only one implicit data deps hook at a time\n");
+	write_hook = func;
+}
 
 static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
 {
@@ -212,7 +220,11 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 
 		if (mode & STARPU_W || mode == STARPU_REDUX)
+		{
 			handle->initialized = 1;
+			if (write_hook)
+				write_hook(handle);
+		}
 
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */
