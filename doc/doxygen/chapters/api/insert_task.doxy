@@ -193,18 +193,18 @@ Instead of calling starpu_codelet_pack_args(), one can also call
 starpu_codelet_pack_arg_init(), then starpu_codelet_pack_arg() for each
 data, then starpu_codelet_pack_arg_fini().
 
-\fn void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state)
+\fn void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state)
 \ingroup API_Insert_Task
 Initiaze struct starpu_codelet_pack_arg before calling starpu_codelet_pack_arg and
 starpu_codelet_pack_arg_fini. This will simply initialize the content of the structure.
 
-\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, void *ptr, size_t ptr_size)
+\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t ptr_size)
 Pack one argument into struct starpu_codelet_pack_arg state. That structure
 has to be initialized before with starpu_codelet_pack_arg_init, and after all
 starpu_codelet_pack_arg calls performed, starpu_codelet_pack_arg_fini has to be
 used to get the cl_arg and cl_arg_size to be put in the task.
 
-\fn void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg *state, void **cl_arg, size_t *cl_arg_size)
+\fn void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size)
 \ingroup API_Insert_Task
 Finish packing data, after calling starpu_codelet_pack_arg_init once and starpu_codelet_pack_arg several times.
 
