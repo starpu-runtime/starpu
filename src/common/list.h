@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2012,2015-2017                      CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -298,9 +298,15 @@ LIST_INLINE TYPE *ENAME##_of_multilist_##MEMBER(struct ENAME##_multilist_##MEMBE
 } \
 \
 /* Initialize a list head.  */ \
-LIST_INLINE void ENAME##_multilist_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE void ENAME##_multilist_head_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	head->next = head; \
 	head->prev = head; \
+} \
+\
+/* Initialize a list element.  */ \
+LIST_INLINE void ENAME##_multilist_init_##MEMBER(TYPE *e) { \
+	(e)->MEMBER.next = NULL; \
+	(e)->MEMBER.prev = NULL; \
 } \
 \
 /* Push element to head of a list.  */ \
@@ -359,7 +365,7 @@ LIST_INLINE TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
  /* Move a list from its head to another head.  */ \
 LIST_INLINE void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
 	if (ENAME##_multilist_empty_##MEMBER(head)) \
-		ENAME##_multilist_init_##MEMBER(newhead); \
+		ENAME##_multilist_head_init_##MEMBER(newhead); \
 	else { \
 		newhead->next = head->next; \
 		newhead->next->prev = newhead; \
