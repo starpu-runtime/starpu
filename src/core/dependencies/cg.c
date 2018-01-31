@@ -172,7 +172,7 @@ int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, u
 }
 
 /* Note: in case of a tag, it must be already locked */
-void _starpu_notify_cg(void *pred, struct _starpu_cg *cg)
+void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
