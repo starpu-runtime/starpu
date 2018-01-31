@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2014                                Inria
  * Copyright (C) 2010-2011,2013-2015,2017                 Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@ static unsigned check = 0;
 static int p = 1;
 static int q = 1;
 static unsigned display = 0;
+static unsigned no_prio = 0;
 static char *path = "./starpu-ooc-files";
 
 #ifdef STARPU_HAVE_LIBNUMA
@@ -329,7 +330,7 @@ int main(int argc, char **argv)
 		free(y);
 	}
 
-	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);
+	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size, no_prio);
 
 	/*
 	 * 	Report performance
