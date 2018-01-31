@@ -195,6 +195,7 @@ struct _starpu_mpi_node_tag
 	starpu_mpi_tag_t data_tag;
 };
 
+/* Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
 	int magic;
@@ -202,6 +203,8 @@ struct _starpu_mpi_data
 	int *cache_sent;
 	int cache_received;
 };
+
+struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
