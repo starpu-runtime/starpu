@@ -806,8 +806,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.rank, req->node_tag.data_tag);
 	}
 
-	if (req->data_handle)
-		starpu_data_release(req->data_handle);
+	_starpu_mpi_release_req_data(req);
 
 	if (req->envelope)
 	{

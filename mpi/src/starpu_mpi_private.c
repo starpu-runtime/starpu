@@ -27,6 +27,7 @@ int _starpu_mpi_thread_cpuid = -1;
 int _starpu_mpi_use_prio = 1;
 int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
+int _starpu_mpi_use_coop_sends = 1;
 
 void _starpu_mpi_set_debug_level_min(int level)
 {
@@ -63,4 +64,5 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
 	_starpu_mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
 	_starpu_mpi_use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
+	_starpu_mpi_use_coop_sends = starpu_get_env_number_default("STARPU_MPI_COOP_SENDS", 1);
 }
