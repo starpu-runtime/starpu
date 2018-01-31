@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2012,2014-2018                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -172,7 +172,7 @@ int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, u
 }
 
 /* Note: in case of a tag, it must be already locked */
-void _starpu_notify_cg(void *pred, struct _starpu_cg *cg)
+void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
