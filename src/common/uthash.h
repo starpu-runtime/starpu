@@ -161,7 +161,7 @@ do {                                                                            
 
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                            \
 do {                                                                             \
- unsigned _ha_bkt;                                                               \
+ unsigned _ha_bkt=0;							 	 \
  HASH_CHECK_KEY(hh,head,keyptr,keylen_in,add);                                   \
  (add)->hh.next = NULL;                                                          \
  (add)->hh.key = (char*)keyptr;                                                  \
