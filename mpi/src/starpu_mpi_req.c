@@ -17,7 +17,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <starpu_mpi_private.h>
+#if defined(STARPU_USE_MPI_NMAD)
+#include <pioman.h>
+#endif
 
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
