@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2016-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,18 +41,37 @@
 #include <mpi/starpu_mpi_tag.h>
 #endif
 
+static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency) {
+	/* Asynchronously request StarPU to fetch the data in main memory: when
+	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
+	 * the request is actually submitted */
+	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
+}
+
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
 							int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 							unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 							int sequential_consistency)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
+	if (_starpu_mpi_fake_world_size != -1)
+	{
+		/* Don't actually do the communication */
+		return NULL;
+	}
+
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(
+	                                      data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
+					      sequential_consistency, 0, 0);
+	_starpu_mpi_req_willpost(req);
+	_starpu_mpi_isend_irecv_common(req,
 #ifdef STARPU_MPI_PEDANTIC_ISEND
 					      STARPU_RW,
 #else
 					      STARPU_R,
 #endif
-					      sequential_consistency, 0, 0);
+					      sequential_consistency
+			);
+	return req;
 }
 
 int starpu_mpi_isend_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm)
@@ -147,7 +166,16 @@ int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, starp
 
 struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_size_func, STARPU_W, sequential_consistency, is_internal_req, count);
+	if (_starpu_mpi_fake_world_size != -1)
+	{
+		/* Don't actually do the communication */
+		return NULL;
+	}
+
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_size_func, sequential_consistency, is_internal_req, count);
+	_starpu_mpi_req_willpost(req);
+	_starpu_mpi_isend_irecv_common(req, STARPU_W, sequential_consistency);
+	return req;
 }
 
 int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm)
