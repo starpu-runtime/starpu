@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2012-2017                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -2841,10 +2841,10 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	_get_workers(min_ngpus, max_ngpus, workers, &nw, STARPU_CUDA_WORKER, allow_overlap);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 	int i;
-	printf("%d: ", nw);
+	_STARPU_DEBUG("%d: ", nw);
 	for(i = 0; i < nw; i++)
-		printf("%d ", workers[i]);
-	printf("\n");
+		_STARPU_DEBUG_NO_HEADER("%d ", workers[i]);
+	_STARPU_DEBUG_NO_HEADER("\n");
 	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL, NULL,0, NULL, 0);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
