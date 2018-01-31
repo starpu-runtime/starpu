@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010-2011,2013-2015,2017                 Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,7 +26,6 @@
 //#define DEBUG	1
 
 static unsigned no_prio = 0;
-
 static unsigned nblocks = 0;
 static int rank = -1;
 static int world_size = -1;
@@ -120,7 +119,7 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
  *	code to bootstrap the factorization 
  */
 
-double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
+double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsigned _no_prio)
 {
 	double start;
 	double end;
@@ -128,6 +127,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 	nblocks = _nblocks;
 	rank = _rank;
 	world_size = _world_size;
+	no_prio = _no_prio;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
