@@ -46,7 +46,7 @@ void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
 #ifdef STARPU_DEBUG
-	_starpu_job_multilist_init_all_submitted(&all_jobs_list);
+	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif
 }
 
