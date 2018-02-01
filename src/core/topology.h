@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2014,2017                                Inria
  * Copyright (C) 2009-2017                                Université de Bordeaux
- * Copyright (C) 2010-2011,2015,2017                      CNRS
+ * Copyright (C) 2010-2011,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,8 @@ struct _starpu_machine_config;
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 /* This is allocated for each hwloc object */
-struct _starpu_hwloc_userdata {
+struct _starpu_hwloc_userdata
+{
 	struct _starpu_worker_list *worker_list; /* List of workers running on this obj */
 	unsigned ngpus; /* Number of GPUs sharing this PCI link */
 };
