@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2014                                Inria
  * Copyright (C) 2008-2017                                Université de Bordeaux
- * Copyright (C) 2010-2011,2013-2015,2017                 CNRS
+ * Copyright (C) 2010-2011,2013-2015,2017,2018            CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,8 +68,8 @@ struct _starpu_data_descr
 MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
 #endif
 /* A job is the internal representation of a task. */
-struct _starpu_job {
-
+struct _starpu_job
+{
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
 
