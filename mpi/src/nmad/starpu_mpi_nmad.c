@@ -443,6 +443,27 @@ static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 	nm_sr_request_monitor(req->session, &(req->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
+void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
+{
+	/* TODO: turn them into redirects & forwards */
+}
+
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data)
+{
+	unsigned i, n = coop_sends->n;
+
+	/* Note: coop_sends might disappear very very soon after last request is submitted */
+	for (i = 0; i < n; i++)
+	{
+		if (coop_sends->reqs_array[i]->request_type == SEND_REQ && submit_data)
+		{
+			_STARPU_MPI_DEBUG(0, "cooperative sends %p sending to %d\n", coop_sends, coop_sends->reqs_array[i]->node_tag.rank);
+			_starpu_mpi_submit_ready_request(coop_sends->reqs_array[i]);
+		}
+		/* TODO: handle redirect requests */
+	}
+}
+
 void _starpu_mpi_submit_ready_request(void *arg)
 {
 	_STARPU_MPI_LOG_IN();
