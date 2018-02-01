@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2016-2017                      Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,8 @@
 #include <mpi/starpu_mpi_tag.h>
 #endif
 
-static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency) {
+static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
+{
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
 	 * the request is actually submitted */
@@ -260,7 +261,8 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 	data_handle->mpi_data = NULL;
 }
 
-struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle) {
+struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle)
+{
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	if (mpi_data)
 	{
