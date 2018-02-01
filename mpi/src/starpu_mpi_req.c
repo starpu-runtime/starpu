@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2013,2016-2017                      Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,7 @@
 #endif
 #if defined(STARPU_USE_MPI_NMAD)
 #include <pioman.h>
+#include <nm_mpi_nmad.h>
 #endif
 
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req)

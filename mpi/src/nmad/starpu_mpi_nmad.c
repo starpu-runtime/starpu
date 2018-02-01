@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2018                      CNRS
  * Copyright (C) 2009-2014,2017-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -633,7 +633,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         return 0;
 }
 
-void _starpu_mpi_progress_shutdown(void *value)
+void _starpu_mpi_progress_shutdown(void **value)
 {
 	/* kill the progression thread */
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
