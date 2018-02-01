@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2017                           Inria
  * Copyright (C) 2008-2017                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -366,7 +366,8 @@ static int determine_request_path(starpu_data_handle_t handle,
 		return 1;
 	}
 
-	if (src_node < 0) {
+	if (src_node < 0)
+	{
 		/* Will just initialize the destination */
 		STARPU_ASSERT(max_len >= 1);
 		src_nodes[0] = src_node; // ignored

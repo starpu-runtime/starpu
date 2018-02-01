@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
  * Copyright (C) 2009-2017                                Université de Bordeaux
  *
@@ -3745,7 +3745,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			struct _starpu_computation *comp = ongoing_computation[i];
-			if (comp) {
+			if (comp)
+			{
 				STARPU_ASSERT(!comp->peer);
 				_starpu_computation_list_erase(&computation_list, comp);
 			}
