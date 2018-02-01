@@ -206,6 +206,12 @@ struct _starpu_mpi_coop_sends
 	/* List of send requests */
 	struct _starpu_mpi_req_multilist_coop_sends reqs;
 	struct _starpu_mpi_data *mpi_data;
+
+	/* Array of send requests, after sorting out */
+	struct _starpu_spinlock lock;
+	struct _starpu_mpi_req **reqs_array;
+	unsigned n;
+	unsigned redirects_sent;
 };
 
 /* Initialized in starpu_mpi_data_register_comm */
@@ -322,8 +328,20 @@ void _starpu_mpi_submit_ready_request(void *arg);
 /* To be called when request is completed */
 void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
 
+/* Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
+void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends);
 /* Try to merge with send request with other send requests */
 void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
+
+/* Actually submit the coop_sends bag to MPI.
+ * At least one of submit_redirects or submit_data is true.
+ * _starpu_mpi_submit_coop_sends may be called either
+ * - just once with both parameters being true,
+ * - or once with submit_redirects being true (data is not available yet, but we
+ * can send the redirects), and a second time with submit_data being true. Or
+ * the converse, possibly on different threads, etc.
+ */
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data);
 
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
