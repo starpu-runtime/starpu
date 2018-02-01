@@ -82,7 +82,7 @@ static void _starpu_mpi_submit_coop_sends(void *arg)
 	_STARPU_MPI_DEBUG(0, "handling cooperative sends %p for %u neighbours\n", coop_sends, n);
 
 	/* Store them in an array */
-	struct _starpu_mpi_req *reqs[n];
+	struct _starpu_mpi_req *reqs[n] = { NULL };
 	unsigned i;
 	for (cur  = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs), i = 0;
 	     cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
