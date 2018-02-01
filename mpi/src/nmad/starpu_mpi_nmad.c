@@ -518,7 +518,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		int err=0;
 
 		if(running || pending_request>0)
-		{/* shall we block ? */
+		{
+			/* shall we block ? */
 			err = starpu_sem_wait(&callback_sem);
 			//running pending_request can change while waiting
 		}

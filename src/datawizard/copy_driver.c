@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
  * Copyright (C) 2008-2017                                Université de Bordeaux
- * Copyright (C) 2010-2011,2013,2015-2017                 CNRS
+ * Copyright (C) 2010-2011,2013,2015-2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		if (condition->cond == &condition->worker->sched_cond)
 		{
 			condition->worker->state_keep_awake = 1;
-		} 
+		}
 		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&condition->worker->sched_mutex);
 	}
@@ -603,7 +603,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				req->async_channel.event.disk_event.size = size;
 				req->async_channel.event.disk_event.handle = handle;
 			}
-			
+
 			STARPU_ASSERT(ret == 0 || ret == -EAGAIN);
 		}
 		break;

@@ -735,8 +735,10 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		}
 	}
 
-	if (state.nargs) {
-		if (task->cl_arg != NULL) {
+	if (state.nargs)
+	{
+		if (task->cl_arg != NULL)
+		{
 			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
 			free(state.arg_buffer);
 			return -EINVAL;
