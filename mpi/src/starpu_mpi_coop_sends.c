@@ -70,6 +70,10 @@ static int _starpu_mpi_reqs_prio_compare(const void *a, const void *b)
 /* Sort the requests by priority and build a diffusion tree. Actually does something only once per coop_sends bag. */
 static void _starpu_mpi_coop_sends_optimize(struct _starpu_mpi_coop_sends *coop_sends)
 {
+	if (coop_sends->n == 1)
+		/* Trivial case, don't optimize */
+		return;
+
 	_starpu_spin_lock(&coop_sends->lock);
 	if (!coop_sends->reqs_array)
 	{
@@ -115,11 +119,19 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 	/* Build diffusion tree */
 	_starpu_mpi_coop_sends_optimize(coop_sends);
 
-	/* And submit them */
-	if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
-		_starpu_mpi_submit_coop_sends(coop_sends, 1, 1);
+	if (coop_sends->n == 1)
+	{
+		/* Trivial case, just submit it */
+		_starpu_mpi_submit_ready_request(_starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs));
+	}
 	else
-		_starpu_mpi_submit_coop_sends(coop_sends, 0, 1);
+	{
+		/* And submit them */
+		if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
+			_starpu_mpi_submit_coop_sends(coop_sends, 1, 1);
+		else
+			_starpu_mpi_submit_coop_sends(coop_sends, 0, 1);
+	}
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -133,6 +145,10 @@ static void _starpu_mpi_coop_send_flush(struct _starpu_mpi_coop_sends *coop_send
 
 	/* Build diffusion tree */
 	_starpu_mpi_coop_sends_optimize(coop_sends);
+
+	if (coop_sends->n == 1)
+		/* Trivial case, we will just send the data */
+		return;
 
 	/* And submit them */
 	if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
