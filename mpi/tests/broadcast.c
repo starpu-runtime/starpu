@@ -18,11 +18,13 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-void wait_CPU(void *descr[], void *_args)
+void wait_CPU(void *descr[], void *args)
 {
-	(void)_args;
 	int *var = (int*) STARPU_VARIABLE_GET_PTR(descr[0]);
-	*var = 42;
+	int val;
+
+	starpu_codelet_unpack_args(args, &val);
+	*var = val;
 	starpu_sleep(1);
 }
 
@@ -57,9 +59,20 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_task_insert(&cl, STARPU_W, handle, 0);
+		int val, n;
 
-		int n;
+		val = 42;
+		starpu_task_insert(&cl, STARPU_W, handle, STARPU_VALUE, &val, sizeof(val), 0);
+
+		for(n = 1 ; n < size ; n++)
+		{
+			FPRINTF_MPI(stderr, "sending data to %d\n", n);
+			starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+		}
+
+		val = 43;
+		starpu_task_insert(&cl, STARPU_W, handle, STARPU_VALUE, &val, sizeof(val), 0);
+
 		for(n = 1 ; n < size ; n++)
 		{
 			FPRINTF_MPI(stderr, "sending data to %d\n", n);
@@ -69,11 +82,18 @@ int main(int argc, char **argv)
 	else
 	{
 		starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		starpu_data_acquire(handle, STARPU_R);
+		STARPU_ASSERT(var == 42);
+		starpu_data_release(handle);
+
+		starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		starpu_data_acquire(handle, STARPU_R);
+		STARPU_ASSERT(var == 43);
+		starpu_data_release(handle);
 		FPRINTF_MPI(stderr, "received data\n");
 	}
 
 	starpu_data_unregister(handle);
-	STARPU_ASSERT(var == 42);
 
 	starpu_mpi_shutdown();
 	starpu_shutdown();
