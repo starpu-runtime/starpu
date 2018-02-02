@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Guillaume Beauchamp
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2014,2017                                Inria
  * Copyright (C) 2011-2017                                Université de Bordeaux
  *
@@ -81,7 +81,7 @@ void _starpu_mpi_comm_shutdown()
 	}
 	free(_starpu_mpi_comms);
 
-	struct _starpu_mpi_comm_hashtable *entry, *tmp;
+	struct _starpu_mpi_comm_hashtable *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, _starpu_mpi_comms_cache, entry, tmp)
 	{
 		HASH_DEL(_starpu_mpi_comms_cache, entry);
