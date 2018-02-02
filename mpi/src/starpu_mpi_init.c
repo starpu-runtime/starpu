@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,6 +109,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 	argc_argv->comm = comm;
+	_starpu_implicit_data_deps_write_hook(_starpu_mpi_data_flush);
 
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
@@ -178,7 +179,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 
 int starpu_mpi_shutdown(void)
 {
-	uintptr_t value;
+	void *value;
 	int rank, world_size;
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010-2012,2014-2017                      Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2012,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -172,7 +172,7 @@ int _starpu_list_tag_successors_in_cg_list(struct _starpu_cg_list *successors, u
 }
 
 /* Note: in case of a tag, it must be already locked */
-void _starpu_notify_cg(void *pred, struct _starpu_cg *cg)
+void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
@@ -237,17 +237,20 @@ void _starpu_notify_cg(void *pred, struct _starpu_cg *cg)
 
 				job_successors = &j->job_successors;
 #ifdef STARPU_DEBUG
-				if (!j->task->regenerate) {
+				if (!j->task->regenerate)
+				{
 					unsigned i;
 					/* Remove backward cg pointers for easier debugging */
-					if (job_successors->deps) {
+					if (job_successors->deps)
+					{
 						for (i = 0; i < job_successors->ndeps; i++)
 							if (job_successors->deps[i] == cg)
 								break;
 						STARPU_ASSERT(i < job_successors->ndeps);
 						job_successors->done[i] = 1;
 					}
-					if (cg->deps) {
+					if (cg->deps)
+					{
 						for (i = 0; i < cg->ndeps; i++)
 							if (cg->deps[i] == pred)
 								break;

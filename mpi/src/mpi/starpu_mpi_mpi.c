@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2016-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  * Copyright (C) 2010-2017                                CNRS
  *
@@ -50,11 +50,7 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
-static int mpi_thread_cpuid = -1;
-static int use_prio = 1;
-
 static void _starpu_mpi_add_sync_point_in_fxt(void);
-static void _starpu_mpi_submit_ready_request(void *arg);
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #ifdef STARPU_MPI_VERBOSE
@@ -87,8 +83,6 @@ static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
 #endif
-int _starpu_mpi_fake_world_size = -1;
-int _starpu_mpi_fake_world_rank = -1;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
@@ -110,81 +104,6 @@ extern void smpi_process_set_user_data(void *);
 #endif
 #endif
 
-void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
-{
-	_STARPU_MPI_CALLOC(*req, 1, sizeof(struct _starpu_mpi_req));
-
-	/* Initialize the request structure */
-	(*req)->data_handle = NULL;
-	(*req)->prio = 0;
-
-	(*req)->datatype = 0;
-	(*req)->datatype_name = NULL;
-	(*req)->ptr = NULL;
-	(*req)->count = -1;
-	(*req)->registered_datatype = -1;
-
-	(*req)->node_tag.rank = -1;
-	(*req)->node_tag.data_tag = -1;
-	(*req)->node_tag.comm = 0;
-
-	(*req)->func = NULL;
-
-	(*req)->status = NULL;
-	(*req)->data_request = 0;
-	(*req)->flag = NULL;
-
-	(*req)->ret = -1;
-	STARPU_PTHREAD_MUTEX_INIT(&((*req)->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&((*req)->req_cond), NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&((*req)->posted_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&((*req)->posted_cond), NULL);
-
-	(*req)->request_type = UNKNOWN_REQ;
-
-	(*req)->submitted = 0;
-	(*req)->completed = 0;
-	(*req)->posted = 0;
-
-	(*req)->other_request = NULL;
-
-	(*req)->sync = 0;
-	(*req)->detached = -1;
-	(*req)->callback = NULL;
-	(*req)->callback_arg = NULL;
-
-	(*req)->size_req = 0;
-	(*req)->internal_req = NULL;
-	(*req)->is_internal_req = 0;
-	(*req)->to_destroy = 1;
-	(*req)->early_data_handle = NULL;
-	(*req)->envelope = NULL;
-	(*req)->sequential_consistency = 1;
-	(*req)->pre_sync_jobid = -1;
-	(*req)->post_sync_jobid = -1;
-
-#ifdef STARPU_SIMGRID
-	starpu_pthread_queue_init(&((*req)->queue));
-	starpu_pthread_queue_register(&wait, &((*req)->queue));
-	(*req)->done = 0;
-#endif
-}
-
-void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
-{
-	STARPU_PTHREAD_MUTEX_DESTROY(&req->req_mutex);
-	STARPU_PTHREAD_COND_DESTROY(&req->req_cond);
-	STARPU_PTHREAD_MUTEX_DESTROY(&req->posted_mutex);
-	STARPU_PTHREAD_COND_DESTROY(&req->posted_cond);
-	free(req->datatype_name);
-	req->datatype_name = NULL;
-#ifdef STARPU_SIMGRID
-	starpu_pthread_queue_unregister(&wait, &req->queue);
-	starpu_pthread_queue_destroy(&req->queue);
-#endif
-	free(req);
-}
-
  /********************************************************/
  /*                                                      */
  /*  Send/Receive functionalities                        */
@@ -205,7 +124,28 @@ void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
 	_starpu_mpi_submit_ready_request(req);
 }
 
-static void _starpu_mpi_submit_ready_request(void *arg)
+void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
+{
+	/* TODO: turn them into redirects & forwards */
+}
+
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data)
+{
+	unsigned i, n = coop_sends->n;
+
+	/* Note: coop_sends might disappear very very soon after last request is submitted */
+	for (i = 0; i < n; i++)
+	{
+		if (coop_sends->reqs_array[i]->request_type == SEND_REQ && submit_data)
+		{
+			_STARPU_MPI_DEBUG(0, "cooperative sends %p sending to %d\n", coop_sends, coop_sends->reqs_array[i]->node_tag.rank);
+			_starpu_mpi_submit_ready_request(coop_sends->reqs_array[i]);
+		}
+		/* TODO: handle redirect requests */
+	}
+}
+
+void _starpu_mpi_submit_ready_request(void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
@@ -346,58 +286,10 @@ static void nop_acquire_cb(void *arg)
 	starpu_data_release(arg);
 }
 
-struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
-						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
-						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
-						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-						       enum starpu_data_access_mode mode,
-						       int sequential_consistency,
-						       int is_internal_req,
-						       starpu_ssize_t count)
+void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_mpi_req *req;
-
-	if (_starpu_mpi_fake_world_size != -1)
-	{
-		/* Don't actually do the communication */
-		starpu_data_acquire_on_node_cb_sequential_consistency(data_handle, STARPU_MAIN_RAM, mode, nop_acquire_cb, data_handle, sequential_consistency);
-		return NULL;
-	}
-
-	_STARPU_MPI_LOG_IN();
 	_STARPU_MPI_INC_POSTED_REQUESTS(1);
-
-	_starpu_mpi_comm_register(comm);
-
-	/* Initialize the request structure */
-	_starpu_mpi_request_init(&req);
-	req->request_type = request_type;
-	/* prio_list is sorted by increasing values */
-	if (use_prio)
-		req->prio = prio;
-	req->data_handle = data_handle;
-	req->node_tag.rank = srcdst;
-	req->node_tag.data_tag = data_tag;
-	req->node_tag.comm = comm;
-	req->detached = detached;
-	req->sync = sync;
-	req->callback = callback;
-	req->callback_arg = arg;
-	req->func = func;
-	req->sequential_consistency = sequential_consistency;
-	req->is_internal_req = is_internal_req;
-	/* For internal requests, we wait for both the request completion and the matching application request completion */
-	req->to_destroy = !is_internal_req;
-	req->count = count;
-
-	/* Asynchronously request StarPU to fetch the data in main memory: when
-	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
-	 * the request is actually submitted */
-	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, &req->pre_sync_jobid, &req->post_sync_jobid);
-
-	_STARPU_MPI_LOG_OUT();
-	return req;
- }
+}
 
 #ifdef STARPU_SIMGRID
 int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
@@ -935,8 +827,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.rank, req->node_tag.data_tag);
 	}
 
-	if (req->data_handle)
-		starpu_data_release(req->data_handle);
+	_starpu_mpi_release_req_data(req);
 
 	if (req->envelope)
 	{
@@ -1224,16 +1115,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_setname("MPI");
 
 #ifndef STARPU_SIMGRID
-	if (mpi_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+	if (_starpu_mpi_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 	_starpu_mpi_do_initialize(argc_argv);
-	if (mpi_thread_cpuid >= 0)
+	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
-		_starpu_bind_thread_on_cpu(mpi_thread_cpuid, STARPU_NOWORKERID);
+		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
 #endif
 
-	_starpu_mpi_fake_world_size = starpu_get_env_number("STARPU_MPI_FAKE_SIZE");
-	_starpu_mpi_fake_world_rank = starpu_get_env_number("STARPU_MPI_FAKE_RANK");
+	_starpu_mpi_env_init();
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -1270,22 +1160,18 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_queue_register(&wait, &dontsleep);
 #endif
 
+#ifdef STARPU_USE_FXT
+	_starpu_fxt_wait_initialisation();
+	/* We need to record our ID in the trace before the main thread makes any MPI call */
+	_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
+	starpu_profiling_set_id(argc_argv->rank);
+#endif //STARPU_USE_FXT
+
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_wait_initialisation();
-#endif //STARPU_USE_FXT
-
-	{
-		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
-#ifdef STARPU_USE_FXT
-		starpu_profiling_set_id(argc_argv->rank);
-#endif //STARPU_USE_FXT
-	}
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
@@ -1582,11 +1468,8 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
         STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
         STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 
-        _starpu_mpi_comm_debug = starpu_getenv("STARPU_MPI_COMM") != NULL;
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
-	mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
-	use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
@@ -1619,7 +1502,7 @@ void _starpu_mpi_wait_for_initialization()
 }
 #endif
 
-void _starpu_mpi_progress_shutdown(uintptr_t value)
+void _starpu_mpi_progress_shutdown(void **value)
 {
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
         running = 0;
@@ -1635,7 +1518,7 @@ void _starpu_mpi_progress_shutdown(uintptr_t value)
 	(void) value;
 	MSG_process_sleep(1);
 #else
-	STARPU_PTHREAD_JOIN(progress_thread, (void *)value);
+	STARPU_PTHREAD_JOIN(progress_thread, value);
 #endif
 
         STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);

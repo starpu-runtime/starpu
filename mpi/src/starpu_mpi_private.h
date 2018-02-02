@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2016-2017                                Inria
  *
@@ -26,6 +26,7 @@
 #include <starpu_mpi_fxt.h>
 #include <common/list.h>
 #include <common/prio_list.h>
+#include <common/starpu_spinlock.h>
 #include <core/simgrid.h>
 #if defined(STARPU_USE_MPI_NMAD)
 #include <pioman.h>
@@ -66,6 +67,10 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
+extern int _starpu_mpi_use_prio;
+extern int _starpu_mpi_thread_cpuid;
+extern int _starpu_mpi_use_coop_sends;
+void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
 #  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); }} while(0)
@@ -194,13 +199,35 @@ struct _starpu_mpi_node_tag
 	starpu_mpi_tag_t data_tag;
 };
 
+MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
+/* One bag of cooperative sends */
+struct _starpu_mpi_coop_sends
+{
+	/* List of send requests */
+	struct _starpu_mpi_req_multilist_coop_sends reqs;
+	struct _starpu_mpi_data *mpi_data;
+
+	/* Array of send requests, after sorting out */
+	struct _starpu_spinlock lock;
+	struct _starpu_mpi_req **reqs_array;
+	unsigned n;
+	unsigned redirects_sent;
+};
+
+/* Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
 	int magic;
 	struct _starpu_mpi_node_tag node_tag;
 	int *cache_sent;
 	int cache_received;
+
+	/* Rendez-vous data for opportunistic cooperative sends */
+	struct _starpu_spinlock coop_lock; /* Needed to synchronize between submit thread and workers */
+	struct _starpu_mpi_coop_sends *coop_sends; /* Current cooperative send bag */
 };
+
+struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
@@ -232,6 +259,8 @@ LIST_TYPE(_starpu_mpi_req,
 #elif defined(STARPU_USE_MPI_MPI)
 	MPI_Request data_request;
 #endif
+	struct _starpu_mpi_req_multilist_coop_sends coop_sends;
+	struct _starpu_mpi_coop_sends *coop_sends_head;
 
 	int *flag;
 	unsigned sync;
@@ -290,17 +319,41 @@ LIST_TYPE(_starpu_mpi_req,
 );
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
-struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle_t data_handle,
+MULTILIST_CREATE_INLINES(struct _starpu_mpi_req, _starpu_mpi_req, coop_sends)
+
+/* To be called before actually queueing a request, so the communication layer knows it has something to look at */
+void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req);
+/* To be called to actually submit the request */
+void _starpu_mpi_submit_ready_request(void *arg);
+/* To be called when request is completed */
+void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
+
+/* Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
+void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends);
+/* Try to merge with send request with other send requests */
+void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
+
+/* Actually submit the coop_sends bag to MPI.
+ * At least one of submit_redirects or submit_data is true.
+ * _starpu_mpi_submit_coop_sends may be called either
+ * - just once with both parameters being true,
+ * - or once with submit_redirects being true (data is not available yet, but we
+ * can send the redirects), and a second time with submit_data being true. Or
+ * the converse, possibly on different threads, etc.
+ */
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data);
+
+void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
+void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
+struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_handle,
 						       int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
 						       unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-						       enum starpu_data_access_mode mode,
 						       int sequential_consistency,
 						       int is_internal_req,
 						       starpu_ssize_t count);
 
-void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
-void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
+
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
@@ -320,11 +373,12 @@ struct _starpu_mpi_argc_argv
 	int world_size;
 };
 
-void _starpu_mpi_progress_shutdown(uintptr_t value);
+void _starpu_mpi_progress_shutdown(void **value);
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
 #ifdef STARPU_SIMGRID
 void _starpu_mpi_wait_for_initialization();
 #endif
+void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 #ifdef __cplusplus
 }

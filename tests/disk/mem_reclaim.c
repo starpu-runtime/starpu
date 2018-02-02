@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2018                                CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2015-2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
@@ -64,11 +64,13 @@ int main(void)
 static int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
 /* We need a ram-to-ram copy for NUMA machine, use any_to_any for that */
-static int ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node) {
+static int ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
 	return any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
-const struct starpu_data_copy_methods my_vector_copy_data_methods_s = {
+const struct starpu_data_copy_methods my_vector_copy_data_methods_s =
+{
 	.ram_to_ram = ram_to_ram
 };
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;

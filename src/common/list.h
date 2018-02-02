@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2012,2015-2017                      CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -298,9 +298,15 @@ LIST_INLINE TYPE *ENAME##_of_multilist_##MEMBER(struct ENAME##_multilist_##MEMBE
 } \
 \
 /* Initialize a list head.  */ \
-LIST_INLINE void ENAME##_multilist_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+LIST_INLINE void ENAME##_multilist_head_init_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	head->next = head; \
 	head->prev = head; \
+} \
+\
+/* Initialize a list element.  */ \
+LIST_INLINE void ENAME##_multilist_init_##MEMBER(TYPE *e) { \
+	(e)->MEMBER.next = NULL; \
+	(e)->MEMBER.prev = NULL; \
 } \
 \
 /* Push element to head of a list.  */ \
@@ -343,6 +349,11 @@ LIST_INLINE int ENAME##_multilist_empty_##MEMBER(struct ENAME##_multilist_##MEMB
 	return head->next == head; \
 } \
 \
+/* Test whether the element is alone in a list.  */ \
+LIST_INLINE int ENAME##_multilist_alone_##MEMBER(TYPE *e) { \
+	return (e)->MEMBER.next == (e)->MEMBER.prev; \
+} \
+\
 /* Return the first element of the list.  */ \
 LIST_INLINE TYPE *ENAME##_multilist_begin_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
 	return ENAME##_of_multilist_##MEMBER(head->next); \
@@ -356,15 +367,23 @@ LIST_INLINE TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
 	return ENAME##_of_multilist_##MEMBER(e->MEMBER.next); \
 } \
 \
- /* Move a list from its head to another head.  */ \
+ /* Move a list from its head to another head. Passing newhead == NULL allows to detach the list from any head. */ \
 LIST_INLINE void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \
 	if (ENAME##_multilist_empty_##MEMBER(head)) \
-		ENAME##_multilist_init_##MEMBER(newhead); \
+		ENAME##_multilist_head_init_##MEMBER(newhead); \
 	else { \
-		newhead->next = head->next; \
-		newhead->next->prev = newhead; \
-		newhead->prev = head->prev; \
-		newhead->prev->next = newhead; \
+		if (newhead) { \
+			newhead->next = head->next; \
+			newhead->next->prev = newhead; \
+		} else { \
+			head->next->prev = head->prev; \
+		} \
+		if (newhead) { \
+			newhead->prev = head->prev; \
+			newhead->prev->next = newhead; \
+		} else { \
+			head->prev->next = head->next; \
+		} \
 		head->next = head; \
 		head->prev = head; \
 	} \

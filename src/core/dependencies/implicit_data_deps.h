@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2012,2014-2015,2017-2018            Université de Bordeaux
  * Copyright (C) 2010-2011,2013,2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,6 +30,9 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j);
 
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle);
 void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle);
+
+/* Register a hook to be called when a write is submitted */
+void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t));
 
 /* This function blocks until the handle is available in the requested mode */
 int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode, const char *sync_name);

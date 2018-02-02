@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2012-2013,2015-2018                      CNRS
  * Copyright (C) 2016-2017                                Inria
  * Copyright (C) 2012-2018                                Université de Bordeaux
  *
@@ -302,7 +302,8 @@ int main(int argc, char **argv)
 
         /* Already initialized?  It probably has been done through a
          * constructor and MSG_process_attach, directly jump to real main */
-	if (simgrid_started == 3) {
+	if (simgrid_started == 3)
+	{
 		return do_starpu_main(argc, argv);
 	}
 
@@ -455,7 +456,8 @@ void _starpu_simgrid_deinit(void)
 
 #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13)
 	/* clean-atexit introduced in simgrid 3.13 */
-	if ( xbt_cfg_get_boolean("clean-atexit")) {
+	if ( xbt_cfg_get_boolean("clean-atexit"))
+	{
 		_starpu_simgrid_deinit_late();
 	}
 #endif

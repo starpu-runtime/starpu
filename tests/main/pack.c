@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2018                                CNRS
  * Copyright (C) 2016                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ void func_cpu(void *descr[], void *_args)
 
 	starpu_codelet_unpack_args(_args, &factor, &c, &x);
 
-        FPRINTF(stderr, "values: %d %c %d\n", factor, c, x);
+        FPRINTF(stderr, "[codelet] values: %d %c %d\n", factor, c, x);
 	assert(factor == 12 && c == 'n' && x == 42);
 }
 
@@ -49,13 +49,13 @@ int main(void)
         int x=42;
 	int factor=12;
 	char c='n';
-	struct starpu_task *task;
+	struct starpu_task *task, *task2;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-        FPRINTF(stderr, "values: %d %c %d\n", factor, c, x);
+        FPRINTF(stderr, "[init] values: %d %c %d\n", factor, c, x);
 
 	task = starpu_task_create();
 	task->synchronous = 1;
@@ -67,6 +67,24 @@ int main(void)
 				 STARPU_VALUE, &x, sizeof(x),
 				 0);
 	ret = starpu_task_submit(task);
+	if (ret != -ENODEV)
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+	task2 = starpu_task_create();
+	task2->synchronous = 1;
+	task2->cl = &mycodelet;
+	task2->cl_arg_free = 1;
+
+	{
+		struct starpu_codelet_pack_arg_data state;
+		starpu_codelet_pack_arg_init(&state);
+		starpu_codelet_pack_arg(&state, &factor, sizeof(factor));
+		starpu_codelet_pack_arg(&state, &c, sizeof(c));
+		starpu_codelet_pack_arg(&state, &x, sizeof(x));
+		starpu_codelet_pack_arg_fini(&state, &task2->cl_arg, &task2->cl_arg_size);
+	}
+
+	ret = starpu_task_submit(task2);
 	if (ret != -ENODEV)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 

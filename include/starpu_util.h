@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2017                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -323,6 +323,7 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
 #endif
 
+/* Returns the previous value */
 #ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
 #define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
 #define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2014-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -865,6 +865,12 @@ retry_busy:
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
+	/* Unregister MPI things after having waiting for MPI reqs etc. to settle down */
+	if (handle->unregister_hook)
+	{
+		handle->unregister_hook(handle);
+	}
+
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
 	if (handle->busy_count)
@@ -932,21 +938,12 @@ void starpu_data_unregister(starpu_data_handle_t handle)
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 
-	if (handle->unregister_hook)
-	{
-		handle->unregister_hook(handle);
-	}
-
 	_starpu_data_unregister(handle, 1, 0);
 }
 
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
-	if (handle->unregister_hook)
-	{
-		handle->unregister_hook(handle);
-	}
 
 	_starpu_data_unregister(handle, 0, 0);
 }
@@ -970,11 +967,6 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
-
-	if (handle->unregister_hook)
-	{
-		handle->unregister_hook(handle);
-	}
 
 	/* Wait for all task dependencies on this handle before putting it for free */
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
