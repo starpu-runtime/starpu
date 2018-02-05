@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2012,2015                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -107,6 +107,8 @@ static struct starpu_perfmodel STARPU_LU(model_22) =
 	.symbol = STARPU_LU_STR(lu_model_22_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_22_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_22_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_22)
 #endif
@@ -226,6 +228,8 @@ static struct starpu_perfmodel STARPU_LU(model_12) =
 	.symbol = STARPU_LU_STR(lu_model_12_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_12_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_12_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_12)
 #endif
@@ -313,6 +317,8 @@ static struct starpu_perfmodel STARPU_LU(model_21) =
 	.symbol = STARPU_LU_STR(lu_model_21_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_21_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_21_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_21)
 #endif
@@ -431,6 +437,8 @@ static struct starpu_perfmodel STARPU_LU(model_11) =
 	.symbol = STARPU_LU_STR(lu_model_11_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_11_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_11_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_11)
 #endif
@@ -600,6 +608,8 @@ static struct starpu_perfmodel STARPU_LU(model_11_pivot) =
 	.symbol = STARPU_LU_STR(lu_model_11_pivot_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_11_pivot_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_11_pivot_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_11_pivot)
 #endif
@@ -701,6 +711,8 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) =
 	.symbol = STARPU_LU_STR(lu_model_pivot_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_pivot_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_LU_STR(lu_model_pivot_openblas)
 #else
 	.symbol = STARPU_LU_STR(lu_model_pivot)
 #endif
