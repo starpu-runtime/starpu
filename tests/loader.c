@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2017                           Inria
- * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2010,2014-2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -306,11 +306,14 @@ int main(int argc, char *argv[])
 				launcher_argv[0] = libtool;
 				launcher_argv[1] = "--mode=execute";
 				launcher_argv[2] = launcher;
-				launcher_argv[i] = strtok(launcher_args, " ");
-				while (launcher_argv[i])
+				if (launcher_args)
 				{
-					i++;
-					launcher_argv[i] = strtok(NULL, " ");
+					launcher_argv[i] = strtok(launcher_args, " ");
+					while (launcher_argv[i])
+					{
+						i++;
+						launcher_argv[i] = strtok(NULL, " ");
+					}
 				}
 				launcher_argv[i] = test_name;
 				launcher_argv[i+1] = test_args;
