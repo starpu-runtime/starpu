@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2010,2012,2015,2017                      CNRS
- * Copyright (C) 2009-2010,2014                           Université de Bordeaux
+ * Copyright (C) 2009-2010,2014, 2018                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@
 #error not implemented
 #elif defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS)
 #error not implemented
-#elif defined(STARPU_MKL)
+#elif defined(STARPU_OPENBLAS) || defined(STARPU_MKL)
 
 inline void CGEMM(char *transa, char *transb, int M, int N, int K, 
 			complex float alpha, complex float *A, int lda, complex float *B, int ldb, 

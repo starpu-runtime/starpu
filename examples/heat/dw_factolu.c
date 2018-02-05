@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2008-2015,2017-2018                      Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -766,6 +766,11 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	char * symbol_12 = "lu_model_12_goto";
 	char * symbol_21 = "lu_model_21_goto";
 	char * symbol_22 = "lu_model_22_goto";
+#elif defined(STARPU_OPENBLAS)
+	char * symbol_11 = "lu_model_11_openblas";
+	char * symbol_12 = "lu_model_12_openblas";
+	char * symbol_21 = "lu_model_21_openblas";
+	char * symbol_22 = "lu_model_22_openblas";
 #else
 	char * symbol_11 = "lu_model_11";
 	char * symbol_12 = "lu_model_12";
