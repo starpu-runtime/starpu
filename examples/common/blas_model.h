@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2008-2012,2014, 2018                     Université de Bordeaux
  * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@ static struct starpu_perfmodel starpu_sgemm_model =
 	.symbol = "sgemm_atlas"
 #elif defined(STARPU_GOTO)
 	.symbol = "sgemm_goto"
+#elif defined(STARPU_OPENBLAS)
+	.symbol = "sgemm_openblas"
 #else
 	.symbol = "sgemm"
 #endif
@@ -47,6 +49,8 @@ static struct starpu_perfmodel starpu_dgemm_model =
 	.symbol = "dgemm_atlas"
 #elif defined(STARPU_GOTO)
 	.symbol = "dgemm_goto"
+#elif defined(STARPU_OPENBLAS)
+	.symbol = "dgemm_openblas"
 #else
 	.symbol = "dgemm"
 #endif
