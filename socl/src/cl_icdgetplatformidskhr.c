@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2012                                Université de Bordeaux
+ * Copyright (C) 2010-2012, 2018                                Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,9 +21,10 @@
 
 extern int _starpu_init_failed;
 
+CL_EXT_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL soclIcdGetPlatformIDsKHR(cl_uint num_entries,
 							 cl_platform_id *platforms,
-							 cl_uint *num_platforms) CL_EXT_SUFFIX__VERSION_1_0
+							 cl_uint *num_platforms)
 {
 	if ((num_entries == 0 && platforms != NULL)
 	    || (num_platforms == NULL && platforms == NULL))

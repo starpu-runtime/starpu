@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2012,2016                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2016, 2018                           Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,12 +25,13 @@
  *
  * \param[in] platform Must be StarPU platform ID or NULL
  */
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetDeviceIDs(cl_platform_id   platform,
 		 cl_device_type   device_type,
 		 cl_uint          num_entries,
 		 cl_device_id *   devices,
-		 cl_uint *        num_devices) CL_API_SUFFIX__VERSION_1_0
+		 cl_uint *        num_devices)
 {
 	if (socl_init_starpu() < 0)
 	{

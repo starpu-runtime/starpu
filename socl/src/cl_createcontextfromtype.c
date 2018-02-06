@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2012,2016                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2016, 2018                           Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,12 +20,13 @@
 #include "socl.h"
 #include "init.h"
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContextFromType(const cl_context_properties * properties,
 			  cl_device_type                device_type,
 			  void (*pfn_notify)(const char *, const void *, size_t, void *),
 			  void *                        user_data,
-			  cl_int *                      errcode_ret) CL_API_SUFFIX__VERSION_1_0
+			  cl_int *                      errcode_ret)
 {
 	if (socl_init_starpu() < 0)
 		return NULL;

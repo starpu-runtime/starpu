@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2010,2013                                Université de Bordeaux
+ * Copyright (C) 2010,2013, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +17,12 @@
 
 #include "socl.h"
 
+CL_API_SUFFIX__VERSION_1_2
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueBarrierWithWaitList(cl_command_queue  cq,
 			       cl_uint num_events,
 			       const cl_event * events,
-			       cl_event *          event) CL_API_SUFFIX__VERSION_1_2
+			       cl_event *          event)
 {
 	command_barrier cmd = command_barrier_create();
 
