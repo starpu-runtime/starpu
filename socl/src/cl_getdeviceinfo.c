@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2011                                Université de Bordeaux
+ * Copyright (C) 2010-2011, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,12 +19,13 @@
 #include "socl.h"
 #include "getinfo.h"
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetDeviceInfo(cl_device_id    device,
 		  cl_device_info  param_name,
 		  size_t          param_value_size,
 		  void *          param_value,
-		  size_t *        param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+		  size_t *        param_value_size_ret)
 {
 	//FIXME: we do not check if the device is valid
 	/* if (device != &socl_virtual_device && device is not a valid StarPU worker identifier)

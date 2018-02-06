@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2011,2013                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2013, 2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,12 +49,13 @@ static void release_callback_memobject(void * e)
  * should avoid it.
  *
  */
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_mem CL_API_CALL
 soclCreateBuffer(cl_context   context,
 		 cl_mem_flags flags,
 		 size_t       size,
 		 void *       host_ptr,
-		 cl_int *     errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		 cl_int *     errcode_ret)
 {
 	cl_mem mem;
 
