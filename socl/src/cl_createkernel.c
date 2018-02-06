@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2014-2017                           CNRS
- * Copyright (C) 2010-2011,2013                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2013, 2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,10 +106,11 @@ static void release_callback_kernel(void * e) {
   free(kernel->errcodes);
 }
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_kernel CL_API_CALL
 soclCreateKernel(cl_program    program,
-               const char *    kernel_name,
-               cl_int *        errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		 const char *    kernel_name,
+		 cl_int *        errcode_ret)
 {
    cl_kernel k;
 
