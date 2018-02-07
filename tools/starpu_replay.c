@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Erwan Leria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2018                               CNRS
  * Copyright (C) 2016-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -709,7 +709,6 @@ int main(int argc, char **argv)
 		{
 			char * buffer = s + 7;
 			int mode_i = 0;
-			int i = 0;
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
@@ -720,7 +719,6 @@ int main(int argc, char **argv)
 				{
 					*(modes_ptr+mode_i) = STARPU_RW;
 					mode_i++;
-					i++;
 				}
 				else if (!strncmp(token, "R", 1))
 				{
