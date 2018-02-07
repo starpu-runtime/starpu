@@ -2432,7 +2432,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	int master, temp_master = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
-	int workers_count = 0;
 
 	/* temporarily put a master if needed */
 	if (sched_ctx->main_master == -1)
@@ -2442,7 +2441,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	}
 	master = sched_ctx->main_master;
 
-	workers_count = 0;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
@@ -2456,7 +2454,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 			_starpu_worker_request_blocking_in_parallel(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
-		workers_count++;
 	}
 
 	if (temp_master)

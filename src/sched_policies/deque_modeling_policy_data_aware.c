@@ -4,7 +4,7 @@
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2009-2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -486,7 +486,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int best = -1;
-	unsigned worker_ctx = 0;
 
 	double best_exp_end = 0.0;
 	double model_best = 0.0;
@@ -527,7 +526,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			if (!(impl_mask & (1U << nimpl)))
 			{
 				/* no one on that queue may execute this task */
-				//			worker_ctx++;
 				continue;
 			}
 
@@ -607,7 +605,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 				best_impl = nimpl;
 			}
 		}
-		worker_ctx++;
 	}
 
 	if (unknown)
