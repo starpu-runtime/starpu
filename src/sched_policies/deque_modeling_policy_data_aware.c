@@ -4,7 +4,7 @@
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2009-2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -438,7 +438,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			if (!(impl_mask & (1U << nimpl)))
 			{
 				/* no one on that queue may execute this task */
-				//			worker_ctx++;
 				continue;
 			}
 
@@ -518,7 +517,6 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 				best_impl = nimpl;
 			}
 		}
-		worker_ctx++;
 	}
 
 	if (unknown)
