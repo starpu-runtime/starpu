@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -117,8 +117,8 @@ static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 	while (obj->memory_first_child == NULL)
 	{
 		obj = obj->parent;
-		/* There should always be memory objects with hwloc 2 */
-		STARPU_ASSERT(obj);
+		if (!obj)
+			return NULL;
 	}
 	return obj->memory_first_child;
 #else
