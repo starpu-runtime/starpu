@@ -448,7 +448,7 @@ void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends
 	/* TODO: turn them into redirects & forwards */
 }
 
-void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data)
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
 {
 	unsigned i, n = coop_sends->n;
 
