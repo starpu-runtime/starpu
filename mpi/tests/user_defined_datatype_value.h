@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015,2017                           CNRS
+ * Copyright (C) 2013-2015,2017,2018                      CNRS
  * Copyright (C) 2014                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -129,7 +129,6 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 {
 	struct starpu_value_interface *src_value = src_interface;
 	struct starpu_value_interface *dst_value = dst_interface;
-	int ret = 0;
 
 	return starpu_interface_copy((uintptr_t) src_value->value, 0, src_node,
 				     (uintptr_t) dst_value->value, 0, dst_node,

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015,2017                           Inria
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2010,2012-2017                           Université de Bordeaux
+ * Copyright (C) 2010,2012-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -355,7 +355,7 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
-	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? -ETIMEDOUT : 0;
+	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? ETIMEDOUT : 0;
 
 	_STARPU_TRACE_COND_WAIT_END();
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012,2016-2017                      Inria
  * Copyright (C) 2008-2017                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -640,7 +640,8 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 {
 	unsigned i;
 
-	if (children[0]->active) {
+	if (children[0]->active)
+	{
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
 #endif
@@ -699,7 +700,8 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 0 || initial_handle->readonly, "One can't submit a readonly partition planning at the same time as a readwrite partition planning");
 	initial_handle->partitioned++;
 	initial_handle->readonly = 1;
-	if (initial_handle->nactive_readonly_children < initial_handle->partitioned) {
+	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
+	{
 		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
 		initial_handle->nactive_readonly_children = initial_handle->partitioned;
 	}
@@ -758,16 +760,21 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
-	if (initial_handle->readonly) {
+	if (initial_handle->readonly)
+	{
 		/* Replace this children set with the last set in the list of readonly children sets */
-		for (i = 0; i < initial_handle->partitioned-1; i++) {
-			if (initial_handle->active_readonly_children[i] == children[0]->siblings) {
+		for (i = 0; i < initial_handle->partitioned-1; i++)
+		{
+			if (initial_handle->active_readonly_children[i] == children[0]->siblings)
+			{
 				initial_handle->active_readonly_children[i] = initial_handle->active_readonly_children[initial_handle->partitioned-1];
 				initial_handle->active_readonly_children[initial_handle->partitioned-1] = NULL;
 				break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		initial_handle->active_children = NULL;
 	}
 	initial_handle->partitioned--;
@@ -839,12 +846,14 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gatheri
 	{
 		unsigned n = ancestor->partitioned;
 		/* Uh, has to go through all read-only partitions */
-		for (i = 0; i < n; i++) {
+		for (i = 0; i < n; i++)
+		{
 			/* Note: active_readonly_children is emptied by starpu_data_unpartition_submit calls */
 			starpu_data_handle_t *children = ancestor->active_readonly_children[0];
 			_STARPU_DEBUG("unpartition readonly children %p etc.\n", children[0]);
 			nsiblings = children[0]->nsiblings;
-			for (j = 0; j < nsiblings; j++) {
+			for (j = 0; j < nsiblings; j++)
+			{
 				/* Make sure our children are unpartitioned */
 				starpu_data_unpartition_submit_r(children[j], gathering_node);
 			}

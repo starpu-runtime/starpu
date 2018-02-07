@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010-2015                                Université de Bordeaux
+ * Copyright (C) 2010-2015, 2018                          Université de Bordeaux
  * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,6 +106,8 @@ static struct starpu_perfmodel STARPU_PLU(model_22) =
 	.symbol = STARPU_PLU_STR(lu_model_22_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_22_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_PLU_STR(lu_model_22_openblas)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_22)
 #endif
@@ -218,6 +220,8 @@ static struct starpu_perfmodel STARPU_PLU(model_12) =
 	.symbol = STARPU_PLU_STR(lu_model_12_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_12_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_PLU_STR(lu_model_12_openblas)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_12)
 #endif
@@ -331,6 +335,8 @@ static struct starpu_perfmodel STARPU_PLU(model_21) =
 	.symbol = STARPU_PLU_STR(lu_model_21_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_21_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_PLU_STR(lu_model_21_openblas)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_21)
 #endif
@@ -441,6 +447,8 @@ static struct starpu_perfmodel STARPU_PLU(model_11) =
 	.symbol = STARPU_PLU_STR(lu_model_11_atlas)
 #elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_11_goto)
+#elif defined(STARPU_OPENBLAS)
+	.symbol = STARPU_PLU_STR(lu_model_11_openblas)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_11)
 #endif

@@ -1,6 +1,6 @@
 // StarPU --- Runtime system for heterogeneous multicore architectures.
 //
-// Copyright (C) 2017                                     CNRS
+// Copyright (C) 2017, 2018                               CNRS
 // Copyright (C) 2017                                     Inria
 // Copyright (C) 2017                                     Université de Bordeaux
 //
@@ -34,7 +34,7 @@ constStatement:examples/stencil/*
 unreadVariable:tests/openmp/*
 unusedLabel:tests/datawizard/gpu_register.c
 unusedLabel:tests/datawizard/gpu_ptr_register.c
-redundantAssignment:tests/datawizard/interfaces/test_interfaces.c:752
+redundantAssignment:tests/datawizard/interfaces/test_interfaces.c:753
 redundantAssignment:tests/datawizard/mpi_like_async.c:165
 redundantAssignment:tests/datawizard/mpi_like_async.c:211
 unusedPrivateFunction:tests/main/combined_workers/bfs/timer.h:45
@@ -57,7 +57,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:1004
+wrongPrintfScanfArgNum:src/core/simgrid.c:1008
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 nullPointerRedundantCheck:src/common/rbtree.c

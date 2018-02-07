@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2014                                Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2010-2015, 2018                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -77,16 +77,17 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
 
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
-struct starpu_codelet_pack_arg {
+struct starpu_codelet_pack_arg_data
+{
 	char *arg_buffer;
 	size_t arg_buffer_size;
 	size_t current_offset;
 	int nargs;
 };
 
-void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state);
-void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, const void *ptr, size_t ptr_size);
-void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg *state, void **cl_arg, size_t *cl_arg_size);
+void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state);
+void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const void *ptr, size_t ptr_size);
+void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size);
 
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...);

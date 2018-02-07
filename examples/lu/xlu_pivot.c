@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015,2017                           Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2011,2013                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,8 +21,6 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-static unsigned no_prio = 0;
-
 /*
  *	Construct the DAG
  */
@@ -39,9 +37,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 }
 
 static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
-					struct piv_s *piv_description,
-					unsigned k, unsigned i,
-					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
+			     struct piv_s *piv_description,
+			     unsigned k, unsigned i,
+			     starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -92,8 +90,8 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 }
 
 static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
-					unsigned k, struct piv_s *piv_description,
-					starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
+						unsigned k, struct piv_s *piv_description,
+						starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	struct starpu_task *task = create_task(TAG11(k));
 
@@ -118,7 +116,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, un
 }
 
 static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
+			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -158,7 +156,7 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 }
 
 static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
+			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -186,7 +184,7 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 }
 
 static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned))
+			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -231,7 +229,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 				  struct piv_s *piv_description,
 				  unsigned nblocks,
 				  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned),
-				  double *timing)
+				  double *timing, unsigned no_prio)
 {
 	int ret;
 
@@ -249,7 +247,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);
-		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
+		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block, no_prio);
 
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -267,16 +265,16 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		{
 			if (i != k)
 			{
-				ret = create_task_pivot(dataAp, nblocks, piv_description, k, i, get_block);
+				ret = create_task_pivot(dataAp, nblocks, piv_description, k, i, get_block, no_prio);
 				if (ret == -ENODEV) return ret;
 			}
 		}
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_12(dataAp, nblocks, k, i, get_block);
+			ret = create_task_12(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
-			ret = create_task_21(dataAp, nblocks, k, i, get_block);
+			ret = create_task_21(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
 		}
 
@@ -284,7 +282,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-			     ret = create_task_22(dataAp, nblocks, k, i, j, get_block);
+			     ret = create_task_22(dataAp, nblocks, k, i, j, get_block, no_prio);
 			     if (ret == -ENODEV) return ret;
 			}
 		}
@@ -332,7 +330,7 @@ starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp, unsig
 }
 
 
-int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
+int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
 	starpu_data_handle_t dataA;
 
@@ -380,7 +378,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 #endif
 
 	double timing=0.0;
-	int ret = dw_codelet_facto_pivot(&dataA, piv_description, nblocks, get_block_with_striding, &timing);
+	int ret = dw_codelet_facto_pivot(&dataA, piv_description, nblocks, get_block_with_striding, &timing, no_prio);
 
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
@@ -413,7 +411,7 @@ starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, un
 	return dataAp[i+j*nblocks];
 }
 
-int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks)
+int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
 	(void)ld;
 	if (starpu_mic_worker_get_count() || starpu_scc_worker_get_count() || starpu_mpi_ms_worker_get_count())
@@ -450,7 +448,7 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	}
 
 	double timing=0.0;
-	int ret = dw_codelet_facto_pivot(dataAp, piv_description, nblocks, get_block_with_no_striding, &timing);
+	int ret = dw_codelet_facto_pivot(dataAp, piv_description, nblocks, get_block_with_no_striding, &timing, no_prio);
 
 	unsigned n = starpu_matrix_get_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;

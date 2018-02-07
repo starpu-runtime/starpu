@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2012                                Université de Bordeaux
+ * Copyright (C) 2010-2012, 2018                                Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,12 +25,13 @@
  *
  * \param[in] platform StarPU platform ID or NULL
  */
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetPlatformInfo(cl_platform_id   platform,
 		    cl_platform_info param_name,
 		    size_t           param_value_size,
 		    void *           param_value,
-		    size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+		    size_t *         param_value_size_ret)
 {
 	if (platform != NULL && platform != &socl_platform)
 		return CL_INVALID_PLATFORM;

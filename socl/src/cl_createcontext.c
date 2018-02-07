@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2012-2013,2017                           CNRS
- * Copyright (C) 2010-2013                                Université de Bordeaux
+ * Copyright (C) 2010-2013, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,13 +35,14 @@ static void release_callback_context(void * e)
 static char * defaultScheduler = "dmda";
 static char * defaultName = "default";
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContext(const cl_context_properties * properties,
 		  cl_uint                       num_devices,
 		  const cl_device_id *          devices,
 		  void (*pfn_notify)(const char *, const void *, size_t, void *),
 		  void *                        user_data,
-		  cl_int *                      errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		  cl_int *                      errcode_ret)
 {
 	if (pfn_notify == NULL && user_data != NULL)
 	{

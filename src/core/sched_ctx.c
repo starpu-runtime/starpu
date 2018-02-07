@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2012-2017                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -2444,7 +2444,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	int master, temp_master = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
-	int workers_count = 0;
 
 	/* temporarily put a master if needed */
 	if (sched_ctx->main_master == -1)
@@ -2454,7 +2453,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	}
 	master = sched_ctx->main_master;
 
-	workers_count = 0;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
@@ -2468,7 +2466,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 			_starpu_worker_request_blocking_in_parallel(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
-		workers_count++;
 	}
 
 	if (temp_master)
@@ -2853,10 +2850,10 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	_get_workers(min_ngpus, max_ngpus, workers, &nw, STARPU_CUDA_WORKER, allow_overlap);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx_manag);
 	int i;
-	printf("%d: ", nw);
+	_STARPU_DEBUG("%d: ", nw);
 	for(i = 0; i < nw; i++)
-		printf("%d ", workers[i]);
-	printf("\n");
+		_STARPU_DEBUG_NO_HEADER("%d ", workers[i]);
+	_STARPU_DEBUG_NO_HEADER("\n");
 	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1, NULL, NULL,0, NULL, 0);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;

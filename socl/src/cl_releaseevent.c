@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2011                                Université de Bordeaux
+ * Copyright (C) 2010-2011, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,9 @@
 
 #include "socl.h"
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
-soclReleaseEvent(cl_event event) CL_API_SUFFIX__VERSION_1_0
+soclReleaseEvent(cl_event event)
 {
 	if (event == NULL)
 		return CL_INVALID_EVENT;

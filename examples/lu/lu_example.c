@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2009-2017                                Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,6 +34,7 @@ static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
 static unsigned profile = 0;
+static unsigned no_prio=0;
 unsigned bound = 0;
 unsigned bounddeps = 0;
 unsigned boundprio = 0;
@@ -367,7 +368,7 @@ int main(int argc, char **argv)
 			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE *));
 			copy_matrix_into_blocks();
 
-			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks);
+			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks, no_prio);
 
 			copy_blocks_into_matrix();
 			free(A_blocks);
@@ -379,7 +380,7 @@ int main(int argc, char **argv)
 
 			start = starpu_timing_now();
 
-			ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks);
+			ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks, no_prio);
 
 			end = starpu_timing_now();
 
@@ -394,7 +395,7 @@ int main(int argc, char **argv)
 	else
 #endif
 	{
-		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks);
+		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks, no_prio);
 	}
 
 	if (profile)

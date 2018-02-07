@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2016-2017                           CNRS
- * Copyright (C) 2010-2011,2013-2014                      Université de Bordeaux
+ * Copyright (C) 2010-2011,2013-2014, 2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -102,6 +102,7 @@ cl_int command_read_buffer_submit(command_read_buffer cmd)
 	return CL_SUCCESS;
 }
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueReadBuffer(cl_command_queue  cq,
 		      cl_mem              buffer,
@@ -111,7 +112,7 @@ soclEnqueueReadBuffer(cl_command_queue  cq,
 		      void *              ptr,
 		      cl_uint             num_events,
 		      const cl_event *    events,
-		      cl_event *          event) CL_API_SUFFIX__VERSION_1_0
+		      cl_event *          event)
 {
 	command_read_buffer cmd = command_read_buffer_create(buffer, offset, cb, ptr);
 

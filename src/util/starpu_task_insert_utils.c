@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
  * Copyright (C) 2011-2018                                Université de Bordeaux
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 #include <common/utils.h>
 #include <core/task.h>
 
-void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state)
+void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state)
 {
 	state->arg_buffer = NULL;
 	state->arg_buffer_size = 0;
@@ -29,7 +29,7 @@ void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg *state)
 	state->nargs = 0;
 }
 
-void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, const void *ptr, size_t ptr_size)
+void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const void *ptr, size_t ptr_size)
 {
 	STARPU_ASSERT_MSG(state->current_offset >= sizeof(int), "struct starpu_codelet_pack_arg has to be initialized with starpu_codelet_pack_arg_init");
 	if (state->current_offset + sizeof(ptr_size) + ptr_size > state->arg_buffer_size)
@@ -49,7 +49,7 @@ void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg *state, const void *
 	state->nargs++;
 }
 
-void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg *state, void **cl_arg, size_t *cl_arg_size)
+void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size)
 {
 	if (state->nargs)
 	{
@@ -69,7 +69,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 {
 	int arg_type;
 
-	struct starpu_codelet_pack_arg state;
+	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_pack_arg_init(&state);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
@@ -328,7 +328,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 	task->cl = cl;
 	current_buffer = 0;
 
-	struct starpu_codelet_pack_arg state;
+	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_pack_arg_init(&state);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
@@ -500,8 +500,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		}
 	}
 
-	if (state.nargs) {
-		if (task->cl_arg != NULL) {
+	if (state.nargs)
+	{
+		if (task->cl_arg != NULL)
+		{
 			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
 			free(state.arg_buffer);
 			return -EINVAL;
@@ -528,7 +530,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 
 	_STARPU_TRACE_TASK_BUILD_START();
 
-	struct starpu_codelet_pack_arg state;
+	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_pack_arg_init(&state);
 
 	task->cl = cl;
@@ -733,8 +735,10 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		}
 	}
 
-	if (state.nargs) {
-		if (task->cl_arg != NULL) {
+	if (state.nargs)
+	{
+		if (task->cl_arg != NULL)
+		{
 			_STARPU_DISP("Parameters STARPU_CL_ARGS and STARPU_VALUE cannot be used in the same call\n");
 			free(state.arg_buffer);
 			return -EINVAL;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2009-2011,2014                           Université de Bordeaux
+ * Copyright (C) 2009-2011,2014, 2018                     Université de Bordeaux
  * Copyright (C) 2010,2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -88,7 +88,7 @@ void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda);
 void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda);
 #endif
 
-#if defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
+#if defined(STARPU_GOTO) || defined(STARPU_OPENBLAS) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
                    const int *n, const int *k, const float *alpha, 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2012,2014,2017                           CNRS
- * Copyright (C) 2010-2011,2013                           Université de Bordeaux
+ * Copyright (C) 2010-2011,2013, 2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,11 +37,12 @@ static void release_callback_command_queue(void * e)
 	STARPU_PTHREAD_MUTEX_DESTROY(&cq->mutex);
 }
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_command_queue CL_API_CALL
 soclCreateCommandQueue(cl_context                   context,
 		       cl_device_id                   device,
 		       cl_command_queue_properties    properties,
-		       cl_int *                       errcode_ret) CL_API_SUFFIX__VERSION_1_0
+		       cl_int *                       errcode_ret)
 {
 	cl_command_queue cq;
 

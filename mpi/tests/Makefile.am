@@ -194,6 +194,7 @@ noinst_PROGRAMS =				\
 	block_interface				\
 	block_interface_pinned			\
 	attr					\
+	broadcast				\
 	cache					\
 	cache_disable				\
 	callback				\
