@@ -542,6 +542,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	unsigned id = _starpu_get_first_free_sched_ctx(config);
 
 	struct _starpu_sched_ctx *sched_ctx = &config->sched_ctxs[id];
+	STARPU_ASSERT(sched_ctx->do_schedule == 0);
 	sched_ctx->id = id;
 
 	int nworkers = config->topology.nworkers;
@@ -629,6 +630,12 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 			sched_ctx->sub_ctxs[i] = sub_ctxs[i];
 		sched_ctx->nsub_ctxs = nsub_ctxs;
 	}
+
+	/* starpu_do_schedule() starts to consider the new sched_ctx for scheduling
+	 * once 'sched_cts->do_schedule == 1' becomes visible.
+	 * Make sure the sched_ctx struct and the policy struct initialization are complete at this time. */
+	STARPU_WMB();
+	sched_ctx->do_schedule = 1;
 
 	_starpu_add_workers_to_new_sched_ctx(sched_ctx, workerids, nworkers_ctx);
 
@@ -958,6 +965,8 @@ void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counte
 static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx->do_schedule == 1);
+	sched_ctx->do_schedule = 0;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(sched_ctx->sched_policy)
 	{
@@ -1417,7 +1426,10 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 
 	unsigned i;
 	for(i = 0; i <= STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		config->sched_ctxs[i].do_schedule = 0;
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
+	}
 
 	return;
 }
