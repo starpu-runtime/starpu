@@ -46,6 +46,9 @@ struct _starpu_sched_ctx
 	/* id of the context used in user mode*/
 	unsigned id;
 
+	/* boolean indicating whether the scheduling_ctx will be considered for scheduling (1) or not (0)*/
+	unsigned do_schedule;
+
 	/* name of context */
 	const char *name;
 
