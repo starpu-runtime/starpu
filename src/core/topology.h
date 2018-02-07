@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2014,2017                                Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2011,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,10 @@
 #include <common/config.h>
 #include <common/list.h>
 #include <common/fxt.h>
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
 
 /* TODO actually move this struct into this header */
 struct _starpu_machine_config;
