@@ -244,7 +244,7 @@ int _starpu_opencl_get_binary_name(char *binary_file_name, size_t maxlen, const 
 	cl_int err;
 	cl_uint vendor_id;
 
-	_starpu_opencl_create_binary_directory(binary_directory, sizeof(binary_file_name));
+	_starpu_opencl_create_binary_directory(binary_directory, sizeof(binary_directory));
 
 	p = strrchr(source_file_name, '/');
 	snprintf(binary_file_name, maxlen, "%s/%s", binary_directory, p?p:source_file_name);
