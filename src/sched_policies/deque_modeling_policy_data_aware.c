@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -93,11 +93,14 @@ static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
+		unsigned buffer_node = node;
+		if (task->cl->specific_nodes)
+			buffer_node = STARPU_CODELET_GET_NODE(task->cl, index);
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 
 		int is_valid;
-		starpu_data_query_status(handle, node, NULL, &is_valid, NULL);
+		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
 
 		if (!is_valid)
 			cnt++;
