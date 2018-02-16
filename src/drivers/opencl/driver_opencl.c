@@ -303,6 +303,7 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTR
 
 	cl_event ev;
 	err = clEnqueueWriteBuffer(in_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+	clFlush(in_transfer_queues[worker->devid]);
 
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -340,6 +341,7 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cl_event ev;
 	err = clEnqueueReadBuffer(out_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+	clFlush(out_transfer_queues[worker->devid]);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
@@ -375,6 +377,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cl_event ev;
 	err = clEnqueueCopyBuffer(peer_transfer_queues[worker->devid], src, dst, src_offset, dst_offset, size, 0, NULL, &ev);
+	clFlush(peer_transfer_queues[worker->devid]);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
@@ -454,6 +457,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBufferRect(out_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+	clFlush(out_transfer_queues[worker->devid]);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
@@ -474,6 +478,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBufferRect(in_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+	clFlush(in_transfer_queues[worker->devid]);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
@@ -979,6 +984,10 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 						   async ? &task_finished[worker->devid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+
+		cl_command_queue queue;
+		starpu_opencl_get_queue(worker->devid, &queue);
+		clFlush(queue);
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}
