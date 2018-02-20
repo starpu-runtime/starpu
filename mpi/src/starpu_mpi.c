@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2016                           Inria
  * Copyright (C) 2009-2017                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1304,18 +1304,19 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	_STARPU_MPI_DEBUG(20, "Posting internal detached irecv on early_data_handle with tag %d from comm %ld src %d ..\n",
 			  early_data_handle->node_tag.data_tag, (long int)comm, status.MPI_SOURCE);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+
 	early_data_handle->req = _starpu_mpi_irecv_common(early_data_handle->handle, status.MPI_SOURCE,
 							  early_data_handle->node_tag.data_tag, comm, 1, 0,
 							  NULL, NULL, 1, 1, envelope->size);
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-
-	// We wait until the request is pushed in the
-	// ready_request list
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->posted_mutex));
-	while (!(early_data_handle->req->posted))
-		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->posted_cond), &(early_data_handle->req->posted_mutex));
-	STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->posted_mutex));
+	if (early_data_handle->req)
+	{
+		// We wait until the request is pushed in the
+		// ready_request list
+		STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->posted_mutex));
+		while (!(early_data_handle->req->posted))
+			STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->posted_cond), &(early_data_handle->req->posted_mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->posted_mutex));
+	}
 
 #ifdef STARPU_DEVEL
 #warning check if req_ready is still necessary
@@ -1324,6 +1325,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	early_data_handle->req_ready = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&early_data_handle->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_handle->req_mutex);
+
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	// Handle the request immediatly to make sure the mpi_irecv is
