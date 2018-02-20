@@ -2525,11 +2525,10 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 
 static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id)
 {
-    struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx->sched_policy)
 		return;
-
 
 	_starpu_sched_ctx_put_new_master(sched_ctx_id);
 
@@ -2541,11 +2540,10 @@ static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id
 
 static void _starpu_sched_ctx_update_parallel_workers_without(unsigned sched_ctx_id)
 {
-    struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx->sched_policy)
 		return;
-
 
 	_starpu_sched_ctx_put_new_master(sched_ctx_id);
 
