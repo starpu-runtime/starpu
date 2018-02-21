@@ -2155,6 +2155,10 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 				int workerid = workers->get_next(workers, &it);
 				if(workerid != worker->workerid)
 				{
+					if(starpu_worker_is_combined_worker(workerid))
+					{
+						continue;
+					}
 					/* The worker status is intendedly checked
 					 * without taking locks. If multiple workers
 					 * are concurrently assessing whether they are
