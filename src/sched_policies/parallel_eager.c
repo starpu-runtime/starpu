@@ -277,9 +277,10 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 #if 1
 		/* Optional heuristic to filter out purely slave workers for parallel tasks */
-		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] > 1 && !common_data->no_combined_workers)
+		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] == 1 && !common_data->no_combined_workers)
 		{
 			/* task is potentially parallel, leave it for a combined worker master */
+			_STARPU_DEBUG("pushing back master task %p\n", task);
 			_starpu_fifo_push_back_task(data->fifo, task);
 			task = NULL;
 		}
