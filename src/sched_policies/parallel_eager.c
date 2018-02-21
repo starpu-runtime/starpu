@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015,2017,2018                 Inria
  * Copyright (C) 2011-2016                                Université de Bordeaux
- * Copyright (C) 2011-2014,2016-2017                      CNRS
+ * Copyright (C) 2011-2014,2016-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -206,7 +206,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		if (task)
 		{
-			_STARPU_DEBUG("%d: poping master task %p\n", task);
+			_STARPU_DEBUG("poping master task %p\n", task);
 		}
 
 #if 1
@@ -222,7 +222,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	else
 	{
 		slave_task = 1;
-		_STARPU_DEBUG("%d: poping slave task %p\n", task);
+		_STARPU_DEBUG("poping slave task %p\n", task);
 	}
 	if (!task || slave_task)
 	{
@@ -282,7 +282,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	struct starpu_task *master_alias = starpu_task_dup(task);
 	master_alias->destroy = 1;
 	task = master_alias;
-	
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	for (i = 1; i < worker_size; i++)
