@@ -46,10 +46,6 @@ int main(void)
 	int *procs2 = NULL;
 	int i;
 	int n = 20;
-	char *starpu_sched = getenv("STARPU_SCHED");
-	if (starpu_sched && !strcmp(starpu_sched, "peager"))
-		/* FIXME peager does not support multiple sched_ctx */
-		return 77;
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;

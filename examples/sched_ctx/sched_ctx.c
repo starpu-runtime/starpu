@@ -80,9 +80,6 @@ int main(void)
 	int nprocs2 = 0;
 	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
 	char *sched = getenv("STARPU_SCHED");
-	if (sched && !strcmp(sched, "peager"))
-		/* FIXME peager does not support multiple sched_ctx */
-		return 77;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
