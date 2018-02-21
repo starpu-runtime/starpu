@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -140,7 +140,7 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle);
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister();
 
-#define STARPU_MPI_TAG_UB 1
+#define STARPU_MPI_TAG_UB MPI_TAG_UB
 int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
 
 #ifdef __cplusplus
