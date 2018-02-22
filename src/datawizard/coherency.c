@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2017                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1373,9 +1373,4 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 //	STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
 
 	return ret;
-}
-
-void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
-{
-	handle->unregister_hook = func;
 }
