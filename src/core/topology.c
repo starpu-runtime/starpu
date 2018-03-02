@@ -2216,6 +2216,48 @@ static void _starpu_init_numa_bus()
 				numa_bus_id[i*nb_numa_nodes+j] = _starpu_register_bus(i, j);
 }
 
+#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
+static int _starpu_find_pu_driving_numa_from(hwloc_obj_t root, unsigned node)
+{
+	unsigned i;
+	int found = 0;
+
+	if (!root->arity)
+	{
+		if (root->type == HWLOC_OBJ_PU)
+		{
+			struct _starpu_hwloc_userdata *userdata = root->userdata;
+			if (userdata->pu_worker)
+			{
+				/* Cool, found a worker! */
+				_STARPU_DEBUG(stderr, "found PU %d to drive memory node %d\n", userdata->pu_worker->bindid, node);
+				_starpu_worker_drives_memory_node(userdata->pu_worker, node);
+				found = 1;
+			}
+		}
+	}
+	for (i = 0; i < root->arity; i++)
+	{
+		if (_starpu_find_pu_driving_numa_from(root->children[i], node))
+			found = 1;
+	}
+	return found;
+}
+
+/* Look upward to find a level containing the given NUMA node and workers to drive it */
+static int _starpu_find_pu_driving_numa_up(hwloc_obj_t root, unsigned node)
+{
+	if (_starpu_find_pu_driving_numa_from(root, node))
+		/* Ok, we already managed to find drivers */
+		return 1;
+	if (!root->parent)
+		/* And no parent!? nobody can drive this... */
+		return 0;
+	/* Try from parent */
+	return _starpu_find_pu_driving_numa_up(root->parent, node);
+}
+#endif
+
 static void
 _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
@@ -2283,6 +2325,12 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 				int numa_starpu_id =  starpu_memory_nodes_numa_hwloclogid_to_id(numa_logical_id);
 				if (numa_starpu_id < 0 || numa_starpu_id >= STARPU_MAXNUMANODES)
 					numa_starpu_id = STARPU_MAIN_RAM;
+
+#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
+				hwloc_obj_t pu_obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_PU, workerarg->bindid);
+				struct _starpu_hwloc_userdata *userdata = pu_obj->userdata;
+				userdata->pu_worker = workerarg;
+#endif
 
 				workerarg->numa_memory_node = memory_node = numa_starpu_id;
 
@@ -2615,6 +2663,31 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 			config->bindid_workers[bindid].workerids[config->bindid_workers[bindid].nworkers-1] = worker;
 		}
 	}
+
+#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
+	/* If some NUMA nodes don't have drivers, attribute some */
+	unsigned node, nnodes = starpu_memory_nodes_get_count();;
+	for (node = 0; node < nnodes; node++)
+	{
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			/* Only RAM nodes can be processed by any CPU */
+			continue;
+		for (worker = 0; worker < config->topology.nworkers; worker++)
+		{
+			if (_starpu_worker_drives_memory[worker][node])
+				break;
+		}
+		if (worker < config->topology.nworkers)
+			/* Already somebody driving it */
+			continue;
+
+		/* Nobody driving this node! Attribute some */
+		_STARPU_DEBUG(stderr, "nobody drives memory node %d\n", node);
+		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(node));
+		int ret = _starpu_find_pu_driving_numa_up(numa_node_obj, node);
+		STARPU_ASSERT_MSG(ret, "oops, didn't find any worker to drive memory node %d!?", node);
+	}
+#endif
 
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_count_ngpus();
