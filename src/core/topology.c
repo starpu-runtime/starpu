@@ -2230,7 +2230,7 @@ static int _starpu_find_pu_driving_numa_from(hwloc_obj_t root, unsigned node)
 			if (userdata->pu_worker)
 			{
 				/* Cool, found a worker! */
-				_STARPU_DEBUG(stderr, "found PU %d to drive memory node %d\n", userdata->pu_worker->bindid, node);
+				_STARPU_DEBUG("found PU %d to drive memory node %d\n", userdata->pu_worker->bindid, node);
 				_starpu_worker_drives_memory_node(userdata->pu_worker, node);
 				found = 1;
 			}
@@ -2682,7 +2682,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 			continue;
 
 		/* Nobody driving this node! Attribute some */
-		_STARPU_DEBUG(stderr, "nobody drives memory node %d\n", node);
+		_STARPU_DEBUG("nobody drives memory node %d\n", node);
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(node));
 		int ret = _starpu_find_pu_driving_numa_up(numa_node_obj, node);
 		STARPU_ASSERT_MSG(ret, "oops, didn't find any worker to drive memory node %d!?", node);
