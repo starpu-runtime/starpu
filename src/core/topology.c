@@ -2170,7 +2170,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			unsigned numa_logical_id = obj->logical_index;
 			unsigned numa_physical_id = obj->os_index;
 
-			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
+			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa);
 			STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
 
 			numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
@@ -2189,7 +2189,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		{
 
 			/* In this case, nnuma has only one node */
-			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
+			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa);
 			STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
 
 			numa_memory_nodes_to_hwloclogid[memnode] = STARPU_NUMA_MAIN_RAM;
