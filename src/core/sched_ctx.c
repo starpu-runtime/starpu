@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2012-2018                                CNRS
- * Copyright (C) 2012-2017                                Université de Bordeaux
+ * Copyright (C) 2012-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -2300,7 +2300,7 @@ static void _starpu_sched_ctx_wake_these_workers_up(unsigned sched_ctx_id, int *
 
 static int _starpu_sched_ctx_find_master(unsigned sched_ctx_id, int *workerids, int nworkers)
 {
-	if (nworkers == 0) return;
+	STARPU_ASSERT(!nworkers);
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int new_master = workerids[nworkers-1];
