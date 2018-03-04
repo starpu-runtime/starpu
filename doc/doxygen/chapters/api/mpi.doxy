@@ -262,7 +262,7 @@ value for the upper bound for tag value.
 
 \fn int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
 \ingroup API_MPI_Support
-Retrieve an attribute value by key, similarly to the MPI function \c MPI_comm_get_attr().
+Retrieve an attribute value by key, similarly to the MPI function \c MPI_comm_get_attr(), except that the value is a pointer to int64_t instead of int.
 If an attribute is attached on \p comm to \p keyval, then the call
 returns \p flag equal to \c 1, and the attribute value in \p
 attribute_val. Otherwise, \p flag is set to \0.
