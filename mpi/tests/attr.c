@@ -17,6 +17,7 @@
 
 #include <starpu_mpi.h>
 #include "helper.h"
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
