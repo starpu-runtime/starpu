@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -501,7 +501,37 @@ each task, only the MPI node which owns the data being written to (here,
 <c>data_handles[x][y]</c>) will actually run the task. The other MPI nodes will
 automatically send the required data.
 
-This can be a concern with a growing number of nodes. To avoid this, the
+To tune the placement of tasks among MPI nodes, one can use
+::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
+node, or the node of a given data (e.g. one of the parameters), or use
+starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
+to provide a dynamic policy.
+
+A function starpu_mpi_task_build() is also provided with the aim to
+only construct the task structure. All MPI nodes need to call the
+function, only the node which is to execute the task will return a
+valid task structure, others will return <c>NULL</c>. That node must submit that task.
+All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
+list of arguments as starpu_mpi_task_build() -- to post all the
+necessary data communications.
+
+\code{.c}
+struct starpu_task *task;
+task = starpu_mpi_task_build(MPI_COMM_WORLD, &cl,
+                             STARPU_RW, data_handles[0],
+                             STARPU_R, data_handles[1],
+                             0);
+if (task) starpu_task_submit(task);
+starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
+                           STARPU_RW, data_handles[0],
+                           STARPU_R, data_handles[1],
+                           0);
+\endcode
+
+\section MPIInsertPruning Pruning MPI task insertion
+
+Making all MPI nodes process the whole graph can be a concern with a growing
+number of nodes. To avoid this, the
 application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
@@ -553,33 +583,6 @@ export STARPU_MPI_FAKE_SIZE=1024
 Here we have disabled the kernel function call to skip the actual computation
 time and only keep submission time, and we have asked StarPU to fake running on
 MPI node 2 out of 1024 nodes.
-
-To tune the placement of tasks among MPI nodes, one can use
-::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
-node, or the node of a given data (e.g. one of the parameters), or use
-starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
-to provide a dynamic policy.
-
-A function starpu_mpi_task_build() is also provided with the aim to
-only construct the task structure. All MPI nodes need to call the
-function, only the node which is to execute the task will return a
-valid task structure, others will return <c>NULL</c>. That node must submit that task.
-All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
-list of arguments as starpu_mpi_task_build() -- to post all the
-necessary data communications.
-
-\code{.c}
-struct starpu_task *task;
-task = starpu_mpi_task_build(MPI_COMM_WORLD, &cl,
-                             STARPU_RW, data_handles[0],
-                             STARPU_R, data_handles[1],
-                             0);
-if (task) starpu_task_submit(task);
-starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
-                           STARPU_RW, data_handles[0],
-                           STARPU_R, data_handles[1],
-                           0);
-\endcode
 
 \section MPITemporaryData Temporary Data
 
