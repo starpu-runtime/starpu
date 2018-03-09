@@ -106,6 +106,7 @@ static struct task
 	size_t ndependson;
 	struct starpu_task task;
 	enum task_type type;
+	int reg_signal;
 
 } *tasks;
 
@@ -307,9 +308,14 @@ void reset(void)
 
 void fix_wontuse_handle(struct task * wontuseTask)
 {
+	if (!wontuseTask->reg_signal)
+		/* Data was already registered when we created this task, so it's already a handle */
+		return;
+
 	struct handle *handle_tmp;
 	STARPU_ASSERT(wontuseTask);
 
+	/* Data was not registered when we created this task, so this is the application pointer, look it up now */
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
 	STARPU_ASSERT(handle_tmp);
 
@@ -618,6 +624,8 @@ int main(int argc, char **argv)
 
 			else
 			{
+				STARPU_ASSERT(nb_parameters == 1);
+				task->reg_signal = reg_signal[0];
 				ARRAY_DUP(handles_ptr, task->task.handles, nb_parameters);
 			}
 
@@ -726,6 +734,7 @@ int main(int argc, char **argv)
 					else
 					{
 						handles_ptr[i] = handles_cell->mem_ptr;
+						reg_signal[i] = 0;
 					}
 
 					token = strtok(NULL, delim);
