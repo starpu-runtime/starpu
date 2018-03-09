@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015-2017                           CNRS
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -723,8 +723,10 @@ void starpu_unistd_global_unplug(void *base)
 	}
 	starpu_unistd_nb_disk_opened--;
 
+#if !defined(HAVE_COPY_FILE_RANGE) && defined( __NR_copy_file_range)
 	if (starpu_unistd_nb_disk_opened == 0)
 		starpu_unistd_copy_failed = INIT;
+#endif
 #endif
 
 	free(fileBase->path);
