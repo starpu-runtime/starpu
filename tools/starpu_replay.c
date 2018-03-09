@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2017, 2018                               CNRS
- * Copyright (C) 2016-2017                                Université de Bordeaux
+ * Copyright (C) 2016-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+static int static_workerid;
+
 /* TODO: move to core header while moving starpu_replay_sched to core */
 extern void schedRecInit(const char * filename);
 extern void applySchedRec(struct starpu_task * starpu_task, unsigned long submit_order);
@@ -83,7 +85,7 @@ size_t * sizes_set;
 static size_t dependson_size;
 static size_t ndependson;
 
-static int nb_parameters = 0; /* Number of parameters */
+static unsigned nb_parameters = 0; /* Number of parameters */
 static int alloc_mode; /* If alloc_mode value is 1, then the handles are stored in dyn_handles, else they are in handles */
 
 static int priority = 0;
@@ -403,12 +405,21 @@ int submit_tasks(void)
 /* * * * * * MAIN * * * * * * */
 /* * * * * * * * * * * * * * */
 
+static void usage(const char *program)
+{
+	fprintf(stderr,"Usage: %s [--static-workerid] tasks.rec [sched.rec]\n", program);
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char **argv)
 {
 	starpu_data_set_default_sequential_consistency_flag(0);
 
 	FILE *rec;
 	char *s;
+	const char *tasks_rec = NULL;
+	const char *sched_rec = NULL;
+	unsigned i;
 	size_t s_allocated = 128;
 
 	_STARPU_MALLOC(s, s_allocated);
@@ -416,19 +427,36 @@ int main(int argc, char **argv)
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
 	alloc_mode = 1;
 
-	if (argc <= 1)
-	{
-		fprintf(stderr,"Usage: %s tasks.rec [sched.rec]\n", argv[0]);
-		exit(EXIT_FAILURE);
+	for (i = 1; i < (unsigned) argc; i++) {
+		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
+		{
+			usage(argv[0]);
+		}
+		else if (!strcmp(argv[i], "--static-workerid"))
+		{
+			static_workerid = 1;
+		}
+		else
+		{
+			if (!tasks_rec)
+				tasks_rec = argv[i];
+			else if (!sched_rec)
+				sched_rec = argv[i];
+			else
+				usage(argv[0]);
+		}
 	}
 
-	if (argc >= 3)
-		schedRecInit(argv[2]);
+	if (!tasks_rec)
+		usage(argv[0]);
 
-	rec = fopen(argv[1], "r");
+	if (sched_rec)
+		schedRecInit(sched_rec);
+
+	rec = fopen(tasks_rec, "r");
 	if (!rec)
 	{
-		fprintf(stderr,"unable to open file %s: %s\n", argv[1], strerror(errno));
+		fprintf(stderr,"unable to open file %s: %s\n", tasks_rec, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -507,7 +535,10 @@ int main(int argc, char **argv)
 				{
 					task->task.priority = priority;
 					task->task.cl = &cl;
-					task->task.workerid = workerid;
+					if (static_workerid) {
+						task->task.workerid = workerid;
+						task->task.execute_on_a_specific_worker = 1;
+					}
 
 					if (alloc_mode)
 					{
@@ -556,13 +587,12 @@ int main(int argc, char **argv)
 
 					}
 
-					int narch = starpu_perfmodel_get_narch_combs();
+					unsigned narch = starpu_perfmodel_get_narch_combs();
 
 					struct task_arg *arg;
 					_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
 					arg->footprint = footprint;
 					double * perfTime  = arg->perf;
-					int i;
 
 					for (i = 0; i < narch ; i++)
 					{
@@ -654,7 +684,6 @@ int main(int argc, char **argv)
 		{
 			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
 			char * param_str = s + 12;
-			unsigned i;
 			int count = 0;
 
 			for (i = 0 ; param_str[i] != '\n'; i++)
@@ -680,8 +709,6 @@ int main(int argc, char **argv)
 
 			while (token != NULL)
 			{
-				int i;
-
 				for (i = 0 ; i < nb_parameters ; i++)
 				{
 					struct handle *handles_cell; /* A cell of the hash table for the handles */
