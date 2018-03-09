@@ -2312,6 +2312,7 @@ if test x$maxnodes = x0 ; then
 	done
 fi
 if test $maxnodes -gt 32 ; then
+	# FIXME: at least use uint64 so we can have 64 memory nodes
 	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
 fi
 
