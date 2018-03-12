@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -2455,7 +2455,7 @@ void starpu_worker_relax_on(void)
 
 void starpu_worker_relax_off(void)
 {
-	starpu_worker_relax_off();
+	_starpu_worker_relax_off();
 }
 
 int starpu_worker_get_relax_state(void)

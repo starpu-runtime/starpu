@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017-2018                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@
 int main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	int flag;
-	int64_t value;
+	int64_t *value;
 
 	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, 42, NULL, &flag);
 	STARPU_ASSERT_MSG(flag == 0, "starpu_mpi_comm_get_attr was called with invalid argument\n");
@@ -31,7 +31,7 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 	starpu_mpi_comm_get_attr(MPI_COMM_WORLD, STARPU_MPI_TAG_UB, &value, &flag);
 	STARPU_ASSERT_MSG(flag == 1, "starpu_mpi_comm_get_attr was called with valid argument\n");
 
-	FPRINTF(stderr, "Value: %"PRIi64"d\n", value);
+	FPRINTF(stderr, "Value: %"PRIi64"d\n", *value);
 
 	return 0;
 }

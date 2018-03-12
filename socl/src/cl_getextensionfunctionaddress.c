@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2012                                Université de Bordeaux
+ * Copyright (C) 2010-2012, 2018                                Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,8 +21,9 @@
 #include "socl.h"
 #include "init.h"
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY void * CL_API_CALL
-soclGetExtensionFunctionAddress(const char * func_name) CL_API_SUFFIX__VERSION_1_0
+soclGetExtensionFunctionAddress(const char * func_name)
 {
 	if (func_name != NULL && strcmp(func_name, "clShutdown") == 0)
 	{

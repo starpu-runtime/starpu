@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2017                           Inria
  * Copyright (C) 2010-2016                                Université de Bordeaux
- * Copyright (C) 2011-2013,2015-2017                      CNRS
+ * Copyright (C) 2011-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 		ret = EXIT_SUCCESS;
 	else
 	{
-		FPRINTF(stderr, "%u != %u + %u\n", variable, INIT_VALUE, NTASKS);
+		FPRINTF(stderr, "%u != %d + %d\n", variable, INIT_VALUE, NTASKS);
 		ret = EXIT_FAILURE;
 	}
 	STARPU_RETURN(ret);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016                                     Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2018                               CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -266,7 +266,7 @@ static struct starpu_data_interface_ops interface_data_movements_ops =
 	.describe = NULL
 };
 
-void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *tags, int *ranks, int size)
+void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *ranks, int *tags, int size)
 {
 	struct data_movements_interface data_movements =
 	{

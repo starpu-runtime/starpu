@@ -448,7 +448,7 @@ void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends
 	/* TODO: turn them into redirects & forwards */
 }
 
-void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_redirects, int submit_data)
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
 {
 	unsigned i, n = coop_sends->n;
 
@@ -671,16 +671,17 @@ void _starpu_mpi_progress_shutdown(void **value)
         STARPU_PTHREAD_COND_DESTROY(&progress_cond);
 }
 
+static int64_t _starpu_mpi_tag_max = INT64_MAX;
 
 int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag)
 {
 	(void) comm;
 	if (keyval == STARPU_MPI_TAG_UB)
 	{
-		const int64_t starpu_tag_max = INT64_MAX;
-		const nm_tag_t nm_tag_max = NM_TAG_MAX;
+		if ((uint64_t) _starpu_mpi_tag_max > NM_TAG_MAX)
+			_starpu_mpi_tag_max = NM_TAG_MAX;
 		/* manage case where nmad max tag causes overflow if represented as starpu tag */
-		*(int64_t *)attribute_val = (nm_tag_max > starpu_tag_max) ? starpu_tag_max : nm_tag_max;
+		*(int64_t **)attribute_val = &_starpu_mpi_tag_max;
 		*flag = 1;
 	}
 	else

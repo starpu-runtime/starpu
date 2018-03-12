@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2012-2014,2017                           CNRS
  * Copyright (C) 2011-2013,2015-2017                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
@@ -45,6 +45,9 @@ struct _starpu_sched_ctx
 {
 	/* id of the context used in user mode*/
 	unsigned id;
+
+	/* boolean indicating whether the scheduling_ctx will be considered for scheduling (1) or not (0)*/
+	unsigned do_schedule;
 
 	/* name of context */
 	const char *name;

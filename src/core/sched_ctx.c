@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2012-2017                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
@@ -542,6 +542,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	unsigned id = _starpu_get_first_free_sched_ctx(config);
 
 	struct _starpu_sched_ctx *sched_ctx = &config->sched_ctxs[id];
+	STARPU_ASSERT(sched_ctx->do_schedule == 0);
 	sched_ctx->id = id;
 
 	int nworkers = config->topology.nworkers;
@@ -629,6 +630,12 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 			sched_ctx->sub_ctxs[i] = sub_ctxs[i];
 		sched_ctx->nsub_ctxs = nsub_ctxs;
 	}
+
+	/* starpu_do_schedule() starts to consider the new sched_ctx for scheduling
+	 * once 'sched_cts->do_schedule == 1' becomes visible.
+	 * Make sure the sched_ctx struct and the policy struct initialization are complete at this time. */
+	STARPU_WMB();
+	sched_ctx->do_schedule = 1;
 
 	_starpu_add_workers_to_new_sched_ctx(sched_ctx, workerids, nworkers_ctx);
 
@@ -958,6 +965,8 @@ void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counte
 static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx->do_schedule == 1);
+	sched_ctx->do_schedule = 0;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	if(sched_ctx->sched_policy)
 	{
@@ -1417,7 +1426,10 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 
 	unsigned i;
 	for(i = 0; i <= STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		config->sched_ctxs[i].do_schedule = 0;
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
+	}
 
 	return;
 }
@@ -2143,6 +2155,10 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 				int workerid = workers->get_next(workers, &it);
 				if(workerid != worker->workerid)
 				{
+					if(starpu_worker_is_combined_worker(workerid))
+					{
+						continue;
+					}
 					/* The worker status is intendedly checked
 					 * without taking locks. If multiple workers
 					 * are concurrently assessing whether they are
@@ -2432,7 +2448,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	int master, temp_master = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
-	int workers_count = 0;
 
 	/* temporarily put a master if needed */
 	if (sched_ctx->main_master == -1)
@@ -2442,7 +2457,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 	}
 	master = sched_ctx->main_master;
 
-	workers_count = 0;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
@@ -2456,7 +2470,6 @@ static void _starpu_sched_ctx_block_workers_in_parallel(unsigned sched_ctx_id, u
 			_starpu_worker_request_blocking_in_parallel(worker);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 		}
-		workers_count++;
 	}
 
 	if (temp_master)
@@ -2516,11 +2529,10 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 
 static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id)
 {
-    struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx->sched_policy)
 		return;
-
 
 	_starpu_sched_ctx_put_new_master(sched_ctx_id);
 
@@ -2532,11 +2544,10 @@ static void _starpu_sched_ctx_update_parallel_workers_with(unsigned sched_ctx_id
 
 static void _starpu_sched_ctx_update_parallel_workers_without(unsigned sched_ctx_id)
 {
-    struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx * sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx->sched_policy)
 		return;
-
 
 	_starpu_sched_ctx_put_new_master(sched_ctx_id);
 

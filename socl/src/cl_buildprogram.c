@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2016-2017                           CNRS
- * Copyright (C) 2010-2012                                Université de Bordeaux
+ * Copyright (C) 2012,2016-2018                           CNRS
+ * Copyright (C) 2010-2012, 2018                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,8 +57,8 @@ static void soclBuildProgram_task(void *data)
 			       dev_type == CL_DEVICE_TYPE_ACCELERATOR ? "ACCELERATOR" : "UNKNOWN");
 
 	char opts[4096];
-	sprintf(opts, "-DSOCL_DEVICE_TYPE_%s %s",
-		dev_type_str, (d->options != NULL ? d->options : ""));
+	snprintf(opts, sizeof(opts), "-DSOCL_DEVICE_TYPE_%s %s",
+		 dev_type_str, (d->options != NULL ? d->options : ""));
 
 	err = clBuildProgram(d->program->cl_programs[range], 1, &device, opts, NULL, NULL);
 	if (err != CL_SUCCESS)
@@ -76,13 +76,14 @@ static void soclBuildProgram_task(void *data)
 	DEBUG_MSG("[Worker %d] Done building.\n", wid);
 }
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_int CL_API_CALL
 soclBuildProgram(cl_program         program,
 		 cl_uint              num_devices,
 		 const cl_device_id * device_list,
 		 const char *         options, 
 		 void (*pfn_notify)(cl_program program, void * user_data),
-		 void *               user_data) CL_API_SUFFIX__VERSION_1_0
+		 void *               user_data)
 {
 	struct bp_data *data;
 

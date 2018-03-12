@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2014,2016-2017                      CNRS
- * Copyright (C) 2010-2011,2013,2016-2017                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2013,2016-2018                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -159,6 +159,7 @@ cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd)
 	return CL_SUCCESS;
 }
 
+CL_API_SUFFIX__VERSION_1_1
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueNDRangeKernel(cl_command_queue cq,
 			 cl_kernel        kernel,
@@ -168,7 +169,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 			 const size_t *   local_work_size,
 			 cl_uint          num_events,
 			 const cl_event * events,
-			 cl_event *       event) CL_API_SUFFIX__VERSION_1_1
+			 cl_event *       event)
 {
 	if (kernel->split_func != NULL && !STARPU_PTHREAD_MUTEX_TRYLOCK(&kernel->split_lock))
 	{

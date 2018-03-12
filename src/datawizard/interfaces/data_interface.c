@@ -705,6 +705,11 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&arg->mutex);
 }
 
+void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
+{
+	handle->unregister_hook = func;
+}
+
 /* Unregister the data handle, perhaps we don't need to update the home_node
  * (in that case coherent is set to 0)
  * nowait is for internal use when we already know for sure that we won't have to wait.

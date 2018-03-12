@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2016-2017                           CNRS
- * Copyright (C) 2010-2011,2013                           Université de Bordeaux
+ * Copyright (C) 2012,2016-2018                           CNRS
+ * Copyright (C) 2010-2011,2013, 2018                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,12 +66,13 @@ static void release_callback_program(void * e)
 		free(program->options);
 }
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_program CL_API_CALL
 soclCreateProgramWithSource(cl_context      context,
 			    cl_uint           count,
 			    const char **     strings,
 			    const size_t *    lengths,
-			    cl_int *          errcode_ret) CL_API_SUFFIX__VERSION_1_0
+			    cl_int *          errcode_ret)
 {
 	cl_program p;
 	struct cpws_data *data;
@@ -124,6 +125,7 @@ soclCreateProgramWithSource(cl_context      context,
 	{
 		if (errcode_ret != NULL)
 			*errcode_ret = CL_OUT_OF_HOST_MEMORY;
+		free(p->cl_programs);
 		return NULL;
 	}
 	data->count = count;

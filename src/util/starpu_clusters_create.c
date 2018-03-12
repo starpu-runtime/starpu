@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2018                                CNRS
  * Copyright (C) 2015-2017                                Inria
  * Copyright (C) 2015-2016                                Université de Bordeaux
  *
@@ -377,7 +377,7 @@ void _starpu_cluster_group_init(struct _starpu_cluster_group *group,
 	group->clusters = _starpu_cluster_list_new();
 	group->father = father;
 	_STARPU_MALLOC(group->params, sizeof(struct _starpu_cluster_parameters));
-	_starpu_cluster_copy_parameters(group->params, father->params);
+	_starpu_cluster_copy_parameters(father->params, group->params);
 	return;
 }
 
@@ -391,7 +391,7 @@ void _starpu_cluster_init(struct _starpu_cluster *cluster,
 	cluster->workerids = NULL;
 	cluster->father = father;
 	_STARPU_MALLOC(cluster->params, sizeof(struct _starpu_cluster_parameters));
-	_starpu_cluster_copy_parameters(cluster->params, father->params);
+	_starpu_cluster_copy_parameters(father->params, cluster->params);
 }
 
 int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list,
@@ -451,8 +451,7 @@ void _starpu_cluster_init_parameters(struct _starpu_cluster_parameters *params)
 	return;
 }
 
-void _starpu_cluster_copy_parameters(struct _starpu_cluster_parameters *dst,
-				     struct _starpu_cluster_parameters *src)
+void _starpu_cluster_copy_parameters(struct _starpu_cluster_parameters *src, struct _starpu_cluster_parameters *dst)
 {
 	dst->min_nb = src->min_nb;
 	dst->max_nb = src->max_nb;

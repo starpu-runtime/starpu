@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2014,2017                           Inria
+ * Copyright (C) 2012-2014,2017-2018                      Inria
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2010-2014                                Université de Bordeaux
  *
@@ -79,8 +79,7 @@ int main(void)
 	int nprocs1 = 0;
 	int nprocs2 = 0;
 	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
-	char *sched;
-
+	char *sched = getenv("STARPU_SCHED");
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
@@ -104,7 +103,6 @@ int main(void)
 	}
 
 	/*create contexts however you want*/
-	sched = getenv("STARPU_SCHED");
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, sched?sched:"eager", 0);
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, sched?sched:"eager", 0);
 

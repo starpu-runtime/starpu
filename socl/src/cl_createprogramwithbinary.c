@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2010-2011                                Université de Bordeaux
+ * Copyright (C) 2010-2011, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "socl.h"
 
+CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_program CL_API_CALL
 soclCreateProgramWithBinary(cl_context                     UNUSED(context),
 			    cl_uint                        UNUSED(num_devices),
@@ -25,7 +26,7 @@ soclCreateProgramWithBinary(cl_context                     UNUSED(context),
 			    const size_t *                 UNUSED(lengths),
 			    const unsigned char **         UNUSED(binaries),
 			    cl_int *                       UNUSED(binary_status),
-			    cl_int *                       errcode_ret) CL_API_SUFFIX__VERSION_1_0
+			    cl_int *                       errcode_ret)
 {
 	//TODO
 	if (errcode_ret != NULL)

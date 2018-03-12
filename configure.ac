@@ -2332,6 +2332,7 @@ if test x$maxnodes = x0 ; then
 	done
 fi
 if test $maxnodes -gt 32 ; then
+	# FIXME: at least use uint64 so we can have 64 memory nodes
 	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
 fi
 
@@ -2957,6 +2958,8 @@ AC_ARG_ENABLE(blas-lib,
         blas_lib=atlas
      elif test "x$enableval" = "xgoto" ; then
         blas_lib=goto
+     elif test "x$enableval" = "xopenblas" ; then
+        blas_lib=openblas
      elif test "x$enableval" = "xnone" ; then
         blas_lib=none
      elif test "x$enableval" = "xmkl" ; then
@@ -3016,6 +3019,26 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
 	STARPU_CHECK_LIB(BLAS, cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
 	AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
     fi
+fi
+
+if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
+    PKG_CHECK_MODULES([OPENBLAS],  [openblas],  [
+      PKG_CHECK_MODULES([BLAS_OPENBLAS],  [blas-openblas],  [
+        AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+        AC_SUBST([STARPU_OPENBLAS], [1])
+        CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
+        LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
+        blas_lib=openblas
+      ], [
+	if text x$blas_lib = xopenblas; then
+	  AC_MSG_ERROR([cannot find blas-openblas lib])
+	fi
+      ])
+    ], [
+      if text x$blas_lib = xopenblas; then
+        AC_MSG_ERROR([cannot find openblas lib])
+      fi
+    ])
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
@@ -893,14 +893,14 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 			int s;
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
-				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				if(config->sched_ctxs[s].do_schedule == 1)
 				{
 					_starpu_sched_do_schedule(config->sched_ctxs[s].id);
 				}
 			}
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
-				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				if(config->sched_ctxs[s].do_schedule == 1)
 				{
 					starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
 				}
@@ -963,7 +963,7 @@ int starpu_task_wait_for_n_submitted(unsigned n)
 			int s;
 			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
-				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				if(config->sched_ctxs[s].do_schedule == 1)
 				{
 					_starpu_wait_for_n_submitted_tasks_of_sched_ctx(config->sched_ctxs[s].id, n);
 				}
@@ -1005,14 +1005,14 @@ int starpu_task_wait_for_no_ready(void)
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
 			}
 		}
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				_starpu_wait_for_no_ready_of_sched_ctx(config->sched_ctxs[s].id);
 			}
@@ -1049,7 +1049,7 @@ void starpu_do_schedule(void)
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				_starpu_sched_do_schedule(config->sched_ctxs[s].id);
 			}
@@ -1074,7 +1074,7 @@ starpu_drivers_request_termination(void)
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				_starpu_check_nsubmitted_tasks_of_sched_ctx(config->sched_ctxs[s].id);
 			}
@@ -1095,7 +1095,7 @@ int starpu_task_nsubmitted(void)
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				nsubmitted += _starpu_get_nsubmitted_tasks_of_sched_ctx(config->sched_ctxs[s].id);
 			}
@@ -1116,7 +1116,7 @@ int starpu_task_nready(void)
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			if(config->sched_ctxs[s].do_schedule == 1)
 			{
 				nready += starpu_sched_ctx_get_nready_tasks(config->sched_ctxs[s].id);
 			}

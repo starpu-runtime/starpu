@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2011,2013,2015,2017                 CNRS
  * Copyright (C) 2017                                     Inria
  *
@@ -90,8 +90,9 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 
 	unsigned current_worker_id = worker->workerid;
         int ret = 0;
+	unsigned nnodes = starpu_memory_nodes_get_count();
 
-        for (memnode = 0; memnode < STARPU_MAXNODES; memnode++)
+        for (memnode = 0; memnode < nnodes; memnode++)
         {
                 if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
                         ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
