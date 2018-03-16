@@ -509,11 +509,12 @@ to provide a dynamic policy.
 
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
-function, only the node which is to execute the task will return a
+function, which posts the required send/recv on the various nodes which have to.
+Only the node which is to execute the task will then return a
 valid task structure, others will return <c>NULL</c>. That node must submit that task.
 All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
 list of arguments as starpu_mpi_task_build() -- to post all the
-necessary data communications.
+necessary data communications meant to happen after the task execution.
 
 \code{.c}
 struct starpu_task *task;

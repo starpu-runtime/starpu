@@ -445,7 +445,9 @@ has been modified. The cache can be disabled (see \ref STARPU_MPI_CACHE).
 \ingroup API_MPI_Support
 Create a task corresponding to \p codelet with the following given arguments.
 The argument list must be zero-terminated. The function performs the
-first two steps of the function starpu_mpi_task_insert(). Only the MPI
+first two steps of the function starpu_mpi_task_insert(), i.e. submitting the
+MPI communications needed before the execution of the task, and the creation of
+the task on one node. Only the MPI
 node selected in the first step of the algorithm will return a valid
 task structure which can then be submitted, others will return <c>NULL</c>. The function
 starpu_mpi_task_post_build() MUST be called after that on all nodes, and after the submission of
