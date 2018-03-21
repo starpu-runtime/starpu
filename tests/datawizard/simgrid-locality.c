@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016-2017                                CNRS
- * Copyright (C) 2016-2017                                Université de Bordeaux
+ * Copyright (C) 2016-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 #include "locality.c"
 #include <common/config.h>
 
-#if defined(SIMGRID_VERSION_MAJOR) && defined(SIMGRID_VERSION_MINOR) && (defined(HAVE_MSG_PROCESS_ATTACH) && SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15))
+#if defined(SIMGRID_VERSION) && ((defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)) && SIMGRID_VERSION >= 31500)
 #undef main
 int main(int argc, char *argv[])
 {

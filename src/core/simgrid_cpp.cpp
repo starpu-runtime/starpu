@@ -67,7 +67,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
-#ifdef HAVE_SIMCALL_PROCESS_CREATE
+#if defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
@@ -92,7 +92,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #if SIMGRID_VERSION < 31400
 	                         SIMIX_host_self_get_name(),
 #else
-#  ifdef HAVE_SG_HOST_SELF
+#  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
 	                         sg_host_self(),
 #  else
 	                         SIMIX_host_self(),
