@@ -19,7 +19,7 @@
 #include "locality.c"
 #include <common/config.h>
 
-#if defined(SIMGRID_VERSION) && ((defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)) && SIMGRID_VERSION >= 31500)
+#if defined(SIMGRID_VERSION) && ((defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)) && SIMGRID_VERSION >= 31500 & SIMGRID_VERSION != 31559)
 #undef main
 int main(int argc, char *argv[])
 {
