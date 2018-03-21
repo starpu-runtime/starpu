@@ -53,19 +53,25 @@ int _starpu_smpi_simulated_main_(int argc, char *argv[])
 }
 int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
 
-#ifdef HAVE_MSG_ZONE_GET_BY_NAME
+#if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return sg_zone_get_by_name(name);
+}
+#elif defined(HAVE_MSG_ZONE_GET_BY_NAME) || defined(MSG_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_zone_get_by_name(name);
 }
-#elif defined(HAVE_MSG_GET_AS_BY_NAME)
+#elif defined(HAVE_MSG_GET_AS_BY_NAME) || defined(MSG_get_as_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_get_as_by_name(name);
 }
-#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT)
+#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT) || defined(MSG_environment_as_get_routing_sons)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 {
@@ -105,7 +111,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
-#ifdef HAVE_MSG_ZONE_GET_HOSTS
+#if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
 		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
 #else
@@ -289,7 +295,7 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 
 void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef HAVE_MSG_PROCESS_ATTACH
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
@@ -327,7 +333,7 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 
 void _starpu_simgrid_deinit(void)
 {
-#ifdef HAVE_MSG_PROCESS_ATTACH
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (simgrid_started == 2)
 	{
 		/* Started with MSG_process_attach, now detach */
@@ -425,9 +431,9 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
-#ifdef HAVE_SG_HOST_SPEED
+#if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
 			length/1000000.0*sg_host_speed(MSG_host_self()),
-#elif defined HAVE_MSG_HOST_GET_SPEED
+#elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
 			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
 #else
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
