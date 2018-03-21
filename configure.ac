@@ -2426,7 +2426,9 @@ fi
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp)
 
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test -n "$OPENMP_CFLAGS"])
+if test x$enable_simgrid = xno; then
+  AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test -n "$OPENMP_CFLAGS"])
+fi
 
 ###############################################################################
 #                                                                             #
