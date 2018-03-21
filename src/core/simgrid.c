@@ -25,7 +25,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
 #include <core/simgrid.h>
-#if defined(HAVE_SIMGRID_SIMDAG_H) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+#if defined(HAVE_SIMGRID_SIMDAG_H) && (SIMGRID_VERSION >= 31300)
 #include <simgrid/simdag.h>
 #endif
 
@@ -40,7 +40,7 @@
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 16)
+#if SIMGRID_VERSION < 31600
 #pragma weak smpi_main
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #endif
@@ -252,7 +252,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 		stack_size = rlim.rlim_cur / 1024;
 #endif
 
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
@@ -260,7 +260,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #endif
 
 	/* Load XML platform */
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
 #else
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 			_STARPU_ERROR("Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
 		}
 
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 16)
+#if SIMGRID_VERSION >= 31600
 		/* Recent versions of simgrid dlopen() us, so we don't need to
 		 * do circumvolutions, just init MPI early and run the application's main */
 		return _starpu_mpi_simgrid_init(argc, argv);
@@ -352,7 +352,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		 * Try using --cfg=contexts/factory:thread instead."
 		 * See https://github.com/simgrid/simgrid/issues/141 */
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14) /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
+#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
 		xbt_cfg_set_string("contexts/factory", "thread");
 #endif
 		/* We didn't catch application's main. */
@@ -432,7 +432,7 @@ void _starpu_simgrid_deinit(void)
 			if (t->runner)
 			{
 				MSG_sem_release(t->sem);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
 				MSG_process_sleep(1);
@@ -449,7 +449,7 @@ void _starpu_simgrid_deinit(void)
 	{
 		struct worker_runner *w = &worker_runner[i];
 		MSG_sem_release(w->sem);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
 		MSG_process_sleep(1);
@@ -460,7 +460,7 @@ void _starpu_simgrid_deinit(void)
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
 
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13)
+#if SIMGRID_VERSION >= 31300
 	/* clean-atexit introduced in simgrid 3.13 */
 	if ( xbt_cfg_get_boolean("clean-atexit"))
 	{
@@ -1018,7 +1018,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 
 void _starpu_simgrid_count_ngpus(void)
 {
-#if (defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+#if (defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION >= 31300)
 	unsigned src, dst;
 	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2014-2015,2017                 Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -364,7 +364,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		/* No progress, wait */
 		starpu_pthread_wait_wait(&cpu_worker->wait);
  #else
-  #if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
+  #if SIMGRID_VERSION >= 31800
 	if (!res && !task)
 	{
 		/* No progress, wait (but at most 1s for OpenMP support) */
