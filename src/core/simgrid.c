@@ -217,7 +217,7 @@ static void start_simgrid(int *argc, char **argv)
 	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
 		stack_size = rlim.rlim_cur / 1024;
 
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
@@ -225,7 +225,7 @@ static void start_simgrid(int *argc, char **argv)
 #endif
 
 	/* Load XML platform */
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
 #else
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
@@ -293,7 +293,7 @@ void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
 		xbt_cfg_set_string("contexts/factory", "thread");
 #endif
 		/* We didn't catch application's main. */
