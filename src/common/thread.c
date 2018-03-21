@@ -180,7 +180,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	int ret;
 	_STARPU_TRACE_TRYLOCK_MUTEX();
 
-#ifdef HAVE_XBT_MUTEX_TRY_ACQUIRE
+#if defined(HAVE_XBT_MUTEX_TRY_ACQUIRE) || defined(xbt_mutex_try_acquire)
 	ret = xbt_mutex_try_acquire(*mutex);
 #else
 	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
@@ -243,15 +243,15 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 
 /* We need it only when using smpi */
 #pragma weak smpi_process_get_user_data
-#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA && !defined(smpi_process_get_user_data)
 extern void *smpi_process_get_user_data();
 #endif
 
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
-#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
-#ifdef HAVE_MSG_PROCESS_SELF_NAME
+#if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
+#if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
 #else
 	const char *process_name = SIMIX_process_self_get_name();
@@ -272,8 +272,8 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
-#ifdef HAVE_SMPI_PROCESS_SET_USER_DATA
-#ifdef HAVE_MSG_PROCESS_SELF_NAME
+#if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
+#if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
 #else
 	const char *process_name = SIMIX_process_self_get_name();
@@ -436,7 +436,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	return p_ret;
 }
 
-#if defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
+#if defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	*barrier = xbt_barrier_init(count);
@@ -600,7 +600,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 
 #endif /* STARPU_SIMGRID */
 
-#if (defined(STARPU_SIMGRID) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
+#if (defined(STARPU_SIMGRID) && (!defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) && !defined(xbt_barrier_init)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);

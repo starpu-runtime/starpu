@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015-2017                           Inria
  * Copyright (C) 2010-2015,2017                           CNRS
- * Copyright (C) 2010,2012-2017                           Université de Bordeaux
+ * Copyright (C) 2010,2012-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -249,7 +249,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
-#if defined(STARPU_SIMGRID) && defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
+#if defined(STARPU_SIMGRID) && (defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init))
 typedef xbt_bar_t starpu_pthread_barrier_t;
 typedef int starpu_pthread_barrierattr_t;
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD XBT_BARRIER_SERIAL_PROCESS
