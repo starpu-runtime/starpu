@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017,2018                 Inria
- * Copyright (C) 2011-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2016, 2018                                Université de Bordeaux
  * Copyright (C) 2011-2014,2016-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -52,7 +52,7 @@ static void initialize_peager_common(void)
 
 		const unsigned nbasic_workers = starpu_worker_get_count();
 		int basic_workerids[nbasic_workers];
-		int i;
+		unsigned i;
 		for(i = 0; i < nbasic_workers; i++)
 		{
 			basic_workerids[i] = i;
@@ -103,7 +103,7 @@ static void deinitialize_peager_common(void)
 	if (_peager_common_data->ref_count == 0)
 	{
 		const unsigned nbasic_workers = starpu_worker_get_count();
-		int i;
+		unsigned i;
 		for(i = 0; i < nbasic_workers; i++)
 		{
 			free(_peager_common_data->possible_combinations[i]);
@@ -324,7 +324,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	}
 
 	/* Is this a basic worker or a combined worker ? */
-	if (best_workerid < starpu_worker_get_count())
+	if (best_workerid < (int) starpu_worker_get_count())
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		/* The master is alone */
