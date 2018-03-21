@@ -98,12 +98,12 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 	                         SIMIX_host_self(),
 #  endif
 #endif
-#if SIMGRID_VERSION < 31500
+#if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 -1.0,
 #endif
 				 0, NULL,
 	                         /*props */ NULL
-#if SIMGRID_VERSION < 31500
+#if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 , 0
 #endif
 				 );
