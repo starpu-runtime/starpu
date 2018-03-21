@@ -97,7 +97,7 @@ static int posted_requests = 0, nready_requests = 0, newer_requests, barrier_run
 extern int smpi_simulated_main_(int argc, char *argv[]);
 
 #pragma weak smpi_process_set_user_data
-#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA && !defined(smpi_process_set_user_data)
 extern void smpi_process_set_user_data(void *);
 #endif
 #endif
