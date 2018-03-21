@@ -80,7 +80,7 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+#if SIMGRID_VERSION >= 31500
 	MSG_process_ref(*thread);
 #endif
 	return 0;
@@ -93,9 +93,9 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400
 	MSG_process_join(thread, 1000000);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 15)
+#if SIMGRID_VERSION >= 31500
 	MSG_process_unref(thread);
 #endif
 #else
@@ -343,7 +343,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
 int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
 {
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 18)
+#if SIMGRID_VERSION >= 31800
 	struct timespec now, delta;
 	double delay;
 	int ret = 0;
@@ -960,7 +960,7 @@ int starpu_sem_trywait(starpu_sem_t *sem)
 
 int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
 {
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR > 13)
+#if SIMGRID_VERSION > 31300
 	*sval = MSG_sem_get_capacity(*sem);
 	return 0;
 #else
