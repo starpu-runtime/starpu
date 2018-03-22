@@ -45,15 +45,21 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	struct _starpu_prio_deque * prio = &data->prio;
 	struct starpu_task * (tasks[NTASKS]);
-	unsigned ntasks;
+	unsigned ntasks = 0;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	/* Try to look at NTASKS from the queue */
-	for (ntasks = 0; ntasks < NTASKS; ntasks++)
+	tasks[0] = _starpu_prio_deque_pop_task(prio);
+	if (tasks[0])
 	{
-		tasks[ntasks] = _starpu_prio_deque_pop_task(prio);
-		if (!tasks[ntasks])
-			break;
+		int priority = tasks[0]->priority;
+		/* Try to look at NTASKS from the queue */
+		for (ntasks = 1; ntasks < NTASKS; ntasks++)
+		{
+			tasks[ntasks] = _starpu_prio_deque_highest_task(prio);
+ 			if (!tasks[ntasks] || tasks[ntasks]->priority < priority)
+ 				break;
+ 			_starpu_prio_deque_pop_task(prio);		
+		}
 	}
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
