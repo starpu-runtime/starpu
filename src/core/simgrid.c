@@ -25,7 +25,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
 #include <core/simgrid.h>
-#if defined(HAVE_SG_LINK_NAME) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+#if defined(HAVE_SIMGRID_SIMDAG_H) && (SIMGRID_VERSION >= 31300)
 #include <simgrid/simdag.h>
 #endif
 
@@ -40,7 +40,7 @@
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 16)
+#if SIMGRID_VERSION < 31600
 #pragma weak smpi_main
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #endif
@@ -70,19 +70,25 @@ static struct worker_runner
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
-#ifdef HAVE_MSG_ZONE_GET_BY_NAME
+#if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+#define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return sg_zone_get_by_name(name);
+}
+#elif defined(HAVE_MSG_ZONE_GET_BY_NAME) || defined(MSG_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_zone_get_by_name(name);
 }
-#elif defined(HAVE_MSG_GET_AS_BY_NAME)
+#elif defined(HAVE_MSG_GET_AS_BY_NAME) || defined(MSG_get_as_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_get_as_by_name(name);
 }
-#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT)
+#elif defined(HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT) || defined(MSG_environment_as_get_routing_sons)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 {
@@ -122,7 +128,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
-#ifdef HAVE_MSG_ZONE_GET_HOSTS
+#if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
 		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
 #else
@@ -246,7 +252,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 		stack_size = rlim.rlim_cur / 1024;
 #endif
 
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
@@ -254,7 +260,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #endif
 
 	/* Load XML platform */
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	_starpu_simgrid_get_platform_path(3, path, sizeof(path));
 #else
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
@@ -289,7 +295,7 @@ int main(int argc, char **argv)
 			_STARPU_ERROR("Your version of simgrid does not provide smpi_process_get_user_data, we can not continue without it\n");
 		}
 
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 16)
+#if SIMGRID_VERSION >= 31600
 		/* Recent versions of simgrid dlopen() us, so we don't need to
 		 * do circumvolutions, just init MPI early and run the application's main */
 		return _starpu_mpi_simgrid_init(argc, argv);
@@ -329,7 +335,7 @@ int main(int argc, char **argv)
 	return main_ret;
 }
 
-#ifdef HAVE_MSG_PROCESS_ATTACH
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_main();
@@ -339,14 +345,14 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 /* This is called early from starpu_init, so thread functions etc. can work */
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef HAVE_MSG_PROCESS_ATTACH
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (simgrid_started < 2 && !_starpu_simgrid_running_smpi())
 	{
 		/* "Cannot create_maestro with this ContextFactory.
 		 * Try using --cfg=contexts/factory:thread instead."
 		 * See https://github.com/simgrid/simgrid/issues/141 */
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14) /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
+#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
 		xbt_cfg_set_string("contexts/factory", "thread");
 #endif
 		/* We didn't catch application's main. */
@@ -404,7 +410,7 @@ void _starpu_simgrid_init(void)
 
 void _starpu_simgrid_deinit_late(void)
 {
-#ifdef HAVE_MSG_PROCESS_ATTACH
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (simgrid_started == 3)
 	{
 		/* Started with MSG_process_attach, now detach */
@@ -426,7 +432,7 @@ void _starpu_simgrid_deinit(void)
 			if (t->runner)
 			{
 				MSG_sem_release(t->sem);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
 				MSG_process_sleep(1);
@@ -443,7 +449,7 @@ void _starpu_simgrid_deinit(void)
 	{
 		struct worker_runner *w = &worker_runner[i];
 		MSG_sem_release(w->sem);
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 14)
+#if SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
 		MSG_process_sleep(1);
@@ -454,7 +460,7 @@ void _starpu_simgrid_deinit(void)
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
 
-#if SIMGRID_VERSION_MAJOR > 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13)
+#if SIMGRID_VERSION >= 31300
 	/* clean-atexit introduced in simgrid 3.13 */
 	if ( xbt_cfg_get_boolean("clean-atexit"))
 	{
@@ -559,9 +565,9 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
-#ifdef HAVE_SG_HOST_SPEED
+#if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
 			length/1000000.0*sg_host_speed(MSG_host_self()),
-#elif defined HAVE_MSG_HOST_GET_SPEED
+#elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
 			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
 #else
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
@@ -1012,7 +1018,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 
 void _starpu_simgrid_count_ngpus(void)
 {
-#if defined(HAVE_SG_LINK_NAME) && (SIMGRID_VERSION_MAJOR >= 4 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR >= 13))
+#if (defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION >= 31300)
 	unsigned src, dst;
 	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
 
@@ -1022,7 +1028,7 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			msg_host_t srchost, dsthost;
-#ifdef HAVE_SG_HOST_ROUTE
+#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
 			SD_link_t *route;
 #else
@@ -1042,7 +1048,7 @@ void _starpu_simgrid_count_ngpus(void)
 
 			srchost = _starpu_simgrid_get_memnode_host(src);
 			dsthost = _starpu_simgrid_get_memnode_host(dst);
-#ifdef HAVE_SG_HOST_ROUTE
+#if defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
 			sg_host_route(srchost, dsthost, route_dynar);
 			routesize = xbt_dynar_length(route_dynar);
 			route = xbt_dynar_to_array(route_dynar);
@@ -1100,7 +1106,7 @@ void _starpu_simgrid_count_ngpus(void)
 
 				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
-#ifdef HAVE_SG_HOST_ROUTE
+#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
 				SD_link_t *route2;
 				sg_host_route(srchost2, ramhost, route_dynar2);
@@ -1118,13 +1124,13 @@ void _starpu_simgrid_count_ngpus(void)
 						ngpus++;
 						break;
 					}
-#ifdef HAVE_SG_HOST_ROUTE
+#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				free(route2);
 #endif
 			}
 			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
 			starpu_bus_set_ngpus(busid, ngpus);
-#ifdef HAVE_SG_HOST_ROUTE
+#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			free(route);
 #endif
 		}

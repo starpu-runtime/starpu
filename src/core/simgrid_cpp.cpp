@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016-2017                                CNRS
- * Copyright (C) 2012-2017                                Université de Bordeaux
+ * Copyright (C) 2012-2018                                Université de Bordeaux
  * Copyright (C) 2016-2017                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	smx_process_t
 #endif
 	self = SIMIX_process_self();
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	thread_data_t *t = (thread_data_t *) SIMIX_process_self_get_data(self);
 #else
 	thread_data_t *t = (thread_data_t *) SIMIX_process_self_get_data();
@@ -67,7 +67,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
-#ifdef HAVE_SIMCALL_PROCESS_CREATE
+#if defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
@@ -76,34 +76,34 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 	thread_data_t *res = (thread_data_t *) malloc(sizeof(thread_data_t));
 	res->userparam = param;
 	res->code = code;
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#if SIMGRID_VERSION < 31300
 	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
 #else
 	res->father_data = SIMIX_process_self_get_data();
 #endif
 
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 12)
+#if SIMGRID_VERSION < 31200
 	simcall_process_create(&process,
 #else
 	process = simcall_process_create(
 #endif
 	                         name,
 	                         _starpu_simgrid_xbt_thread_create_wrapper, res,
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 14)
+#if SIMGRID_VERSION < 31400
 	                         SIMIX_host_self_get_name(),
 #else
-#  ifdef HAVE_SG_HOST_SELF
+#  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
 	                         sg_host_self(),
 #  else
 	                         SIMIX_host_self(),
 #  endif
 #endif
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+#if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 -1.0,
 #endif
 				 0, NULL,
 	                         /*props */ NULL
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 15)
+#if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 , 0
 #endif
 				 );

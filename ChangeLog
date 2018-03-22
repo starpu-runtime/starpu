@@ -73,6 +73,7 @@ Small features:
     starpu_task_declare_deps_array()
   * Add dependency backward information in debugging mode for gdb's
     starpu-print-task
+  * Add sched_data field in starpu_task structure.
 
 Changes:
   * Vastly improve simgrid simulation time.
