@@ -3531,7 +3531,7 @@ AC_MSG_NOTICE([
 	Maximum number of memory nodes:             $maxnodes
 	Maximum number of task buffers:             $nmaxbuffers
 
-	GPU-GPU transfers: $have_cuda_memcpy_peer
+	GPU-GPU transfers: $enable_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
 
 	Magma enabled:     $have_magma
