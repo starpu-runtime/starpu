@@ -1376,7 +1376,7 @@ fi
 
 # Peer transfers are only supported since CUDA 4.0
 # Disable them if user explicity wants to disable them
-AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=yes])
+AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=$enable_cuda])
 if test x$enable_cuda_memcpy_peer = xyes; then
     AC_DEFINE(STARPU_HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
