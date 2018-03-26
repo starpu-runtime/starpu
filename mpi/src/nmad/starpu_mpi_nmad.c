@@ -73,11 +73,6 @@ static starpu_sem_t callback_sem;
 /*                                                      */
 /********************************************************/
 
-static void nop_acquire_cb(void *arg)
-{
-	starpu_data_release(arg);
-}
-
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ATOMIC_ADD( &pending_request, 1);
