@@ -1119,7 +1119,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
     STARPU_CUDA_LDFLAGS="${__cuda_L}"
-    AC_MSG_CHECKING(whether CUDA is available with: $__cuda_L)
+    AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
     AC_MSG_RESULT()
     LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
     AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
@@ -3005,12 +3005,12 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
         LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
         blas_lib=openblas
       ], [
-	if text x$blas_lib = xopenblas; then
+	if test x$blas_lib = xopenblas; then
 	  AC_MSG_ERROR([cannot find blas-openblas lib])
 	fi
       ])
     ], [
-      if text x$blas_lib = xopenblas; then
+      if test x$blas_lib = xopenblas; then
         AC_MSG_ERROR([cannot find openblas lib])
       fi
     ])
