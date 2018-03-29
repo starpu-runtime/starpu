@@ -87,7 +87,7 @@ struct starpu_unistd_copy_thread
 	starpu_pthread_t thread;
 	starpu_pthread_cond_t cond;
 	starpu_pthread_mutex_t mutex;
-	struct starpu_unistd_work_copy_list *list;
+	struct starpu_unistd_work_copy_list list;
 };
 
 struct starpu_unistd_copy_thread copy_thread[STARPU_MAXNODES][STARPU_MAXNODES];
@@ -590,20 +590,21 @@ static void * starpu_unistd_internal_thread(void * arg)
 {
 	struct starpu_unistd_copy_thread * internal_copy_thread = (struct starpu_unistd_copy_thread *) arg;
 
-	while (internal_copy_thread->run || !starpu_unistd_work_copy_list_empty(internal_copy_thread->list))
+	while (internal_copy_thread->run || !starpu_unistd_work_copy_list_empty(&internal_copy_thread->list))
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&internal_copy_thread->mutex);
-		if (internal_copy_thread->run && starpu_unistd_work_copy_list_empty(internal_copy_thread->list))
+		if (internal_copy_thread->run && starpu_unistd_work_copy_list_empty(&internal_copy_thread->list))
                         STARPU_PTHREAD_COND_WAIT(&internal_copy_thread->cond, &internal_copy_thread->mutex);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&internal_copy_thread->mutex);
 
-		if (!starpu_unistd_work_copy_list_empty(internal_copy_thread->list))
+		if (!starpu_unistd_work_copy_list_empty(&internal_copy_thread->list))
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&internal_copy_thread->mutex);
-			struct starpu_unistd_work_copy * work = starpu_unistd_work_copy_list_pop_back(internal_copy_thread->list);
+			struct starpu_unistd_work_copy * work = starpu_unistd_work_copy_list_pop_back(&internal_copy_thread->list);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&internal_copy_thread->mutex);
 
 			starpu_ssize_t ret = copy_file_range(work->fd_src, &work->off_src, work->fd_dst, &work->off_dst, work->len, work->flags);
+			fprintf(stderr,"copy file range %d %d %lu %lu %zd\n", work->fd_src, work->fd_dst, (unsigned long) work->off_src, (unsigned long) work->off_dst, work->len);
 
 #if !defined(HAVE_COPY_FILE_RANGE) && defined( __NR_copy_file_range)
 			STARPU_PTHREAD_MUTEX_LOCK(&internal_copy_thread->mutex);
@@ -637,7 +638,7 @@ static void initialize_working_thread(struct starpu_unistd_copy_thread *internal
 	STARPU_PTHREAD_MUTEX_INIT(&internal_copy_thread->mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&internal_copy_thread->cond, NULL);
 	internal_copy_thread->run = 1;
-	internal_copy_thread->list = starpu_unistd_work_copy_list_new();
+	starpu_unistd_work_copy_list_init(&internal_copy_thread->list);
 	STARPU_PTHREAD_CREATE(&internal_copy_thread->thread, NULL, starpu_unistd_internal_thread, internal_copy_thread);
 }
 #endif
@@ -697,7 +698,6 @@ static void ending_working_thread(struct starpu_unistd_copy_thread *internal_cop
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&internal_copy_thread->mutex);
 	STARPU_PTHREAD_COND_DESTROY(&internal_copy_thread->cond);
-	starpu_unistd_work_copy_list_delete(internal_copy_thread->list);
 }
 #endif
 
@@ -1058,7 +1058,7 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 
 
 	STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
-	starpu_unistd_work_copy_list_push_front(thread->list, work);
+	starpu_unistd_work_copy_list_push_front(&thread->list, work);
         STARPU_PTHREAD_COND_BROADCAST(&thread->cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
 
