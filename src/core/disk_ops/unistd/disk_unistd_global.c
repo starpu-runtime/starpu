@@ -156,7 +156,9 @@ struct starpu_unistd_wait
 static void _starpu_unistd_init(struct starpu_unistd_global_obj *obj, int descriptor, char *path, size_t size)
 {
 	STARPU_HG_DISABLE_CHECKING(starpu_unistd_opened_files);
+#ifdef STARPU_UNISTD_USE_COPY
 	STARPU_HG_DISABLE_CHECKING(starpu_unistd_copy_works);
+#endif
 	if (starpu_unistd_opened_files >= MAX_OPEN_FILES)
 	{
 		/* Too many opened files, avoid keeping this one opened */
