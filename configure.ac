@@ -1119,7 +1119,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
     STARPU_CUDA_LDFLAGS="${__cuda_L}"
-    AC_MSG_CHECKING(whether CUDA is available with: $__cuda_L)
+    AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
     AC_MSG_RESULT()
     LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
     AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
@@ -1376,15 +1376,8 @@ fi
 
 # Peer transfers are only supported since CUDA 4.0
 # Disable them if user explicity wants to disable them
-AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=yes])
-have_cuda_memcpy_peer=no
-if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
-    SAVED_LDFLAGS="${LDFLAGS}"
-    LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
-    AC_CHECK_FUNC([cudaMemcpyPeer], have_cuda_memcpy_peer=yes, have_cuda_memcpy_peer=no)
-    LDFLAGS="${SAVED_LDFLAGS}"
-fi
-if test x$have_cuda_memcpy_peer = xyes; then
+AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=$enable_cuda])
+if test x$enable_cuda_memcpy_peer = xyes; then
     AC_DEFINE(STARPU_HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
 fi
 
@@ -2834,12 +2827,12 @@ AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp)
 
 if test x$enable_simgrid = xno; then
-  AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test -n "$OPENMP_CFLAGS"])
   if test -n "{OPENMP_CFLAGS}"; then
      CFLAGS="${CFLAGS} ${OPENMP_CFLAGS}"
      STARPU_OMP_LDFLAGS="${OPENMP_CFLAGS}"
   fi
 fi
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS"])
 
 ###############################################################################
 #                                                                             #
@@ -3032,12 +3025,12 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
         LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
         blas_lib=openblas
       ], [
-	if text x$blas_lib = xopenblas; then
+	if test x$blas_lib = xopenblas; then
 	  AC_MSG_ERROR([cannot find blas-openblas lib])
 	fi
       ])
     ], [
-      if text x$blas_lib = xopenblas; then
+      if test x$blas_lib = xopenblas; then
         AC_MSG_ERROR([cannot find openblas lib])
       fi
     ])
@@ -3558,7 +3551,7 @@ AC_MSG_NOTICE([
 	Maximum number of memory nodes:             $maxnodes
 	Maximum number of task buffers:             $nmaxbuffers
 
-	GPU-GPU transfers: $have_cuda_memcpy_peer
+	GPU-GPU transfers: $enable_cuda_memcpy_peer
 	CUDA Map:          $enable_cuda_map
 	Allocation cache:  $enable_allocation_cache
 

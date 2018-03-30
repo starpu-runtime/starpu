@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015,2017                           CNRS
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2009-2011,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2015,2017-2018            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -199,6 +199,10 @@ children.
 
 \p gathering_node can be set to -1 to let the runtime decide which memory node
 should be used to gather the pieces.
+
+This call is asynchronous, it only submits that the unpartitioning should be
+done, so that the \p children handles should not be used to submit tasks any
+more, and \p initial_handle can now be used again to submit tasks.
 
 \fn void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
 \ingroup API_Data_Partition
