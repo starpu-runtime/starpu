@@ -176,6 +176,9 @@ struct starpu_task
 
 	unsigned int mf_skip:1;
 
+	unsigned scheduled:1;
+	unsigned prefetched:1;
+
 	unsigned workerid;
 	unsigned workerorder;
 
@@ -200,7 +203,6 @@ struct starpu_task
 	struct starpu_task *prev;
 	struct starpu_task *next;
 	void *starpu_private;
-	unsigned prefetched;
 #ifdef STARPU_OPENMP
 	struct starpu_omp_task *omp_task;
 #else
