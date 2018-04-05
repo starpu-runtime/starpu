@@ -48,9 +48,9 @@ struct starpu_codelet stencil5_cl =
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	10
-#  define X         	2
-#  define Y         	2
+#  define NITER_DEF	5
+#  define X         	4
+#  define Y         	4
 #elif !defined(STARPU_LONG_CHECK)
 #  define NITER_DEF	10
 #  define X         	5
