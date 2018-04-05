@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014                                Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -171,8 +171,6 @@ struct starpu_task
 	unsigned detach:1;
 	unsigned destroy:1;
 	unsigned regenerate:1;
-
-	unsigned scheduled:1;
 
 	unsigned int mf_skip:1;
 
