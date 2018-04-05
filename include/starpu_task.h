@@ -187,6 +187,9 @@ struct starpu_task
 
 	unsigned no_submitorder:1; /* do not allocate a submitorder id for this task */
 
+	unsigned scheduled:1;
+	unsigned prefetched:1;
+
 	unsigned workerid;
 	unsigned workerorder;
 	uint32_t *workerids;
@@ -195,7 +198,6 @@ struct starpu_task
 	int priority;
 
 	enum starpu_task_status status;
-	unsigned char scheduled:1;
 
 	int magic;
 
@@ -215,7 +217,6 @@ struct starpu_task
 	struct starpu_task *prev;
 	struct starpu_task *next;
 	void *starpu_private;
-	unsigned prefetched;
 #ifdef STARPU_OPENMP
 	struct starpu_omp_task *omp_task;
 #else
