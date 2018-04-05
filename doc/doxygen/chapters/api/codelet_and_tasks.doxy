@@ -371,6 +371,10 @@ starpu_codelet_display_stats() for details).
 Optional name of the codelet. This can be useful for debugging
 purposes.
 
+\var const char *starpu_codelet::color
+    Optional color of the codelet. This can be useful for debugging
+    purposes.
+
 \var const char *starpu_codelet::flags
 Various flags for the codelet.
 
@@ -669,6 +673,9 @@ properly initialised.
     to StarPU (::STARPU_TASK_TYPE_INTERNAL), a data acquisition
     synchronization task (STARPU_TASK_TYPE_DATA_ACQUIRE), or a normal task
     (::STARPU_TASK_TYPE_NORMAL)
+
+\var int starpu_task::color
+    This field allows to specify the color of the task to be used in dag.dot.
 
 \var unsigned starpu_task::sched_ctx
 Scheduling context.

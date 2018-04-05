@@ -121,6 +121,7 @@ struct starpu_codelet
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 
 	const char *name;
+	unsigned color;
 
 	int flags;
 };
@@ -186,6 +187,7 @@ struct starpu_task
 
 	int magic;
 	unsigned type;
+	unsigned color;
 
 	unsigned sched_ctx;
 	int hypervisor_tag;
@@ -238,6 +240,7 @@ struct starpu_task
 	.starpu_private = NULL,				\
 	.magic = 42,                  			\
 	.type = 0,					\
+	.color = 0,					\
 	.sched_ctx = STARPU_NMAX_SCHED_CTXS,		\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\

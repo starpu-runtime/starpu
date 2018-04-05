@@ -103,6 +103,8 @@
 
 #define _STARPU_FUT_TASK_NAME	0x512b
 
+#define _STARPU_FUT_TASK_COLOR	0x512d
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -657,6 +659,14 @@ do {										\
 	}									\
 } while(0);
 
+#define _STARPU_TRACE_TASK_COLOR(job)						\
+do { \
+	if ((job)->task->color != 0) \
+		FUT_DO_PROBE3(_STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color, _starpu_gettid()); \
+	else if ((job)->task->cl && (job)->task->cl->color != 0) \
+		FUT_DO_PROBE3(_STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color, _starpu_gettid()); \
+} while(0)
+
 #define _STARPU_TRACE_TASK_DONE(job)						\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid())
 
@@ -1088,6 +1098,7 @@ do {										\
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {} while(0)
+#define _STARPU_TRACE_TASK_COLOR(a)		do {} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
 #define _STARPU_TRACE_DATA_NAME(a, b)		do {} while(0)
