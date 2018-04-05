@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2015,2017-2018                 Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2013                                     Inria
@@ -43,6 +43,7 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	struct starpu_task *task = create_task(TAG11(k));
 
 	task->cl = &cl11;
+	task->color = 0xffff00;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -69,6 +70,7 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	struct starpu_task *task = create_task(TAG12(k, j));
 
 	task->cl = &cl12;
+	task->color = 0x8080ff;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -100,6 +102,7 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &cl21;
+	task->color = 0x8080c0;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -134,6 +137,7 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
 	task->cl = &cl22;
+	task->color = 0x00ff00;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i); /* produced by TAG21(k, i) */
