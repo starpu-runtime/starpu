@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -99,10 +99,14 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				}
 			}
 		}
+		_STARPU_TRACE_TASK_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
 	}
 	else
+	{
+		_STARPU_TRACE_TASK_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	}
 	_starpu_sched_ctx_unlock_read(sched_ctx->id);
 	_STARPU_TASK_BREAK_ON(task, exec);
 }
