@@ -752,6 +752,13 @@ the configuration of a task allocated with starpu_task_create().
     right value. This will hence avoid submitting tasks which have not
     been properly initialised.
 
+\var unsigned starpu_task::type
+    This field allows to specify the type of task, for filtering
+    out tasks in profiling outputs, whether it is really internal
+    to StarPU (::STARPU_TASK_TYPE_INTERNAL), a data acquisition
+    synchronization task (STARPU_TASK_TYPE_DATA_ACQUIRE), or a normal task
+    (::STARPU_TASK_TYPE_NORMAL)
+
 \var unsigned starpu_task::sched_ctx
     Scheduling context.
 
