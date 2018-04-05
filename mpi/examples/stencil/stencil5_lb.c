@@ -173,7 +173,11 @@ int main(int argc, char **argv)
 		return 77;
 	}
 
-	setenv("LB_HEAT_SLEEP_THRESHOLD", "5", 1);
+	{
+		char sleep_thr[10];
+		snprintf(sleep_thr, 10, "%d", Y);
+		setenv("LB_HEAT_SLEEP_THRESHOLD", sleep_thr, 1);
+	}
 	starpu_mpi_lb_init("heat", &itf);
 
 	parse_args(argc, argv);
@@ -247,7 +251,7 @@ int main(int argc, char **argv)
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_nodes[x][y].data_handle,
 						       STARPU_R, data_nodes[x-1][y].data_handle, STARPU_R, data_nodes[x+1][y].data_handle,
 						       STARPU_R, data_nodes[x][y-1].data_handle, STARPU_R, data_nodes[x][y+1].data_handle,
-						       STARPU_TAG_ONLY, ((starpu_tag_t)X)*x + y,
+						       STARPU_TAG_ONLY, ((starpu_tag_t)Y)*x + y,
 						       0);
 			}
 		}
