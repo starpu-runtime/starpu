@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -220,12 +220,14 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
+		wrapper->pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		if (pre_sync_jobid)
 			*pre_sync_jobid = _starpu_get_job_associated_to_task(wrapper->pre_sync_task)->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
+		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		if (post_sync_jobid)
 			*post_sync_jobid = _starpu_get_job_associated_to_task(wrapper->post_sync_task)->job_id;
 
@@ -348,10 +350,12 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		wrapper.pre_sync_task = starpu_task_create();
 		wrapper.pre_sync_task->name = "_starpu_data_acquire_pre";
 		wrapper.pre_sync_task->detach = 0;
+		wrapper.pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
 		wrapper.post_sync_task = starpu_task_create();
 		wrapper.post_sync_task->name = "_starpu_data_acquire_post";
 		wrapper.post_sync_task->detach = 1;
+		wrapper.post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);

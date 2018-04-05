@@ -128,6 +128,7 @@ struct starpu_codelet
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 
 	const char *name;
+	unsigned color;
 
 	int flags;
 };
@@ -200,6 +201,8 @@ struct starpu_task
 	enum starpu_task_status status;
 
 	int magic;
+	unsigned type;
+	unsigned color;
 
 	unsigned sched_ctx;
 	int hypervisor_tag;
@@ -224,6 +227,10 @@ struct starpu_task
 #endif
 	void *sched_data;
 };
+
+#define STARPU_TASK_TYPE_NORMAL		0
+#define STARPU_TASK_TYPE_INTERNAL	(1<<0)
+#define STARPU_TASK_TYPE_DATA_ACQUIRE	(1<<1)
 
 /* Note: remember to update starpu_task_init as well */
 #define STARPU_TASK_INITIALIZER 			\
@@ -251,6 +258,8 @@ struct starpu_task
 	.predicted_start = NAN,				\
 	.starpu_private = NULL,				\
 	.magic = 42,                  			\
+	.type = 0,					\
+	.color = 0,					\
 	.sched_ctx = STARPU_NMAX_SCHED_CTXS,		\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
