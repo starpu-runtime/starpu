@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2008-2014,2016-2018                      Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,6 +39,8 @@ static void usage()
 	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
 	fprintf(stderr, "   -no-bus             do not show PCI bus transfers\n");
 	fprintf(stderr, "   -no-flops           do not show flops\n");
+	fprintf(stderr, "   -no-acquire         do not show application data acquisitions tasks in DAG\n");
+	fprintf(stderr, "   -internal           show StarPU-internal tasks in DAG\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
@@ -103,6 +105,20 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-flops") == 0)
 		{
 			options.no_flops = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-no-acquire") == 0)
+		{
+			options.no_acquire = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-internal") == 0)
+		{
+			options.internal = 1;
 			reading_input_filenames = 0;
 			continue;
 		}

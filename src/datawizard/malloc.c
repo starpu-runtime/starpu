@@ -184,6 +184,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			task->callback_func = NULL;
 			task->cl = &malloc_pinned_cl;
 			task->cl_arg = &s;
+			task->type = STARPU_TASK_TYPE_INTERNAL;
 
 			task->synchronous = 1;
 
@@ -215,6 +216,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //			task->cl = &malloc_pinned_cl;
 //			task->cl_arg = &s;
 //			task->synchronous = 1;
+//			task->type = STARPU_TASK_TYPE_INTERNAL;
 //
 //			_starpu_exclude_task_from_dag(task);
 //
@@ -416,6 +418,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 				task->cl = &free_pinned_cl;
 				task->cl_arg = A;
 				task->synchronous = 1;
+				task->type = STARPU_TASK_TYPE_INTERNAL;
 
 				_starpu_exclude_task_from_dag(task);
 
@@ -440,6 +443,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //		task->cl = &free_pinned_cl;
 //		task->cl_arg = A;
 //		task->synchronous = 1;
+//		task->type = STARPU_TASK_TYPE_INTERNAL;
 //
 //		_starpu_exclude_task_from_dag(task);
 //
