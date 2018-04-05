@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2017                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2017                                CNRS
  *
@@ -677,10 +677,10 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_TAG_DEPS, tag_child, tag_father)
 
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id)
+	FUT_DO_PROBE3(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type)
 
-#define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ_id)		\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ_id))
+#define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
+	FUT_DO_PROBE3(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type)
 
 #define _STARPU_TRACE_TASK_NAME(job)						\
 do {										\
@@ -771,7 +771,7 @@ do {										\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
-	FUT_DO_PROBE6(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, _starpu_gettid());
+	FUT_DO_PROBE7(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, (job)->task->type, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
