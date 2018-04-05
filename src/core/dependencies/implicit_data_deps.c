@@ -88,7 +88,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		) && handle->last_submitted_ghost_sync_id_is_valid)
 	{
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id,
-			_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
+			_starpu_get_job_associated_to_task(pre_sync_task));
 		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_sync_id, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
@@ -168,7 +168,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 		{
 			unsigned long id = ghost_accessors_id->id;
 			_STARPU_TRACE_GHOST_TASK_DEPS(id,
-				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
+				_starpu_get_job_associated_to_task(pre_sync_task));
 			_starpu_add_ghost_dependency(handle, id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
@@ -240,7 +240,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 #endif
 		)
 		{
-			_STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job->job_id);
+			_STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job);
 			_starpu_bound_task_dep(post_sync_job, pre_sync_job);
 		}
 
@@ -302,6 +302,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					else
 						sync_task->name = "sync_task";
 					sync_task->cl = NULL;
+					sync_task->type = post_sync_task->type;
 
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);
@@ -596,6 +597,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 		sync_task->name = sync_name;
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
+		sync_task->type = STARPU_TASK_TYPE_INTERNAL;
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */

@@ -415,6 +415,10 @@ compiler implicitly do it in e.g. static storage case.
     Optional name of the codelet. This can be useful for debugging
     purposes.
 
+\var const char *starpu_codelet::color
+    Optional color of the codelet. This can be useful for debugging
+    purposes.
+
 \var const char *starpu_codelet::flags
     Various flags for the codelet.
 
@@ -751,6 +755,16 @@ the configuration of a task allocated with starpu_task_create().
     starpu_task_submit() will fail if the field does not have the
     right value. This will hence avoid submitting tasks which have not
     been properly initialised.
+
+\var unsigned starpu_task::type
+    This field allows to specify the type of task, for filtering
+    out tasks in profiling outputs, whether it is really internal
+    to StarPU (::STARPU_TASK_TYPE_INTERNAL), a data acquisition
+    synchronization task (STARPU_TASK_TYPE_DATA_ACQUIRE), or a normal task
+    (::STARPU_TASK_TYPE_NORMAL)
+
+\var int starpu_task::color
+    This field allows to specify the color of the task to be used in dag.dot.
 
 \var unsigned starpu_task::sched_ctx
     Scheduling context.

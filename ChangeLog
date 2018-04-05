@@ -98,6 +98,9 @@ Small features:
    starpu_task_insert_data_process_arg,
    starpu_task_insert_data_process_array_arg,
    starpu_task_insert_data_process_mode_array_arg
+   * Do not show internal tasks in fxt dag by default. Allow to hide
+   acquisitions too.
+   * Add a way to choose the dag.dot colors.
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
