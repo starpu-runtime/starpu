@@ -35,7 +35,7 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -67,6 +67,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 			_starpu_clock_gettime(&worker->cl_start);
 			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
+		_starpu_job_notify_start(j, perf_arch);
 	}
 
 	if (starpu_top)

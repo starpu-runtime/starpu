@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2014, 2018                     Université de Bordeaux
  * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,4 +36,60 @@ void _starpu_notify_dependencies(struct _starpu_job *j)
 	if (j->task->use_tag)
 		_starpu_notify_tag_dependencies(j->tag);
 
+}
+
+/* TODO: make this a hashtable indexed by func+data and pass that through data. */
+static starpu_notify_ready_soon_func notify_ready_soon_func;
+static void *notify_ready_soon_func_data;
+
+struct _starpu_notify_job_start_data {
+	double delay;
+};
+
+void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, void *data)
+{
+	STARPU_ASSERT(!notify_ready_soon_func);
+	notify_ready_soon_func = f;
+	notify_ready_soon_func_data = data;
+}
+
+/* Called when a job has just started, so we can notify tasks which were waiting
+ * only for this one when they can expect to start */
+static void __starpu_job_notify_start(struct _starpu_job *j, double delay);
+void _starpu_job_notify_start(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch)
+{
+	double delay;
+
+	if (!notify_ready_soon_func)
+		return;
+
+	delay = starpu_task_expected_length(j->task, perf_arch, j->nimpl);
+	if (isnan(delay) || _STARPU_IS_ZERO(delay))
+		return;
+
+	__starpu_job_notify_start(j, delay);
+}
+
+static void __starpu_job_notify_start(struct _starpu_job *j, double delay)
+{
+	_starpu_notify_job_start_data data = { .delay = delay };
+
+	_starpu_notify_job_start_tasks(j, &data);
+
+	if (j->task->use_tag)
+		_starpu_notify_job_start_tag_dependencies(j->tag, &data);
+
+	/* TODO: check data notification */
+}
+
+void _starpu_job_notify_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data)
+{
+	struct starpu_task *task = j->task;
+	notify_ready_soon_func(notify_ready_soon_func_data, task, data->delay);
+	if (!task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE)
+		/* This task will immediately terminate, so transition this */
+		__starpu_job_notify_start(_starpu_get_job_associated_to_task(task), data->delay);
+	if (j->quick_next)
+		/* This job is actually a pre_sync job with a post_sync job to be released right after */
+		_starpu_job_notify_ready_soon(j->quick_next, data);
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2014,2016                                Inria
  *
@@ -66,6 +66,11 @@ static void _starpu_task_add_succ(struct _starpu_job *j, struct _starpu_cg *cg)
 void _starpu_notify_task_dependencies(struct _starpu_job *j)
 {
 	_starpu_notify_cg_list(j, &j->job_successors);
+}
+
+void _starpu_notify_job_start_tasks(struct _starpu_job *j, _starpu_notify_job_start_data *data)
+{
+	_starpu_notify_job_start_cg_list(j, &j->job_successors, data);
 }
 
 /* task depends on the tasks in task array */

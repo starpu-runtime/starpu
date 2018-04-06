@@ -383,6 +383,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	if (j->reduction_task)
 		return;
 
+	j->sequential_consistency = 1;
+
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
@@ -398,6 +400,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 			continue;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+		if (!handle->sequential_consistency)
+			j->sequential_consistency = 0;
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
