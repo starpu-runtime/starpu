@@ -288,6 +288,64 @@ void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg
 	}
 }
 
+/* Note: in case of a tag, it must be already locked */
+void _starpu_notify_job_ready_soon_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg, _starpu_notify_job_start_data *data)
+{
+	STARPU_ASSERT(cg);
+
+	if (cg->remaining == 1)
+	{
+		/* the group is to be completed */
+		switch (cg->cg_type)
+		{
+			case STARPU_CG_APPS:
+				/* Not a task */
+				break;
+
+			case STARPU_CG_TAG:
+			{
+				struct _starpu_cg_list *tag_successors;
+				struct _starpu_tag *tag;
+
+				tag = cg->succ.tag;
+				tag_successors = &tag->tag_successors;
+
+				/* Note: the tag is already locked by the
+				 * caller. */
+				if ((tag->state == STARPU_BLOCKED) &&
+					(tag_successors->ndeps == tag_successors->ndeps_completed + 1))
+				{
+					/* This is to be ready */
+					_starpu_enforce_deps_notify_job_ready_soon(tag->job, data, 1);
+				}
+				break;
+			}
+
+ 		        case STARPU_CG_TASK:
+			{
+				struct _starpu_cg_list *job_successors;
+				struct _starpu_job *j;
+
+				j = cg->succ.job;
+				job_successors = &j->job_successors;
+
+				if (job_successors->ndeps == job_successors->ndeps_completed + 1 &&
+					j->task->status == STARPU_TASK_BLOCKED_ON_TASK)
+				{
+					/* This is to be ready */
+					_starpu_enforce_deps_notify_job_ready_soon(j, data, 0);
+				}
+
+				break;
+			}
+
+			default:
+				STARPU_ABORT();
+		}
+	}
+}
+
+
 /* Caller just has to promise that the list will not disappear.
  * _starpu_notify_cg_list protects the list itself.
  * No job lock should be held, since we might want to immediately call the callback of an empty task.
@@ -330,5 +388,41 @@ void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors)
 		_starpu_spin_lock(&successors->lock);
 	}
 	successors->terminated = 1;
+	_starpu_spin_unlock(&successors->lock);
+}
+
+/* Caller just has to promise that the list will not disappear.
+ * _starpu_notify_cg_list protects the list itself.
+ * No job lock should be held, since we might want to immediately call the callback of an empty task.
+ */
+void _starpu_notify_job_start_cg_list(void *pred, struct _starpu_cg_list *successors, _starpu_notify_job_start_data *data)
+{
+	unsigned succ;
+
+	_starpu_spin_lock(&successors->lock);
+	/* Note: some thread might be concurrently adding other items */
+	for (succ = 0; succ < successors->nsuccs; succ++)
+	{
+		struct _starpu_cg *cg = successors->succ[succ];
+		_starpu_spin_unlock(&successors->lock);
+		STARPU_ASSERT(cg);
+		unsigned cg_type = cg->cg_type;
+
+		struct _starpu_tag *cgtag = NULL;
+
+		if (cg_type == STARPU_CG_TAG)
+		{
+			cgtag = cg->succ.tag;
+			STARPU_ASSERT(cgtag);
+			_starpu_spin_lock(&cgtag->lock);
+		}
+
+		_starpu_notify_job_ready_soon_cg(pred, cg, data);
+
+		if (cg_type == STARPU_CG_TAG)
+			_starpu_spin_unlock(&cgtag->lock);
+
+		_starpu_spin_lock(&successors->lock);
+	}
 	_starpu_spin_unlock(&successors->lock);
 }

@@ -674,6 +674,24 @@ unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j)
 }
 #endif
 
+/* This is called when a tag or task dependency is to be released.  */
+void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag)
+{
+	if (!j->submitted)
+		/* It's not even submitted actually */
+		return;
+	struct _starpu_cg_list *job_successors = &j->job_successors;
+        /* tag is 1 when we got woken up by a tag dependency about to be
+         * released, and thus we have to check the exact numbner of
+         * dependencies.  Otherwise it's a task dependency which is about to be
+         * released.  */
+	if (job_successors->ndeps != job_successors->ndeps_completed + 1 - tag)
+		/* There are still other dependencies */
+		return;
+
+	_starpu_enforce_data_deps_notify_job_ready_soon(j, data);
+}
+
 /* Ordered tasks are simply recorded as they arrive in the local_ordered_tasks
  * ring buffer, indexed by order, and pulled from its head. */
 /* TODO: replace with perhaps a heap */
