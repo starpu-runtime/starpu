@@ -1145,7 +1145,6 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 
 	int profiling = starpu_profiling_status_get();
 
-	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	unsigned local_memory_node = worker->memory_node;
@@ -1157,7 +1156,9 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = descrs[index].node;
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, index);
 		if (node == -1)
 			node = local_memory_node;
 
