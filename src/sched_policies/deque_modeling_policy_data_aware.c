@@ -43,7 +43,7 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
-#define NOTIFY_READY_SOON
+//#define NOTIFY_READY_SOON
 
 struct _starpu_dmda_data
 {
