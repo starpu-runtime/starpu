@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2017                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1016,7 +1016,9 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = descrs[index].node;
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, index);
 		if (node == -1)
 			node = local_memory_node;
 
