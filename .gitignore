@@ -20,6 +20,8 @@
 *.la
 *.swp
 .dirstamp
+.tramp_history
+*.pc
 stamp-h[0-9]*
 starpu.log
 /gcc-plugin/include/starpu-gcc/config.h
