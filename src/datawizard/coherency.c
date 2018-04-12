@@ -910,7 +910,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
+int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned target_node, int prio)
 {
 	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -920,6 +920,11 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned n
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, index);
+		if (node == -1)
+			node = target_node;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -945,7 +950,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 	return starpu_prefetch_task_input_on_node_prio(task, node, prio);
 }
 
-int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
+int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned target_node, int prio)
 {
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
@@ -954,6 +959,11 @@ int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsig
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, index);
+		if (node == -1)
+			node = target_node;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
