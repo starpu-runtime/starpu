@@ -517,12 +517,12 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index);
-		starpu_data_handle_t mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index);
+		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index);
 
 		if (index)
 		{
 			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index - 1);
-			starpu_data_handle_t mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index - 1);
+			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index - 1);
 			if (handle_m1 == handle && mode_m1 == mode)
 				/* See _starpu_detect_implicit_data_deps */
 				continue;
