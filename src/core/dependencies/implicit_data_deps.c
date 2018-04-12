@@ -391,13 +391,27 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer);
+		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer);
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
 		if (mode & STARPU_SCRATCH)
 			continue;
+
+		if (buffer)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer - 1);
+			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer - 1);
+			if (handle_m1 == handle && mode_m1 == mode)
+				/* We have already added dependencies for this
+				 * data, skip it. This reduces the number of
+				 * dependencies, and allows notify_soon to work
+				 * when a task uses the same data several times
+				 * (otherwise it will not be able to find out that the two
+				 * dependencies will be over at the same time) */
+				continue;
+		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		if (!handle->sequential_consistency)
