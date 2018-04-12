@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012-2014,2016-2017                      Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -87,7 +87,7 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
-StarPU 1.2.4 (svn revision xxx)
+StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
 ==============================================
 
 Small features:
@@ -97,11 +97,11 @@ Small features:
    * Add starpu_codelet_pack_arg_init, starpu_codelet_pack_arg,
      starpu_codelet_pack_arg_fini for more fine-grain packing capabilities.
    * Add starpu_task_insert_data_make_room,
-   starpu_task_insert_data_process_arg,
-   starpu_task_insert_data_process_array_arg,
-   starpu_task_insert_data_process_mode_array_arg
+     starpu_task_insert_data_process_arg,
+     starpu_task_insert_data_process_array_arg,
+     starpu_task_insert_data_process_mode_array_arg
    * Do not show internal tasks in fxt dag by default. Allow to hide
-   acquisitions too.
+     acquisitions too.
    * Add a way to choose the dag.dot colors.
 
 StarPU 1.2.3 (svn revision 22444)
