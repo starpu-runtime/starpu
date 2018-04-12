@@ -368,8 +368,6 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
 
-	_starpu_job_set_ordered_buffers(j);
-
 	return _submit_job_enforce_data_deps(j, 0);
 }
 

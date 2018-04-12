@@ -685,7 +685,10 @@ int starpu_task_submit(struct starpu_task *task)
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation)
+	{
+		_starpu_job_set_ordered_buffers(j);
 		_starpu_detect_implicit_data_deps(task);
+	}
 
 	if (bundle)
 	{
