@@ -2168,14 +2168,21 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	unsigned numa;
 	for (numa = 0; numa < nnuma; numa++)
 	{
+		unsigned numa_logical_id;
+		unsigned numa_physical_id;
 #if defined(STARPU_HAVE_HWLOC)
 		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa);
-		unsigned numa_logical_id = obj->logical_index;
-		unsigned numa_physical_id = obj->os_index;
-#else
-		unsigned numa_logical_id = 0;
-		unsigned numa_physical_id = 0;
+		if (obj)
+		{
+			numa_logical_id = obj->logical_index;
+			numa_physical_id = obj->os_index;
+		}
+		else
 #endif
+		{
+			numa_logical_id = 0;
+			numa_physical_id = 0;
+		}
 		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
 
