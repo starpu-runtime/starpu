@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2018                           CNRS
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2009-2010,2014-2015,2017                 Université de Bordeaux
  *
@@ -98,7 +98,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 #endif
 			else
 			{
-				/* I don't own that index, but will need it for my computations */
+				/* I don't own this index, but will need it for my computations */
 				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
 				starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
 						ld, size/nblocks, size/nblocks, sizeof(float));

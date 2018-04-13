@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015,2017                           CNRS
+ * Copyright (C) 2011-2015,2017,2018                           CNRS
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  *
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				/* I don't own that index, but will need it for my computations */
+				/* I don't own this index, but will need it for my computations */
 				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
 				starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
 							    SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));

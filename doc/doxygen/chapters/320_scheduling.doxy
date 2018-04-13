@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011-2012,2016                           Inria
  * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
@@ -20,7 +20,7 @@
 
 \section TaskSchedulingPolicy Task Scheduling Policies
 
-The basics of the scheduling policy are that:
+The basics of the scheduling policy are the following:
 
 <ul>
 <li>The scheduler gets to schedule tasks (<c>push</c> operation) when they become
@@ -80,7 +80,7 @@ using an <b>eager</b> fallback policy.
 
 <b>Troubleshooting:</b> Configuring and recompiling StarPU using the
 <c>--enable-verbose</c> configure flag displays some statistics at the end of
-execution about the percentage of tasks that have been scheduled by a DM*
+execution about the percentage of tasks which have been scheduled by a DM*
 family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
 have performance models enabled.
@@ -173,7 +173,7 @@ consumption for that series of tasks, divide it by a thousand, repeat for
 varying kinds of tasks and task sizes, and eventually feed StarPU
 with these manual measurements through starpu_perfmodel_update_history().
 For instance, for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get
-the current consumption in Watt. Multiplying that value by the average duration
+the current consumption in Watt. Multiplying this value by the average duration
 of a single task gives the consumption of the task in Joules, which can be given
 to starpu_perfmodel_update_history().
 
@@ -243,7 +243,7 @@ starpu_sched_policy::push_task method is called. When a worker is idle, the
 starpu_sched_policy::pop_task method is called to get a task. It is up to the
 scheduler to implement what is between. A simple eager scheduler is for instance
 to make starpu_sched_policy::push_task push the task to a global list, and make
-starpu_sched_policy::pop_task pop from that list.
+starpu_sched_policy::pop_task pop from this list.
 
 The \ref starpu_sched_policy section provides the exact rules that govern the
 methods of the policy.
@@ -280,7 +280,7 @@ instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
 
 For performance reasons, most of the schedulers shipped with StarPU use simple
 list-scheduling heuristics, assuming that the application has already set
-priorities.  That is why they do their scheduling between when tasks become
+priorities.  This is why they do their scheduling between when tasks become
 available for execution and when a worker becomes idle, without looking at the
 task graph.
 
@@ -315,10 +315,10 @@ Precise debugging can also be performed by using the
 \ref STARPU_TASK_BREAK_ON_POP, and \ref STARPU_TASK_BREAK_ON_EXEC environment variables.
 By setting the job_id of a task
 in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
-scheduled, pushed, or popped by the scheduler. That means that when one notices
+scheduled, pushed, or popped by the scheduler. This means that when one notices
 that a task is being scheduled in a seemingly odd way, one can just reexecute
 the application in a debugger, with some of those variables set, and the
-execution will stop exactly at the scheduling points of that task, thus allowing
+execution will stop exactly at the scheduling points of this task, thus allowing
 to inspect the scheduler state, etc.
 
 */

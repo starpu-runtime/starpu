@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2009-2011,2014-2015                      Université de Bordeaux
  *
@@ -129,7 +129,7 @@ If the field starpu_task::synchronous is non-zero, task submission
 will be synchronous: the function starpu_task_submit() will not return
 until the task has been executed. Note that the function starpu_shutdown()
 does not guarantee that asynchronous tasks have been executed before
-it returns, starpu_task_wait_for_all() can be used to that effect, or
+it returns, starpu_task_wait_for_all() can be used to this effect, or
 data can be unregistered (starpu_data_unregister()), which will
 implicitly wait for all the tasks scheduled to work on it, unless
 explicitly disabled thanks to
@@ -199,7 +199,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 \endcode
 
 As said before, the field starpu_codelet::nbuffers specifies the
-number of data buffers that are manipulated by the codelet. It does
+number of data buffers which are manipulated by the codelet. It does
 not count the argument --- the parameter <c>cl_arg</c> of the function
 <c>cpu_func</c> --- since it is not managed by our data management
 library, but just contains trivial parameters.
@@ -312,7 +312,7 @@ struct starpu_codelet cl =
 \endcode
 
 We create a codelet which may only be executed on the CPUs. The
-optional field starpu_codelet::where is a bitmask that defines where
+optional field starpu_codelet::where is a bitmask which defines where
 the codelet may be executed. Here, the value ::STARPU_CPU means that
 only CPUs can execute this codelet. When the optional field
 starpu_codelet::where is unset, its value is automatically set based
@@ -372,7 +372,7 @@ require more typing.
 <li>
 It registers the memory pointed to by <c>vector</c>.  Eventually,
 when OpenCL or CUDA task implementations are added, this will allow
-StarPU to transfer that memory region between GPUs and the main memory.
+StarPU to transfer the memory region between GPUs and the main memory.
 Removing this <c>pragma</c> is an error.
 </li>
 <li>
@@ -407,7 +407,7 @@ advantage of these newfangled GPUs that your lab just bought, don't you?
 So, let's add an OpenCL implementation of the task <c>vector_scal</c>.
 We assume that the OpenCL kernel is available in a file,
 <c>vector_scal_opencl_kernel.cl</c>, not shown here.  The OpenCL task
-implementation is similar to that used with the standard C API
+implementation is similar to the one used with the standard C API
 (\ref DefinitionOfTheOpenCLKernel).  It is declared and defined
 in our C file like this:
 
@@ -470,7 +470,7 @@ starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
 
 And that's it.  The task <c>vector_scal</c> now has an additional
 implementation, for OpenCL, which StarPU's scheduler may choose to use
-at run-time.  Unfortunately, the <c>vector_scal_opencl</c> above still
+at runtime.  Unfortunately, the <c>vector_scal_opencl</c> above still
 has to go through the common OpenCL boilerplate; in the future,
 additional extensions will automate most of it.
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2011,2013,2015-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
-				/* I don't own that index, but will need it for my computations */
+				/* I don't own this index, but will need it for my computations */
 				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_nodes[x][y].data_handle, -1, (uintptr_t)NULL, sizeof(float));
 			}

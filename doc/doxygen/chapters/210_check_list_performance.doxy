@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017                      Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,20 +26,20 @@ performance, we give below a list of features which should be checked.
 For a start, you can use \ref OfflinePerformanceTools to get a Gantt chart which
 will show roughly where time is spent, and focus correspondingly.
 
-\section ConfigurationImprovePerformance Configuration That May Improve Performance
+\section ConfigurationImprovePerformance Configuration Which May Improve Performance
 
 The \ref enable-fast "--enable-fast" configuration option disables all
 assertions. This makes StarPU more performant for really small tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
 
-\section DataRelatedFeaturesToImprovePerformance Data Related Features That May Improve Performance
+\section DataRelatedFeaturesToImprovePerformance Data Related Features Which May Improve Performance
 
 link to \ref DataManagement
 
 link to \ref DataPrefetch
 
-\section TaskRelatedFeaturesToImprovePerformance Task Related Features That May Improve Performance
+\section TaskRelatedFeaturesToImprovePerformance Task Related Features Which May Improve Performance
 
 link to \ref TaskGranularity
 
@@ -47,7 +47,7 @@ link to \ref TaskSubmission
 
 link to \ref TaskPriorities
 
-\section SchedulingRelatedFeaturesToImprovePerformance Scheduling Related Features That May Improve Performance
+\section SchedulingRelatedFeaturesToImprovePerformance Scheduling Related Features Which May Improve Performance
 
 link to \ref TaskSchedulingPolicy
 
@@ -72,7 +72,7 @@ cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
 Unfortunately, some CUDA libraries do not have stream variants of
-kernels. That will lower the potential for overlapping.
+kernels. This will lower the potential for overlapping.
 
 Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
 CUBLAS library. Some libraries like Magma may however change the current stream of CUBLAS v1,
@@ -87,7 +87,7 @@ queue CUSPARSE kernels with the proper configuration.
 
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
-one should enable asynchronous execution of the kernel.  That means setting
+one should enable asynchronous execution of the kernel.  This means setting
 the flag ::STARPU_CUDA_ASYNC in the corresponding field starpu_codelet::cuda_flags, and dropping the
 <c>cudaStreamSynchronize()</c> call at the end of the <c>cuda_func</c> function, so that it
 returns immediately after having queued the kernel to the local stream. That way, StarPU will be
@@ -95,7 +95,7 @@ able to submit and complete data transfers while kernels are executing, instead 
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-If the kernel uses its own non-default stream, one can synchronize that stream
+If the kernel uses its own non-default stream, one can synchronize this stream
 with the StarPU-provided stream this way:
 
 \code{.c}
@@ -107,7 +107,7 @@ cudaStreamWaitEvent(starpu_cuda_get_local_stream(), event, 0);
 cudaEventDestroy(event);
 \endcode
 
-That code makes the StarPU-provided stream wait for a new event, which will be
+This code makes the StarPU-provided stream wait for a new event, which will be
 triggered by the completion of the kernel.
 
 Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
@@ -143,7 +143,7 @@ any task for 10ms, but lets the application continue normally. In addition to th
 
 <c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
 
-raises <c>SIGABRT</c> in that condition, thus allowing to catch the situation in gdb.
+raises <c>SIGABRT</c> in this condition, thus allowing to catch the situation in gdb.
 It can also be useful to type <c>handle SIGABRT nopass</c> in <c>gdb</c> to be able to let
 the process continue, after inspecting the state of the process.
 
@@ -201,7 +201,7 @@ amount of memory becomes available, but it may be preferrable to call
 starpu_memory_allocate(STARPU_MEMORY_WAIT)
 \endcode
 
-to reserve that amount immediately.
+to reserve this amount immediately.
 
 \section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
 
@@ -243,7 +243,7 @@ export STARPU_LIMIT_MIN_SUBMITTED_TASKS=9000
 
 To make StarPU block submission when 10000 tasks are submitted, and unblock
 submission when only 9000 tasks are still submitted, i.e. 1000 tasks have
-completed among the 10000 that were submitted when submission was blocked. Of
+completed among the 10000 which were submitted when submission was blocked. Of
 course this may reduce parallelism if the threshold is set too low. The precise
 balance depends on the application task graph.
 
@@ -255,7 +255,7 @@ setting the \ref STARPU_MAX_MEMORY_USE environment variable to <c>1</c>.
 When your application needs to allocate more data than the available amount of
 memory usable by StarPU (given by starpu_memory_get_available()), the
 allocation cache system can reuse data buffers used by previously executed
-tasks. For that system to work with MPI tasks, you need to submit tasks progressively instead
+tasks. For this system to work with MPI tasks, you need to submit tasks progressively instead
 of as soon as possible, because in the case of MPI receives, the allocation cache check for reusing data
 buffers will be done at submission time, not at execution time.
 
@@ -437,6 +437,6 @@ current directory, you can process it by running <c>gprof</c> on your applicatio
 gprof ./test
 \endcode
 
-That will dump an analysis of the time spent in StarPU functions.
+This will dump an analysis of the time spent in StarPU functions.
 
 */
