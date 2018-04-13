@@ -153,7 +153,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t global_mem;
 	starpu_ssize_t limit = -1;
@@ -161,8 +161,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	int nnumas = starpu_memory_nodes_get_numa_count();
-	if (nnumas > 1)
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
 	{
 		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 
@@ -223,7 +222,6 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	int devid = cpu_worker->devid;
 
 	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
-	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->numa_memory_node, cpu_worker->config));
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
