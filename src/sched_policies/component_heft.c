@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,6 @@
 
 #include <starpu_sched_component.h>
 #include "prio_deque.h"
-#include "sched_component.h"
 #include <starpu_perfmodel.h>
 #include "helper_mct.h"
 #include <float.h>

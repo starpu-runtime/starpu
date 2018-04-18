@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2014-2015,2017-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,6 @@
 #include <core/workers.h>
 
 #include "prio_deque.h"
-#include "sched_component.h"
 
 #ifdef STARPU_USE_FXT
 #define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do {                                 \
