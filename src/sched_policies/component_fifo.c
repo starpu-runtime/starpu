@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 #include <starpu_scheduler.h>
 
 #include "fifo_queues.h"
-#include "sched_component.h"
 
 struct _starpu_fifo_data
 {
