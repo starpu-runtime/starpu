@@ -2436,16 +2436,19 @@ int starpu_worker_sched_op_pending(void)
 	return _starpu_worker_sched_op_pending();
 }
 
+#undef starpu_worker_relax_on
 void starpu_worker_relax_on(void)
 {
 	_starpu_worker_relax_on();
 }
 
+#undef starpu_worker_relax_off
 void starpu_worker_relax_off(void)
 {
 	_starpu_worker_relax_off();
 }
 
+#undef starpu_worker_get_relax_state
 int starpu_worker_get_relax_state(void)
 {
 	return _starpu_worker_get_relax_state();
