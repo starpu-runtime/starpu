@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014,2017                           Inria
  * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -205,12 +205,12 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_COMPONENT_MUTEX_LOCK(m) \
 do \
 { \
-	const int _relaxed_state = _starpu_worker_get_relax_state(); \
+	const int _relaxed_state = starpu_worker_get_relax_state(); \
 	if (!_relaxed_state) \
-		_starpu_worker_relax_on(); \
+		starpu_worker_relax_on(); \
 	STARPU_PTHREAD_MUTEX_LOCK((m)); \
 	if (!_relaxed_state) \
-		_starpu_worker_relax_off(); \
+		starpu_worker_relax_off(); \
 } \
 while(0)
 
