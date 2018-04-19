@@ -82,7 +82,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		alpha += worker_alpha;
 	}
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), selected);
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	return starpu_push_local_task(selected, task, prio);
 }
 

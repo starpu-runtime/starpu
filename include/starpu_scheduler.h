@@ -101,6 +101,8 @@ void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, voi
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 
+void starpu_sched_task_break(struct starpu_task *task);
+
 #ifdef __cplusplus
 }
 #endif
