@@ -146,7 +146,7 @@ static struct starpu_codelet dummy_codelet =
 	.cpu_funcs_name = {"dummy_func"},
 	.cuda_funcs = {dummy_func},
         .opencl_funcs = {dummy_func},
-	.model = NULL,
+	.model = &starpu_perfmodel_nop,
 	.nbuffers = 0,
 	.name = "dummy",
 };
