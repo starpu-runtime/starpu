@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -583,7 +583,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		ws->performed_total++;
 
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
-		_STARPU_TASK_BREAK_ON(task, sched);
+		starpu_sched_task_break(task);
 		record_data_locality(task, workerid);
 		record_worker_locality(task, workerid, sched_ctx_id);
 		locality_popped_task(task, victim, sched_ctx_id);
@@ -652,7 +652,7 @@ int ws_push_task(struct starpu_task *task)
 
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	STARPU_PTHREAD_MUTEX_LOCK(&ws->per_worker[workerid].worker_mutex);
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);

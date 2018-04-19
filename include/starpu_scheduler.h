@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011-2013,2015                           CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -97,6 +97,9 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
+
+void starpu_sched_task_break(struct starpu_task *task);
+
 #ifdef __cplusplus
 }
 #endif

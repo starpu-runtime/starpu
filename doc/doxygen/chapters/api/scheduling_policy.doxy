@@ -262,4 +262,11 @@ Prefetch data for a given task on a given node when the bus is idle
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
 or if there is a central list with task for all the workers
 
+\fn void starpu_sched_break(struct starpu_task *task)
+\ingroup API_Scheduling_Policy
+This should be called just after a scheduling decision for task \p task was
+made. It will raise SIGTRAP if the ::STARPU_TASK_BREAK_ON_SCHED environment
+variable was used, which thus breakpoints inside a debugger, thus allowing to
+inspect why that scheduling decision was made.
+
 */

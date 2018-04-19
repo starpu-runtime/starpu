@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -490,7 +490,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	//_STARPU_DEBUG("Scheduler parallel heft: kernel (%u)\n", nimpl_best);
 	starpu_task_set_implementation(task, nimpl_best);
 	/* we should now have the best worker in variable "best" */
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	return push_task_on_best_worker(task, best, best_exp_end, prio, sched_ctx_id);
 }
 

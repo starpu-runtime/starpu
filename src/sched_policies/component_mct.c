@@ -100,7 +100,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		return 1;
 	}
 
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	int ret = starpu_sched_component_push_task(component, best_component, task);
 	return ret;
 }
