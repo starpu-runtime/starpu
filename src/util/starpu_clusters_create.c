@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2018                                CNRS
  * Copyright (C) 2015-2017                                Inria
- * Copyright (C) 2015-2016                                Université de Bordeaux
+ * Copyright (C) 2015-2016, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,14 +27,14 @@ starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type)
 
 	switch (type)
 	{
-	case OPENMP:
+	case STARPU_CLUSTER_OPENMP:
 		prologue_func = &starpu_openmp_prologue;
 		break;
-	case INTEL_OPENMP_MKL:
+	case STARPU_CLUSTER_INTEL_OPENMP_MKL:
 		prologue_func = &starpu_intel_openmp_mkl_prologue;
 		break;
 #ifdef STARPU_MKL
-	case GNU_OPENMP_MKL:
+	case STARPU_CLUSTER_GNU_OPENMP_MKL:
 		prologue_func = &starpu_gnu_openmp_mkl_prologue;
 		break;
 #endif
@@ -445,7 +445,7 @@ void _starpu_cluster_init_parameters(struct _starpu_cluster_parameters *params)
 	params->prefere_min = 0;
 	params->create_func = NULL;
 	params->create_func_arg = NULL;
-	params->type = OPENMP;
+	params->type = STARPU_CLUSTER_OPENMP;
 	params->awake_workers = 0;
 
 	return;
