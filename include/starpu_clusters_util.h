@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015,2017                                CNRS
  * Copyright (C) 2015,2017                                Inria
- * Copyright (C) 2015                                     Université de Bordeaux
+ * Copyright (C) 2015, 2018                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,10 +47,10 @@ extern "C"
  * use by the sub-runtime */
 typedef enum
 {
-		OPENMP,
-		INTEL_OPENMP_MKL,
+		STARPU_CLUSTER_OPENMP,
+		STARPU_CLUSTER_INTEL_OPENMP_MKL,
 #ifdef STARPU_MKL
-		GNU_OPENMP_MKL,
+		STARPU_CLUSTER_GNU_OPENMP_MKL,
 #endif
 } starpu_cluster_types;
 
