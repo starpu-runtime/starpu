@@ -166,7 +166,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 
-		_STARPU_TASK_BREAK_ON(tasks[best_task], sched);
+		starpu_sched_task_break(tasks[best_task]);
 		int ret = starpu_sched_component_push_task(component, best_component, tasks[best_task]);
 
 		if (ret)

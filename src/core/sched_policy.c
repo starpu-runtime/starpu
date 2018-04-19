@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -1162,4 +1162,9 @@ void _starpu_print_idle_time()
 		fprintf(f, "%lf \n", all_idle);
 		fclose(f);
 	}
+}
+
+void starpu_sched_task_break(struct starpu_task *task)
+{
+	_STARPU_TASK_BREAK_ON(task, sched);
 }
