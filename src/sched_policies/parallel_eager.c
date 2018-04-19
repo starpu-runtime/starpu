@@ -223,7 +223,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		if (starpu_worker_get_type(workerid) != STARPU_MIC_WORKER
 				&& starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
 		{
-			_starpu_wake_worker_relax_light(workerid);
+			starpu_wake_worker_relax_light(workerid);
 			continue;
 		}
 		if ((!is_parallel_task) /* This is not a parallel task, can wake any workerid */
@@ -231,7 +231,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 				|| (common_data->max_combination_size[workerid] > 1) /* This is a combined workerid master and the task is parallel */
 		   )
 		{
-			_starpu_wake_worker_relax_light(workerid);
+			starpu_wake_worker_relax_light(workerid);
 		}
 	}
 #endif

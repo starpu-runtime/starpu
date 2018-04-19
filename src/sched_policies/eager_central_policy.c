@@ -135,7 +135,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (_starpu_wake_worker_relax_light(worker))
+			if (starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 	}
 #endif

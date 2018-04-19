@@ -1171,7 +1171,7 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	return ret;
 }
 
-int _starpu_wake_worker_relax_light(int workerid);
+int starpu_wake_worker_relax_light(int workerid);
 
 /* Allow a worker pulling a task it cannot execute to properly refuse it and
  * send it back to the scheduler.
