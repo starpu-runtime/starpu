@@ -63,6 +63,7 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
 int starpu_wake_worker_no_relax(int workerid);
 int starpu_wake_worker_locked(int workerid);
+int starpu_wake_worker_relax_light(int workerid);
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask);
