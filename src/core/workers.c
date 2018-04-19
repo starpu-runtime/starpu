@@ -2496,7 +2496,7 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
  * speculatively sets keep_awake on the target worker without waiting that
  * worker to enter the relaxed state.
  */
-int _starpu_wake_worker_relax_light(int workerid)
+int starpu_wake_worker_relax_light(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);

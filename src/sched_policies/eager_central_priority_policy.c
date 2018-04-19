@@ -145,7 +145,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	{
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-			if (_starpu_wake_worker_relax_light(worker))
+			if (starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 	}
 #endif
@@ -201,7 +201,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				starpu_bitmap_unset(data->waiters, worker);
 #else
-				_starpu_wake_worker_relax_light(worker);
+				starpu_wake_worker_relax_light(worker);
 #endif
 			}
 		}

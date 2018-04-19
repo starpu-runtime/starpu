@@ -223,7 +223,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Wake each worker */
 		unsigned worker = workers->get_next(workers, &it);
-		_starpu_wake_worker_relax_light(worker);
+		starpu_wake_worker_relax_light(worker);
 	}
 #endif
 }
@@ -303,7 +303,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 		if (dowake[worker])
 		{
-			if (_starpu_wake_worker_relax_light(worker))
+			if (starpu_wake_worker_relax_light(worker))
 				break; // wake up a single worker
 		}
 	}
