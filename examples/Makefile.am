@@ -203,6 +203,7 @@ STARPU_EXAMPLES =
 STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
 	scheduler/dummy_sched			\
+	scheduler/dummy_modular_sched		\
 	worker_collections/worker_list_example
 
 if !STARPU_SIMGRID

@@ -101,6 +101,7 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
+typedef struct starpu_sched_component * (*starpu_sched_component_create_t)(struct starpu_sched_tree *tree, void *data);
 struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name) STARPU_ATTRIBUTE_MALLOC;
 void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child);
 void starpu_sched_component_destroy(struct starpu_sched_component *component);
@@ -204,6 +205,21 @@ struct starpu_sched_component_specs
 
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
+
+#define STARPU_SCHED_SIMPLE_DECIDE_MASK		(3<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_WORKERS	(1<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_MEMNODES	(2<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_ARCHS	(3<<0)
+
+#define STARPU_SCHED_SIMPLE_PERFMODEL		(1<<4)
+#define STARPU_SCHED_SIMPLE_IMPL		(1<<5)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE		(1<<6)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO	(1<<7)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW		(1<<8)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
+#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
+
+void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id);
 
 #define STARPU_COMPONENT_MUTEX_LOCK(m) \
 do \

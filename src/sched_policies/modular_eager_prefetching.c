@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2014,2017                                CNRS
- * Copyright (C) 2014,2016-2017                           Université de Bordeaux
+ * Copyright (C) 2014,2016-2018                           Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,37 +20,13 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
-#define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
-	struct starpu_sched_tree *t;
-	struct starpu_sched_component * eager_component;
-
-	t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_fifo_create(t, NULL);
-	eager_component = starpu_sched_component_eager_create(t, NULL);
-
-	starpu_sched_component_connect(t->root, eager_component);
-
-	struct starpu_sched_component_fifo_data fifo_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
-
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
-		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(t, &fifo_data);
-
-		starpu_sched_component_connect(fifo_component, worker_component);
-		starpu_sched_component_connect(eager_component, fifo_component);
-	}
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_eager_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
 static void deinitialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
