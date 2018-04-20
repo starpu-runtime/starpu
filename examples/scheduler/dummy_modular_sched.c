@@ -173,7 +173,7 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 
 	struct dummy_sched_params params = {
-		.verbose = 1,
+		.verbose = 0,
 	};
 
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) dummy_create, &params,
@@ -225,7 +225,7 @@ static struct starpu_codelet dummy_codelet =
 
 int main(void)
 {
-	int ntasks = 4;
+	int ntasks = NTASKS;
 	int ret;
 	struct starpu_conf conf;
 
