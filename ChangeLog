@@ -80,6 +80,7 @@ Small features:
 Changes:
   * Vastly improve simgrid simulation time.
   * Switch default scheduler to lws.
+  * Add "to" parameter to pull_task and can_push methods of components.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
