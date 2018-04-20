@@ -428,7 +428,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	return 0;
 }
 
-static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
+static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
@@ -484,7 +484,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(component->tree->sched_ctx_id, workerid);
 		starpu_sched_component_push_task(component, combined_worker_component, task);
 		/* we have pushed a task in queue, so can make a recursive call */
-		task = simple_worker_pull_task(component);
+		task = simple_worker_pull_task(component, to);
 		goto ret;
 
 	}

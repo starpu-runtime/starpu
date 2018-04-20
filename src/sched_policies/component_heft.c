@@ -206,7 +206,7 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 	return 0;
 }
 
-static int heft_can_push(struct starpu_sched_component *component)
+static int heft_can_push(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	heft_progress(component);
 	int ret = 0;
@@ -217,7 +217,7 @@ static int heft_can_push(struct starpu_sched_component *component)
 			continue;
 		else
 		{
-			ret = component->parents[j]->can_push(component->parents[j]);
+			ret = component->parents[j]->can_push(component->parents[j], component);
 			if(ret)
 				break;
 		}

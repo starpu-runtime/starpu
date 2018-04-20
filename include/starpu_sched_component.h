@@ -58,9 +58,9 @@ struct starpu_sched_component
 	void (*remove_parent)(struct starpu_sched_component *component, struct starpu_sched_component *parent);
 
 	int (*push_task)(struct starpu_sched_component *, struct starpu_task *);
-	struct starpu_task *(*pull_task)(struct starpu_sched_component *);
+	struct starpu_task *(*pull_task)(struct starpu_sched_component *from, struct starpu_sched_component *to);
 
-	int (*can_push)(struct starpu_sched_component *component);
+	int (*can_push)(struct starpu_sched_component *from, struct starpu_sched_component *to);
 	int (*can_pull)(struct starpu_sched_component *component);
 
 	double (*estimated_load)(struct starpu_sched_component *component);
@@ -94,6 +94,7 @@ int starpu_sched_tree_push_task(struct starpu_task *task);
 int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task);
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
+struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *to, int* success);
 struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success);
 int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component);
 
@@ -120,6 +121,8 @@ int starpu_sched_component_is_combined_worker(struct starpu_sched_component *com
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 
+int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
+int starpu_sched_component_can_pull(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);

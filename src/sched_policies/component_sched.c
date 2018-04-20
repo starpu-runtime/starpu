@@ -358,9 +358,9 @@ struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 	return task;
 }
 
-struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to STARPU_ATTRIBUTE_UNUSED)
+struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to)
 {
-	struct starpu_task *task = from->pull_task(from);
+	struct starpu_task *task = from->pull_task(from, to);
 	if (task)
 		_STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task);
 	return task;
@@ -369,17 +369,15 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 
 /* Pump mechanic to get the task flow rolling. Takes tasks from component and send them to the child.
    To be used by components with only one child */
-struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success)
+struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *child, int* success)
 {
 	int ret = 0;
 
-	STARPU_ASSERT(component->nchildren == 1);
-	struct starpu_sched_component * child = component->children[0];
 	struct starpu_task * task;
 
 	while (1)
 	{
-		task = starpu_sched_component_pull_task(component,component);
+		task = starpu_sched_component_pull_task(component,child);
 		if (!task)
 			break;
 		ret = starpu_sched_component_push_task(component,child,task);
@@ -393,6 +391,12 @@ struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_c
 
 	return NULL;
 
+}
+
+struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success)
+{
+	STARPU_ASSERT(component->nchildren == 1);
+	return starpu_sched_component_pump_to(component, component->children[0], success);
 }
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -529,7 +533,7 @@ static void starpu_sched_component_remove_parent(struct starpu_sched_component *
 /* default implementation for component->pull_task()
  * just perform a recursive call on parent
  */
-static struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;
@@ -552,7 +556,7 @@ static struct starpu_task * starpu_sched_component_parents_pull_task(struct star
  * A personally-made can_push in a component (like in prio components) is necessary to catch
  * this recursive call somewhere, if the user wants to exploit it.
  */
-static int starpu_sched_component_can_push(struct starpu_sched_component * component)
+int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component);
 	int ret = 0;
@@ -563,7 +567,7 @@ static int starpu_sched_component_can_push(struct starpu_sched_component * compo
 		{
 			struct starpu_sched_component * parent = component->parents[i];
 			if(parent != NULL)
-				ret = parent->can_push(parent);
+				ret = parent->can_push(parent, component);
 			if(ret)
 				break;
 		}
@@ -575,7 +579,7 @@ static int starpu_sched_component_can_push(struct starpu_sched_component * compo
  * component. It is currenly called by components which holds a queue (like fifo and prio
  * components) to signify its childs that a task has been pushed on its local queue.
  */
-static int starpu_sched_component_can_pull(struct starpu_sched_component * component)
+int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
@@ -606,7 +610,7 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 			continue;
 		else
 		{
-			ret = component->parents[i]->can_push(component->parents[i]);
+			ret = component->parents[i]->can_push(component->parents[i], component);
 			if(ret)
 				break;
 		}

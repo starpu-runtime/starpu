@@ -82,13 +82,13 @@ like <c>component->push_task(component,task)</c>
      This method must either return 0 if it the task was properly stored or
      passed over to a child component, or return a value different from 0 if the
      task could not be consumed (e.g. the queue is full).
-\var struct starpu_task * (*starpu_sched_component::pull_task)(struct starpu_sched_component *)
+\var struct starpu_task * (*starpu_sched_component::pull_task)(struct starpu_sched_component *component, struct starpu_sched_component *to)
      pop a task from the scheduler module. this function is called by workers to get a task from their
      parents. this function should first return a locally stored task
      or perform a recursive call on the parents.
-     the task returned by this function is executable by the caller
+     the task returned by this function should be executable by the caller
 
-\var int (*starpu_sched_component::can_push)(struct starpu_sched_component *component)
+\var int (*starpu_sched_component::can_push)(struct starpu_sched_component *component, struct starpu_sched_component *to)
      This function is called by a component which implements a queue,
      allowing it to signify to its parents that an empty slot is
      available in its queue. This should return 1 if some tasks could be pushed
@@ -250,6 +250,14 @@ The actual scheduler
 
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
+
+\fn int starpu_sched_component_can_push(struct starpu_sched_component * component)
+\ingroup API_Modularized_Scheduler
+default function for the can_push component method, just calls can_push of parents until one of them returns non-zero
+
+\fn int starpu_sched_component_can_pull(struct starpu_sched_component * component)
+\ingroup API_Modularized_Scheduler
+default function for the can_pull component method, just calls can_pull of children until one of them returns non-zero
 
 \fn double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 \ingroup API_Modularized_Scheduler
