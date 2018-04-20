@@ -86,7 +86,7 @@ int starpu_sched_component_is_best_implementation(struct starpu_sched_component 
 	return component->push_task == best_implementation_push_task;
 }
 
-static struct starpu_task * best_implementation_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * best_implementation_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * from STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_task * task = NULL;
 	unsigned i;

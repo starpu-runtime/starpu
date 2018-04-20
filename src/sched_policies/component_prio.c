@@ -182,7 +182,7 @@ static int prio_push_task(struct starpu_sched_component * component, struct star
 	return ret;
 }
 
-static struct starpu_task * prio_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * prio_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
@@ -249,7 +249,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
  * push fails, which means that the worker prio_components are
  * currently "full".
  */
-static int prio_can_push(struct starpu_sched_component * component)
+static int prio_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && starpu_sched_component_is_prio(component));
 	int res = 0;
