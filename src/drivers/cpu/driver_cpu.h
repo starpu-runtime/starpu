@@ -24,7 +24,6 @@
 #ifdef STARPU_USE_CPU
 
 extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
-size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED);
 void *_starpu_cpu_worker(void *);
 
 #endif /* !STARPU_USE_CPU */
