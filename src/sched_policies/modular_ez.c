@@ -132,6 +132,7 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 
 	/* Start building the tree */
 	t = starpu_sched_tree_create(sched_ctx_id);
+	t->root = NULL;
 
 	if (nbelow == 1)
 	{
