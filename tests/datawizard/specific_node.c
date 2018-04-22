@@ -132,6 +132,7 @@ int main(void)
 	}
 
 	starpu_data_unregister(data_handle);
+	starpu_data_unregister(data_handle2);
 
 	ret = (data == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
 
