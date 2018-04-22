@@ -1430,8 +1430,3 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_wait_data_request_completion(r, 1);
 }
-
-void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
-{
-	handle->unregister_hook = func;
-}
