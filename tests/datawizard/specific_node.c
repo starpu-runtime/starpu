@@ -126,6 +126,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc, STARPU_ATTRIBUTE_UNUSED char **argv)
 	}
 
 	starpu_data_unregister(data_handle);
+	starpu_data_unregister(data_handle2);
 
 	ret = (data == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
 
