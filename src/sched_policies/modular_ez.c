@@ -19,6 +19,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <limits.h>
 
 /* The scheduling strategy may look like this :
  *
