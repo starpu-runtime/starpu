@@ -754,6 +754,11 @@ define starpu-sched-print-component
     set $c = $arg1
     starpu-print-spaces $arg0
     printf "%s %s %s (struct starpu_sched_component *) %p\n", $c->name, $c->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS ? "homogeneous":"heterogeneous", $c->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE ? "single-node" : "multi-node", $c
+    if $c->push_task == fifo_push_task
+      set $f = ((struct _starpu_fifo_data *) $c->data)->fifo
+      starpu-print-spaces $arg0
+      printf "%d tasks start %f len %f end %f processed %d\n", $f->ntasks, $f->exp_start, $f->exp_len, $f->exp_end, $f->nprocessed
+    end
     if $c->push_task == prio_push_task
       set $q = &((struct _starpu_prio_data *) $c->data)->prio
       starpu-print-spaces $arg0
