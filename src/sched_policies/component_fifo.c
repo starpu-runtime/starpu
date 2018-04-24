@@ -210,7 +210,7 @@ static int fifo_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = starpu_sched_component_pull_task(component,NULL);
+	struct starpu_task * task = fifo_pull_task(component);
 	if(task)
 		ret = starpu_sched_component_push_task(NULL,child,task);	
 	while(task && !ret) 
@@ -218,7 +218,7 @@ static int fifo_can_push(struct starpu_sched_component * component)
 		if(!res)
 			res = 1;
 
-		task = starpu_sched_component_pull_task(component,NULL);
+		task = fifo_pull_task(component);
 		if(task)
 			ret = starpu_sched_component_push_task(NULL,child,task);	
 	}

@@ -232,7 +232,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = starpu_sched_component_pull_task(component, component);
+	struct starpu_task * task = prio_pull_task(component);
 	if(task)
 		ret = starpu_sched_component_push_task(component,child,task);	
 	while(task && !ret) 
@@ -240,7 +240,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 		if(!res)
 			res = 1;
 
-		task = starpu_sched_component_pull_task(component,component);
+		task = prio_pull_task(component);
 		if(task)
 			ret = starpu_sched_component_push_task(component,child,task);	
 	}
