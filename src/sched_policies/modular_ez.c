@@ -277,10 +277,14 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 				id = i;
 				break;
 			case STARPU_SCHED_SIMPLE_DECIDE_MEMNODES:
-				id = below_id[starpu_worker_get_memory_node(i)];
+				for (id = 0; id < nbelow; id++)
+					if (below_id[id] == starpu_worker_get_memory_node(i))
+						break;
 				break;
 			case STARPU_SCHED_SIMPLE_DECIDE_ARCHS:
-				id = below_id[starpu_worker_get_type(i)];
+				for (id = 0; id < nbelow; id++)
+					if (below_id[id] == starpu_worker_get_type(i))
+						break;
 				break;
 			default:
 				STARPU_ABORT();
