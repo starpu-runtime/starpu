@@ -31,14 +31,15 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	STARPU_ASSERT(component && task && starpu_sched_component_is_eager(component));
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_eager_data *d = component->data;
+	struct starpu_sched_component *target;
 
-	if (d->target)
+	if ((target = d->target))
 	{
 		/* target told us we could push to it, try to */
 		int idworker;
-		for(idworker = starpu_bitmap_first(d->target->workers);
+		for(idworker = starpu_bitmap_first(target->workers);
 			idworker != -1;
-			idworker = starpu_bitmap_next(d->target->workers, idworker))
+			idworker = starpu_bitmap_next(target->workers, idworker))
 		{
 			int nimpl;
 			for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -46,7 +47,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 				if(starpu_worker_can_execute_task(idworker,task,nimpl)
 				   || starpu_combined_worker_can_execute_task(idworker, task, nimpl))
 				{
-					ret = starpu_sched_component_push_task(component,d->target,task);
+					ret = starpu_sched_component_push_task(component,target,task);
 					if (!ret)
 						return 0;
 				}
