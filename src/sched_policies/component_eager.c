@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,13 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	return 1;
 }
 
+static int eager_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
+{
+	int success;
+	starpu_sched_component_pump_to(component, to, &success);
+	return success;
+}
+
 int starpu_sched_component_is_eager(struct starpu_sched_component * component)
 {
 	return component->push_task == eager_push_task;
@@ -76,6 +83,7 @@ struct starpu_sched_component * starpu_sched_component_eager_create(struct starp
 	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "eager");
 	component->push_task = eager_push_task;
+	component->can_push = eager_can_push;
 
 	return component;
 }
