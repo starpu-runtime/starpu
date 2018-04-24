@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014,2017                           Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -343,8 +343,11 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 
 int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to, struct starpu_task *task)
 {
-	_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task);
-	return to->push_task(to, task);
+	int pushback;
+	pushback = to->push_task(to, task);
+	if (!pushback)
+		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task);
+	return pushback;
 }
 
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
@@ -377,7 +380,7 @@ struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component
 
 	while (1)
 	{
-		task = starpu_sched_component_pull_task(component,child);
+		task = component->pull_task(component,child);
 		if (!task)
 			break;
 		ret = starpu_sched_component_push_task(component,child,task);
@@ -387,6 +390,7 @@ struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component
 			* success = 1;
 	}
 	if(task && ret)
+		/* Return the task which couldn't actually be pushed */
 		return task;
 
 	return NULL;
