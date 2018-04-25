@@ -2300,7 +2300,7 @@ static void _starpu_sched_ctx_wake_these_workers_up(unsigned sched_ctx_id, int *
 
 static int _starpu_sched_ctx_find_master(unsigned sched_ctx_id, int *workerids, int nworkers)
 {
-	STARPU_ASSERT(!nworkers);
+	STARPU_ASSERT(nworkers != 0);
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int new_master = workerids[nworkers-1];
