@@ -1122,20 +1122,16 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
     AC_MSG_RESULT()
     LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
-    AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
-    unset ac_cv_lib_cuda_main
-    if test "$have_valid_cuda" = "yes" ; then
-	AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
-	unset ac_cv_lib_cudart_main
-	if test "$have_valid_cuda" = yes ; then
-	    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
-	    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
-	    # we also check that CUBLAS is available
-	    AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
-	    unset ac_cv_lib_cublas_main
-	    if test "$have_valid_cuda" = "yes" ; then
-		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
-	    fi
+    AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
+    unset ac_cv_lib_cudart_main
+    if test "$have_valid_cuda" = yes ; then
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	# we also check that CUBLAS is available
+	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
+	unset ac_cv_lib_cublas_main
+	if test "$have_valid_cuda" = "yes" ; then
+	   STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
 	fi
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
@@ -1269,7 +1265,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
         SAVED_CPPFLAGS="${CPPFLAGS}"
         CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
 	SAVED_LDFLAGS="${LDFLAGS}"
-	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS} -lcuda"
+	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS} -lcudart"
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <cuda.h>]],
 		[[]]
@@ -1315,7 +1311,7 @@ if test x$enable_cuda = xyes; then
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
         if test "$F77" = "gfortran" -o "$FC" = "gfortran" ; then
