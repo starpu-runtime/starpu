@@ -334,6 +334,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		fprintf(output, "%%rec: timing\n\n");
+
 		char *path;
 		DIR *dp;
 		struct dirent *ep;
