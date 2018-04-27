@@ -473,6 +473,8 @@ int main(int argc, char **argv)
 	/* Read line by line, and on empty line submit the task with the accumulated information */
 	reset();
 
+	double start = starpu_timing_now(); 
+	
 	while(1)
 	{
 		char *ln;
@@ -818,6 +820,8 @@ eof:
 
 	starpu_task_wait_for_all();
 
+	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start); 
+	
 	/* FREE allocated memory */
 
 	free(dependson);
