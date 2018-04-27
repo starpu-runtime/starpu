@@ -83,11 +83,8 @@ void get_comb_name(int comb, char* name, int name_size)
 
 void print_archs(FILE* output)
 {
-	int nb_combs = starpu_perfmodel_get_narch_combs();
-	int nb_workers_per_comb[nb_combs];
-	nb_combs = starpu_perfmodel_get_narch_combs();
-	unsigned workerid; int comb;
-	for(comb = 0; comb < nb_combs; comb++) nb_workers_per_comb[comb] = 0;
+	int nb_workers = 0;
+	unsigned workerid; int comb, old_comb = -1;
 
 	fprintf(output, "%%rec: worker_count\n\n");
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
@@ -95,17 +92,25 @@ void print_archs(FILE* output)
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 		comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 		STARPU_ASSERT(comb >= 0);
-		nb_workers_per_comb[comb] += 1;
-	}
-	for(comb = 0; comb < nb_combs; comb++)
-	{
-		if(nb_workers_per_comb[comb] > 0 )
-		{
-			char name[32];
-			get_comb_name(comb, name, 32);
-			fprintf(output, "Architecture: %s\n", name);
-			fprintf(output, "NbWorkers: %d\n\n", nb_workers_per_comb[comb]);
+		if(comb != old_comb) {
+			if(nb_workers > 0) {
+				char name[32];
+				get_comb_name(old_comb, name, 32);
+				fprintf(output, "Architecture: %s\n", name);
+				fprintf(output, "NbWorkers: %d\n\n", nb_workers);
+			}
+			old_comb = comb;
+			nb_workers = 1; 
+		} else {
+			nb_workers += 1; 
 		}
+	}
+
+	if(nb_workers > 0) {
+		char name[32];
+		get_comb_name(old_comb, name, 32);
+		fprintf(output, "Architecture: %s\n", name);
+		fprintf(output, "NbWorkers: %d\n\n", nb_workers);
 	}
 }
 
