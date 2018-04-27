@@ -380,12 +380,14 @@ int submit_tasks(void)
 			if (!(currentTask->iteration == -1))
 				starpu_iteration_pop();
 
-			if (ret_val != 0)
+			if (ret_val != 0) {
+				printf("\nWhile submitting task %lu: return %d\n", currentTask->submit_order, ret_val);
 				return -1;
+			}
 
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
-			printf("\rsubmitting task %lu", currentTask->submit_order);
+			printf("\rSubmitting task %lu", currentTask->submit_order);
 			last_submitorder++;
 		}
 
