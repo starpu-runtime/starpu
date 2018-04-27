@@ -353,8 +353,8 @@ int submit_tasks(void)
 			if (currentTask->ndependson > 0)
 			{
 				struct starpu_task * taskdeps[currentTask->ndependson];
-				unsigned i;
-
+				unsigned i, j = 0;
+				
 				for (i = 0; i < currentTask->ndependson; i++)
 				{
 					struct task * taskdep;
@@ -362,12 +362,13 @@ int submit_tasks(void)
 					/*  Get the ith jobid of deps_jobid */
 					HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
 
-					STARPU_ASSERT(taskdep);
-
-					taskdeps[i] = &taskdep->task;
+					if(taskdep) {
+						taskdeps[j] = &taskdep->task;
+						j ++; 
+					}
 				}
 
-				starpu_task_declare_deps_array(&currentTask->task, currentTask->ndependson, taskdeps);
+				starpu_task_declare_deps_array(&currentTask->task, j, taskdeps);
 			}
 
 			if (!(currentTask->iteration == -1))
