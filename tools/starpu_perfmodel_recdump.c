@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2011-2014,2016-2017                      CNRS
+ * Copyright (C) 2011-2014,2016-2018                      CNRS
  * Copyright (C) 2011,2013-2014,2017                      Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -92,21 +92,26 @@ void print_archs(FILE* output)
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 		comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 		STARPU_ASSERT(comb >= 0);
-		if(comb != old_comb) {
-			if(nb_workers > 0) {
+		if(comb != old_comb)
+		{
+			if(nb_workers > 0)
+			{
 				char name[32];
 				get_comb_name(old_comb, name, 32);
 				fprintf(output, "Architecture: %s\n", name);
 				fprintf(output, "NbWorkers: %d\n\n", nb_workers);
 			}
 			old_comb = comb;
-			nb_workers = 1; 
-		} else {
-			nb_workers += 1; 
+			nb_workers = 1;
+		}
+		else
+		{
+			nb_workers += 1;
 		}
 	}
 
-	if(nb_workers > 0) {
+	if(nb_workers > 0)
+	{
 		char name[32];
 		get_comb_name(old_comb, name, 32);
 		fprintf(output, "Architecture: %s\n", name);
