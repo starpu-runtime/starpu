@@ -354,7 +354,7 @@ int submit_tasks(void)
 			{
 				struct starpu_task * taskdeps[currentTask->ndependson];
 				unsigned i, j = 0;
-				
+
 				for (i = 0; i < currentTask->ndependson; i++)
 				{
 					struct task * taskdep;
@@ -362,9 +362,10 @@ int submit_tasks(void)
 					/*  Get the ith jobid of deps_jobid */
 					HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
 
-					if(taskdep) {
+					if(taskdep)
+					{
 						taskdeps[j] = &taskdep->task;
-						j ++; 
+						j ++;
 					}
 				}
 
@@ -380,7 +381,8 @@ int submit_tasks(void)
 			if (!(currentTask->iteration == -1))
 				starpu_iteration_pop();
 
-			if (ret_val != 0) {
+			if (ret_val != 0)
+			{
 				printf("\nWhile submitting task %lu: return %d\n", currentTask->submit_order, ret_val);
 				return -1;
 			}
@@ -436,7 +438,8 @@ int main(int argc, char **argv)
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
 	alloc_mode = 1;
 
-	for (i = 1; i < (unsigned) argc; i++) {
+	for (i = 1; i < (unsigned) argc; i++)
+	{
 		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
 		{
 			usage(argv[0]);
@@ -475,8 +478,8 @@ int main(int argc, char **argv)
 	/* Read line by line, and on empty line submit the task with the accumulated information */
 	reset();
 
-	double start = starpu_timing_now(); 
-	
+	double start = starpu_timing_now();
+
 	while(1)
 	{
 		char *ln;
@@ -546,7 +549,8 @@ int main(int argc, char **argv)
 				{
 					task->task.priority = priority;
 					task->task.cl = &cl;
-					if (static_workerid) {
+					if (static_workerid)
+					{
 						task->task.workerid = workerid;
 						task->task.execute_on_a_specific_worker = 1;
 					}
@@ -686,9 +690,13 @@ int main(int argc, char **argv)
 			}
 		}
 		else if (TEST("Tag"))
+		{
 			tag = strtol(s+5, NULL, 16);
+		}
 		else if (TEST("WorkerId"))
+		{
 			workerid = atoi(s+10);
+		}
 		else if (TEST("Footprint"))
 		{
 			footprint = strtoul(s+11, NULL, 16);
@@ -822,8 +830,8 @@ eof:
 
 	starpu_task_wait_for_all();
 
-	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start); 
-	
+	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start);
+
 	/* FREE allocated memory */
 
 	free(dependson);
