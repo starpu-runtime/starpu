@@ -16,10 +16,10 @@ pipeline
 					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
 					script
 					{
-					       env.tarballgz = sh (script: 'ls *.tar.gz', returnStdout: true).trim()
+					       env.tarballgz = sh (script: 'ls build/*.tar.gz', returnStdout: true).trim()
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
-					archiveArtifacts artifacts: "${env.tarballgz},doc/doxygen/starpu.pdf", fingerprint: true, onlyIfSuccessful: true
+					archiveArtifacts artifacts: "${env.tarballgz},build/doc/doxygen/starpu.pdf", fingerprint: true, onlyIfSuccessful: true
 				}
 			}
 		}
