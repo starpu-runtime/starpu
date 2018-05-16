@@ -13,6 +13,7 @@ pipeline
 				node('autotools')
 				{
 					checkout scm
+					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
 				}
 			}
 		}
