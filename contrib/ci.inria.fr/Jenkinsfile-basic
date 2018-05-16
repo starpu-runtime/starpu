@@ -19,6 +19,7 @@ pipeline
 					       env.tarballgz = sh (script: 'ls build/*.tar.gz', returnStdout: true).trim()
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
+					stash includes: "build/doc/doxygen/starpu.pdf", name: 'doc'
 					archiveArtifacts artifacts: "${env.tarballgz},build/doc/doxygen/starpu.pdf", fingerprint: true, onlyIfSuccessful: true
 				}
 			}
