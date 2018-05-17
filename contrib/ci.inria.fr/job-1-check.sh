@@ -49,6 +49,10 @@ if test "$suname" == "Darwin"
 then
     STARPU_CONFIGURE_OPTIONS="--without-hwloc"
 fi
+if test "$suname" == "OpenBSD"
+then
+    STARPU_CONFIGURE_OPTIONS="--without-hwloc"
+fi
 
 export CC=gcc
 
