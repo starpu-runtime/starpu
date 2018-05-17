@@ -20,7 +20,7 @@ pipeline
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
 					stash includes: "build/doc/doxygen/starpu.pdf", name: 'doc'
-					#archiveArtifacts artifacts: "${env.tarballgz}", fingerprint: true, onlyIfSuccessful: true
+					//archiveArtifacts artifacts: "${env.tarballgz}", fingerprint: true, onlyIfSuccessful: true
 				}
 			}
 		}
