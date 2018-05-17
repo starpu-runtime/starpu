@@ -43,6 +43,13 @@ cd $basename
 mkdir build
 cd build
 
+STARPU_CONFIGURE_OPTIONS=""
+suname=$(uname)
+if test "$suname" == "Darwin"
+then
+    STARPU_CONFIGURE_OPTIONS="--without-hwloc"
+fi
+
 export CC=gcc
 
 day=$(date +%u)
