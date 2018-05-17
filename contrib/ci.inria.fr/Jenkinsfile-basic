@@ -28,6 +28,8 @@ pipeline
 						stash includes: "job-1-check.sh", name: 'script-unix-check'
 					}
 					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf", fingerprint: true, onlyIfSuccessful: true
+					deleteDir()
+
 				}
 			}
 		}
