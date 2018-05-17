@@ -9,6 +9,7 @@ mkdir build && cd build
 ../configure
 make V=1
 make dist
+cp *gz ..
 cp doc/doxygen/starpu.pdf ..
 make clean
 

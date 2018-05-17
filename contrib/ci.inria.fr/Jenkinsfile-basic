@@ -18,7 +18,7 @@ pipeline
 					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
 					script
 					{
-					       env.tarballgz = sh (script: 'ls build/*.tar.gz', returnStdout: true).trim()
+					       env.tarballgz = sh (script: 'ls *.tar.gz', returnStdout: true).trim()
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
 					stash includes: "starpu.pdf", name: 'doc'
