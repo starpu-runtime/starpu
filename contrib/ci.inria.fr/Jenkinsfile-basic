@@ -22,7 +22,8 @@ pipeline
 	agent none
 
 	// Trigger the build
-	triggers {
+	triggers
+	{
 		// Poll gitlab explicitly every 15mn
 		pollSCM('00-59/15 * * * *')
 	}
