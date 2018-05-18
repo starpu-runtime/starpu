@@ -51,7 +51,7 @@ then
 fi
 if test "$suname" == "OpenBSD"
 then
-    STARPU_CONFIGURE_OPTIONS="--without-hwloc"
+    STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr"
 fi
 
 export CC=gcc
