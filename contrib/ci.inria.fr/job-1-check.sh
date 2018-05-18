@@ -53,6 +53,10 @@ if test "$suname" == "OpenBSD"
 then
     STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr"
 fi
+if test "$suname" == "FreeBSD"
+then
+    STARPU_CONFIGURE_OPTIONS="--disable-fortran"
+fi
 
 export CC=gcc
 
