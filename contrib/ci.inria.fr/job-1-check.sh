@@ -76,5 +76,6 @@ make clean
 
 grep "^FAIL:" ../check_$$ || true
 
+echo "Running on $(uname -a)"
 exit $(grep "^FAIL:" ../check_$$ | wc -l)
 
