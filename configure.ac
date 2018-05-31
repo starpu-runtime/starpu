@@ -1324,10 +1324,16 @@ if test x$enable_cuda = xyes; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 	fi
 
+	SAVED_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
+	SAVED_LDFLAGS="${LDFLAGS}"
+	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 
 	AC_CHECK_LIB([cusparse], [cusparseCreate])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
+        CPPFLAGS="${SAVED_CPPFLAGS}"
+	LDFLAGS="${SAVED_LDFLAGS}"
 fi
 
 dnl Hey dude, are you around?
