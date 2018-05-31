@@ -1332,6 +1332,9 @@ if test x$enable_cuda = xyes; then
 
 	AC_CHECK_LIB([cusparse], [cusparseCreate])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
+
+	AC_CHECK_HEADER([nvml.h],
+	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption])])
         CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"
 fi
