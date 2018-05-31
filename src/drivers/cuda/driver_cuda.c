@@ -700,6 +700,12 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 #endif /* !STARPU_SIMGRID */
 	}
 
+#if !defined(STARPU_SIMGRID) && defined(STARPU_HAVE_BUSID) && defined(STARPU_HAVE_DOMAINID) && defined(HAVE_LIBNVIDIA_ML)
+	char busid[13];
+	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+	nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);
+#endif
+
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid);
 
@@ -722,11 +728,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
-#ifdef HAVE_LIBNVIDIA_ML
-		char busid[13];
-		snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
-		nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);
-#endif
 		if (props[devid].pciDomainID)
 			snprintf(worker->name, sizeof(worker->name), "CUDA %u.%u (%s %.1f GiB %04x:%02x:%02x.0)", devid, subdev, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 		else
