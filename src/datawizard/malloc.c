@@ -360,7 +360,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				ret = -ENOMEM;
 		}
 
-#if defined(STARPU_SIMGRID) || defined(STARPU_USE_CUDA)
+#if (defined(STARPU_SIMGRID) && (SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559)) || defined(STARPU_USE_CUDA)
 end:
 #endif
 	if (ret == 0)
