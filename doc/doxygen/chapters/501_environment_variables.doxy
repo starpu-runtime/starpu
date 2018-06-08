@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -1171,6 +1171,14 @@ When enabled, STARPU_MAIN_MEMORY is a pointer to the NUMA node associated to the
 first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
 If StarPU doesn't find any NUMA node after these step, STARPU_MAIN_MEMORY is the first NUMA node
 discovered by StarPU.
+</dd>
+
+<dt>STARPU_IDLE_FILE</dt>
+<dd>
+\anchor STARPU_IDLE_FILE
+\addindex __env__STARPU_IDLE_FILE
+If the environment variable STARPU_IDLE_FILE is defined, a file named after its contents will be created at the end of the execution.
+The file will contain the sum of the idle times of all the workers.
 </dd>
 
 </dl>
