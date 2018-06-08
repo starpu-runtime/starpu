@@ -136,6 +136,14 @@ enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
 number of kernels to execute concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
+Concerning memory allocation, you should really not use cudaMalloc/cudaFree
+within the kernel, since cudaFree introduces a awfully lot of synchronizations
+within CUDA itself. You should instead add a parameter to the codelet with the
+STARPU_SCRATCH mode access. You can then pass to the task a handle registered
+with the desired size but with the NULL pointer, that handle can even be the
+shared between tasks, StarPU will allocate per-task data on the fly before task
+execution, and reuse the allocated data between tasks.
+
 \section OpenCL-specificOptimizations OpenCL-specific Optimizations
 
 If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
