@@ -144,6 +144,8 @@ with the desired size but with the NULL pointer, that handle can even be the
 shared between tasks, StarPU will allocate per-task data on the fly before task
 execution, and reuse the allocated data between tasks.
 
+See <c>examples/pi/pi_redux.c</c> for an example of use.
+
 \section OpenCL-specificOptimizations OpenCL-specific Optimizations
 
 If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
