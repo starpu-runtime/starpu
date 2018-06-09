@@ -107,10 +107,16 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			/* rebind to single CPU */
 			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
 	}
+	else
+	{
+		_STARPU_TRACE_START_EXECUTING();
+	}
 
 	if (is_parallel_task)
 	{
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		if (rank != 0)
+			_STARPU_TRACE_END_EXECUTING();
 	}
 
 	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);
