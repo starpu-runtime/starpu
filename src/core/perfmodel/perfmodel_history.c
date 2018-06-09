@@ -1765,7 +1765,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 					unsigned n = entry->nsample;
 					entry->mean = entry->sum / n;
-					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum))/n)/n);
+					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum)/n))/n);
 				}
 
 				if (j->task->flops != 0.)
