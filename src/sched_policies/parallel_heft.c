@@ -179,6 +179,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			ntasks[local_worker]++;
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
+			_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 			ret |= starpu_push_local_task(local_worker, alias, prio);
 		}
 

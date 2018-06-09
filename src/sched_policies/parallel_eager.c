@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2011-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2016, 2018                                Université de Bordeaux
  * Copyright (C) 2011-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -266,6 +266,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 				STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
+				_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
@@ -278,6 +279,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 			/* The master also manipulated an alias */
 			struct starpu_task *master_alias = starpu_task_dup(task);
 			master_alias->destroy = 1;
+			_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 			return master_alias;
 		}
 	}
