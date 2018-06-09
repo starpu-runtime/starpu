@@ -380,7 +380,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			struct starpu_task *alias = starpu_task_dup(task);
 			alias->destroy = 1;
 
-			_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
+			_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
@@ -562,7 +562,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				{
 					workerid = workers->get_next(workers, &it);
 					struct starpu_task *alias = starpu_task_dup(task);
-					_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
+					_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 					alias->destroy = 1;
 					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
 				}
