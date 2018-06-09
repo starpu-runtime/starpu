@@ -175,7 +175,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			ntasks[local_combined_workerid]++;
 			_starpu_worker_unlock(local_combined_workerid);
 
-			_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
+			_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 			ret |= starpu_push_local_task(local_combined_workerid, alias, prio);
 		}
 
