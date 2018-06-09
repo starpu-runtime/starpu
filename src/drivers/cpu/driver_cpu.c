@@ -108,11 +108,15 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
 	}
 
+	if (is_parallel_task)
+	{
+		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+	}
+
 	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);
 
 	if (is_parallel_task)
 	{
-		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 #ifdef STARPU_SIMGRID
 		if (rank == 0)
 		{
