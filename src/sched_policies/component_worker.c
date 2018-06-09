@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2017                           Inria
  * Copyright (C) 2010-2012,2014-2017                      CNRS
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -631,6 +631,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	task_alias[0]->task->destroy = 1;
 	task_alias[0]->left = NULL;
 	task_alias[0]->ntasks = combined_worker->worker_size;
+	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	int i;
 	for(i = 1; i < combined_worker->worker_size; i++)
 	{
@@ -641,6 +642,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
 		task_alias[i]->pntasks = &(task_alias[0]->ntasks);
+		_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	}
 
 	starpu_pthread_mutex_t * mutex_to_unlock = NULL;
