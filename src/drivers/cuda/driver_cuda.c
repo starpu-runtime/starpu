@@ -62,6 +62,7 @@ static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
+static char used_stream[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
@@ -224,6 +225,7 @@ cudaStream_t starpu_cuda_get_local_stream(void)
 {
 	int worker = starpu_worker_get_id_check();
 
+	used_stream[worker] = 1;
 	return streams[worker];
 }
 
@@ -612,6 +614,14 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 				STARPU_ABORT();
 		}
 	}
+
+#ifndef STARPU_SIMGRID
+	if (!used_stream[workerid])
+	{
+		used_stream[workerid] = 1;
+		_STARPU_DISP("Warning: starpu_cuda_get_local_stream() was not used to submit kernel to CUDA on worker %d. CUDA will thus introduce a lot of useless synchronizations, which will prevent proper overlapping of data transfers and kernel execution. See the CUDA-specific part of the 'Check List When Performance Are Not There' of the StarPU handbook\n", workerid);
+	}
+#endif
 
 	if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
 	{
