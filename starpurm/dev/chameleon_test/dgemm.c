@@ -24,11 +24,9 @@
 #include <morse.h>
 #include <starpurm.h>
 #include <hwloc.h>
-#include <hwloc/glibc-sched.h>
 
 #define CHECK
 
-static hwloc_topology_t topology;
 static int rm_cpu_type_id = -1;
 static int rm_cuda_type_id = -1;
 static int rm_nb_cpu_units = 0;
@@ -70,12 +68,58 @@ static void disp_selected_cpuset(void)
 	printf("selected cpuset = %s\n", str);
 }
 
+static void test(const int m, const int n, const int k, int transA, int transB)
+{
+	unsigned rand_seed = (unsigned)time(NULL);
+	double *A = malloc(m * k * sizeof(double));
+	double *B = malloc(k * n * sizeof(double));
+	double *C = calloc(m * n, sizeof(double));
+	double *C_test = calloc(m * n, sizeof(double));
+
+	const double alpha = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
+	const double beta  = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
+ 
+	int i;
+	for (i = 0; i < m; i++)
+	{
+		int j;
+		for (j = 0; j < n; j++)
+		{
+			A[i*n+j] = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
+			B[i*n+j] = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
+		}
+	}
+
+	int res = MORSE_dgemm(transA, transB, m, n, k, alpha, A, k, B, n, beta, C, n);
+#ifdef CHECK
+	/* Check */
+	cblas_dgemm( CblasColMajor, 
+			( CBLAS_TRANSPOSE ) transA,
+			( CBLAS_TRANSPOSE ) transB,
+			m, n, k,
+			alpha, A, k,
+			B, n,
+			beta, C_test, n );
+
+	double C_test_fnorm = LAPACKE_dlange(CblasColMajor, 'F', m, n, C_test, n);
+	double C_test_inorm = LAPACKE_dlange(CblasColMajor, 'I', m, n, C_test, n);
+	cblas_daxpy(m*n, -1, C, 1, C_test, 1);
+	double fnorm = LAPACKE_dlange(CblasColMajor, 'F', m, n, C_test, n);
+	double inorm = LAPACKE_dlange(CblasColMajor, 'I', m, n, C_test, n);
+	fprintf(stdout, "||C_test-C||_F / ||C_test||_F = %e\n", fnorm/C_test_fnorm);
+	fprintf(stdout, "||C_test-C||_I / ||C_test||_I = %e\n", inorm/C_test_inorm);
+#endif
+	free(A);
+	free(B);
+	free(C);
+	free(C_test);
+
+}
+
 int main( int argc, char const *argv[])
 {
-	int i, j;
-	enum DDSS_TRANS transA = MorseTrans;
-	enum DDSS_TRANS transB = MorseTrans;
-	int ret;
+	int transA = MorseTrans;
+	int transB = MorseTrans;
 
 	if (argc < 6 || argc > 6)
 		usage();
@@ -106,29 +150,7 @@ int main( int argc, char const *argv[])
 
 	srand(time(NULL));
 
-	double *A = malloc(m * k * sizeof(double));
-	double *B = malloc(k * n * sizeof(double));
-	double *C = malloc(m * n * sizeof(double));
-	double *C_test = malloc(m * n * sizeof(double));
-
-	double alpha = (double)rand() / (double)rand() + DBL_MIN;
-	double beta  = (double)rand() / (double)rand() + DBL_MIN;
- 
-	// Matrix A, B, C and C_test initialization
-	for (i = 0; i < m; i++)
-	{
-		for (j = 0; j < n; j++)
-		{
-			A[i*n+j] = (double )rand() / (double)rand() + DBL_MIN;
-			B[i*n+j] = (double )rand() / (double)rand() + DBL_MIN;
-			C[i*n+j] = 0.0;
-			C_test[i * n + j] = 0.0;
-		}
-	}
-
 	/* Test case */
-	hwloc_topology_init(&topology);
-	hwloc_topology_load(topology);
 	starpurm_initialize();
 	starpurm_set_drs_enable(NULL);
 	init_rm_infos();
@@ -137,65 +159,11 @@ int main( int argc, char const *argv[])
 	printf("using default units\n");
 	disp_selected_cpuset();
 
-	/* GLIBC cpu_mask as supplied by POCL */
-	cpu_set_t cpu_mask;
-	CPU_ZERO(&cpu_mask);
-	CPU_SET (0, &cpu_mask);
-	CPU_SET (1, &cpu_mask);
-	CPU_SET (2, &cpu_mask);
-	CPU_SET (3, &cpu_mask);
-
-	/* Convert GLIBC cpu_mask into HWLOC cpuset */
-	hwloc_cpuset_t hwloc_cpuset = hwloc_bitmap_alloc();
-	int status = hwloc_cpuset_from_glibc_sched_affinity(topology, hwloc_cpuset, &cpu_mask, sizeof(cpu_set_t));
-	assert(status == 0);
-
-	/* Reset any unit previously allocated to StarPU */
-	starpurm_withdraw_all_cpus_from_starpu(NULL);
-	/* Enforce new cpu mask */
-	starpurm_assign_cpu_mask_to_starpu(NULL, hwloc_cpuset);
-
-	/* task function */
-	int M = m;
-	int N = n;
-	int K = k;
-	double ALPHA = alpha;
-	int LDA = k;
-	int LDB = n;
-	double BETA = beta;
-	int LDC = n;
-
-	MORSE_Init(4, 0);
-	int res = MORSE_dgemm(transA, transB, M, N, K,
-			ALPHA, A, LDA, B, LDB,
-			BETA, C, LDC);
+	MORSE_Init(rm_nb_cpu_units, rm_nb_cuda_units);
+	test(m, n, k, transA, transB);
 	MORSE_Finalize();
 
-	/* Withdraw all CPU units from StarPU */
-	starpurm_withdraw_all_cpus_from_starpu(NULL);
-
-	hwloc_bitmap_free(hwloc_cpuset);
-
 	starpurm_shutdown();
-
-#ifdef CHECK
-	/* Check */
-	cblas_dgemm( CblasColMajor, 
-			( CBLAS_TRANSPOSE ) transA,
-			( CBLAS_TRANSPOSE ) transB,
-			m, n, k,
-			alpha, A, k,
-			B, n,
-			beta, C_test, n );
-
-	double C_test_fnorm = LAPACKE_dlange(CblasColMajor, 'F', m, n, C_test, n);
-	double C_test_inorm = LAPACKE_dlange(CblasColMajor, 'I', m, n, C_test, n);
-	cblas_daxpy(m*n, -1, C, 1, C_test, 1);
-	double fnorm = LAPACKE_dlange(CblasColMajor, 'F', m, n, C_test, n);
-	double inorm = LAPACKE_dlange(CblasColMajor, 'I', m, n, C_test, n);
-	fprintf(stdout, "||C_test-C||_F / ||C_test||_F = %e\n", fnorm/C_test_fnorm);
-	fprintf(stdout, "||C_test-C||_I / ||C_test||_I = %e\n", inorm/C_test_inorm);
-#endif
 
 	return 0;
 
