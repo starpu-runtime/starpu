@@ -115,4 +115,10 @@ routine \ref starpurm_spawn_kernel_on_cpus_callback. This variant returns
 immediately, however it accepts a callback function, which is subsequently
 called to notify the calling code about the completion of the parallel kernel.
 
+All functions are defined in \ref API_Interop_Support.
+
+\subsection InitExit Initialization and Shutdown
+
+TODO
+
 */
