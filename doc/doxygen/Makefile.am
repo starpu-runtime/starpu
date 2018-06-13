@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2017                                Inria
+# Copyright (C) 2013-2018                                Inria
 # Copyright (C) 2010-2017                                CNRS
 # Copyright (C) 2009,2011,2013-2014,2017                 Université de Bordeaux
 #
@@ -144,7 +144,8 @@ chapters =	\
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
 	chapters/api/modularized_scheduler.doxy \
-	chapters/api/clustering_machine.doxy
+	chapters/api/clustering_machine.doxy \
+	chapters/api/interoperability.doxy
 
 images = 	\
 	chapters/images/data_trace.eps \
