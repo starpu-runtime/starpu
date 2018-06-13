@@ -79,6 +79,15 @@ struct s_starpurm
 	/* Cpuset of all StarPU CPU workers. */
 	hwloc_cpuset_t all_cpu_workers_cpuset;
 
+	/* Cpuset of all StarPU OpenCL workers. */
+	hwloc_cpuset_t all_opencl_device_workers_cpuset;
+
+	/* Cpuset of all StarPU CUDA workers. */
+	hwloc_cpuset_t all_cuda_device_workers_cpuset;
+
+	/* Cpuset of all StarPU MIC workers. */
+	hwloc_cpuset_t all_mic_device_workers_cpuset;
+
 	/* Cpuset of all StarPU device workers. */
 	hwloc_cpuset_t all_device_workers_cpuset;
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015,2017                      Inria
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,26 @@ performance, we give below a list of features which should be checked.
 
 For a start, you can use \ref OfflinePerformanceTools to get a Gantt chart which
 will show roughly where time is spent, and focus correspondingly.
+
+\section CheckTaskSize Check Task Size
+
+Make sure that your tasks are not too small, because the StarPU runtime overhead
+is not completely zero. You can run the tasks_size_overhead.sh script to get an
+idea of the scalability of tasks depending on their duration (in µs), on your
+own system.
+
+Typically, 10µs-ish tasks are definitely too small, the CUDA overhead itself is
+much bigger than this.
+
+1ms-ish tasks may be a good start, but will not necessarily scale to many dozens
+of cores, so it's better to try to get 10ms-ish tasks.
+
+Tasks durations can easily be observed when performance models are defined (see
+\ref PerformanceModelExample) by using the <c>starpu_perfmodel_plot</c> or
+<c>starpu_perfmodel_display</c> tool (see \ref PerformanceOfCodelets)
+
+When using parallel tasks, the problem is even worse since StarPU has to
+synchronize the execution of tasks.
 
 \section ConfigurationImprovePerformance Configuration Which May Improve Performance
 
@@ -115,6 +135,16 @@ execution, on cards which support it (Kepler and later, notably). This is
 enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
 number of kernels to execute concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
+
+Concerning memory allocation, you should really not use cudaMalloc/cudaFree
+within the kernel, since cudaFree introduces a awfully lot of synchronizations
+within CUDA itself. You should instead add a parameter to the codelet with the
+STARPU_SCRATCH mode access. You can then pass to the task a handle registered
+with the desired size but with the NULL pointer, that handle can even be the
+shared between tasks, StarPU will allocate per-task data on the fly before task
+execution, and reuse the allocated data between tasks.
+
+See <c>examples/pi/pi_redux.c</c> for an example of use.
 
 \section OpenCL-specificOptimizations OpenCL-specific Optimizations
 

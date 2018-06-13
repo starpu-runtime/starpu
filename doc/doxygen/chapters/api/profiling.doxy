@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015,2017                           CNRS
- * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2016, 2018                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,7 +72,7 @@ profiling was enabled.
     Number of cycles stalled within the task, only available in the MoviSim
 
 \var double starpu_profiling_task_info::energy_consumed
-Energy consumed by the task, only available in the MoviSim
+Energy consumed by the task, in Joules
 
 \struct starpu_profiling_worker_info
 This structure contains the profiling information associated to
@@ -94,7 +94,7 @@ starpu_profiling_worker_get_info()
 \var uint64_t starpu_profiling_worker_info::stall_cycles
         Number of cycles stalled within the worker, only available in the MoviSim
 \var double starpu_profiling_worker_info::energy_consumed
-        Energy consumed by the worker, only available in the MoviSim
+        Energy consumed by the worker, in Joules
 
 \struct starpu_profiling_bus_info
 todo

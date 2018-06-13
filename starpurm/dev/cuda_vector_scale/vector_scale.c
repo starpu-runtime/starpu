@@ -238,11 +238,14 @@ int main(int argc, char *argv[])
 
 	if (rm_nb_cpu_units > 1 && rm_nb_cuda_units > 1)
 	{
-		const int nb_cpus = rm_nb_cpu_units;
+		int nb_cpus = rm_nb_cpu_units;
 		const int nb_cudas = rm_nb_cuda_units;
 		const int cuda_type = rm_cuda_type_id;
 		printf("nb_cpu_units = %d\n", nb_cpus);
 		printf("nb_cuda_units = %d\n", nb_cudas);
+
+		/* Keep at least one CPU core */
+		nb_cpus--;
 
 		starpurm_set_drs_enable(NULL);
 		drs_enabled = starpurm_drs_enabled_p();

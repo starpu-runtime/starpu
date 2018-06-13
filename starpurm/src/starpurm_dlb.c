@@ -22,12 +22,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <config.h>
+
 #include <hwloc.h>
+#ifdef HAVE_HWLOC_GLIBC_SCHED_H
 #include <hwloc/glibc-sched.h>
+#endif
 #include <pthread.h>
 #include <starpu.h>
 #include <starpurm.h>
-#include <config.h>
 #include <starpurm_private.h>
 
 #ifndef STARPURM_HAVE_DLB
