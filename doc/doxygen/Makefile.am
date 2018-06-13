@@ -277,7 +277,8 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
-	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h	\
+	$(top_srcdir)/starpurm/include/starpurm.h
 
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
@@ -301,9 +302,9 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
 	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
 	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
-	$(PDFLATEX) refman.tex > /dev/null ;\
-	$(MAKEINDEX) refman.idx > /dev/null 2>&1 ;\
-	$(PDFLATEX) refman.tex > /dev/null ;\
+	$(PDFLATEX) refman.tex ;\
+	$(MAKEINDEX) refman.idx ;\
+	$(PDFLATEX) refman.tex ;\
 	done=0; repeat=5 ;\
 	while test $$done = 0 -a $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \

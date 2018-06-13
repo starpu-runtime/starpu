@@ -14,10 +14,289 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \defgroup API_InteropSupport Interoperability Support
+/*! \defgroup API_Interop_Support Interoperability Support
 
-\def INTEROP_DUMMY
-\ingroup API_InteropSupport
-TODO
+\brief This section describes the interface supplied by StarPU to interoperate with other runtime systems.
+
+\enum e_starpurm_drs_ret
+\ingroup API_Interop_Support
+StarPU Resource Manager return type.
+
+@name Initialisation
+\ingroup API_Interop_Support
+
+\fn void starpurm_initialize(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn void starpurm_shutdown(void)
+\ingroup API_Interop_Support
+TODO.
+
+
+@name Spawn
+\ingroup API_Interop_Support
+
+\fn void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset)
+\ingroup API_Interop_Support
+TODO.
+
+\fn void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset, void(*cb_f)(void *), void *cb_args)
+\ingroup API_Interop_Support
+TODO.
+
+
+@name DynamicResourceSharing
+\ingroup API_Interop_Support
+
+
+\fn starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_set_drs_disable(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn int starpurm_drs_enabled_p(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int max)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_callback_set(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t callback)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t *callback)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_cpus_to_starpu(starpurm_drs_desc_t *spd, int ncpus)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_cpu_mask_to_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_all_cpus_to_starpu(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+
+\fn starpurm_drs_ret_t starpurm_withdraw_cpu_from_starpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_cpus_from_starpu(starpurm_drs_desc_t *spd, int ncpus)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_cpu_mask_from_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_all_cpus_from_starpu(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_cpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_cpus(starpurm_drs_desc_t *spd, int ncpus)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_cpu_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_cpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_cpus(starpurm_drs_desc_t *spd, int ncpus)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_cpu_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_cpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_cpus(starpurm_drs_desc_t *spd, int ncpus)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_cpu_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_return_all(starpurm_drs_desc_t *spd)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid)
+\ingroup API_Interop_Support
+TODO.
+
+
+@name Devices
+\ingroup API_Interop_Support
+
+\fn int starpurm_get_device_type_id(const char *type_str)
+\ingroup API_Interop_Support
+TODO.
+
+\fn const char *starpurm_get_device_type_name(int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn int starpurm_get_nb_devices_by_type(int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn int starpurm_get_device_id(int type_id, int device_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_device_to_starpu(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_devices_to_starpu(starpurm_drs_desc_t *spd, int type_id, int ndevices)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_device_mask_to_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_assign_all_devices_to_starpu(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_device_from_starpu(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_devices_from_starpu(starpurm_drs_desc_t *spd, int type_id, int ndevices)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_device_mask_from_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_withdraw_all_devices_from_starpu(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_devices(starpurm_drs_desc_t *spd, int type_id, int ndevices)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_device_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_lend_all_devices(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_devices(starpurm_drs_desc_t *spd, int type_id, int ndevices)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_device_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_reclaim_all_devices(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_devices(starpurm_drs_desc_t *spd, int type_id, int ndevices)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_device_mask(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_acquire_all_devices(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_return_all_devices(starpurm_drs_desc_t *spd, int type_id)
+\ingroup API_Interop_Support
+TODO.
+
+\fn starpurm_drs_ret_t starpurm_return_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+
+@name CpusetsQueries
+\ingroup API_Interop_Support
+
+\fn hwloc_cpuset_t starpurm_get_device_worker_cpuset(int type_id, int unit_rank)
+\ingroup API_Interop_Support
+TODO.
+
+\fn hwloc_cpuset_t starpurm_get_global_cpuset(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn hwloc_cpuset_t starpurm_get_selected_cpuset(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn hwloc_cpuset_t starpurm_get_all_cpu_workers_cpuset(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn hwloc_cpuset_t starpurm_get_all_device_workers_cpuset(void)
+\ingroup API_Interop_Support
+TODO.
+
+\fn hwloc_cpuset_t starpurm_get_all_device_workers_cpuset_by_type(int typeid)
+\ingroup API_Interop_Support
+TODO.
 
 */
