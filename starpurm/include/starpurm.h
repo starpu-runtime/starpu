@@ -88,7 +88,7 @@ starpurm_drs_ret_t starpurm_acquire_cpu_mask(starpurm_drs_desc_t *spd, const hwl
 starpurm_drs_ret_t starpurm_return_all(starpurm_drs_desc_t *spd);
 starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid);
 
-/* Pause/resume */
+/* Pause/resume (not implemented) */
 starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond);
 void starpurm_block_current_task(starpurm_block_cond_t *cond);
 void starpurm_signal_block_condition(starpurm_block_cond_t *cond);
