@@ -143,7 +143,8 @@ chapters =	\
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
 	chapters/api/modularized_scheduler.doxy \
-	chapters/api/clustering_machine.doxy
+	chapters/api/clustering_machine.doxy \
+	chapters/api/interoperability.doxy
 
 images = 	\
 	chapters/images/data_trace.eps \
