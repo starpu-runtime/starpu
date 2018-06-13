@@ -68,7 +68,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/mpi/include/starpu_mpi_lb.h \
 			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
 			 @top_srcdir@/starpufft/include/starpufft.h \
-			 @top_srcdir@/sc_hypervisor/include
+			 @top_srcdir@/sc_hypervisor/include \
+			 @top_srcdir@/starpurm/include/starpurm.h
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		       	 @top_srcdir@/doc/doxygen/chapters \

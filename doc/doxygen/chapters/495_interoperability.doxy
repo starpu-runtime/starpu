@@ -14,11 +14,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page InteropSupport Interoperability Support
+/*! \page InteroperabilitySupport Interoperability Support
 
+TODO
 
 \section ResourceManagement StarPU Resource Management
 
 This section will present the 'starpurm' module.
+
+All functions are defined in \ref API_Interop_Support.
+
+\subsection InitExit Initialization and Shutdown
+
+TODO
 
 */
