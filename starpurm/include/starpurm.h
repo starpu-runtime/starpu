@@ -138,6 +138,7 @@ hwloc_cpuset_t starpurm_get_global_cpuset(void);
 hwloc_cpuset_t starpurm_get_selected_cpuset(void);
 hwloc_cpuset_t starpurm_get_all_cpu_workers_cpuset(void);
 hwloc_cpuset_t starpurm_get_all_device_workers_cpuset(void);
+hwloc_cpuset_t starpurm_get_all_device_workers_cpuset_by_type(int typeid);
 
 #ifdef __cplusplus
 }
