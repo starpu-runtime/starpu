@@ -27,11 +27,16 @@ extern "C"
 /* type mapping */
 enum e_starpurm_drs_ret
 {
-	starpurm_DRS_SUCCESS,
-	starpurm_DRS_DISABLD,
-	starpurm_DRS_PERM,
+	starpurm_DRS_SUCCESS = 0,
+
+	starpurm_DRS_DISABLD = -1,
+	starpurm_DRS_PERM    = -2,
+	starpurm_DRS_EINVAL  = -3
+#if 0
+	/* Unused for now */
 	starpurm_DRS_NOTED,
 	starpurm_DRS_REQST
+#endif
 };
 typedef int starpurm_drs_ret_t;
 typedef void *starpurm_drs_desc_t;
