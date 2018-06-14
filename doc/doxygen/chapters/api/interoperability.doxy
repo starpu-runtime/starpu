@@ -21,17 +21,25 @@
 \enum e_starpurm_drs_ret
 \ingroup API_Interop_Support
 StarPU Resource Manager return type.
+\var starpurm_drs_ret::starpurm_DRS_SUCCESS
+  Dynamic resource sharing operation succeeded.
+\var starpurm_drs_ret::starpurm_DRS_DISABLD
+  Dynamic resource sharing is disabled.
+\var starpurm_drs_ret::starpurm_DRS_PERM
+  Dynamic resource sharing operation is not authorized or implemented.
+\var starpurm_drs_ret::starpurm_DRS_EINVAL
+  Dynamic resource sharing operation has been called with one or more invalid parameters.
 
 @name Initialisation
 \ingroup API_Interop_Support
 
 \fn void starpurm_initialize(void)
 \ingroup API_Interop_Support
-TODO.
+Initialize StarPU and the StarPU-RM resource management module. The \ref starpu_init function should not have been called before the call to \c starpurm_initialize. The \c starpurm_initialize function will take care of this
 
 \fn void starpurm_shutdown(void)
 \ingroup API_Interop_Support
-TODO.
+Shutdown StarPU-RM and StarPU. The \ref starpu_shutdown function should not be called before. The \c starpurm_shutdown function will take care of this.
 
 
 @name Spawn
@@ -39,11 +47,19 @@ TODO.
 
 \fn void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset)
 \ingroup API_Interop_Support
-TODO.
+Allocate a temporary context spanning the units selected in the cpuset bitmap,
+set it as the default context for the current thread, and call user function \c f.
+Upon the return of user function \c f, the temporary context is freed and the previous
+default context for the current thread is restored.
 
 \fn void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset, void(*cb_f)(void *), void *cb_args)
 \ingroup API_Interop_Support
-TODO.
+Spawn a POSIX thread and returns immediately. The thread spawned will allocate
+a temporary context spanning the units selected in the cpuset bitmap, set it as
+the default context for the current thread, and call user function \c f. Upon
+the return of user function \c f, the temporary context will be freed and the
+previous default context for the current thread restored. A user specified callback \c cb_f
+will be called just before the termination of the thread.
 
 
 @name DynamicResourceSharing
