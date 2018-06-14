@@ -359,7 +359,7 @@ static starpurm_drs_ret_t _starpurm_update_cpuset(hwloc_cpuset_t cpuset)
 	struct s_starpurm *rm = _starpurm;
 	if (hwloc_bitmap_isequal(cpuset, rm->selected_cpuset))
 	{
-		return 0;
+		return starpurm_DRS_SUCCESS;
 	}
 	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
 	if (rm->starpu_in_pause)
@@ -448,7 +448,7 @@ static starpurm_drs_ret_t _starpurm_update_cpuset(hwloc_cpuset_t cpuset)
 		starpu_pause();
 	}
 	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
-	return 0;
+	return starpurm_DRS_SUCCESS;
 }
 
 static unsigned _starpurm_temporary_context_alloc(hwloc_cpuset_t cpuset)
@@ -535,7 +535,7 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 	}
 	if (ncpus == rm->selected_ncpus)
 	{
-		return 0;
+		return starpurm_DRS_SUCCESS;
 	}
 	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
 	if (rm->starpu_in_pause)
@@ -584,7 +584,7 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 		starpu_pause();
 	}
 	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
-	return 0;
+	return starpurm_DRS_SUCCESS;
 }
 
 /* Initialize rm state for StarPU */
@@ -967,7 +967,7 @@ starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd)
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	rm->dynamic_resource_sharing = 1;
-	return 0;
+	return starpurm_DRS_SUCCESS;
 }
 
 starpurm_drs_ret_t starpurm_set_drs_disable(starpurm_drs_desc_t *spd)
@@ -978,7 +978,7 @@ starpurm_drs_ret_t starpurm_set_drs_disable(starpurm_drs_desc_t *spd)
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	rm->dynamic_resource_sharing = 0;
-	return 0;
+	return starpurm_DRS_SUCCESS;
 }
 
 int starpurm_drs_enabled_p(void)
@@ -998,7 +998,7 @@ starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int nc
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (ncpus > rm->nunits_by_type[starpurm_unit_cpu])
 	{
 		ncpus = rm->nunits_by_type[starpurm_unit_cpu];
@@ -1008,7 +1008,7 @@ starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int nc
 	{
 		return _starpurm_set_ncpus(ncpus);
 	}
-	return 0;
+	return starpurm_DRS_SUCCESS;
 }
 
 
@@ -1017,13 +1017,9 @@ starpurm_drs_ret_t starpurm_callback_set(starpurm_drs_desc_t *spd, starpurm_drs_
 	(void)spd;
 	(void)which;
 	(void)callback;
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return -1;
-	/* TODO */
-	return 0;
+	/* unimplemented */
+	assert(0);
+	return starpurm_DRS_PERM;
 }
 
 starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t *callback)
@@ -1031,13 +1027,9 @@ starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_
 	(void)spd;
 	(void)which;
 	(void)callback;
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return -1;
-	/* TODO */
-	return 0;
+	/* unimplemented */
+	assert(0);
+	return starpurm_DRS_PERM;
 }
 
 starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int cpuid)
@@ -1046,7 +1038,7 @@ starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int c
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	starpurm_drs_ret_t ret = 0;
 	assert(hwloc_bitmap_isset(rm->global_cpuset, cpuid));
 	if (!hwloc_bitmap_isset(rm->selected_cpuset, cpuid))
@@ -1066,7 +1058,7 @@ starpurm_drs_ret_t starpurm_assign_cpus_to_starpu(starpurm_drs_desc_t *spd, int 
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	/* add ncpus more CPUs to the CPUs pool */
 	return _starpurm_set_ncpus(rm->selected_ncpus+ncpus);
 }
@@ -1078,7 +1070,7 @@ starpurm_drs_ret_t starpurm_assign_cpu_mask_to_starpu(starpurm_drs_desc_t *spd, 
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_or(temp_cpuset, temp_cpuset, mask);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1092,7 +1084,7 @@ starpurm_drs_ret_t starpurm_assign_all_cpus_to_starpu(starpurm_drs_desc_t *spd)
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	return starpurm_assign_cpus_to_starpu(spd, rm->nunits_by_type[starpurm_unit_cpu]);
 }
 
@@ -1102,7 +1094,7 @@ starpurm_drs_ret_t starpurm_withdraw_cpu_from_starpu(starpurm_drs_desc_t *spd, i
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	starpurm_drs_ret_t ret = 0;
 	assert(hwloc_bitmap_isset(rm->global_cpuset, cpuid));
 	if (hwloc_bitmap_isset(rm->selected_cpuset, cpuid))
@@ -1122,7 +1114,7 @@ starpurm_drs_ret_t starpurm_withdraw_cpus_from_starpu(starpurm_drs_desc_t *spd, 
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	/* add ncpus more CPUs to the CPUs pool */
 	starpurm_drs_ret_t ret = 0;
 	if (ncpus <= rm->nunits_by_type[starpurm_unit_cpu])
@@ -1143,7 +1135,7 @@ starpurm_drs_ret_t starpurm_withdraw_cpu_mask_from_starpu(starpurm_drs_desc_t *s
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_andnot(temp_cpuset, temp_cpuset, mask);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1157,7 +1149,7 @@ starpurm_drs_ret_t starpurm_withdraw_all_cpus_from_starpu(starpurm_drs_desc_t *s
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	return starpurm_withdraw_cpus_from_starpu(spd, rm->nunits_by_type[starpurm_unit_cpu]);
 }
 
@@ -1239,53 +1231,34 @@ starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid)
 /* Pause/resume */
 starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond)
 {
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return -1;
-	return 0;
+	/* unimplemented */
+	assert(0);
+	return starpurm_DRS_PERM;
 }
 
 void starpurm_block_current_task(starpurm_block_cond_t *cond)
 {
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return;
-	/* TODO */
+	/* unimplemented */
+	assert(0);
 }
 
 void starpurm_signal_block_condition(starpurm_block_cond_t *cond)
 {
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return;
-	/* TODO */
+	/* unimplemented */
+	assert(0);
 }
 
  
 void starpurm_register_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return;
-	/* TODO */
+	/* unimplemented */
+	assert(0);
 }
 
 void starpurm_unregister_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-	if (!rm->dynamic_resource_sharing)
-		return;
-	/* TODO */
+	/* unimplemented */
+	assert(0);
 }
 
 /* devices */
@@ -1346,11 +1319,11 @@ starpurm_drs_ret_t starpurm_assign_device_to_starpu(starpurm_drs_desc_t *spd, in
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	if (unit_rank < 0 || unit_rank >= rm->nunits_by_type[type_id])
-		return -1;
+		return starpurm_DRS_EINVAL;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_or(temp_cpuset, temp_cpuset, rm->units[rm->unit_offsets_by_type[type_id] + unit_rank].worker_cpuset);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1365,9 +1338,9 @@ starpurm_drs_ret_t starpurm_assign_devices_to_starpu(starpurm_drs_desc_t *spd, i
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	if (ndevices > rm->nunits_by_type[type_id])
 	{
@@ -1390,7 +1363,7 @@ starpurm_drs_ret_t starpurm_assign_device_mask_to_starpu(starpurm_drs_desc_t *sp
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_or(temp_cpuset, temp_cpuset, mask);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1404,9 +1377,9 @@ starpurm_drs_ret_t starpurm_assign_all_devices_to_starpu(starpurm_drs_desc_t *sp
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	return starpurm_assign_devices_to_starpu(spd, type_id, rm->nunits_by_type[type_id]);
 }
 
@@ -1416,11 +1389,11 @@ starpurm_drs_ret_t starpurm_withdraw_device_from_starpu(starpurm_drs_desc_t *spd
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	if (unit_rank < 0 || unit_rank >= rm->nunits_by_type[type_id])
-		return -1;
+		return starpurm_DRS_EINVAL;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_andnot(temp_cpuset, temp_cpuset, rm->units[rm->unit_offsets_by_type[type_id] + unit_rank].worker_cpuset);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1435,9 +1408,9 @@ starpurm_drs_ret_t starpurm_withdraw_devices_from_starpu(starpurm_drs_desc_t *sp
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	if (ndevices > rm->nunits_by_type[type_id])
 	{
@@ -1460,7 +1433,7 @@ starpurm_drs_ret_t starpurm_withdraw_device_mask_from_starpu(starpurm_drs_desc_t
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_andnot(temp_cpuset, temp_cpuset, mask);
 	starpurm_drs_ret_t ret = _starpurm_update_cpuset(temp_cpuset);
@@ -1474,9 +1447,9 @@ starpurm_drs_ret_t starpurm_withdraw_all_devices_from_starpu(starpurm_drs_desc_t
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	if (!rm->dynamic_resource_sharing)
-		return -1;
+		return starpurm_DRS_DISABLD;
 	if (type_id < 0 || type_id >= starpurm_unit_ntypes)
-		return -1;
+		return starpurm_DRS_EINVAL;
 	return starpurm_withdraw_devices_from_starpu(spd, type_id, rm->nunits_by_type[type_id]);
 }
 
