@@ -76,6 +76,8 @@ Small features:
   * Add dependency backward information in debugging mode for gdb's
     starpu-print-task
   * Add sched_data field in starpu_task structure.
+  * New starpu_fxt_tool option -label-deps to label dependencies on
+    the output graph
 
 Changes:
   * Vastly improve simgrid simulation time.
