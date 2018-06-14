@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2017                                Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -679,10 +679,10 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_TAG_DEPS, tag_child, tag_father)
 
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
-	FUT_DO_PROBE3(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type)
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type, 1, "task")
 
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
-	FUT_DO_PROBE3(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type)
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
 #define _STARPU_TRACE_TASK_NAME(job)						\
 do {										\
