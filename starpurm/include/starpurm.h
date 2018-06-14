@@ -60,8 +60,11 @@ int starpurm_drs_enabled_p(void);
 
 starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int max);
 
+#if 0
+/* Unused for now */
 starpurm_drs_ret_t starpurm_callback_set(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t callback);
 starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t *callback);
+#endif
 
 starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int cpuid);
 starpurm_drs_ret_t starpurm_assign_cpus_to_starpu(starpurm_drs_desc_t *spd, int ncpus);
@@ -93,13 +96,15 @@ starpurm_drs_ret_t starpurm_acquire_cpu_mask(starpurm_drs_desc_t *spd, const hwl
 starpurm_drs_ret_t starpurm_return_all(starpurm_drs_desc_t *spd);
 starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid);
 
+#if 0
 /* Pause/resume (not implemented) */
 starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond);
 void starpurm_block_current_task(starpurm_block_cond_t *cond);
 void starpurm_signal_block_condition(starpurm_block_cond_t *cond);
- 
+
 void starpurm_register_polling_service(const char *service_name, starpurm_polling_t function, void *data);
 void starpurm_unregister_polling_service(const char *service_name, starpurm_polling_t function, void *data);
+#endif
 
 /* Devices */
 int starpurm_get_device_type_id(const char *type_str);
