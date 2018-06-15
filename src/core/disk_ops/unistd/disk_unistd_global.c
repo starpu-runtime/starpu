@@ -619,10 +619,10 @@ static void * starpu_unistd_internal_thread(void * arg)
 				starpu_malloc(&buf, work->len);
 				ret = pread(work->fd_src, buf, work->len, work->off_src);
 				STARPU_ASSERT_MSG(ret >= 0, "Reading failed (errno %d)", errno);
-				STARPU_ASSERT_MSG(ret == work->len, "Reading failed (value %ld instead of %ld)", (long)ret, (long)work->len);
+				STARPU_ASSERT_MSG((size_t) ret == work->len, "Reading failed (value %ld instead of %ld)", (long)ret, (long)work->len);
 				ret = pwrite(work->fd_dst, buf, work->len, work->off_dst);
 				STARPU_ASSERT_MSG(ret >= 0, "Writing failed (errno %d)", errno);
-				STARPU_ASSERT_MSG(ret == work->len, "Writing failed (value %ld instead of %ld)", (long)ret, (long)work->len);
+				STARPU_ASSERT_MSG((size_t) ret == work->len, "Writing failed (value %ld instead of %ld)", (long)ret, (long)work->len);
 				starpu_free(buf);
 			}
 			else
