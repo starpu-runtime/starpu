@@ -68,43 +68,48 @@ will be called just before the termination of the thread.
 
 \fn starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd)
 \ingroup API_Interop_Support
-TODO.
+Turn-on dynamic resource sharing support.
 
 \fn starpurm_drs_ret_t starpurm_set_drs_disable(starpurm_drs_desc_t *spd)
 \ingroup API_Interop_Support
-TODO.
+Turn-off dynamic resource sharing support.
 
 \fn int starpurm_drs_enabled_p(void)
 \ingroup API_Interop_Support
-TODO.
+Return the state of the dynamic resource sharing support (\c =!0 enabled, \c =0 disabled).
 
 \fn starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int max)
 \ingroup API_Interop_Support
-TODO.
+Set the maximum number of CPU computing units available for StarPU computations
+to \c max. This number cannot exceed the maximum number of StarPU's CPU worker
+allocated at start-up time.
 
-\fn starpurm_drs_ret_t starpurm_callback_set(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t callback)
-\ingroup API_Interop_Support
-TODO.
-
-\fn starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t *callback)
-\ingroup API_Interop_Support
-TODO.
 
 \fn starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int cpuid)
 \ingroup API_Interop_Support
-TODO.
+
+Extend StarPU's default scheduling context to execute tasks on worker
+corresponding to logical unit \c cpuid. If StarPU does not have a worker
+thread initialized for logical unit \c cpuid, do nothing.
 
 \fn starpurm_drs_ret_t starpurm_assign_cpus_to_starpu(starpurm_drs_desc_t *spd, int ncpus)
 \ingroup API_Interop_Support
-TODO.
+
+Extend StarPU's default scheduling context to execute tasks on \c ncpus
+more workers, up to the number of StarPU worker threads initialized.
 
 \fn starpurm_drs_ret_t starpurm_assign_cpu_mask_to_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask)
 \ingroup API_Interop_Support
-TODO.
+
+Extend StarPU's default scheduling context to execute tasks on the
+additional logical units selected in \c mask. Logical units for which no
+StarPU worker is initialized are silently ignored.
 
 \fn starpurm_drs_ret_t starpurm_assign_all_cpus_to_starpu(starpurm_drs_desc_t *spd)
 \ingroup API_Interop_Support
-TODO.
+
+Set StarPU's default scheduling context to execute tasks on all
+available logical units for which a StarPU worker has been initialized.
 
 
 \fn starpurm_drs_ret_t starpurm_withdraw_cpu_from_starpu(starpurm_drs_desc_t *spd, int cpuid)
