@@ -76,6 +76,10 @@ Small features:
   * Add dependency backward information in debugging mode for gdb's
     starpu-print-task
   * Add sched_data field in starpu_task structure.
+  * New starpu_fxt_tool option -label-deps to label dependencies on
+    the output graph
+  * New environment variable STARPU_GENERATE_TRACE_OPTIONS to specify
+    fxt options (to be used with STARPU_GENERATE_TRACE)
 
 Changes:
   * Vastly improve simgrid simulation time.

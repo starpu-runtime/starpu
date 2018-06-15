@@ -2557,7 +2557,10 @@ static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 	tag = ev->param[0];
 	job = ev->param[1];
 
-	_starpu_fxt_dag_add_tag(options->file_prefix, tag, job);
+	if (options->label_deps)
+		_starpu_fxt_dag_add_tag(options->file_prefix, tag, job, "tag");
+	else
+		_starpu_fxt_dag_add_tag(options->file_prefix, tag, job, NULL);
 }
 
 static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2568,7 +2571,10 @@ static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	child = ev->param[0];
 	father = ev->param[1];
 
-	_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father);
+	if (options->label_deps)
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, "tag");
+	else
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, NULL);
 }
 
 static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2576,6 +2582,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
 	unsigned dep_succ_type = ev->param[2];
+	char *name = get_fxt_string(ev,4);
 
 	struct task_info *task = get_task(dep_succ, options->file_rank);
 	struct task_info *prev_task = get_task(dep_prev, options->file_rank);
@@ -2602,10 +2609,12 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	if (show_task(task, options)) {
+	if (show_task(task, options))
+	{
+		if (!options->label_deps) name = NULL;
 		/* We should show the name of the predecessor, then. */
 		prev_task->show = 1;
-		_starpu_fxt_dag_add_task_deps(options->file_prefix, dep_prev, dep_succ);
+		_starpu_fxt_dag_add_task_deps(options->file_prefix, dep_prev, dep_succ, name);
 	}
 }
 
@@ -3870,6 +3879,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->no_smooth = 0;
 	options->no_acquire = 0;
 	options->internal = 0;
+	options->label_deps = 0;
 	options->ninputfiles = 0;
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";
