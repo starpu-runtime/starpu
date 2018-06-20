@@ -562,6 +562,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 				"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
 			_starpu_job_get_model_name(j));
+                /* TODO: option to add variance according to performance model,
+                 * to be able to easily check scheduling robustness */
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
