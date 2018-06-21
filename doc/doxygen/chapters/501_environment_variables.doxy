@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,19 +66,21 @@ which will be concurrently running on the devices. The default value is 1.
 <dd>
 \anchor STARPU_CUDA_THREAD_PER_WORKER
 \addindex __env__STARPU_CUDA_THREAD_PER_WORKER
-Specify if the cuda driver should provide a thread per stream or a single thread
-dealing with all the streams. 0 if one thread per stream, 1 otherwise. The default
-value is 0. Setting it to 1 is contradictory with setting STARPU_CUDA_THREAD_PER_DEV to 1.
+Specify whether the cuda driver should use one thread per stream (1) or to use
+a single thread to drive all the streams of the device or all devices (0), and
+STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
+thread for all devices. The default value is 0. Setting it to 1 is contradictory
+with setting STARPU_CUDA_THREAD_PER_DEV.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_DEV</dt>
 <dd>
 \anchor STARPU_CUDA_THREAD_PER_DEV
 \addindex __env__STARPU_CUDA_THREAD_PER_DEV
-Specify if the cuda driver should provide a thread per device or a single thread
-dealing with all the devices. 0 if one thread per device, 1 otherwise. The default
-value is 1, unless STARPU_CUDA_THREAD_PER_WORKER is set to 1. Setting it to 1 is
-contradictory with setting STARPU_CUDA_THREAD_PER_WORKER to 1.
+Specify whether the cuda driver should use one thread per device (1) or to use a
+single thread to drive all the devices (0). The default value is 1.  It does not
+make sense to set this variable if STARPU_CUDA_THREAD_PER_WORKER is set to to 1
+(since STARPU_CUDA_THREAD_PER_DEV is then meaningless).
 </dd>
 
 <dt>STARPU_CUDA_PIPELINE</dt>
