@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013,2017                                CNRS
+ * Copyright (C) 2013,2017,2018                           CNRS
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014                                     Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
@@ -78,9 +78,6 @@ int main(int argc, char **argv)
 		A[j] = j;
 		C[j] = 0;
 	}
-
-
-
 
 	/* you create a file to store the vector ON the disk */
 	FILE * f = fopen(path_file_start, "wb+");

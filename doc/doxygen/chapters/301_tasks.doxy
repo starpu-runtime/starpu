@@ -98,9 +98,9 @@ for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	handles[i] = handle;
 }
 starpu_task_insert(&dummy_big_cl,
-        	 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
-		 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
-		 0);
+         	  STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
+		  STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
+		  0);
 \endcode
 
 The whole code for this complex data interface is available in the
@@ -355,9 +355,7 @@ starpu_task_insert(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
 STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
-                       starpu_task_insert(&work,
-		                          STARPU_RW, A_handle[i],
-					  0));
+                       starpu_task_insert(&work, STARPU_RW, A_handle[i], 0));
 \endcode
 
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for

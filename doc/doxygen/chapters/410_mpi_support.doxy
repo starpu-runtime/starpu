@@ -38,31 +38,31 @@ initializes a token on node 0, and the token is passed from node to node,
 incremented by one on each step. The code is not using StarPU yet.
 
 \code{.c}
-    for (loop = 0; loop < nloops; loop++)
+for (loop = 0; loop < nloops; loop++)
+{
+    int tag = loop*size + rank;
+
+    if (loop == 0 && rank == 0)
     {
-        int tag = loop*size + rank;
-
-        if (loop == 0 && rank == 0)
-        {
-            token = 0;
-            fprintf(stdout, "Start with token value %d\n", token);
-        }
-        else
-        {
-            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
-        }
-
-        token++;
-
-        if (loop == last_loop && rank == last_rank)
-        {
-            fprintf(stdout, "Finished: token value %d\n", token);
-        }
-        else
-        {
-            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
-        }
+        token = 0;
+        fprintf(stdout, "Start with token value %d\n", token);
     }
+    else
+    {
+        MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+    }
+
+    token++;
+
+    if (loop == last_loop && rank == last_rank)
+    {
+        fprintf(stdout, "Finished: token value %d\n", token);
+    }
+    else
+    {
+        MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+    }
+}
 \endcode
 
 \section NotUsingMPISupport About not using the MPI support
@@ -73,39 +73,39 @@ execution to StarPU.  This is possible by just using starpu_data_acquire(), for
 instance:
 
 \code{.c}
-    for (loop = 0; loop < nloops; loop++)
+for (loop = 0; loop < nloops; loop++)
+{
+    int tag = loop*size + rank;
+
+    /* Acquire the data to be able to write to it */
+    starpu_data_acquire(token_handle, STARPU_W);
+    if (loop == 0 && rank == 0)
     {
-        int tag = loop*size + rank;
-
-	/* Acquire the data to be able to write to it */
-	starpu_data_acquire(token_handle, STARPU_W);
-        if (loop == 0 && rank == 0)
-        {
-            token = 0;
-            fprintf(stdout, "Start with token value %d\n", token);
-        }
-        else
-        {
-            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
-        }
-	starpu_data_release(token_handle);
-
-        /* Task delegation to StarPU to increment the token. The execution might
-         * be performed on a CPU, a GPU, etc. */
-        increment_token();
-
-	/* Acquire the update data to be able to read from it */
-	starpu_data_acquire(token_handle, STARPU_R);
-        if (loop == last_loop && rank == last_rank)
-        {
-            fprintf(stdout, "Finished: token value %d\n", token);
-        }
-        else
-        {
-            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
-        }
-	starpu_data_release(token_handle);
+        token = 0;
+        fprintf(stdout, "Start with token value %d\n", token);
     }
+    else
+    {
+        MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+    }
+	starpu_data_release(token_handle);
+
+    /* Task delegation to StarPU to increment the token. The execution might
+     * be performed on a CPU, a GPU, etc. */
+    increment_token();
+
+    /* Acquire the update data to be able to read from it */
+    starpu_data_acquire(token_handle, STARPU_R);
+    if (loop == last_loop && rank == last_rank)
+    {
+        fprintf(stdout, "Finished: token value %d\n", token);
+    }
+    else
+    {
+        MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+    }
+	starpu_data_release(token_handle);
+}
 \endcode
 
 In that case, <c>libstarpumpi</c> is not needed. One can also use <c>MPI_Isend()</c> and
@@ -167,8 +167,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag,
-                    MPI_COMM_WORLD, NULL, NULL);
+            starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
         }
 
         increment_token();
@@ -181,8 +180,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1,
-                    MPI_COMM_WORLD, NULL, NULL);
+            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
         }
     }
 
@@ -316,14 +314,12 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 {
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface =
-    (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   *count = complex_get_size(handle);
   starpu_malloc_flags(ptr, *count, 0);
   memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
-  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary,
-         complex_interface->nx*sizeof(double));
+  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 
   return 0;
 }
@@ -332,12 +328,10 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 {
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface =
-    (struct starpu_complex_interface *)	starpu_data_get_interface_on_node(handle, node);
+  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
-  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double),
-         complex_interface->nx*sizeof(double));
+  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
   return 0;
 }
@@ -369,8 +363,7 @@ void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI
 	MPI_Aint displacements[2];
 	MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
 
-	struct starpu_complex_interface *complex_interface =
-          (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	MPI_Address(complex_interface, displacements);
 	MPI_Address(&complex_interface->imaginary, displacements+1);
@@ -461,13 +454,11 @@ data which will be needed by the tasks that we will execute.
             int mpi_rank = my_distrib(x, y, size);
             if (mpi_rank == my_rank)
                 /* Owning data */
-                starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM,
-                                              (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
             else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
                   || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
                 /* I don't own this index, but will need it for my computations */
-                starpu_variable_data_register(&data_handles[x][y], -1,
-                                              (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
             else
                 /* I know it's useless to allocate anything for this */
                 data_handles[x][y] = NULL;
@@ -600,7 +591,8 @@ can just pass NULL to starpu_mpi_task_insert():
 
 \code{.c}
 starpu_data_handle_t data0 = NULL;
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_mpi_data_register(data0, 0, rank);
 }
@@ -615,12 +607,15 @@ data1 to node 0, which owns data and thus will need the value of data1 to execut
 
 \code{.c}
 starpu_data_handle_t data0 = NULL, data1, data;
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_mpi_data_register(data0, -1, rank);
 	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
 	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
-} else if (rank == 1) {
+}
+else if (rank == 1)
+{
 	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
 	starpu_variable_data_register(&data, -1, 0, sizeof(val));
 }
@@ -641,10 +636,13 @@ starpu_variable_data_register(&pernode, -1, 0, sizeof(val));
 starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
 
 /* Normal data: one on node0, one on node1 */
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
-} else if (rank == 1) {
+}
+else if (rank == 1)
+{
 	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
 	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
 }
@@ -744,8 +742,7 @@ migrate the data, and register the new location.
                   || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
                   || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)))
                 /* Register newly-needed data */
-                starpu_variable_data_register(&data_handles[x][y], -1,
-                                              (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
             if (data_handles[x][y])
 	    {
                 /* Migrate the data */
@@ -808,14 +805,12 @@ for(x = 0; x < nblocks ;  x++)
     int mpi_rank = my_distrib(x, nodes);
     if (rank == root)
     {
-        starpu_vector_data_register(&data_handles[x], STARPU_MAIN_RAM, (uintptr_t)vector[x],
-                                    blocks_size, sizeof(float));
+        starpu_vector_data_register(&data_handles[x], STARPU_MAIN_RAM, (uintptr_t)vector[x], blocks_size, sizeof(float));
     }
     else if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))
     {
         /* I own this index, or i will need it for my computations */
-        starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL,
-                                   block_size, sizeof(float));
+        starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL, block_size, sizeof(float));
     }
     else
     {
