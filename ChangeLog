@@ -80,8 +80,6 @@ Small features:
     the output graph
   * New environment variable STARPU_GENERATE_TRACE_OPTIONS to specify
     fxt options (to be used with STARPU_GENERATE_TRACE)
-  * Add a new value STARPU_TASK_COLOR to be used in
-    starpu_task_insert() to pick up the color of a task in dag.dot
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -93,6 +91,13 @@ Small changes:
   * Allow to call starpu_sched_ctx_set_policy_data on the main
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
+
+StarPU 1.2.5 (git revision xxx)
+==============================================
+
+Small features:
+  * Add a new value STARPU_TASK_COLOR to be used in
+    starpu_task_insert() to pick up the color of a task in dag.dot
 
 StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
 ==============================================
