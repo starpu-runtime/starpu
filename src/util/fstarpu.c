@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2017                                CNRS
+ * Copyright (C) 2016-2018                                CNRS
  * Copyright (C) 2016-2017                                Inria
  * Copyright (C) 2016-2017                                Université de Bordeaux
  *
@@ -57,6 +57,7 @@ static const intptr_t fstarpu_flops	= STARPU_FLOPS;
 static const intptr_t fstarpu_tag	= STARPU_TAG;
 static const intptr_t fstarpu_tag_only	= STARPU_TAG_ONLY;
 static const intptr_t fstarpu_name	= STARPU_NAME;
+static const intptr_t fstarpu_task_color	= STARPU_TASK_COLOR;
 static const intptr_t fstarpu_node_selection_policy	= STARPU_NODE_SELECTION_POLICY;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
@@ -133,6 +134,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_NODE_SELECTION_POLICY"))	{ return fstarpu_node_selection_policy; }
 	else if (!strcmp(s, "FSTARPU_VALUE"))	{ return fstarpu_value; }
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX"))	{ return fstarpu_sched_ctx; }
+	else if (!strcmp(s, "FSTARPU_TASK_COLOR"))	{ return fstarpu_task_color; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
 	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }

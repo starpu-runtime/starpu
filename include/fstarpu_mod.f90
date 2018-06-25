@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2017                                     CNRS
+! Copyright (C) 2017, 2018                                     CNRS
 ! Copyright (C) 2016-2017                                Inria
 ! Copyright (C) 2016-2017                                Université de Bordeaux
 !
@@ -55,6 +55,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_TAG
         type(c_ptr), bind(C) :: FSTARPU_TAG_ONLY
         type(c_ptr), bind(C) :: FSTARPU_NAME
+        type(c_ptr), bind(C) :: FSTARPU_TASK_COLOR
         type(c_ptr), bind(C) :: FSTARPU_NODE_SELECTION_POLICY
 
         type(c_ptr), bind(C) :: FSTARPU_VALUE
