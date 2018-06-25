@@ -80,6 +80,8 @@ Small features:
     the output graph
   * New environment variable STARPU_GENERATE_TRACE_OPTIONS to specify
     fxt options (to be used with STARPU_GENERATE_TRACE)
+  * Add a new value STARPU_TASK_COLOR to be used in
+    starpu_task_insert() to pick up the color of a task in dag.dot
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -108,6 +110,7 @@ Small features:
    * Do not show internal tasks in fxt dag by default. Allow to hide
      acquisitions too.
    * Add a way to choose the dag.dot colors.
+
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
