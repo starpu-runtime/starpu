@@ -60,7 +60,8 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_NODE_SELECTION_POLICY (22<<STARPU_MODE_SHIFT)
 #define STARPU_NAME		 (23<<STARPU_MODE_SHIFT)
 #define STARPU_CL_ARGS		(24<<STARPU_MODE_SHIFT)
-#define STARPU_SHIFTED_MODE_MAX (25<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_COLOR       (25<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (26<<STARPU_MODE_SHIFT)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);

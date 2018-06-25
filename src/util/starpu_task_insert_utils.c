@@ -178,6 +178,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_TASK_COLOR)
+                {
+                        (void)va_arg(varg_list, int);
+                }
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -448,6 +452,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			(void)va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_TASK_COLOR)
+                {
+                        task->color = va_arg(varg_list, int);
+                }
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -652,6 +660,11 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			(void)arglist[arg_i];
 		}
+		else if (arg_type == STARPU_TASK_COLOR)
+                {
+                        arg_i++;
+                        task->color = *(int *)arglist[arg_i];
+                }
 		else
 		{
 			STARPU_ABORT_MSG("unknown/unsupported argument %d, did you perhaps forget to end arguments with 0?", arg_type);
