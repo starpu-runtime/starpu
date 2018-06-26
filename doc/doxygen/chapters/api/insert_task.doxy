@@ -41,7 +41,8 @@ specifying the worker on which to execute the task (as specified by
 starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
-::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS
+::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS,
+::STARPU_TASK_COLOR
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -139,6 +140,11 @@ passing will not work.
 this macro is used when calling starpu_task_insert(), and must
 be followed by the id of the scheduling context to which we want to
 submit the task.
+
+\def STARPU_TASK_COLOR
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must be followed by an integer
+representing a color
 
 \fn void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 \ingroup API_Insert_Task

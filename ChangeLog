@@ -19,6 +19,10 @@
 StarPU 1.2.5 (git revision xxx)
 ==============================================
 
+Small features:
+  * Add a new value STARPU_TASK_COLOR to be used in
+    starpu_task_insert() to pick up the color of a task in dag.dot
+
 StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
 ==============================================
 
@@ -35,6 +39,7 @@ Small features:
    * Do not show internal tasks in fxt dag by default. Allow to hide
      acquisitions too.
    * Add a way to choose the dag.dot colors.
+
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================
