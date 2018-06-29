@@ -1153,6 +1153,7 @@ static void _starpu_build_tree(void)
 
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+static void (*act_sigtrap)(int);
 
 void _starpu_handler(int sig)
 {
@@ -1170,6 +1171,10 @@ void _starpu_handler(int sig)
 	{
 		signal(SIGSEGV, act_sigsegv);
 	}
+	if (sig == SIGTRAP)
+	{
+		signal(SIGTRAP, act_sigtrap);
+	}
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
@@ -1180,6 +1185,7 @@ void _starpu_catch_signals(void)
 {
 	act_sigint  = signal(SIGINT, _starpu_handler);
 	act_sigsegv = signal(SIGSEGV, _starpu_handler);
+	act_sigtrap = signal(SIGTRAP, _starpu_handler);
 }
 
 int starpu_init(struct starpu_conf *user_conf)
