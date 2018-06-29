@@ -178,6 +178,14 @@ application running with simgrid, pass the <c>--cfg=contexts/factory:thread</c>
 option to the application, to make simgrid use system threads, which gdb will be
 able to manipulate as usual.
 
+It is also worth noting Simgrid 3.21's new parameter
+<c>--cfg=simix/breakpoint</c> which allows to put a breakpoint at a precise
+(deterministic!) timing of the execution. If for instance in an execution
+trace we see that something odd is happening at time 19000ms, we can use
+<c>--cfg=simix/breakpoint:19.000</c> and SIGTRAP will be raised at that point,
+which will thus interrupt execution within gdb, allowing to inspect e.g.
+scheduler state, etc.
+
 \section SimulationMemoryUsage Memory Usage
 
 Since kernels are not actually run and data transfers are not actually
