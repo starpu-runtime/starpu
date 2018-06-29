@@ -58,7 +58,7 @@ int main(void)
 	starpu_data_handle_t subhandle_l1[PARTS];
 	starpu_data_handle_t subhandle_l2[PARTS][PARTS];
 	starpu_data_handle_t subhandle_l3[PARTS][PARTS][PARTS];
-	int ret, submit;
+	int ret;
 
 	int factor = 12;
 	int n=1;
