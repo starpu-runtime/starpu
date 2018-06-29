@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2009-2016                                Université de Bordeaux
+ * Copyright (C) 2009-2016,2018                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -151,6 +151,7 @@ int main(void)
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle_t vector_handle;
+	starpu_memory_pin(vector, sizeof(vector));
 	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
@@ -178,6 +179,7 @@ int main(void)
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
+	starpu_memory_unpin(vector, sizeof(vector));
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2017                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -418,11 +418,12 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 	if (is_async)
 	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 		cures = cudaMemcpy2DAsync((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 			(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 			src_matrix->nx*elemsize, src_matrix->ny, kind, stream);
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		if (!cures)
 			return -EAGAIN;
 	}
@@ -466,9 +467,10 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 
 	if (is_async)
 	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 		cures = cudaMemcpy3DPeerAsync(&p, stream);
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		if (!cures)
 			return -EAGAIN;
 	}

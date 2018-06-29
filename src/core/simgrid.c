@@ -912,6 +912,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	double *computation;
 	double *communication;
 	union _starpu_async_channel_event *event, myevent;
+	double start = 0.;
 
 	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
 	_STARPU_CALLOC(computation, 2, sizeof(*computation));
@@ -947,7 +948,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->next = NULL;
 
 	if (req)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 
 	/* Sleep 10µs for the GPU transfer queueing */
 	if (_starpu_simgrid_queue_malloc_cost())
@@ -957,7 +958,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	if (req)
 	{
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 		return -EAGAIN;
 	}

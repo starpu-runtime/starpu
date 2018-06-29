@@ -1140,7 +1140,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	if (stream)
 	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		if (peer_copy)
 		{
@@ -1153,7 +1154,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
 		}
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	}
 
 	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */

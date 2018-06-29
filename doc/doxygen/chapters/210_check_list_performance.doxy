@@ -79,6 +79,11 @@ link to \ref StaticScheduling
 
 \section CUDA-specificOptimizations CUDA-specific Optimizations
 
+For proper overlapping of asynchronous GPU data transfers, data has to be pinned
+by CUDA. Data allocated with starpu_malloc() is always properly pinned. If the
+application is registering to StarPU some data which has not been allocated with
+starpu_malloc(), it should use starpu_memory_pin() to pin it.
+
 Due to CUDA limitations, StarPU will have a hard time overlapping its own
 communications and the codelet computations if the application does not use a
 dedicated CUDA stream for its computations instead of the default stream,
