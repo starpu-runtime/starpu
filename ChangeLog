@@ -76,6 +76,8 @@ Small features:
     the output graph
   * New environment variable STARPU_GENERATE_TRACE_OPTIONS to specify
     fxt options (to be used with STARPU_GENERATE_TRACE)
+  * New function starpu_task_set() similar as starpu_task_build() but
+    with a task object given as the first parameter
 
 Changes:
   * Vastly improve simgrid simulation time.
