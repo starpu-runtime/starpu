@@ -235,4 +235,13 @@ starpu_task_insert().
 If some arguments of type ::STARPU_VALUE are given, the parameter
 starpu_task::cl_arg_free will be set to 1.
 
+\fn int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
+\ingroup API_Insert_Task
+Set the given \p task corresponding to \p cl with the following arguments.
+The argument list must be zero-terminated. The arguments
+following the codelet are the same as the ones for the function
+starpu_task_insert().
+If some arguments of type ::STARPU_VALUE are given, the parameter
+starpu_task::cl_arg_free will be set to 1.
+
 */
