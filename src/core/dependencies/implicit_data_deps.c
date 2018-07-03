@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2016                                Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,14 +37,14 @@ void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t))
 	write_hook = func;
 }
 
-static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned long previous, struct starpu_task *next)
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
 	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
-static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next)
 {
 	_starpu_add_ghost_dependency(handle, _starpu_get_job_associated_to_task(previous)->job_id, next);
 }
@@ -296,11 +296,11 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					struct starpu_task *sync_task = starpu_task_create();
 					STARPU_ASSERT(sync_task);
 					if (previous_mode == STARPU_REDUX)
-						sync_task->name = "sync_task_redux";
+						sync_task->name = "_starpu_sync_task_redux";
 					else if (mode ==  STARPU_COMMUTE || previous_mode == STARPU_COMMUTE)
-						sync_task->name = "sync_task_commute";
+						sync_task->name = "_starpu_sync_task_commute";
 					else
-						sync_task->name = "sync_task";
+						sync_task->name = "_starpu_sync_task";
 					sync_task->cl = NULL;
 					sync_task->type = post_sync_task->type;
 
