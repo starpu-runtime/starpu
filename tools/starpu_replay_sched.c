@@ -313,7 +313,7 @@ void schedRecInit(const char * filename)
 				/* A new task to mangle, record what needs to be done */
 				task->eosw = eosw;
 				task->workerorder = workerorder;
-				CPY(workers, task->workers, nworkers);
+				CPY(workers, task->workers, STARPU_NMAXWORKERS/32);
 				task->nworkers = nworkers;
 				STARPU_ASSERT(nparams == 0);
 
@@ -427,7 +427,7 @@ void applySchedRec(struct starpu_task *starpu_task, unsigned long submit_order)
 		debug("%u workers %x\n", task->nworkers, task->workers[0]);
 		starpu_task->workerids_len = sizeof(task->workers) / sizeof(task->workers[0]);
 		_STARPU_MALLOC(starpu_task->workerids, task->nworkers * sizeof(*starpu_task->workerids));
-		CPY(task->workers, starpu_task->workerids, task->nworkers);
+		CPY(task->workers, starpu_task->workerids, STARPU_NMAXWORKERS/32);
 	}
 
 	if (task->ndependson)

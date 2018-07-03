@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014,2017                           Inria
  * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,10 +58,12 @@ struct starpu_sched_component
 	void (*remove_parent)(struct starpu_sched_component *component, struct starpu_sched_component *parent);
 
 	int (*push_task)(struct starpu_sched_component *, struct starpu_task *);
-	struct starpu_task *(*pull_task)(struct starpu_sched_component *);
+	struct starpu_task *(*pull_task)(struct starpu_sched_component *from, struct starpu_sched_component *to);
 
-	int (*can_push)(struct starpu_sched_component *component);
+	int (*can_push)(struct starpu_sched_component *from, struct starpu_sched_component *to);
 	int (*can_pull)(struct starpu_sched_component *component);
+
+	int (*notify)(struct starpu_sched_component* component, int message_ID, void* arg);
 
 	double (*estimated_load)(struct starpu_sched_component *component);
 	double (*estimated_end)(struct starpu_sched_component *component);
@@ -94,12 +96,14 @@ int starpu_sched_tree_push_task(struct starpu_task *task);
 int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task);
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
+struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *to, int* success);
 struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success);
 int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component);
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
+typedef struct starpu_sched_component * (*starpu_sched_component_create_t)(struct starpu_sched_tree *tree, void *data);
 struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree, const char *name) STARPU_ATTRIBUTE_MALLOC;
 void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child);
 void starpu_sched_component_destroy(struct starpu_sched_component *component);
@@ -120,6 +124,8 @@ int starpu_sched_component_is_combined_worker(struct starpu_sched_component *com
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id);
 
+int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
+int starpu_sched_component_can_pull(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
@@ -202,15 +208,30 @@ struct starpu_sched_component_specs
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
 
+#define STARPU_SCHED_SIMPLE_DECIDE_MASK		(3<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_WORKERS	(1<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_MEMNODES	(2<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_ARCHS	(3<<0)
+
+#define STARPU_SCHED_SIMPLE_PERFMODEL		(1<<4)
+#define STARPU_SCHED_SIMPLE_IMPL		(1<<5)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE		(1<<6)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO	(1<<7)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW		(1<<8)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
+#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
+
+void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id);
+
 #define STARPU_COMPONENT_MUTEX_LOCK(m) \
 do \
 { \
-	const int _relaxed_state = _starpu_worker_get_relax_state(); \
+	const int _relaxed_state = starpu_worker_get_relax_state(); \
 	if (!_relaxed_state) \
-		_starpu_worker_relax_on(); \
+		starpu_worker_relax_on(); \
 	STARPU_PTHREAD_MUTEX_LOCK((m)); \
 	if (!_relaxed_state) \
-		_starpu_worker_relax_off(); \
+		starpu_worker_relax_off(); \
 } \
 while(0)
 

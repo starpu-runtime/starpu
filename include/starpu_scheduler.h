@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011-2013,2015,2017                      CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -63,6 +63,7 @@ unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
 int starpu_wake_worker_no_relax(int workerid);
 int starpu_wake_worker_locked(int workerid);
+int starpu_wake_worker_relax_light(int workerid);
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask);
@@ -95,7 +96,13 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct st
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
 double starpu_task_bundle_expected_energy(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
+typedef void (*starpu_notify_ready_soon_func)(void *data, struct starpu_task *task, double delay);
+void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, void *data);
+
+
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
+
+void starpu_sched_task_break(struct starpu_task *task);
 
 #ifdef __cplusplus
 }

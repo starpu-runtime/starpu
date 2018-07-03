@@ -584,7 +584,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		_STARPU_TRACE_WORK_STEALING(workerid, victim);
-		_STARPU_TASK_BREAK_ON(task, sched);
+		starpu_sched_task_break(task);
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, victim);
 		record_data_locality(task, workerid);
 		record_worker_locality(ws, task, workerid, sched_ctx_id);
@@ -652,7 +652,7 @@ int ws_push_task(struct starpu_task *task)
 		workerid = select_worker(ws, task, sched_ctx_id);
 	_starpu_worker_lock(workerid);
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	record_data_locality(task, workerid);
 	STARPU_ASSERT_MSG(ws->per_worker[workerid].running, "workerid=%d, ws=%p\n", workerid, ws);
 	_starpu_prio_deque_push_task(&ws->per_worker[workerid].queue, task);
@@ -669,7 +669,7 @@ int ws_push_task(struct starpu_task *task)
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-		_starpu_wake_worker_relax_light(workers->get_next(workers, &it));
+		starpu_wake_worker_relax_light(workers->get_next(workers, &it));
 #endif
 	return 0;
 }

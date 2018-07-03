@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2015                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -95,14 +95,8 @@ static int push_task_dummy(struct starpu_task *task)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
         {
-		unsigned worker;
-                worker = workers->get_next(workers, &it);
-		starpu_pthread_mutex_t *sched_mutex;
-                starpu_pthread_cond_t *sched_cond;
-                starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-                STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-                STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		unsigned worker = workers->get_next(workers, &it);
+		starpu_wake_worker_relax_light(worker);
         }
 
 	return 0;
@@ -152,7 +146,7 @@ static struct starpu_codelet dummy_codelet =
 	.cpu_funcs_name = {"dummy_func"},
 	.cuda_funcs = {dummy_func},
         .opencl_funcs = {dummy_func},
-	.model = NULL,
+	.model = &starpu_perfmodel_nop,
 	.nbuffers = 0,
 	.name = "dummy",
 };

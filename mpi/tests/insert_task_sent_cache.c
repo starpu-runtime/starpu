@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  *
@@ -85,7 +85,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 		}
 		else
 		{
-			/* I don't own that index, but will need it for my computations */
+			/* I don't own this index, but will need it for my computations */
 			//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
 			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
 		}

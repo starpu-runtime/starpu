@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2011,2013,2015-2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -777,6 +777,32 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	return 0;
+}
+
+void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start)
+{
+	*start = starpu_timing_now();
+	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+}
+
+void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start)
+{
+	double end = starpu_timing_now();
+	double elapsed = end - start;
+	if (elapsed > 300)
+	{
+		static int warned = 0;
+		if (!warned)
+		{
+			char src_name[16], dst_name[16];
+			warned = 1;
+			_starpu_memory_node_get_name(src_node, src_name, sizeof(src_name));
+			_starpu_memory_node_get_name(dst_node, dst_name, sizeof(dst_name));
+
+			_STARPU_DISP("Warning: the submission of asynchronous transfer from %s to %s took a very long time (%f ms)\nFor proper asynchronous transfer overlapping, data registered to StarPU must be allocated with starpu_malloc() or pinned with starpu_memory_pin()\n", src_name, dst_name, elapsed / 1000.);
+		}
+	}
+	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 }
 
 /* This can be used by interfaces to easily transfer a piece of data without

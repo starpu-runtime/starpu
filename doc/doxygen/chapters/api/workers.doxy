@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2017                           Inria
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2016, 2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -344,6 +344,12 @@ Wake up \p workerid while temporarily entering the current worker relaxed state
 if needed during the waiting process. Returns 1 if \p workerid has been woken
 up or its state_keep_awake flag has been set to 1, and 0 otherwise (if \p
 workerid was not in the STATE_SLEEPING or in the STATE_SCHEDULING).
+
+\fn int starpu_wake_worker_relax_light(int workerid)
+\ingroup API_Workers_Properties
+This is a light version of starpu_wake_worker_relax() which, when possible,
+speculatively sets keep_awake on the target worker without waiting that worker
+to enter the relaxed state.
 
 \fn hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
 \ingroup API_Workers_Properties

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2018                                CNRS
  * Copyright (C) 2015-2016                                Inria
- * Copyright (C) 2015                                     Université de Bordeaux
+ * Copyright (C) 2015, 2018                               Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@ struct starpu_cluster_machine *clusters;
 clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET, 0);
 starpu_cluster_print(clusters);
 
-//... submit some tasks with OpenMP computations 
+//... submit some tasks with OpenMP computations
 
 starpu_uncluster_machine(clusters);
 //... we are back in the default starpu state
@@ -111,6 +111,7 @@ and create the aforementioned OpenMP threads constrained in the cluster's
 resources set:
 \code{.c}
 void starpu_openmp_prologue(void * sched_ctx_id)
+{
   int sched_ctx = *(int*)sched_ctx_id;
   int *cpuids = NULL;
   int ncpuids = 0;
@@ -151,7 +152,7 @@ Here are two examples:
 \code{.c}
 struct starpu_cluster_machine *clusters;
 clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
-                                 STARPU_CLUSTER_TYPE, GNU_OPENMP_MKL,
+                                 STARPU_CLUSTER_TYPE, STARPU_CLUSTER_GNU_OPENMP_MKL,
                                  0);
 \endcode
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2016                                Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,14 +37,14 @@ void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t))
 	write_hook = func;
 }
 
-static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned long previous, struct starpu_task *next)
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
 	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
-static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next)
 {
 	_starpu_add_ghost_dependency(handle, _starpu_get_job_associated_to_task(previous)->job_id, next);
 }
@@ -88,7 +88,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		) && handle->last_submitted_ghost_sync_id_is_valid)
 	{
 		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id,
-			_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
+			_starpu_get_job_associated_to_task(pre_sync_task));
 		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_sync_id, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
@@ -168,7 +168,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 		{
 			unsigned long id = ghost_accessors_id->id;
 			_STARPU_TRACE_GHOST_TASK_DEPS(id,
-				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
+				_starpu_get_job_associated_to_task(pre_sync_task));
 			_starpu_add_ghost_dependency(handle, id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
@@ -240,7 +240,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 #endif
 		)
 		{
-			_STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job->job_id);
+			_STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job);
 			_starpu_bound_task_dep(post_sync_job, pre_sync_job);
 		}
 
@@ -296,12 +296,13 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					struct starpu_task *sync_task = starpu_task_create();
 					STARPU_ASSERT(sync_task);
 					if (previous_mode == STARPU_REDUX)
-						sync_task->name = "sync_task_redux";
+						sync_task->name = "_starpu_sync_task_redux";
 					else if (mode ==  STARPU_COMMUTE || previous_mode == STARPU_COMMUTE)
-						sync_task->name = "sync_task_commute";
+						sync_task->name = "_starpu_sync_task_commute";
 					else
-						sync_task->name = "sync_task";
+						sync_task->name = "_starpu_sync_task";
 					sync_task->cl = NULL;
+					sync_task->type = post_sync_task->type;
 
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);
@@ -382,21 +383,39 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	if (j->reduction_task)
 		return;
 
+	j->sequential_consistency = 1;
+
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer);
+		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer);
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
 		if (mode & STARPU_SCRATCH)
 			continue;
 
+		if (buffer)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer - 1);
+			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer - 1);
+			if (handle_m1 == handle && mode_m1 == mode)
+				/* We have already added dependencies for this
+				 * data, skip it. This reduces the number of
+				 * dependencies, and allows notify_soon to work
+				 * when a task uses the same data several times
+				 * (otherwise it will not be able to find out that the two
+				 * dependencies will be over at the same time) */
+				continue;
+		}
+
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+		if (!handle->sequential_consistency)
+			j->sequential_consistency = 0;
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
@@ -497,7 +516,17 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index);
+		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index);
+
+		if (index)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index - 1);
+			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index - 1);
+			if (handle_m1 == handle && mode_m1 == mode)
+				/* See _starpu_detect_implicit_data_deps */
+				continue;
+		}
 
 		_starpu_release_data_enforce_sequential_consistency(task, &slots[index], handle);
 	}
@@ -596,6 +625,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 		sync_task->name = sync_name;
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
+		sync_task->type = STARPU_TASK_TYPE_INTERNAL;
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */

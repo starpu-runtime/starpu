@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2010-2011,2013-2014,2016                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2013-2014,2016, 2018                 Université de Bordeaux
  * Copyright (C) 2011-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,9 +30,7 @@
  * the GPU
  */
 
-starpu_data_handle_t data_handle;
-
-unsigned data;
+unsigned data, data2;
 
 void specific_kernel(void *descr[], void *arg)
 {
@@ -48,10 +46,10 @@ static struct starpu_codelet specific_cl =
 	.cpu_funcs = {specific_kernel},
 	.cuda_funcs = {specific_kernel},
 	.opencl_funcs = {specific_kernel},
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
-	.nodes = {STARPU_MAIN_RAM},
+	.nodes = {STARPU_MAIN_RAM, -1},
 };
 
 void cpu_codelet_unsigned_inc(void *descr[], void *arg)
@@ -89,6 +87,8 @@ struct starpu_opencl_program opencl_program;
 
 int main(void)
 {
+	starpu_data_handle_t data_handle, data_handle2;
+
 #ifdef STARPU_QUICK_CHECK
 	unsigned ntasks = 10;
 #else
@@ -108,9 +108,12 @@ int main(void)
 #endif
 
 	data = 0;
+	data2 = 0;
 
 	/* Create a void data which will be used as an exclusion mechanism. */
 	starpu_variable_data_register(&data_handle, STARPU_MAIN_RAM, (uintptr_t) &data, sizeof(data));
+
+	starpu_variable_data_register(&data_handle2, STARPU_MAIN_RAM, (uintptr_t) &data2, sizeof(data2));
 
 	unsigned i;
 	for (i = 0; i < ntasks; i++)
@@ -121,6 +124,7 @@ int main(void)
 		else
 			task->cl = &cl;
 		task->handles[0] = data_handle;
+		task->handles[1] = data_handle2;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
@@ -128,6 +132,7 @@ int main(void)
 	}
 
 	starpu_data_unregister(data_handle);
+	starpu_data_unregister(data_handle2);
 
 	ret = (data == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2011-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,9 +48,9 @@ struct starpu_codelet stencil5_cl =
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	10
-#  define X         	2
-#  define Y         	2
+#  define NITER_DEF	5
+#  define X         	4
+#  define Y         	4
 #elif !defined(STARPU_LONG_CHECK)
 #  define NITER_DEF	10
 #  define X         	5
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
-				/* I don't own that index, but will need it for my computations */
+				/* I don't own this index, but will need it for my computations */
 				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(float));
 			}

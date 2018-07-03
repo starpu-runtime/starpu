@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014-2016                      Université de Bordeaux
  * Copyright (C) 2011-2012,2018                           Inria
  *
@@ -21,7 +21,7 @@
 \section TaskGranularity Task Granularity
 
 Like any other runtime, StarPU has some overhead to manage tasks. Since
-it does smart scheduling and data management, that overhead is not always
+it does smart scheduling and data management, this overhead is not always
 neglectable. The order of magnitude of the overhead is typically a couple of
 microseconds, which is actually quite smaller than the CUDA overhead itself. The
 amount of work that a task should do should thus be somewhat
@@ -98,9 +98,9 @@ for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	handles[i] = handle;
 }
 starpu_task_insert(&dummy_big_cl,
-        	 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
-		 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
-		 0);
+         	  STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
+		  STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
+		  0);
 \endcode
 
 The whole code for this complex data interface is available in the
@@ -154,7 +154,7 @@ struct starpu_codelet cl =
 
 Schedulers which are multi-implementation aware (only <c>dmda</c> and
 <c>pheft</c> for now) will use the performance models of all the
-implementations it was given, and pick the one that seems to be the fastest.
+implementations it was given, and pick the one which seems to be the fastest.
 
 \section EnablingImplementationAccordingToCapabilities Enabling Implementation According To Capabilities
 
@@ -355,9 +355,7 @@ starpu_task_insert(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
 STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
-                       starpu_task_insert(&work,
-		                          STARPU_RW, A_handle[i],
-					  0));
+                       starpu_task_insert(&work, STARPU_RW, A_handle[i], 0));
 \endcode
 
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for

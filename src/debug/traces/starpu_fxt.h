@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2012,2017,2018                           CNRS
  * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,10 +44,10 @@ extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*s
 
 void _starpu_fxt_dag_init(char *dag_filename);
 void _starpu_fxt_dag_terminate(void);
-void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id);
-void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father);
+void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id, const char *label);
+void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father, const char *label);
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color);
-void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ);
+void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label);
 void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color);
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);

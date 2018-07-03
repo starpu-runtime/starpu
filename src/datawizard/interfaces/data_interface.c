@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012,2014-2017                      Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -707,6 +707,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
+ 	STARPU_ASSERT(handle->unregister_hook == NULL);
 	handle->unregister_hook = func;
 }
 

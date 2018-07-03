@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2009-2016                                Université de Bordeaux
+ * Copyright (C) 2009-2016,2018                           Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,6 +97,8 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
 int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size);
 int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
+void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start);
+void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
 uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags);
 uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
 void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags);

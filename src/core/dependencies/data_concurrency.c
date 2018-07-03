@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2015,2017                           Inria
- * Copyright (C) 2009-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2009-2015,2017-2018                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -298,6 +298,43 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
+/* This is called when the tag+task dependencies are to be finished releasing.  */
+void _starpu_enforce_data_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data)
+{
+	unsigned buf;
+
+	if (j->task->cl) {
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+
+		for (buf = 0; buf < nbuffers; buf++)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, buf);
+			if (handle->arbiter)
+				/* Oops, it's the arbiter's decision */
+				return;
+		}
+
+		/* We need to check data availability only if sequential consistency
+		 * dependencies have not been used */
+		if (!j->sequential_consistency) {
+			for (buf = 0; buf < nbuffers; buf++)
+			{
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, buf);
+				enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, buf) & ~STARPU_COMMUTE;
+
+				if (handle->reduction_refcnt)
+					/* Reduction pending, don't bother trying */
+					return;
+				if (handle->refcnt != 0 && (mode == STARPU_W || handle->current_mode != mode))
+					/* Incompatible modes, not ready immediately */
+					return;
+			}
+		}
+	}
+	/* Ok, it really looks like this job will be ready soon */
+	_starpu_job_notify_ready_soon(j, data);
+}
+
 void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 {
 	/* Compute an ordered list of the different pieces of data so that we
@@ -330,8 +367,6 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 
 	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
-
-	_starpu_job_set_ordered_buffers(j);
 
 	return _submit_job_enforce_data_deps(j, 0);
 }

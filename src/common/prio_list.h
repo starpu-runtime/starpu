@@ -167,7 +167,12 @@
 	{ \
 		/* Sort by decreasing order */ \
 		const struct ENAME##_prio_list_stage *e2 = ENAME##_node_to_list_stage_const(node); \
-		return (e2->prio - prio); \
+		if (e2->prio < prio) \
+			return -1; \
+		if (e2->prio == prio) \
+			return 0; \
+		/* e2->prio > prio */ \
+		return 1; \
 	} \
 	PRIO_LIST_INLINE struct ENAME##_prio_list_stage *ENAME##_prio_list_add(struct ENAME##_prio_list *priolist, int prio) \
 	{ \

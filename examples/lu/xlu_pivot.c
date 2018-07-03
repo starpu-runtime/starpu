@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2009-2015,2017-2018                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2011,2013                                Inria
  *
@@ -46,6 +46,7 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	struct starpu_task *task = create_task(PIVOT(k, i));
 
 	task->cl = &cl_pivot;
+	task->color = 0xc0c000;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, i);
@@ -96,6 +97,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, un
 	struct starpu_task *task = create_task(TAG11(k));
 
 	task->cl = &cl11_pivot;
+	task->color = 0xffff00;
 
 	task->cl_arg = &piv_description[k];
 
@@ -125,6 +127,7 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	struct starpu_task *task = create_task(TAG12(k, j));
 
 	task->cl = &cl12;
+	task->color = 0x8080ff;
 
 	task->cl_arg = (void *)(task->tag_id);
 
@@ -163,6 +166,7 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	struct starpu_task *task = create_task(TAG21(k, i));
 
 	task->cl = &cl21;
+	task->color = 0x8080c0;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
@@ -193,6 +197,7 @@ static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
 	task->cl = &cl22;
+	task->color = 0x00ff00;
 
 	task->cl_arg = (void *)(task->tag_id);
 

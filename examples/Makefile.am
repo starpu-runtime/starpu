@@ -2,8 +2,8 @@
 #
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2017                                     Erwan Leria
-# Copyright (C) 2009-2017                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017                           CNRS
+# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2010-2015,2017,2018                           CNRS
 # Copyright (C) 2011                                     Télécom-SudParis
 # Copyright (C) 2016                                     Uppsala University
 #
@@ -202,6 +202,8 @@ STARPU_EXAMPLES =
 
 STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
+	scheduler/dummy_sched			\
+	scheduler/dummy_modular_sched		\
 	worker_collections/worker_list_example
 
 if !STARPU_SIMGRID
@@ -225,6 +227,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
+	filters/frecursive			\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -239,7 +242,6 @@ STARPU_EXAMPLES +=				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
-	scheduler/dummy_sched			\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
 	sched_ctx/two_cpu_contexts		\

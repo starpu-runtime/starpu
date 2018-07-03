@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2014,2017                                CNRS
- * Copyright (C) 2014,2017                                Université de Bordeaux
+ * Copyright (C) 2014,2017-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,32 +28,11 @@
 
 static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_id)
 {
-	struct starpu_sched_tree *t;
-	struct starpu_sched_component * random_component;
-
-	t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_fifo_create(t, NULL);
-	random_component = starpu_sched_component_random_create(t, NULL);
-
-	starpu_sched_component_connect(t->root, random_component);
-
-	struct starpu_sched_component_fifo_data fifo_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
-
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
-		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(t, &fifo_data);
-
-		starpu_sched_component_connect(fifo_component, worker_component);
-		starpu_sched_component_connect(random_component, fifo_component);
-	}
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_random_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
 static void deinitialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_id)
@@ -82,38 +61,13 @@ struct starpu_sched_policy _starpu_sched_modular_random_prefetching_policy =
 
 static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_id)
 {
-	struct starpu_sched_tree *t;
-	struct starpu_sched_component *random_component;
-
-	t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_prio_create(t, NULL);
-	random_component = starpu_sched_component_random_create(t, NULL);
-
-	starpu_sched_component_connect(t->root, random_component);
-
-	struct starpu_sched_component_prio_data prio_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
-
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
-		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
-
-		starpu_sched_component_connect(prio_component, worker_component);
-		starpu_sched_component_connect(random_component, prio_component);
-	}
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
-
-	/* The application may use any integer */
-	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
-		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
-	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
-		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_random_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
 static void deinitialize_random_prio_prefetching_center_policy(unsigned sched_ctx_id)

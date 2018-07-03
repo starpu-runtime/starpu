@@ -94,7 +94,7 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 		return 1;
 	}
 
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	int ret_val = starpu_sched_component_push_task(component,select,task);
 	return ret_val;
 }

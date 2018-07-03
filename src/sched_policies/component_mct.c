@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,7 +18,6 @@
  */
 
 #include <starpu_sched_component.h>
-#include "sched_component.h"
 #include <starpu_perfmodel.h>
 #include "helper_mct.h"
 #include <float.h>
@@ -118,7 +117,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		return 1;
 	}
 
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	int ret = starpu_sched_component_push_task(component, best_component, task);
 
 	/* I can now exit the critical section: Pushing the task below ensures that its execution

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2014                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2009-2011,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2015,2017-2018                 Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -82,13 +82,13 @@ like <c>component->push_task(component,task)</c>
      This method must either return 0 if it the task was properly stored or
      passed over to a child component, or return a value different from 0 if the
      task could not be consumed (e.g. the queue is full).
-\var struct starpu_task * (*starpu_sched_component::pull_task)(struct starpu_sched_component *)
+\var struct starpu_task * (*starpu_sched_component::pull_task)(struct starpu_sched_component *component, struct starpu_sched_component *to)
      pop a task from the scheduler module. this function is called by workers to get a task from their
      parents. this function should first return a locally stored task
      or perform a recursive call on the parents.
-     the task returned by this function is executable by the caller
+     the task returned by this function should be executable by the caller
 
-\var int (*starpu_sched_component::can_push)(struct starpu_sched_component *component)
+\var int (*starpu_sched_component::can_push)(struct starpu_sched_component *component, struct starpu_sched_component *to)
      This function is called by a component which implements a queue,
      allowing it to signify to its parents that an empty slot is
      available in its queue. This should return 1 if some tasks could be pushed
@@ -250,6 +250,14 @@ The actual scheduler
 
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
+
+\fn int starpu_sched_component_can_push(struct starpu_sched_component * component)
+\ingroup API_Modularized_Scheduler
+default function for the can_push component method, just calls can_push of parents until one of them returns non-zero
+
+\fn int starpu_sched_component_can_pull(struct starpu_sched_component * component)
+\ingroup API_Modularized_Scheduler
+default function for the can_pull component method, just calls can_pull of children until one of them returns non-zero
 
 \fn double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 \ingroup API_Modularized_Scheduler
@@ -466,6 +474,60 @@ todo
 \fn struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s)
 \ingroup API_Modularized_Scheduler
 	 this function build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
+
+\def STARPU_SCHED_SIMPLE_DECIDE_WORKERS
+\ingroup API_Modularized_Scheduler
+Request to create downstream queues per worker, i.e. the scheduling decision-making component will choose exactly which workers tasks should got to.
+
+\def STARPU_SCHED_SIMPLE_DECIDE_MEMNODES
+\ingroup API_Modularized_Scheduler
+Request to create downstream queues per memory nodes, i.e. the scheduling decision-making component will choose which memory node tasks will go to.
+
+\def STARPU_SCHED_SIMPLE_DECIDE_ARCHS
+\ingroup API_Modularized_Scheduler
+Request to create downstream queues per computation arch, i.e. the scheduling decision-making component will choose whether tasks go to CPUs, or CUDA, or OpenCL, etc.
+
+\def STARPU_SCHED_SIMPLE_PERFMODEL
+\ingroup API_Modularized_Scheduler
+Request to add a perfmodel selector above the scheduling decision-making component. That way, only tasks with a calibrated performance model will be given to the component, other tasks will go to an eager branch that will distributed tasks so that their performance models will get calibrated.
+
+In other words, this is needed when using a component which needs performance models for tasks.
+
+\def STARPU_SCHED_SIMPLE_FIFO_ABOVE
+\ingroup API_Modularized_Scheduler
+Request to create a fifo above the scheduling decision-making component, otherwise tasks will be pushed directly to the component.
+
+This is useful to store tasks if there is a fifo below which limits the number of tasks to be scheduld in advance. The scheduling decision-making component can also store tasks itself, in which case this flag is not useful.
+
+\def STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO
+\ingroup API_Modularized_Scheduler
+Request that the fifo above be sorted by priorities
+
+\def STARPU_SCHED_SIMPLE_FIFOS_BELOW
+\ingroup API_Modularized_Scheduler
+Request to create fifos below the scheduling decision-making component, otherwise tasks will be pulled directly from workers.
+
+This is useful to be able to schedule a (tunable) small number of tasks in advance only.
+
+\def STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO
+\ingroup API_Modularized_Scheduler
+Request that the fifos below be sorted by priorities
+
+\def STARPU_SCHED_SIMPLE_WS_BELOW
+\ingroup API_Modularized_Scheduler
+Request that work between workers using the same fifo below be distributed using a work stealing component.
+
+\def STARPU_SCHED_SIMPLE_IMPL
+\ingroup API_Modularized_Scheduler
+Request that a component be added just above workers, that chooses the best task implementation.
+
+\fn void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id)
+\ingroup API_Modularized_Scheduler
+This creates a simple modular scheduler tree around a scheduling decision-making
+component \p component. The details of what should be built around \p component
+is described by \p flags. The different STARPU_SCHED_SIMPL_DECIDE_* flags are
+mutually exclusive. \p data is passed to the \p create_decision_component
+function when creating the decision component.
 
 \fn int starpu_sched_component_push_task(struct starpu_sched_component *from, struct starpu_sched_component *to, struct starpu_task *task)
 \ingroup API_Modularized_Scheduler

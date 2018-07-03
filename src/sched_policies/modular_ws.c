@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014                                     Université de Bordeaux
+ * Copyright (C) 2014, 2018                                     Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,17 +23,10 @@
 
 static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
-	struct starpu_sched_tree *t;
-
-	t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_work_stealing_create(t, NULL);
-
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-		starpu_sched_component_connect(t->root, starpu_sched_component_worker_new(sched_ctx_id, i));
-
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_work_stealing_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_WS_BELOW |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
 static void deinitialize_ws_center_policy(unsigned sched_ctx_id)

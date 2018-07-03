@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2011,2013,2015-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,9 +48,9 @@ struct starpu_codelet stencil5_cl =
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	10
-#  define X         	2
-#  define Y         	2
+#  define NITER_DEF	5
+#  define X         	4
+#  define Y         	4
 #elif !defined(STARPU_LONG_CHECK)
 #  define NITER_DEF	10
 #  define X         	5
@@ -173,7 +173,11 @@ int main(int argc, char **argv)
 		return 77;
 	}
 
-	setenv("LB_HEAT_SLEEP_THRESHOLD", "5", 1);
+	{
+		char sleep_thr[10];
+		snprintf(sleep_thr, 10, "%d", Y);
+		setenv("LB_HEAT_SLEEP_THRESHOLD", sleep_thr, 1);
+	}
 	starpu_mpi_lb_init("heat", &itf);
 
 	parse_args(argc, argv);
@@ -218,7 +222,7 @@ int main(int argc, char **argv)
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
-				/* I don't own that index, but will need it for my computations */
+				/* I don't own this index, but will need it for my computations */
 				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_nodes[x][y].data_handle, -1, (uintptr_t)NULL, sizeof(float));
 			}
@@ -247,7 +251,7 @@ int main(int argc, char **argv)
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_nodes[x][y].data_handle,
 						       STARPU_R, data_nodes[x-1][y].data_handle, STARPU_R, data_nodes[x+1][y].data_handle,
 						       STARPU_R, data_nodes[x][y-1].data_handle, STARPU_R, data_nodes[x][y+1].data_handle,
-						       STARPU_TAG_ONLY, ((starpu_tag_t)X)*x + y,
+						       STARPU_TAG_ONLY, ((starpu_tag_t)Y)*x + y,
 						       0);
 			}
 		}

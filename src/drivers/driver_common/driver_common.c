@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -35,7 +35,7 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -67,6 +67,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 			_starpu_clock_gettime(&worker->cl_start);
 			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
+		_starpu_job_notify_start(j, perf_arch);
 	}
 
 	if (starpu_top)
@@ -99,10 +100,14 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				}
 			}
 		}
+		_STARPU_TRACE_TASK_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
 	}
 	else
+	{
+		_STARPU_TRACE_TASK_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	}
 	_starpu_sched_ctx_unlock_read(sched_ctx->id);
 	_STARPU_TASK_BREAK_ON(task, exec);
 }

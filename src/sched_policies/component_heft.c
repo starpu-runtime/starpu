@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,6 @@
 
 #include <starpu_sched_component.h>
 #include "prio_deque.h"
-#include "sched_component.h"
 #include <starpu_perfmodel.h>
 #include "helper_mct.h"
 #include <float.h>
@@ -167,7 +166,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 
-		_STARPU_TASK_BREAK_ON(tasks[best_task], sched);
+		starpu_sched_task_break(tasks[best_task]);
 		int ret = starpu_sched_component_push_task(component, best_component, tasks[best_task]);
 
 		if (ret)
@@ -207,7 +206,7 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 	return 0;
 }
 
-static int heft_can_push(struct starpu_sched_component *component)
+static int heft_can_push(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	heft_progress(component);
 	int ret = 0;
@@ -218,7 +217,7 @@ static int heft_can_push(struct starpu_sched_component *component)
 			continue;
 		else
 		{
-			ret = component->parents[j]->can_push(component->parents[j]);
+			ret = component->parents[j]->can_push(component->parents[j], component);
 			if(ret)
 				break;
 		}

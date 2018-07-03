@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2014,2017                           Inria
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1220,6 +1220,21 @@ to byte offset \p dst_offset of \p dst on \p dst_node. This is to be used in
 the starpu_data_copy_methods::any_to_any copy method, which is provided with \p async_data to
 be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
 transfer is still ongoing, or 0 if the transfer is already completed.
+
+\fn void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start)
+\ingroup API_Data_Interfaces
+When an asynchonous implementation of the data transfer is implemented, the call
+to the underlying CUDA, OpenCL, etc. call should be surrounded
+by calls to starpu_interface_start_driver_copy_async() and
+starpu_interface_end_driver_copy_async(), so that it is recorded in offline
+execution traces, and the timing of the submission is checked. \p start must
+point to a variable whose value will be passed unchanged to
+starpu_interface_end_driver_copy_async().
+
+\fn void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start)
+\ingroup API_Data_Interfaces
+See starpu_interface_start_driver_copy_async().
+
 
 \fn uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc)
 \ingroup API_Data_Interfaces

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2013-2014,2016-2017                      CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,6 +27,10 @@
 #include <core/task.h>
 
 #include "prio_deque.h"
+
+#ifdef STARPU_DEVEL
+#warning TODO: locality work-stealing
+#endif
 
 struct _starpu_work_stealing_data
 {
@@ -69,7 +73,7 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 		STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 		if(task)
 		{
-			_STARPU_TASK_BREAK_ON(task, sched);
+			starpu_sched_task_break(task);
 			break;
 		}
 
@@ -126,7 +130,7 @@ static int is_worker_of_component(struct starpu_sched_component * component, int
 
 
 
-static struct starpu_task * pull_task(struct starpu_sched_component * component)
+static struct starpu_task * pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	unsigned i;
@@ -236,7 +240,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	unsigned i = wsd->last_push_child;
 	i = (i+1)%component->nchildren;
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	ret = _starpu_prio_deque_push_task(wsd->fifos[i], task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 

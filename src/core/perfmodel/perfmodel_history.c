@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -477,6 +477,8 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
 		}
 		reg_model->multi_valid = !multi_invalid;
+		res = fscanf(f, "\n");
+		STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
 	}
 }
 
@@ -1763,7 +1765,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 					unsigned n = entry->nsample;
 					entry->mean = entry->sum / n;
-					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum))/n)/n);
+					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum)/n))/n);
 				}
 
 				if (j->task->flops != 0.)

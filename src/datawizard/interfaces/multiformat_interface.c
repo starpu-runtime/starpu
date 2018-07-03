@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012-2017                                CNRS
- * Copyright (C) 2013,2015-2016                           Université de Bordeaux
+ * Copyright (C) 2013,2015-2016,2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -528,11 +528,12 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	if (stream)
 	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 		status = cudaMemcpyPeerAsync(dst_multiformat->cuda_ptr, dst_dev,
 					     src_multiformat->cuda_ptr, src_dev,
 					     size, stream);
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		/* All good ! Still, returning -EAGAIN, because we will need to
                    check the transfert completion later */
 		if (status == cudaSuccess)

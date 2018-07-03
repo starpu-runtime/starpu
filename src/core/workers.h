@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -980,6 +980,7 @@ static inline void _starpu_worker_relax_on(void)
 #ifdef STARPU_SPINLOCK_CHECK
 #define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
 #endif
+#define starpu_worker_relax_on _starpu_worker_relax_on
 
 /* Same, but with current worker mutex already held */
 #ifdef STARPU_SPINLOCK_CHECK
@@ -1037,6 +1038,7 @@ static inline void _starpu_worker_relax_off(void)
 #ifdef STARPU_SPINLOCK_CHECK
 #define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
 #endif
+#define starpu_worker_relax_off _starpu_worker_relax_off
 
 #ifdef STARPU_SPINLOCK_CHECK
 static inline void __starpu_worker_relax_off_locked(const char*file, int line, const char* func)
@@ -1076,6 +1078,7 @@ static inline int _starpu_worker_get_relax_state(void)
 	STARPU_ASSERT(worker != NULL);
 	return worker->state_relax_refcnt != 0;
 }
+#define starpu_worker_get_relax_state _starpu_worker_get_relax_state
 
 /* lock a worker for observing contents
  *
@@ -1168,7 +1171,7 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	return ret;
 }
 
-int _starpu_wake_worker_relax_light(int workerid);
+int starpu_wake_worker_relax_light(int workerid);
 
 /* Allow a worker pulling a task it cannot execute to properly refuse it and
  * send it back to the scheduler.

@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2017                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,6 +105,8 @@
 #define _STARPU_FUT_TASK_NAME	0x512b
 
 #define _STARPU_FUT_DATA_WONT_USE	0x512c
+
+#define _STARPU_FUT_TASK_COLOR	0x512d
 
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
@@ -618,7 +620,7 @@ do {									\
 		}							\
 		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
-		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000, (job)->task->tag_id, workerid, ((job)->job_id)); \
+		FUT_DO_PROBE7(_STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
 } while(0);
 
@@ -677,10 +679,10 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_TAG_DEPS, tag_child, tag_father)
 
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id)
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type, 1, "task")
 
-#define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ_id)		\
-	FUT_DO_PROBE2(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ_id))
+#define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
 #define _STARPU_TRACE_TASK_NAME(job)						\
 do {										\
@@ -694,6 +696,14 @@ do {										\
 		FUT_DO_PROBE4(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
 	}									\
 } while(0);
+
+#define _STARPU_TRACE_TASK_COLOR(job)						\
+do { \
+	if ((job)->task->color != 0) \
+		FUT_DO_PROBE3(_STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color, _starpu_gettid()); \
+	else if ((job)->task->cl && (job)->task->cl->color != 0) \
+		FUT_DO_PROBE3(_STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color, _starpu_gettid()); \
+} while(0)
 
 #define _STARPU_TRACE_TASK_DONE(job)						\
 	FUT_DO_PROBE2(_STARPU_FUT_TASK_DONE, (job)->job_id, _starpu_gettid())
@@ -771,7 +781,7 @@ do {										\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_END, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT(job, iter, subiter)	\
-	FUT_DO_PROBE6(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, _starpu_gettid());
+	FUT_DO_PROBE7(_STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, (job)->task->type, _starpu_gettid());
 
 #define _STARPU_TRACE_TASK_SUBMIT_START()	\
 	FUT_DO_PROBE1(_STARPU_FUT_TASK_SUBMIT_START, _starpu_gettid());
@@ -1129,6 +1139,7 @@ do {										\
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_DATA_NAME(a, b)		do {(void)(a); (void)(b);} while(0)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011-2013,2016                           Inria
  * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
  *
@@ -57,13 +57,13 @@ computing power of the available CPUs and GPUs, while relieving them
 from the need to specially adapt their programs to the target machine
 and processing units.
 
-At the core of StarPU is its run-time support library, which is
+At the core of StarPU is its runtime support library, which is
 responsible for scheduling application-provided tasks on heterogeneous
 CPU/GPU machines.  In addition, StarPU comes with programming language
 support, in the form of extensions to languages of the C family
 (\ref cExtensions), as well as an OpenCL front-end (\ref SOCLOpenclExtensions).
 
-StarPU's run-time and programming language extensions support a
+StarPU's runtime and programming language extensions support a
 task-based programming model. Applications submit computational
 tasks, with CPU and/or GPU implementations, and StarPU schedules these
 tasks and associated data transfers on available CPUs and GPUs.  The

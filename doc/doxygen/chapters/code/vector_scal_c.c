@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2010-2014                                Université de Bordeaux
  *
@@ -70,8 +70,7 @@ int main(int argc, char **argv)
     starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file(
-               "examples/basic_examples/vector_scal_opencl_kernel.cl", &programs, NULL);
+    starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl", &programs, NULL);
 #endif
 
     /* Tell StaPU to associate the "vector" vector with the "vector_handle"
@@ -88,8 +87,7 @@ int main(int argc, char **argv)
      *  - the fifth argument is the size of each element.
      */
     starpu_data_handle_t vector_handle;
-    starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector,
-                                NX, sizeof(vector[0]));
+    starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
     float factor = 3.14;
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2014-2015,2017-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,6 @@
 #include <core/workers.h>
 
 #include "prio_deque.h"
-#include "sched_component.h"
 
 #ifdef STARPU_USE_FXT
 #define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do {                                 \
@@ -183,7 +182,7 @@ static int prio_push_task(struct starpu_sched_component * component, struct star
 	return ret;
 }
 
-static struct starpu_task * prio_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * prio_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
@@ -250,7 +249,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
  * push fails, which means that the worker prio_components are
  * currently "full".
  */
-static int prio_can_push(struct starpu_sched_component * component)
+static int prio_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && starpu_sched_component_is_prio(component));
 	int res = 0;

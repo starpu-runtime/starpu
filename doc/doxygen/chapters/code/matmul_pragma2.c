@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2010-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,6 +24,5 @@
 # define __task
 #endif
 
-static void matmul (const float *A, const float *B, float *C,
-                    unsigned nx, unsigned ny, unsigned nz) __task;
+static void matmul (const float *A, const float *B, float *C, unsigned nx, unsigned ny, unsigned nz) __task;
 //! [To be included. You should update doxygen if you see this text.]

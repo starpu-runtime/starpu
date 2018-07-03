@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -255,9 +255,22 @@ Prefetch data for a given task on a given node
 \ingroup API_Scheduling_Policy
 Prefetch data for a given task on a given node when the bus is idle
 
+\fn void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, void *data);
+\ingroup API_Scheduling_Policy
+Register a callback to be called when it is determined when a task will be ready
+an estimated amount of time from now, because its last dependency has just
+started and we know how long it will take.
+
 \fn void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 \ingroup API_Scheduling_Policy
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
 or if there is a central list with task for all the workers
+
+\fn void starpu_sched_break(struct starpu_task *task)
+\ingroup API_Scheduling_Policy
+This should be called just after a scheduling decision for task \p task was
+made. It will raise SIGTRAP if the ::STARPU_TASK_BREAK_ON_SCHED environment
+variable was used, which thus breakpoints inside a debugger, thus allowing to
+inspect why that scheduling decision was made.
 
 */

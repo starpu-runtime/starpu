@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2017                           Inria
  * Copyright (C) 2010-2012,2014-2017                      CNRS
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -400,7 +400,7 @@ static int simple_worker_can_pull(struct starpu_sched_component * worker_compone
 {
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(worker_component);
 	int workerid = worker->workerid;
-	return _starpu_wake_worker_relax_light(workerid);
+	return starpu_wake_worker_relax_light(workerid);
 }
 
 static int simple_worker_push_task(struct starpu_sched_component * component, struct starpu_task *task)
@@ -428,7 +428,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	return 0;
 }
 
-static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
+static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
@@ -484,7 +484,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(component->tree->sched_ctx_id, workerid);
 		starpu_sched_component_push_task(component, combined_worker_component, task);
 		/* we have pushed a task in queue, so can make a recursive call */
-		task = simple_worker_pull_task(component);
+		task = simple_worker_pull_task(component, to);
 		goto ret;
 
 	}
@@ -610,7 +610,7 @@ static int combined_worker_can_pull(struct starpu_sched_component * component)
 	{
 		if((unsigned) i == workerid)
 			continue;
-		if (_starpu_wake_worker_relax_light(workerid))
+		if (starpu_wake_worker_relax_light(workerid))
 			return 1;
 	}
 	return 0;
@@ -631,6 +631,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	task_alias[0]->task->destroy = 1;
 	task_alias[0]->left = NULL;
 	task_alias[0]->ntasks = combined_worker->worker_size;
+	_STARPU_TRACE_JOB_PUSH(task_alias[0]->task, task_alias[0]->task->priority > 0);
 	int i;
 	for(i = 1; i < combined_worker->worker_size; i++)
 	{
@@ -641,6 +642,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
 		task_alias[i]->pntasks = &(task_alias[0]->ntasks);
+		_STARPU_TRACE_JOB_PUSH(task_alias[i]->task, task_alias[i]->task->priority > 0);
 	}
 
 	starpu_pthread_mutex_t * mutex_to_unlock = NULL;

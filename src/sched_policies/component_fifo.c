@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,6 @@
 #include <core/workers.h>
 
 #include "fifo_queues.h"
-#include "sched_component.h"
 
 struct _starpu_fifo_data
 {
@@ -151,7 +150,7 @@ static int fifo_push_task(struct starpu_sched_component * component, struct star
 	return fifo_push_local_task(component, task, 0);
 }
 
-static struct starpu_task * fifo_pull_task(struct starpu_sched_component * component)
+static struct starpu_task * fifo_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
@@ -192,7 +191,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
  * push fails, which means that the worker fifo_components are
  * currently "full".
  */
-static int fifo_can_push(struct starpu_sched_component * component)
+static int fifo_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component && starpu_sched_component_is_fifo(component));
 	int res = 0;

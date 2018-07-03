@@ -4,7 +4,7 @@
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,9 +98,12 @@ struct task_info
 	char *model_name;
 	char *name;
 	int exclude_from_dag;
+	int show;
+	unsigned type;
 	unsigned long job_id;
 	unsigned long submit_order;
 	long priority;
+	int color;
 	uint64_t tag;
 	int workerid;
 	int node;
@@ -132,9 +135,12 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->model_name = NULL;
 		task->name = NULL;
 		task->exclude_from_dag = 0;
+		task->show = 0;
+		task->type = 0;
 		task->job_id = job_id;
 		task->submit_order = 0;
 		task->priority = 0;
+		task->color = 0;
 		task->tag = 0;
 		task->workerid = -1;
 		task->node = -1;
@@ -157,6 +163,18 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		STARPU_ASSERT(task->mpi_rank == mpi_rank);
 
 	return task;
+}
+
+/* Return whether to show this task in the DAG or not */
+static int show_task(struct task_info *task, struct starpu_fxt_options *options)
+{
+	if (task->show)
+		return 1;
+	if (task->type & STARPU_TASK_TYPE_INTERNAL && !options->internal)
+		return 0;
+	if (task->type & STARPU_TASK_TYPE_DATA_ACQUIRE && options->no_acquire)
+		return 0;
+	return 1;
 }
 
 static void task_dump(struct task_info *task, struct starpu_fxt_options *options)
@@ -1309,7 +1327,7 @@ static void create_paje_state_color(char *name, char *type, int ctx, float red, 
 }
 #endif
 
-static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options *options)
+static void create_paje_state_if_not_found(char *name, unsigned color, struct starpu_fxt_options *options)
 {
 	struct _starpu_symbol_name *itor;
 	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
@@ -1338,7 +1356,13 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 
 	float red, green, blue;
-	if (options->per_task_colour)
+	if (color != 0)
+	{
+		red = color / 0x100 / 0x100;
+		green = (color / 0x100) & 0xff;
+		blue = color & 0xff;
+	}
+	else if (options->per_task_colour)
 	{
 		red = (1.0f * hash_symbol_red) / hash_sum;
 		green = (1.0f * hash_symbol_green) / hash_sum;
@@ -1456,9 +1480,9 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	double last_start_codelet_time = last_codelet_start[worker];
 	last_codelet_start[worker] = start_codelet_time;
 
-	create_paje_state_if_not_found(name, options);
-
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	create_paje_state_if_not_found(name, task->color, options);
+
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
 	task->name = strdup(name);
@@ -2533,7 +2557,10 @@ static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 	tag = ev->param[0];
 	job = ev->param[1];
 
-	_starpu_fxt_dag_add_tag(options->file_prefix, tag, job);
+	if (options->label_deps)
+		_starpu_fxt_dag_add_tag(options->file_prefix, tag, job, "tag");
+	else
+		_starpu_fxt_dag_add_tag(options->file_prefix, tag, job, NULL);
 }
 
 static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2544,16 +2571,24 @@ static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	child = ev->param[0];
 	father = ev->param[1];
 
-	_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father);
+	if (options->label_deps)
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, "tag");
+	else
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, NULL);
 }
 
 static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
+	unsigned dep_succ_type = ev->param[2];
+	char *name = get_fxt_string(ev,4);
 
 	struct task_info *task = get_task(dep_succ, options->file_rank);
+	struct task_info *prev_task = get_task(dep_prev, options->file_rank);
 	unsigned alloc = 0;
+
+	task->type = dep_succ_type;
 
 	if (task->ndeps == 0)
 		/* Start with 8=2^3, should be plenty in most cases */
@@ -2574,7 +2609,13 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	task->dependencies[task->ndeps++] = dep_prev;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	_starpu_fxt_dag_add_task_deps(options->file_prefix, dep_prev, dep_succ);
+	if (show_task(task, options))
+	{
+		if (!options->label_deps) name = NULL;
+		/* We should show the name of the predecessor, then. */
+		prev_task->show = 1;
+		_starpu_fxt_dag_add_task_deps(options->file_prefix, dep_prev, dep_succ, name);
+	}
 }
 
 static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2584,6 +2625,7 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	unsigned long subiteration = ev->param[2];
 	unsigned long submit_order = ev->param[3];
 	long priority = (long) ev->param[4];
+	unsigned type = ev->param[5];
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->submit_time = get_event_time_stamp(ev, options);
@@ -2591,14 +2633,24 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	task->priority = priority;
 	task->iterations[0] = iteration;
 	task->iterations[1] = subiteration;
+	task->type = type;
+}
+
+static void handle_task_color(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id = ev->param[0];
+	struct task_info *task = get_task(job_id, options->file_rank);
+	int color = (long) ev->param[1];
+
+	task->color = color;
 }
 
 static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
-	unsigned long job_id;
-	job_id = ev->param[0];
+	unsigned long job_id = ev->param[0];
+	struct task_info *task = get_task(job_id, options->file_rank);
 
 	unsigned long has_name = ev->param[3];
 	char *name = has_name?get_fxt_string(ev,4):"unknown";
@@ -2608,7 +2660,12 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	const char *colour;
 	char buffer[32];
-	if (options->per_task_colour)
+	if (task->color != 0)
+	{
+		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
+		colour = &buffer[0];
+	}
+	else if (options->per_task_colour)
 	{
 		snprintf(buffer, sizeof(buffer), "#%x%x%x",
 			 get_colour_symbol_red(name)/4,
@@ -2622,10 +2679,9 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 
 	unsigned exclude_from_dag = ev->param[2];
-	struct task_info *task = get_task(job_id, options->file_rank);
 	task->exclude_from_dag = exclude_from_dag;
 
-	if (!exclude_from_dag)
+	if (!exclude_from_dag && show_task(task, options))
 		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, name, colour);
 }
 
@@ -3379,6 +3435,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_task_name(&ev, options);
 				break;
 
+			case _STARPU_FUT_TASK_COLOR:
+				handle_task_color(&ev, options);
+				break;
+
 			case _STARPU_FUT_TASK_DONE:
 				handle_task_done(&ev, options);
 				break;
@@ -3817,6 +3877,9 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->no_bus = 0;
 	options->no_flops = 0;
 	options->no_smooth = 0;
+	options->no_acquire = 0;
+	options->internal = 0;
+	options->label_deps = 0;
 	options->ninputfiles = 0;
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";

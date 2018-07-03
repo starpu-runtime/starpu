@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2014-2015,2017-2018            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Inria
@@ -32,6 +32,7 @@ static int create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned no_pr
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
 	task->tag_id = TAG11(k);
+	task->color = 0xffff00;
 
 	/* this is an important task */
 	if (!no_prio)
@@ -53,6 +54,7 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k);
 
 	task->tag_id = TAG12(k,j);
+	task->color = 0x8080ff;
 
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -74,6 +76,7 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, i);
 
 	task->tag_id = TAG21(k,i);
+	task->color = 0x8080c0;
 
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -89,6 +92,7 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl22;
+	task->color = 0x00ff00;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
@@ -160,7 +160,7 @@ because CUDA or OpenCL then reverts to synchronous transfers.
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
 task modifies some data, all the other replicates are invalidated, and only the
-processing unit which ran that task will have a valid replicate of the data. If the application knows
+processing unit which ran this task will have a valid replicate of the data. If the application knows
 that this data will not be re-used by further tasks, it should advise StarPU to
 immediately replicate it to a desired list of memory nodes (given through a
 bitmask). This can be understood like the write-through mode of CPU caches.
@@ -188,7 +188,7 @@ of tasks access the same piece of data. If no dependency is required
 on some piece of data (e.g. because it is only accessed in read-only
 mode, or because write accesses are actually commutative), use the
 function starpu_data_set_sequential_consistency_flag() to disable
-implicit dependencies on that data.
+implicit dependencies on this data.
 
 In the same vein, accumulation of results in the same data can become a
 bottleneck. The use of the mode ::STARPU_REDUX permits to optimize such
@@ -261,8 +261,7 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector,
-                            NX, sizeof(vector[0]));
+starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
 struct starpu_data_filter f =
@@ -428,8 +427,8 @@ struct starpu_codelet cl_switch =
 };
 
 ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
-			STARPU_W, vert_handle[0], 
-			STARPU_W, vert_handle[1], 
+			STARPU_W, vert_handle[0],
+			STARPU_W, vert_handle[1],
 			0);
 \endcode
 
@@ -461,7 +460,7 @@ whole machine, it would not be efficient to accumulate them in only one place,
 incurring data transmission each and access concurrency.
 
 StarPU provides a mode ::STARPU_REDUX, which permits to optimize
-that case: it will allocate a buffer on each memory node, and accumulate
+this case: it will allocate a buffer on each memory node, and accumulate
 intermediate results there. When the data is eventually accessed in the normal
 mode ::STARPU_R, StarPU will collect the intermediate results in just one
 buffer.
@@ -510,8 +509,7 @@ and attaches them as reduction methods for its handle <c>dtq</c>:
 
 \code{.c}
 starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
-starpu_data_set_reduction_methods(dtq_handle,
-        &accumulate_variable_cl, &bzero_variable_cl);
+starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 \endcode
 
 and <c>dtq_handle</c> can now be used in mode ::STARPU_REDUX for the
@@ -542,9 +540,9 @@ The example <c>cg</c> also uses reduction for the blocked gemv kernel,
 leading to yet more relaxed dependencies and more parallelism.
 
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
-case. That will however not produce any MPI communication, but just pass
+case. This will however not produce any MPI communication, but just pass
 ::STARPU_REDUX to the underlying starpu_task_insert(). It is up to the
-application to call starpu_mpi_redux_data(), which posts tasks that will
+application to call starpu_mpi_redux_data(), which posts tasks which will
 reduce the partial results among MPI nodes into the MPI node which owns the
 data. For instance, some hypothetical application which collects partial results
 into data <c>res</c>, then uses it for other computation, before looping again
@@ -554,8 +552,7 @@ with a new reduction:
 for (i = 0; i < 100; i++)
 {
     starpu_mpi_task_insert(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A,
-               STARPU_R, B, STARPU_REDUX, res, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A, STARPU_R, B, STARPU_REDUX, res, 0);
     starpu_mpi_redux_data(MPI_COMM_WORLD, res);
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
@@ -566,29 +563,17 @@ for (i = 0; i < 100; i++)
 By default, the implicit dependencies computed from data access use the
 sequential semantic. Notably, write accesses are always serialized in the order
 of submission. In some applicative cases, the write contributions can actually
-be performed in any order without affecting the eventual result. In that case
+be performed in any order without affecting the eventual result. In this case
 it is useful to drop the strictly sequential semantic, to improve parallelism
 by allowing StarPU to reorder the write accesses. This can be done by using
 the ::STARPU_COMMUTE data access flag. Accesses without this flag will however
 properly be serialized against accesses with this flag. For instance:
 
 \code{.c}
-    starpu_task_insert(&cl1,
-        STARPU_R, h,
-        STARPU_RW, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle1,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle2,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl3,
-        STARPU_R, g,
-        STARPU_RW, handle,
-        0);
+    starpu_task_insert(&cl1, STARPU_R, h, STARPU_RW, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle1, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle2, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl3, STARPU_R, g, STARPU_RW, handle, 0);
 \endcode
 
 The two tasks running <c>cl2</c> will be able to commute: depending on whether the
@@ -614,7 +599,7 @@ by data handle pointer value order.
 When sequential ordering is disabled or the ::STARPU_COMMUTE flag is used, there
 may be a lot of concurrent accesses to the same data, and the Dijkstra solution
 gets only poor parallelism, typically in some pathological cases which do happen
-in various applications. In that case, one can use a data access arbiter, which
+in various applications. In this case, one can use a data access arbiter, which
 implements the classical centralized solution for the Dining Philosophers
 problem. This is more expensive in terms of overhead since it is centralized,
 but it opportunistically gets a lot of parallelism. The centralization can also
@@ -641,7 +626,7 @@ the special memory node number <c>-1</c>, and passing a zero pointer. StarPU wil
 actually allocate memory only when the task creating the content gets scheduled,
 and destroy it on unregistration.
 
-In addition to that, it can be tedious for the application to have to unregister
+In addition to this, it can be tedious for the application to have to unregister
 the data, since it will not use its content anyway. The unregistration can be
 done lazily by using the function starpu_data_unregister_submit(),
 which will record that no more tasks accessing the handle will be submitted, so
@@ -668,9 +653,9 @@ codelet is needed).
 
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
-function, and free it at the end, but that would be costly. It could also
+function, and free it at the end, but this would be costly. It could also
 allocate one buffer per worker (similarly to \ref HowToInitializeAComputationLibraryOnceForEachWorker),
-but that would
+but this would
 make them systematic and permanent. A more  optimized way is to use
 the data access mode ::STARPU_SCRATCH, as examplified below, which
 provides per-worker buffers without content consistency. The buffer is
@@ -680,8 +665,7 @@ memory for it, and StarPU will allocate it on demand at task execution.
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
 for (i = 0; i < N; i++)
-    starpu_task_insert(&compute, STARPU_R, input[i],
-                       STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+    starpu_task_insert(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 \endcode
 
 StarPU will make sure that the buffer is allocated before executing the task,
@@ -697,8 +681,8 @@ The example <c>examples/pi</c> uses scratches for some temporary buffer.
 \section TheMultiformatInterface The Multiformat Interface
 
 It may be interesting to represent the same piece of data using two different
-data structures: one that would only be used on CPUs, and one that would only
-be used on GPUs. This can be done by using the multiformat interface. StarPU
+data structures: one only used on CPUs, and one only used on GPUs.
+This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
 Note that the scheduler <c>dmda</c> is the only one optimized for this
 interface. The user must provide StarPU with conversion codelets:

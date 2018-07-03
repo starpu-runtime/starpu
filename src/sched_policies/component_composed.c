@@ -125,7 +125,7 @@ static int composed_component_push_task(struct starpu_sched_component * componen
 	struct composed_component *c = component->data;
 	return starpu_sched_component_push_task(component,c->top,task);
 }
-struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component)
+struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	struct composed_component *c = component->data;
 	struct starpu_task * task = NULL;

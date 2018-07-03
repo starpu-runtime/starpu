@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2009-2011,2014-2015                      Université de Bordeaux
  *
@@ -129,7 +129,7 @@ If the field starpu_task::synchronous is non-zero, task submission
 will be synchronous: the function starpu_task_submit() will not return
 until the task has been executed. Note that the function starpu_shutdown()
 does not guarantee that asynchronous tasks have been executed before
-it returns, starpu_task_wait_for_all() can be used to that effect, or
+it returns, starpu_task_wait_for_all() can be used to this effect, or
 data can be unregistered (starpu_data_unregister()), which will
 implicitly wait for all the tasks scheduled to work on it, unless
 explicitly disabled thanks to
@@ -199,7 +199,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 \endcode
 
 As said before, the field starpu_codelet::nbuffers specifies the
-number of data buffers that are manipulated by the codelet. It does
+number of data buffers which are manipulated by the codelet. It does
 not count the argument --- the parameter <c>cl_arg</c> of the function
 <c>cpu_func</c> --- since it is not managed by our data management
 library, but just contains trivial parameters.
@@ -307,12 +307,12 @@ struct starpu_codelet cl =
     .where = STARPU_CPU,
     .cpu_funcs = { cpu_func },
     .cpu_funcs_name = { "cpu_func" },
-     .nbuffers = 0
+    .nbuffers = 0
 };
 \endcode
 
 We create a codelet which may only be executed on the CPUs. The
-optional field starpu_codelet::where is a bitmask that defines where
+optional field starpu_codelet::where is a bitmask which defines where
 the codelet may be executed. Here, the value ::STARPU_CPU means that
 only CPUs can execute this codelet. When the optional field
 starpu_codelet::where is unset, its value is automatically set based
@@ -338,13 +338,10 @@ has to be defined:
 
 \code{.c}
 /* Declare the `vector_scal' task.  */
-static void vector_scal (unsigned size, float vector[size],
-                         float factor)
-  __attribute__ ((task));
+static void vector_scal (unsigned size, float vector[size], float factor) __attribute__ ((task));
 
 /* Define the standard CPU implementation.  */
-static void
-vector_scal (unsigned size, float vector[size], float factor)
+static void vector_scal (unsigned size, float vector[size], float factor)
 {
   unsigned i;
   for (i = 0; i < size; i++)
@@ -372,7 +369,7 @@ require more typing.
 <li>
 It registers the memory pointed to by <c>vector</c>.  Eventually,
 when OpenCL or CUDA task implementations are added, this will allow
-StarPU to transfer that memory region between GPUs and the main memory.
+StarPU to transfer the memory region between GPUs and the main memory.
 Removing this <c>pragma</c> is an error.
 </li>
 <li>
@@ -407,7 +404,7 @@ advantage of these newfangled GPUs that your lab just bought, don't you?
 So, let's add an OpenCL implementation of the task <c>vector_scal</c>.
 We assume that the OpenCL kernel is available in a file,
 <c>vector_scal_opencl_kernel.cl</c>, not shown here.  The OpenCL task
-implementation is similar to that used with the standard C API
+implementation is similar to the one used with the standard C API
 (\ref DefinitionOfTheOpenCLKernel).  It is declared and defined
 in our C file like this:
 
@@ -415,12 +412,10 @@ in our C file like this:
 /* The OpenCL programs, loaded from 'main' (see below). */
 static struct starpu_opencl_program cl_programs;
 
-static void vector_scal_opencl (unsigned size, float vector[size],
-                                float factor)
+static void vector_scal_opencl (unsigned size, float vector[size], float factor)
   __attribute__ ((task_implementation ("opencl", vector_scal)));
 
-static void
-vector_scal_opencl (unsigned size, float vector[size], float factor)
+static void vector_scal_opencl (unsigned size, float vector[size], float factor)
 {
   int id, devid, err;
   cl_kernel kernel;
@@ -434,22 +429,17 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
   devid = starpu_worker_get_devid (id);
 
   /* Prepare to invoke the kernel.  In the future, this will be largely automated.  */
-  err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs,
-                                   "vector_mult_opencl", devid);
-  if (err != CL_SUCCESS)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs, "vector_mult_opencl", devid);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR (err);
 
   err = clSetKernelArg (kernel, 0, sizeof (size), &size);
   err |= clSetKernelArg (kernel, 1, sizeof (val), &val);
   err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
-  if (err)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  if (err) STARPU_OPENCL_REPORT_ERROR (err);
 
   size_t global = 1, local = 1;
-  err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global,
-                                &local, 0, NULL, &event);
-  if (err != CL_SUCCESS)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR (err);
 
   clFinish (queue);
   starpu_opencl_collect_stats (event);
@@ -464,13 +454,12 @@ The OpenCL kernel itself must be loaded from <c>main</c>, sometime after
 the pragma <c>initialize</c>:
 
 \code{.c}
-starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
-                                       &cl_programs, "");
+starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl", &cl_programs, "");
 \endcode
 
 And that's it.  The task <c>vector_scal</c> now has an additional
 implementation, for OpenCL, which StarPU's scheduler may choose to use
-at run-time.  Unfortunately, the <c>vector_scal_opencl</c> above still
+at runtime.  Unfortunately, the <c>vector_scal_opencl</c> above still
 has to go through the common OpenCL boilerplate; in the future,
 additional extensions will automate most of it.
 
@@ -482,8 +471,7 @@ with <c>nvcc</c>.  Thus, the C file only needs to contain an external
 declaration for the task implementation:
 
 \code{.c}
-extern void vector_scal_cuda (unsigned size, float vector[size],
-                              float factor)
+extern void vector_scal_cuda (unsigned size, float vector[size], float factor)
   __attribute__ ((task_implementation ("cuda", vector_scal)));
 \endcode
 
@@ -532,8 +520,7 @@ The following lines show how to declare an array of <c>NX</c> elements of type
 float vector[NX];
 
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX,
-                            sizeof(vector[0]));
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 \endcode
 
 The first argument, called the <b>data handle</b>, is an opaque pointer which

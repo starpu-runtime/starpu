@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2014,2016-2017                 Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -31,6 +31,9 @@
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
+#ifdef HAVE_LIBNVIDIA_ML
+#include <nvml.h>
+#endif
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
@@ -53,9 +56,13 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
+#ifdef HAVE_LIBNVIDIA_ML
+static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
+#endif
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
+static char used_stream[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
@@ -106,6 +113,9 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwcudagpus = cnt;
+#ifdef HAVE_LIBNVIDIA_ML
+	nvmlInit();
+#endif
 #endif
 }
 
@@ -215,6 +225,7 @@ cudaStream_t starpu_cuda_get_local_stream(void)
 {
 	int worker = starpu_worker_get_id_check();
 
+	used_stream[worker] = 1;
 	return streams[worker];
 }
 
@@ -520,7 +531,30 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
 #else
+#ifdef HAVE_LIBNVIDIA_ML
+		unsigned long long energy_start = 0;
+		nvmlReturn_t nvmlRet = -1;
+		if (profiling || (cl->energy_model && cl->energy_model->benchmarking))
+		{
+			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
+		}
+#endif
+
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+
+#ifdef HAVE_LIBNVIDIA_ML
+		if (nvmlRet == NVML_SUCCESS &&
+			(profiling || (cl->energy_model && cl->energy_model->benchmarking)))
+		{
+			unsigned long long energy_end;
+			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
+#ifdef STARPU_DEVEL
+#warning TODO: measure idle consumption to subtract it
+#endif
+			if (nvmlRet == NVML_SUCCESS)
+				task->profiling_info->energy_consumed += (energy_end - energy_start) / 1000.;
+		}
+#endif
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}
@@ -580,6 +614,14 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 				STARPU_ABORT();
 		}
 	}
+
+#ifndef STARPU_SIMGRID
+	if (!used_stream[workerid])
+	{
+		used_stream[workerid] = 1;
+		_STARPU_DISP("Warning: starpu_cuda_get_local_stream() was not used to submit kernel to CUDA on worker %d. CUDA will thus introduce a lot of useless synchronizations, which will prevent proper overlapping of data transfers and kernel execution. See the CUDA-specific part of the 'Check List When Performance Are Not There' of the StarPU handbook\n", workerid);
+	}
+#endif
 
 	if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
 	{
@@ -682,6 +724,11 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
+#ifdef HAVE_LIBNVIDIA_ML
+		char busid[13];
+		snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+		nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);
+#endif
 		if (props[devid].pciDomainID)
 			snprintf(worker->name, sizeof(worker->name), "CUDA %u.%u (%s %.1f GiB %04x:%02x:%02x.0)", devid, subdev, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 		else
@@ -1093,7 +1140,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	if (stream)
 	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		if (peer_copy)
 		{
@@ -1106,7 +1154,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
 		}
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	}
 
 	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */

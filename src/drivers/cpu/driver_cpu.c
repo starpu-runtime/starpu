@@ -107,12 +107,22 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			/* rebind to single CPU */
 			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
 	}
+	else
+	{
+		_STARPU_TRACE_START_EXECUTING();
+	}
+
+	if (is_parallel_task)
+	{
+		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		if (rank != 0)
+			_STARPU_TRACE_END_EXECUTING();
+	}
 
 	_starpu_driver_end_job(cpu_args, j, perf_arch, rank, profiling);
 
 	if (is_parallel_task)
 	{
-		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 #ifdef STARPU_SIMGRID
 		if (rank == 0)
 		{
@@ -153,77 +163,11 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
-{
-	size_t global_mem;
-	starpu_ssize_t limit = -1;
-
-#if defined(STARPU_HAVE_HWLOC)
-	struct _starpu_machine_topology *topology = &config->topology;
-
-	int nnumas = starpu_memory_nodes_get_numa_count();
-	if (nnumas > 1)
-	{
-		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
-
-		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
-		{
-#if HWLOC_API_VERSION >= 0x00020000
-			global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
-#else
-			global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-#endif
-		}
-		else
-		{
-			char name[32];
-			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
-#if HWLOC_API_VERSION >= 0x00020000
-			global_mem = obj->attr->numanode.local_memory;
-#else
-			global_mem = obj->memory.local_memory;
-#endif
-			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
-			limit = starpu_get_env_number(name);
-		}
-	}
-	else
-	{
-		/* Do not limit ourself to a single NUMA node */
-#if HWLOC_API_VERSION >= 0x00020000
-		global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
-#else
-		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-#endif
-	}
-
-#else /* STARPU_HAVE_HWLOC */
-#ifdef STARPU_DEVEL
-#  warning TODO: use sysinfo when available to get global size
-#endif
-	global_mem = 0;
-#endif
-
-	if (limit == -1)
-		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
-
-	if (limit < 0)
-		// No limit is defined, we return the global memory size
-		return global_mem;
-	else if (global_mem && (size_t)limit * 1024*1024 > global_mem)
-		// The requested limit is higher than what is available, we return the global memory size
-		return global_mem;
-	else
-		// We limit the memory
-		return limit*1024*1024;
-}
-
 int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
 	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
-	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->numa_memory_node, cpu_worker->config));
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);

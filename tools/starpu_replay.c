@@ -353,7 +353,7 @@ int submit_tasks(void)
 			if (currentTask->ndependson > 0)
 			{
 				struct starpu_task * taskdeps[currentTask->ndependson];
-				unsigned i;
+				unsigned i, j = 0;
 
 				for (i = 0; i < currentTask->ndependson; i++)
 				{
@@ -362,12 +362,14 @@ int submit_tasks(void)
 					/*  Get the ith jobid of deps_jobid */
 					HASH_FIND(hh, tasks, &currentTask->deps[i], sizeof(jobid), taskdep);
 
-					STARPU_ASSERT(taskdep);
-
-					taskdeps[i] = &taskdep->task;
+					if(taskdep)
+					{
+						taskdeps[j] = &taskdep->task;
+						j ++;
+					}
 				}
 
-				starpu_task_declare_deps_array(&currentTask->task, currentTask->ndependson, taskdeps);
+				starpu_task_declare_deps_array(&currentTask->task, j, taskdeps);
 			}
 
 			if (!(currentTask->iteration == -1))
@@ -380,11 +382,14 @@ int submit_tasks(void)
 				starpu_iteration_pop();
 
 			if (ret_val != 0)
+			{
+				printf("\nWhile submitting task %lu: return %d\n", currentTask->submit_order, ret_val);
 				return -1;
+			}
 
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
-			printf("\rsubmitting task %lu", currentTask->submit_order);
+			printf("\rSubmitting task %lu", currentTask->submit_order);
 			last_submitorder++;
 		}
 
@@ -433,7 +438,8 @@ int main(int argc, char **argv)
 	_STARPU_MALLOC(dependson, dependson_size * sizeof (* dependson));
 	alloc_mode = 1;
 
-	for (i = 1; i < (unsigned) argc; i++) {
+	for (i = 1; i < (unsigned) argc; i++)
+	{
 		if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
 		{
 			usage(argv[0]);
@@ -471,6 +477,8 @@ int main(int argc, char **argv)
 
 	/* Read line by line, and on empty line submit the task with the accumulated information */
 	reset();
+
+	double start = starpu_timing_now();
 
 	while(1)
 	{
@@ -541,7 +549,8 @@ int main(int argc, char **argv)
 				{
 					task->task.priority = priority;
 					task->task.cl = &cl;
-					if (static_workerid) {
+					if (static_workerid)
+					{
 						task->task.workerid = workerid;
 						task->task.execute_on_a_specific_worker = 1;
 					}
@@ -681,9 +690,13 @@ int main(int argc, char **argv)
 			}
 		}
 		else if (TEST("Tag"))
+		{
 			tag = strtol(s+5, NULL, 16);
+		}
 		else if (TEST("WorkerId"))
+		{
 			workerid = atoi(s+10);
+		}
 		else if (TEST("Footprint"))
 		{
 			footprint = strtoul(s+11, NULL, 16);
@@ -816,6 +829,8 @@ int main(int argc, char **argv)
 eof:
 
 	starpu_task_wait_for_all();
+
+	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start);
 
 	/* FREE allocated memory */
 

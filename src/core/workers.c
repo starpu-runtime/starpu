@@ -1158,6 +1158,7 @@ static void _starpu_build_tree(void)
 
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+static void (*act_sigtrap)(int);
 
 void _starpu_handler(int sig)
 {
@@ -1175,6 +1176,10 @@ void _starpu_handler(int sig)
 	{
 		signal(SIGSEGV, act_sigsegv);
 	}
+	if (sig == SIGTRAP)
+	{
+		signal(SIGTRAP, act_sigtrap);
+	}
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
@@ -1185,6 +1190,7 @@ void _starpu_catch_signals(void)
 {
 	act_sigint  = signal(SIGINT, _starpu_handler);
 	act_sigsegv = signal(SIGSEGV, _starpu_handler);
+	act_sigtrap = signal(SIGTRAP, _starpu_handler);
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -1286,6 +1292,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #ifdef STARPU_USE_FXT
 	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+#endif
+#ifdef STARPU_FXT_LOCK_TRACES
+	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
 #endif
 #ifdef STARPU_PERF_DEBUG
 	_STARPU_DISP("Warning: StarPU was configured with --enable-perf-debug, which slows down a bit\n");
@@ -1424,7 +1433,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&_starpu_config, _starpu_config.conf.sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL,  0, NULL, 0);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", (_starpu_config.conf.global_sched_ctx_min_priority != -1), _starpu_config.conf.global_sched_ctx_min_priority, (_starpu_config.conf.global_sched_ctx_max_priority != -1), _starpu_config.conf.global_sched_ctx_max_priority, 1, _starpu_config.conf.sched_policy_init, NULL,  0, NULL, 0);
 	}
 
 	_starpu_initialize_registered_performance_models();
@@ -2448,16 +2457,19 @@ int starpu_worker_sched_op_pending(void)
 	return _starpu_worker_sched_op_pending();
 }
 
+#undef starpu_worker_relax_on
 void starpu_worker_relax_on(void)
 {
 	_starpu_worker_relax_on();
 }
 
+#undef starpu_worker_relax_off
 void starpu_worker_relax_off(void)
 {
 	_starpu_worker_relax_off();
 }
 
+#undef starpu_worker_get_relax_state
 int starpu_worker_get_relax_state(void)
 {
 	return _starpu_worker_get_relax_state();
@@ -2505,7 +2517,7 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
  * speculatively sets keep_awake on the target worker without waiting that
  * worker to enter the relaxed state.
  */
-int _starpu_wake_worker_relax_light(int workerid)
+int starpu_wake_worker_relax_light(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);

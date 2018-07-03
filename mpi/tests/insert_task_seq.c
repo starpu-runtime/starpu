@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014,2017                           CNRS
+ * Copyright (C) 2011-2014,2017,2018                           CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,7 +87,7 @@ void dotest(int rank, int size, char *enabled)
 		}
 		else
 		{
-			/* I don't own that index, but will need it for my computations */
+			/* I don't own this index, but will need it for my computations */
 			starpu_variable_data_register(&data_handles[x], -1, (uintptr_t)NULL, sizeof(unsigned));
 		}
 		if (data_handles[x])

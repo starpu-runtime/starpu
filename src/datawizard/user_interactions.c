@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -189,7 +189,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
-							  int sequential_consistency,
+							  int sequential_consistency, int quick,
 							  long *pre_sync_jobid, long *post_sync_jobid)
 {
 	STARPU_ASSERT(handle);
@@ -215,19 +215,27 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	if (handle_sequential_consistency && sequential_consistency)
 	{
 		struct starpu_task *new_task;
+		struct _starpu_job *pre_sync_job, *post_sync_job;
 		wrapper->pre_sync_task = starpu_task_create();
 		wrapper->pre_sync_task->name = "_starpu_data_acquire_cb_pre";
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
+		wrapper->pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		pre_sync_job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
 		if (pre_sync_jobid)
-			*pre_sync_jobid = _starpu_get_job_associated_to_task(wrapper->pre_sync_task)->job_id;
+			*pre_sync_jobid = pre_sync_job->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
+		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		post_sync_job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
 		if (post_sync_jobid)
-			*post_sync_jobid = _starpu_get_job_associated_to_task(wrapper->post_sync_task)->job_id;
+			*post_sync_jobid = post_sync_job->job_id;
+
+		if (quick)
+			pre_sync_job->quick_next = post_sync_job;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
@@ -257,11 +265,18 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	return 0;
 }
 
+int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
+							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  int sequential_consistency, int quick)
+{
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, quick, NULL, NULL);
+}
+
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, NULL, NULL);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, node, mode, callback, arg, sequential_consistency, 0);
 }
 
 
@@ -348,10 +363,12 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		wrapper.pre_sync_task = starpu_task_create();
 		wrapper.pre_sync_task->name = "_starpu_data_acquire_pre";
 		wrapper.pre_sync_task->detach = 0;
+		wrapper.pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
 		wrapper.post_sync_task = starpu_task_create();
 		wrapper.post_sync_task->name = "_starpu_data_acquire_post";
 		wrapper.post_sync_task->detach = 1;
+		wrapper.post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
@@ -617,7 +634,7 @@ static void _starpu_data_wont_use(void *data)
 void starpu_data_wont_use(starpu_data_handle_t handle)
 {
 	_STARPU_TRACE_DATA_WONT_USE(handle);
-	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle);
+	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);
 }
 
 /*

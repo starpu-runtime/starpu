@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014-2015                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
@@ -126,20 +126,15 @@ Here is an example:
 \code{.c}
 #define __output  __attribute__ ((output))
 
-static void matmul (const float *A, const float *B,
-                    __output float *C,
-                    unsigned nx, unsigned ny, unsigned nz)
+static void matmul (const float *A, const float *B, __output float *C, unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task));
 
-static void matmul_cpu (const float *A, const float *B,
-                        __output float *C,
-                        unsigned nx, unsigned ny, unsigned nz)
+static void matmul_cpu (const float *A, const float *B, __output float *C, unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("cpu", matmul)));
 
 
 static void
-matmul_cpu (const float *A, const float *B, __output float *C,
-            unsigned nx, unsigned ny, unsigned nz)
+matmul_cpu (const float *A, const float *B, __output float *C, unsigned nx, unsigned ny, unsigned nz)
 {
   unsigned i, j, k;
 
@@ -165,16 +160,12 @@ implementation.  Thus, the above snippet can be simplified like this:
 \code{.c}
 #define __output  __attribute__ ((output))
 
-static void matmul (const float *A, const float *B,
-                    __output float *C,
-                    unsigned nx, unsigned ny, unsigned nz)
+static void matmul (const float *A, const float *B, __output float *C, unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task));
 
 /* Implicit definition of the CPU implementation of the
    `matmul' task.  */
-static void
-matmul (const float *A, const float *B, __output float *C,
-        unsigned nx, unsigned ny, unsigned nz)
+static void matmul (const float *A, const float *B, __output float *C, unsigned nx, unsigned ny, unsigned nz)
 {
   unsigned i, j, k;
 
@@ -194,12 +185,10 @@ the code is valid sequential code when StarPU's GCC plug-in is not used
 CUDA and OpenCL implementations can be declared in a similar way:
 
 \code{.c}
-static void matmul_cuda (const float *A, const float *B, float *C,
-                         unsigned nx, unsigned ny, unsigned nz)
+static void matmul_cuda (const float *A, const float *B, float *C, unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("cuda", matmul)));
 
-static void matmul_opencl (const float *A, const float *B, float *C,
-                           unsigned nx, unsigned ny, unsigned nz)
+static void matmul_opencl (const float *A, const float *B, float *C, unsigned nx, unsigned ny, unsigned nz)
   __attribute__ ((task_implementation ("opencl", matmul)));
 \endcode
 
@@ -209,13 +198,9 @@ written in CUDA or OpenCL (for similar code, \ref CUDAKernel, and
 OpenCL under the hood, such as CUBLAS functions:
 
 \code{.c}
-static void
-matmul_cuda (const float *A, const float *B, float *C,
-             unsigned nx, unsigned ny, unsigned nz)
+static void matmul_cuda (const float *A, const float *B, float *C, unsigned nx, unsigned ny, unsigned nz)
 {
-  cublasSgemm ('n', 'n', nx, ny, nz,
-               1.0f, A, 0, B, 0,
-               0.0f, C, 0);
+  cublasSgemm ('n', 'n', nx, ny, nz, 1.0f, A, 0, B, 0, 0.0f, C, 0);
   cudaStreamSynchronize (starpu_cuda_get_local_stream ());
 }
 \endcode

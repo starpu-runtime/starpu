@@ -223,7 +223,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		if (starpu_worker_get_type(workerid) != STARPU_MIC_WORKER
 				&& starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
 		{
-			_starpu_wake_worker_relax_light(workerid);
+			starpu_wake_worker_relax_light(workerid);
 			continue;
 		}
 		if ((!is_parallel_task) /* This is not a parallel task, can wake any workerid */
@@ -231,7 +231,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 				|| (common_data->max_combination_size[workerid] > 1) /* This is a combined workerid master and the task is parallel */
 		   )
 		{
-			_starpu_wake_worker_relax_light(workerid);
+			starpu_wake_worker_relax_light(workerid);
 		}
 	}
 #endif
@@ -342,6 +342,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		struct starpu_task *alias = starpu_task_dup(task);
 		int local_worker = combined_workerid[i];
 		alias->destroy = 1;
+		_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 		_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 	}
 
@@ -351,6 +352,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	task = master_alias;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+	_STARPU_TRACE_JOB_PUSH(master_alias, master_alias->priority > 0);
 
 	for (i = 1; i < worker_size; i++)
 	{

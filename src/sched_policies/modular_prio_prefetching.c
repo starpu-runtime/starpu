@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2014,2017                                CNRS
- * Copyright (C) 2014,2017                                Université de Bordeaux
+ * Copyright (C) 2014,2017-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,9 +20,9 @@
 #include <starpu_scheduler.h>
 #include <limits.h>
 
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 4
-#define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-
+/* Just as documentation example, here is the detailed equivalent of the
+ * starpu_sched_component_initialize_simple_scheduler call below */
+#if 0
 static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t;
@@ -57,6 +57,17 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+}
+#endif
+
+static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_eager_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE |
+			STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
 static void deinitialize_prio_prefetching_center_policy(unsigned sched_ctx_id)

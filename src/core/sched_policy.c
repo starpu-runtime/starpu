@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -397,6 +397,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			struct starpu_task *alias = starpu_task_dup(task);
 			alias->destroy = 1;
 
+			_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
@@ -581,6 +582,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 					if (job->task_size > 1)
 					{
 						alias = starpu_task_dup(task);
+						_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 						alias->destroy = 1;
 					}
 					else
@@ -1162,4 +1164,9 @@ void _starpu_print_idle_time()
 		fprintf(f, "%lf \n", all_idle);
 		fclose(f);
 	}
+}
+
+void starpu_sched_task_break(struct starpu_task *task)
+{
+	_STARPU_TASK_BREAK_ON(task, sched);
 }

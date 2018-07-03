@@ -25,6 +25,7 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <drivers/cpu/driver_cpu.h>
 #include <drivers/mic/driver_mic_source.h>
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mpi/driver_mpi_source.h>
@@ -35,6 +36,7 @@
 #include <profiling/profiling.h>
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/memory_manager.h>
 #include <common/uthash.h>
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1435,6 +1437,8 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
 	topology->cuda_th_per_dev = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
 
+	STARPU_ASSERT_MSG(!(topology->cuda_th_per_stream == 1 && topology->cuda_th_per_dev != -1), "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER to 1 and to set STARPU_CUDA_THREAD_PER_DEV, please choose either per worker or per device or none");
+
 	/* per device by default */
 	if (topology->cuda_th_per_dev == -1)
 	{
@@ -1448,8 +1452,6 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	{
 		topology->cuda_th_per_stream = 0;
 	}
-
-	STARPU_ASSERT_MSG(topology->cuda_th_per_dev != 1 || topology->cuda_th_per_stream != 1, "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER and STARPU_CUDA_THREAD_PER_DEV to 1, please choose either per worker or per device or none");
 
 	if (!topology->cuda_th_per_dev)
 	{
@@ -1974,6 +1976,70 @@ static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
 	}
 }
 
+static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+{
+	size_t global_mem;
+	starpu_ssize_t limit = -1;
+
+#if defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	{
+		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
+
+		if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
+		{
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
+			global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
+		}
+		else
+		{
+			char name[32];
+			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid);
+#if HWLOC_API_VERSION >= 0x00020000
+			global_mem = obj->attr->numanode.local_memory;
+#else
+			global_mem = obj->memory.local_memory;
+#endif
+			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
+			limit = starpu_get_env_number(name);
+		}
+	}
+	else
+	{
+		/* Do not limit ourself to a single NUMA node */
+#if HWLOC_API_VERSION >= 0x00020000
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->total_memory;
+#else
+		global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+#endif
+	}
+
+#else /* STARPU_HAVE_HWLOC */
+#ifdef STARPU_DEVEL
+#  warning TODO: use sysinfo when available to get global size
+#endif
+	global_mem = 0;
+#endif
+
+	if (limit == -1)
+		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+
+	if (limit < 0)
+		// No limit is defined, we return the global memory size
+		return global_mem;
+	else if (global_mem && (size_t)limit * 1024*1024 > global_mem)
+		// The requested limit is higher than what is available, we return the global memory size
+		return global_mem;
+	else
+		// We limit the memory
+		return limit*1024*1024;
+}
+
 //TODO : Check SIMGRID
 static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 {
@@ -2018,6 +2084,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				{
 					int devid = numa_logical_id == STARPU_NUMA_MAIN_RAM ? 0 : numa_logical_id;
 					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid);
+					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(devid, config));
 					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 					numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
 					int numa_physical_id = _starpu_get_physical_numa_node_worker(worker);
@@ -2064,6 +2131,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			if (numa_starpu_id == -1)
 			{
 				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+				_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 				numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
 				numa_memory_nodes_to_physicalid[memnode] = obj->os_index;
@@ -2123,6 +2191,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 					if (numa_starpu_id == -1)
 					{
 						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+						_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 						STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 						numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
 						numa_memory_nodes_to_physicalid[memnode] = obj->os_index;
@@ -2163,45 +2232,47 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	unsigned numa;
 	for (numa = 0; numa < nnuma; numa++)
 	{
+		unsigned numa_logical_id;
+		unsigned numa_physical_id;
 #if defined(STARPU_HAVE_HWLOC)
-		if (nnuma > 1)
+		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa);
+		if (obj)
 		{
-			hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa);
-			unsigned numa_logical_id = obj->logical_index;
-			unsigned numa_physical_id = obj->os_index;
-
-			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa);
-			STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
-
-			numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
-			numa_memory_nodes_to_physicalid[memnode] = numa_physical_id;
-			nb_numa_nodes++;
-
-#ifdef STARPU_SIMGRID
-			snprintf(name, sizeof(name), "RAM%d", memnode);
-			host = _starpu_simgrid_get_host_by_name(name);
-			STARPU_ASSERT(host);
-			_starpu_simgrid_memory_node_set_host(memnode, host);
-#endif
+			numa_logical_id = obj->logical_index;
+			numa_physical_id = obj->os_index;
 		}
 		else
-#endif /* defined(STARPU_HAVE_HWLOC) */
-		{
-
-			/* In this case, nnuma has only one node */
-			int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa);
-			STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
-
-			numa_memory_nodes_to_hwloclogid[memnode] = STARPU_NUMA_MAIN_RAM;
-			numa_memory_nodes_to_physicalid[memnode] = STARPU_NUMA_MAIN_RAM;
-			nb_numa_nodes++;
-#ifdef STARPU_SIMGRID
-			host = _starpu_simgrid_get_host_by_name("RAM");
-			STARPU_ASSERT(host);
-			_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
 #endif
+		{
+			numa_logical_id = 0;
+			numa_physical_id = 0;
+		}
+		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
+		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
+
+		numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
+		numa_memory_nodes_to_physicalid[memnode] = numa_physical_id;
+		nb_numa_nodes++;
+
+		if (numa == 0)
+			STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
+		STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
+
+#ifdef STARPU_SIMGRID
+		if (nnuma > 1)
+		{
+			snprintf(name, sizeof(name), "RAM%d", memnode);
+			host = _starpu_simgrid_get_host_by_name(name);
+		}
+		else
+		{
+			/* In this case, nnuma has only one node */
+			host = _starpu_simgrid_get_host_by_name("RAM");
 		}
 
+		STARPU_ASSERT(host);
+		_starpu_simgrid_memory_node_set_host(memnode, host);
+#endif
 	}
 
 	STARPU_ASSERT_MSG(nb_numa_nodes > 0, "No NUMA node found... We need at least one memory node !\n");

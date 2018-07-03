@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2014                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2011,2013-2015,2017,2018            CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -75,6 +75,12 @@ struct _starpu_job
 
 	/* The task associated to that job */
 	struct starpu_task *task;
+
+        /* A task that this will unlock quickly, e.g. we are the pre_sync part
+         * of a data acquisition, and the caller promised that data release will
+	 * happen immediately, so that the post_sync task will be started
+         * immediately after. */
+	struct _starpu_job *quick_next;
 
 	/* These synchronization structures are used to wait for the job to be
 	 * available or terminated for instance. */
@@ -159,6 +165,8 @@ struct _starpu_job
 
 	/* Is that task internal to StarPU? */
 	unsigned internal:1;
+	/* Did that task use sequential consistency for its data? */
+	unsigned sequential_consistency:1;
 
 	/* During the reduction of a handle, StarPU may have to submit tasks to
 	 * perform the reduction itself: those task should not be stalled while
@@ -237,6 +245,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 /* When waking up a continuation, we only enforce new task dependencies */
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j);
 #endif
+void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag);
 
 /* Called at the submission of the job */
 void _starpu_handle_job_submission(struct _starpu_job *j);

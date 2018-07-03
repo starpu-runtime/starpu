@@ -43,6 +43,8 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
+//#define NOTIFY_READY_SOON
+
 struct _starpu_dmda_data
 {
 	double alpha;
@@ -624,7 +626,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	starpu_task_set_implementation(task, best_impl);
 
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best,
 					model_best, transfer_model_best, prio, sched_ctx_id);
@@ -937,7 +939,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	starpu_task_set_implementation(task, selected_impl);
 
-	_STARPU_TASK_BREAK_ON(task, sched);
+	starpu_sched_task_break(task);
 	if(!simulate)
 	{
 		/* we should now have the best worker in variable "best" */
@@ -989,6 +991,16 @@ static double dmda_simulate_push_sorted_decision_task(struct starpu_task *task)
 	STARPU_ASSERT(task);
 	return _dmda_push_task(task, 1, task->sched_ctx, 1, 1);
 }
+
+#ifdef NOTIFY_READY_SOON
+static void dmda_notify_ready_soon(void *data STARPU_ATTRIBUTE_UNUSED, struct starpu_task *task, double delay)
+{
+	if (!task->cl)
+		return;
+	/* fprintf(stderr, "task %lu %p %p %s %s will be ready within %f\n", starpu_task_get_job_id(task), task, task->cl, task->cl->name, task->cl->model?task->cl->model->symbol : NULL, delay); */
+	/* TODO: do something with it */
+}
+#endif
 
 static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
@@ -1082,6 +1094,10 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
 					    idle_power_minimum, idle_power_maximum, param_modified);
 #endif /* !STARPU_USE_TOP */
+
+#ifdef NOTIFY_READY_SOON
+	starpu_task_notify_ready_soon_register(dmda_notify_ready_soon, dt);
+#endif
 }
 
 static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)

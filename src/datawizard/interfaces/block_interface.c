@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2017                           Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -528,12 +528,13 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		}
 		else
 		{
+			double start;
 			/* Are all plans contiguous */
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
 					(char *)src_block->ptr, src_block->ldz*elemsize,
 					nx*ny*elemsize, nz, kind, stream);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 			if (STARPU_UNLIKELY(cures))
 			{
 				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
@@ -559,12 +560,13 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		{
 			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
 			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
+			double start;
 
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
                                                   (char *)src_ptr, src_block->ldy*elemsize,
                                                   nx*elemsize, ny, kind, stream);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
 			if (STARPU_UNLIKELY(cures))
 			{
