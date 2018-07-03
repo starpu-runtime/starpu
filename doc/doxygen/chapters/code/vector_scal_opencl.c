@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2012-2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2012-2013,2015,2017,2018            CNRS
  * Copyright (C) 2011,2014                                Université de Bordeaux
  * Copyright (C) 2010                                     Inria
  *
@@ -38,8 +38,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 	 id = starpu_worker_get_id();
 	 devid = starpu_worker_get_devid(id);
 
-	 err = starpu_opencl_load_kernel(&kernel, &queue,
-					 &programs,
+	 err = starpu_opencl_load_kernel(&kernel, &queue, &programs,
 					 "vector_mult_opencl", /* Name of the codelet */
 					 devid);
 	 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -57,13 +56,11 @@ void scal_opencl_func(void *buffers[], void *_args)
         cl_device_id device;
 
         starpu_opencl_get_device(devid, &device);
-        err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
-                                        sizeof(local), &local, &s);
+        err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
         if (local > global) local=global;
 
-        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0,
-                                     NULL, &event);
+        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
     }
 

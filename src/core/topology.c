@@ -1437,6 +1437,8 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
 	topology->cuda_th_per_dev = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
 
+	STARPU_ASSERT_MSG(!(topology->cuda_th_per_stream == 1 && topology->cuda_th_per_dev != -1), "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER to 1 and to set STARPU_CUDA_THREAD_PER_DEV, please choose either per worker or per device or none");
+
 	/* per device by default */
 	if (topology->cuda_th_per_dev == -1)
 	{
@@ -1450,8 +1452,6 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	{
 		topology->cuda_th_per_stream = 0;
 	}
-
-	STARPU_ASSERT_MSG(topology->cuda_th_per_dev != 1 || topology->cuda_th_per_stream != 1, "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER and STARPU_CUDA_THREAD_PER_DEV to 1, please choose either per worker or per device or none");
 
 	if (!topology->cuda_th_per_dev)
 	{

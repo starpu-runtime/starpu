@@ -31,7 +31,7 @@ void cpu_codelet(void *buffers[], void *cl_arg)
         /* local copy of the matrix pointer */
         int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-	FPRINTF(stderr, "computing on matrix with nx=%d, ny=%d, ld=%d\n", nx, ny, ld);
+	FPRINTF(stderr, "computing on matrix with nx=%u, ny=%u, ld=%u\n", nx, ny, ld);
         for(j=0; j<ny ; j++)
 	{
                 for(i=0; i<nx ; i++)
@@ -58,7 +58,7 @@ int main(void)
 	starpu_data_handle_t subhandle_l1[PARTS];
 	starpu_data_handle_t subhandle_l2[PARTS][PARTS];
 	starpu_data_handle_t subhandle_l3[PARTS][PARTS][PARTS];
-	int ret, submit;
+	int ret;
 
 	int factor = 12;
 	int n=1;

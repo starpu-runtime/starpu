@@ -42,7 +42,7 @@ starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
 ::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS, ::STARPU_CL_ARGS_NFREE,
-::STARPU_TASK_DEPS_ARRAY,
+::STARPU_TASK_DEPS_ARRAY, ::STARPU_TASK_COLOR
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -156,6 +156,11 @@ be followed by a number of tasks, and an array containing these tasks.
 The function starpu_task_declare_deps_array() will be called with the
 given values.
 
+\def STARPU_TASK_COLOR
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must be followed by an integer
+representing a color
+
 \fn void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 \ingroup API_Insert_Task
 Assuming that there are already \p current_buffer data handles passed to
@@ -224,6 +229,15 @@ can then be used in a later call to one of the unpack functions.
 \fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
 Create a task corresponding to \p cl with the following arguments.
+The argument list must be zero-terminated. The arguments
+following the codelet are the same as the ones for the function
+starpu_task_insert().
+If some arguments of type ::STARPU_VALUE are given, the parameter
+starpu_task::cl_arg_free will be set to 1.
+
+\fn int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
+\ingroup API_Insert_Task
+Set the given \p task corresponding to \p cl with the following arguments.
 The argument list must be zero-terminated. The arguments
 following the codelet are the same as the ones for the function
 starpu_task_insert().

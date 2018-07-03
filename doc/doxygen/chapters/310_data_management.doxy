@@ -261,8 +261,7 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector,
-                            NX, sizeof(vector[0]));
+starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
 struct starpu_data_filter f =
@@ -428,8 +427,8 @@ struct starpu_codelet cl_switch =
 };
 
 ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
-			STARPU_W, vert_handle[0], 
-			STARPU_W, vert_handle[1], 
+			STARPU_W, vert_handle[0],
+			STARPU_W, vert_handle[1],
 			0);
 \endcode
 
@@ -510,8 +509,7 @@ and attaches them as reduction methods for its handle <c>dtq</c>:
 
 \code{.c}
 starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
-starpu_data_set_reduction_methods(dtq_handle,
-        &accumulate_variable_cl, &bzero_variable_cl);
+starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 \endcode
 
 and <c>dtq_handle</c> can now be used in mode ::STARPU_REDUX for the
@@ -554,8 +552,7 @@ with a new reduction:
 for (i = 0; i < 100; i++)
 {
     starpu_mpi_task_insert(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A,
-               STARPU_R, B, STARPU_REDUX, res, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A, STARPU_R, B, STARPU_REDUX, res, 0);
     starpu_mpi_redux_data(MPI_COMM_WORLD, res);
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
@@ -573,22 +570,10 @@ the ::STARPU_COMMUTE data access flag. Accesses without this flag will however
 properly be serialized against accesses with this flag. For instance:
 
 \code{.c}
-    starpu_task_insert(&cl1,
-        STARPU_R, h,
-        STARPU_RW, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle1,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle2,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl3,
-        STARPU_R, g,
-        STARPU_RW, handle,
-        0);
+    starpu_task_insert(&cl1, STARPU_R, h, STARPU_RW, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle1, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle2, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl3, STARPU_R, g, STARPU_RW, handle, 0);
 \endcode
 
 The two tasks running <c>cl2</c> will be able to commute: depending on whether the
@@ -680,8 +665,7 @@ memory for it, and StarPU will allocate it on demand at task execution.
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
 for (i = 0; i < N; i++)
-    starpu_task_insert(&compute, STARPU_R, input[i],
-                       STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+    starpu_task_insert(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 \endcode
 
 StarPU will make sure that the buffer is allocated before executing the task,

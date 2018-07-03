@@ -72,8 +72,8 @@ extern int starpu_mpi_world_rank(void);
 #pragma weak _starpu_mpi_simgrid_init
 int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
-starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
-starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
+extern starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
+extern starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 
 #define _starpu_simgrid_cuda_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_queue_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_QUEUE_MALLOC_COST", 1)

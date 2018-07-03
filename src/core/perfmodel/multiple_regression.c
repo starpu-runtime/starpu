@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2011,2016-2017                      CNRS
  * Copyright (C) 2016-2017                                Inria
- * Copyright (C) 2009-2011,2015-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2015-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,13 +67,14 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 
 	FILE *f=NULL;
 	f = fopen(filepath, "a+");
-	STARPU_ASSERT_MSG(f, "Could not save performance model into the file %s\n", filepath);
+	STARPU_ASSERT_MSG(f, "Could not load performance model from file %s\n", filepath);
 
 	line = fgets(buffer,sizeof(buffer),f);//skipping first line
 	STARPU_ASSERT(line);
 	while((line=fgets(buffer,sizeof(buffer),f))!=NULL)
 	{
 		char *record = strtok(line,",");
+		STARPU_ASSERT_MSG(record, "Could not load performance model from file %s\n", filepath);
 		my[i] = atof(record);
 		record = strtok(NULL,",");
 		int j=0;

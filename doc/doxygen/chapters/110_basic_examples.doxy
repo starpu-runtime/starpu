@@ -307,7 +307,7 @@ struct starpu_codelet cl =
     .where = STARPU_CPU,
     .cpu_funcs = { cpu_func },
     .cpu_funcs_name = { "cpu_func" },
-     .nbuffers = 0
+    .nbuffers = 0
 };
 \endcode
 
@@ -338,13 +338,10 @@ has to be defined:
 
 \code{.c}
 /* Declare the `vector_scal' task.  */
-static void vector_scal (unsigned size, float vector[size],
-                         float factor)
-  __attribute__ ((task));
+static void vector_scal (unsigned size, float vector[size], float factor) __attribute__ ((task));
 
 /* Define the standard CPU implementation.  */
-static void
-vector_scal (unsigned size, float vector[size], float factor)
+static void vector_scal (unsigned size, float vector[size], float factor)
 {
   unsigned i;
   for (i = 0; i < size; i++)
@@ -415,12 +412,10 @@ in our C file like this:
 /* The OpenCL programs, loaded from 'main' (see below). */
 static struct starpu_opencl_program cl_programs;
 
-static void vector_scal_opencl (unsigned size, float vector[size],
-                                float factor)
+static void vector_scal_opencl (unsigned size, float vector[size], float factor)
   __attribute__ ((task_implementation ("opencl", vector_scal)));
 
-static void
-vector_scal_opencl (unsigned size, float vector[size], float factor)
+static void vector_scal_opencl (unsigned size, float vector[size], float factor)
 {
   int id, devid, err;
   cl_kernel kernel;
@@ -434,22 +429,17 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
   devid = starpu_worker_get_devid (id);
 
   /* Prepare to invoke the kernel.  In the future, this will be largely automated.  */
-  err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs,
-                                   "vector_mult_opencl", devid);
-  if (err != CL_SUCCESS)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  err = starpu_opencl_load_kernel (&kernel, &queue, &cl_programs, "vector_mult_opencl", devid);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR (err);
 
   err = clSetKernelArg (kernel, 0, sizeof (size), &size);
   err |= clSetKernelArg (kernel, 1, sizeof (val), &val);
   err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
-  if (err)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  if (err) STARPU_OPENCL_REPORT_ERROR (err);
 
   size_t global = 1, local = 1;
-  err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global,
-                                &local, 0, NULL, &event);
-  if (err != CL_SUCCESS)
-    STARPU_OPENCL_REPORT_ERROR (err);
+  err = clEnqueueNDRangeKernel (queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR (err);
 
   clFinish (queue);
   starpu_opencl_collect_stats (event);
@@ -464,8 +454,7 @@ The OpenCL kernel itself must be loaded from <c>main</c>, sometime after
 the pragma <c>initialize</c>:
 
 \code{.c}
-starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
-                                       &cl_programs, "");
+starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl", &cl_programs, "");
 \endcode
 
 And that's it.  The task <c>vector_scal</c> now has an additional
@@ -482,8 +471,7 @@ with <c>nvcc</c>.  Thus, the C file only needs to contain an external
 declaration for the task implementation:
 
 \code{.c}
-extern void vector_scal_cuda (unsigned size, float vector[size],
-                              float factor)
+extern void vector_scal_cuda (unsigned size, float vector[size], float factor)
   __attribute__ ((task_implementation ("cuda", vector_scal)));
 \endcode
 
@@ -532,8 +520,7 @@ The following lines show how to declare an array of <c>NX</c> elements of type
 float vector[NX];
 
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX,
-                            sizeof(vector[0]));
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 \endcode
 
 The first argument, called the <b>data handle</b>, is an opaque pointer which

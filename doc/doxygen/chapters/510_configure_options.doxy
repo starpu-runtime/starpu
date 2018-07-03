@@ -505,7 +505,8 @@ Enable performance model debugging.
 <dd>
 \anchor enable-fxt-lock
 \addindex __configure__--enable-fxt-lock
-Enable additional trace events which describes locks behaviour.
+Enable additional trace events which describes locks behaviour. This is however
+extremely heavy and should only be enabled when debugging insides of StarPU.
 </dd>
 
 <dt>--enable-maxbuffers</dt>

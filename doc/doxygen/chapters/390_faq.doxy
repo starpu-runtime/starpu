@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014,2016-2017                 Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
@@ -159,8 +159,7 @@ for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 cudaGraphicsResourceGetMappedPointer((void**)&output, &num_bytes, resource);
 
 /* And register it to StarPU */
-starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid),
-                            output, num_bytes / sizeof(float4), sizeof(float4));
+starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid), output, num_bytes / sizeof(float4), sizeof(float4));
 
 /* The handle can now be used as usual */
 starpu_task_insert(&cl, STARPU_RW, handle, 0);

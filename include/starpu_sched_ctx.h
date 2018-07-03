@@ -111,6 +111,8 @@ int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 
 void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id);
 
+void starpu_sched_ctx_set_user_data(unsigned sched_ctx_id, void* user_data);
+
 struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type) STARPU_ATTRIBUTE_MALLOC;
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016                           Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014                           Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -113,7 +113,7 @@ The contexts can also be used to group set of SMs of an NVIDIA GPU in order to i
 the parallel kernels and allow them to coexecution on a specified partiton of the GPU.
 
 Each context will be mapped to a stream and the user can indicate the number of SMs.
-The context can be added to a larger context already grouping CPU cores. 
+The context can be added to a larger context already grouping CPU cores.
 This larger context can use a scheduling policy that assigns tasks to both CPUs and contexts (partitions of the GPU)
 based on performance models adjusted to the number of SMs.
 
@@ -132,7 +132,7 @@ int workers[ncpus+nstreams];
 workers[ncpus+0] = stream_workerids[0];
 workers[ncpus+1] = stream_workerids[1];
 
-big_sched_ctx = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0); 
+big_sched_ctx = starpu_sched_ctx_create(workers, ncpus+nstreams, "ctx1", STARPU_SCHED_CTX_SUB_CTXS, sched_ctxs, nstreams, STARPU_SCHED_CTX_POLICY_NAME, "dmdas", 0);
 
 starpu_task_submit_to_ctx(task, big_sched_ctx);
 
@@ -160,25 +160,25 @@ starpu_sched_ctx_remove_workers(workerids, 3, sched_ctx1);
 \endcode
 
 \section SubmittingTasksToAContext Submitting Tasks To A Context
-The application may submit tasks to several contexts either 
+The application may submit tasks to several contexts either
 simultaneously or sequnetially. If several threads of submission
 are used the function starpu_sched_ctx_set_context() may be called just
-before starpu_task_submit(). Thus StarPU considers that 
+before starpu_task_submit(). Thus StarPU considers that
 the current thread will submit tasks to the coresponding context.
- 
+
 When the application may not assign a thread of submission to each
 context, the id of the context must be indicated by using the
-function starpu_task_submit_to_ctx() or the field \ref STARPU_SCHED_CTX 
+function starpu_task_submit_to_ctx() or the field \ref STARPU_SCHED_CTX
 for starpu_task_insert().
 
 \section DeletingAContext Deleting A Context
 
 When a context is no longer needed it must be deleted. The application
 can indicate which context should keep the resources of a deleted one.
-All the tasks of the context should be executed before doing this. 
-Thus, the programmer may use either a barrier and then delete the context 
+All the tasks of the context should be executed before doing this.
+Thus, the programmer may use either a barrier and then delete the context
 directly, or just indicate
-that other tasks will not be submitted later on to the context (such that when 
+that other tasks will not be submitted later on to the context (such that when
 the last task is executed its workers will be moved to the inheritor)
 and delete the context at the end of the execution (when a barrier will
 be used eventually).
@@ -212,8 +212,8 @@ A context may have no resources at the begining or at a certain
 moment of the execution. Task can still be submitted to these contexts
 and they will be executed as soon as the contexts will have resources. A list
 of tasks pending to be executed is kept and when workers are added to
-the contexts these tasks start being submitted. However, if resources 
-are never allocated to the context the program will not terminate. 
+the contexts these tasks start being submitted. However, if resources
+are never allocated to the context the program will not terminate.
 If these tasks have low
 priority the programmer can forbid the application to submit them
 by calling the function starpu_sched_ctx_stop_task_submission().
