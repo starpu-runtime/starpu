@@ -534,27 +534,15 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef HAVE_LIBNVIDIA_ML
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
-		if (profiling || (cl->energy_model && cl->energy_model->benchmarking))
+		if (profiling)
 		{
 			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
+			if (nvmlRet == NVML_SUCCESS)
+				task->profiling_info->energy_consumed = energy_start / 1000.;
 		}
 #endif
 
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-
-#ifdef HAVE_LIBNVIDIA_ML
-		if (nvmlRet == NVML_SUCCESS &&
-			(profiling || (cl->energy_model && cl->energy_model->benchmarking)))
-		{
-			unsigned long long energy_end;
-			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
-#ifdef STARPU_DEVEL
-#warning TODO: measure idle consumption to subtract it
-#endif
-			if (nvmlRet == NVML_SUCCESS)
-				task->profiling_info->energy_consumed += (energy_end - energy_start) / 1000.;
-		}
-#endif
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}
@@ -566,6 +554,21 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 {
 	int profiling = starpu_profiling_status_get();
 
+
+#ifdef HAVE_LIBNVIDIA_ML
+	if (profiling && task->profiling_info->energy_consumed)
+	{
+		unsigned long long energy_end;
+		nvmlReturn_t nvmlRet = -1;
+		nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
+#ifdef STARPU_DEVEL
+#warning TODO: measure idle consumption to subtract it
+#endif
+		if (nvmlRet == NVML_SUCCESS)
+			j->task->profiling_info->energy_consumed =
+				(energy_end / 1000. - j->task->profiling_info->energy_consumed);
+	}
+#endif
 	_starpu_set_current_task(NULL);
 	if (worker->pipeline_length)
 		worker->current_tasks[worker->first_task] = NULL;
