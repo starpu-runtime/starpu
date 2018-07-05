@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2014-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2014-2015,2017-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,12 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 
 }
 
+static struct starpu_task * perfmodel_select_pull_task(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+{
+	/* We don't want to pull tasks blindly, only let them go through push, so we push to the right component. */
+	return NULL;
+}
+
 static void perfmodel_select_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
@@ -90,6 +96,7 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 
 	component->data = data;
 	component->push_task = perfmodel_select_push_task;
+	component->pull_task = perfmodel_select_pull_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;
 	component->estimated_end = starpu_sched_component_estimated_end_min;
 
