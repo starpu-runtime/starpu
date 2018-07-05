@@ -3698,6 +3698,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_TEST_END:
 				handle_mpi_test_end(&ev, options);
+				break;
 
 			case _STARPU_MPI_FUT_POLLING_BEGIN:
 				handle_mpi_polling_begin(&ev, options);
