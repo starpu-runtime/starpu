@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2015-2017                      Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -108,10 +108,8 @@ StarPU's internal locking.
 The environment variable \ref STARPU_FXT_TRACE can be set to 0 to disable the
 generation of the <c>prof_file_XXX_YYY</c> file.
 
-\subsection CreatingAGanttDiagram Creating a Gantt Diagram
-
-When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
-generate a trace in the Paje format by calling:
+When the FxT trace file <c>prof_file_something</c> has been generated,
+it is possible to generate different trace formats by calling:
 
 \verbatim
 $ starpu_fxt_tool -i /tmp/prof_file_something
@@ -121,46 +119,67 @@ Or alternatively, setting the environment variable \ref STARPU_GENERATE_TRACE
 to <c>1</c> before application execution will make StarPU do it automatically at
 application shutdown.
 
-This will create a file <c>paje.trace</c> in the current directory that
-can be inspected with the ViTE (http://vite.gforge.inria.fr/) trace
-visualizing open-source tool.  It is possible to open the
-file <c>paje.trace</c> with ViTE by using the following command:
+One can also set the environment variable \ref
+STARPU_GENERATE_TRACE_OPTIONS to specify options, see
+<c>starpu_fxt_tool --help</c>, for example:
 
 \verbatim
-$ vite paje.trace
+$ export STARPU_GENERATE_TRACE=1
+$ export STARPU_GENERATE_TRACE_OPTIONS="-no-acquire"
 \endverbatim
 
-To get names of tasks instead of "unknown", fill the optional
-starpu_codelet::name, or use a performance model for them.
-
-One can also introduce user-defined events in the diagram thanks to the
-starpu_fxt_trace_user_event_string() function.
-
-In the MPI execution case, \ref STARPU_GENERATE_TRACE will not work as expected
-(each node will try to generate paje.trace, thus mixing outputs...), you have to
-collect the trace files from the MPI nodes, and
-specify them all on the command <c>starpu_fxt_tool</c>, for instance:
+When running a MPI application, \ref STARPU_GENERATE_TRACE will not
+work as expected (each node will try to generate trace files, thus
+mixing outputs...), you have to collect the trace files from the MPI
+nodes, and specify them all on the command <c>starpu_fxt_tool</c>, for
+instance:
 
 \verbatim
 $ starpu_fxt_tool -i /tmp/prof_file_something*
 \endverbatim
 
-By default, all tasks are displayed using a green color. To display tasks with
-varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
+By default, the generated trace contains all informations. To reduce
+the trace size, various <c>-no-foo</c> options can be passed to
+<c>starpu_fxt_tool</c>, see <c>starpu_fxt_tool --help</c> .
 
-By default, the trace contains all informations. To reduce the trace size,
-various <c>-no-foo</c> options can be passed to <c>starpu_fxt_tool</c>, see
-<c>starpu_fxt_tool --help</c> .
+\subsubsection CreatingAGanttDiagram Creating a Gantt Diagram
 
-To identify tasks precisely, the application can set the starpu_task::tag_id field of the
-task (or use \ref STARPU_TAG_ONLY when using starpu_task_insert()), and
-the value of the tag will show up in the trace.
+One of the generated files is a trace in the Paje format. The file,
+located in the current directory, is named <c>paje.trace</c>. It can
+be viewed with ViTE (http://vite.gforge.inria.fr/) a trace
+visualizing open-source tool.  To open the file <c>paje.trace</c> with
+ViTE, use the following command:
 
-It can also set the starpu_task::name field of the task (or use \ref STARPU_NAME)
-when using starpu_task_insert()), to replace in traces the name of the codelet
-with an arbitrarily chosen name.
+\verbatim
+$ vite paje.trace
+\endverbatim
 
-It can also set the iteration number, by just calling starpu_iteration_push()
+Tasks can be assigned a name (instead of the default 'unknown') by
+filling the optional starpu_codelet::name, or assigning them a
+performance model. The name can also be set with the field
+starpu_task::name or by using \ref STARPU_NAME when calling
+starpu_task_insert().
+
+Tasks are assigned default colors based on the worker which executed
+them (green for CPUs, yellow/orange/red for CUDAs, blue for OpenCLs,
+red for MICs, ...). To use a different color for every type of task,
+one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
+\ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
+color by setting the field starpu_codelet::color or the
+starpu_task::color. Colors are expressed with the following format
+0xRRGGBB (e.g 0xFF0000 for red). See
+<c>basic_examples/task_insert_color</c> for examples on how to assign
+colors.
+
+To identify tasks precisely, the application can also set the field
+starpu_task::tag_id or setting \ref STARPU_TAG_ONLY when calling
+starpu_task_insert(). The value of the tag will then show up in the
+trace.
+
+One can also introduce user-defined events in the diagram thanks to the
+starpu_fxt_trace_user_event_string() function.
+
+One can also set the iteration number, by just calling starpu_iteration_push()
 at the beginning of submission loops and starpu_iteration_pop() at the end of
 submission loops. These iteration numbers will show up in traces for all tasks
 submitted from there.
@@ -177,33 +196,23 @@ $ fxt_print -o -f /tmp/prof_file_something
 
 Timings are in nanoseconds (while timings as seen in ViTE are in milliseconds).
 
-\subsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
+\subsubsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
 
-When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
-generate a task graph in the DOT format by calling:
+Another generated trace file is a task graph described using the DOT
+language. The file, created in the current directory, is named
+<c>dag.dot</c> file in the current directory.
+It is possible to get a graphical output of the graph by using the
+<c>graphviz</c> library:
 
-\verbatim
-$ starpu_fxt_tool -i /tmp/prof_file_something
-\endverbatim
-
-This will create a <c>dag.dot</c> file in the current directory. This file is a
-task graph described using the DOT language. It is possible to get a
-graphical output of the graph by using the graphviz library:
 
 \verbatim
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
 
-\subsection TraceTaskDetails Getting Task Details
+\subsubsection TraceTaskDetails Getting Task Details
 
-When the FxT trace file <c>prof_file_something</c> has been generated, details on the
-executed tasks can be retrieved by calling:
-
-\verbatim
-$ starpu_fxt_tool -i /tmp/prof_file_something
-\endverbatim
-
-This will create a <c>tasks.rec</c> file in the current directory.  This file
+Another generated trace file gives details on the executed tasks. The
+file, created in the current directory, is named <c>tasks.rec</c>. This file
 is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines to
 separate each task.  This can be used as a convenient input for various ad-hoc
 analysis tools. By default it only contains information about the actual
@@ -226,18 +235,12 @@ Another possibility is to obtain the performance models as an auxiliary <c>perfm
 $ starpu_perfmodel_recdump tasks.rec -o perfmodel.rec
 \endverbatim
 
-\subsection MonitoringActivity Monitoring Activity
+\subsubsection MonitoringActivity Monitoring Activity
 
-When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
-generate an activity trace by calling:
-
-\verbatim
-$ starpu_fxt_tool -i /tmp/prof_file_something
-\endverbatim
-
-This will create a file <c>activity.data</c> in the current
-directory. A profile of the application showing the activity of StarPU
-during the execution of the program can be generated:
+Another generated trace file is an activity trace. The file, created
+in the current directory, is named <c>activity.data</c>. A profile of
+the application showing the activity of StarPU during the execution of
+the program can be generated:
 
 \verbatim
 $ starpu_workers_activity activity.data
@@ -259,18 +262,13 @@ evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
 
-\subsection Animation Getting Modular Schedular Animation
+\subsubsection Animation Getting Modular Schedular Animation
 
 When using modular schedulers (i.e. schedulers which use a modular architecture,
-and whose name start with "modular-"), the command
-
-\verbatim
-$ starpu_fxt_tool -i /tmp/prof_file_something
-\endverbatim
-
-will also produce a <c>trace.html</c> file which can be viewed in a
-javascript-enabled web browser. It shows the flow of tasks between the
-components of the modular scheduler.
+and whose name start with "modular-"), the call to
+<c>starpu_fxt_tool</c> will also produce a <c>trace.html</c> file
+which can be viewed in a javascript-enabled web browser. It shows the
+flow of tasks between the components of the modular scheduler.
 
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
