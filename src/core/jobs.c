@@ -263,7 +263,7 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 
 void starpu_task_end_dep_release(struct starpu_task *t)
 {
-	struct _starpu_job *j = (struct _starpu_job *)t->starpu_private;
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(t);
 	_starpu_handle_job_termination(j);
 }
 
