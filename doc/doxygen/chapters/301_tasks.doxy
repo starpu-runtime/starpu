@@ -55,6 +55,31 @@ other tasks and may thus be a bottleneck if not executed early
 enough), the field starpu_task::priority should be set to transmit the
 priority information to StarPU.
 
+\section TaskDependencies Task Dependencies
+
+By default, task dependencies are inferred from data dependency (sequential
+coherency) by StarPU. The application can however disable sequential coherency
+for some data, and dependencies can be specifically expressed.
+
+Setting (or unsetting) sequential consistency can be done at the data
+level by calling starpu_data_set_sequential_consistency_flag() for a
+specific data or starpu_data_set_default_sequential_consistency_flag()
+for all datas.
+
+Setting (or unsetting) sequential consistency can also be done at task
+level by setting the field starpu_task::sequential_consistency to 0.
+
+One can explicitely set dependencies between tasks using
+starpu_task_declare_deps_array(). Dependencies between tasks can be
+expressed through tags associated to a tag with the field
+starpu_task::tag_id and using the function starpu_tag_declare_deps()
+or starpu_tag_declare_deps_array().
+
+The termination of a task can be delayed through the function
+starpu_task_end_dep_add() which specifies the number of calls to the
+function starpu_task_end_dep_release() needed to trigger the task
+termination.
+
 \section SettingManyDataHandlesForATask Setting Many Data Handles For a Task
 
 The maximum number of data a task can manage is fixed by the environment variable

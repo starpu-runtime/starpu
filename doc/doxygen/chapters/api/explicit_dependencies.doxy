@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                      CNRS
  * Copyright (C) 2009-2011,2014-2016                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
@@ -134,5 +134,16 @@ construct the task DAG before actually giving StarPU the opportunity
 to execute the tasks. When called several times on the same tag,
 notification will be done only on first call, thus implementing "OR"
 dependencies, until the tag is restarted using starpu_tag_restart().
+
+\fn void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
+\ingroup API_Explicit_Dependencies
+Add \p nb_deps end dependencies to the task \p t. This means the task
+will not terminate until the required number of calls to the function
+starpu_task_end_dep_release() has been made.
+
+\fn void starpu_task_end_dep_release(struct starpu_task *t)
+\ingroup API_Explicit_Dependencies
+Unlock 1 end dependency to the task \p t. This function must be called
+after starpu_task_end_dep_add().
 
 */
