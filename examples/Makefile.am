@@ -249,7 +249,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction
+	reductions/minmax_reduction		\
+	dependency/task_end_dep
 
 endif
 

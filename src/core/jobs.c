@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -261,8 +261,28 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 #endif
 }
 
+void starpu_task_end_dep_release(struct starpu_task *t)
+{
+	struct _starpu_job *j = (struct _starpu_job *)t->starpu_private;
+	_starpu_handle_job_termination(j);
+}
+
+void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
+{
+	t->nb_termination_call_required += nb_deps;
+}
+
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
+	if (j->task->nb_termination_call_required != 0)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		int nb = j->task->nb_termination_call_required;
+		j->task->nb_termination_call_required -= 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		if (nb != 0) return;
+	}
+
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;

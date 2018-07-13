@@ -42,6 +42,10 @@ New features:
     communication layer, so that the MPI progression thread started by
     StarPU-MPI can also execute tasks and not only take care of
     communications.
+  * Add possibility to delay the termination of a task with the
+    functions starpu_task_end_dep_add() which specifies the number of
+    calls to the function starpu_task_end_dep_release() needed to
+    trigger the task termination.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
