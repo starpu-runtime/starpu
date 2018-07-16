@@ -203,7 +203,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 /* NB : handle->sequential_consistency_mutex must be hold by the caller;
  * returns a task, to be submitted after releasing that mutex. */
 struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
-						   starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+								  starpu_data_handle_t handle, enum starpu_data_access_mode mode, unsigned task_handle_sequential_consistency)
 {
 	struct starpu_task *task = NULL;
 
@@ -214,7 +214,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
 
-	if (handle->sequential_consistency)
+	if (handle->sequential_consistency && task_handle_sequential_consistency)
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
@@ -414,9 +414,10 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		if (!handle->sequential_consistency)
+		unsigned task_handle_sequential_consistency = _STARPU_JOB_GET_ORDERED_BUFFER_SEQUENTIAL_CONSISTENCY(j, buffer);
+		if (!handle->sequential_consistency || !task_handle_sequential_consistency)
 			j->sequential_consistency = 0;
-		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode, task_handle_sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
 		{
@@ -629,7 +630,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */
-		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, &_starpu_get_job_associated_to_task(sync_task)->implicit_dep_slot, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, &_starpu_get_job_associated_to_task(sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task)

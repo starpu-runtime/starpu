@@ -250,7 +250,8 @@ STARPU_EXAMPLES +=				\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
-	dependency/task_end_dep
+	dependency/task_end_dep			\
+	dependency/sequential_consistency
 
 endif
 
