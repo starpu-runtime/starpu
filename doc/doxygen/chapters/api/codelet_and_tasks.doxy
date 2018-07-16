@@ -371,7 +371,7 @@ starpu_codelet_display_stats() for details).
 Optional name of the codelet. This can be useful for debugging
 purposes.
 
-\var const char *starpu_codelet::color
+\var unsigned starpu_codelet::color
     Optional color of the codelet. This can be useful for debugging
     purposes.
 
