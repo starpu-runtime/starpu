@@ -556,7 +556,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 
 
 #ifdef HAVE_LIBNVIDIA_ML
-	if (profiling && task->profiling_info->energy_consumed)
+	if (profiling && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
 		nvmlReturn_t nvmlRet = -1;
