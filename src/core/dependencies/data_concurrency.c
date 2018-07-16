@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015,2017                           Inria
  * Copyright (C) 2009-2015,2017-2018                      Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -348,12 +348,17 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+
 		int node = -1;
 		if (task->cl->specific_nodes)
 			node = STARPU_CODELET_GET_NODE(task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+
+		unsigned sequential_consistency = task->handles_sequential_consistency ? task->handles_sequential_consistency[i] : handle->sequential_consistency;
+		_STARPU_JOB_SET_ORDERED_BUFFER_SEQUENTIAL_CONSISTENCY(j, sequential_consistency, i);
 	}
 	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), nbuffers);
 }

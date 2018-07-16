@@ -298,6 +298,11 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* int* */
 		}
+		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
+		{
+			arg_i++;
+			/* char* */
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);

@@ -46,6 +46,8 @@ New features:
     functions starpu_task_end_dep_add() which specifies the number of
     calls to the function starpu_task_end_dep_release() needed to
     trigger the task termination.
+  * Add possibility to define the sequential consistency at the task level
+    for each handle used by the task.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation

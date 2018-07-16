@@ -520,6 +520,10 @@ the configuration of a task allocated with starpu_task_create().
     codelet, one should either define this field or the field
     starpu_task::modes defined above.
 
+\var char *starpu_task::handles_sequential_consistency
+    Optional pointer to an array of characters which allows to define
+    the sequential consistency for each handle for the current task.
+
 \var void *starpu_task::cl_arg
     Optional pointer which is passed to the codelet through the second
     argument of the codelet implementation (e.g.
