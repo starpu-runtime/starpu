@@ -42,7 +42,7 @@ starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
 ::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS, ::STARPU_CL_ARGS_NFREE,
-::STARPU_TASK_DEPS_ARRAY, ::STARPU_TASK_COLOR, ::STARPU_HANDLES_SEQUENTIAL_CONSISTENCY
+::STARPU_TASK_DEPS_ARRAY, ::STARPU_TASK_COLOR, ::STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, ::STARPU_TASK_SYNCHRONOUS
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -160,6 +160,11 @@ given values.
 \ingroup API_Insert_Task
 Used when calling starpu_task_insert(), must be followed by an integer
 representing a color
+
+\def STARPU_TASK_SYNCHRONOUS
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must be followed by an integer
+stating if the task is synchronous or not
 
 \def STARPU_HANDLES_SEQUENTIAL_CONSISTENCY
 \ingroup API_Insert_Task

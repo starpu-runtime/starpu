@@ -74,7 +74,7 @@ Small features:
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
   * Add priority management to StarPU-MPI. Can be disabled with
-  the STARPU_MPI_PRIORITIES environment variable.
+    the STARPU_MPI_PRIORITIES environment variable.
   * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
     variables.
   * Add disk to disk copy functions and support asynchronous full read/write
@@ -96,6 +96,8 @@ Small features:
   * New functions
     starpu_data_partition_submit_sequential_consistency() and
     starpu_data_unpartition_submit_sequential_consistency()
+  * Add a new value STARPU_TASK_SYNCHRONOUS to be used in
+    starpu_task_insert() to define if the task is (or not) synchronous
 
 Changes:
   * Vastly improve simgrid simulation time.
