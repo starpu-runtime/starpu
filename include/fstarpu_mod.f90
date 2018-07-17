@@ -56,6 +56,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_TAG_ONLY
         type(c_ptr), bind(C) :: FSTARPU_NAME
         type(c_ptr), bind(C) :: FSTARPU_TASK_COLOR
+        type(c_ptr), bind(C) :: FSTARPU_TASK_SYNCHRONOUS
         type(c_ptr), bind(C) :: FSTARPU_HANDLES_SEQUENTIAL_CONSISTENCY
         type(c_ptr), bind(C) :: FSTARPU_NODE_SELECTION_POLICY
 
