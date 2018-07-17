@@ -2590,7 +2590,9 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
-	IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
+	if test x$enable_debug = xyes; then
+		IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
+	fi
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
