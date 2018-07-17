@@ -89,6 +89,9 @@ Small features:
     fxt options (to be used with STARPU_GENERATE_TRACE)
   * New function starpu_task_set() similar as starpu_task_build() but
     with a task object given as the first parameter
+  * New functions
+    starpu_data_partition_submit_sequential_consistency() and
+    starpu_data_unpartition_submit_sequential_consistency()
 
 Changes:
   * Vastly improve simgrid simulation time.
