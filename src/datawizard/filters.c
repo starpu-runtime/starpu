@@ -785,7 +785,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	if (initial_handle->readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
@@ -865,7 +865,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
