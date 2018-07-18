@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -597,7 +597,9 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
-			    ((handle->nplans && !handle->nchildren) || handle->siblings))
+			    ((handle->nplans && !handle->nchildren) || handle->siblings)
+			    && handle->partition_automatic_disabled == 0
+			    )
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit

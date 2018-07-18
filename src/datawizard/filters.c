@@ -1040,3 +1040,8 @@ _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	if (offset != NULL)
 		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
 }
+
+void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
+{
+	handle->partition_automatic_disabled = 1;
+}
