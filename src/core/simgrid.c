@@ -258,6 +258,9 @@ extern void *smpi_process_get_user_data();
 #pragma weak main
 int main(int argc, char **argv)
 {
+#ifdef HAVE_SG_CONFIG_CONTINUE_AFTER_HELP
+	sg_config_continue_after_help();
+#endif
 	if (_starpu_simgrid_running_smpi())
 	{
 		if (!smpi_process_get_user_data)
@@ -295,6 +298,9 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 
 void _starpu_simgrid_init(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef HAVE_SG_CONFIG_CONTINUE_AFTER_HELP
+	sg_config_continue_after_help();
+#endif
 #if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (!simgrid_started && !(smpi_main && smpi_simulated_main_ != _starpu_smpi_simulated_main_))
 	{
