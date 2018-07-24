@@ -86,7 +86,7 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
-static void *matrix_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static void *matrix_to_pointer(void *data_interface, unsigned node);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
@@ -101,7 +101,7 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
-	.handle_to_pointer = matrix_handle_to_pointer,
+	.to_pointer = matrix_to_pointer,
 	.free_data_on_node = free_matrix_buffer_on_node,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
@@ -148,12 +148,10 @@ static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_no
 	}
 }
 
-static void *matrix_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+static void *matrix_to_pointer(void *data_interface, unsigned node)
 {
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-
-	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+	(void) node;
+	struct starpu_matrix_interface *matrix_interface = data_interface;
 
 	return (void*) matrix_interface->ptr;
 }

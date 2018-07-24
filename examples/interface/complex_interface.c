@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013                                Inria
  * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2013-2015                                Université de Bordeaux
+ * Copyright (C) 2013-2015, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -195,7 +195,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.footprint = complex_footprint,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_complex_interface),
-	.handle_to_pointer = NULL,
+	.to_pointer = NULL,
 	.pack_data = complex_pack_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe

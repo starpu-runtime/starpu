@@ -99,6 +99,8 @@ Changes:
   * Vastly improve simgrid simulation time.
   * Switch default scheduler to lws.
   * Add "to" parameter to pull_task and can_push methods of components.
+  * Deprecate handle_to_pointer interface operation in favor of new to_pointer
+  operation.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.

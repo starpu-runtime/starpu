@@ -124,7 +124,8 @@ struct starpu_data_interface_ops
 	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 	const struct starpu_data_copy_methods *copy_methods;
-	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
+	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node); /* deprecated */
+	void * 		 (*to_pointer)			(void *data_interface, unsigned node);
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
