@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2015,2017,2018                      CNRS
- * Copyright (C) 2014                                     Université de Bordeaux
+ * Copyright (C) 2014, 2018                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,12 +81,10 @@ static uint32_t value_footprint(starpu_data_handle_t handle)
 	return starpu_hash_crc32c_be(value_get_size(handle), 0);
 }
 
-static void *value_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+static void *value_to_pointer(void *data_interface, unsigned node)
 {
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-
-	struct starpu_value_interface *value_interface = (struct starpu_value_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+	(void) node;
+	struct starpu_value_interface *value_interface = data_interface;
 
 	return (void*) value_interface->value;
 }
@@ -151,7 +149,7 @@ static struct starpu_data_interface_ops interface_value_ops =
 	.footprint = value_footprint,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_value_interface),
-	.handle_to_pointer = value_handle_to_pointer,
+	.to_pointer = value_to_pointer,
 	.pack_data = value_pack_data,
 	.unpack_data = value_unpack_data
 };

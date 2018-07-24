@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2017                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s =
 
 static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node);
-static void *variable_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
+static void *variable_to_pointer(void *data_interface, unsigned node);
 static void free_variable_buffer_on_node(void *data_interface, unsigned node);
 static size_t variable_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
@@ -53,7 +53,7 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 {
 	.register_data_handle = register_variable_handle,
 	.allocate_data_on_node = allocate_variable_buffer_on_node,
-	.handle_to_pointer = variable_handle_to_pointer,
+	.to_pointer = variable_to_pointer,
 	.free_data_on_node = free_variable_buffer_on_node,
 	.copy_methods = &variable_copy_data_methods_s,
 	.get_size = variable_interface_get_size,
@@ -68,11 +68,10 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.name = "STARPU_VARIABLE_INTERFACE"
 };
 
-static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+static void *variable_to_pointer(void *data_interface, unsigned node)
 {
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-
-	return (void*) STARPU_VARIABLE_GET_PTR(starpu_data_get_interface_on_node(handle, node));
+	(void) node;
+	return (void*) STARPU_VARIABLE_GET_PTR(data_interface);
 }
 
 static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

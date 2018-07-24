@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2017                                Inria
  * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2012-2017                                Université de Bordeaux
+ * Copyright (C) 2012-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -207,7 +207,7 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 {
 	.register_data_handle  = register_coo_handle,
 	.allocate_data_on_node = allocate_coo_buffer_on_node,
-	.handle_to_pointer     = NULL,
+	.to_pointer            = NULL,
 	.free_data_on_node     = free_coo_buffer_on_node,
 	.copy_methods          = &coo_copy_data_methods,
 	.get_size              = coo_interface_get_size,

@@ -507,8 +507,15 @@ void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
-	if (handle->ops->handle_to_pointer
-	    && starpu_data_test_if_allocated_on_node(handle, node))
+	if (!starpu_data_test_if_allocated_on_node(handle, node))
+		return NULL;
+	if (handle->ops->to_pointer)
+	{
+		return handle->ops->to_pointer(starpu_data_get_interface_on_node(handle, node), node);
+	}
+
+	/* Deprecated */
+	if (handle->ops->handle_to_pointer)
 	{
 		return handle->ops->handle_to_pointer(handle, node);
 	}

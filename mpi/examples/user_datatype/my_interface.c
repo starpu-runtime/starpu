@@ -167,11 +167,10 @@ static starpu_ssize_t data_describe(void *data_interface, char *buf, size_t size
 	return snprintf(buf, size, "Data%d-%c", my_interface->d, my_interface->c);
 }
 
-static void *data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+static void *data_to_pointer(void *data_interface, unsigned node)
 {
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
-
-	struct starpu_my_interface *my_interface = (struct starpu_my_interface *) starpu_data_get_interface_on_node(handle, node);
+	(void) node;
+	struct starpu_my_interface *my_interface = data_interface;
 
 	return (void*) &my_interface->d;
 }
@@ -211,7 +210,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.footprint = data_footprint,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_my_interface),
-	.handle_to_pointer = data_handle_to_pointer,
+	.to_pointer = data_to_pointer,
 	.pack_data = data_pack_data,
 	.unpack_data = data_unpack_data,
 	.describe = data_describe
