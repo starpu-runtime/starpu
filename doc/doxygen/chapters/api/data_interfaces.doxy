@@ -43,7 +43,8 @@ Per-interface data transfer methods.
     This provides a series of methods for performing ram/cuda/opencl synchronous and asynchronous transfers.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
-    Deprecated, use starpu_data_interface_ops::to_pointer instead.
+\deprecated
+    Use starpu_data_interface_ops::to_pointer instead.
     Return the current pointer (if any) for the handle on the given node.
 
 \var void *(*starpu_data_interface_ops::to_pointer)(void *data_interface, unsigned node)
