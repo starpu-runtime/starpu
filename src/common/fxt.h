@@ -842,29 +842,29 @@ do {										\
 #define _STARPU_TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_END, _starpu_gettid());
 
-#define _STARPU_TRACE_START_ALLOC(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)               \
+       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_ALLOC(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            \
+       FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid(), handle, r);
 
-#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size, handle)         \
+       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_ALLOC_REUSE(memnode, handle, r)              \
+       FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid(), handle, r);
 
-#define _STARPU_TRACE_START_FREE(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_FREE(memnode, size, handle)                \
+       FUT_DO_PROBE4(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_FREE(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_FREE, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_FREE(memnode, handle)                \
+       FUT_DO_PROBE3(_STARPU_FUT_END_FREE, memnode, _starpu_gettid(), handle);
 
-#define _STARPU_TRACE_START_WRITEBACK(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid());
+#define _STARPU_TRACE_START_WRITEBACK(memnode, handle)         \
+       FUT_DO_PROBE3(_STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid(), handle);
 
-#define _STARPU_TRACE_END_WRITEBACK(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_WRITEBACK(memnode, handle)           \
+       FUT_DO_PROBE3(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid(), handle);
 
 #define _STARPU_TRACE_USED_MEM(memnode,used)		\
 	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
@@ -1184,14 +1184,14 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END()		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC(memnode, size)	do {(void)(memnode); (void)(size);} while(0)
-#define _STARPU_TRACE_END_ALLOC(memnode)		do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {(void)(a); (void)(size);} while(0)
-#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {(void)(a);} while(0)
-#define _STARPU_TRACE_START_FREE(memnode, size)		do {(void)(memnode); (void)(size);} while(0)
-#define _STARPU_TRACE_END_FREE(memnode)			do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_START_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_END_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)       do {(void)(memnode); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            do {(void)(memnode); (void)(handle); (void)(r);} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a, size, handle)       do {(void)(a); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_ALLOC_REUSE(a, handle, r)            do {(void)(a); (void)(handle); (void)(r);} while(0)
+#define _STARPU_TRACE_START_FREE(memnode, size, handle)                do {(void)(memnode); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_FREE(memnode, handle)                        do {(void)(memnode); (void)(handle);} while(0)
+#define _STARPU_TRACE_START_WRITEBACK(memnode, handle)         do {(void)(memnode); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_WRITEBACK(memnode, handle)           do {(void)(memnode); (void)(handle);} while(0)
 #define _STARPU_TRACE_USED_MEM(memnode,used)		do {(void)(memnode); (void)(used);} while (0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
