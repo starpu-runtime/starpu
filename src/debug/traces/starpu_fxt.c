@@ -2284,6 +2284,7 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	int src = -1;
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
@@ -2315,7 +2316,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 				com->comm_start = get_event_time_stamp(ev, options);
 				com->bandwidth = -bandwidth;
 
-				com->src_node = itor->src_node;
+				src = com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
 				com->type = itor->type;
 				link_type = itor->type;
@@ -2332,6 +2333,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		{
 			double time = get_event_time_stamp(ev, options);
 			memnode_pop_state(time, prefix, dst);
+			(void) src;
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
