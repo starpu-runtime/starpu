@@ -47,7 +47,6 @@ Per-interface data transfer methods.
     Return the current pointer (if any) for the handle on the given node.
 
 \var void *(*starpu_data_interface_ops::to_pointer)(void *data_interface, unsigned node)
-    Deprecated.
     Return the current pointer (if any) for the given interface on the given node.
 
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
