@@ -2165,6 +2165,26 @@ static void handle_data_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	fprintf(tasks_file, "\n");
 }
 
+static void handle_data_doing_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	char *prefix = options->file_prefix;
+	unsigned node = STARPU_MAIN_RAM;
+	const char *event = "WU";
+
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
+		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
+		snprintf(paje_value, sizeof(paje_value), "%lx", handle);
+		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, event, paje_value);
+#else
+		fprintf(out_paje_file, "9	%.9f	%s	%smm%u	%lx\n", get_event_time_stamp(ev, options), event, prefix, node, handle);
+#endif
+	}
+}
+
 static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
@@ -3489,15 +3509,15 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_DATA_STATE_INVALID:
 				if (options->memory_states)
-					handle_data_state(&ev, options, "invalid");
+					handle_data_state(&ev, options, "SI");
 				break;
 			case _STARPU_FUT_DATA_STATE_OWNER:
 				if (options->memory_states)
-					handle_data_state(&ev, options, "owner");
+					handle_data_state(&ev, options, "SO");
 				break;
 			case _STARPU_FUT_DATA_STATE_SHARED:
 				if (options->memory_states)
-					handle_data_state(&ev, options, "shared");
+					handle_data_state(&ev, options, "SS");
 				break;
 
 			case _STARPU_FUT_DATA_COPY:
@@ -3521,6 +3541,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_DATA_DOING_WONT_USE:
+				if (options->memory_states)
+					handle_data_doing_wont_use(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY:
