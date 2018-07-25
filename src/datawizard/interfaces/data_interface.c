@@ -1009,7 +1009,7 @@ static void _starpu_data_invalidate(void *data)
 		}
 
 		if (local->state != STARPU_INVALID)
-			_STARPU_TRACE_DATA_INVALIDATE(handle, node);
+			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
 	}
 
