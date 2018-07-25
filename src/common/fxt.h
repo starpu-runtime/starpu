@@ -744,7 +744,7 @@ do {										\
 	FUT_DO_PROBE4(_STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid())
 
 #define _STARPU_TRACE_DATA_DOING_WONT_USE(handle)						\
-	FUT_DO_PROBE4(_STARPU_FUT_DATA_DOING_WONT_USE, handle)
+	FUT_DO_PROBE1(_STARPU_FUT_DATA_DOING_WONT_USE, handle)
 
 #define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
 	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
