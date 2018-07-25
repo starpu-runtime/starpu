@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2014,2016-2017                      Inria
  * Copyright (C) 2012,2014,2017,2018                      CNRS
  * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -214,7 +214,10 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEventType("unregister", "P", "data unregistration");
 
 	/* Types for the memory node */
-	poti_DefineEventType("invalidate", "Mm", "data invalidation");
+	poti_DefineEventType("SI", "Mm", "data state invalid");
+	poti_DefineEventType("SS", "Mm", "data state shared");
+	poti_DefineEventType("SS", "Mm", "data state owner");
+	poti_DefineEventType("WU", "Mm", "data wont use");
 	poti_DefineVariableType("use", "Mm", "Used (MB)", "0 0 0");
 	poti_DefineVariableType("bwi_mm", "Mm", "Bandwidth In (MB/s)", "0 0 0");
 	poti_DefineVariableType("bwo_mm", "Mm", "Bandwidth Out (MB/s)", "0 0 0");
