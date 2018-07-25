@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2015                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -209,6 +209,10 @@ static void _starpu_generate_paje_trace_read_option(const char *option, struct s
 	else if (strcmp(option, "-no-acquire") == 0)
 	{
 		options->no_acquire = 1;
+	}
+	else if (strcmp(option, "-memory-states") == 0)
+	{
+		options->memory_states = 1;
 	}
 	else if (strcmp(option, "-internal") == 0)
 	{
