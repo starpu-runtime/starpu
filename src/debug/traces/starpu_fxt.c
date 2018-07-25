@@ -3511,6 +3511,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_data_wont_use(&ev, options);
 				break;
 
+			case _STARPU_FUT_DATA_DOING_WONT_USE:
+				break;
+
 			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
 					handle_start_driver_copy(&ev, options);

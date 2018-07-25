@@ -607,6 +607,8 @@ static void _starpu_data_wont_use(void *data)
 	unsigned node;
 	starpu_data_handle_t handle = data;
 
+	_STARPU_TRACE_DATA_DOING_WONT_USE(handle);
+
 	_starpu_spin_lock(&handle->header_lock);
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{

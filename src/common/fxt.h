@@ -108,6 +108,8 @@
 
 #define _STARPU_FUT_TASK_COLOR	0x512d
 
+#define _STARPU_FUT_DATA_DOING_WONT_USE	0x512e
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -741,6 +743,9 @@ do {										\
 #define _STARPU_TRACE_DATA_WONT_USE(handle)						\
 	FUT_DO_PROBE4(_STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid())
 
+#define _STARPU_TRACE_DATA_DOING_WONT_USE(handle)						\
+	FUT_DO_PROBE4(_STARPU_FUT_DATA_DOING_WONT_USE, handle)
+
 #define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
 	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
 
@@ -1146,6 +1151,7 @@ do {										\
 #define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_WONT_USE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_DATA_DOING_WONT_USE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)
