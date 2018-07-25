@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017                                     Université de Bordeaux
+# Copyright (C) 2017-2018                                     Université de Bordeaux
 # Copyright (C) 2017                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ then
 	[ -f starpu_overlap_sleep_1024_24.gp -a -f starpu_overlap_sleep_1024_24.data -a -f starpu_overlap_sleep_1024_24_avg.data ]
 
 	# Generate paje, dag, data, etc.
-	$PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
+	$PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
 
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
 
