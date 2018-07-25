@@ -386,9 +386,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
 			_starpu_data_unregister_ram_pointer(handle, node);
 
-		_STARPU_TRACE_START_FREE(node, mc->size);
+               _STARPU_TRACE_START_FREE(node, mc->size, handle);
 		mc->ops->free_data_on_node(data_interface, node);
-		_STARPU_TRACE_END_FREE(node);
+               _STARPU_TRACE_END_FREE(node, handle);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -564,12 +564,12 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-				_STARPU_TRACE_START_WRITEBACK(node);
+                               _STARPU_TRACE_START_WRITEBACK(node, handle);
 				/* Note: this may need to allocate data etc.
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-				_STARPU_TRACE_END_WRITEBACK(node);
+                               _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -1324,14 +1324,14 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-	_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size);
+       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-		_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
+               _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
 		return data_size;
 	}
-	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
+       _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
 #endif
 	STARPU_ASSERT(handle->ops);
 	STARPU_ASSERT(handle->ops->allocate_data_on_node);
@@ -1352,7 +1352,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
+               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
@@ -1366,7 +1366,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 #endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
-		_STARPU_TRACE_END_ALLOC(dst_node);
+               _STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1444,9 +1444,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	else if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-		_STARPU_TRACE_START_FREE(dst_node, data_size);
+               _STARPU_TRACE_START_FREE(dst_node, data_size, handle);
 		handle->ops->free_data_on_node(data_interface, dst_node);
-		_STARPU_TRACE_END_FREE(dst_node);
+               _STARPU_TRACE_END_FREE(dst_node, handle);
 		allocated_memory = 0;
 	}
 	else
