@@ -230,6 +230,10 @@
 #define _STARPU_FUT_TASK_THROTTLE_START	0x5180
 #define _STARPU_FUT_TASK_THROTTLE_END	0x5181
 
+#define _STARPU_FUT_DATA_STATE_INVALID 0x5182
+#define _STARPU_FUT_DATA_STATE_OWNER      0x5183
+#define _STARPU_FUT_DATA_STATE_SHARED     0x5184
+
 extern unsigned long _starpu_job_cnt;
 
 static inline unsigned long _starpu_fxt_get_job_id(void)
@@ -1120,6 +1124,17 @@ do {										\
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void) handle; (void) node;} while (0)
 #endif
 
+//Coherency Data Traces
+#define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)      \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_INVALID, handle, node)
+
+#define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)           \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_OWNER, handle, node)
+
+#define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)          \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_SHARED, handle, node)
+
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -1241,6 +1256,9 @@ do {										\
 #define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void)(handle); (void)(node);} while (0)
 #define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
 #define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
+#define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)	do {(void)(handle); (void)(node);} while(0)
+#define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)	do {(void)(handle); (void)(node);} while(0)
+#define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
 
 #endif // STARPU_USE_FXT
 
