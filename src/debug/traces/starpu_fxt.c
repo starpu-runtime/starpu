@@ -2105,7 +2105,7 @@ static void handle_data_unregister(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	data_dump(data);
 }
 
-static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_state(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *state)
 {
 	unsigned long handle = ev->param[0];
 	unsigned node = ev->param[1];
@@ -2117,9 +2117,9 @@ static void handle_data_invalidate(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char paje_value[STARPU_POTI_STR_LEN], memnode_container[STARPU_POTI_STR_LEN];
 		memmanager_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, node);
 		snprintf(paje_value, sizeof(paje_value), "%lx", handle);
-		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, "invalidate", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), memnode_container, state, paje_value);
 #else
-		fprintf(out_paje_file, "9	%.9f	invalidate	%smm%u	%lx\n", get_event_time_stamp(ev, options), prefix, node, handle);
+		fprintf(out_paje_file, "9	%.9f	%s	%smm%u	%lx\n", get_event_time_stamp(ev, options), state, prefix, node, handle);
 #endif
 	}
 }
@@ -3487,8 +3487,17 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_data_unregister(&ev, options);
 				break;
 
-			case _STARPU_FUT_DATA_INVALIDATE:
-				handle_data_invalidate(&ev, options);
+			case _STARPU_FUT_DATA_STATE_INVALID:
+				if (options->memory_states)
+					handle_data_state(&ev, options, "invalid");
+				break;
+			case _STARPU_FUT_DATA_STATE_OWNER:
+				if (options->memory_states)
+					handle_data_state(&ev, options, "owner");
+				break;
+			case _STARPU_FUT_DATA_STATE_SHARED:
+				if (options->memory_states)
+					handle_data_state(&ev, options, "shared");
 				break;
 
 			case _STARPU_FUT_DATA_COPY:
@@ -3929,6 +3938,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->no_flops = 0;
 	options->no_smooth = 0;
 	options->no_acquire = 0;
+	options->memory_states = 0;
 	options->internal = 0;
 	options->label_deps = 0;
 	options->ninputfiles = 0;
