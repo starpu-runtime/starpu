@@ -2150,7 +2150,7 @@ if test x$use_fxt = xyes; then
 		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $POTI_LIBS"
-		AC_CHECK_FUNCS([poti_init_custom])
+		AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
 		LIBS="$save_LIBS"
 		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
 		FXT_LIBS="$FXT_LIBS $POTI_LIBS"

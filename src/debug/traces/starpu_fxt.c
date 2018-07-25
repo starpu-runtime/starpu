@@ -463,6 +463,7 @@ LIST_TYPE(_starpu_communication,
 	unsigned src_node;
 	unsigned dst_node;
 	const char *type;
+	unsigned long handle;
 	struct _starpu_communication *peer;
 )
 
@@ -752,6 +753,35 @@ static void memnode_pop_state(double time, const char *prefix, unsigned int memn
 	poti_PopState(time, container, "MS");
 #else
 	fprintf(out_paje_file, "12	%.9f	%smm%u	MS\n", time, prefix, memnodeid);
+#endif
+}
+
+static void memnode_event(double time, const char *prefix, unsigned int memnodeid, const char *name, unsigned long handle, unsigned long info, unsigned long size, unsigned int dest, struct starpu_fxt_options *options)
+{
+	if (!options->memory_states)
+		return;
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	char p_handle[STARPU_POTI_STR_LEN];
+	memmanager_container_alias(container, STARPU_POTI_STR_LEN, prefix, memnodeid);
+	snprintf(p_handle, sizeof(p_handle), "%lx", handle);
+
+#ifdef HAVE_POTI_USER_NEWEVENT
+	char p_dest[STARPU_POTI_STR_LEN];
+	char p_info[STARPU_POTI_STR_LEN];
+	char p_size[STARPU_POTI_STR_LEN];
+
+	memmanager_container_alias(p_dest, STARPU_POTI_STR_LEN, prefix, dest);
+	snprintf(p_info, sizeof(p_info), "%lu", info);
+	snprintf(p_size, sizeof(p_size), "%lu", size);
+
+	poti_user_NewEvent(_starpu_poti_MemoryEvent, time, container, name, "0", 4,
+			   p_handle, p_info, p_size, p_dest);
+#else
+	poti_NewEvent(time, container, name, p_handle);
+#endif
+#else
+	fprintf(out_paje_file, "22    %.9f    %s %smm%u  0 %lx %lu %lu %smm%u\n", time, name, prefix, memnodeid, handle, info, size, prefix, dest);
 #endif
 }
 
@@ -2212,6 +2242,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
 	unsigned prefetch = ev->param[4];
+	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
@@ -2222,6 +2253,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		{
 			double time = get_event_time_stamp(ev, options);
 			memnode_push_state(time, prefix, dst, "Co");
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCo", handle, comid, size, src, options);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
 			char program_container[STARPU_POTI_STR_LEN];
@@ -2244,6 +2276,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->dst_node = dst;
 		com->type = link_type;
 		com->peer = NULL;
+		com->handle = handle;
 
 		_starpu_communication_list_push_back(&communication_list, com);
 	}
@@ -2285,8 +2318,9 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int src = -1;
+	unsigned long handle = 0;
 	unsigned dst = ev->param[1];
-	unsigned size = ev->param[2];
+	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
 	unsigned prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
@@ -2320,6 +2354,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 				com->dst_node = itor->dst_node;
 				com->type = itor->type;
 				link_type = itor->type;
+				handle = itor->handle;
 				com->peer = itor;
 				itor->peer = com;
 
@@ -2333,17 +2368,17 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		{
 			double time = get_event_time_stamp(ev, options);
 			memnode_pop_state(time, prefix, dst);
-			(void) src;
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoE", handle, comid, size, src, options);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, sizeof(paje_value), "%u", size);
+			snprintf(paje_value, sizeof(paje_value), "%lu", size);
 			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
 			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
 			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
-			fprintf(out_paje_file, "19	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+			fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
 #endif
 		}
 	}
@@ -2351,25 +2386,33 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
 
 	char *prefix = options->file_prefix;
 
 	if (!options->no_bus)
 		if (out_paje_file)
+		{
 			memnode_push_state(get_event_time_stamp(ev, options), prefix, dst, "CoA");
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoA", 0, 0, 0, src, options);
+		}
 
 }
 
 static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
 
 	char *prefix = options->file_prefix;
 
 	if (!options->no_bus)
 		if (out_paje_file)
+		{
 			memnode_pop_state(get_event_time_stamp(ev, options), prefix, dst);
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoAE", 0, 0, 0, src, options);
+		}
 }
 
 /* Currently unused */
@@ -2380,6 +2423,36 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (out_paje_file)
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
+}
+
+static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+	unsigned memnode = ev->param[0];
+	unsigned size = ev->param[1];
+	unsigned long handle = ev->param[2];
+
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, size, memnode, options);
+}
+
+static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+	unsigned memnode = ev->param[0];
+	unsigned long handle = ev->param[1];
+	unsigned info = ev->param[2];
+
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, info, 0, memnode, options);
+}
+
+static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+	unsigned memnode = ev->param[0];
+	unsigned long handle = ev->param[1];
+
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
+}
+
+static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+	unsigned memnode = ev->param[0];
+	unsigned long handle = ev->param[1];
+
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
 }
 
 static void handle_push_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -3581,32 +3654,59 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_START_ALLOC:
 				if (!options->no_bus)
+				{
 					handle_push_memnode_event(&ev, options, "A");
+					handle_memnode_event_start_3(&ev, options, "Al");
+				}
 				break;
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
+				{
 					handle_push_memnode_event(&ev, options, "Ar");
+					handle_memnode_event_start_3(&ev, options, "Alr");
+				}
 				break;
 			case _STARPU_FUT_END_ALLOC:
+				if (!options->no_bus)
+				{
+					handle_pop_memnode_event(&ev, options);
+					handle_memnode_event_end_3(&ev, options, "AlE");
+				}
+				break;
 			case _STARPU_FUT_END_ALLOC_REUSE:
 				if (!options->no_bus)
+				{
 					handle_pop_memnode_event(&ev, options);
+					handle_memnode_event_end_3(&ev, options, "AlrE");
+				}
 				break;
 			case _STARPU_FUT_START_FREE:
 				if (!options->no_bus)
+				{
 					handle_push_memnode_event(&ev, options, "F");
+					handle_memnode_event_start_3(&ev, options, "Fe");
+				}
 				break;
 			case _STARPU_FUT_END_FREE:
 				if (!options->no_bus)
+				{
 					handle_pop_memnode_event(&ev, options);
+					handle_memnode_event_end_2(&ev, options, "FeE");
+				}
 				break;
 			case _STARPU_FUT_START_WRITEBACK:
 				if (!options->no_bus)
+				{
 					handle_push_memnode_event(&ev, options, "W");
+					handle_memnode_event_start_2(&ev, options, "Wb");
+				}
 				break;
 			case _STARPU_FUT_END_WRITEBACK:
 				if (!options->no_bus)
+				{
 					handle_pop_memnode_event(&ev, options);
+					handle_memnode_event_start_2(&ev, options, "WbE");
+				}
 				break;
 			case _STARPU_FUT_START_WRITEBACK_ASYNC:
 				if (!options->no_bus)
@@ -4137,7 +4237,7 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 		poti_init (out_paje_file);
 #endif
 #endif
-		_starpu_fxt_write_paje_header(out_paje_file);
+		_starpu_fxt_write_paje_header(out_paje_file, options);
 	}
 	else
 	{
