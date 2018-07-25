@@ -192,10 +192,10 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		unsigned node;
 		for (node = 0; node < nnodes; node++)
 		{
-			_STARPU_TRACE_DATA_INVALIDATE(handle, node);
+                       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 			handle->per_node[node].state = STARPU_INVALID;
 		}
-
+               _STARPU_TRACE_DATA_STATE_OWNER(handle, requesting_node);
 		requesting_replicate->state = STARPU_OWNER;
 		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
 			/* Notify that this MC is now dirty */
@@ -211,9 +211,12 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			for (node = 0; node < nnodes; node++)
 			{
 				struct _starpu_data_replicate *replicate = &handle->per_node[node];
-				if (replicate->state != STARPU_INVALID)
+                               if (replicate->state != STARPU_INVALID){
+                                       _STARPU_TRACE_DATA_STATE_SHARED(handle, node);
 					replicate->state = STARPU_SHARED;
+                               }
 			}
+                       _STARPU_TRACE_DATA_STATE_SHARED(handle, requesting_node);
 			requesting_replicate->state = STARPU_SHARED;
 		}
 	}

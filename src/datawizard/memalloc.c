@@ -286,7 +286,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			unsigned cnt = 0;
 
 			/* some other node may have the copy */
-			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
+			_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
@@ -301,7 +301,10 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			STARPU_ASSERT(cnt > 0);
 
 			if (cnt == 1)
+			{
+				_STARPU_TRACE_DATA_STATE_OWNER(handle, last);
 				handle->per_node[last].state = STARPU_OWNER;
+			}
 
 		}
 		else
