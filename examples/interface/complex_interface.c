@@ -24,10 +24,10 @@ static int complex_pointer_is_inside(void *data_interface, unsigned node, void *
 {
 	struct starpu_complex_interface *complex_interface = data_interface;
 
-	return ptr >= &complex_interface->real &&
-		ptr < &complex_interface->real + 1
-	    || ptr >= &complex_interface->imaginary &&
-		ptr < &complex_interface->imaginary + 1;
+	return ((char*) ptr >= (char*) &complex_interface->real &&
+		(char*) ptr < (char*) (&complex_interface->real + 1))
+	    || ((char*) ptr >= (char*) &complex_interface->imaginary &&
+		(char*) ptr < (char*) (&complex_interface->imaginary + 1));
 }
 
 double *starpu_complex_get_real(starpu_data_handle_t handle)
