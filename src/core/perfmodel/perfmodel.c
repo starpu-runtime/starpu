@@ -342,12 +342,7 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
-		int node = -1;
-		/* TODO: factorize node choice */
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, buffer);
-		if (node == -1)
-			node = memory_node;
+		int node = _starpu_task_data_get_node_on_node(task, buffer, memory_node);
 
 		penalty += starpu_data_expected_transfer_time(handle, node, mode);
 	}

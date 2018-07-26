@@ -76,5 +76,9 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
 int starpu_memory_nodes_get_numa_count(void);
 int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
-	
+
+/* Get the memory node for data number i when task is to be executed on memory node target_node */
+int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned target_node);
+int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker);
+
 #endif // __TOPOLOGY_H__
