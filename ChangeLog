@@ -23,6 +23,9 @@ Small features:
   * Add a new value STARPU_TASK_COLOR to be used in
     starpu_task_insert() to pick up the color of a task in dag.dot
 
+Changes:
+  * Do not export -lcuda -lcudart -lOpenCL in *starpu*.pc.
+
 StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
 ==============================================
 
