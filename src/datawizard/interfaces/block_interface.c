@@ -72,6 +72,7 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s =
 
 static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static void *block_to_pointer(void *data_interface, unsigned node);
+static int block_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_block_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_block_buffer_on_node(void *data_interface, unsigned node);
 static size_t block_interface_get_size(starpu_data_handle_t handle);
@@ -87,6 +88,7 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.to_pointer = block_to_pointer,
+	.pointer_is_inside = block_pointer_is_inside,
 	.free_data_on_node = free_block_buffer_on_node,
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
@@ -107,6 +109,15 @@ static void *block_to_pointer(void *data_interface, unsigned node)
 	struct starpu_block_interface *block_interface = data_interface;
 
 	return (void*) block_interface->ptr;
+}
+
+static int block_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
+{
+	(void) node;
+	struct starpu_block_interface *block_interface = data_interface;
+
+	return (char*) ptr >= (char*) block_interface->ptr &&
+		(char*) ptr < (char*) block_interface->ptr + block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
 }
 
 static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

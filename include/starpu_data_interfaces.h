@@ -126,6 +126,7 @@ struct starpu_data_interface_ops
 	const struct starpu_data_copy_methods *copy_methods;
 	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node); /* deprecated */
 	void * 		 (*to_pointer)			(void *data_interface, unsigned node);
+	int 		 (*pointer_is_inside)		(void *data_interface, unsigned node, void *ptr);
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
@@ -151,6 +152,7 @@ void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
+int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr);
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);

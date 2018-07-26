@@ -87,6 +87,7 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static void *matrix_to_pointer(void *data_interface, unsigned node);
+static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
@@ -102,6 +103,7 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
 	.to_pointer = matrix_to_pointer,
+	.pointer_is_inside = matrix_pointer_is_inside,
 	.free_data_on_node = free_matrix_buffer_on_node,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
@@ -154,6 +156,15 @@ static void *matrix_to_pointer(void *data_interface, unsigned node)
 	struct starpu_matrix_interface *matrix_interface = data_interface;
 
 	return (void*) matrix_interface->ptr;
+}
+
+static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
+{
+	(void) node;
+	struct starpu_matrix_interface *matrix_interface = data_interface;
+
+	return (char*) ptr >= (char*) matrix_interface->ptr &&
+		(char*) ptr < (char*) matrix_interface->ptr + matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
 }
 
 
