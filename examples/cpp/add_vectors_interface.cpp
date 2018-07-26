@@ -332,8 +332,8 @@ static int vector_cpp_pointer_is_inside(void *data_interface, unsigned node, voi
 	(void) node;
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
 
-	return ptr >= vector_interface->ptr &&
-		ptr < vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
+	return (char*) ptr >= (char*) vector_interface->ptr &&
+		(char*) ptr < (char*) vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
 }
 
 static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

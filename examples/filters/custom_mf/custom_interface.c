@@ -234,17 +234,17 @@ custom_pointer_is_inside(void *data, unsigned node, void *ptr)
 	switch(starpu_node_get_kind(node))
 	{
 		case STARPU_CPU_RAM:
-			return ptr >= data_interface->cpu_ptr &&
-				ptr < data_interface->cpu_ptr + data_interface->nx * data_interface->ops->cpu_elemsize;
+			return (char*) ptr >= (char*) data_interface->cpu_ptr &&
+				(char*) ptr < (char*) data_interface->cpu_ptr + data_interface->nx * data_interface->ops->cpu_elemsize;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			return ptr >= data_interface->cuda_ptr &&
-				ptr < data_interface->cuda_ptr + data_interface->nx * data_interface->ops->cuda_elemsize;
+			return (char*) ptr >= (char*) data_interface->cuda_ptr &&
+				(char*) ptr < (char*) data_interface->cuda_ptr + data_interface->nx * data_interface->ops->cuda_elemsize;
 #endif
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
-			return ptr >= data_interface->opencl_ptr &&
-				ptr < data_interface->opencl_ptr + data_interface->nx * data_interface->ops->opencl_elemsize;
+			return (char*) ptr >= (char*) data_interface->opencl_ptr &&
+				(char*) ptr < (char*) data_interface->opencl_ptr + data_interface->nx * data_interface->ops->opencl_elemsize;
 #endif
 		default:
 			assert(0);
