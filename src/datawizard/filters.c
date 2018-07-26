@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Antoine Lucas
  * Copyright (C) 2011-2012,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -659,7 +659,7 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 }
 
 static
-void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, char *handles_sequential_consistency)
+void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -706,7 +706,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
 {
 	unsigned i;
-	char handles_sequential_consistency[nparts+1];
+	unsigned char handles_sequential_consistency[nparts+1];
 	handles_sequential_consistency[0] = sequential_consistency;
 	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
 
@@ -779,7 +779,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	starpu_data_invalidate_submit(initial_handle);
 }
 
-void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, char *handles_sequential_consistency)
+void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -854,7 +854,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency)
 {
 	unsigned i;
-	char handles_sequential_consistency[nparts+1];
+	unsigned char handles_sequential_consistency[nparts+1];
 	handles_sequential_consistency[0] = sequential_consistency;
 	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
 	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency);

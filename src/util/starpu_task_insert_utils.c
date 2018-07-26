@@ -202,7 +202,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
                 }
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
                 {
-                        (void)va_arg(varg_list, char *);
+                        (void)va_arg(varg_list, unsigned char *);
                 }
 		else
 		{
@@ -504,7 +504,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
                 }
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
                 {
-                        task->handles_sequential_consistency = va_arg(varg_list, char *);
+                        task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
                 }
 		else
 		{
@@ -752,7 +752,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
                 }
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
                 {
-                        task->handles_sequential_consistency = (char *)arglist[arg_i];
+                        task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
                 }
 		else
 		{
