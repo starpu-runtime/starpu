@@ -110,6 +110,7 @@ struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 /* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
 int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned target_node)
 {
+	/* TODO: choose between DDR and MCDRAM according to codelet preference over bandwidth */
 	int node = -1;
 	if (task->cl->specific_nodes)
 		node = STARPU_CODELET_GET_NODE(task->cl, index);
@@ -120,6 +121,7 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 
 int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
 {
+	/* TODO: choose memory node according to proximity to worker and codelet preference over bandwidth */
 	unsigned target_node = starpu_worker_get_memory_node(worker);
 	return _starpu_task_data_get_node_on_node(task, index, target_node);
 }
