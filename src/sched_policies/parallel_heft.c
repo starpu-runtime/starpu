@@ -106,12 +106,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* Is this a basic worker or a combined worker ? */
-	unsigned memory_node;
-	memory_node = starpu_worker_get_memory_node(best_workerid);
-
 	if (starpu_get_prefetch_flag())
-		starpu_prefetch_task_input_on_node(task, memory_node);
+		starpu_prefetch_task_input_for(task, best_workerid);
 
 	int ret = 0;
 
@@ -354,7 +350,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
 
 			unsigned memory_node = starpu_worker_get_memory_node(workerid);
-			local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time(memory_node, task);
+			local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time_for(task, workerid);
 
 			double ntasks_end = compute_ntasks_end(workerid, sched_ctx_id);
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2015-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -536,7 +536,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				/* Decrease the number of tasks to found */
 				nb_tasks_to_prefetch -= 1;
 				nb_added_tasks       += 1;
-				// TODO starpu_prefetch_task_input_on_node(task, workerid);
+				// TODO starpu_prefetch_task_input_for(task, workerid);
 			}
 		}		
 	}
@@ -649,7 +649,7 @@ done:		;
 		     task_to_prefetch  = starpu_task_prio_list_next(&worker->tasks_queue.list, task_to_prefetch))
 		{
 			/* prefetch from closest to end task */
-			starpu_prefetch_task_input_on_node(task_to_prefetch, memory_node);
+			starpu_prefetch_task_input_for(task_to_prefetch, workerid);
 			nb_added_tasks -= 1;
 		}
 	}
