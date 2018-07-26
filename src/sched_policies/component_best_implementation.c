@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014,2016-2017                           CNRS
- * Copyright (C) 2014-2017                                Université de Bordeaux
+ * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,9 +53,8 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 	if(best_impl == -1)
 		return 0;
 
-	int memory_node = starpu_worker_get_memory_node(workerid);
 	task->predicted = len;
-	task->predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
+	task->predicted_transfer = starpu_task_expected_data_transfer_time_for(task, workerid);
 	starpu_task_set_implementation(task, best_impl);
 	return 1;
 }

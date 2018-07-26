@@ -984,6 +984,77 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 	return starpu_idle_prefetch_task_input_on_node_prio(task, node, prio);
 }
 
+int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+{
+	STARPU_ASSERT(!task->prefetched);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+
+		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
+		int node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		prefetch_data_on_node(handle, node, replicate, mode, prio);
+
+		_starpu_set_data_requested_flag_if_needed(handle, replicate);
+	}
+
+	return 0;
+}
+
+int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_prefetch_task_input_for_prio(task, worker, prio);
+}
+
+int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+{
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+
+		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
+		int node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
+	}
+
+	return 0;
+}
+
+int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_idle_prefetch_task_input_for_prio(task, worker, prio);
+}
+
 struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
