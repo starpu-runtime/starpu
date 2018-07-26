@@ -823,7 +823,7 @@ pointer_is_inside(void)
 	void * data_interface;
 
 	handle = *current_config->handle;
-	if (!handle->ops->pointer_is_inside || !handle->ops->to_pointer)
+	if (!handle->ops->pointer_is_inside || !handle->ops->handle_to_pointer)
 		return;
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -834,7 +834,7 @@ pointer_is_inside(void)
 			continue;
 
 		data_interface = starpu_data_get_interface_on_node(handle, node);
-		ptr = handle->ops->to_pointer(data_interface, node);
+		ptr = handle->ops->handle_to_pointer(data_interface, node);
 		if (starpu_data_lookup(ptr) != handle)
 		{
 			summary.pointer_is_inside = FAILURE;
