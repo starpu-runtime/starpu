@@ -346,6 +346,8 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 
 	for (i=0 ; i<nbuffers; i++)
 	{
+		_STARPU_JOB_SET_ORDERED_BUFFER_INDEX(j, i, i);
+
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
 
