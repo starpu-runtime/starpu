@@ -358,9 +358,6 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		if (task->cl->specific_nodes)
 			node = STARPU_CODELET_GET_NODE(task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
-
-		unsigned sequential_consistency = task->handles_sequential_consistency ? task->handles_sequential_consistency[i] : handle->sequential_consistency;
-		_STARPU_JOB_SET_ORDERED_BUFFER_SEQUENTIAL_CONSISTENCY(j, sequential_consistency, i);
 	}
 	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), nbuffers);
 }
