@@ -153,7 +153,7 @@ struct starpu_task
 	void *interfaces[STARPU_NMAXBUFS];
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 
-	char *handles_sequential_consistency;
+	unsigned char *handles_sequential_consistency;
 
 	void *cl_arg;
 	size_t cl_arg_size;

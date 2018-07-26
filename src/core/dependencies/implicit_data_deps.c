@@ -414,8 +414,9 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		unsigned task_handle_sequential_consistency = _STARPU_JOB_GET_ORDERED_BUFFER_SEQUENTIAL_CONSISTENCY(j, buffer);
-		if (!handle->sequential_consistency || !task_handle_sequential_consistency)
+		unsigned index = _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(j, buffer);
+		unsigned task_handle_sequential_consistency = task->handles_sequential_consistency ? task->handles_sequential_consistency[index] : handle->sequential_consistency;
+		if (!task_handle_sequential_consistency)
 			j->sequential_consistency = 0;
 		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode, task_handle_sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
