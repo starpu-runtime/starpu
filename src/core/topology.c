@@ -107,6 +107,23 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
+/* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
+int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned target_node)
+{
+	int node = -1;
+	if (task->cl->specific_nodes)
+		node = STARPU_CODELET_GET_NODE(task->cl, index);
+	if (node == -1)
+		node = target_node;
+	return node;
+}
+
+int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
+{
+	unsigned target_node = starpu_worker_get_memory_node(worker);
+	return _starpu_task_data_get_node_on_node(task, index, target_node);
+}
+
 int starpu_memory_nodes_get_numa_count(void)
 {
 	return nb_numa_nodes;

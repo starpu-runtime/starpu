@@ -95,12 +95,7 @@ static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
-		unsigned buffer_node = -1;
-		/* TODO: factorize node choice */
-		if (task->cl->specific_nodes)
-			buffer_node = STARPU_CODELET_GET_NODE(task->cl, index);
-		if (buffer_node == -1)
-			buffer_node = node;
+		unsigned buffer_node = _starpu_task_data_get_node_on_node(task, index, node);
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 
