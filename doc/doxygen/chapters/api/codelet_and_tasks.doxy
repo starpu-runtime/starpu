@@ -864,6 +864,24 @@ starpu_task::modes or the \p i -th element of the field
 starpu_task::dyn_modes
 (see \ref SettingManyDataHandlesForATask)
 
+\def STARPU_CODELET_GET_NODE(codelet, i)
+\ingroup API_Codelet_And_Tasks
+Return the target node of the \p i -th data handle of \p codelet.
+If \p node is defined with a static or dynamic number of
+handles, will either return the \p i -th element of the field
+starpu_codelet::nodes or the \p i -th element of the field
+starpu_codelet::dyn_nodes
+(see \ref SettingManyDataHandlesForATask)
+
+\def STARPU_CODELET_SET_NODE(codelet, node, i)
+\ingroup API_Codelet_And_Tasks
+Set the target node of the \p i -th data handle of \p codelet.
+If \p codelet is defined with a static or dynamic number of
+handles, will either set the \p i -th element of the field
+starpu_codelet::nodes or the \p i -th element of the field
+starpu_codelet::dyn_nodes
+(see \ref SettingManyDataHandlesForATask)
+
 \fn struct starpu_task *starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
 Allocate a task structure and initialize it with default
