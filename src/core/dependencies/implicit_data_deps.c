@@ -386,13 +386,14 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	j->sequential_consistency = 1;
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer);
-		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer);
+		starpu_data_handle_t handle = descrs[buffer].handle;
+		enum starpu_data_access_mode mode = descrs[buffer].mode;
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
@@ -401,8 +402,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 
 		if (buffer)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer - 1);
-			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer - 1);
+			starpu_data_handle_t handle_m1 = descrs[buffer-1].handle;
+			enum starpu_data_access_mode mode_m1 = descrs[buffer-1].mode;
 			if (handle_m1 == handle && mode_m1 == mode)
 				/* We have already added dependencies for this
 				 * data, skip it. This reduces the number of
@@ -414,7 +415,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		unsigned index = _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(j, buffer);
+		unsigned index = descrs[buffer].index;
 		unsigned task_handle_sequential_consistency = task->handles_sequential_consistency ? task->handles_sequential_consistency[index] : handle->sequential_consistency;
 		if (!task_handle_sequential_consistency)
 			j->sequential_consistency = 0;
@@ -506,11 +507,12 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	if (!task->cl)
 		return;
+
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
         unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
@@ -518,13 +520,13 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index);
-		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index);
+		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_data_access_mode mode = descrs[index].mode;
 
 		if (index)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index - 1);
-			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index - 1);
+			starpu_data_handle_t handle_m1 = descrs[index-1].handle;
+			enum starpu_data_access_mode mode_m1 = descrs[index-1].mode;
 			if (handle_m1 == handle && mode_m1 == mode)
 				/* See _starpu_detect_implicit_data_deps */
 				continue;

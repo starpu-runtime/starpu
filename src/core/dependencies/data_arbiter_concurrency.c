@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2013,2015,2017                           Inria
  * Copyright (C) 2010-2013,2016-2017                      CNRS
  *
@@ -408,7 +408,8 @@ static void ___starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, u
 #else // LOCK_OR_DELEGATE
 void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers)
 {
-	starpu_arbiter_t arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf)->arbiter;
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	starpu_arbiter_t arbiter = descrs[buf].handle->arbiter;
 	STARPU_PTHREAD_MUTEX_LOCK(&arbiter->mutex);
 #endif
 	STARPU_ASSERT(arbiter);
@@ -422,14 +423,14 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 	for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 	{
-		handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_arbiter);
-		mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_arbiter) & ~STARPU_COMMUTE;
+		handle = descrs[idx_buf_arbiter].handle;
+		mode = descrs[idx_buf_arbiter].mode & ~STARPU_COMMUTE;
 
 		mode = _starpu_arbiter_filter_modes(mode);
 
 		STARPU_ASSERT_MSG(!(mode & STARPU_REDUX), "REDUX with arbiter is not implemented\n");
 
-		if (idx_buf_arbiter && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_arbiter-1)==handle))
+		if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle))
 			/* We have already requested this data, skip it. This
 			 * depends on ordering putting writes before reads, see
 			 * _starpu_compar_handles.  */
@@ -483,9 +484,9 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		unsigned idx_buf_cancel;
 		for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 		{
-			starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
+			starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
 
-			if (idx_buf_cancel && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel-1)==cancel_handle))
+			if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
 				continue;
 			if (cancel_handle->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
@@ -630,11 +631,12 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 		enum starpu_data_access_mode mode;
 
 		unsigned start_buf_arbiter = r->buffer_index;
+		struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 
 		for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 		{
-			handle_arbiter = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_arbiter);
-			if (idx_buf_arbiter && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_arbiter-1)==handle_arbiter))
+			handle_arbiter = descrs[idx_buf_arbiter].handle;
+			if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle_arbiter))
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -643,7 +645,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				/* Will have to process another arbiter, will do that later */
 				break;
 
-			mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, idx_buf_arbiter);
+			mode = descrs[idx_buf_arbiter].mode;
 			mode = _starpu_arbiter_filter_modes(mode);
 
 			/* we post all arbiter  */
@@ -711,8 +713,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			unsigned idx_buf_cancel;
 			for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 			{
-				starpu_data_handle_t cancel_handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel);
-				if (idx_buf_cancel && (_STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, idx_buf_cancel-1)==cancel_handle))
+				starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
+				if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
 					continue;
 				if (cancel_handle->arbiter != arbiter)
 					break;
