@@ -19,6 +19,9 @@
 
 #include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
+#ifndef CL_TARGET_OPENCL_VERSION
+#define CL_TARGET_OPENCL_VERSION 100
+#endif
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #else

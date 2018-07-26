@@ -19,6 +19,7 @@
 /* #define _externC extern "C" */
 
 #include <stencil.h>
+#define CL_TARGET_OPENCL_VERSION 100
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #else
