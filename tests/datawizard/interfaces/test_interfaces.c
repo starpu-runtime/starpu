@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2013,2015                                Université de Bordeaux
+ * Copyright (C) 2013,2015, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,6 +88,7 @@ struct data_interface_test_summary
 	int compare;
 #ifdef STARPU_USE_CPU
 	int handle_to_pointer;
+	int pointer_is_inside;
 #endif
 };
 
@@ -147,6 +148,8 @@ void data_interface_test_summary_print(FILE *f,
 		enum_to_string(s->cpu_to_cpu));
 	FPRINTF(f, "handle_to_pointer() : %s\n",
 		enum_to_string(s->handle_to_pointer));
+	FPRINTF(f, "pointer_is_inside() : %s\n",
+		enum_to_string(s->pointer_is_inside));
 #endif /* !STARPU_USE_CPU */
 	FPRINTF(f, "compare()        : %s\n",
 		enum_to_string(s->compare));
@@ -268,6 +271,7 @@ static struct data_interface_test_summary summary =
 #endif
 #ifdef STARPU_USE_CPU
 	.handle_to_pointer     = UNTESTED,
+	.pointer_is_inside     = UNTESTED,
 #endif
 	.success               = SUCCESS
 };
@@ -808,6 +812,45 @@ handle_to_pointer(void)
 	if (tests > 0)
 		summary.handle_to_pointer = SUCCESS;
 }
+
+static void
+pointer_is_inside(void)
+{
+	void *ptr;
+	unsigned int node;
+	unsigned int tests = 0;
+	starpu_data_handle_t handle;
+	void * data_interface;
+
+	handle = *current_config->handle;
+	if (!handle->ops->pointer_is_inside || !handle->ops->to_pointer)
+		return;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			continue;
+		if (!starpu_data_test_if_allocated_on_node(handle, node))
+			continue;
+
+		data_interface = starpu_data_get_interface_on_node(handle, node);
+		ptr = handle->ops->to_pointer(data_interface, node);
+		if (starpu_data_lookup(ptr) != handle)
+		{
+			summary.pointer_is_inside = FAILURE;
+			return;
+		}
+		if (!starpu_data_pointer_is_inside(handle, node, ptr))
+		{
+			summary.pointer_is_inside = FAILURE;
+			return;
+		}
+		tests++;
+	}
+
+	if (tests > 0)
+		summary.pointer_is_inside = SUCCESS;
+}
 #endif /* !STARPU_USE_CPU */
 
 static int
@@ -852,6 +895,7 @@ run_tests(struct test_config *conf)
 	ram_to_ram();
 	compare();
 	handle_to_pointer();
+	pointer_is_inside();
 #endif
 
 	return &summary;

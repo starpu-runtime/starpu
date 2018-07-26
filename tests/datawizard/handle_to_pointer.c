@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2012-2013,2015-2017                      CNRS
- * Copyright (C) 2012-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2012-2014,2016,2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,16 +118,19 @@ int main(int argc, char *argv[])
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
 				      sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
+	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
 				    count, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
+	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, 0,
 				    count, 1, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
+	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
 	starpu_free(pointer);
@@ -163,6 +166,7 @@ int main(int argc, char *argv[])
 		for(i = 0; i < count; i++)
 		{
 			int *numbers = (int *)pointer;
+			STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, numbers));
 			if (numbers[i] != i)
 			{
 				FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);

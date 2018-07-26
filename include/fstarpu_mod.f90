@@ -2,7 +2,7 @@
 !
 ! Copyright (C) 2016-2018                                CNRS
 ! Copyright (C) 2016-2017                                Inria
-! Copyright (C) 2016-2017                                Université de Bordeaux
+! Copyright (C) 2016-2018                                Université de Bordeaux
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -775,6 +775,15 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: node
                 end function fstarpu_data_handle_to_pointer
+
+                ! void *starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr);
+                function fstarpu_data_handle_to_pointer (dh,node,ptr) bind(C,name="starpu_data_pointer_is_inside")
+                        use iso_c_binding, only: c_ptr, c_int, c_ptr
+                        type(int) :: fstarpu_data_pointer_is_inside
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                end function fstarpu_data_pointer_is_inside
 
                 ! void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
                 function fstarpu_data_get_local_ptr (dh) bind(C,name="starpu_data_get_local_ptr")

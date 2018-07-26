@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2014                                Inria
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,10 @@ Free data of the interface on a given node.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
 Return the current pointer (if any) for the handle on the given node.
+
+\var int (*starpu_data_interface_ops::pointer_is_inside)(void *data_interface, unsigned node, void *pointer)
+    Return whether the given \p pointer is within the data for the given interface on the given node.
+
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
 Return an estimation of the size of data, for performance models.
 \var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
@@ -450,6 +454,12 @@ implementations (see for example the code in
 Return the pointer associated with \p handle on node \p node or <c>NULL</c>
 if handle’s interface does not support this operation or data for this
 \p handle is not allocated on that \p node.
+
+\fn int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *pointer)
+\ingroup API_Data_Interfaces
+Return whether the given \p pointer is within the data for \p handle on node \p
+node (1) or not (0). If the handle interface does not support this operation,
+and thus the result is unknown, -1 is returned.
 
 \fn void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
