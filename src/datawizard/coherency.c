@@ -972,6 +972,10 @@ int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsig
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
 
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
 	}
