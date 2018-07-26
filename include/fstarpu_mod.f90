@@ -787,7 +787,7 @@ module fstarpu_mod
                 ! void *starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr);
                 function fstarpu_data_pointer_is_inside (dh,node,ptr) bind(C,name="starpu_data_pointer_is_inside")
                         use iso_c_binding, only: c_ptr, c_int, c_ptr
-                        type(c_int) :: fstarpu_data_pointer_is_inside
+                        integer(c_int) :: fstarpu_data_pointer_is_inside
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: node
                         type(c_ptr), value, intent(in) :: ptr
