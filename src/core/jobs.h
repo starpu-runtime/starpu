@@ -61,7 +61,9 @@ struct _starpu_data_descr
 {
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
-	int node;
+	int node; /* This is the value actually chosen, only set by
+		     _starpu_fetch_task_input for coherency with
+		     __starpu_push_task_output */
 	int index;
 };
 

@@ -351,11 +351,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].index = i;
 		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
 		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
-
-		int node = -1;
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, i);
-		buffers[i].node = node;
+		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);
 }
