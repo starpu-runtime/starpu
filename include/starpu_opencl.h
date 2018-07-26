@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2010-2014                                Université de Bordeaux
+ * Copyright (C) 2010-2014,2018                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@
 
 #include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
+#ifndef CL_TARGET_OPENCL_VERSION
+#define CL_TARGET_OPENCL_VERSION 100
+#endif
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #else
