@@ -68,6 +68,7 @@
 
 static unsigned topology_is_initialized = 0;
 static int nobind;
+static int numa_enabled = -1;
 
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
@@ -160,7 +161,8 @@ static int numa_get_physical_id(hwloc_obj_t obj)
 static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
-	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	STARPU_ASSERT(numa_enabled != -1);
+	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
@@ -190,7 +192,8 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
-	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	STARPU_ASSERT(numa_enabled != -1);
+	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
@@ -220,7 +223,8 @@ static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
-	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	STARPU_ASSERT(numa_enabled != -1);
+	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
@@ -1125,7 +1129,9 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 
 	int res;
 #if defined(STARPU_HAVE_HWLOC)
-	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	if (numa_enabled == -1)
+		numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
+	if (numa_enabled)
 	{
 		struct _starpu_machine_topology *topology = &config->topology ;
 		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE) ;
@@ -2079,7 +2085,8 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	STARPU_ASSERT(numa_enabled != -1);
+	if (numa_enabled)
 	{
 		int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 
@@ -2152,7 +2159,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	msg_host_t host;
 #endif
 
-	int numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
+	numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
 	/* NUMA mode activated */
 	if (numa_enabled)
 	{
