@@ -354,6 +354,10 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);
+	for (i=0 ; i<nbuffers; i++)
+	{
+		buffers[buffers[i].index].orderedindex = i;
+	}
 }
 
 /* Sort the data used by the given job by handle pointer value order, and

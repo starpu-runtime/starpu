@@ -1143,6 +1143,18 @@ void _starpu_set_current_task(struct starpu_task *task)
 	STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
 
+int starpu_task_get_current_data_node(unsigned i)
+{
+	struct starpu_task *task = starpu_task_get_current();
+	if (!task)
+		return -1;
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	unsigned orderedindex = descrs[i].orderedindex;
+	return descrs[orderedindex].node;
+}
+
 #ifdef STARPU_OPENMP
 /* Prepare the fields of the currentl task for accepting a new set of
  * dependencies in anticipation of becoming a continuation.

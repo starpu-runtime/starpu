@@ -35,6 +35,7 @@ unsigned data, data2;
 void specific_kernel(void *descr[], void *arg)
 {
 	(void)arg;
+	STARPU_ASSERT(starpu_task_get_current_data_node(0) == STARPU_MAIN_RAM);
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(dataptr == &data);

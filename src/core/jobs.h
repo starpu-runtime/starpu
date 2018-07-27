@@ -65,6 +65,10 @@ struct _starpu_data_descr
 		     _starpu_fetch_task_input for coherency with
 		     __starpu_push_task_output */
 	int index;
+
+	int orderedindex; /* For this field the array is actually indexed by
+			     parameter order, and this provides the ordered
+			     index */
 };
 
 #ifdef STARPU_DEBUG
