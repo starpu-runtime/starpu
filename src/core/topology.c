@@ -156,6 +156,7 @@ static int numa_get_physical_id(hwloc_obj_t obj)
 }
 #endif
 
+/* This returns the exact NUMA node next to a worker */
 static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
@@ -185,6 +186,7 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid)
 	}
 }
 
+/* This returns the exact NUMA node next to a worker */
 static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 {
 #if defined(STARPU_HAVE_HWLOC)
@@ -205,6 +207,43 @@ static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 		}
 
 		return numa_get_physical_id(obj);
+	}
+	else
+#endif
+	{
+		(void) workerid; /* unused */
+		return STARPU_NUMA_MAIN_RAM;
+	}
+}
+
+/* This returns the CPU NUMA memory close to a worker */
+static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
+{
+#if defined(STARPU_HAVE_HWLOC)
+	if (starpu_get_env_number_default("STARPU_USE_NUMA", 0))
+	{
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
+		struct _starpu_machine_topology *topology = &config->topology ;
+
+		hwloc_obj_t obj;
+		switch(worker->arch)
+		{
+			case STARPU_CPU_WORKER:
+				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
+				break;
+#ifndef STARPU_SIMGRID
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+			case STARPU_CUDA_WORKER:
+				obj = hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, worker->devid);
+				break;
+#endif
+#endif
+			default:
+				return 0;
+		}
+
+		return numa_get_logical_id(obj);
 	}
 	else
 #endif
@@ -246,6 +285,8 @@ int starpu_memory_nodes_numa_id_to_devid(int osid)
 	return -1;
 }
 
+// TODO: cache the values instead of looking in hwloc each time
+
 /* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
 int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned local_node)
 {
@@ -254,11 +295,19 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 		node = STARPU_CODELET_GET_NODE(task->cl, index);
 	switch (node) {
 	case STARPU_SPECIFIC_NODE_LOCAL:
+		// TODO: rather find MCDRAM
 		node = local_node;
 		break;
 	case STARPU_SPECIFIC_NODE_CPU:
-		// TODO: rather take close NUMA node
-		node = STARPU_MAIN_RAM;
+		switch (starpu_node_get_kind(local_node)) {
+		case STARPU_CPU_RAM:
+			node = local_node;
+			break;
+		default:
+			// TODO: rather take close NUMA node
+			node = STARPU_MAIN_RAM;
+			break;
+		}
 		break;
 	case STARPU_SPECIFIC_NODE_SLOW:
 		// TODO: rather leave in DDR
@@ -270,9 +319,26 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 
 int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
 {
-	/* TODO: choose memory node according to proximity to worker rather than memory node */
-	unsigned target_node = starpu_worker_get_memory_node(worker);
-	return _starpu_task_data_get_node_on_node(task, index, target_node);
+	unsigned local_node = starpu_worker_get_memory_node(worker);
+	int node = STARPU_SPECIFIC_NODE_LOCAL;
+	if (task->cl->specific_nodes)
+		node = STARPU_CODELET_GET_NODE(task->cl, index);
+	switch (node) {
+	case STARPU_SPECIFIC_NODE_LOCAL:
+		// TODO: rather find MCDRAM
+		node = local_node;
+		break;
+	case STARPU_SPECIFIC_NODE_CPU:
+		node = starpu_memory_nodes_numa_hwloclogid_to_id(_starpu_get_logical_close_numa_node_worker(worker));
+		if (node == -1)
+			node = STARPU_MAIN_RAM;
+		break;
+	case STARPU_SPECIFIC_NODE_SLOW:
+		// TODO: rather leave in DDR
+		node = local_node;
+		break;
+	}
+	return node;
 }
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
