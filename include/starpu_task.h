@@ -354,6 +354,7 @@ void starpu_codelet_init(struct starpu_codelet *cl);
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 struct starpu_task *starpu_task_get_current(void);
+int starpu_task_get_current_data_node(unsigned i);
 
 const char *starpu_task_get_model_name(struct starpu_task *task);
 const char *starpu_task_get_name(struct starpu_task *task);
