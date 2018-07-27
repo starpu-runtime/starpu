@@ -91,6 +91,9 @@ typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 
 #define STARPU_VARIABLE_NBUFFERS (-1)
 
+#define STARPU_SPECIFIC_NODE_LOCAL (-1)
+#define STARPU_SPECIFIC_NODE_CPU (-2)
+#define STARPU_SPECIFIC_NODE_SLOW (-3)
 struct starpu_task;
 struct starpu_codelet
 {

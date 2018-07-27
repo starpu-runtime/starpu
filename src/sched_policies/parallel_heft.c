@@ -349,7 +349,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
 
-			unsigned memory_node = starpu_worker_get_memory_node(workerid);
 			local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time_for(task, workerid);
 
 			double ntasks_end = compute_ntasks_end(workerid, sched_ctx_id);
