@@ -107,35 +107,6 @@ static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
-/* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
-int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned local_node)
-{
-	int node = STARPU_SPECIFIC_NODE_LOCAL;
-	if (task->cl->specific_nodes)
-		node = STARPU_CODELET_GET_NODE(task->cl, index);
-	switch (node) {
-	case STARPU_SPECIFIC_NODE_LOCAL:
-		node = local_node;
-		break;
-	case STARPU_SPECIFIC_NODE_CPU:
-		// TODO: rather take close NUMA node
-		node = STARPU_MAIN_RAM;
-		break;
-	case STARPU_SPECIFIC_NODE_SLOW:
-		// TODO: rather leave in DDR
-		node = local_node;
-		break;
-	}
-	return node;
-}
-
-int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
-{
-	/* TODO: choose memory node according to proximity to worker rather than memory node */
-	unsigned target_node = starpu_worker_get_memory_node(worker);
-	return _starpu_task_data_get_node_on_node(task, index, target_node);
-}
-
 int starpu_memory_nodes_get_numa_count(void)
 {
 	return nb_numa_nodes;
@@ -241,6 +212,67 @@ static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 		(void) workerid; /* unused */
 		return STARPU_NUMA_MAIN_RAM;
 	}
+}
+
+//TODO change this in an array
+int starpu_memory_nodes_numa_hwloclogid_to_id(int logid)
+{
+	unsigned n;
+	for (n = 0; n < nb_numa_nodes; n++)
+		if (numa_memory_nodes_to_hwloclogid[n] == logid)
+			return n;
+	return -1;
+}
+
+int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id)
+{
+	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
+	return numa_memory_nodes_to_hwloclogid[id];
+}
+
+int starpu_memory_nodes_numa_devid_to_id(unsigned id)
+{
+	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
+	return numa_memory_nodes_to_physicalid[id];
+}
+
+//TODO change this in an array
+int starpu_memory_nodes_numa_id_to_devid(int osid)
+{
+	unsigned n;
+	for (n = 0; n < nb_numa_nodes; n++)
+		if (numa_memory_nodes_to_physicalid[n] == osid)
+			return n;
+	return -1;
+}
+
+/* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
+int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned local_node)
+{
+	int node = STARPU_SPECIFIC_NODE_LOCAL;
+	if (task->cl->specific_nodes)
+		node = STARPU_CODELET_GET_NODE(task->cl, index);
+	switch (node) {
+	case STARPU_SPECIFIC_NODE_LOCAL:
+		node = local_node;
+		break;
+	case STARPU_SPECIFIC_NODE_CPU:
+		// TODO: rather take close NUMA node
+		node = STARPU_MAIN_RAM;
+		break;
+	case STARPU_SPECIFIC_NODE_SLOW:
+		// TODO: rather leave in DDR
+		node = local_node;
+		break;
+	}
+	return node;
+}
+
+int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
+{
+	/* TODO: choose memory node according to proximity to worker rather than memory node */
+	unsigned target_node = starpu_worker_get_memory_node(worker);
+	return _starpu_task_data_get_node_on_node(task, index, target_node);
 }
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
@@ -1041,38 +1073,6 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 
 	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered is higher than maximum accepted ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n");
 	return res;
-}
-
-//TODO change this in an array
-int starpu_memory_nodes_numa_hwloclogid_to_id(int logid)
-{
-	unsigned n;
-	for (n = 0; n < nb_numa_nodes; n++)
-		if (numa_memory_nodes_to_hwloclogid[n] == logid)
-			return n;
-	return -1;
-}
-
-int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id)
-{
-	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
-	return numa_memory_nodes_to_hwloclogid[id];
-}
-
-int starpu_memory_nodes_numa_devid_to_id(unsigned id)
-{
-	STARPU_ASSERT(id < STARPU_MAXNUMANODES);
-	return numa_memory_nodes_to_physicalid[id];
-}
-
-//TODO change this in an array
-int starpu_memory_nodes_numa_id_to_devid(int osid)
-{
-	unsigned n;
-	for (n = 0; n < nb_numa_nodes; n++)
-		if (numa_memory_nodes_to_physicalid[n] == osid)
-			return n;
-	return -1;
 }
 
 #ifdef STARPU_HAVE_HWLOC
