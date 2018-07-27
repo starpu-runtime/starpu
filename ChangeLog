@@ -48,6 +48,9 @@ New features:
     trigger the task termination.
   * Add possibility to define the sequential consistency at the task level
     for each handle used by the task.
+  * Add STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_CPU, and
+    STARPU_SPECIFIC_NODE_SLOW as generic values for codelet specific memory
+    nodes which can be used instead of exact node numbers.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation

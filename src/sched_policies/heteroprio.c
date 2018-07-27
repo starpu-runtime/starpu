@@ -639,8 +639,6 @@ done:		;
 	/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */
 	if(task && worker->tasks_queue.ntasks && nb_added_tasks && starpu_get_prefetch_flag())
 	{
-		const unsigned memory_node = starpu_worker_get_memory_node(workerid);
-
 /* TOTO berenger: iterate in the other sense */
 		struct starpu_task *task_to_prefetch = NULL;
 		for (task_to_prefetch  = starpu_task_prio_list_begin(&worker->tasks_queue.list);
