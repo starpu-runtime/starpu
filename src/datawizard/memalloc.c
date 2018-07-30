@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -132,6 +132,10 @@ void _starpu_init_mem_chunk_lists(void)
 		STARPU_HG_DISABLE_CHECKING(mc_nb[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_clean_nb[i]);
 	}
+	/* We do not enable forcing available memory by default, since
+	  this makes StarPU spuriously free data when prefetching fills the
+	  memory. Clean buffers should be enough to be able to allocate data
+	  easily anyway. */
 	minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 0);
 	target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 0);
 	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
