@@ -1632,8 +1632,8 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	for (i = 0; i < nnodes; i++)
 	{
 		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
-		    (_starpu_memory_manager_test_allocate_size(i, _starpu_data_get_size(handle)) == 1 ||
-		     handle->per_node[i].allocated))
+		    (handle->per_node[i].allocated ||
+		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_size(handle)) == 1))
 		{
 			/* if we can write on the disk */
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
