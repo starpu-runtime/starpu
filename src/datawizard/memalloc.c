@@ -119,7 +119,7 @@ int _starpu_is_reclaiming(unsigned node)
 }
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
-static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
+static int choose_target(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -1660,7 +1660,8 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 #  warning TODO: better choose NUMA node
 #endif
 
-static unsigned
+/* Choose a target memory node to put the value of the handle, because the current location (node) is getting tight */
+static int
 choose_target(starpu_data_handle_t handle, unsigned node)
 {
 	int target = -1;
