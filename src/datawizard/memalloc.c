@@ -963,16 +963,9 @@ size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 /* Periodic tidy of available memory  */
 void starpu_memchunk_tidy(unsigned node)
 {
-	starpu_ssize_t total = starpu_memory_get_total(node);
-	starpu_ssize_t available = starpu_memory_get_available(node);
+	starpu_ssize_t total;
+	starpu_ssize_t available;
 	size_t target, amount;
-
-	/* Count cached allocation as being available */
-	available += mc_cache_size[node];
-
-	if (total > 0 && available >= (total * minimum_p) / 100)
-		/* Enough available space, do not trigger reclaiming */
-		return;
 
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
@@ -1108,7 +1101,17 @@ void starpu_memchunk_tidy(unsigned node)
 		_STARPU_TRACE_END_WRITEBACK_ASYNC(node);
 	}
 
+	total = starpu_memory_get_total(node);
+
 	if (total <= 0)
+		return;
+
+	available = starpu_memory_get_available(node);
+	/* Count cached allocation as being available */
+	available += mc_cache_size[node];
+
+	if (available >= (starpu_ssize_t) (total * minimum_p) / 100)
+		/* Enough available space, do not trigger reclaiming */
 		return;
 
 	/* Not enough available space, reclaim until we reach the target.  */
