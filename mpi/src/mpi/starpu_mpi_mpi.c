@@ -1610,7 +1610,11 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 void _starpu_mpi_driver_shutdown()
 {
 	if (mpi_driver)
+	{
 		starpu_driver_deinit(mpi_driver);
+		free(mpi_driver);
+		mpi_driver = NULL;
+	}
 }
 
 #endif /* STARPU_USE_MPI_MPI */
