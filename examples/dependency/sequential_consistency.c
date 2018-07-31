@@ -119,6 +119,12 @@ int main(void)
 	starpu_tag_t tagA = 421;
 	starpu_tag_t tagC = 842;
 
+	if (sizeof(starpu_tag_t) > sizeof(void*))
+	{
+		// Can't pass a tag_t through callback arg :/
+		return 77;
+	}
+
         ret = starpu_init(NULL);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
