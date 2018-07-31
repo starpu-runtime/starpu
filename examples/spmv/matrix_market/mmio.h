@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2009,2011,2016                      Université de Bordeaux
+ * Copyright (C) 2008-2009,2011,2016,2018                 Université de Bordeaux
  * Copyright (C) 2010,2015                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -135,9 +135,9 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 /*  high level routines */
 
-int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
+int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I_[], int J[],
 		 double val[], MM_typecode matcode);
-int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
+int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I_[], int J[],
 		double val[], MM_typecode matcode);
 int mm_read_mtx_crd_entry(FILE *f, int *I, int *J, double *real, double *img,
 			MM_typecode matcode);
