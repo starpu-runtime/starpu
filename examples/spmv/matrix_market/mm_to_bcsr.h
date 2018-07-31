@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2009,2011                           Université de Bordeaux
+ * Copyright (C) 2008-2009,2011, 2018                           Université de Bordeaux
  * Copyright (C) 2010-2011,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,4 +51,4 @@ typedef struct
 bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r);
 
 /* read the matrix as a set of valuated coordinates */
-bcsr_t *mm_to_bcsr(unsigned nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r);
+bcsr_t *mm_to_bcsr(unsigned nz, unsigned *I_, unsigned *J, float *val, unsigned c, unsigned r);
