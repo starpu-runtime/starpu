@@ -750,10 +750,6 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 			/* Found a cpu ready for use, use it! */
 			break;
 
-	STARPU_ASSERT(i < topology->nhwpus / nhyperthreads);
-	int bindid = topology->workers_bindid[i];
-	config->currently_bound[i] = 1;
-	i++;
 	if (i == topology->nhwpus / nhyperthreads)
 	{
 		/* Finished binding on all cpus, restart from start in
@@ -761,6 +757,10 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 		memset(&config->currently_bound, 0, sizeof(config->currently_bound));
 		i = 0;
 	}
+
+	STARPU_ASSERT(i < topology->nhwpus / nhyperthreads);
+	int bindid = topology->workers_bindid[i];
+	config->currently_bound[i] = 1;
 	config->current_bindid = i;
 	return bindid;
 }
