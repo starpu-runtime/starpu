@@ -832,6 +832,7 @@ pointer_is_inside(void)
 		if (!starpu_data_test_if_allocated_on_node(handle, node))
 			continue;
 
+		ptr = handle->ops->handle_to_pointer(handle, node);
 		if (starpu_data_lookup(ptr) != handle)
 		{
 			summary.pointer_is_inside = FAILURE;
