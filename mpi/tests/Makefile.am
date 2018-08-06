@@ -127,8 +127,7 @@ starpu_mpi_TESTS +=				\
 	policy_selection			\
 	policy_selection2			\
 	ring_async_implicit			\
-	temporary				\
-	driver
+	temporary
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -159,7 +158,8 @@ starpu_mpi_TESTS +=				\
 	tags_checking				\
 	sync					\
 	gather					\
-	gather2
+	gather2					\
+	driver
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
