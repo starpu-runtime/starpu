@@ -2782,16 +2782,21 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+        /* Ideally, we would be able to dump tasks as they terminate, to save
+         * memory.
+         * We however may have to change their state later, e.g. the show field,
+         * due to dependencies added way later. */
+#if 0
 	unsigned long job_id;
 	job_id = ev->param[0];
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 
-        /* Ideally, we would be able to dump tasks as they terminate, to save
-         * memory.
-         * We however may have to change their state later, e.g. the show field,
-         * due to dependencies added way later. */
-	/* task_dump(task, options); */
+	task_dump(task, options);
+#else
+	(void) ev;
+	(void) options;
+#endif
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
