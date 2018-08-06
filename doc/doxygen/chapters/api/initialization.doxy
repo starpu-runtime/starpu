@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2012,2014,2017                      Inria
- * Copyright (C) 2009-2011,2014                           Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -280,6 +280,10 @@ the argument was <c>NULL</c>.
 \fn int starpu_is_initialized(void)
 \ingroup API_Initialization_and_Termination
 Return 1 if StarPU is already initialized.
+
+\fn int starpu_wait_initialized(void)
+\ingroup API_Initialization_and_Termination
+Wait for starpu_init() call to finish.
 
 \fn void starpu_shutdown(void)
 \ingroup API_Initialization_and_Termination

@@ -97,6 +97,14 @@ int starpu_is_initialized(void)
 	return initialized == INITIALIZED;
 }
 
+void starpu_wait_initialized(void)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	while (initialized != INITIALIZED)
+		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+}
+
 /* Makes sure that at least one of the workers of type <arch> can execute
  * <task>, for at least one of its implementations. */
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
