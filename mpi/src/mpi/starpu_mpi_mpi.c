@@ -1144,6 +1144,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
 	}
 	smpi_process_set_user_data(tsd);
+        /* And wait for StarPU to get initialized, to come back to the same
+         * situation as native execution where that's always the case. */
+	starpu_wait_initialized();
 #endif
 
 	_starpu_mpi_comm_amounts_init(argc_argv->comm);
