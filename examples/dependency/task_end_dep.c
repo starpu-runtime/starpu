@@ -60,8 +60,14 @@ int main(void)
         int value=12;
 	int ret;
 	starpu_data_handle_t value_handle;
+	struct starpu_conf conf;
 
-        ret = starpu_init(NULL);
+	starpu_conf_init(&conf);
+	conf.nmic = 0;
+	conf.nscc = 0;
+	conf.nmpi_ms = 0;
+
+        ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		return 77;
