@@ -59,7 +59,6 @@ static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
  * emitting a GPU-GPU transfer */
 static cudaStream_t in_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
-static cudaStream_t out_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 #ifndef STARPU_SIMGRID
 static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
@@ -315,9 +314,6 @@ static void init_device_context(unsigned devid)
 		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		cures = starpu_cudaStreamCreate(&out_peer_transfer_streams[devid][i]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 }
 #endif /* !STARPU_SIMGRID */
@@ -360,7 +356,6 @@ static void deinit_device_context(unsigned devid)
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
-		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
 	}
 }
 #endif /* !STARPU_SIMGRID */
