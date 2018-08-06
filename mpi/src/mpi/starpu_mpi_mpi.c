@@ -1394,7 +1394,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					{
 						_STARPU_MPI_TRACE_DRIVER_RUN_BEGIN();
 						STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-						fprintf(stderr, "running once mpi driver\n");
+						_STARPU_MPI_DEBUG(4, "running once mpi driver\n");
 						starpu_driver_run_once(mpi_driver);
 						STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 						_STARPU_MPI_TRACE_DRIVER_RUN_END();
