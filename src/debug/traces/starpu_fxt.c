@@ -2787,7 +2787,11 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 
-	task_dump(task, options);
+        /* Ideally, we would be able to dump tasks as they terminate, to save
+         * memory.
+         * We however may have to change their state later, e.g. the show field,
+         * due to dependencies added way later. */
+	/* task_dump(task, options); */
 }
 
 static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
