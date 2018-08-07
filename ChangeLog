@@ -102,6 +102,8 @@ Small features:
   * Add a new value STARPU_TASK_SYNCHRONOUS to be used in
     starpu_task_insert() to define if the task is (or not) synchronous
   * Add memory states events in the traces.
+  * Add starpu_sched_component_estimated_end_min_add() to fix termination
+    estimations in modular schedulers.
 
 Changes:
   * Vastly improve simgrid simulation time.

@@ -45,15 +45,7 @@ static double fifo_estimated_end(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
 	struct _starpu_fifo_taskq * fifo = data->fifo;
-	int card = starpu_bitmap_cardinal(component->workers_in_ctx);
-	if (card == 0)
-                /* Oops, no resources to compute our tasks. Let's just hope that
-                 * we will be given one at some point */
-		card = 1;
-	double estimated_end = starpu_sched_component_estimated_end_min(component);
-	estimated_end += fifo->exp_len / card;
-
-	return estimated_end;
+	return starpu_sched_component_estimated_end_min_add(component, fifo->exp_len);
 }
 
 static double fifo_estimated_load(struct starpu_sched_component * component)

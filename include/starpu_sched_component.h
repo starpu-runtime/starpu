@@ -128,6 +128,7 @@ int starpu_sched_component_can_push(struct starpu_sched_component * component, s
 int starpu_sched_component_can_pull(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len);
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
 
 struct starpu_sched_component_fifo_data
