@@ -3,7 +3,7 @@
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2013-2014                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2014                                     Université de Bordeaux
+ * Copyright (C) 2014, 2018                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ static struct starpu_task_list * get_prio(struct _starpu_prio_deque * pdeque, in
 
 
 
-int _starpu_prio_deque_push_task(struct _starpu_prio_deque * pdeque, struct starpu_task * task)
+int _starpu_prio_deque_push_front_task(struct _starpu_prio_deque * pdeque, struct starpu_task * task)
 {
 	STARPU_ASSERT(pdeque && task);
 	struct starpu_task_list * list = get_prio(pdeque, task->priority);
