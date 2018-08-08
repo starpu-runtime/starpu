@@ -140,7 +140,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	else
 	{
 		if(is_pushback)
-			ret = _starpu_prio_deque_push_task(prio,task);
+			ret = _starpu_prio_deque_push_front_task(prio,task);
 		else
 		{
 			ret = _starpu_prio_deque_push_back_task(prio,task);
