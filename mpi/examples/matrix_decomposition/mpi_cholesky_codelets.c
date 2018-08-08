@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015,2017,2018                           CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2009-2010,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2010,2014-2015,2017-2018                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,7 @@ static struct starpu_codelet cl11 =
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.model = &chol_model_11
+	.color = 0xffff00,
 };
 
 static struct starpu_codelet cl21 =
@@ -49,6 +50,7 @@ static struct starpu_codelet cl21 =
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
 	.model = &chol_model_21
+	.color = 0x8080ff,
 };
 
 static struct starpu_codelet cl22 =
@@ -62,6 +64,7 @@ static struct starpu_codelet cl22 =
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
 	.model = &chol_model_22
+	.color = 0x00ff00,
 };
 
 /*
