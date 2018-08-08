@@ -519,7 +519,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
 				STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
-				_starpu_prio_deque_push_task(&worker->tasks_queue, task);
+				_starpu_prio_deque_push_front_task(&worker->tasks_queue, task);
 
 				/* Update general counter */
 				hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] += 1;
