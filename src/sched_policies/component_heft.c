@@ -118,7 +118,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		for (n = ntasks - 1; n < ntasks; n--)
 			if ((int) n != best_task)
-				_starpu_prio_deque_push_back_task(prio, tasks[n]);
+				_starpu_prio_deque_push_task(prio, tasks[n]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
 		/* And now find out which worker suits best for this task,
@@ -161,7 +161,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		{
 			/* Could not push to child actually, push that one back too */
 			STARPU_PTHREAD_MUTEX_LOCK(mutex);
-			_starpu_prio_deque_push_back_task(prio, tasks[best_task]);
+			_starpu_prio_deque_push_task(prio, tasks[best_task]);
 			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 			return 1;
 		}
@@ -186,7 +186,7 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	_starpu_prio_deque_push_task(prio,task);
+	_starpu_prio_deque_push_back_task(prio,task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
 	heft_progress(component);
