@@ -657,7 +657,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
-	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid);
+	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid, NULL);
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
@@ -1471,7 +1471,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
 	if (main_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NOWORKERID);
+		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NONACTIVETHREAD, "main");
 
 	_STARPU_DEBUG("Initialisation finished\n");
 

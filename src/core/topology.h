@@ -63,10 +63,12 @@ void _starpu_topology_filter(hwloc_topology_t topology);
 #endif
 
 #define STARPU_NOWORKERID -1
+#define STARPU_ACTIVETHREAD -2
+#define STARPU_NONACTIVETHREAD -2
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(int cpuid, int workerid);
+int _starpu_bind_thread_on_cpu(int cpuid, int workerid, const char *name);
 
 struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */
