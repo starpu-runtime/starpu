@@ -639,7 +639,6 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 {
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
-	double sum = 0;
 	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
