@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Corentin Salingue
  *
@@ -104,7 +104,7 @@ static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_CUDA
 /* preference order of cores (logical indexes) */
-static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
+static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
@@ -121,7 +121,7 @@ static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
-static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
+static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
 
@@ -152,7 +152,7 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
 
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
@@ -163,13 +163,13 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* hack to force the initialization */
 	cudaFree(0);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
         /* Get the maximum size which can be allocated on the device */
 	struct cudaDeviceProp prop;
@@ -185,7 +185,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
@@ -212,14 +212,14 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	STARPU_ASSERT(cures == cudaSuccess);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
@@ -410,7 +410,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	int not_initialized;
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 
@@ -444,7 +444,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	}
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Allocate a buffer on the device */
 	cl_mem d_buffer;
@@ -452,7 +452,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
@@ -474,14 +474,14 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	}
 
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 	/* hack to avoid third party libs to rebind threads */
-	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
@@ -898,7 +898,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned numa;
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			ret = fscanf(f, "%d\t", &cuda_affinity_matrix[gpu][numa]);
+			ret = fscanf(f, "%u\t", &cuda_affinity_matrix[gpu][numa]);
 			STARPU_ASSERT(ret == 1);
 		}
 
@@ -922,7 +922,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned numa;
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			ret = fscanf(f, "%d\t", &opencl_affinity_matrix[gpu][numa]);
+			ret = fscanf(f, "%u\t", &opencl_affinity_matrix[gpu][numa]);
 			STARPU_ASSERT(ret == 1);
 		}
 
@@ -1092,14 +1092,14 @@ static void load_bus_affinity_file(void)
 }
 
 #ifdef STARPU_USE_CUDA
-int *_starpu_get_cuda_affinity_vector(unsigned gpuid)
+unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid)
 {
 	return cuda_affinity_matrix[gpuid];
 }
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
-int *_starpu_get_opencl_affinity_vector(unsigned gpuid)
+unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 {
 	return opencl_affinity_matrix[gpuid];
 }
@@ -1121,7 +1121,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "%u\t", gpu);
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			fprintf(f, "%d\t", cuda_affinity_matrix[gpu][numa]);
+			fprintf(f, "%u\t", cuda_affinity_matrix[gpu][numa]);
 		}
 		fprintf(f, "\n");
 	}
@@ -1133,7 +1133,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "%u\t", gpu);
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			fprintf(f, "%d\t", opencl_affinity_matrix[gpu][numa]);
+			fprintf(f, "%u\t", opencl_affinity_matrix[gpu][numa]);
 		}
 		fprintf(f, "\n");
 	}
@@ -1894,7 +1894,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2d\t", cuda_affinity_matrix[src][numa]);
+					fprintf(f, "%2u\t", cuda_affinity_matrix[src][numa]);
 			}
 		}
 #ifdef STARPU_USE_OPENCL
@@ -1910,7 +1910,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2d\t", opencl_affinity_matrix[src][numa]);
+					fprintf(f, "%2u\t", opencl_affinity_matrix[src][numa]);
 			}
 		}
 #endif

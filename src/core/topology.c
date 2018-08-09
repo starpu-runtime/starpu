@@ -72,6 +72,7 @@ static int numa_enabled = -1;
 
 /* For checking whether two workers share the same PU, indexed by PU number */
 static int cpu_worker[STARPU_MAXCPUS];
+static char * cpu_name[STARPU_MAXCPUS];
 static unsigned nb_numa_nodes = 0;
 static int numa_memory_nodes_to_hwloclogid[STARPU_MAXNUMANODES]; /* indexed by StarPU numa node to convert in hwloc logid */
 static int numa_memory_nodes_to_physicalid[STARPU_MAXNUMANODES]; /* indexed by StarPU numa node to convert in physical id */
@@ -1023,20 +1024,38 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 
 	/* no binding yet */
 	memset(&config->currently_bound, 0, sizeof(config->currently_bound));
+	memset(&config->currently_shared, 0, sizeof(config->currently_shared));
+}
+
+static void
+_starpu_deinitialize_workers_bindid (struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+{
+	unsigned i;
+
+	for (i = 0; i < STARPU_MAXCPUS;i++)
+	{
+		if (cpu_name[i])
+		{
+			free(cpu_name[i]);
+			cpu_name[i] = NULL;
+		}
+	}
+
 }
 
 /* This function gets the identifier of the next core on which to bind a
  * worker. In case a list of preferred cores was specified (logical indexes),
  * we look for a an available core among the list if possible, otherwise a
  * round-robin policy is used. */
-static inline int
-_starpu_get_next_bindid (struct _starpu_machine_config *config,
-			 int *preferred_binding, int npreferred)
+static inline unsigned
+_starpu_get_next_bindid (struct _starpu_machine_config *config, unsigned flags,
+			 unsigned *preferred_binding, unsigned npreferred)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	int current_preferred;
-	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
+	unsigned current_preferred;
+	unsigned nhyperthreads = topology->nhwpus / topology->nhwcpus;
+	unsigned ncores = topology->nhwpus / nhyperthreads;
 	unsigned i;
 
 	if (npreferred)
@@ -1049,32 +1068,42 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 	     current_preferred < npreferred;
 	     current_preferred++)
 	{
-		/* Try to get this core */
+		/* can we bind the worker on the preferred core ? */
 		unsigned requested_core = preferred_binding[current_preferred];
 		unsigned requested_bindid = requested_core * nhyperthreads;
 
-		/* can we bind the worker on the preferred core ? */
-		unsigned ind;
 		/* Look at the remaining cores to be bound to */
-		for (ind = 0;
-		     ind < topology->nhwpus / nhyperthreads;
-		     ind++)
+		for (i = 0; i < ncores; i++)
 		{
-			if (topology->workers_bindid[ind] == requested_bindid && !config->currently_bound[ind])
+			if (topology->workers_bindid[i] == requested_bindid &&
+					(!config->currently_bound[i] ||
+					 (config->currently_shared[i] && !(flags & STARPU_THREAD_ACTIVE)))
+					)
 			{
-				/* the cpu is available, we use it ! */
-				config->currently_bound[ind] = 1;
+				/* the cpu is available, or shareable with us, we use it ! */
+				config->currently_bound[i] = 1;
+				if (!(flags & STARPU_THREAD_ACTIVE))
+					config->currently_shared[i] = 1;
 				return requested_bindid;
 			}
 		}
 	}
 
-	for (i = config->current_bindid; i < topology->nhwpus / nhyperthreads; i++)
+	if (!(flags & STARPU_THREAD_ACTIVE))
+	{
+		/* Try to find a shareable PU */
+		for (i = 0; i < ncores; i++)
+			if (config->currently_shared[i])
+				return topology->workers_bindid[i];
+	}
+
+	/* Try to find an available PU from last used PU */
+	for (i = config->current_bindid; i < ncores; i++)
 		if (!config->currently_bound[i])
 			/* Found a cpu ready for use, use it! */
 			break;
 
-	if (i == topology->nhwpus / nhyperthreads)
+	if (i == ncores)
 	{
 		/* Finished binding on all cpus, restart from start in
 		 * case the user really wants overloading */
@@ -1082,11 +1111,18 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 		i = 0;
 	}
 
-	STARPU_ASSERT(i < topology->nhwpus / nhyperthreads);
-	int bindid = topology->workers_bindid[i];
+	STARPU_ASSERT(i < ncores);
+	unsigned bindid = topology->workers_bindid[i];
 	config->currently_bound[i] = 1;
+	if (!(flags & STARPU_THREAD_ACTIVE))
+		config->currently_shared[i] = 1;
 	config->current_bindid = i;
 	return bindid;
+}
+
+unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred)
+{
+	return _starpu_get_next_bindid(_starpu_get_machine_config(), flags, preferred, npreferred);
 }
 
 unsigned
@@ -1930,17 +1966,18 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 #endif
 }
 
-void
+int
 _starpu_bind_thread_on_cpu (
-	int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED)
+		int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name)
 {
+	int ret = 0;
 #ifdef STARPU_SIMGRID
-	return;
+	return ret;
 #else
 	if (nobind > 0)
-		return;
+		return ret;
 	if (cpuid < 0)
-		return;
+		return ret;
 
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
@@ -1956,11 +1993,41 @@ _starpu_bind_thread_on_cpu (
 
 	if (workerid != STARPU_NOWORKERID && cpuid < STARPU_MAXCPUS)
 	{
+/* TODO: mutex... */
 		int previous = cpu_worker[cpuid];
-		if (previous != STARPU_NOWORKERID && previous != workerid)
-			_STARPU_DISP("Warning: both workers %d and %d are bound to the same PU %d, this will strongly degrade performance. Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", previous, workerid, cpuid, config->topology.nhwcpus, config->topology.nhwpus);
+		/* We would like the PU to be available, or we are perhaps fine to share it */
+		if ( !(  previous == STARPU_NOWORKERID ||
+			(previous == STARPU_NONACTIVETHREAD && workerid == STARPU_NONACTIVETHREAD) ||
+			(previous >= 0 && previous == workerid) ||
+			(name && cpu_name[cpuid] && !strcmp(name, cpu_name[cpuid])) ) )
+		{
+			if (previous == STARPU_ACTIVETHREAD)
+				_STARPU_DISP("Warning: active thread %s was already bound to PU %d\n", cpu_name[cpuid], cpuid);
+			else if (previous == STARPU_NONACTIVETHREAD)
+				_STARPU_DISP("Warning: non-active thread %s was already bound to PU %d\n", cpu_name[cpuid], cpuid);
+			else
+				_STARPU_DISP("Warning: worker %d was already bound to PU %d\n", previous, cpuid);
+
+			if (workerid == STARPU_ACTIVETHREAD)
+				_STARPU_DISP("and we were told to also bind active thread %s to it.\n", name);
+			else if (previous == STARPU_NONACTIVETHREAD)
+				_STARPU_DISP("and we were told to also bind non-active thread %s to it.\n", name);
+			else
+				_STARPU_DISP("and we were told to also bind worker %d to it.\n", workerid);
+
+			_STARPU_DISP("This will strongly degrade performance.\n");
+
+			if (workerid >= 0)
+				/* This shouldn't happen for workers */
+				_STARPU_DISP("Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", config->topology.nhwcpus, config->topology.nhwpus);
+			ret = -1;
+		}
 		else
+		{
 			cpu_worker[cpuid] = workerid;
+			if (name)
+				cpu_name[cpuid] = strdup(name);
+		}
 	}
 
 	support = hwloc_topology_get_support (config->topology.hwtopology);
@@ -1970,12 +2037,12 @@ _starpu_bind_thread_on_cpu (
 			hwloc_get_obj_by_depth (config->topology.hwtopology,
 						config->pu_depth, cpuid);
 		hwloc_bitmap_t set = obj->cpuset;
-		int ret;
+		int res;
 
 		hwloc_bitmap_singlify(set);
-		ret = hwloc_set_cpubind (config->topology.hwtopology, set,
+		res = hwloc_set_cpubind (config->topology.hwtopology, set,
 					 HWLOC_CPUBIND_THREAD);
-		if (ret)
+		if (res)
 		{
 			perror("hwloc_set_cpubind");
 			STARPU_ABORT();
@@ -2009,6 +2076,20 @@ _starpu_bind_thread_on_cpu (
 #warning no CPU binding support
 #endif
 #endif
+	return ret;
+}
+
+int
+starpu_bind_thread_on(int cpuid, unsigned flags, const char *name)
+{
+	int workerid;
+	STARPU_ASSERT_MSG(name, "starpu_bind_thread_on must be provided with a name");
+	starpu_pthread_setname(name);
+	if (flags & STARPU_THREAD_ACTIVE)
+		workerid = STARPU_ACTIVETHREAD;
+	else
+		workerid = STARPU_NONACTIVETHREAD;
+	return _starpu_bind_thread_on_cpu(cpuid, workerid, name);
 }
 
 void
@@ -2065,7 +2146,7 @@ static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
 			case STARPU_CPU_WORKER:
 			{
 				/* Dedicate a cpu core to that worker */
-				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
+				workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);
 				break;
 			}
 			default:
@@ -2485,8 +2566,8 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 		/* Perhaps the worker has some "favourite" bindings  */
-		int *preferred_binding = NULL;
-		int npreferred = 0;
+		unsigned *preferred_binding = NULL;
+		unsigned npreferred = 0;
 #endif
 
 		/* select the memory node that contains worker's memory */
@@ -2530,7 +2611,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 					if (config->topology.cuda_th_per_stream == 0)
 						workerarg->bindid = cuda_bindid[devid];
 					else
-						workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+						workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 				}
 				else
 				{
@@ -2538,11 +2619,11 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 					if (config->topology.cuda_th_per_dev == 0 && config->topology.cuda_th_per_stream == 0)
 					{
 						if (cuda_globalbindid == -1)
-							cuda_globalbindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+							cuda_globalbindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 						workerarg->bindid = cuda_bindid[devid] = cuda_globalbindid;
 					}
 					else
-						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
@@ -2639,7 +2720,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 				else
 				{
 					opencl_init[devid] = 1;
-					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
@@ -2684,7 +2765,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 						//	preferred_binding = _starpu_get_mic_affinity_vector(devid);
 					//	npreferred = config->topology.nhwpus;
 					//}
-					mic_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					mic_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
@@ -2737,7 +2818,7 @@ _starpu_init_workers_binding_and_memory (struct _starpu_machine_config *config, 
 				else
 				{
 					mpi_init[devid] = 1;
-					mpi_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
@@ -2951,6 +3032,8 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRI
 	_starpu_memory_nodes_deinit();
 
 	_starpu_destroy_machine_config(config);
+
+	_starpu_deinitialize_workers_bindid(config);
 }
 
 void

@@ -154,6 +154,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
 int starpu_is_initialized(void);
 void starpu_wait_initialized(void);
 
+#define STARPU_THREAD_ACTIVE (1 << 0)
+unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred);
+int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
+
 void starpu_pause(void);
 void starpu_resume(void);
 

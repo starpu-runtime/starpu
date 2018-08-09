@@ -701,7 +701,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid);
+	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid, NULL);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
