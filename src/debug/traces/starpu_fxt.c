@@ -4002,6 +4002,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			{
 				STARPU_ASSERT(!comp->peer);
 				_starpu_computation_list_erase(&computation_list, comp);
+				ongoing_computation[i] = 0;
 			}
 		}
 		/* And flush completed computations */
@@ -4023,6 +4024,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
 						last_codelet_end[i], prefix, i, 0.);
 #endif
+				last_codelet_end[i] = 0.0;
 			}
 		}
 
