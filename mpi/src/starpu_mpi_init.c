@@ -178,11 +178,20 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 #endif
 }
 
-int starpu_mpi_init_with_driver(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
+int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
 {
 #if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_driver_init(conf);
+
+	if (starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0)
 #endif
+	{
+		/* Reserve a core for our progression thread */
+		if (conf->reserve_ncpus == -1)
+			conf->reserve_ncpus = 1;
+		else
+			conf->reserve_ncpus++;
+	}
 
 	int ret = starpu_init(conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

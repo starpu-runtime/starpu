@@ -1599,14 +1599,14 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 	 * STARPU_MPI_DRIVER_CALL_FREQUENCY is defined by the user. If this environment
 	 * variable is not defined or defined at a value lower than or equal to zero,
 	 * StarPU-MPI will not use a driver. */
-	char *driver_env = starpu_getenv("STARPU_MPI_DRIVER_CALL_FREQUENCY");
-	if (driver_env && atoi(driver_env) > 0)
+	int driver_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0);
+	if (driver_env > 0)
 	{
 #ifdef STARPU_SIMGRID
 		_STARPU_DISP("Warning: MPI driver is not supported with simgrid, this will be disabled");
 		return;
 #endif
-		mpi_driver_call_freq = atoi(driver_env);
+		mpi_driver_call_freq = driver_env;
 
 		_STARPU_MALLOC(mpi_driver, sizeof(struct starpu_driver));
 		mpi_driver->type = STARPU_CPU_WORKER;
@@ -1615,9 +1615,9 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 		conf->not_launched_drivers = mpi_driver;
 		conf->n_not_launched_drivers = 1;
 
-		char *tasks_freq_env = starpu_getenv("STARPU_MPI_DRIVER_TASK_FREQUENCY");
-		if (tasks_freq_env)
-			mpi_driver_task_freq = atoi(tasks_freq_env);
+		int tasks_freq_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_TASK_FREQUENCY", 0);
+		if (tasks_freq_env > 0)
+			mpi_driver_task_freq = tasks_freq_env;
 	}
 }
 

@@ -857,11 +857,11 @@ execution with StarPU-MPI.  However, this could result in a loss of performance
 for applications that does not require an extreme reactivity to MPI
 communications.
 
-The starpu_mpi_init_with_driver() routine allows the user to give the
+The starpu_mpi_init_with_conf() routine allows the user to give the
 starpu_conf configuration structure of StarPU (usually given to the
 starpu_init() routine) to StarPU-MPI, so that StarPU-MPI reserves for its own
-use one of the CPU drivers of the current computing node, and then calls
-starpu_init() internally.
+use one of the CPU drivers of the current computing node, or one of the CPU
+cores, and then calls starpu_init() internally.
 
 This allows the MPI communication thread to call a StarPU CPU driver to run
 tasks when there is no active requests to take care of, and thus recover the
