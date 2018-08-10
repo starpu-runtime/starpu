@@ -33,8 +33,8 @@ int main(int argc, char **argv)
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	starpu_conf_init(&conf);
-	ret = starpu_mpi_init_with_driver(&argc, &argv, mpi_init, &conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_with_driver");
+	ret = starpu_mpi_init_with_conf(&argc, &argv, mpi_init, &conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_with_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);

@@ -38,12 +38,12 @@ starpu_init() must be called before starpu_mpi_init_comm().
 \ingroup API_MPI_Support
 Call starpu_mpi_init_comm() with the MPI communicator \c MPI_COMM_WORLD.
 
-\fn int starpu_mpi_init_with_driver(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
+\fn int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
 \ingroup API_MPI_Support
 Call starpu_mpi_init_comm() with the MPI communicator MPI_COMM_WORLD,
 and keeps the CPU driver 0 for the MPI thread. This driver will be run
 and so execute tasks some times when the MPI thread has no requests to
-handle. starpu_mpi_init_with_driver() also calls starpu_init() internally.
+handle. starpu_mpi_init_with_conf() also calls starpu_init() internally.
 
 \fn int starpu_mpi_initialize(void)
 \deprecated
