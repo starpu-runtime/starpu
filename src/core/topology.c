@@ -2050,7 +2050,7 @@ _starpu_bind_thread_on_cpu (
 	}
 
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
-	int ret;
+	int res;
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
 	CPU_ZERO(&aff_mask);
@@ -2058,10 +2058,10 @@ _starpu_bind_thread_on_cpu (
 
 	starpu_pthread_t self = starpu_pthread_self();
 
-	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
-	if (ret)
+	res = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
+	if (res)
 	{
-		const char *msg = strerror(ret);
+		const char *msg = strerror(res);
 		_STARPU_MSG("pthread_setaffinity_np: %s\n", msg);
 		STARPU_ABORT();
 	}
