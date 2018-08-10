@@ -36,6 +36,17 @@ not allocate more CPU workers than there are physical CPUs, and that
 some CPUs are used to control the accelerators.
 </dd>
 
+<dt>STARPU_RESERVE_NCPU</dt>
+<dd>
+\anchor STARPU_RESERVE_NCPU
+\addindex __env__STARPU_RESERVE_NCPU
+Specify the number of CPU cores that should not be used by StarPU, so the
+application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
+its own threads.
+
+This option is ignored if \ref STARPU_NCPU or starpu_config::ncpus is set.
+</dd>
+
 <dt>STARPU_NCPUS</dt>
 <dd>
 \anchor STARPU_NCPUS

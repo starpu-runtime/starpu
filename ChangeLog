@@ -54,6 +54,8 @@ New features:
   * Add starpu_get_next_bindid and starpu_bind_thread_on to allow binding an
     application-started thread on a free core. Use it in StarPU-MPI to
     automatically bind the MPI thread on an available core.
+  * Add STARPU_RESERVE_NCPU environment variable and reserve_ncpus config
+    field to make StarPU use a few cores less.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
