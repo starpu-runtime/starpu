@@ -94,6 +94,7 @@ struct starpu_conf
 	void (*sched_policy_init)(unsigned);
 
 	int ncpus;
+	int reserve_ncpus;
 	int ncuda;
 	int nopencl;
 	int nmic;

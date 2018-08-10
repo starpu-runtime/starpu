@@ -485,10 +485,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
 	{
-#ifdef STARPU_DEVEL
-#warning we should make this automatic by adding a CPU reservation field in starpu_config
-#endif
-		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_NCPU to leave one core available for MPI\n");
+		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
 	_starpu_mpi_do_initialize(argc_argv);
 	if (_starpu_mpi_thread_cpuid >= 0)

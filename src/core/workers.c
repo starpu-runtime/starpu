@@ -981,6 +981,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->ncpus = starpu_get_env_number("STARPU_NCPU");
 	if (conf->ncpus == -1)
 		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
+	conf->reserve_ncpus = starpu_get_env_number("STARPU_RESERVE_NCPU");
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nmic = starpu_get_env_number("STARPU_NMIC");
@@ -1072,6 +1073,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
