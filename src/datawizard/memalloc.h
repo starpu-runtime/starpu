@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2008-2015,2017-2018                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,6 +57,8 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned home:1;
 	/* Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
+	/* Was this chunk used since it got allocated?  */
+	unsigned diduse:1;
 
 	/* the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
 	 * it is needed to estimate how much memory is in mc_cache, and by
@@ -73,9 +75,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	 * remove this entry from the mc_list, so we know we have to restart
 	 * from zero. This is protected by the corresponding mc_lock.  */
 	struct _starpu_mem_chunk **remove_notify;
-
-	/* Was this chunk used since it got allocated?  */
-	int diduse;
 )
 
 void _starpu_init_mem_chunk_lists(void);
