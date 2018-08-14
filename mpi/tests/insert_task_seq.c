@@ -116,7 +116,6 @@ void dotest(int rank, int size, char *enabled)
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 }
 
 int main(int argc, char **argv)

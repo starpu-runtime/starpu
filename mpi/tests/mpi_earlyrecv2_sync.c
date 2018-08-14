@@ -120,7 +120,6 @@ int exchange_variable(int rank)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }
@@ -150,7 +149,6 @@ int exchange_void(int rank)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }
@@ -199,7 +197,6 @@ int exchange_complex(int rank)
 		starpu_data_unregister(handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }

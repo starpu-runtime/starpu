@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -166,7 +165,6 @@ enodev:
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
 	return ret;

@@ -47,7 +47,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
 		}
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -58,6 +57,7 @@ int main(int argc, char **argv)
 
 	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
+	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 
 #ifndef STARPU_SIMGRID
@@ -67,8 +67,6 @@ int main(int argc, char **argv)
 #endif
 
 	matrix_free(&bmat, rank, nodes, 1);
-	starpu_cublas_shutdown();
-	starpu_shutdown();
 
 #ifndef STARPU_SIMGRID
 	assert(correctness);

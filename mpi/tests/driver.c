@@ -41,7 +41,6 @@ int main(int argc, char **argv)
 	{
 		FPRINTF_MPI(stderr, "We need a even number of processes.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -124,7 +123,6 @@ int main(int argc, char **argv)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (!mpi_init)
 		MPI_Finalize();

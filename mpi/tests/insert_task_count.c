@@ -73,7 +73,6 @@ int main(int argc, char **argv)
 				FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
 		}
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -107,7 +106,6 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 	starpu_data_unregister(token_handle);
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	FPRINTF_MPI(stderr, "Final value for token %d\n", token);
 

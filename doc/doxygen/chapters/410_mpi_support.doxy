@@ -186,7 +186,6 @@ int main(int argc, char **argv)
     starpu_task_wait_for_all();
 
     starpu_mpi_shutdown();
-    starpu_shutdown();
 
     if (rank == last_rank)
     {

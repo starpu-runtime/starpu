@@ -99,7 +99,6 @@ int main(int argc, char **argv)
 	free(handles);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (!mpi_init)
 		MPI_Finalize();
