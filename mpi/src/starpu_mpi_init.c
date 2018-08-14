@@ -180,6 +180,13 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 
 int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
 {
+	struct starpu_conf localconf;
+	if (!conf)
+	{
+		starpu_conf_init(&localconf);
+		conf = &localconf;
+	}
+
 #if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_driver_init(conf);
 
