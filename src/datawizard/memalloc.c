@@ -786,8 +786,11 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (is_prefetch > 1 && !mc->wontuse)
-			/* Do not evict something that we might reuse just for a prefetch */
+		if (is_prefetch > 1)
+			/* Do not evict a MC just for an idle fetch */
+			continue;
+		if (is_prefetch == 1 && !mc->wontuse)
+			/* Do not evict something that we might reuse, just for a prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
