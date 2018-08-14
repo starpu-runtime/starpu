@@ -203,7 +203,8 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 	}
 
 	int ret = starpu_init(conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	if (ret < 0)
+		return ret;
 	_mpi_initialized_starpu = 1;
 
 	return starpu_mpi_init_comm(argc, argv, initialize_mpi, comm);
