@@ -59,6 +59,8 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned clean:1;
 	/* Was this chunk used since it got allocated?  */
 	unsigned diduse:1;
+	/* Was this chunk marked as "won't use"? */
+	unsigned wontuse:1;
 
 	/* the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
 	 * it is needed to estimate how much memory is in mc_cache, and by

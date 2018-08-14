@@ -759,7 +759,7 @@ restart:
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
  */
-static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint)
+static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, int is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	int success = 0;
@@ -785,6 +785,9 @@ restart:
 
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
+			continue;
+		if (is_prefetch > 1 && !mc->wontuse)
+			/* Do not evict something that we might reuse just for a prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -1202,6 +1205,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
 	mc->diduse = 0;
+	mc->wontuse = 0;
 
 	return mc;
 }
@@ -1387,19 +1391,19 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				continue;
 			reclaim -= freed;
 
-			if (is_prefetch)
-				/* It's just prefetch, don't bother existing allocations */
-				continue;
-
 			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
 			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint))
 				break;
-			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint))
+			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
 			{
 				reused = 1;
 				allocated_memory = data_size;
 				break;
 			}
+
+			if (is_prefetch)
+				/* It's just prefetch, don't bother existing allocations */
+				continue;
 
 			if (!told_reclaiming)
 			{
@@ -1520,6 +1524,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
 	MC_LIST_ERASE(node, mc);
+	mc->wontuse = 0;
 	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
 }
@@ -1534,6 +1539,7 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_spin_lock(&mc_lock[node]);
 	/* Avoid preventing it from being evicted */
 	mc->diduse = 1;
+	mc->wontuse = 1;
 	MC_LIST_ERASE(node, mc);
 	/* Caller will schedule a clean transfer */
 	mc->clean = 1;
