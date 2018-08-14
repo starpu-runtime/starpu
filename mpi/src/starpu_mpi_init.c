@@ -204,7 +204,7 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 
 	int ret = starpu_init(conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	initialized_starpu = 1;
+	_mpi_initialized_starpu = 1;
 
 	return starpu_mpi_init_comm(argc, argv, initialize_mpi, comm);
 }
@@ -231,7 +231,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_shutdown();
 	_starpu_mpi_driver_shutdown();
 #endif
-	if (initialized_starpu)
+	if (_mpi_initialized_starpu)
 		starpu_shutdown();
 
 	return 0;
