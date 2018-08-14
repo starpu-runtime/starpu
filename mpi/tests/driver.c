@@ -20,7 +20,6 @@
 
 int main(int argc, char **argv)
 {
-	struct starpu_conf conf;
 	int ret, rank, size, i;
 	starpu_data_handle_t tab_handle[4];
 	int values[4];
@@ -32,9 +31,8 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	starpu_conf_init(&conf);
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_with_conf");
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
