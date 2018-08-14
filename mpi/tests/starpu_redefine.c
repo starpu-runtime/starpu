@@ -39,7 +39,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
 

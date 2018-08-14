@@ -123,7 +123,6 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 
 	starpu_mpi_comm_amounts_retrieve(comm_amount);
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 }
 
 int main(int argc, char **argv)

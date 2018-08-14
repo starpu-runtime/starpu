@@ -148,7 +148,6 @@ int main(int argc, char **argv)
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 #if 1
 	for(x = 0; x < SIZE; x++)

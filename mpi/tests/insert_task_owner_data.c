@@ -56,7 +56,6 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -112,7 +111,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(data_handles[1]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }

@@ -39,7 +39,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -91,7 +90,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(recv_handle[1]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }

@@ -161,14 +161,12 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "Only works with 2 nodes\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return 77;
 	}
 	if (starpu_cpu_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return 77;
 	}
 
@@ -275,7 +273,6 @@ int main(int argc, char **argv)
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (display)
 	{

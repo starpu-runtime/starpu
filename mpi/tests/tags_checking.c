@@ -112,7 +112,6 @@ int do_test(int rank, int sdetached, int rdetached)
 		ret = (val[0] == VAL0 && val[1] == VAL1) ? 0 : 1;
 	}
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	return ret;
 }
 

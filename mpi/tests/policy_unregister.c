@@ -33,7 +33,6 @@ int main(int argc, char **argv)
 	starpu_mpi_node_selection_unregister_policy(STARPU_MPI_NODE_SELECTION_MOST_R_DATA);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }

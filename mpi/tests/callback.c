@@ -113,7 +113,6 @@ int main(int argc, char **argv)
 	STARPU_ASSERT_MSG(y == expected_y, "y should be equal to %d and not %d\n", expected_y, y);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 }

@@ -66,7 +66,6 @@ int main(int argc, char **argv)
 	starpu_mpi_lb_shutdown();
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
 

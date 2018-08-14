@@ -58,7 +58,6 @@ int main(int argc, char **argv)
 				fprintf(stderr, "We need at least 1 CPU.\n");
 		}
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return 77;
 	}
 
@@ -106,7 +105,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle2);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return (rank == 0) ? !compare : 0;
 }

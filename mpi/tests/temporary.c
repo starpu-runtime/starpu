@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -133,7 +132,6 @@ int main(int argc, char **argv)
 
 skip:
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (rank == 0)
 		STARPU_ASSERT_MSG(val0 == 24, "%d should be %d\n", val0, 16 * size);

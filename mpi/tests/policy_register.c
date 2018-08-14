@@ -75,7 +75,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -130,7 +129,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handles[0]);
 	starpu_data_unregister(handles[1]);
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
 

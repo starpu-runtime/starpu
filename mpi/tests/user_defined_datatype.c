@@ -174,7 +174,6 @@ int main(int argc, char **argv)
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return (rank == 0) ? !compare : ret;
 }

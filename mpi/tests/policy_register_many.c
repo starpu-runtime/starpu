@@ -46,7 +46,6 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(policy==_STARPU_MPI_NODE_SELECTION_MAX_POLICY-2);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }

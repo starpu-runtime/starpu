@@ -105,7 +105,6 @@ int main(int argc, char **argv)
 
 end:
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }

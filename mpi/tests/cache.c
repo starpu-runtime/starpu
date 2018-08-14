@@ -109,7 +109,6 @@ int main(int argc, char **argv)
 
 skip:
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return starpu_mpi_cache_is_enabled() == 0 ? STARPU_TEST_SKIPPED : 0;
 }
