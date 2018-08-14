@@ -72,6 +72,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 {
 	if (argc_argv->initialize_mpi)
 	{
+		STARPU_ASSERT_MSG(argc_argv->comm == MPI_COMM_WORLD, "It does not make sense to ask StarPU-MPI to initialize MPI while a non-world communicator was given");
 		int thread_support;
 #ifdef STARPU_USE_MPI_NMAD
 		/* strat_prio is preferred for StarPU instead of default strat_aggreg */
