@@ -41,11 +41,9 @@ New features:
     more, StarPU will make the appropriate calls as needed.
   * Add starpu_task_notify_ready_soon_register to be notified when it is
     determined when a task will be ready an estimated amount of time from now.
-  * New StarPU-MPI initialization function (starpu_mpi_init_with_conf)
-    which allows the user to give a StarPU driver to the StarPU-MPI
-    communication layer, so that the MPI progression thread started by
-    StarPU-MPI can also execute tasks and not only take care of
-    communications.
+  * New StarPU-MPI initialization function (starpu_mpi_init_conf)
+    which allows StarPU-MPI to manage reserving a core for the MPI thread, or
+    merging it with CPU driver 0.
   * Add possibility to delay the termination of a task with the
     functions starpu_task_end_dep_add() which specifies the number of
     calls to the function starpu_task_end_dep_release() needed to

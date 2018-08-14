@@ -42,6 +42,7 @@
 static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
+static int _mpi_initialized_starpu;
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
@@ -179,7 +180,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 #endif
 }
 
-int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
+int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm, struct starpu_conf *conf)
 {
 	struct starpu_conf localconf;
 	if (!conf)
@@ -203,8 +204,9 @@ int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struc
 
 	int ret = starpu_init(conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	initialized_starpu = 1;
 
-	return starpu_mpi_init(argc, argv, initialize_mpi);
+	return starpu_mpi_init_comm(argc, argv, initialize_mpi, comm);
 }
 
 int starpu_mpi_shutdown(void)
@@ -229,6 +231,8 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_shutdown();
 	_starpu_mpi_driver_shutdown();
 #endif
+	if (initialized_starpu)
+		starpu_shutdown();
 
 	return 0;
 }
