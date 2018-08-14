@@ -141,8 +141,7 @@ int main(int argc, char **argv)
 {
     int rank, size;
 
-    starpu_init(NULL);
-    starpu_mpi_init(&argc, &argv, 1);
+    starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -205,10 +204,10 @@ the beginning and the end.
 
 \section MPIInitialization How to Initialize StarPU-MPI
 
-As seen in the previous example, one has to call starpu_mpi_init() to
+As seen in the previous example, one has to call starpu_mpi_init_conf() to
 initialize StarPU-MPI. The third parameter of the function indicates
-if MPI should be initialized by StarPU or if the application will do
-it itself. If the application initializes MPI itself, it must call
+if MPI should be initialized by StarPU or if the application did it
+itself. If the application initializes MPI itself, it must call
 <c>MPI_Init_thread()</c> with <c>MPI_THREAD_SERIALIZED</c> or
 <c>MPI_THREAD_MULTIPLE</c>, since StarPU-MPI uses a separate thread to
 perform the communications. <c>MPI_THREAD_MULTIPLE</c> is necessary if
@@ -857,7 +856,7 @@ execution with StarPU-MPI.  However, this could result in a loss of performance
 for applications that does not require an extreme reactivity to MPI
 communications.
 
-The starpu_mpi_init_with_conf() routine allows the user to give the
+The starpu_mpi_init_conf() routine allows the user to give the
 starpu_conf configuration structure of StarPU (usually given to the
 starpu_init() routine) to StarPU-MPI, so that StarPU-MPI reserves for its own
 use one of the CPU drivers of the current computing node, or one of the CPU

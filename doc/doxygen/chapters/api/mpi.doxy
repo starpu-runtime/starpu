@@ -26,24 +26,22 @@
 Defined when StarPU has been installed with MPI support. It should be
 used in your code to detect the availability of MPI.
 
+\fn int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm, struct starpu_conf *conf)
+\ingroup API_MPI_Support
+Initialize the StarPU library with the given \p conf, and initialize the
+StarPU-MPI library with the given MPI communicator \p comm. \p initialize_mpi
+indicates if MPI should be initialized or not by StarPU.
+StarPU-MPI takes the opportunity to modify \p conf to either reserve a core for
+its MPI thread (by default), or execute MPI calls on the CPU driver 0 between tasks.
+
 \fn int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 \ingroup API_MPI_Support
-Initialize the starpumpi library with the given communicator \p comm.
-\p initialize_mpi indicates if MPI should be initialized or not by StarPU.
-If the value is not 0, MPI will be initialized by calling
-<c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED, ...)</c>.
-starpu_init() must be called before starpu_mpi_init_comm().
+This is the same as starpu_mpi_init_conf(), except that this does not initialize
+the StarPU library. The caller thus has to call starpu_init() before this.
 
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
 Call starpu_mpi_init_comm() with the MPI communicator \c MPI_COMM_WORLD.
-
-\fn int starpu_mpi_init_with_conf(int *argc, char ***argv, int initialize_mpi, struct starpu_conf *conf)
-\ingroup API_MPI_Support
-Call starpu_mpi_init_comm() with the MPI communicator MPI_COMM_WORLD,
-and keeps the CPU driver 0 for the MPI thread. This driver will be run
-and so execute tasks some times when the MPI thread has no requests to
-handle. starpu_mpi_init_with_conf() also calls starpu_init() internally.
 
 \fn int starpu_mpi_initialize(void)
 \deprecated
@@ -62,9 +60,9 @@ calling <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED,
 
 \fn int starpu_mpi_shutdown(void)
 \ingroup API_MPI_Support
-Clean the starpumpi library. This must be called between calling
-\c starpu_mpi functions and starpu_shutdown(). \c MPI_Finalize() will be
-called if StarPU-MPI has been initialized by starpu_mpi_init().
+Clean the starpumpi library. This must be called after calling any
+\c starpu_mpi functions and before the call to starpu_shutdown(), if any.
+\c MPI_Finalize() will be called if StarPU-MPI has been initialized by starpu_mpi_init().
 
 \fn void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
 \ingroup API_MPI_Support
