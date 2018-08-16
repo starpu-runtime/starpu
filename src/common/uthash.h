@@ -153,7 +153,7 @@ do {                                                                            
 do {                                                                             \
   __typeof__(out) _out;                                                          \
   HASH_FIND(hh,head,keyptr,keylen,_out);                                         \
-  STARPU_ASSERT(!_out);                                                          \
+  STARPU_ASSERT_MSG(!_out,"Cannot insert the same key twice"); 			 \
 } while(0)
 #else
 #define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)

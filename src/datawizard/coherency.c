@@ -201,10 +201,10 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		unsigned node;
 		for (node = 0; node < nnodes; node++)
 		{
-			_STARPU_TRACE_DATA_INVALIDATE(handle, node);
+                       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 			handle->per_node[node].state = STARPU_INVALID;
 		}
-
+               _STARPU_TRACE_DATA_STATE_OWNER(handle, requesting_node);
 		requesting_replicate->state = STARPU_OWNER;
 		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
 			/* Notify that this MC is now dirty */
@@ -220,9 +220,12 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			for (node = 0; node < nnodes; node++)
 			{
 				struct _starpu_data_replicate *replicate = &handle->per_node[node];
-				if (replicate->state != STARPU_INVALID)
+                               if (replicate->state != STARPU_INVALID){
+                                       _STARPU_TRACE_DATA_STATE_SHARED(handle, node);
 					replicate->state = STARPU_SHARED;
+                               }
 			}
+                       _STARPU_TRACE_DATA_STATE_SHARED(handle, requesting_node);
 			requesting_replicate->state = STARPU_SHARED;
 		}
 	}
@@ -960,11 +963,6 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = -1;
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, index);
-		if (node == -1)
-			node = target_node;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -972,6 +970,8 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 		if (!(mode & STARPU_R))
 			/* Don't bother prefetching some data which will be overwritten */
 			continue;
+
+		int node = _starpu_task_data_get_node_on_node(task, index, target_node);
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		prefetch_data_on_node(handle, node, replicate, mode, prio);
@@ -999,14 +999,15 @@ int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsig
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = -1;
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, index);
-		if (node == -1)
-			node = target_node;
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
+		int node = _starpu_task_data_get_node_on_node(task, index, target_node);
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
@@ -1021,6 +1022,77 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 	if (task->workerorder)
 		prio = INT_MAX - task->workerorder;
 	return starpu_idle_prefetch_task_input_on_node_prio(task, node, prio);
+}
+
+int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+{
+	STARPU_ASSERT(!task->prefetched);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+
+		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
+		int node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		prefetch_data_on_node(handle, node, replicate, mode, prio);
+
+		_starpu_set_data_requested_flag_if_needed(handle, replicate);
+	}
+
+	return 0;
+}
+
+int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_prefetch_task_input_for_prio(task, worker, prio);
+}
+
+int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+{
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+
+		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+			continue;
+
+		if (!(mode & STARPU_R))
+			/* Don't bother prefetching some data which will be overwritten */
+			continue;
+
+		int node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		struct _starpu_data_replicate *replicate = &handle->per_node[node];
+		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
+	}
+
+	return 0;
+}
+
+int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+{
+	int prio = task->priority;
+	if (task->workerorder)
+		prio = INT_MAX - task->workerorder;
+	return starpu_idle_prefetch_task_input_for_prio(task, worker, prio);
 }
 
 struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
@@ -1090,8 +1162,6 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned nacquires;
 
-	unsigned local_memory_node = worker->memory_node;
-
 	unsigned index;
 
 	nacquires = 0;
@@ -1100,9 +1170,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		int ret;
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
-		int node = descrs[index].node;
-		if (node == -1)
-			node = local_memory_node;
+		int node = _starpu_task_data_get_node_on_worker(task, descrs[index].index, workerid);
+		/* We set this here for coherency with __starpu_push_task_output */
+		descrs[index].node = node;
 		if (mode == STARPU_NONE ||
 			(mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
 			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
@@ -1169,8 +1239,6 @@ enomem:
 		starpu_data_handle_t handle = descrs[index2].handle;
 		enum starpu_data_access_mode mode = descrs[index2].mode;
 		int node = descrs[index].node;
-		if (node == -1)
-			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -1196,21 +1264,16 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 	int profiling = starpu_profiling_status_get();
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-
-	unsigned local_memory_node = worker->memory_node;
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 
 	unsigned index;
 	unsigned long total_size = 0;
 
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-		int node = -1;
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, index);
-		if (node == -1)
-			node = local_memory_node;
+		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -1220,7 +1283,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			local_replicate->mc->diduse = 1;
 		_starpu_spin_unlock(&handle->header_lock);
 
-		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
+		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, descrs[index].index);
 
 		/* If the replicate was not initialized yet, we have to do it now */
 		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
@@ -1253,7 +1316,6 @@ void __starpu_push_task_output(struct _starpu_job *j)
         unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	int workerid = starpu_worker_get_id();
-	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
@@ -1261,8 +1323,6 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
-		if (node == -1 && task->where != STARPU_NOWHERE)
-			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate = NULL;
 
@@ -1328,7 +1388,11 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		int node = descrs[index].node;
+		/* Note here we just follow what was requested, and not use _starpu_task_data_get_node* */
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, descrs[index].index);
+		descrs[index].node = node;
 		if (node != -1)
 			nfetchbuffers++;
 	}

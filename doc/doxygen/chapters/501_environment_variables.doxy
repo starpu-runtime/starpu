@@ -36,6 +36,17 @@ not allocate more CPU workers than there are physical CPUs, and that
 some CPUs are used to control the accelerators.
 </dd>
 
+<dt>STARPU_RESERVE_NCPU</dt>
+<dd>
+\anchor STARPU_RESERVE_NCPU
+\addindex __env__STARPU_RESERVE_NCPU
+Specify the number of CPU cores that should not be used by StarPU, so the
+application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
+its own threads.
+
+This option is ignored if \ref STARPU_NCPU or starpu_config::ncpus is set.
+</dd>
+
 <dt>STARPU_NCPUS</dt>
 <dd>
 \anchor STARPU_NCPUS
@@ -621,6 +632,30 @@ Setting to a number makes StarPU believe that it runs the given MPI node, even
 if it was run on only one MPI node. This allows e.g. to simulate the execution
 of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
+</dd>
+
+<dt>STARPU_MPI_DRIVER_CALL_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_CALL_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_CALL_FREQUENCY
+When set to a positive value, activates the interleaving of the execution of
+tasks with the progression of MPI communications (\ref MPISupport). The
+starpu_mpi_init_conf() function must have been called by the application
+for that environment variable to be used. When set to 0, the MPI progression
+thread does not use at all the driver given by the user, and only focuses on
+making MPI communications progress.
+</dd>
+
+<dt>STARPU_MPI_DRIVER_TASK_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_TASK_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_TASK_FREQUENCY
+When set to a positive value, the interleaving of the execution of tasks with
+the progression of MPI communications mechanism to execute several tasks before
+checking communication requests again (\ref MPISupport). The
+starpu_mpi_init_conf() function must have been called by the application
+for that environment variable to be used, and the
+STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>

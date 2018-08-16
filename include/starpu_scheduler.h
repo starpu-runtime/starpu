@@ -83,11 +83,17 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
+int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
+int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
+int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
+int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
+
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 uint32_t starpu_task_data_footprint(struct starpu_task *task);
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
+double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, unsigned worker);
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2012-2018                                CNRS
- * Copyright (C) 2012-2017                                Université de Bordeaux
+ * Copyright (C) 2012-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -2185,7 +2185,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 
 void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid)
 {
-	_starpu_bind_thread_on_cpu(cpuid, STARPU_NOWORKERID);
+	_starpu_bind_thread_on_cpu(cpuid, STARPU_NOWORKERID, NULL);
 }
 
 unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id)

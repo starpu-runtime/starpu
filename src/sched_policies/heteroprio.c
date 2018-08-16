@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2015-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -519,7 +519,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 				/* Save the task */
 				STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
-				_starpu_prio_deque_push_task(&worker->tasks_queue, task);
+				_starpu_prio_deque_push_front_task(&worker->tasks_queue, task);
 
 				/* Update general counter */
 				hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] += 1;
@@ -536,7 +536,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				/* Decrease the number of tasks to found */
 				nb_tasks_to_prefetch -= 1;
 				nb_added_tasks       += 1;
-				// TODO starpu_prefetch_task_input_on_node(task, workerid);
+				// TODO starpu_prefetch_task_input_for(task, workerid);
 			}
 		}		
 	}
@@ -639,8 +639,6 @@ done:		;
 	/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */
 	if(task && worker->tasks_queue.ntasks && nb_added_tasks && starpu_get_prefetch_flag())
 	{
-		const unsigned memory_node = starpu_worker_get_memory_node(workerid);
-
 /* TOTO berenger: iterate in the other sense */
 		struct starpu_task *task_to_prefetch = NULL;
 		for (task_to_prefetch  = starpu_task_prio_list_begin(&worker->tasks_queue.list);
@@ -649,7 +647,7 @@ done:		;
 		     task_to_prefetch  = starpu_task_prio_list_next(&worker->tasks_queue.list, task_to_prefetch))
 		{
 			/* prefetch from closest to end task */
-			starpu_prefetch_task_input_on_node(task_to_prefetch, memory_node);
+			starpu_prefetch_task_input_for(task_to_prefetch, workerid);
 			nb_added_tasks -= 1;
 		}
 	}

@@ -635,7 +635,7 @@ double starpu_sched_component_estimated_load(struct starpu_sched_component * com
 	return sum;
 }
 
-double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
+double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len)
 {
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
@@ -646,7 +646,28 @@ double starpu_sched_component_estimated_end_min(struct starpu_sched_component * 
 		if(tmp < min)
 			min = tmp;
 	}
+	if (exp_len > 0)
+	{
+		/* We don't know which workers will do this, assume it will be
+		 * evenly distributed to existing work */
+		int card = starpu_bitmap_cardinal(component->workers_in_ctx);
+		if (card == 0)
+			/* Oops, no resources to compute our tasks. Let's just hope that
+			 * we will be given one at some point */
+			card = 1;
+		for(i = 0; i < component->nchildren; i++)
+		{
+			double tmp = component->children[i]->estimated_end(component->children[i]);
+			exp_len += tmp - min;
+		}
+		min += exp_len / card;
+	}
 	return min;
+}
+
+double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
+{
+  return starpu_sched_component_estimated_end_min_add(component, 0.);
 }
 
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component)

@@ -52,7 +52,15 @@ Per-interface data transfer methods.
     This provides a series of methods for performing ram/cuda/opencl synchronous and asynchronous transfers.
 
 \var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
+\deprecated
+    Use starpu_data_interface_ops::to_pointer instead.
     Return the current pointer (if any) for the handle on the given node.
+
+\var void *(*starpu_data_interface_ops::to_pointer)(void *data_interface, unsigned node)
+    Return the current pointer (if any) for the given interface on the given node.
+
+\var int (*starpu_data_interface_ops::pointer_is_inside)(void *data_interface, unsigned node, void *pointer)
+    Return whether the given \p pointer is within the data for the given interface on the given node.
 
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
     Return an estimation of the size of data, for performance models.
@@ -532,6 +540,12 @@ implementations (see for example the code in
 Return the pointer associated with \p handle on node \p node or <c>NULL</c>
 if handle’s interface does not support this operation or data for this
 \p handle is not allocated on that \p node.
+
+\fn int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *pointer)
+\ingroup API_Data_Interfaces
+Return whether the given \p pointer is within the data for \p handle on node \p
+node (1) or not (0). If the handle interface does not support this operation,
+and thus the result is unknown, -1 is returned.
 
 \fn void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces

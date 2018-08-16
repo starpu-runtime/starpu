@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2012,2014,2017                      Inria
- * Copyright (C) 2009-2011,2014                           Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -285,11 +285,42 @@ the argument was <c>NULL</c>.
 \ingroup API_Initialization_and_Termination
 Return 1 if StarPU is already initialized.
 
+\fn int starpu_wait_initialized(void)
+\ingroup API_Initialization_and_Termination
+Wait for starpu_init() call to finish.
+
 \fn void starpu_shutdown(void)
 \ingroup API_Initialization_and_Termination
 This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information
 are not guaranteed to be available until this method has been called.
+
+\def STARPU_THREAD_ACTIVE
+\ingroup API_Initialization_and_Termination
+This flag should be passed to starpu_get_next_bindid() and
+starpu_bind_thread_on() when binding a thread which will significantly eat CPU
+time, and should thus have its own dedicated CPU.
+
+\fn int starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred)
+\ingroup API_Initialization_and_Termination
+This returns a PU binding ID which can be used to bind threads with
+starpu_bind_thread_on(). \p flags can be set to STARPU_THREAD_ACTIVE or 0.
+When \p npreferred is set to non-zero, \p preferred is an array of size \p
+npreferred in which a preference of PU binding IDs can be set. By default StarPU
+will return the first PU available for binding.
+
+\fn int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name)
+\ingroup API_Initialization_and_Termination
+This binds the calling thread on the given \p cpuid (which should have been
+obtained with starpu_get_next_bindid()).
+
+This returns -1 if a thread was already bound to this PU (but binding will still
+have been done, and a warning will have been printed), so the caller can tell
+the user how to avoid the issue.
+
+\p name should be set to a unique string so that different calls with the same
+name for the same cpuid does not produce a warning.
+
 
 \fn void starpu_pause(void)
 \ingroup API_Initialization_and_Termination

@@ -268,6 +268,14 @@ of the children of the component.
 \ingroup API_Modularized_Scheduler
 function that can be used for the estimated_end component method, which just computes the minimum completion time of the children.
 
+\fn double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len);
+\ingroup API_Modularized_Scheduler
+function that can be used for the estimated_end component method, which computes
+the minimum completion time of the children, and adds to it an estimation of how
+existing queued work, plus the exp_len work, can be completed. This is typically
+used instead of starpu_sched_component_estimated_end_min when the component
+contains a queue of tasks, which thus needs to be added to the estimations.
+
 \fn double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
 \ingroup API_Modularized_Scheduler
 default function for the estimated_end component method, which just computes the average completion time of the children.

@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2012,2014,2017                           CNRS
+ * Copyright (C) 2012,2014,2017,2018                      CNRS
  * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,10 +29,11 @@
 #ifdef HAVE_POTI_INIT_CUSTOM
 int _starpu_poti_extendedSetState = -1;
 int _starpu_poti_semiExtendedSetState = -1;
+int _starpu_poti_MemoryEvent = -1;
 #endif
 #endif
 
-void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
+void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options)
 {
 	unsigned i;
 #ifdef STARPU_HAVE_POTI
@@ -61,6 +62,17 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 						     "JobId string",
 						     "SubmitOrder string"
 						     );
+#ifdef HAVE_POTI_USER_NEWEVENT
+	if (options->memory_states)
+	{
+		_starpu_poti_MemoryEvent = poti_header_DeclareEvent (PAJE_NewEvent,
+							     4,
+							     "Handle string",
+							     "Info string",
+							     "Size string",
+							     "Dest string");
+	}
+#endif
 #else
 	poti_header(1,1);
 #endif
@@ -197,6 +209,19 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	JobId	string\n");
 	fprintf(file, "%%	SubmitOrder	string\n");
 	fprintf(file, "%%EndEventDef\n");
+	if (options->memory_states)
+	{
+		fprintf(file, "%%EventDef	PajeNewEvent	22\n");
+		fprintf(file, "%%	Time	date\n");
+		fprintf(file, "%%	Type	string\n");
+		fprintf(file, "%%	Container	string\n");
+		fprintf(file, "%%	Value	string\n");
+		fprintf(file, "%%	Handle	string\n");
+		fprintf(file, "%%	Info	string\n");
+		fprintf(file, "%%	Size	string\n");
+		fprintf(file, "%%	Tid	string\n");
+		fprintf(file, "%%EndEventDef\n");
+	}
 #endif
 
 #ifdef STARPU_HAVE_POTI
@@ -214,7 +239,22 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineEventType("unregister", "P", "data unregistration");
 
 	/* Types for the memory node */
-	poti_DefineEventType("invalidate", "Mm", "data invalidation");
+	poti_DefineEventType("SI", "Mm", "data state invalid");
+	poti_DefineEventType("SS", "Mm", "data state shared");
+	poti_DefineEventType("SO", "Mm", "data state owner");
+	poti_DefineEventType("WU", "Mm", "data wont use");
+	poti_DefineEventType("Al", "Mm", "Allocating Start");
+	poti_DefineEventType("AlE", "Mm", "Allocating End");
+	poti_DefineEventType("Alr", "Mm", "Allocating Async Start");
+	poti_DefineEventType("AlrE", "Mm", "Allocating Async End");
+	poti_DefineEventType("Fe", "Mm", "Free Start");
+	poti_DefineEventType("FeE", "Mm", "Free End");
+	poti_DefineEventType("Wb", "Mm", "WritingBack Start");
+	poti_DefineEventType("WbE", "Mm", "WritingBack End");
+	poti_DefineEventType("DCo", "Mm", "DriverCopy Start");
+	poti_DefineEventType("DCoE", "Mm", "DriverCopy End");
+	poti_DefineEventType("DCoA", "Mm", "DriverCopyAsync Start");
+	poti_DefineEventType("DCoAE", "Mm", "DriverCopyAsync End");
 	poti_DefineVariableType("use", "Mm", "Used (MB)", "0 0 0");
 	poti_DefineVariableType("bwi_mm", "Mm", "Bandwidth In (MB/s)", "0 0 0");
 	poti_DefineVariableType("bwo_mm", "Mm", "Bandwidth Out (MB/s)", "0 0 0");
@@ -277,6 +317,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	poti_DefineVariableType("bwo_mpi", "MPICt", "Bandwidth Out (MB/s)", "0 0 0");
 	poti_DefineStateType("CtS", "MPICt", "Communication Thread State");
 	poti_DefineEntityValue("P", "CtS", "Processing", "0 0 0");
+	poti_DefineEntityValue("Pl", "CtS", "Polling", "1.0 .5 0");
+	poti_DefineEntityValue("Dr", "CtS", "DriverRun", ".1 .1 1.0");
 	poti_DefineEntityValue("Sl", "CtS", "Sleeping", ".9 .1 .0");
 	poti_DefineEntityValue("UT", "CtS", "UserTesting", ".2 .1 .6");
 	poti_DefineEntityValue("UW", "CtS", "UserWaiting", ".4 .1 .3");
@@ -365,7 +407,22 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "3       Ctx%u      W     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
-2       invalidate Mm \"data invalidation\"                            \n\
+2       SI       Mm \"data state invalid\"                            \n\
+2       SS       Mm \"data state shared\"                            \n\
+2       SO       Mm \"data state owner\"                            \n\
+2       WU       Mm \"data wont use\"                            \n\
+2       Al       Mm    \"Allocating Start\"    \n\
+2       AlE      Mm    \"Allocating End\"    \n\
+2       Alr      Mm    \"Allocating Async Start\"    \n\
+2       AlrE     Mm    \"Allocating Async End\"    \n\
+2       Fe       Mm    \"Free Start\"    \n\
+2       FeE      Mm    \"Free End\"    \n\
+2       Wb       Mm    \"WritingBack Start\"    \n\
+2       WbE      Mm    \"WritingBack End\"    \n\
+2       DCo      Mm    \"DriverCopy Start\"    \n\
+2       DCoE     Mm    \"DriverCopy End\"    \n\
+2       DCoA     Mm    \"DriverCopyAsync Start\"    \n\
+2       DCoAE    Mm    \"DriverCopyAsync End\"    \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
@@ -426,6 +483,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 ");
 	fprintf(file, "\
 6       P       CtS       Processing         \"0 0 0\"		\n\
+6       Pl       CtS      Polling	   \"1.0 .5 0\"		\n\
+6       Dr       CtS      DriverRun	   \".1 .1 1.0\"	\n\
 6       Sl       CtS      Sleeping         \".9 .1 .0\"		\n\
 6       UT       CtS      UserTesting        \".2 .1 .6\"	\n\
 6       UW       CtS      UserWaiting        \".4 .1 .3\"	\n\

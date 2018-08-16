@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013                                Inria
  * Copyright (C) 2012-2017                                CNRS
- * Copyright (C) 2013-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2013-2015,2017-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,6 +82,7 @@ int main(int argc, char **argv)
 	long int dot, sum=0;
 	starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
+	int ret;
 
 	int nb_elements, step, loops;
 
@@ -91,10 +92,8 @@ int main(int argc, char **argv)
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
-	int ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv, 1);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -103,7 +102,6 @@ int main(int argc, char **argv)
 		if (my_rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -187,7 +185,6 @@ int main(int argc, char **argv)
 	free(handles);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (my_rank == 0)
 	{

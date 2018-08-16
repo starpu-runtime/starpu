@@ -229,7 +229,13 @@ Return an estimated speedup factor relative to CPU speed
 
 \fn double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
 \ingroup API_Scheduling_Policy
-Return expected data transfer time in micro-seconds.
+Return expected data transfer time in micro-seconds for the given \p
+memory_node. Prefer using starpu_task_expected_data_transfer_time_for() which is
+more precise.
+
+\fn double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, unsigned worker)
+\ingroup API_Scheduling_Policy
+Return expected data transfer time in micro-seconds for the given \p worker.
 
 \fn double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode)
 \ingroup API_Scheduling_Policy
@@ -249,11 +255,35 @@ Whether \ref STARPU_PREFETCH was set
 
 \fn int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 \ingroup API_Scheduling_Policy
-Prefetch data for a given task on a given node
+Prefetch data for a given p task on a given p node
+
+\fn int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p node with a given priority
 
 \fn int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 \ingroup API_Scheduling_Policy
-Prefetch data for a given task on a given node when the bus is idle
+Prefetch data for a given p task on a given p node when the bus is idle
+
+\fn int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p node when the bus is idle with a given priority
+
+\fn int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p worker
+
+\fn int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p worker with a given priority
+
+\fn int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p worker when the bus is idle
+
+\fn int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given p task on a given p worker when the bus is idle with a given priority
 
 \fn void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, void *data);
 \ingroup API_Scheduling_Policy

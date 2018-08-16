@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2011,2013-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2010-2011,2013-2015,2017-2018                 Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -425,6 +425,7 @@ int main(int argc, char **argv)
 {
 	int rank;
 	int world_size;
+	int ret;
 
 	/*
 	 *	Initialization
@@ -447,14 +448,11 @@ int main(int argc, char **argv)
 
 	parse_args(rank, argc, argv);
 
-	int ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
-
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	STARPU_ASSERT(p*q == world_size);
 
@@ -594,7 +592,6 @@ int main(int argc, char **argv)
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 #if 0
 	MPI_Finalize();

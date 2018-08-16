@@ -81,7 +81,7 @@ typedef unsigned int uint32_t;
 
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                     \
 do {                                                                             \
-  unsigned _hf_bkt=0,_hf_hashv=0;                                                \
+  unsigned _hf_bkt=0,_hf_hashv=0;					         \
   out=NULL;                                                                      \
   if (head) {                                                                    \
      HASH_FCN(keyptr,keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt);   \
@@ -153,7 +153,7 @@ do {                                                                            
 do {                                                                             \
   __typeof__(out) _out;                                                          \
   HASH_FIND(hh,head,keyptr,keylen,_out);                                         \
-  STARPU_ASSERT(!_out);                                                          \
+  STARPU_ASSERT_MSG(!_out,"Cannot insert the same key twice"); 			 \
 } while(0)
 #else
 #define HASH_CHECK_KEY(hh,head,keyptr,keylen,out)
@@ -161,7 +161,7 @@ do {                                                                            
 
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                            \
 do {                                                                             \
- unsigned _ha_bkt;                                                               \
+ unsigned _ha_bkt=0;							 	 \
  HASH_CHECK_KEY(hh,head,keyptr,keylen_in,add);                                   \
  (add)->hh.next = NULL;                                                          \
  (add)->hh.key = (char*)keyptr;                                                  \

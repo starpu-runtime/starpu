@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2015-2017                      CNRS
  * Copyright (C) 2013,2015                                Inria
- * Copyright (C) 2013-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2013-2015,2017-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -212,13 +212,11 @@ int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size)
 {
 	int ret;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	if (global_size[node] == 0)
 		ret = 1;
 	else if (used_size[node] + size <= global_size[node])
 		ret = 1;
 	else
 		ret = 0;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 	return ret;
 }

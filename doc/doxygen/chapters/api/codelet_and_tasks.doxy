@@ -415,7 +415,7 @@ compiler implicitly do it in e.g. static storage case.
     Optional name of the codelet. This can be useful for debugging
     purposes.
 
-\var const char *starpu_codelet::color
+\var unsigned starpu_codelet::color
     Optional color of the codelet. This can be useful for debugging
     purposes.
 
@@ -519,6 +519,10 @@ the configuration of a task allocated with starpu_task_create().
     (see \ref SettingManyDataHandlesForATask). When defining a
     codelet, one should either define this field or the field
     starpu_task::modes defined above.
+
+\var char *starpu_task::handles_sequential_consistency
+    Optional pointer to an array of characters which allows to define
+    the sequential consistency for each handle for the current task.
 
 \var void *starpu_task::cl_arg
     Optional pointer which is passed to the codelet through the second
@@ -860,6 +864,24 @@ starpu_task::modes or the \p i -th element of the field
 starpu_task::dyn_modes
 (see \ref SettingManyDataHandlesForATask)
 
+\def STARPU_CODELET_GET_NODE(codelet, i)
+\ingroup API_Codelet_And_Tasks
+Return the target node of the \p i -th data handle of \p codelet.
+If \p node is defined with a static or dynamic number of
+handles, will either return the \p i -th element of the field
+starpu_codelet::nodes or the \p i -th element of the field
+starpu_codelet::dyn_nodes
+(see \ref SettingManyDataHandlesForATask)
+
+\def STARPU_CODELET_SET_NODE(codelet, node, i)
+\ingroup API_Codelet_And_Tasks
+Set the target node of the \p i -th data handle of \p codelet.
+If \p codelet is defined with a static or dynamic number of
+handles, will either set the \p i -th element of the field
+starpu_codelet::nodes or the \p i -th element of the field
+starpu_codelet::dyn_nodes
+(see \ref SettingManyDataHandlesForATask)
+
 \fn struct starpu_task *starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
 Allocate a task structure and initialize it with default
@@ -976,6 +998,16 @@ waiting for dependencies.
 Return the task currently executed by the
 worker, or <c>NULL</c> if it is called either from a thread that is not a
 task or simply because there is no task being executed at the moment.
+
+\fn int starpu_task_get_current_data_node(unsigned i)
+\ingroup API_Codelet_And_Tasks
+Return the memory node number of parameter \p i of the task currently executed,
+or -1 if it is called either from a thread that is not a task or simply because
+there is no task being executed at the moment.
+
+Usually, the returned memory node number is simply the memory node
+for the current worker. That may however be different when using e.g.
+starpu_codelet::specific_nodes .
 
 \fn const char *starpu_task_get_name(struct starpu_task *task)
 \ingroup API_Codelet_And_Tasks

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -89,10 +89,10 @@ void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
 
 #if defined(STARPU_USE_CUDA)
-int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
+unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 #endif
 #if defined(STARPU_USE_OPENCL)
-int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
+unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read,

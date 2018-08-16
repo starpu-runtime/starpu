@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012,2017,2018                           CNRS
- * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2012,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,10 +62,11 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst, int mpi_tag, size_t siz
 void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, int mpi_tag, float date, long jobid);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file);
 
-void _starpu_fxt_write_paje_header(FILE *file);
+void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *options);
 
 extern int _starpu_poti_extendedSetState;
 extern int _starpu_poti_semiExtendedSetState;
+extern int _starpu_poti_MemoryEvent;
 
 /*
  * Animation

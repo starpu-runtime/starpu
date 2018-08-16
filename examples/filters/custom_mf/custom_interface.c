@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013                                Inria
  * Copyright (C) 2012-2013,2015-2017                      CNRS
- * Copyright (C) 2012-2014                                Université de Bordeaux
+ * Copyright (C) 2012-2014, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,8 +73,8 @@ static void     register_custom_handle(starpu_data_handle_t handle,
 				       void *data_interface);
 static starpu_ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
 					       unsigned dst_node);
-static void*    custom_handle_to_pointer(starpu_data_handle_t data_handle,
-					 unsigned node);
+static void*    custom_to_pointer(void *data_interface, unsigned node);
+static int      custom_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void     free_custom_buffer_on_node(void *data_interface, unsigned node);
 static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
@@ -94,7 +94,8 @@ static struct starpu_data_interface_ops interface_custom_ops =
 {
 	.register_data_handle  = register_custom_handle,
 	.allocate_data_on_node = allocate_custom_buffer_on_node,
-	.handle_to_pointer     = custom_handle_to_pointer,
+	.to_pointer            = custom_to_pointer,
+	.pointer_is_inside     = custom_pointer_is_inside,
 	.free_data_on_node     = free_custom_buffer_on_node,
 	.copy_methods          = &custom_copy_data_methods_s,
 	.get_size              = custom_interface_get_size,
@@ -203,10 +204,9 @@ static void free_custom_buffer_on_node(void *data_interface, unsigned node)
 }
 
 static void*
-custom_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+custom_to_pointer(void *data, unsigned node)
 {
-	struct custom_data_interface *data_interface =
-		(struct custom_data_interface *) starpu_data_get_interface_on_node(handle, node);
+	struct custom_data_interface *data_interface = data;
 
 
 	switch(starpu_node_get_kind(node))
@@ -220,6 +220,31 @@ custom_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
 			return data_interface->opencl_ptr;
+#endif
+		default:
+			assert(0);
+	}
+}
+
+static int
+custom_pointer_is_inside(void *data, unsigned node, void *ptr)
+{
+	struct custom_data_interface *data_interface = data;
+
+	switch(starpu_node_get_kind(node))
+	{
+		case STARPU_CPU_RAM:
+			return (char*) ptr >= (char*) data_interface->cpu_ptr &&
+				(char*) ptr < (char*) data_interface->cpu_ptr + data_interface->nx * data_interface->ops->cpu_elemsize;
+#ifdef STARPU_USE_CUDA
+		case STARPU_CUDA_RAM:
+			return (char*) ptr >= (char*) data_interface->cuda_ptr &&
+				(char*) ptr < (char*) data_interface->cuda_ptr + data_interface->nx * data_interface->ops->cuda_elemsize;
+#endif
+#ifdef STARPU_USE_OPENCL
+		case STARPU_OPENCL_RAM:
+			return (char*) ptr >= (char*) data_interface->opencl_ptr &&
+				(char*) ptr < (char*) data_interface->opencl_ptr + data_interface->nx * data_interface->ops->opencl_elemsize;
 #endif
 		default:
 			assert(0);

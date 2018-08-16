@@ -97,6 +97,14 @@ int starpu_is_initialized(void)
 	return initialized == INITIALIZED;
 }
 
+void starpu_wait_initialized(void)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	while (initialized != INITIALIZED)
+		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+}
+
 /* Makes sure that at least one of the workers of type <arch> can execute
  * <task>, for at least one of its implementations. */
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
@@ -649,7 +657,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
-	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid);
+	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid, NULL);
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
@@ -973,6 +981,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->ncpus = starpu_get_env_number("STARPU_NCPU");
 	if (conf->ncpus == -1)
 		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
+	conf->reserve_ncpus = starpu_get_env_number("STARPU_RESERVE_NCPU");
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nmic = starpu_get_env_number("STARPU_NMIC");
@@ -1068,6 +1077,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
@@ -1176,10 +1186,12 @@ void _starpu_handler(int sig)
 	{
 		signal(SIGSEGV, act_sigsegv);
 	}
+#ifdef SIGTRAP
 	if (sig == SIGTRAP)
 	{
 		signal(SIGTRAP, act_sigtrap);
 	}
+#endif
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
@@ -1190,7 +1202,9 @@ void _starpu_catch_signals(void)
 {
 	act_sigint  = signal(SIGINT, _starpu_handler);
 	act_sigsegv = signal(SIGSEGV, _starpu_handler);
+#ifdef SIGTRAP
 	act_sigtrap = signal(SIGTRAP, _starpu_handler);
+#endif
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -1464,7 +1478,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
 	if (main_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NOWORKERID);
+		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NONACTIVETHREAD, "main");
 
 	_STARPU_DEBUG("Initialisation finished\n");
 

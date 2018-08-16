@@ -32,10 +32,8 @@ int main(int argc, char **argv)
 	int ret;
 	int i, policy;
 
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv, 1);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY-1 ; i++)
 	{
@@ -48,7 +46,6 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(policy==_STARPU_MPI_NODE_SELECTION_MAX_POLICY-2);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }
