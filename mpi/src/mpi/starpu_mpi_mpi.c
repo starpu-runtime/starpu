@@ -132,11 +132,13 @@ void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
 
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
 {
+	(void)coop_sends;
 	/* TODO: turn them into redirects & forwards */
 }
 
 void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
 {
+	(void)submit_control;
 	unsigned i, n = coop_sends->n;
 
 	/* Note: coop_sends might disappear very very soon after last request is submitted */
