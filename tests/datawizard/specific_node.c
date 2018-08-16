@@ -35,9 +35,13 @@ unsigned data, data2;
 void specific_kernel(void *descr[], void *arg)
 {
 	(void)arg;
+	int node = starpu_task_get_current_data_node(0);
+	STARPU_ASSERT(node >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node) == STARPU_CPU_RAM);
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	STARPU_ASSERT(dataptr == &data);
+	if (node == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data);
 	(*dataptr)++;
 }
 
@@ -49,7 +53,7 @@ static struct starpu_codelet specific_cl =
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
-	.nodes = {STARPU_MAIN_RAM, -1},
+	.nodes = {STARPU_SPECIFIC_NODE_CPU, STARPU_SPECIFIC_NODE_LOCAL},
 };
 
 void cpu_codelet_unsigned_inc(void *descr[], void *arg)

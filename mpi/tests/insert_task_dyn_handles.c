@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2015,2017                                Université de Bordeaux
+ * Copyright (C) 2015,2017-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,10 +66,8 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv, mpi_init);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -78,7 +76,6 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -168,7 +165,6 @@ enodev:
 	}
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
 	return ret;

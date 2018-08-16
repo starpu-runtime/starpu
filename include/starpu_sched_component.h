@@ -128,6 +128,7 @@ int starpu_sched_component_can_push(struct starpu_sched_component * component, s
 int starpu_sched_component_can_pull(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len);
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
 
 struct starpu_sched_component_fifo_data
@@ -234,6 +235,8 @@ do \
 		starpu_worker_relax_off(); \
 } \
 while(0)
+
+#define STARPU_COMPONENT_MUTEX_TRYLOCK(m) STARPU_PTHREAD_MUTEX_TRYLOCK((m))
 
 #define STARPU_COMPONENT_MUTEX_UNLOCK(m) STARPU_PTHREAD_MUTEX_UNLOCK((m))
 

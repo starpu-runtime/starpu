@@ -296,23 +296,20 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	/* Is this a basic worker or a combined worker ? */
 	int is_basic_worker = (workerid < nbasic_workers);
 
-	unsigned memory_node;
 	struct _starpu_worker *worker = NULL;
 	struct _starpu_combined_worker *combined_worker = NULL;
 
 	if (is_basic_worker)
 	{
 		worker = _starpu_get_worker_struct(workerid);
-		memory_node = worker->memory_node;
 	}
 	else
 	{
 		combined_worker = _starpu_get_combined_worker_struct(workerid);
-		memory_node = combined_worker->memory_node;
 	}
 
 	if (use_prefetch)
-		starpu_prefetch_task_input_on_node(task, memory_node);
+		starpu_prefetch_task_input_for(task, workerid);
 
 	if (is_basic_worker)
 		_starpu_push_task_on_specific_worker_notify_sched(task, worker, workerid, workerid);
@@ -524,9 +521,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	int ret = 0;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
-		unsigned node = starpu_worker_get_memory_node(task->workerid);
 		if (starpu_get_prefetch_flag())
-			starpu_prefetch_task_input_on_node(task, node);
+			starpu_prefetch_task_input_for(task, task->workerid);
 
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}

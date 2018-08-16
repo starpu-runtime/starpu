@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
@@ -35,12 +35,14 @@
 #if defined(STARPU_USE_MPI_MPI)
 #include <mpi/starpu_mpi_comm.h>
 #include <mpi/starpu_mpi_tag.h>
+#include <mpi/starpu_mpi_driver.h>
 #endif
 
 #ifdef STARPU_SIMGRID
 static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
+static int _mpi_initialized_starpu;
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
@@ -71,6 +73,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 {
 	if (argc_argv->initialize_mpi)
 	{
+		STARPU_ASSERT_MSG(argc_argv->comm == MPI_COMM_WORLD, "It does not make sense to ask StarPU-MPI to initialize MPI while a non-world communicator was given");
 		int thread_support;
 #ifdef STARPU_USE_MPI_NMAD
 		/* strat_prio is preferred for StarPU instead of default strat_aggreg */
@@ -177,6 +180,36 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 #endif
 }
 
+int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm, struct starpu_conf *conf)
+{
+	struct starpu_conf localconf;
+	if (!conf)
+	{
+		starpu_conf_init(&localconf);
+		conf = &localconf;
+	}
+
+#if defined(STARPU_USE_MPI_MPI)
+	_starpu_mpi_driver_init(conf);
+
+	if (starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0)
+#endif
+	{
+		/* Reserve a core for our progression thread */
+		if (conf->reserve_ncpus == -1)
+			conf->reserve_ncpus = 1;
+		else
+			conf->reserve_ncpus++;
+	}
+
+	int ret = starpu_init(conf);
+	if (ret < 0)
+		return ret;
+	_mpi_initialized_starpu = 1;
+
+	return starpu_mpi_init_comm(argc, argv, initialize_mpi, comm);
+}
+
 int starpu_mpi_shutdown(void)
 {
 	void *value;
@@ -197,7 +230,10 @@ int starpu_mpi_shutdown(void)
 #if defined(STARPU_USE_MPI_MPI)
 	_starpu_mpi_tag_shutdown();
 	_starpu_mpi_comm_shutdown();
+	_starpu_mpi_driver_shutdown();
 #endif
+	if (_mpi_initialized_starpu)
+		starpu_shutdown();
 
 	return 0;
 }

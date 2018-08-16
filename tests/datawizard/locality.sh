@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2017                                     CNRS
 # Copyright (C) 2017                                     Inria
-# Copyright (C) 2017                                     Université de Bordeaux
+# Copyright (C) 2017-2018                                     Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,7 @@ fi
 
 test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
 STARPU_SCHED=modular-eager STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/locality
-$PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
+$PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
 
 # Check that they are approved by Grenoble :)
 

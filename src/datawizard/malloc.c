@@ -608,6 +608,15 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
+			/* Check if there is free memory */
+			size_t cuda_mem_free, cuda_mem_total;
+			status = cudaMemGetInfo(&cuda_mem_free, &cuda_mem_total);
+			if (status == cudaSuccess &&
+					cuda_mem_free < (size*2))
+			{
+					addr = 0;
+					break;
+			}
 			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{

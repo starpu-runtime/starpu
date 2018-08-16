@@ -366,6 +366,7 @@ struct _starpu_machine_config
 	/* Where to bind next worker ? */
 	int current_bindid;
 	char currently_bound[STARPU_NMAXWORKERS];
+	char currently_shared[STARPU_NMAXWORKERS];
 
 	/* Which GPU(s) do we use for CUDA ? */
 	int current_cuda_gpuid;

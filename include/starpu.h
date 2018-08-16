@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2017                                Inria
- * Copyright (C) 2009-2014,2016-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2014,2016-2018                      Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,6 +94,7 @@ struct starpu_conf
 	void (*sched_policy_init)(unsigned);
 
 	int ncpus;
+	int reserve_ncpus;
 	int ncuda;
 	int nopencl;
 	int nmic;
@@ -152,6 +153,11 @@ int starpu_conf_init(struct starpu_conf *conf);
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
 int starpu_is_initialized(void);
+void starpu_wait_initialized(void);
+
+#define STARPU_THREAD_ACTIVE (1 << 0)
+unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred);
+int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
 
 void starpu_pause(void);
 void starpu_resume(void);

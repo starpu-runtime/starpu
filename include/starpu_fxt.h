@@ -49,6 +49,7 @@ struct starpu_fxt_options
 	unsigned ninputfiles;
 	unsigned no_smooth;
 	unsigned no_acquire;
+	unsigned memory_states;
 	unsigned internal;
 	unsigned label_deps;
 	char *filenames[STARPU_FXT_MAX_FILES];

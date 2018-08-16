@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2013,2016-2017                      Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +77,12 @@ static starpu_pthread_mutex_t progress_mutex;
 static starpu_pthread_t progress_thread;
 #endif
 static int running = 0;
+
+/* Driver taken by StarPU-MPI to process tasks when there is no requests to
+ * handle instead of polling endlessly */
+static struct starpu_driver *mpi_driver = NULL;
+static int mpi_driver_call_freq = 0;
+static int mpi_driver_task_freq = 0;
 
 #ifdef STARPU_SIMGRID
 static int wait_counter;
@@ -962,6 +968,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		}
 		else
 		{
+			_STARPU_MPI_TRACE_POLLING_END();
 		     	struct _starpu_mpi_req *next_req;
 			next_req = _starpu_mpi_req_list_next(req);
 
@@ -993,6 +1000,7 @@ static void _starpu_mpi_test_detached_requests(void)
 			}
 
 			req = next_req;
+			_STARPU_MPI_TRACE_POLLING_BEGIN();
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
@@ -1110,12 +1118,19 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	starpu_pthread_setname("MPI");
 
 #ifndef STARPU_SIMGRID
-	if (_starpu_mpi_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
+	if (_starpu_mpi_thread_cpuid < 0)
+	{
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	}
+
+	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	{
+		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
+	}
 	_starpu_mpi_do_initialize(argc_argv);
 	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
-		_starpu_bind_thread_on_cpu(_starpu_mpi_thread_cpuid, STARPU_NOWORKERID);
+		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
 #endif
 
 	_starpu_mpi_env_init();
@@ -1136,6 +1151,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
 	}
 	smpi_process_set_user_data(tsd);
+        /* And wait for StarPU to get initialized, to come back to the same
+         * situation as native execution where that's always the case. */
+	starpu_wait_initialized();
 #endif
 
 	_starpu_mpi_comm_amounts_init(argc_argv->comm);
@@ -1148,6 +1166,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_early_data_init();
 	_starpu_mpi_sync_data_init();
 	_starpu_mpi_datatype_init();
+
+	if (mpi_driver)
+		starpu_driver_init(mpi_driver);
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_init(&wait);
@@ -1172,6 +1193,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
  	int envelope_request_submitted = 0;
+	int mpi_driver_loop_counter = 0;
+	int mpi_driver_task_counter = 0;
+	_STARPU_MPI_TRACE_POLLING_BEGIN();
 
 	while (running || posted_requests || !(_starpu_mpi_req_list_empty(&ready_recv_requests)) || !(_starpu_mpi_req_prio_list_empty(&ready_send_requests)) || !(_starpu_mpi_req_list_empty(&detached_requests)))// || !(_starpu_mpi_early_request_count()) || !(_starpu_mpi_sync_data_count()))
 	{
@@ -1198,6 +1222,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		unsigned n = 0;
 		while (!_starpu_mpi_req_list_empty(&ready_recv_requests))
 		{
+			_STARPU_MPI_TRACE_POLLING_END();
 			struct _starpu_mpi_req *req;
 
 			if (n++ == nready_process)
@@ -1238,6 +1263,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		}
 
+		_STARPU_MPI_TRACE_POLLING_BEGIN();
+
 		/* If there is no currently submitted envelope_request submitted to
                  * catch envelopes from senders, and there is some pending
                  * receive requests on our side, we resubmit a header request. */
@@ -1264,6 +1291,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 			if (flag)
 			{
+				_STARPU_MPI_TRACE_POLLING_END();
 				_STARPU_MPI_COMM_FROM_DEBUG(envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, envelope_status.MPI_SOURCE, _STARPU_MPI_TAG_ENVELOPE, envelope->data_tag, envelope_comm);
 				_STARPU_MPI_DEBUG(4, "Envelope received with mode %d\n", envelope->mode);
 				if (envelope->mode == _STARPU_MPI_ENVELOPE_SYNC_READY)
@@ -1355,9 +1383,34 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					}
 				}
 				envelope_request_submitted = 0;
+				_STARPU_MPI_TRACE_POLLING_BEGIN();
 			}
 			else
 			{
+				/* A call is made to driver_run_once only when
+				 * the progression thread have gone through the
+				 * communication progression loop
+				 * mpi_driver_call_freq times. It is
+				 * interesting to tune the
+				 * STARPU_MPI_DRIVER_CALL_FREQUENCY
+				 * depending on whether the user wants
+				 * reactivity or computing power from the MPI
+				 * progression thread. */
+				if ( mpi_driver && ( ++mpi_driver_loop_counter == mpi_driver_call_freq ))
+				{
+					mpi_driver_loop_counter = 0;
+					mpi_driver_task_counter = 0;
+					while (mpi_driver_task_counter++ < mpi_driver_task_freq)
+					{
+						_STARPU_MPI_TRACE_DRIVER_RUN_BEGIN();
+						STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+						_STARPU_MPI_DEBUG(4, "running once mpi driver\n");
+						starpu_driver_run_once(mpi_driver);
+						STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+						_STARPU_MPI_TRACE_DRIVER_RUN_END();
+					}
+				}
+
 				//_STARPU_MPI_DEBUG(4, "Nothing received, continue ..\n");
 			}
 		}
@@ -1368,6 +1421,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 	}
 
+	_STARPU_MPI_TRACE_POLLING_END();
 	if (envelope_request_submitted)
 	{
 		_starpu_mpi_comm_cancel_recv();
@@ -1537,6 +1591,44 @@ int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int
 		*flag = 0;
 	}
 	return 0;
+}
+
+void _starpu_mpi_driver_init(struct starpu_conf *conf)
+{
+	/* We only initialize the driver if the environment variable
+	 * STARPU_MPI_DRIVER_CALL_FREQUENCY is defined by the user. If this environment
+	 * variable is not defined or defined at a value lower than or equal to zero,
+	 * StarPU-MPI will not use a driver. */
+	int driver_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0);
+	if (driver_env > 0)
+	{
+#ifdef STARPU_SIMGRID
+		_STARPU_DISP("Warning: MPI driver is not supported with simgrid, this will be disabled");
+		return;
+#endif
+		mpi_driver_call_freq = driver_env;
+
+		_STARPU_MALLOC(mpi_driver, sizeof(struct starpu_driver));
+		mpi_driver->type = STARPU_CPU_WORKER;
+		mpi_driver->id.cpu_id = 0;
+
+		conf->not_launched_drivers = mpi_driver;
+		conf->n_not_launched_drivers = 1;
+
+		int tasks_freq_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_TASK_FREQUENCY", 0);
+		if (tasks_freq_env > 0)
+			mpi_driver_task_freq = tasks_freq_env;
+	}
+}
+
+void _starpu_mpi_driver_shutdown()
+{
+	if (mpi_driver)
+	{
+		starpu_driver_deinit(mpi_driver);
+		free(mpi_driver);
+		mpi_driver = NULL;
+	}
 }
 
 #endif /* STARPU_USE_MPI_MPI */

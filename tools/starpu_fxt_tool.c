@@ -42,6 +42,7 @@ static void usage()
 	fprintf(stderr, "   -no-smooth          avoid smoothing values for gflops etc.\n");
 	fprintf(stderr, "   -no-acquire         do not show application data acquisitions tasks in DAG\n");
 	fprintf(stderr, "   -label-deps         add label on dependencies.\n");
+	fprintf(stderr, "   -memory-states      show detailed memory states of handles\n");
 	fprintf(stderr, "   -internal           show StarPU-internal tasks in DAG\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
@@ -121,6 +122,13 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-acquire") == 0)
 		{
 			options.no_acquire = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-memory-states") == 0)
+		{
+			options.memory_states = 1;
 			reading_input_filenames = 0;
 			continue;
 		}

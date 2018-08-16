@@ -108,6 +108,8 @@
 
 #define _STARPU_FUT_TASK_COLOR	0x512d
 
+#define _STARPU_FUT_DATA_DOING_WONT_USE	0x512e
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -220,13 +222,16 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL_END	0x517b
 
 #define _STARPU_FUT_HANDLE_DATA_REGISTER	0x517c
-#define _STARPU_FUT_DATA_INVALIDATE		0x517d
 
 #define _STARPU_FUT_START_FETCH_INPUT	0x517e
 #define _STARPU_FUT_END_FETCH_INPUT	0x517f
 
 #define _STARPU_FUT_TASK_THROTTLE_START	0x5180
 #define _STARPU_FUT_TASK_THROTTLE_END	0x5181
+
+#define _STARPU_FUT_DATA_STATE_INVALID 0x5182
+#define _STARPU_FUT_DATA_STATE_OWNER      0x5183
+#define _STARPU_FUT_DATA_STATE_SHARED     0x5184
 
 extern unsigned long _starpu_job_cnt;
 
@@ -741,6 +746,9 @@ do {										\
 #define _STARPU_TRACE_DATA_WONT_USE(handle)						\
 	FUT_DO_PROBE4(_STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid())
 
+#define _STARPU_TRACE_DATA_DOING_WONT_USE(handle)						\
+	FUT_DO_PROBE1(_STARPU_FUT_DATA_DOING_WONT_USE, handle)
+
 #define _STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id, prefetch, handle) \
 	FUT_DO_PROBE6(_STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle)
 
@@ -837,29 +845,29 @@ do {										\
 #define _STARPU_TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_END, _starpu_gettid());
 
-#define _STARPU_TRACE_START_ALLOC(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)               \
+       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_ALLOC(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            \
+       FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid(), handle, r);
 
-#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size, handle)         \
+       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_ALLOC_REUSE(memnode, handle, r)              \
+       FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid(), handle, r);
 
-#define _STARPU_TRACE_START_FREE(memnode, size)		\
-	FUT_DO_PROBE3(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size);
+#define _STARPU_TRACE_START_FREE(memnode, size, handle)                \
+       FUT_DO_PROBE4(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size, handle);
 
-#define _STARPU_TRACE_END_FREE(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_FREE, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_FREE(memnode, handle)                \
+       FUT_DO_PROBE3(_STARPU_FUT_END_FREE, memnode, _starpu_gettid(), handle);
 
-#define _STARPU_TRACE_START_WRITEBACK(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid());
+#define _STARPU_TRACE_START_WRITEBACK(memnode, handle)         \
+       FUT_DO_PROBE3(_STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid(), handle);
 
-#define _STARPU_TRACE_END_WRITEBACK(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_WRITEBACK(memnode, handle)           \
+       FUT_DO_PROBE3(_STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid(), handle);
 
 #define _STARPU_TRACE_USED_MEM(memnode,used)		\
 	FUT_DO_PROBE3(_STARPU_FUT_USED_MEM, memnode, used, _starpu_gettid());
@@ -1108,12 +1116,16 @@ do {										\
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
 	FUT_DO_PROBE1(_STARPU_FUT_HANDLE_DATA_UNREGISTER, handle)
 
-#if 0
-#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)		\
-	FUT_DO_PROBE2(_STARPU_FUT_DATA_INVALIDATE, handle, node)
-#else
-#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void) handle; (void) node;} while (0)
-#endif
+//Coherency Data Traces
+#define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)      \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_INVALID, handle, node)
+
+#define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)           \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_OWNER, handle, node)
+
+#define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)          \
+       FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_SHARED, handle, node)
+
 
 #else // !STARPU_USE_FXT
 
@@ -1146,6 +1158,7 @@ do {										\
 #define _STARPU_TRACE_DATA_COORDINATES(a, b, c)	do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_COPY(a, b, c)		do {(void)(a); (void)(b); (void)(c);} while(0)
 #define _STARPU_TRACE_DATA_WONT_USE(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_DATA_DOING_WONT_USE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d,e)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e);} while(0)
 #define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {(void)(a); (void)(b);} while(0)
@@ -1178,14 +1191,14 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END()		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC(memnode, size)	do {(void)(memnode); (void)(size);} while(0)
-#define _STARPU_TRACE_END_ALLOC(memnode)		do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {(void)(a); (void)(size);} while(0)
-#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {(void)(a);} while(0)
-#define _STARPU_TRACE_START_FREE(memnode, size)		do {(void)(memnode); (void)(size);} while(0)
-#define _STARPU_TRACE_END_FREE(memnode)			do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_START_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_END_WRITEBACK(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)       do {(void)(memnode); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            do {(void)(memnode); (void)(handle); (void)(r);} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a, size, handle)       do {(void)(a); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_ALLOC_REUSE(a, handle, r)            do {(void)(a); (void)(handle); (void)(r);} while(0)
+#define _STARPU_TRACE_START_FREE(memnode, size, handle)                do {(void)(memnode); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_FREE(memnode, handle)                        do {(void)(memnode); (void)(handle);} while(0)
+#define _STARPU_TRACE_START_WRITEBACK(memnode, handle)         do {(void)(memnode); (void)(handle);} while(0)
+#define _STARPU_TRACE_END_WRITEBACK(memnode, handle)           do {(void)(memnode); (void)(handle);} while(0)
 #define _STARPU_TRACE_USED_MEM(memnode,used)		do {(void)(memnode); (void)(used);} while (0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
@@ -1232,9 +1245,11 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {(void)(handle);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	do {(void)(handle);} while (0)
-#define _STARPU_TRACE_DATA_INVALIDATE(handle, node)	do {(void)(handle); (void)(node);} while (0)
 #define _STARPU_TRACE_WORKER_START_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
 #define _STARPU_TRACE_WORKER_END_FETCH_INPUT(job, id)	do {(void)(job); (void)(id);} while(0)
+#define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)	do {(void)(handle); (void)(node);} while(0)
+#define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)	do {(void)(handle); (void)(node);} while(0)
+#define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
 
 #endif // STARPU_USE_FXT
 

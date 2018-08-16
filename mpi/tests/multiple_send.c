@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015,2017                      CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2011,2015                                Université de Bordeaux
+ * Copyright (C) 2011,2015, 2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,10 +28,8 @@ int main(int argc, char **argv)
 	starpu_data_handle_t send_handle[2];
 	starpu_data_handle_t recv_handle[2];
 
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv, 1);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -41,7 +39,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -93,7 +90,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(recv_handle[1]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return 0;
 }

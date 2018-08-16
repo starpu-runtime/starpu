@@ -34,7 +34,7 @@ constStatement:examples/stencil/*
 unreadVariable:tests/openmp/*
 unusedLabel:tests/datawizard/gpu_register.c
 unusedLabel:tests/datawizard/gpu_ptr_register.c
-redundantAssignment:tests/datawizard/interfaces/test_interfaces.c:753
+redundantAssignment:tests/datawizard/interfaces/test_interfaces.c:757
 redundantAssignment:tests/datawizard/mpi_like_async.c:165
 redundantAssignment:tests/datawizard/mpi_like_async.c:211
 unusedPrivateFunction:tests/main/combined_workers/bfs/timer.h:45
@@ -57,7 +57,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:1016
+wrongPrintfScanfArgNum:src/core/simgrid.c:1023
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 nullPointerRedundantCheck:src/common/rbtree.c
@@ -78,3 +78,7 @@ unreadVariable:gcc-plugin/tests/*
 negativeIndex:gcc-plugin/src/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
+
+redundantAssignment:src/sched_policies/component_eager.c:109
+
+nullPointerRedundantCheck:src/datawizard/copy_driver.c:682

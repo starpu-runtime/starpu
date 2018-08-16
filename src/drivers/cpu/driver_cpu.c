@@ -105,7 +105,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
-			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid);
+			_starpu_bind_thread_on_cpu(cpu_args->bindid, cpu_args->workerid, NULL);
 	}
 	else
 	{

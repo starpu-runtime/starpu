@@ -61,7 +61,14 @@ struct _starpu_data_descr
 {
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
-	int node;
+	int node; /* This is the value actually chosen, only set by
+		     _starpu_fetch_task_input for coherency with
+		     __starpu_push_task_output */
+	int index;
+
+	int orderedindex; /* For this field the array is actually indexed by
+			     parameter order, and this provides the ordered
+			     index */
 };
 
 #ifdef STARPU_DEBUG
@@ -266,16 +273,18 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
  * enforce a FIFO ordering. */
 int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int prio);
 
+#define _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].index : job->ordered_buffers[i].index)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_MODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].mode : job->ordered_buffers[i].mode)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_NODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].node : job->ordered_buffers[i].node)
 
-#define _STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(job, handle, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].handle = (handle); else job->ordered_buffers[i].handle = (handle);} while(0)
+#define _STARPU_JOB_SET_ORDERED_BUFFER_INDEX(job, __index, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].index = (__index); else job->ordered_buffers[i].index = (__index);} while(0)
+#define _STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(job, __handle, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].handle = (__handle); else job->ordered_buffers[i].handle = (__handle);} while(0)
 #define _STARPU_JOB_SET_ORDERED_BUFFER_MODE(job, __mode, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].mode = __mode; else job->ordered_buffers[i].mode = __mode;} while(0)
 #define _STARPU_JOB_SET_ORDERED_BUFFER_NODE(job, __node, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].node = __node; else job->ordered_buffers[i].node = __node;} while(0)
 
 #define _STARPU_JOB_SET_ORDERED_BUFFER(job, buffer, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i] = buffer; else job->ordered_buffers[i] = buffer;} while(0)
-#define _STARPU_JOB_GET_ORDERED_BUFFERS(job) (job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : job->ordered_buffers
+#define _STARPU_JOB_GET_ORDERED_BUFFERS(job) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : &job->ordered_buffers[0])
 
 #define _STARPU_JOB_GET_DEP_SLOTS(job) (((job)->dyn_dep_slots) ? (job)->dyn_dep_slots : (job)->dep_slots)
 

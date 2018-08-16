@@ -216,6 +216,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
 	basic_examples/dynamic_handles          \
+	basic_examples/task_insert_color	\
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
@@ -248,7 +249,9 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction
+	reductions/minmax_reduction		\
+	dependency/task_end_dep			\
+	dependency/sequential_consistency
 
 endif
 

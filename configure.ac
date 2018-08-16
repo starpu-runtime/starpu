@@ -173,7 +173,7 @@ if test x$enable_simgrid = xyes ; then
 
 	# Latest functions
 	AC_CHECK_FUNCS([MSG_process_attach MSG_zone_get_hosts MSG_process_self_name])
-	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create])
+	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 
@@ -2153,7 +2153,7 @@ if test x$use_fxt = xyes; then
 		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $POTI_LIBS"
-		AC_CHECK_FUNCS([poti_init_custom])
+		AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
 		LIBS="$save_LIBS"
 		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
 		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
@@ -2593,6 +2593,9 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
+	if test x$enable_debug = xyes; then
+		IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
+	fi
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
@@ -3495,7 +3498,7 @@ AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la

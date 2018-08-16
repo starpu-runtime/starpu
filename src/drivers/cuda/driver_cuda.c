@@ -68,7 +68,6 @@ static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
  * emitting a GPU-GPU transfer */
 static cudaStream_t in_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
-static cudaStream_t out_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 #ifndef STARPU_SIMGRID
 static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
@@ -381,9 +380,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		cures = starpu_cudaStreamCreate(&out_peer_transfer_streams[devid][i]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 #endif /* !STARPU_SIMGRID */
 
@@ -432,7 +428,6 @@ static void deinit_device_context(unsigned devid)
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
-		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
 	}
 }
 #endif /* !STARPU_SIMGRID */
@@ -534,27 +529,15 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef HAVE_LIBNVIDIA_ML
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
-		if (profiling || (cl->energy_model && cl->energy_model->benchmarking))
+		if (profiling)
 		{
 			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
+			if (nvmlRet == NVML_SUCCESS)
+				task->profiling_info->energy_consumed = energy_start / 1000.;
 		}
 #endif
 
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-
-#ifdef HAVE_LIBNVIDIA_ML
-		if (nvmlRet == NVML_SUCCESS &&
-			(profiling || (cl->energy_model && cl->energy_model->benchmarking)))
-		{
-			unsigned long long energy_end;
-			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
-#ifdef STARPU_DEVEL
-#warning TODO: measure idle consumption to subtract it
-#endif
-			if (nvmlRet == NVML_SUCCESS)
-				task->profiling_info->energy_consumed += (energy_end - energy_start) / 1000.;
-		}
-#endif
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}
@@ -566,6 +549,21 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 {
 	int profiling = starpu_profiling_status_get();
 
+
+#ifdef HAVE_LIBNVIDIA_ML
+	if (profiling && j->task->profiling_info->energy_consumed)
+	{
+		unsigned long long energy_end;
+		nvmlReturn_t nvmlRet = -1;
+		nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
+#ifdef STARPU_DEVEL
+#warning TODO: measure idle consumption to subtract it
+#endif
+		if (nvmlRet == NVML_SUCCESS)
+			j->task->profiling_info->energy_consumed =
+				(energy_end / 1000. - j->task->profiling_info->energy_consumed);
+	}
+#endif
 	_starpu_set_current_task(NULL);
 	if (worker->pipeline_length)
 		worker->current_tasks[worker->first_task] = NULL;
@@ -703,7 +701,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	}
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid);
+	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid, NULL);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{

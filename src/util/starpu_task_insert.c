@@ -159,7 +159,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
 	va_list varg_list;
 
 	va_start(varg_list, cl);
-	task = _starpu_task_build_v(task, cl, NULL, 1, varg_list);
+	_starpu_task_build_v(task, cl, NULL, 1, varg_list);
 	va_end(varg_list);
 	return 0;
 }
