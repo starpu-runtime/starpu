@@ -37,3 +37,67 @@
    obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.6.8
    fun:hwloc_topology_init
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:tls_get_addr_tail
+   ...
+   fun:hwloc_backends_notify_new_object
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   ...
+   fun:hwloc_topology_load
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:calloc
+   ...
+   fun:hwloc_topology_load
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:realloc
+   ...
+   fun:hwloc_topology_load
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:tls_get_addr_tail
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:clGetPlatformIDs
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_opencl.so
+   fun:hwloc_backends_notify_new_object
+   obj:/usr/lib/x86_64-linux-gnu/libhwloc.so.5.7.3
+   fun:hwloc_insert_pci_device_list
+   obj:/usr/lib/x86_64-linux-gnu/hwloc/hwloc_pci.so
+   fun:hwloc_topology_load
+   fun:_starpu_init_topology
+   fun:_starpu_topology_get_nhwcpu
+   fun:check_bus_config_file
+   fun:_starpu_load_bus_performance_files
+   fun:starpu_initialize
+   fun:starpu_init
+   fun:omp_initial_thread_setup
+   fun:omp_initial_region_setup
+   fun:starpu_omp_init
+   fun:omp_constructor
+   fun:__libc_csu_init
+   fun:(below main)
+}
