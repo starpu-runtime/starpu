@@ -23,6 +23,7 @@
    fun:gomp_init_num_threads
    fun:initialize_env
    fun:call_init.part.0
+   fun:call_init
    fun:_dl_init
    ...
 }
