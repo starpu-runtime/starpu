@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2013-2015, 2018                                Université de Bordeaux
+ * Copyright (C) 2012-2015,2017,2018                      CNRS
+ * Copyright (C) 2013-2015, 2018                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@
 
 static int complex_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
 {
+	(void)node;
 	struct starpu_complex_interface *complex_interface = data_interface;
 
 	return ((char*) ptr >= (char*) &complex_interface->real &&
