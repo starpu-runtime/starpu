@@ -43,7 +43,7 @@ struct starpu_codelet mycodelet_color =
 	.color = 0x0000FF,
 };
 
-int main(int argc, char **argv)
+int main(void)
 {
 	unsigned i;
 	int value=42;
