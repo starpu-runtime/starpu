@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2013,2015-2016                      CNRS
+ * Copyright (C) 2010-2013,2015-2016,2018                 CNRS
  * Copyright (C) 2010-2014,2016-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
 	/* Allocate data */
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
-		buffers[buffer] = (float *) malloc(16*sizeof(float));
+		buffers[buffer] = (float *) calloc(16, sizeof(float));
 
 	tasks = (struct starpu_task *) calloc(1, ntasks*maxcpus*sizeof(struct starpu_task));
 
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 				{
 					tasks[i].dyn_handles = malloc(nbuffers * sizeof(*data_handles));
 					handles = tasks[i].dyn_handles;
-					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes));
+					tasks[i].dyn_modes = malloc(nbuffers * sizeof(tasks[i].dyn_modes[0]));
 					for (buffer = 0; buffer < nbuffers; buffer++)
 						tasks[i].dyn_modes[buffer] = STARPU_R;
 				}
