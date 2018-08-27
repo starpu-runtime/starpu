@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011-2014,2017                           Inria
  * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
@@ -50,8 +50,8 @@ Per-interface data transfer methods.
 \var void *(*starpu_data_interface_ops::to_pointer)(void *data_interface, unsigned node)
     Return the current pointer (if any) for the given interface on the given node.
 
-\var int (*starpu_data_interface_ops::pointer_is_inside)(void *data_interface, unsigned node, void *pointer)
-    Return whether the given \p pointer is within the data for the given interface on the given node.
+\var int (*starpu_data_interface_ops::pointer_is_inside)(void *data_interface, unsigned node, void *ptr)
+    Return whether the given \p ptr is within the data for the given interface on the given node.
 
 \var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
     Return an estimation of the size of data, for performance models.
@@ -532,9 +532,9 @@ Return the pointer associated with \p handle on node \p node or <c>NULL</c>
 if handle’s interface does not support this operation or data for this
 \p handle is not allocated on that \p node.
 
-\fn int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *pointer)
+\fn int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr)
 \ingroup API_Data_Interfaces
-Return whether the given \p pointer is within the data for \p handle on node \p
+Return whether the given \p ptr is within the data for \p handle on node \p
 node (1) or not (0). If the handle interface does not support this operation,
 and thus the result is unknown, -1 is returned.
 
