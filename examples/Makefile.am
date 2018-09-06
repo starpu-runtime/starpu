@@ -80,6 +80,7 @@ EXTRA_DIST = 					\
 	sched_ctx/axpy_partition_gpu.h			\
 	sched_ctx/axpy_partition_gpu.cu			\
 	heat/heat.sh					\
+	cholesky/cholesky.sh				\
 	lu/lu.sh
 
 
