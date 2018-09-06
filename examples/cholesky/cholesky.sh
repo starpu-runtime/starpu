@@ -60,3 +60,4 @@ do
 done
 gnuplot cholesky.gp
 gv $OUTFILE
+true
