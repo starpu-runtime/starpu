@@ -288,6 +288,12 @@ TESTS += \
 	lu/lu.sh
 
 endif
+
+if STARPU_SIMGRID
+TESTS += \
+	 cholesky/cholesky.sh
+endif
+
 endif
 
 if !STARPU_SIMGRID
