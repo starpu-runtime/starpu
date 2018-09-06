@@ -316,11 +316,11 @@ TESTS += \
 
 endif
 
+endif
+
 if STARPU_SIMGRID
 TESTS += \
 	 cholesky/cholesky.sh
-endif
-
 endif
 endif
 
