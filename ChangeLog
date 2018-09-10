@@ -107,6 +107,9 @@ Small features:
   * Add memory states events in the traces.
   * Add starpu_sched_component_estimated_end_min_add() to fix termination
     estimations in modular schedulers.
+  * New function starpu_data_partition_not_automatic() to disable the
+    automatic partitioning of a data handle for which a asynchronous
+    plan has previously been submitted
 
 Changes:
   * Vastly improve simgrid simulation time.
