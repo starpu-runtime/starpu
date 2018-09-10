@@ -230,6 +230,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
+	filters/fplan_notautomatic		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
