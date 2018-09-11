@@ -39,7 +39,7 @@ void t1_cpu(void *descr[], void *args)
 	for(i=0 ; i<nx ; i++)
 	{
 		values[i] += add;
-		cur += snprintf(&message[cur], 10000, "%d ", values[i]);
+		cur += snprintf(&message[cur], 10000-cur, "%d ", values[i]);
 	}
 	FPRINTF(stderr, "%s\n", message);
 }
@@ -58,7 +58,7 @@ void t2_cpu(void *descr[], void *args)
 	for(i=0 ; i<nx ; i++)
 	{
 		values[i] *= mult;
-		cur += snprintf(&message[cur], 10000, "%d ", values[i]);
+		cur += snprintf(&message[cur], 10000-cur, "%d ", values[i]);
 	}
 	FPRINTF(stderr, "%s\n", message);
 }
