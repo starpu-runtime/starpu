@@ -21,11 +21,10 @@
 #define NX    9
 #define PARTS 3
 
-struct starpu_codelet t1_codelet;
-struct starpu_codelet t2_codelet;
+struct starpu_codelet task_codelet;
 
 // CPU implementations
-void t1_cpu(void *descr[], void *args)
+void task_cpu(void *descr[], void *args)
 {
 	int *values = (int*)STARPU_VECTOR_GET_PTR(descr[0]);
 	int nx = STARPU_VECTOR_GET_NX(descr[0]);
@@ -35,29 +34,10 @@ void t1_cpu(void *descr[], void *args)
 
 	starpu_codelet_unpack_args(args, &add);
 
-	cur += snprintf(&message[cur], 10000, "[t1] Values ");
+	cur += snprintf(&message[cur], 10000, "Values ");
 	for(i=0 ; i<nx ; i++)
 	{
 		values[i] += add;
-		cur += snprintf(&message[cur], 10000-cur, "%d ", values[i]);
-	}
-	FPRINTF(stderr, "%s\n", message);
-}
-
-void t2_cpu(void *descr[], void *args)
-{
-	int *values = (int*)STARPU_VECTOR_GET_PTR(descr[0]);
-	int nx = STARPU_VECTOR_GET_NX(descr[0]);
-	int i, mult;
-	char message[10000];
-	int cur = 0;
-
-	starpu_codelet_unpack_args(args, &mult);
-
-	cur += snprintf(&message[cur], 10000, "[t2] Values ");
-	for(i=0 ; i<nx ; i++)
-	{
-		values[i] *= mult;
 		cur += snprintf(&message[cur], 10000-cur, "%d ", values[i]);
 	}
 	FPRINTF(stderr, "%s\n", message);
@@ -71,12 +51,12 @@ void split_cpu(void *descr[], void *args)
 	starpu_data_handle_t value_handle, sub_handles[PARTS];
 	starpu_codelet_unpack_args(args, &value_handle, &sub_handles);
 
-	FPRINTF(stderr, "  Partition for handle %p into handles %p %p and %p\n", value_handle, sub_handles[0], sub_handles[1], sub_handles[2]);
+	FPRINTF(stderr, "Partition for handle %p into handles %p %p and %p\n", value_handle, sub_handles[0], sub_handles[1], sub_handles[2]);
 
 	starpu_data_partition_submit_sequential_consistency(value_handle, PARTS, sub_handles, 0);
 }
 
-void b1_cpu(void *descr[], void *args)
+void supertask_cpu(void *descr[], void *args)
 {
 	(void)descr;
 	//	starpu_data_handle_t data_handle = starpu_data_lookup((void*)STARPU_VECTOR_GET_PTR(descr[0]));
@@ -85,36 +65,14 @@ void b1_cpu(void *descr[], void *args)
 
 	starpu_codelet_unpack_args(args, &sub_handles, &add);
 
-	FPRINTF(stderr, "[B1] Submitting tasks on %d subdata\n", PARTS);
+	FPRINTF(stderr, "Submitting tasks on %d subdata (add %d)\n", PARTS, add);
 
 	int i;
 	for(i=0 ; i<PARTS ; i++)
 	{
-		int ret = starpu_task_insert(&t1_codelet,
+		int ret = starpu_task_insert(&task_codelet,
 					     STARPU_RW, sub_handles[i],
 					     STARPU_VALUE, &add, sizeof(add),
-					     0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	}
-}
-
-void b2_cpu(void *descr[], void *args)
-{
-	(void)descr;
-	//	starpu_data_handle_t data_handle = starpu_data_lookup((void*)STARPU_VECTOR_GET_PTR(descr[0]));
-	int factor;
-
-	starpu_data_handle_t sub_handles[PARTS];
-	starpu_codelet_unpack_args(args, &sub_handles, &factor);
-
-	FPRINTF(stderr, "[B2] Submitting tasks on subdata\n");
-
-	int i;
-	for(i=0 ; i<PARTS ; i++)
-	{
-		int ret = starpu_task_insert(&t2_codelet,
-					     STARPU_RW, sub_handles[i],
-					     STARPU_VALUE, &factor, sizeof(factor),
 					     0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
@@ -135,36 +93,20 @@ void merge_cpu(void *descr[], void *args)
 
 
 // Codelets
-struct starpu_codelet t1_codelet =
+struct starpu_codelet task_codelet =
 {
-	.cpu_funcs = {t1_cpu},
+	.cpu_funcs = {task_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.name = "t1_codelet"
+	.name = "task_codelet"
 };
 
-struct starpu_codelet t2_codelet =
+struct starpu_codelet supertask_codelet =
 {
-	.cpu_funcs = {t2_cpu},
+	.cpu_funcs = {supertask_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.name = "t2_codelet"
-};
-
-struct starpu_codelet b1_codelet =
-{
-	.cpu_funcs = {b1_cpu},
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.name = "b1_codelet"
-};
-
-struct starpu_codelet b2_codelet =
-{
-	.cpu_funcs = {b2_cpu},
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.name = "b2_codelet"
+	.name = "supertask_codelet"
 };
 
 struct starpu_codelet split_codelet =
@@ -188,7 +130,6 @@ int main(void)
 	int ret, i;
 	int values[NX];
 	int check[NX];
-	int factor=2;
 	int add=1;
 	starpu_data_handle_t value_handle;
 	starpu_data_handle_t sub_handles[PARTS];
@@ -211,7 +152,7 @@ int main(void)
 
 	values[NX-1] = 2;
 	for(i=NX-2 ; i>= 0 ; i--) values[i] = values[i+1] * 2;
-	for(i=0 ; i<NX ; i++) check[i] = (values[i] + 1 + 1) * 2 + 1;
+	for(i=0 ; i<NX ; i++) check[i] = values[i] + (4 * add);
 
 	starpu_vector_data_register(&value_handle, STARPU_MAIN_RAM, (uintptr_t)&values[0], NX, sizeof(values[0]));
 	starpu_data_partition_plan(value_handle, &f, sub_handles);
@@ -222,9 +163,9 @@ int main(void)
 		starpu_data_partition_not_automatic(sub_handles[i]);
 
 	// insert a task on the whole data
-	ret = starpu_task_insert(&t1_codelet, STARPU_RW, value_handle,
+	ret = starpu_task_insert(&task_codelet, STARPU_RW, value_handle,
 				 STARPU_VALUE, &add, sizeof(add),
-				 STARPU_NAME, "t1", 0);
+				 STARPU_NAME, "task_1", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// insert a task to split the data
@@ -235,17 +176,17 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// insert a task that will work on the subdata
-	ret = starpu_task_insert(&b1_codelet, STARPU_RW, value_handle,
+	ret = starpu_task_insert(&supertask_codelet, STARPU_RW, value_handle,
 				 STARPU_VALUE, sub_handles, PARTS*sizeof(starpu_data_handle_t),
 				 STARPU_VALUE, &add, sizeof(add),
-				 STARPU_NAME, "b1", 0);
+				 STARPU_NAME, "supertask_1", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// insert another task that will work on the subdata
-	ret = starpu_task_insert(&b2_codelet, STARPU_RW, value_handle,
+	ret = starpu_task_insert(&supertask_codelet, STARPU_RW, value_handle,
 				 STARPU_VALUE, sub_handles, PARTS*sizeof(starpu_data_handle_t),
-				 STARPU_VALUE, &factor, sizeof(factor),
-				 STARPU_NAME, "b2", 0);
+				 STARPU_VALUE, &add, sizeof(add),
+				 STARPU_NAME, "supertask_2", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// insert a task to merge the data
@@ -256,9 +197,9 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// insert a task that will work on the whole data
-	ret = starpu_task_insert(&t1_codelet, STARPU_RW, value_handle,
+	ret = starpu_task_insert(&task_codelet, STARPU_RW, value_handle,
 				 STARPU_VALUE, &add, sizeof(add),
-				 STARPU_NAME, "t1", 0);
+				 STARPU_NAME, "task_2", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
