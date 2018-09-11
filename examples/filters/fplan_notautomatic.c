@@ -34,7 +34,7 @@ void task_cpu(void *descr[], void *args)
 
 	starpu_codelet_unpack_args(args, &add);
 
-	cur += snprintf(&message[cur], 10000, "Values ");
+	cur += snprintf(&message[cur], 10000-cur, "Values ");
 	for(i=0 ; i<nx ; i++)
 	{
 		values[i] += add;
