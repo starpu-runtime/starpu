@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2014,2016-2017                           CNRS
+ * Copyright (C) 2014,2016-2018                           CNRS
  * Copyright (C) 2014,2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -204,23 +204,19 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
     (sched_ctx_id, STARPU_WORKER_LIST);
 
   /* Create the Scheduling Tree */
-  struct starpu_sched_tree * t =
-    starpu_sched_tree_create(sched_ctx_id);
+  struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 
   /* The Root Component is a Flow-control Fifo Component */
    t->root = starpu_sched_component_fifo_create(NULL);
 
   /* The Resource-mapping Component of the strategy is an Eager Component
    */
-  struct starpu_sched_component * eager_component =
-    starpu_sched_component_eager_create(NULL);
+  struct starpu_sched_component *eager_component = starpu_sched_component_eager_create(NULL);
 
   /* Create links between Components : the Eager Component is the child
    * of the Root Component */
-  t->root->add_child
-    (t->root, eager_component);
-  eager_component->add_father
-    (eager_component, t->root);
+  t->root->add_child(t->root, eager_component);
+  eager_component->add_father(eager_component, t->root);
 
   /* A task threshold is set for the Flow-control Components which will
    * be connected to Worker Components. By doing so, this Modularized
@@ -233,44 +229,32 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
   };
 
   unsigned i;
-  for(i = 0;
-    i < starpu_worker_get_count() +
-    starpu_combined_worker_get_count();
-    i++)
+  for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
   {
     /* Each Worker Component has a Flow-control Fifo Component as
      * father */
-    struct starpu_sched_component * worker_component =
-	  starpu_sched_component_worker_new(i);
-    struct starpu_sched_component * fifo_component =
-	  starpu_sched_component_fifo_create(&fifo_data);
-    fifo_component->add_child
-      (fifo_component, worker_component);
-    worker_component->add_father
-      (worker_component, fifo_component);
+    struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(i);
+    struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(&fifo_data);
+    fifo_component->add_child(fifo_component, worker_component);
+    worker_component->add_father(worker_component, fifo_component);
 
     /* Each Flow-control Fifo Component associated to a Worker
      * Component is linked to the Eager Component as one of its
      * children */
-    eager_component->add_child
-      (eager_component, fifo_component);
-    fifo_component->add_father
-      (fifo_component, eager_component);
+    eager_component->add_child(eager_component, fifo_component);
+    fifo_component->add_father(fifo_component, eager_component);
   }
 
   starpu_sched_tree_update_workers(t);
-  starpu_sched_ctx_set_policy_data
-    (sched_ctx_id, (void*)t);
+  starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
 /* Properly destroy the Scheduling Tree and all its Components */
 static void deinitialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
-  struct starpu_sched_tree * tree =
-  	(struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+  struct starpu_sched_tree * tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
   starpu_sched_tree_destroy(tree);
-  starpu_sched_ctx_delete_worker_collection
-    (sched_ctx_id);
+  starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
 /* Initializing the starpu_sched_policy struct associated to the Modularized

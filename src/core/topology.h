@@ -63,10 +63,12 @@ void _starpu_topology_filter(hwloc_topology_t topology);
 #endif
 
 #define STARPU_NOWORKERID -1
+#define STARPU_ACTIVETHREAD -2
+#define STARPU_NONACTIVETHREAD -2
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(int cpuid, int workerid);
+int _starpu_bind_thread_on_cpu(int cpuid, int workerid, const char *name);
 
 struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */
@@ -76,5 +78,9 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
 int starpu_memory_nodes_get_numa_count(void);
 int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
-	
+
+/* Get the memory node for data number i when task is to be executed on memory node target_node */
+int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned target_node);
+int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker);
+
 #endif // __TOPOLOGY_H__

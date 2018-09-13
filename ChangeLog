@@ -41,6 +41,23 @@ New features:
     more, StarPU will make the appropriate calls as needed.
   * Add starpu_task_notify_ready_soon_register to be notified when it is
     determined when a task will be ready an estimated amount of time from now.
+  * New StarPU-MPI initialization function (starpu_mpi_init_conf)
+    which allows StarPU-MPI to manage reserving a core for the MPI thread, or
+    merging it with CPU driver 0.
+  * Add possibility to delay the termination of a task with the
+    functions starpu_task_end_dep_add() which specifies the number of
+    calls to the function starpu_task_end_dep_release() needed to
+    trigger the task termination.
+  * Add possibility to define the sequential consistency at the task level
+    for each handle used by the task.
+  * Add STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_CPU, and
+    STARPU_SPECIFIC_NODE_SLOW as generic values for codelet specific memory
+    nodes which can be used instead of exact node numbers.
+  * Add starpu_get_next_bindid and starpu_bind_thread_on to allow binding an
+    application-started thread on a free core. Use it in StarPU-MPI to
+    automatically bind the MPI thread on an available core.
+  * Add STARPU_RESERVE_NCPU environment variable and reserve_ncpus config
+    field to make StarPU use a few cores less.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
@@ -63,7 +80,7 @@ Small features:
   * Add SubmitOrder trace field.
   * Add workerids and workerids_len task fields.
   * Add priority management to StarPU-MPI. Can be disabled with
-  the STARPU_MPI_PRIORITIES environment variable.
+    the STARPU_MPI_PRIORITIES environment variable.
   * Add STARPU_MAIN_THREAD_CPUID and STARPU_MPI_THREAD_CPUID environment
     variables.
   * Add disk to disk copy functions and support asynchronous full read/write
@@ -76,17 +93,47 @@ Small features:
   * Add dependency backward information in debugging mode for gdb's
     starpu-print-task
   * Add sched_data field in starpu_task structure.
+  * New starpu_fxt_tool option -label-deps to label dependencies on
+    the output graph
+  * New environment variable STARPU_GENERATE_TRACE_OPTIONS to specify
+    fxt options (to be used with STARPU_GENERATE_TRACE)
+  * New function starpu_task_set() similar as starpu_task_build() but
+    with a task object given as the first parameter
+  * New functions
+    starpu_data_partition_submit_sequential_consistency() and
+    starpu_data_unpartition_submit_sequential_consistency()
+  * Add a new value STARPU_TASK_SYNCHRONOUS to be used in
+    starpu_task_insert() to define if the task is (or not) synchronous
+  * Add memory states events in the traces.
+  * Add starpu_sched_component_estimated_end_min_add() to fix termination
+    estimations in modular schedulers.
+  * New function starpu_data_partition_not_automatic() to disable the
+    automatic partitioning of a data handle for which a asynchronous
+    plan has previously been submitted
 
 Changes:
   * Vastly improve simgrid simulation time.
   * Switch default scheduler to lws.
   * Add "to" parameter to pull_task and can_push methods of components.
+  * Deprecate handle_to_pointer interface operation in favor of new to_pointer
+  operation.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
   * Allow to call starpu_sched_ctx_set_policy_data on the main
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
+
+StarPU 1.2.5 (git revision xxx)
+==============================================
+
+Small features:
+  * Add a new value STARPU_TASK_COLOR to be used in
+    starpu_task_insert() to pick up the color of a task in dag.dot
+  * Add starpu_data_pointer_is_inside().
+
+Changes:
+  * Do not export -lcuda -lcudart -lOpenCL in *starpu*.pc.
 
 StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
 ==============================================
@@ -104,6 +151,7 @@ Small features:
    * Do not show internal tasks in fxt dag by default. Allow to hide
      acquisitions too.
    * Add a way to choose the dag.dot colors.
+
 
 StarPU 1.2.3 (svn revision 22444)
 ==============================================

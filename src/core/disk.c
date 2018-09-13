@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                CNRS
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2013-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2013-2015,2017-2018                      Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -181,11 +181,12 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 			channel = NULL;
 		else
 		{
+			double start;
 			channel->event.disk_event.memory_node = src_node;
 
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			event = disk_register_list[src_node]->functions->async_read(disk_register_list[src_node]->base, obj, buf, offset, size);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
                         add_async_event(channel, event);
 		}
@@ -210,11 +211,12 @@ int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_n
 			channel = NULL;
 		else
                 {
+			double start;
 			channel->event.disk_event.memory_node = dst_node;
 
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			event = disk_register_list[dst_node]->functions->async_write(disk_register_list[dst_node]->base, obj, buf, offset, size);
-        		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
                         add_async_event(channel, event);
 		}
@@ -276,11 +278,12 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void
 			channel = NULL;
 		else
 		{
+			double start;
 			channel->event.disk_event.memory_node = src_node;
 
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			event = disk_register_list[src_node]->functions->async_full_read(disk_register_list[src_node]->base, obj, ptr, size, dst_node);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
                         add_async_event(channel, event);
 		}
@@ -304,11 +307,12 @@ int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
 			channel = NULL;
 		else
 		{
+			double start;
 			channel->event.disk_event.memory_node = dst_node;
 
-			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			event = disk_register_list[dst_node]->functions->async_full_write(disk_register_list[dst_node]->base, obj, ptr, size);
-			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
                         add_async_event(channel, event);
 		}

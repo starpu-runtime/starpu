@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2017                                CNRS
- * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2012,2017,2018                           CNRS
+ * Copyright (C) 2009-2012,2014-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,10 +44,10 @@ extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*s
 
 void _starpu_fxt_dag_init(char *dag_filename);
 void _starpu_fxt_dag_terminate(void);
-void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id);
-void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father);
+void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id, const char *label);
+void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father, const char *label);
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color);
-void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ);
+void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label);
 void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color);
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
@@ -62,10 +62,11 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst, int mpi_tag, size_t siz
 void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, int mpi_tag, float date, long jobid);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file);
 
-void _starpu_fxt_write_paje_header(FILE *file);
+void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *options);
 
 extern int _starpu_poti_extendedSetState;
 extern int _starpu_poti_semiExtendedSetState;
+extern int _starpu_poti_MemoryEvent;
 
 /*
  * Animation

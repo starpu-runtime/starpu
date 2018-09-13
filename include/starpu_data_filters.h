@@ -3,7 +3,7 @@
  * Copyright (C) 2011                                     Antoine Lucas
  * Copyright (C) 2009-2012,2014-2015,2017                 Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  * Copyright (C) 2011                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,6 +52,10 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 void starpu_data_unpartition_submit_r(starpu_data_handle_t initial_handle, int gathering_node);
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node);
 void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
+
+void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
+void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
+void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
 
 int starpu_data_get_nb_children(starpu_data_handle_t handle);
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i);

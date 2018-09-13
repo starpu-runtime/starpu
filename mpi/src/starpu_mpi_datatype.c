@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2015                           Inria
- * Copyright (C) 2009-2011,2014-2015                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2015, 2018                      Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -301,7 +301,7 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 		table->free_datatype_func = free_datatype_func;
 		HASH_ADD_INT(_starpu_mpi_datatype_funcs_table, id, table);
 	}
-	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer, "The data interface must define the operation 'handle_to_pointer'\n");
+	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer || handle->ops->to_pointer, "The data interface must define the operation 'to_pointer'\n");
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	return 0;
 }

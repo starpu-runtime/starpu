@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016-2017                                CNRS
-# Copyright (C) 2016                                     Université de Bordeaux
+# Copyright (C) 2016, 2018                                     Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -41,7 +41,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -83,7 +83,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 
 {
@@ -94,7 +94,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -111,7 +111,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -121,7 +121,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -151,7 +151,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -168,7 +168,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -199,7 +199,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -214,7 +214,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -230,7 +230,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -244,7 +244,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -260,24 +260,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
-}
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
-   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
-   fun:call_init.part.0
-   fun:_dl_init
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -304,10 +287,27 @@
    obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
    obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
    obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libnvidia-opencl.so.331.49
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   fun:call_init.part.0
+   fun:_dl_init
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -392,7 +392,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -409,7 +409,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -426,7 +426,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -441,7 +441,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -501,7 +501,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -548,7 +548,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>
@@ -612,7 +612,7 @@
    obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
    fun:call_init.part.0
    fun:_dl_init
-   obj:/lib/x86_64-linux-gnu/ld-2.21.so
+   ...
 }
 {
    <insert_a_suppression_name_here>

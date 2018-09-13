@@ -80,6 +80,7 @@ EXTRA_DIST = 					\
 	sched_ctx/axpy_partition_gpu.h			\
 	sched_ctx/axpy_partition_gpu.cu			\
 	heat/heat.sh					\
+	cholesky/cholesky.sh				\
 	lu/lu.sh
 
 
@@ -216,6 +217,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
 	basic_examples/dynamic_handles          \
+	basic_examples/task_insert_color	\
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
@@ -228,6 +230,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
+	filters/fplan_notautomatic		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -248,7 +251,9 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
-	reductions/minmax_reduction
+	reductions/minmax_reduction		\
+	dependency/task_end_dep			\
+	dependency/sequential_consistency
 
 endif
 
@@ -312,6 +317,12 @@ TESTS += \
 	lu/lu.sh
 
 endif
+
+endif
+
+if STARPU_SIMGRID
+TESTS += \
+	 cholesky/cholesky.sh
 endif
 endif
 

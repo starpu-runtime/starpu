@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -119,7 +119,7 @@ int _starpu_is_reclaiming(unsigned node)
 }
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
-static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
+static int choose_target(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -132,6 +132,10 @@ void _starpu_init_mem_chunk_lists(void)
 		STARPU_HG_DISABLE_CHECKING(mc_nb[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_clean_nb[i]);
 	}
+	/* We do not enable forcing available memory by default, since
+	  this makes StarPU spuriously free data when prefetching fills the
+	  memory. Clean buffers should be enough to be able to allocate data
+	  easily anyway. */
 	minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 0);
 	target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 0);
 	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
@@ -286,7 +290,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			unsigned cnt = 0;
 
 			/* some other node may have the copy */
-			_STARPU_TRACE_DATA_INVALIDATE(handle, src_node);
+			_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
@@ -301,7 +305,10 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			STARPU_ASSERT(cnt > 0);
 
 			if (cnt == 1)
+			{
+				_STARPU_TRACE_DATA_STATE_OWNER(handle, last);
 				handle->per_node[last].state = STARPU_OWNER;
+			}
 
 		}
 		else
@@ -386,9 +393,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
 			_starpu_data_unregister_ram_pointer(handle, node);
 
-		_STARPU_TRACE_START_FREE(node, mc->size);
+               _STARPU_TRACE_START_FREE(node, mc->size, handle);
 		mc->ops->free_data_on_node(data_interface, node);
-		_STARPU_TRACE_END_FREE(node);
+               _STARPU_TRACE_END_FREE(node, handle);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -564,12 +571,12 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-				_STARPU_TRACE_START_WRITEBACK(node);
+                               _STARPU_TRACE_START_WRITEBACK(node, handle);
 				/* Note: this may need to allocate data etc.
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-				_STARPU_TRACE_END_WRITEBACK(node);
+                               _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -756,7 +763,7 @@ restart:
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
  */
-static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint)
+static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, int is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	int success = 0;
@@ -782,6 +789,12 @@ restart:
 
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
+			continue;
+		if (is_prefetch > 1)
+			/* Do not evict a MC just for an idle fetch */
+			continue;
+		if (is_prefetch == 1 && !mc->wontuse)
+			/* Do not evict something that we might reuse, just for a prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -991,16 +1004,9 @@ size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 /* Periodic tidy of available memory  */
 void starpu_memchunk_tidy(unsigned node)
 {
-	starpu_ssize_t total = starpu_memory_get_total(node);
-	starpu_ssize_t available = starpu_memory_get_available(node);
+	starpu_ssize_t total;
+	starpu_ssize_t available;
 	size_t target, amount;
-
-	/* Count cached allocation as being available */
-	available += mc_cache_size[node];
-
-	if (total > 0 && available >= (starpu_ssize_t) (total * minimum_p) / 100)
-		/* Enough available space, do not trigger reclaiming */
-		return;
 
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
@@ -1136,7 +1142,17 @@ void starpu_memchunk_tidy(unsigned node)
 		_STARPU_TRACE_END_WRITEBACK_ASYNC(node);
 	}
 
+	total = starpu_memory_get_total(node);
+
 	if (total <= 0)
+		return;
+
+	available = starpu_memory_get_available(node);
+	/* Count cached allocation as being available */
+	available += mc_cache_size[node];
+
+	if (available >= (starpu_ssize_t) (total * minimum_p) / 100)
+		/* Enough available space, do not trigger reclaiming */
 		return;
 
 	/* Not enough available space, reclaim until we reach the target.  */
@@ -1196,6 +1212,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
 	mc->diduse = 0;
+	mc->wontuse = 0;
 
 	return mc;
 }
@@ -1324,14 +1341,14 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-	_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size);
+       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-		_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
+               _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
 		return data_size;
 	}
-	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
+       _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
 #endif
 	STARPU_ASSERT(handle->ops);
 	STARPU_ASSERT(handle->ops->allocate_data_on_node);
@@ -1352,7 +1369,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
+               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
@@ -1366,7 +1383,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 #endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
-		_STARPU_TRACE_END_ALLOC(dst_node);
+               _STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1381,19 +1398,19 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				continue;
 			reclaim -= freed;
 
-			if (is_prefetch)
-				/* It's just prefetch, don't bother existing allocations */
-				continue;
-
 			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
 			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint))
 				break;
-			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint))
+			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
 			{
 				reused = 1;
 				allocated_memory = data_size;
 				break;
 			}
+
+			if (is_prefetch)
+				/* It's just prefetch, don't bother existing allocations */
+				continue;
 
 			if (!told_reclaiming)
 			{
@@ -1444,9 +1461,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	else if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-		_STARPU_TRACE_START_FREE(dst_node, data_size);
+               _STARPU_TRACE_START_FREE(dst_node, data_size, handle);
 		handle->ops->free_data_on_node(data_interface, dst_node);
-		_STARPU_TRACE_END_FREE(dst_node);
+               _STARPU_TRACE_END_FREE(dst_node, handle);
 		allocated_memory = 0;
 	}
 	else
@@ -1514,6 +1531,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
 	MC_LIST_ERASE(node, mc);
+	mc->wontuse = 0;
 	MC_LIST_PUSH_BACK(node, mc);
 	_starpu_spin_unlock(&mc_lock[node]);
 }
@@ -1528,6 +1546,7 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_spin_lock(&mc_lock[node]);
 	/* Avoid preventing it from being evicted */
 	mc->diduse = 1;
+	mc->wontuse = 1;
 	MC_LIST_ERASE(node, mc);
 	/* Caller will schedule a clean transfer */
 	mc->clean = 1;
@@ -1622,8 +1641,8 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	for (i = 0; i < nnodes; i++)
 	{
 		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
-		    (_starpu_memory_manager_test_allocate_size(i, _starpu_data_get_size(handle)) == 1 ||
-		     handle->per_node[i].allocated))
+		    (handle->per_node[i].allocated ||
+		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_size(handle)) == 1))
 		{
 			/* if we can write on the disk */
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
@@ -1650,7 +1669,8 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 #  warning TODO: better choose NUMA node
 #endif
 
-static unsigned
+/* Choose a target memory node to put the value of the handle, because the current location (node) is getting tight */
+static int
 choose_target(starpu_data_handle_t handle, unsigned node)
 {
 	int target = -1;

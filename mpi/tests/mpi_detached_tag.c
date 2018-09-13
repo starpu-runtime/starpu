@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2011,2014-2018                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  * Copyright (C) 2013                                     Inria
  *
@@ -38,10 +38,8 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(&argc, &argv, mpi_init);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
@@ -52,7 +50,6 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need a even number of processes.\n");
 
 		starpu_mpi_shutdown();
-		starpu_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
@@ -86,7 +83,6 @@ int main(int argc, char **argv)
 	free(tab);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	if (!mpi_init)
 		MPI_Finalize();

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014,2016-2017                      CNRS
+ * Copyright (C) 2013-2014,2016-2018                      CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2013-2014,2017-2018                           Université de Bordeaux
+ * Copyright (C) 2013-2014,2017-2018                      Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ automatically read and write data as appropriate.
 To use a disk memory node, you have to register it with this function:
 
 \code{.c}
-	int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) "/tmp/", 1024*1024*200);
+int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) "/tmp/", 1024*1024*200);
 \endcode
 
 Here, we use the unistd library to realize the read/write operations, i.e.

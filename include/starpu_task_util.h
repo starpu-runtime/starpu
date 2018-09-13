@@ -63,8 +63,12 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_CL_ARGS		(25<<STARPU_MODE_SHIFT)
 #define STARPU_CL_ARGS_NFREE	(26<<STARPU_MODE_SHIFT)
 #define STARPU_TASK_DEPS_ARRAY	(27<<STARPU_MODE_SHIFT)
-#define STARPU_SHIFTED_MODE_MAX (28<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_COLOR       (28<<STARPU_MODE_SHIFT)
+#define STARPU_HANDLES_SEQUENTIAL_CONSISTENCY (29<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_SYNCHRONOUS (30<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (31<<STARPU_MODE_SHIFT)
 
+int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);
 /* the function starpu_insert_task has the same semantics as starpu_task_insert, it is kept to avoid breaking old codes */

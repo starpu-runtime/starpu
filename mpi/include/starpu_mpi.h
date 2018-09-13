@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2012,2014-2018                      Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2016                                     Inria
  *
@@ -54,6 +54,7 @@ int starpu_mpi_barrier(MPI_Comm comm);
 
 int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency);
 
+int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm, struct starpu_conf *conf);
 int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm);
 int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi);
 int starpu_mpi_initialize(void) STARPU_DEPRECATED;

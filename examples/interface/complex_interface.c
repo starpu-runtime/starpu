@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2013-2015                                Université de Bordeaux
+ * Copyright (C) 2012-2015,2017,2018                      CNRS
+ * Copyright (C) 2013-2015, 2018                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,17 @@
 #include <starpu.h>
 
 #include "complex_interface.h"
+
+static int complex_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
+{
+	(void)node;
+	struct starpu_complex_interface *complex_interface = data_interface;
+
+	return ((char*) ptr >= (char*) &complex_interface->real &&
+		(char*) ptr < (char*) (&complex_interface->real + 1))
+	    || ((char*) ptr >= (char*) &complex_interface->imaginary &&
+		(char*) ptr < (char*) (&complex_interface->imaginary + 1));
+}
 
 double *starpu_complex_get_real(starpu_data_handle_t handle)
 {
@@ -195,7 +206,8 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.footprint = complex_footprint,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_complex_interface),
-	.handle_to_pointer = NULL,
+	.to_pointer = NULL,
+	.pointer_is_inside = complex_pointer_is_inside,
 	.pack_data = complex_pack_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe

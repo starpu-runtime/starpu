@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015,2017,2018                           CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2009-2010,2014-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2010,2014-2015,2017-2018                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,8 @@ static struct starpu_codelet cl11 =
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &chol_model_11
+	.model = &chol_model_11,
+	.color = 0xffff00,
 };
 
 static struct starpu_codelet cl21 =
@@ -46,9 +47,11 @@ static struct starpu_codelet cl21 =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_21
+	.model = &chol_model_21,
+	.color = 0x8080ff,
 };
 
 static struct starpu_codelet cl22 =
@@ -59,9 +62,11 @@ static struct starpu_codelet cl22 =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
-	.model = &chol_model_22
+	.model = &chol_model_22,
+	.color = 0x00ff00,
 };
 
 /*
@@ -157,6 +162,9 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 
 	starpu_task_wait_for_all();
 
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+	end = starpu_timing_now();
+
 	for(x = 0; x < nblocks ; x++)
 	{
 		for (y = 0; y < nblocks; y++)
@@ -167,9 +175,6 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		free(data_handles[x]);
 	}
 	free(data_handles);
-
-	starpu_mpi_barrier(MPI_COMM_WORLD);
-	end = starpu_timing_now();
 
 	if (rank == 0)
 	{

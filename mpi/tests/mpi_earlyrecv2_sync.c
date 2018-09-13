@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2010,2015                           Université de Bordeaux
+ * Copyright (C) 2009-2010,2015, 2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,10 +104,8 @@ int exchange_variable(int rank)
 	starpu_data_handle_t tab_handle[NB];
 	int value[NB];
 
-	ret = starpu_init(NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	FPRINTF_MPI(stderr, "Exchanging variable data\n");
 
@@ -122,7 +120,6 @@ int exchange_variable(int rank)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }
@@ -152,7 +149,6 @@ int exchange_void(int rank)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }
@@ -201,7 +197,6 @@ int exchange_complex(int rank)
 		starpu_data_unregister(handle[i]);
 
 	starpu_mpi_shutdown();
-	starpu_shutdown();
 
 	return ret;
 }

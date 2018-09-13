@@ -297,15 +297,16 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTR
 {
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	double start = 0.;
 
 	if (event)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 
 	cl_event ev;
 	err = clEnqueueWriteBuffer(in_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 
 	if (event)
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
 	if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
@@ -336,13 +337,14 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 {
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	double start = 0.;
 
 	if (event)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 	cl_event ev;
 	err = clEnqueueReadBuffer(out_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 	if (event)
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
 		if (event == NULL)
@@ -372,13 +374,14 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 {
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	double start = 0.;
 
 	if (event)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 	cl_event ev;
 	err = clEnqueueCopyBuffer(peer_transfer_queues[worker->devid], src, dst, src_offset, dst_offset, size, 0, NULL, &ev);
 	if (event)
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
 	{
 		if (event == NULL)
@@ -451,15 +454,16 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
+	double start = 0.;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
         err = clEnqueueReadBufferRect(out_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
 	clFlush(out_transfer_queues[worker->devid]);
         if (event)
-                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -472,15 +476,16 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
         cl_int err;
         struct _starpu_worker *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
+	double start = 0.;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
-                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+                starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
         err = clEnqueueWriteBufferRect(in_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
 	clFlush(in_transfer_queues[worker->devid]);
         if (event)
-                _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+                starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -624,7 +629,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	_starpu_opencl_init_context(devid);
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid);
+	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid, NULL);
 
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_opencl_get_global_mem_size(devid));

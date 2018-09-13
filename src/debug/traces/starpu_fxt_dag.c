@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2015,2017                           CNRS
+ * Copyright (C) 2012,2015,2017,2018                      CNRS
  * Copyright (C) 2010-2015,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,24 +66,37 @@ void _starpu_fxt_dag_terminate(void)
 	fclose(out_file);
 }
 
-void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id)
+void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id, const char *label)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%s%llx\"->\"task_%s%lu\"->\"tag_%s%llx\" [style=dashed]\n",
-			prefix, (unsigned long long)tag, prefix, (unsigned long)job_id, prefix, (unsigned long long) tag);
+	{
+		if (label)
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"task_%s%lu\"->\"tag_%s%llx\" [style=dashed] [label=\"%s\"]\n", prefix, (unsigned long long)tag, prefix, (unsigned long)job_id, prefix, (unsigned long long) tag, label);
+		else
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"task_%s%lu\"->\"tag_%s%llx\" [style=dashed]\n", prefix, (unsigned long long)tag, prefix, (unsigned long)job_id, prefix, (unsigned long long) tag);
+	}
 }
 
-void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father)
+void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father, const char *label)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\"\n",
-			prefix, (unsigned long long)father, prefix, (unsigned long long)child);
+	{
+		if (label)
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\" [label=\"%s\"]\n", prefix, (unsigned long long)father, prefix, (unsigned long long)child, label);
+		else
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\"\n", prefix, (unsigned long long)father, prefix, (unsigned long long)child);
+	}
 }
 
-void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ)
+void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"task_%s%lu\"->\"task_%s%lu\"\n", prefix, dep_prev, prefix, dep_succ);
+	{
+		if (label)
+			fprintf(out_file, "\t \"task_%s%lu\"->\"task_%s%lu\" [label=\"%s\"]\n", prefix, dep_prev, prefix, dep_succ, label);
+		else
+			fprintf(out_file, "\t \"task_%s%lu\"->\"task_%s%lu\"\n", prefix, dep_prev, prefix, dep_succ);
+	}
 }
 
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color)

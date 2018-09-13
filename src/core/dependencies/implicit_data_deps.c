@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2016                                Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,14 +37,14 @@ void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t))
 	write_hook = func;
 }
 
-static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned long previous, struct starpu_task *next)
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
 	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
-static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, struct starpu_task *previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next)
 {
 	_starpu_add_ghost_dependency(handle, _starpu_get_job_associated_to_task(previous)->job_id, next);
 }
@@ -203,7 +203,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 /* NB : handle->sequential_consistency_mutex must be hold by the caller;
  * returns a task, to be submitted after releasing that mutex. */
 struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
-						   starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+								  starpu_data_handle_t handle, enum starpu_data_access_mode mode, unsigned task_handle_sequential_consistency)
 {
 	struct starpu_task *task = NULL;
 
@@ -214,7 +214,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
         _STARPU_LOG_IN();
 
-	if (handle->sequential_consistency)
+	if (handle->sequential_consistency && task_handle_sequential_consistency)
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
@@ -296,11 +296,11 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					struct starpu_task *sync_task = starpu_task_create();
 					STARPU_ASSERT(sync_task);
 					if (previous_mode == STARPU_REDUX)
-						sync_task->name = "sync_task_redux";
+						sync_task->name = "_starpu_sync_task_redux";
 					else if (mode ==  STARPU_COMMUTE || previous_mode == STARPU_COMMUTE)
-						sync_task->name = "sync_task_commute";
+						sync_task->name = "_starpu_sync_task_commute";
 					else
-						sync_task->name = "sync_task";
+						sync_task->name = "_starpu_sync_task";
 					sync_task->cl = NULL;
 					sync_task->type = post_sync_task->type;
 
@@ -386,13 +386,14 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	j->sequential_consistency = 1;
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer);
-		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer);
+		starpu_data_handle_t handle = descrs[buffer].handle;
+		enum starpu_data_access_mode mode = descrs[buffer].mode;
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
@@ -401,8 +402,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 
 		if (buffer)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer - 1);
-			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer - 1);
+			starpu_data_handle_t handle_m1 = descrs[buffer-1].handle;
+			enum starpu_data_access_mode mode_m1 = descrs[buffer-1].mode;
 			if (handle_m1 == handle && mode_m1 == mode)
 				/* We have already added dependencies for this
 				 * data, skip it. This reduces the number of
@@ -414,9 +415,11 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		if (!handle->sequential_consistency)
+		unsigned index = descrs[buffer].index;
+		unsigned task_handle_sequential_consistency = task->handles_sequential_consistency ? task->handles_sequential_consistency[index] : handle->sequential_consistency;
+		if (!task_handle_sequential_consistency)
 			j->sequential_consistency = 0;
-		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode, task_handle_sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
 		{
@@ -504,11 +507,12 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	if (!task->cl)
 		return;
+
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
         unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
@@ -516,13 +520,13 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index);
-		enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index);
+		starpu_data_handle_t handle = descrs[index].handle;
+		enum starpu_data_access_mode mode = descrs[index].mode;
 
 		if (index)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, index - 1);
-			enum starpu_data_access_mode mode_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, index - 1);
+			starpu_data_handle_t handle_m1 = descrs[index-1].handle;
+			enum starpu_data_access_mode mode_m1 = descrs[index-1].mode;
 			if (handle_m1 == handle && mode_m1 == mode)
 				/* See _starpu_detect_implicit_data_deps */
 				continue;
@@ -629,7 +633,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */
-		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, &_starpu_get_job_associated_to_task(sync_task)->implicit_dep_slot, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, &_starpu_get_job_associated_to_task(sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task)

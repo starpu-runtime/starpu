@@ -250,7 +250,7 @@ methods of the policy.
 
 Make sure to have a look at the \ref API_Scheduling_Policy section, which
 provides a list of the available functions for writing advanced schedulers, such
-as starpu_task_expected_length(), starpu_task_expected_data_transfer_time(),
+as starpu_task_expected_length(), starpu_task_expected_data_transfer_time_for(),
 starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
 starpu_transfer_predict(), ...

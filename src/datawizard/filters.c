@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Antoine Lucas
  * Copyright (C) 2011-2012,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -658,7 +658,8 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	_starpu_spin_unlock(&root_handle->header_lock);
 }
 
-void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+static
+void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -688,8 +689,33 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	int ret;
+	if (handles_sequential_consistency)
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts,
+					 STARPU_NAME, "partition",
+					 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					 0);
+	else
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts,
+					 STARPU_NAME, "partition",
+					 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_data_invalidate_submit(initial_handle);
+}
+
+void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
+{
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
+
+	_starpu_data_partition_submit(initial_handle, nparts, children, handles_sequential_consistency);
+}
+
+void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	_starpu_data_partition_submit(initial_handle, nparts, children, NULL);
 }
 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -753,13 +779,13 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	starpu_data_invalidate_submit(initial_handle);
 }
 
-void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	if (initial_handle->readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
@@ -804,9 +830,34 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
+	int ret;
+	if (handles_sequential_consistency)
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+					 STARPU_NAME, "unpartition",
+					 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					 0);
+	else
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+					 STARPU_NAME, "unpartition",
+					 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 	for (i = 0; i < nparts; i++)
 		starpu_data_invalidate_submit(children[i]);
+}
+
+void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+{
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL);
+}
+
+void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency)
+{
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency);
 }
 
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
@@ -814,7 +865,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for this handle");
+	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
@@ -988,4 +1039,9 @@ _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	 */
 	if (offset != NULL)
 		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
+}
+
+void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
+{
+	handle->partition_automatic_disabled = 1;
 }

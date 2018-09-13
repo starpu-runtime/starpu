@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -591,13 +591,15 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Make sure the specified node exists */
-			STARPU_ASSERT_MSG(node == -1 || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
+			STARPU_ASSERT_MSG(node == STARPU_SPECIFIC_NODE_LOCAL || node == STARPU_SPECIFIC_NODE_CPU || node == STARPU_SPECIFIC_NODE_SLOW || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
-			    ((handle->nplans && !handle->nchildren) || handle->siblings))
+			    ((handle->nplans && !handle->nchildren) || handle->siblings)
+			    && handle->partition_automatic_disabled == 0
+			    )
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit
@@ -678,6 +680,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	if (!continuation)
 	{
+		STARPU_ASSERT_MSG(!j->submitted || j->terminated >= 1, "Tasks can not be submitted a second time before being terminated. Please use different task structures, or use the regenerate flag to let the task resubmit itself automatically.");
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
@@ -1140,6 +1143,18 @@ struct starpu_task *starpu_task_get_current(void)
 void _starpu_set_current_task(struct starpu_task *task)
 {
 	STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
+}
+
+int starpu_task_get_current_data_node(unsigned i)
+{
+	struct starpu_task *task = starpu_task_get_current();
+	if (!task)
+		return -1;
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	unsigned orderedindex = descrs[i].orderedindex;
+	return descrs[orderedindex].node;
 }
 
 #ifdef STARPU_OPENMP

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016-2017                      Inria
- * Copyright (C) 2009-2016                                Université de Bordeaux
+ * Copyright (C) 2009-2016,2018                           Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,6 +94,8 @@ struct starpu_data_copy_methods
 };
 
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
+void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start);
+void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
 uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags);
 uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
 void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags);
@@ -122,7 +124,9 @@ struct starpu_data_interface_ops
 	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 	const struct starpu_data_copy_methods *copy_methods;
-	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
+	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node); /* deprecated */
+	void * 		 (*to_pointer)			(void *data_interface, unsigned node);
+	int 		 (*pointer_is_inside)		(void *data_interface, unsigned node, void *ptr);
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
@@ -148,6 +152,7 @@ void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
+int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr);
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);

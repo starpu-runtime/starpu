@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2015,2017                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -125,10 +125,19 @@
 	} while (0)
 
 
-#define _STARPU_MALLOC(ptr, size) do { ptr = malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (size)); } while (0)
-#define _STARPU_CALLOC(ptr, nmemb, size) do { ptr = calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
-#define _STARPU_REALLOC(ptr, size) do { void *_new_ptr = realloc(ptr, size); STARPU_ASSERT_MSG(_new_ptr != NULL, "Cannot reallocate %ld bytes\n", (long) (size)); ptr = _new_ptr;} while (0)
-#define _STARPU_MALLOC_CAST(ptr, size, type) do { ptr = (type) malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (size)); } while (0)
+#ifdef _MSC_VER
+#  if defined(__cplusplus)
+#    define _STARPU_DECLTYPE(x) (decltype(x))
+#  else
+#    define _STARPU_DECLTYPE(x)
+#  endif
+#else
+#  define _STARPU_DECLTYPE(x) (__typeof(x))
+#endif
+
+#define _STARPU_MALLOC(ptr, size) do { ptr = _STARPU_DECLTYPE(ptr) malloc(size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (size)); } while (0)
+#define _STARPU_CALLOC(ptr, nmemb, size) do { ptr = _STARPU_DECLTYPE(ptr) calloc(nmemb, size); STARPU_ASSERT_MSG(ptr != NULL, "Cannot allocate %ld bytes\n", (long) (nmemb*size)); } while (0)
+#define _STARPU_REALLOC(ptr, size) do { void *_new_ptr = realloc(ptr, size); STARPU_ASSERT_MSG(_new_ptr != NULL, "Cannot reallocate %ld bytes\n", (long) (size)); ptr = _STARPU_DECLTYPE(ptr) _new_ptr;} while (0)
 
 #ifdef _MSC_VER
 #define _STARPU_IS_ZERO(a) (a == 0.0)

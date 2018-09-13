@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,6 +36,17 @@ not allocate more CPU workers than there are physical CPUs, and that
 some CPUs are used to control the accelerators.
 </dd>
 
+<dt>STARPU_RESERVE_NCPU</dt>
+<dd>
+\anchor STARPU_RESERVE_NCPU
+\addindex __env__STARPU_RESERVE_NCPU
+Specify the number of CPU cores that should not be used by StarPU, so the
+application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
+its own threads.
+
+This option is ignored if \ref STARPU_NCPU or starpu_config::ncpus is set.
+</dd>
+
 <dt>STARPU_NCPUS</dt>
 <dd>
 \anchor STARPU_NCPUS
@@ -66,19 +77,21 @@ which will be concurrently running on the devices. The default value is 1.
 <dd>
 \anchor STARPU_CUDA_THREAD_PER_WORKER
 \addindex __env__STARPU_CUDA_THREAD_PER_WORKER
-Specify if the cuda driver should provide a thread per stream or a single thread 
-dealing with all the streams. 0 if one thread per stream, 1 otherwise. The default 
-value is 0. Setting it to 1 is contradictory with setting STARPU_CUDA_THREAD_PER_DEV to 1.
+Specify whether the cuda driver should use one thread per stream (1) or to use
+a single thread to drive all the streams of the device or all devices (0), and
+STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
+thread for all devices. The default value is 0. Setting it to 1 is contradictory
+with setting STARPU_CUDA_THREAD_PER_DEV.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_DEV</dt>
 <dd>
 \anchor STARPU_CUDA_THREAD_PER_DEV
 \addindex __env__STARPU_CUDA_THREAD_PER_DEV
-Specify if the cuda driver should provide a thread per device or a single thread 
-dealing with all the devices. 0 if one thread per device, 1 otherwise. The default 
-value is 1, unless STARPU_CUDA_THREAD_PER_WORKER is set to 1. Setting it to 1 is
-contradictory with setting STARPU_CUDA_THREAD_PER_WORKER to 1.
+Specify whether the cuda driver should use one thread per device (1) or to use a
+single thread to drive all the devices (0). The default value is 1.  It does not
+make sense to set this variable if STARPU_CUDA_THREAD_PER_WORKER is set to to 1
+(since STARPU_CUDA_THREAD_PER_DEV is then meaningless).
 </dd>
 
 <dt>STARPU_CUDA_PIPELINE</dt>
@@ -369,7 +382,7 @@ Disable asynchronous copies between CPU and MIC devices.
 
 <dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
 <dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY 
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
 Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
@@ -611,6 +624,30 @@ Setting to a number makes StarPU believe that it runs the given MPI node, even
 if it was run on only one MPI node. This allows e.g. to simulate the execution
 of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
+</dd>
+
+<dt>STARPU_MPI_DRIVER_CALL_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_CALL_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_CALL_FREQUENCY
+When set to a positive value, activates the interleaving of the execution of
+tasks with the progression of MPI communications (\ref MPISupport). The
+starpu_mpi_init_conf() function must have been called by the application
+for that environment variable to be used. When set to 0, the MPI progression
+thread does not use at all the driver given by the user, and only focuses on
+making MPI communications progress.
+</dd>
+
+<dt>STARPU_MPI_DRIVER_TASK_FREQUENCY</dt>
+<dd>
+\anchor STARPU_MPI_DRIVER_TASK_FREQUENCY
+\addindex __env__STARPU_MPI_DRIVER_TASK_FREQUENCY
+When set to a positive value, the interleaving of the execution of tasks with
+the progression of MPI communications mechanism to execute several tasks before
+checking communication requests again (\ref MPISupport). The
+starpu_mpi_init_conf() function must have been called by the application
+for that environment variable to be used, and the
+STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>
@@ -946,7 +983,7 @@ full.
 This specifies then backend to be used by StarPU to push data when the main
 memory is getting full. The default is unistd (i.e. using read/write functions),
 other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
-read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5 
+read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5
 (i.e. using HDF5 library).
 </dd>
 
@@ -961,7 +998,7 @@ memory is getting full. The default is unlimited.
 <dt>STARPU_LIMIT_MAX_SUBMITTED_TASKS</dt>
 <dd>
 \anchor STARPU_LIMIT_MAX_SUBMITTED_TASKS
-\addindex __env__STARPU_LIMIT_MAX_SUBMITTED_TASKS    
+\addindex __env__STARPU_LIMIT_MAX_SUBMITTED_TASKS
 This variable allows the user to control the task submission flow by specifying
 to StarPU a maximum number of submitted tasks allowed at a given time, i.e. when
 this limit is reached task submission becomes blocking until enough tasks have
@@ -972,7 +1009,7 @@ Setting it enables allocation cache buffer reuse in main memory.
 <dt>STARPU_LIMIT_MIN_SUBMITTED_TASKS</dt>
 <dd>
 \anchor STARPU_LIMIT_MIN_SUBMITTED_TASKS
-\addindex __env__STARPU_LIMIT_MIN_SUBMITTED_TASKS    
+\addindex __env__STARPU_LIMIT_MIN_SUBMITTED_TASKS
 This variable allows the user to control the task submission flow by specifying
 to StarPU a submitted task threshold to wait before unblocking task submission. This
 variable has to be used in conjunction with \ref STARPU_LIMIT_MAX_SUBMITTED_TASKS
@@ -995,6 +1032,15 @@ however also consumes memory, of course. The default value is 64.
 \addindex __env__STARPU_GENERATE_TRACE
 When set to <c>1</c>, this variable indicates that StarPU should automatically
 generate a Paje trace when starpu_shutdown() is called.
+</dd>
+
+<dt>STARPU_GENERATE_TRACE_OPTIONS</dt>
+<dd>
+\anchor STARPU_GENERATE_TRACE_OPTIONS
+\addindex __env__STARPU_GENERATE_TRACE_OPTIONS
+When the variable \ref STARPU_GENERATE_TRACE is set to <c>1</c> to
+generate a Paje trace, this variable can be set to specify options (see
+<c>starpu_fxt_tool --help</c>).
 </dd>
 
 <dt>STARPU_ENABLE_STATS</dt>
@@ -1162,7 +1208,7 @@ accesses (see \ref ConcurrentDataAccess).
 
 <dt>STARPU_USE_NUMA</dt>
 <dd>
-\anchor STARPU_USE_NUMA 
+\anchor STARPU_USE_NUMA
 \addindex __env__STARPU_USE_NUMA
 When defined, NUMA nodes are taking into account by StarPU. Otherwise, memory
 is considered as only one node. This is experimental for now.
@@ -1191,7 +1237,7 @@ The file will contain the sum of the idle times of all the workers.
 <dd>
 \anchor SC_HYPERVISOR_POLICY
 \addindex __env__SC_HYPERVISOR_POLICY
-Choose between the different resizing policies proposed by StarPU for the hypervisor: 
+Choose between the different resizing policies proposed by StarPU for the hypervisor:
 idle, app_driven, feft_lp, teft_lp; ispeed_lp, throughput_lp etc.
 
 Use <c>SC_HYPERVISOR_POLICY=help</c> to get the list of available policies for the hypervisor
@@ -1221,7 +1267,7 @@ of the total time of execution of the application. The default value is the resi
 \addindex __env__SC_HYPERVISOR_MAX_SPEED_GAP
 Indicate the ratio of speed difference between contexts that should trigger the hypervisor.
 This situation may occur only when a theoretical speed could not be computed and the hypervisor
-has no value to compare the speed to. Otherwise the resizing of a context is not influenced by the 
+has no value to compare the speed to. Otherwise the resizing of a context is not influenced by the
 the speed of the other contexts, but only by the the value that a context should have.
 </dd>
 
@@ -1239,7 +1285,7 @@ is not done.
 \anchor SC_HYPERVISOR_LAZY_RESIZE
 \addindex __env__SC_HYPERVISOR_LAZY_RESIZE
 By default the hypervisor resizes the contexts in a lazy way, that is workers are firstly added to a new context
-before removing them from the previous one. Once this workers are clearly taken into account 
+before removing them from the previous one. Once this workers are clearly taken into account
 into the new context (a task was poped there) we remove them from the previous one. However if the application
 would like that the change in the distribution of workers should change right away this variable should be set to 0
 </dd>

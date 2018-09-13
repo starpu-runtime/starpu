@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2015                                     Université de Bordeaux
+ * Copyright (C) 2015,2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,6 +107,14 @@ void empty(void *buffers[], void *cl_arg)
 	 * data, thus getting back all data pieces there.  */
 	(void)buffers;
 	(void)cl_arg;
+
+	/* This check is just for testsuite */
+	int node = starpu_task_get_current_data_node(0);
+	unsigned i;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(starpu_task_get_current());
+	STARPU_ASSERT(node >= 0);
+	for (i = 1; i < nbuffers; i++)
+		STARPU_ASSERT(starpu_task_get_current_data_node(i) == node);
 }
 
 struct starpu_codelet cl_switch =

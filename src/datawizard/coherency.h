@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2014-2017                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2015,2017,2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -276,6 +276,8 @@ struct _starpu_data_state
 	/* Last worker that took this data in locality mode, or -1 if nobody
 	 * took it yet */
 	int last_locality;
+
+	int partition_automatic_disabled;
 
 	/* A generic pointer to data in the user land (could be anything and this
 	 * is not manage by StarPU) */

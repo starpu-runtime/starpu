@@ -451,6 +451,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 	handle->mpi_data = NULL;
+	handle->partition_automatic_disabled = 0;
 
 	size_t interfacesize = interface_ops->interface_size;
 
@@ -507,13 +508,34 @@ void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
-	if (handle->ops->handle_to_pointer
-	    && starpu_data_test_if_allocated_on_node(handle, node))
+	if (!starpu_data_test_if_allocated_on_node(handle, node))
+		return NULL;
+	if (handle->ops->to_pointer)
+	{
+		return handle->ops->to_pointer(starpu_data_get_interface_on_node(handle, node), node);
+	}
+
+	/* Deprecated */
+	if (handle->ops->handle_to_pointer)
 	{
 		return handle->ops->handle_to_pointer(handle, node);
 	}
 
 	return NULL;
+}
+
+int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr)
+{
+	/* Check whether the operation is supported and the node has actually
+	 * been allocated.  */
+	if (!starpu_data_test_if_allocated_on_node(handle, node))
+		return 0;
+	if (handle->ops->pointer_is_inside)
+	{
+		return handle->ops->pointer_is_inside(starpu_data_get_interface_on_node(handle, node), node, ptr);
+	}
+	/* Don't know :/ */
+	return -1;
 }
 
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
@@ -1002,7 +1024,7 @@ static void _starpu_data_invalidate(void *data)
 		}
 
 		if (local->state != STARPU_INVALID)
-			_STARPU_TRACE_DATA_INVALIDATE(handle, node);
+			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
 	}
 

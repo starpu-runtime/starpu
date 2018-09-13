@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2018                           CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -91,6 +91,9 @@ typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 
 #define STARPU_VARIABLE_NBUFFERS (-1)
 
+#define STARPU_SPECIFIC_NODE_LOCAL (-1)
+#define STARPU_SPECIFIC_NODE_CPU (-2)
+#define STARPU_SPECIFIC_NODE_SLOW (-3)
 struct starpu_task;
 struct starpu_codelet
 {
@@ -152,6 +155,8 @@ struct starpu_task
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
+
+	unsigned char *handles_sequential_consistency;
 
 	void *cl_arg;
 	size_t cl_arg_size;
@@ -225,6 +230,7 @@ struct starpu_task
 #else
 	void *omp_task;
 #endif
+	unsigned nb_termination_call_required;
 	void *sched_data;
 };
 
@@ -299,6 +305,9 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 
 void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
+void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps);
+void starpu_task_end_dep_release(struct starpu_task *t);
+
 int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
@@ -348,6 +357,7 @@ void starpu_codelet_init(struct starpu_codelet *cl);
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 struct starpu_task *starpu_task_get_current(void);
+int starpu_task_get_current_data_node(unsigned i);
 
 const char *starpu_task_get_model_name(struct starpu_task *task);
 const char *starpu_task_get_name(struct starpu_task *task);

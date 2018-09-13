@@ -261,8 +261,7 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector,
-                            NX, sizeof(vector[0]));
+starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
 struct starpu_data_filter f =
@@ -428,8 +427,8 @@ struct starpu_codelet cl_switch =
 };
 
 ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
-			STARPU_W, vert_handle[0], 
-			STARPU_W, vert_handle[1], 
+			STARPU_W, vert_handle[0],
+			STARPU_W, vert_handle[1],
 			0);
 \endcode
 
@@ -510,8 +509,7 @@ and attaches them as reduction methods for its handle <c>dtq</c>:
 
 \code{.c}
 starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
-starpu_data_set_reduction_methods(dtq_handle,
-        &accumulate_variable_cl, &bzero_variable_cl);
+starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 \endcode
 
 and <c>dtq_handle</c> can now be used in mode ::STARPU_REDUX for the
@@ -554,8 +552,7 @@ with a new reduction:
 for (i = 0; i < 100; i++)
 {
     starpu_mpi_task_insert(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
-    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A,
-               STARPU_R, B, STARPU_REDUX, res, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A, STARPU_R, B, STARPU_REDUX, res, 0);
     starpu_mpi_redux_data(MPI_COMM_WORLD, res);
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
@@ -573,22 +570,10 @@ the ::STARPU_COMMUTE data access flag. Accesses without this flag will however
 properly be serialized against accesses with this flag. For instance:
 
 \code{.c}
-    starpu_task_insert(&cl1,
-        STARPU_R, h,
-        STARPU_RW, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle1,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl2,
-        STARPU_R, handle2,
-        STARPU_RW|STARPU_COMMUTE, handle,
-        0);
-    starpu_task_insert(&cl3,
-        STARPU_R, g,
-        STARPU_RW, handle,
-        0);
+    starpu_task_insert(&cl1, STARPU_R, h, STARPU_RW, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle1, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle2, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl3, STARPU_R, g, STARPU_RW, handle, 0);
 \endcode
 
 The two tasks running <c>cl2</c> will be able to commute: depending on whether the
@@ -680,8 +665,7 @@ memory for it, and StarPU will allocate it on demand at task execution.
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
 for (i = 0; i < N; i++)
-    starpu_task_insert(&compute, STARPU_R, input[i],
-                       STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
+    starpu_task_insert(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 \endcode
 
 StarPU will make sure that the buffer is allocated before executing the task,
@@ -856,8 +840,16 @@ main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the starpu_codelet::specific_nodes flag to
 <c>1</c>, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
 starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node numbers
-where data should be copied to, or <c>-1</c> to let StarPU copy it to the memory node
-where the task will be executed. For instance, with the following codelet:
+where data should be copied to, or <c>STARPU_SPECIFIC_NODE_LOCAL</c> to let
+StarPU copy it to the memory node where the task will be executed.
+
+<c>STARPU_SPECIFIC_NODE_CPU</c> can also be used to request data to be
+put in CPU-accessible memory (and let StarPU choose the NUMA node).
+<c>STARPU_SPECIFIC_NODE_FAST</c> and <c>STARPU_SPECIFIC_NODE_SLOW</c> can als be
+used
+
+For instance,
+with the following codelet:
 
 \code{.c}
 struct starpu_codelet cl =
@@ -866,12 +858,31 @@ struct starpu_codelet cl =
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
-	.nodes = {STARPU_MAIN_RAM, -1},
+	.nodes = {STARPU_SPECIFIC_NODE_CPU, STARPU_SPECIFIC_NODE_LOCAL},
 };
 \endcode
 
-the first data of the task will be kept in the main memory, while the second
+the first data of the task will be kept in the CPU memory, while the second
 data will be copied to the CUDA GPU as usual. A working example is available in
 <c>tests/datawizard/specific_node.c</c>
+
+With the following codelet:
+
+\code{.c}
+struct starpu_codelet cl =
+{
+	.cuda_funcs = { kernel },
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_SLOW},
+};
+\endcode
+
+The first data will be copied into fast (but probably size-limited) local memory
+while the second data will be left in slow (but large) memory. This makes sense
+when the kernel does not make so many accesses to the second data, and thus data
+being remote e.g. over a PCI bus is not a performance problem, and avoids
+filling the fast local memory with data which does not need the performance.
 
 */

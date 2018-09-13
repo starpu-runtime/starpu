@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2015                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -180,13 +180,70 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 	return;
 }
 
+static void _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options)
+{
+	if (strcmp(option, "-c") == 0)
+	{
+		options->per_task_colour = 1;
+	}
+	else if (strcmp(option, "-no-events") == 0)
+	{
+		options->no_events = 1;
+	}
+	else if (strcmp(option, "-no-counter") == 0)
+	{
+		options->no_counter = 1;
+	}
+	else if (strcmp(option, "-no-bus") == 0)
+	{
+		options->no_bus = 1;
+	}
+	else if (strcmp(option, "-no-flops") == 0)
+	{
+		options->no_flops = 1;
+	}
+	else if (strcmp(option, "-no-smooth") == 0)
+	{
+		options->no_smooth = 1;
+	}
+	else if (strcmp(option, "-no-acquire") == 0)
+	{
+		options->no_acquire = 1;
+	}
+	else if (strcmp(option, "-memory-states") == 0)
+	{
+		options->memory_states = 1;
+	}
+	else if (strcmp(option, "-internal") == 0)
+	{
+		options->internal = 1;
+	}
+	else if (strcmp(option, "-label-deps") == 0)
+	{
+		options->label_deps = 1;
+	}
+	else
+	{
+		_STARPU_MSG("Option <%s> is not a valid option for starpu_fxt_tool\n", option);
+	}
+}
+
 static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
 {
 	/* We take default options */
 	struct starpu_fxt_options options;
 	starpu_fxt_options_init(&options);
 
-	/* TODO parse some STARPU_GENERATE_TRACE_OPTIONS env variable */
+	char *trace_options = starpu_getenv("STARPU_GENERATE_TRACE_OPTIONS");
+	if (trace_options)
+	{
+		char *option = strtok(trace_options, " ");
+		while (option)
+		{
+			_starpu_generate_paje_trace_read_option(option, &options);
+			option = strtok(NULL, " ");
+		}
+	}
 
 	options.ninputfiles = 1;
 	options.filenames[0] = input_fxt_filename;

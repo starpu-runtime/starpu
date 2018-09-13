@@ -288,6 +288,9 @@ extern void *smpi_process_get_user_data();
 #pragma weak main
 int main(int argc, char **argv)
 {
+#ifdef HAVE_SG_CONFIG_CONTINUE_AFTER_HELP
+	sg_config_continue_after_help();
+#endif
 	if (_starpu_simgrid_running_smpi())
 	{
 		if (!smpi_process_get_user_data)
@@ -345,6 +348,9 @@ static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 /* This is called early from starpu_init, so thread functions etc. can work */
 void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef HAVE_SG_CONFIG_CONTINUE_AFTER_HELP
+	sg_config_continue_after_help();
+#endif
 #if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
 	if (simgrid_started < 2 && !_starpu_simgrid_running_smpi())
 	{
@@ -562,6 +568,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 				"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
 			_starpu_job_get_model_name(j));
+                /* TODO: option to add variance according to performance model,
+                 * to be able to easily check scheduling robustness */
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
@@ -910,6 +918,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	double *computation;
 	double *communication;
 	union _starpu_async_channel_event *event, myevent;
+	double start = 0.;
 
 	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
 	_STARPU_CALLOC(computation, 2, sizeof(*computation));
@@ -945,7 +954,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->next = NULL;
 
 	if (req)
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 
 	/* Sleep 10µs for the GPU transfer queueing */
 	if (_starpu_simgrid_queue_malloc_cost())
@@ -955,7 +964,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	if (req)
 	{
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 		return -EAGAIN;
 	}

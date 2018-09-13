@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012,2016                           Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -111,13 +111,13 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 }
 
 static
-struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
+struct starpu_task *_starpu_task_build_v(struct starpu_task *ptask, struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
 {
 	va_list varg_list_copy;
 	int ret;
 
-	struct starpu_task *task = starpu_task_create();
-	task->name = task_name;
+	struct starpu_task *task = ptask ? ptask : starpu_task_create();
+	task->name = task_name ? task_name : task->name;
 	task->cl_arg_free = cl_arg_free;
 
 	va_copy(varg_list_copy, varg_list);
@@ -132,13 +132,12 @@ struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* 
 	return (ret == 0) ? task : NULL;
 }
 
-static
 int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 {
 	struct starpu_task *task;
 	int ret;
 
-	task = _starpu_task_build_v(cl, NULL, 1, varg_list);
+	task = _starpu_task_build_v(NULL, cl, NULL, 1, varg_list);
 	ret = starpu_task_submit(task);
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -153,6 +152,16 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 		starpu_task_destroy(task);
 	}
 	return ret;
+}
+
+int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
+{
+	va_list varg_list;
+
+	va_start(varg_list, cl);
+	_starpu_task_build_v(task, cl, NULL, 1, varg_list);
+	va_end(varg_list);
+	return 0;
 }
 
 int starpu_task_insert(struct starpu_codelet *cl, ...)
@@ -183,7 +192,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 	va_list varg_list;
 
 	va_start(varg_list, cl);
-	task = _starpu_task_build_v(cl, "task_build", 0, varg_list);
+	task = _starpu_task_build_v(NULL, cl, "task_build", 0, varg_list);
 	if (task && task->cl_arg)
 	{
 		task->cl_arg_free = 1;

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015,2017                           Inria
  * Copyright (C) 2009-2015,2017-2018                      Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -252,8 +252,9 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 {
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
 	 * which is a sorted copy of it. */
-	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer_index);
-	enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index) & ~STARPU_COMMUTE;
+	struct _starpu_data_descr *buffer = &(_STARPU_JOB_GET_ORDERED_BUFFERS(j)[buffer_index]);
+	starpu_data_handle_t handle = buffer->handle;
+	enum starpu_data_access_mode mode = buffer->mode & ~STARPU_COMMUTE;
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }
@@ -343,19 +344,20 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 	unsigned i;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	struct starpu_task *task = j->task;
+	struct _starpu_data_descr *buffers = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 
 	for (i=0 ; i<nbuffers; i++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
-		int node = -1;
-		if (task->cl->specific_nodes)
-			node = STARPU_CODELET_GET_NODE(task->cl, i);
-		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
+		buffers[i].index = i;
+		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
+		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
+		buffers[i].node = -1;
 	}
-	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), nbuffers);
+	_starpu_sort_task_handles(buffers, nbuffers);
+	for (i=0 ; i<nbuffers; i++)
+	{
+		buffers[buffers[i].index].orderedindex = i;
+	}
 }
 
 /* Sort the data used by the given job by handle pointer value order, and

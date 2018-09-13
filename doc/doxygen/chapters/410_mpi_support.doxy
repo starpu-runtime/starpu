@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2011-2013,2017                           Inria
+ * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,31 +38,31 @@ initializes a token on node 0, and the token is passed from node to node,
 incremented by one on each step. The code is not using StarPU yet.
 
 \code{.c}
-    for (loop = 0; loop < nloops; loop++)
+for (loop = 0; loop < nloops; loop++)
+{
+    int tag = loop*size + rank;
+
+    if (loop == 0 && rank == 0)
     {
-        int tag = loop*size + rank;
-
-        if (loop == 0 && rank == 0)
-        {
-            token = 0;
-            fprintf(stdout, "Start with token value %d\n", token);
-        }
-        else
-        {
-            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
-        }
-
-        token++;
-
-        if (loop == last_loop && rank == last_rank)
-        {
-            fprintf(stdout, "Finished: token value %d\n", token);
-        }
-        else
-        {
-            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
-        }
+        token = 0;
+        fprintf(stdout, "Start with token value %d\n", token);
     }
+    else
+    {
+        MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+    }
+
+    token++;
+
+    if (loop == last_loop && rank == last_rank)
+    {
+        fprintf(stdout, "Finished: token value %d\n", token);
+    }
+    else
+    {
+        MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+    }
+}
 \endcode
 
 \section NotUsingMPISupport About not using the MPI support
@@ -73,39 +73,39 @@ execution to StarPU.  This is possible by just using starpu_data_acquire(), for
 instance:
 
 \code{.c}
-    for (loop = 0; loop < nloops; loop++)
+for (loop = 0; loop < nloops; loop++)
+{
+    int tag = loop*size + rank;
+
+    /* Acquire the data to be able to write to it */
+    starpu_data_acquire(token_handle, STARPU_W);
+    if (loop == 0 && rank == 0)
     {
-        int tag = loop*size + rank;
-
-	/* Acquire the data to be able to write to it */
-	starpu_data_acquire(token_handle, STARPU_W);
-        if (loop == 0 && rank == 0)
-        {
-            token = 0;
-            fprintf(stdout, "Start with token value %d\n", token);
-        }
-        else
-        {
-            MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
-        }
-	starpu_data_release(token_handle);
-
-        /* Task delegation to StarPU to increment the token. The execution might
-         * be performed on a CPU, a GPU, etc. */
-        increment_token();
-
-	/* Acquire the update data to be able to read from it */
-	starpu_data_acquire(token_handle, STARPU_R);
-        if (loop == last_loop && rank == last_rank)
-        {
-            fprintf(stdout, "Finished: token value %d\n", token);
-        }
-        else
-        {
-            MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
-        }
-	starpu_data_release(token_handle);
+        token = 0;
+        fprintf(stdout, "Start with token value %d\n", token);
     }
+    else
+    {
+        MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+    }
+	starpu_data_release(token_handle);
+
+    /* Task delegation to StarPU to increment the token. The execution might
+     * be performed on a CPU, a GPU, etc. */
+    increment_token();
+
+    /* Acquire the update data to be able to read from it */
+    starpu_data_acquire(token_handle, STARPU_R);
+    if (loop == last_loop && rank == last_rank)
+    {
+        fprintf(stdout, "Finished: token value %d\n", token);
+    }
+    else
+    {
+        MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+    }
+	starpu_data_release(token_handle);
+}
 \endcode
 
 In that case, <c>libstarpumpi</c> is not needed. One can also use <c>MPI_Isend()</c> and
@@ -141,8 +141,7 @@ int main(int argc, char **argv)
 {
     int rank, size;
 
-    starpu_init(NULL);
-    starpu_mpi_init(&argc, &argv, 1);
+    starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
     starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
     starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
@@ -167,8 +166,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag,
-                    MPI_COMM_WORLD, NULL, NULL);
+            starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
         }
 
         increment_token();
@@ -181,15 +179,13 @@ int main(int argc, char **argv)
         }
         else
         {
-            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1,
-                    MPI_COMM_WORLD, NULL, NULL);
+            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
         }
     }
 
     starpu_task_wait_for_all();
 
     starpu_mpi_shutdown();
-    starpu_shutdown();
 
     if (rank == last_rank)
     {
@@ -207,10 +203,10 @@ the beginning and the end.
 
 \section MPIInitialization How to Initialize StarPU-MPI
 
-As seen in the previous example, one has to call starpu_mpi_init() to
+As seen in the previous example, one has to call starpu_mpi_init_conf() to
 initialize StarPU-MPI. The third parameter of the function indicates
-if MPI should be initialized by StarPU or if the application will do
-it itself. If the application initializes MPI itself, it must call
+if MPI should be initialized by StarPU or if the application did it
+itself. If the application initializes MPI itself, it must call
 <c>MPI_Init_thread()</c> with <c>MPI_THREAD_SERIALIZED</c> or
 <c>MPI_THREAD_MULTIPLE</c>, since StarPU-MPI uses a separate thread to
 perform the communications. <c>MPI_THREAD_MULTIPLE</c> is necessary if
@@ -316,14 +312,12 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 {
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface =
-    (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   *count = complex_get_size(handle);
   starpu_malloc_flags(ptr, *count, 0);
   memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
-  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary,
-         complex_interface->nx*sizeof(double));
+  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 
   return 0;
 }
@@ -332,12 +326,10 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 {
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface =
-    (struct starpu_complex_interface *)	starpu_data_get_interface_on_node(handle, node);
+  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
-  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double),
-         complex_interface->nx*sizeof(double));
+  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
   return 0;
 }
@@ -369,8 +361,7 @@ void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI
 	MPI_Aint displacements[2];
 	MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
 
-	struct starpu_complex_interface *complex_interface =
-          (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	MPI_Address(complex_interface, displacements);
 	MPI_Address(&complex_interface->imaginary, displacements+1);
@@ -461,13 +452,11 @@ data which will be needed by the tasks that we will execute.
             int mpi_rank = my_distrib(x, y, size);
             if (mpi_rank == my_rank)
                 /* Owning data */
-                starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM,
-                                              (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
             else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
                   || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
                 /* I don't own this index, but will need it for my computations */
-                starpu_variable_data_register(&data_handles[x][y], -1,
-                                              (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
             else
                 /* I know it's useless to allocate anything for this */
                 data_handles[x][y] = NULL;
@@ -600,7 +589,8 @@ can just pass NULL to starpu_mpi_task_insert():
 
 \code{.c}
 starpu_data_handle_t data0 = NULL;
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_mpi_data_register(data0, 0, rank);
 }
@@ -615,12 +605,15 @@ data1 to node 0, which owns data and thus will need the value of data1 to execut
 
 \code{.c}
 starpu_data_handle_t data0 = NULL, data1, data;
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_mpi_data_register(data0, -1, rank);
 	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
 	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
-} else if (rank == 1) {
+}
+else if (rank == 1)
+{
 	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
 	starpu_variable_data_register(&data, -1, 0, sizeof(val));
 }
@@ -641,10 +634,13 @@ starpu_variable_data_register(&pernode, -1, 0, sizeof(val));
 starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
 
 /* Normal data: one on node0, one on node1 */
-if (rank == 0) {
+if (rank == 0)
+{
 	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
 	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
-} else if (rank == 1) {
+}
+else if (rank == 1)
+{
 	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
 	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
 }
@@ -744,8 +740,7 @@ migrate the data, and register the new location.
                   || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
                   || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)))
                 /* Register newly-needed data */
-                starpu_variable_data_register(&data_handles[x][y], -1,
-                                              (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
             if (data_handles[x][y])
 	    {
                 /* Migrate the data */
@@ -808,14 +803,12 @@ for(x = 0; x < nblocks ;  x++)
     int mpi_rank = my_distrib(x, nodes);
     if (rank == root)
     {
-        starpu_vector_data_register(&data_handles[x], STARPU_MAIN_RAM, (uintptr_t)vector[x],
-                                    blocks_size, sizeof(float));
+        starpu_vector_data_register(&data_handles[x], STARPU_MAIN_RAM, (uintptr_t)vector[x], blocks_size, sizeof(float));
     }
     else if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))
     {
         /* I own this index, or i will need it for my computations */
-        starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL,
-                                   block_size, sizeof(float));
+        starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL, block_size, sizeof(float));
     }
     else
     {
@@ -850,6 +843,46 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
 
 Other collective operations would be easy to define, just ask starpu-devel for
 them!
+
+\section MPIDriver Make StarPU-MPI progression thread execute tasks
+
+The default behaviour of StarPU-MPI is to spawn an MPI thread to take care only
+of MPI communications in an active fashion (i.e the StarPU-MPI thread sleeps
+only when there is no active request submitted by the application), with the
+goal of being as reactive as possible to communications. Knowing that, users
+usually leave one free core for the MPI thread when starting a distributed
+execution with StarPU-MPI.  However, this could result in a loss of performance
+for applications that does not require an extreme reactivity to MPI
+communications.
+
+The starpu_mpi_init_conf() routine allows the user to give the
+starpu_conf configuration structure of StarPU (usually given to the
+starpu_init() routine) to StarPU-MPI, so that StarPU-MPI reserves for its own
+use one of the CPU drivers of the current computing node, or one of the CPU
+cores, and then calls starpu_init() internally.
+
+This allows the MPI communication thread to call a StarPU CPU driver to run
+tasks when there is no active requests to take care of, and thus recover the
+computational power of the "lost" core. Since there is a trade-off between
+executing tasks and polling MPI requests, which is how much the application
+wants to lose in reactivity to MPI communications to get back the computing
+power of the core dedicated to the StarPU-MPI thread, there are two environment
+variables to pilot the behaviour of the MPI thread so that users can tune
+this trade-off depending of the behaviour of the application.
+
+The \ref STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable sets how many times
+the MPI progression thread goes through the MPI_Test() loop on each active communication request
+(and thus try to make communications progress by going into the MPI layer)
+before executing tasks. The default value for this environment variable is 0,
+which means that the support for interleaving task execution and communication
+polling is deactivated, thus returning the MPI progression thread to its
+original behaviour.
+
+The \ref STARPU_MPI_DRIVER_TASK_FREQUENCY environment variable sets how many tasks
+are executed by the MPI communication thread before checking all active
+requests again. While this environment variable allows a better use of the core
+dedicated to StarPU-MPI for computations, it also decreases the reactivity of
+the MPI communication thread as much.
 
 \section MPIDebug Debugging MPI
 

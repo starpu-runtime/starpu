@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2013,2016                           Inria
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2018                      CNRS
  * Copyright (C) 2010-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,9 @@ struct starpu_fxt_options
 	unsigned ninputfiles;
 	unsigned no_smooth;
 	unsigned no_acquire;
+	unsigned memory_states;
 	unsigned internal;
+	unsigned label_deps;
 	char *filenames[STARPU_FXT_MAX_FILES];
 	char *out_paje_path;
 	char *distrib_time_path;

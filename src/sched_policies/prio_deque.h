@@ -3,7 +3,7 @@
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014,2017                                Université de Bordeaux
+ * Copyright (C) 2014,2017-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ static inline void _starpu_prio_deque_erase(struct _starpu_prio_deque *pdeque, s
 }
 
 /* push a task in O(lg(nb priorities)) */
-static inline int _starpu_prio_deque_push_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
+static inline int _starpu_prio_deque_push_front_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
 {
 	starpu_task_prio_list_push_front(&pdeque->list, task);
 	pdeque->ntasks++;

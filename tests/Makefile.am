@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2017                                Inria
-# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2009-2018                                Université de Bordeaux
 # Copyright (C) 2010-2017                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -343,6 +343,7 @@ myPROGRAMS +=				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
+	parallel_tasks/parallel_kernels_trivial	\
 	parallel_tasks/parallel_kernels_spmd	\
 	parallel_tasks/spmd_peager		\
 	parallel_tasks/cuda_only		\

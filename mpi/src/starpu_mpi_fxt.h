@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013                                Inria
+ * Copyright (C) 2012-2013,2016                           Inria
  * Copyright (C) 2010-2011,2014,2017                      Université de Bordeaux
- * Copyright (C) 2010,2012,2014-2017                      CNRS
+ * Copyright (C) 2010,2012,2014-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,16 +37,6 @@ extern "C"
 #define _STARPU_MPI_FUT_IRECV_SUBMIT_END		0x5207
 #define _STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN		0x5208
 #define _STARPU_MPI_FUT_ISEND_COMPLETE_END		0x5209
-#define _STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN		0x5210
-#define _STARPU_MPI_FUT_IRECV_COMPLETE_END		0x5211
-#define _STARPU_MPI_FUT_SLEEP_BEGIN			0x5212
-#define _STARPU_MPI_FUT_SLEEP_END			0x5213
-#define _STARPU_MPI_FUT_DTESTING_BEGIN			0x5214
-#define _STARPU_MPI_FUT_DTESTING_END			0x5215
-#define _STARPU_MPI_FUT_UTESTING_BEGIN			0x5216
-#define _STARPU_MPI_FUT_UTESTING_END			0x5217
-#define _STARPU_MPI_FUT_UWAIT_BEGIN			0x5218
-#define _STARPU_MPI_FUT_UWAIT_END			0x5219
 #define _STARPU_MPI_FUT_DATA_SET_RANK			0x521a
 #define _STARPU_MPI_FUT_IRECV_TERMINATED		0x521b
 #define _STARPU_MPI_FUT_ISEND_TERMINATED		0x521c
@@ -54,8 +44,24 @@ extern "C"
 #define _STARPU_MPI_FUT_TESTING_DETACHED_END		0x521e
 #define _STARPU_MPI_FUT_TEST_BEGIN			0x521f
 #define _STARPU_MPI_FUT_TEST_END			0x5220
+#define _STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN		0x520a
+#define _STARPU_MPI_FUT_IRECV_COMPLETE_END		0x520b
+#define _STARPU_MPI_FUT_SLEEP_BEGIN			0x520c
+#define _STARPU_MPI_FUT_SLEEP_END			0x520d
+#define _STARPU_MPI_FUT_DTESTING_BEGIN			0x520e
+#define _STARPU_MPI_FUT_DTESTING_END			0x520f
+#define _STARPU_MPI_FUT_UTESTING_BEGIN			0x5210
+#define _STARPU_MPI_FUT_UTESTING_END			0x5211
+#define _STARPU_MPI_FUT_UWAIT_BEGIN			0x5212
+#define _STARPU_MPI_FUT_UWAIT_END			0x5213
+#define _STARPU_MPI_FUT_POLLING_BEGIN			0x5214
+#define _STARPU_MPI_FUT_POLLING_END			0x5215
+#define _STARPU_MPI_FUT_DRIVER_RUN_BEGIN		0x5216
+#define _STARPU_MPI_FUT_DRIVER_RUN_END			0x5217
 
 #ifdef STARPU_USE_FXT
+static int trace_loop = 0;
+
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
 #define _STARPU_MPI_TRACE_STOP(rank, worldsize)	\
@@ -119,6 +125,24 @@ extern "C"
 #define _STARPU_MPI_TRACE_TEST_BEGIN(peer, data_tag)		do {} while(0)
 #define _STARPU_MPI_TRACE_TEST_END(peer, data_tag)		do {} while(0)
 #endif
+#define _STARPU_MPI_TRACE_POLLING_BEGIN()					\
+	if(!trace_loop) {						\
+		trace_loop = 1;							\
+		FUT_DO_PROBE1(_STARPU_MPI_FUT_POLLING_BEGIN, _starpu_gettid()); \
+	}
+#define _STARPU_MPI_TRACE_POLLING_END()	\
+	if(trace_loop) {							\
+		trace_loop = 0;							\
+		FUT_DO_PROBE1(_STARPU_MPI_FUT_POLLING_END, _starpu_gettid());	\
+	}
+#define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
+#define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
+#define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
+#define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\
+	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
 #define TRACE
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
@@ -148,6 +172,10 @@ extern "C"
 #define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
 #define _STARPU_MPI_TRACE_TEST_BEGIN(peer, data_tag)		do {} while(0)
 #define _STARPU_MPI_TRACE_TEST_END(peer, data_tag)		do {} while(0)
+#define _STARPU_MPI_TRACE_POLLING_BEGIN()			do {} while(0);
+#define _STARPU_MPI_TRACE_POLLING_END()				do {} while(0);
+#define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()			do {} while(0);
+#define _STARPU_MPI_TRACE_DRIVER_RUN_END()			do {} while(0);
 #endif
 
 #ifdef __cplusplus
