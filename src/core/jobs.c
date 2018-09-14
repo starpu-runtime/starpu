@@ -288,6 +288,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_ASSERT(task->status == STARPU_TASK_RUNNING);
 #ifdef STARPU_OPENMP
 	if (continuation)
 	{
@@ -501,6 +502,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif
 			{
 				/* We reuse the same job structure */
+				task->status = STARPU_TASK_BLOCKED;
 				int ret = _starpu_submit_job(j);
 				STARPU_ASSERT(!ret);
 			}
@@ -580,6 +582,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
+		STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG);
                 j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
 		ret = 1;
 	}

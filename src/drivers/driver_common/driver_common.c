@@ -53,10 +53,12 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		_starpu_sched_pre_exec_hook(task);
 
 	_starpu_set_worker_status(worker, STATUS_EXECUTING);
-	task->status = STARPU_TASK_RUNNING;
 
 	if (rank == 0)
 	{
+		STARPU_ASSERT(task->status == STARPU_TASK_READY);
+		task->status = STARPU_TASK_RUNNING;
+
 		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
