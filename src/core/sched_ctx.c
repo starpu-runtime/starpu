@@ -2103,6 +2103,10 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 
+	/* Restore state just like out of dependency layers */
+	STARPU_ASSERT(task->status == STARPU_TASK_READY);
+	task->status = STARPU_TASK_BLOCKED;
+
 	task->sched_ctx = sched_ctx;
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
