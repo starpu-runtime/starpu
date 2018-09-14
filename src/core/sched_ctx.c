@@ -2258,6 +2258,10 @@ void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double ready_f
 
 void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned sched_ctx, unsigned with_repush)
 {
+	/* Restore state just like out of dependency layers */
+	STARPU_ASSERT(task->status == STARPU_TASK_READY);
+	task->status = STARPU_TASK_BLOCKED;
+
 	/* TODO: make something cleaner which differentiates between calls
 	   from push or pop (have mutex or not) and from another worker or not */
 	task->sched_ctx = sched_ctx;
