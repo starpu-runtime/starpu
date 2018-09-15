@@ -828,7 +828,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
 	_starpu_job_set_ordered_buffers(j);
 
-	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED);
+	STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
 
