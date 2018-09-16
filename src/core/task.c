@@ -540,7 +540,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	unsigned is_sync = task->synchronous;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (task->status == STARPU_TASK_FINISHED)
+	if (task->status == STARPU_TASK_STOPPED || task->status == STARPU_TASK_FINISHED)
 		task->status = STARPU_TASK_INVALID;
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
