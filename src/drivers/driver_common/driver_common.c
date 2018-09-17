@@ -49,7 +49,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	/* If the job is executed on a combined worker there is no need for the
 	 * scheduler to process it : it doesn't contain any valuable data
 	 * as it's not linked to an actual worker */
-	if (j->task_size == 1)
+	if (j->task_size == 1 && rank == 0)
 		_starpu_sched_pre_exec_hook(task);
 
 	_starpu_set_worker_status(worker, STATUS_EXECUTING);
@@ -85,6 +85,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		{
 			struct starpu_worker_collection *workers = sched_ctx->workers;
 			struct starpu_sched_ctx_iterator it;
+			int new_rank = 0;
 
 			if (workers->init_iterator)
 				workers->init_iterator(workers, &it);
@@ -93,8 +94,9 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				int _workerid = workers->get_next(workers, &it);
 				if (_workerid != workerid)
 				{
+					new_rank++;
 					struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
-					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, rank, profiling);
+					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, new_rank, profiling);
 				}
 			}
 		}
@@ -157,6 +159,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	{
 		struct starpu_worker_collection *workers = sched_ctx->workers;
 		struct starpu_sched_ctx_iterator it;
+		int new_rank = 0;
 
 		if (workers->init_iterator)
 			workers->init_iterator(workers, &it);
@@ -165,8 +168,9 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 			int _workerid = workers->get_next(workers, &it);
 			if (_workerid != workerid)
 			{
+				new_rank++;
 				struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
-				_starpu_driver_end_job(_worker, j, &_worker->perf_arch, rank, profiling);
+				_starpu_driver_end_job(_worker, j, &_worker->perf_arch, new_rank, profiling);
 			}
 		}
 	}
