@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2010-2015                                Université de Bordeaux
+ * Copyright (C) 2010-2015, 2018                                Université de Bordeaux
  * Copyright (C) 2010-2011,2013-2015,2017                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -88,6 +88,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	 * safe because this method should only be called when the scheduler
 	 * is being initialized. */
 	new_workerid = basic_worker_count + combined_worker_id;
+	STARPU_ASSERT_MSG(new_workerid < STARPU_NMAXWORKERS, "Too many combined workers for parallel task execution. Please use configure option --enable-maxcpus to increase it beyond the current value %d", STARPU_MAXCPUS);
 	config->topology.ncombinedworkers++;
 
 #if 0
