@@ -1944,6 +1944,7 @@ int _starpu_bindid_get_workerids(int bindid, int **workerids)
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
 {
+	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
 	*sched_cond = &_starpu_config.workers[workerid].sched_cond;
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }
