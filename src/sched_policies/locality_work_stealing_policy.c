@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -518,9 +518,9 @@ static int lws_push_task(struct starpu_task *task)
 	_STARPU_TASK_BREAK_ON(task, sched);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
-
 	starpu_push_task_end(task);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
