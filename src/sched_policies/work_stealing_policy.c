@@ -655,9 +655,9 @@ int ws_push_task(struct starpu_task *task)
 	starpu_sched_task_break(task);
 	_starpu_fifo_push_task(ws->per_worker[workerid].queue_array, task);
 	locality_pushed_task(task, workerid, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
-
 	starpu_push_task_end(task);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ws->per_worker[workerid].worker_mutex);
 
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
