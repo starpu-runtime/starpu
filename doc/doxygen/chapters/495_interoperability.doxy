@@ -16,7 +16,19 @@
 
 /*! \page InteroperabilitySupport Interoperability Support
 
-TODO
+In situations where multiple parallel software elements have to coexist within
+the same application, unconcerted accesses to computing units may lead such
+parallel software elements to collide and interfere. The purpose of the
+Interoperability routines of StarPU, implemented along the definition of the
+Resource Management APIs of Project H2020 INTERTWinE, is to enable StarPU to
+coexist with other parallel software elements without resulting in computing
+core oversubscription or undersubscription. These routines allow the
+programmer to dynamically control the computing resources allocated to StarPU,
+to add or remove processor cores and/or accelerator devices from the pool of
+resources used by StarPU's workers to execute tasks. They also allow multiple
+libraries and applicative codes using StarPU simultaneously to select distinct
+sets of resources independently. Internally, the Interoperability Support is
+built on top of Scheduling Contexts (see \ref SchedulingContexts).
 
 \section ResourceManagement StarPU Resource Management
 
