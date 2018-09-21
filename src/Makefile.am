@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017                           CNRS
+# Copyright (C) 2010-2015,2017,2018                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -400,9 +400,9 @@ endif
 # static inline definition
 dist-hook:
 	failed=0 ; \
-	for i in $$( grep "static inline" $$(find $(srcdir) -name \*.h) | sed -e 's/.*static inline //g' | grep -v ENAME | sed -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | grep -v _starpu_spin_init) ; do \
+	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME | $(SED) -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | $(GREP) -v _starpu_spin_init) ; do \
 		for j in .libs/*.o ; do \
-			nm $$j | grep "U $$i$$" && { echo $$j ; failed=1 ; } ; \
+			nm $$j | $(GREP) "U $$i$$" && { echo $$j ; failed=1 ; } ; \
 		done ; \
 	done ; \
 	[ $$failed == 0 ]

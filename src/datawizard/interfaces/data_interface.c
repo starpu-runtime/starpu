@@ -451,6 +451,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 	handle->mpi_data = NULL;
+	handle->partition_automatic_disabled = 0;
 
 	size_t interfacesize = interface_ops->interface_size;
 

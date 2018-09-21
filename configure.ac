@@ -84,6 +84,8 @@ AC_PROG_F77
 AC_PROG_FC
 AC_PROG_GREP
 AC_PROG_EGREP
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
@@ -246,10 +248,10 @@ if test x$enable_blocking = xno ; then
 fi
 
 if test x$enable_blocking = xyes ; then
-AC_MSG_CHECKING(whether worker callbacks should be enabled)
-AC_ARG_ENABLE(worker-callbacks, [AS_HELP_STRING([--enable-worker-callbacks], [enable worker callbacks])],
+	AC_MSG_CHECKING(whether worker callbacks should be enabled)
+	AC_ARG_ENABLE(worker-callbacks, [AS_HELP_STRING([--enable-worker-callbacks], [enable worker callbacks])],
 				enable_worker_cb=$enableval, enable_worker_cb=no)
-AC_MSG_RESULT($enable_worker_cb)
+	AC_MSG_RESULT($enable_worker_cb)
 else
 	# worker sleep/wake-up callbacks only make sense if blocking drivers are enabled
 	enable_worker_cb=no
@@ -394,7 +396,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
 				   [Enable StarPU MPI pedantic isend])],
 				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)
-if  test x$enable_mpi_pedantic_isend = xyes; then
+if test x$enable_mpi_pedantic_isend = xyes; then
 	AC_DEFINE(STARPU_MPI_PEDANTIC_ISEND, [1], [enable StarPU MPI pedantic isend])
 fi
 
@@ -502,10 +504,6 @@ fi
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
 
-AC_PROG_INSTALL
-AC_PROG_MKDIR_P
-AC_PROG_LN_S
-
 AC_HEADER_STDC
 
 AC_C_RESTRICT
@@ -561,8 +559,7 @@ if test x$enable_simgrid = xno ; then
         ],
         [
             # nothing was specified: look in the path
-	    if test x$mpicc_path = x
-	    then
+	    if test x$mpicc_path = x ; then
 		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$PATH])
 	    else
 		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
@@ -575,8 +572,7 @@ if test x$enable_simgrid = xno ; then
     # We test if MPIEXEC exists
     if test ! -x $mpiexec_path; then
         # if it's not valid, it could be the parameter given to configure.ac was not a full path, let's look for it
-	if test x$mpicc_path = x
-	then
+	if test x$mpicc_path = x ; then
             AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$PATH])
 	else
             AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$(dirname $mpicc_path):$PATH])
@@ -752,8 +748,7 @@ case "$target" in
     				   enable_native_winthreads=$enableval, enable_native_winthreads=no)
     ;;
 esac
-if test x"$enable_native_winthreads" != xyes
-then
+if test x"$enable_native_winthreads" != xyes ; then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
@@ -771,8 +766,7 @@ AC_CHECK_TYPE([struct timespec],
 $INCLUDE_PTHREAD_H
 ])
 
-if test x"$enable_native_winthreads" = xyes
-then
+if test x"$enable_native_winthreads" = xyes ; then
     CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
     AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM([[
@@ -900,8 +894,7 @@ AC_CHECK_FUNCS([pread pwrite])
 AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
                     enable_hdf5=$enableval, enable_hdf5=maybe)
 
-if test "x$enable_hdf5" != xno
-then
+if test "x$enable_hdf5" != xno ; then
 	AC_ARG_WITH(hdf5-include-dir,
 		[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
 		[specify where HDF5 headers are installed])],
@@ -2274,8 +2267,7 @@ if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
 		# We need the room for the virtual CUDA/OpenCL devices
 		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
-		if test $nodes -gt 32
-		then
+		if test $nodes -gt 32 ; then
 			nodes=32
 		fi
 	else
@@ -3029,8 +3021,7 @@ fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
     # Should we use MKL ?
-    if test -n "$MKLROOT"
-    then
+    if test -n "$MKLROOT" ; then
         CPPFLAGS="${CPPFLAGS} -I$MKLROOT/include"
 	case $host_vendor in
 	    *1om) mkl_plat=mic ;;
@@ -3478,8 +3469,7 @@ if test "$enable_build_doc" = "yes" ; then
    fi
 fi
 available_doc="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf"
-then
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
    enable_build_doc="no"
    available_doc="yes"
 fi
@@ -3552,6 +3542,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
+  test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
@@ -3712,16 +3703,14 @@ To run the tests, you need to install the OCL implementation of ICD
 and set the variable SOCL_OCL_LIB_OPENCL to the location of the libOpenCL.so.])
 fi
 
-if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no"
-then
+if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no" ; then
   AC_MSG_NOTICE([
 WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
 performance may be impacted a lot.  It is strongly recommended to install
 hwloc])
 fi
 
-if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x"
-then
+if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x" ; then
   AC_MSG_NOTICE([
 WARNING: lib was not found, you will not be able to build StarPU applications
 with Microsoft Visual Studio. Add to your PATH the directories for MSVC, e.g

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011,2016-2017                           Inria
-# Copyright (C) 2011-2017                                CNRS
+# Copyright (C) 2011-2018                                CNRS
 # Copyright (C) 2010-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -185,7 +185,7 @@ CLEANFILES = *.gcno *.gcda *.xpm starpu_idle_microsec.log
 
 
 .out.out2:
-	grep '^|' $< | tr -d ' ' > $@
+	$(GREP) '^|' $< | tr -d ' ' > $@
 
 .out2.xpm:
 	( width=$$(expr $$(head -n 1 < $< | wc -c) - 1) ; \
@@ -202,7 +202,7 @@ CLEANFILES = *.gcno *.gcda *.xpm starpu_idle_microsec.log
 	echo "\"5	c #00FFFF\"," ; \
 	echo "\"|	c #FFFFFF\"," ; \
 	echo "\"*	c #000000\"," ; \
-	< $< sed -e 's/^/"/' -e 's/$$/",/' | sed -e '$$s/",$$/"};/' ) > $@
+	< $< $(SED) -e 's/^/"/' -e 's/$$/",/' | $(SED) -e '$$s/",$$/"};/' ) > $@
 
 view:
 	feh --zoom 800 -F 0.xpm 0.5.xpm 1.xpm 2.xpm 3.xpm 4.xpm 6.xpm mpi.xpm

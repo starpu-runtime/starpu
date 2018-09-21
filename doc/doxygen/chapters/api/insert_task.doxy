@@ -213,7 +213,7 @@ data, then starpu_codelet_pack_arg_fini().
 Initialize struct starpu_codelet_pack_arg before calling starpu_codelet_pack_arg() and
 starpu_codelet_pack_arg_fini(). This will simply initialize the content of the structure.
 
-\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t ptr_size)
+\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const void *ptr, size_t ptr_size)
 \ingroup API_Insert_Task
 Pack one argument into struct starpu_codelet_pack_arg \p state. That structure
 has to be initialized before with starpu_codelet_pack_arg_init(), and after all
