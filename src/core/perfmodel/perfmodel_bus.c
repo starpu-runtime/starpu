@@ -740,6 +740,7 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&hwtopology);
+	_starpu_topology_filter(topology);
 	hwloc_topology_load(hwtopology);
 #endif
 

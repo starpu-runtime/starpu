@@ -1191,6 +1191,15 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 #else
 	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
 #endif
+#ifdef HAVE_HWLOC_TOPOLOGY_SET_COMPONENTS
+#  ifndef STARPU_USE_CUDA
+	hwloc_topology_set_components(hwtopology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "cuda");
+	hwloc_topology_set_components(hwtopology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "nvml");
+#  endif
+#  ifndef STARPU_USE_OPENCL
+	hwloc_topology_set_components(hwtopology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "opencl");
+#  endif
+#endif
 }
 #endif
 
