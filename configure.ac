@@ -3324,6 +3324,7 @@ m4_ifdef([AM_SILENT_RULES],
 ##########################################
 
 starpurm_support=no
+starpurm_dlb_support=no
 
 AC_ARG_ENABLE(starpurm, [AS_HELP_STRING([--enable-starpurm], [enable resource management support])],
                     enable_starpurm=$enableval, enable_starpurm=no)
@@ -3429,11 +3430,12 @@ then
 	if test "x$enable_dlb" != "xno"
 	then
 		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
+		starpurm_dlb_support=yes
 	fi
-	AM_CONDITIONAL(STARPURM_HAVE_DLB, test "x$enable_dlb" != "xno")
 	AC_SUBST(DLB_CFLAGS)
 	AC_SUBST(DLB_LIBS)
 fi
+AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
 AM_CONDITIONAL(BUILD_STARPURM, [test x$starpurm_support = xyes])
 
 AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
