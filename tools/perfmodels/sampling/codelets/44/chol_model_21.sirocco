@@ -94,7 +94,7 @@ d39bff17	3276800        	2.625536e+08   	1.179394e+03   	1.705358e+02   	3.53818
 #####
 # Model for cuda0_impl0 (Comb1)
 # number of entries
-1
+4
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
