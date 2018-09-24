@@ -389,7 +389,11 @@ int submit_tasks(void)
 
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
-			printf("\rSubmitting task %lu", currentTask->submit_order);
+			if (!(currentTask->submit_order % 1000))
+			{
+				printf("\rSubmitting task %lu", currentTask->submit_order);
+				fflush(stdout);
+			}
 			last_submitorder++;
 		}
 
