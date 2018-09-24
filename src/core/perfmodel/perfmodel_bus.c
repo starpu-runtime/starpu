@@ -740,6 +740,7 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&hwtopology);
+	_starpu_topology_filter(hwtopology);
 	hwloc_topology_load(hwtopology);
 #endif
 
@@ -2762,7 +2763,7 @@ static void write_bus_platform_file_content(int version)
 	}
 #endif
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
 	{

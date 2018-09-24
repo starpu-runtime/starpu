@@ -540,6 +540,11 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	unsigned is_sync = task->synchronous;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
+	if (task->status == STARPU_TASK_STOPPED || task->status == STARPU_TASK_FINISHED)
+		task->status = STARPU_TASK_INVALID;
+	else
+		STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
+
 	if (j->internal)
 	{
 		// Internal tasks are submitted to initial context
@@ -782,6 +787,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	if (task->cl)
 		/* This would be done by data dependencies checking */
 		_starpu_job_set_ordered_buffers(j);
+	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED);
 	task->status = STARPU_TASK_READY;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
@@ -822,6 +828,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
 	_starpu_job_set_ordered_buffers(j);
 
+	STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
 

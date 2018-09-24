@@ -280,6 +280,7 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 				continue;
 		}
 
+                STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG || j->task->status == STARPU_TASK_BLOCKED_ON_TASK || j->task->status == STARPU_TASK_BLOCKED_ON_DATA);
                 j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 
 		if(handle->arbiter)
