@@ -24,7 +24,9 @@ static inline long long jlstarpu_interval_size(long long start, long long step, 
 "
 
 
-
+"""
+	Opens a new C source file, where generated CPU kernels will be written
+"""
 function starpu_new_cpu_kernel_file(file_name :: String)
 
     global generated_cpu_kernel_file_name = file_name
@@ -37,7 +39,12 @@ function starpu_new_cpu_kernel_file(file_name :: String)
 end
 
 
-
+"""
+	Executes the StarPU C compiler to the following function declaration.
+	If no call to starpu_new_cpu_kernel_file has been made before, it only
+	prints the reulting function. Otherwise, it writes into the source file
+	specified when starpu_new_cpu_kernel_file was called.
+"""
 macro cpu_kernel(x)
 
     starpu_expr = transform_to_cpu_kernel(starpu_parse(x))

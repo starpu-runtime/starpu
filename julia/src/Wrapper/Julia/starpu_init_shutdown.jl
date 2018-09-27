@@ -1,5 +1,11 @@
 
 export starpu_init
+
+"""
+    Must be called before any other starpu function. Field extern_task_path is the
+    shared library path which will be used to find StarpuCodelet
+    cpu and gpu function names
+"""
 function starpu_init(; extern_task_path = "")
 
     if (!isempty(extern_task_path))
@@ -17,6 +23,10 @@ end
 
 
 export starpu_shutdown
+
+"""
+    Must be called at the end of the program
+"""
 function starpu_shutdown()
     starpu_exit_block()
     @starpucall starpu_shutdown Void ()

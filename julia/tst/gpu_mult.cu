@@ -26,10 +26,10 @@ __global__ void gpuMultKernel
 	sum = 0.;
 
 	for (k = 0 ; k < nyA ; k++){
-		sum += subA[i + k * ldA] * subB[k + j * ldB];
+		sum += subA[i + k*ldA] * subB[k + j*ldB];
 	}
 
-	subC[i + j * ldC] = sum;
+	subC[i + j*ldC] = sum;
 
 }
 

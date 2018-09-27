@@ -10,26 +10,6 @@ mutable struct StarpuTask
 
     c_task :: Ptr{Void}
 
-    #=function StarpuTask()
-
-        output = new()
-        output.handles = StarpuDataHandle[]
-        output.handle_pointers = StarpuDataHandlePointer[]
-        output.synchronous = false
-        output.cl_arg = nothing
-
-
-        c_task = @starpucall starpu_task_create Ptr{Void} ()
-
-        if (c_task == C_NULL)
-            error("Couldn't create new task: starpu_task_create() returned NULL")
-    	end
-
-        output.c_task = c_task
-
-        return output
-    end=#
-
 
     """
         StarpuTask(; cl :: StarpuCodelet, handles :: Vector{StarpuDataHandle}, cl_arg :: Ref)
@@ -67,6 +47,9 @@ mutable struct StarpuTask
 end
 
 
+"""
+    Updates fields of the real C structures stored at "c_task" field
+"""
 function starpu_c_task_update(task :: StarpuTask)
 
     task_translator = StarpuTaskTranslator(task)
@@ -79,6 +62,9 @@ function starpu_c_task_update(task :: StarpuTask)
 end
 
 
+"""
+    Structure used to update fields of the real C task structure 
+"""
 mutable struct StarpuTaskTranslator
 
     cl :: Ptr{Void}

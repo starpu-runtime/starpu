@@ -62,9 +62,6 @@ function substitute_args(expr :: StarpuExprFunction)
         new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$i])) )
         push!(function_start_affectations, new_affect)
 
-        #var_to_replace = starpu_parse(expr.args[i].name)
-        #replace_with = starpu_parse(ptr)
-        #new_body = substitute(new_body, var_to_replace, replace_with)
         new_body = substitute_argument_usage(new_body, i, buffer_arg_name, expr.args[i].name, ptr)
     end
 

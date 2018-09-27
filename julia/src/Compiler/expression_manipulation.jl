@@ -1,4 +1,9 @@
 
+
+"""
+    Returns a new expression where every occurrence of expr_to_replace into expr
+    has been replaced by new_expr
+"""
 function substitute(expr :: StarpuExpr, expr_to_replace :: StarpuExpr, new_expr :: StarpuExpr)
 
     function func_to_apply(x :: StarpuExpr)
@@ -14,7 +19,13 @@ function substitute(expr :: StarpuExpr, expr_to_replace :: StarpuExpr, new_expr 
 end
 
 
+"""
+    Returns an expression where "€" symbols  in expr were replaced
+    by the following expression list.
 
+    Ex : replace_pattern((@parse € = €), (@parse x), (@parse 1 + 1))
+            --> (StarpuExpr) "x = 1 + 1"
+"""
 function replace_pattern(expr :: StarpuExpr, replace_€ :: StarpuExpr...)
 
     replace_index = 0
@@ -57,6 +68,11 @@ end
 
 
 import Base.any
+
+"""
+    Returns true if one of the sub-expression x in expr
+    is such as cond(x) is true, otherwise, it returns false.
+"""
 function any(cond :: Function, expr :: StarpuExpr)
 
     err_to_catch = "Catch me, condition is true somewhere !"
@@ -86,6 +102,11 @@ end
 
 
 import Base.all
+
+"""
+    Returns true if every sub-expression x in expr
+    is such as cond(x) is true, otherwise, it returns false.
+"""
 function all(cond :: Function, expr :: StarpuExpr)
     return !any(!cond, expr)
 end

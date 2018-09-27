@@ -1,6 +1,9 @@
 
 
-
+"""
+    Returns the list of instruction that will be added before for loop of shape
+        "for for_index_var in set ..."
+"""
 function interval_evaluation_declarations(set :: StarpuExprInterval, for_index_var :: Symbol)
 
     const decl_pattern = @parse € :: Int64
@@ -12,6 +15,17 @@ function interval_evaluation_declarations(set :: StarpuExprInterval, for_index_v
     start_var = starpu_parse(Symbol(:start_, id))
     start_decl = replace_pattern(affect_pattern, start_var, set.start)
 
+    index_var = starpu_parse(for_index_var)
+    index_decl = replace_pattern(decl_pattern, index_var)
+
+    if isa(set.step, StarpuExprValue)
+
+        stop_var = starpu_parse(Symbol(:stop_, id))
+        stop_decl = replace_pattern(affect_pattern, stop_var, set.stop)
+
+        return StarpuExpr[start_decl, stop_decl, index_decl]
+    end
+
     step_var = starpu_parse(Symbol(:step_, id))
     step_decl = replace_pattern(affect_pattern, step_var, set.step)
 
@@ -21,13 +35,9 @@ function interval_evaluation_declarations(set :: StarpuExprInterval, for_index_v
     iter_var = starpu_parse(Symbol(:iter_, id))
     iter_decl = replace_pattern(decl_pattern, iter_var)
 
-    index_var = starpu_parse(for_index_var)
-    index_decl = replace_pattern(decl_pattern, index_var)
-
 
     return StarpuExpr[start_decl, step_decl, dim_decl, iter_decl, index_decl]
 end
-
 
 
 function add_for_loop_declarations(expr :: StarpuExpr)

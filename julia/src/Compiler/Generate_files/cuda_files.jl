@@ -41,7 +41,9 @@ __device__ static inline long long jlstarpu_interval_size__device(long long star
 
 "
 
-
+"""
+	Opens a new Cuda source file, where generated GPU kernels will be written
+"""
 function starpu_new_cuda_kernel_file(file_name :: String)
 
     global generated_cuda_kernel_file_name = file_name
@@ -54,7 +56,12 @@ function starpu_new_cuda_kernel_file(file_name :: String)
 end
 
 
-
+"""
+	Executes the StarPU Cuda compiler to the following function declaration.
+	If no call to starpu_new_cuda_kernel_file has been made before, it only
+	prints the reulting function. Otherwise, it writes into the source file
+	specified when starpu_new_cuda_kernel_file was called.
+"""
 macro cuda_kernel(x)
 
     prekernel, kernel = transform_to_cuda_kernel(starpu_parse(x))
@@ -81,7 +88,9 @@ end
 
 
 
-
+"""
+	Executes @cuda_kernel and @cpu_kernel
+"""
 macro cpu_cuda_kernel(x)
 
 	parsed = starpu_parse(x)

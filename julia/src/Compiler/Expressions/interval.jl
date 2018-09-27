@@ -28,7 +28,7 @@ function starpu_parse_interval(x :: Expr)
     steop = starpu_parse(x.args[2])
 
     if (length(x.args) == 2)
-        return StarpuExprInterval(start, (starpu_parse(Symbol(1))), steop)
+        return StarpuExprInterval(start, StarpuExprValue(1), steop)
     end
 
     stop = starpu_parse(x.args[3])

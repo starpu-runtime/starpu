@@ -93,7 +93,7 @@ function median_time(nb_tests, xdim, zdim, ydim, nslicesx, nslicesy)
 
     sort!(exec_times)
 
-    return exec_times[div(nb_tests, 2)]
+    return exec_times[1 + div(nb_tests-1, 2)]
 end
 
 

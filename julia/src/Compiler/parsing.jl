@@ -8,7 +8,9 @@
 
 starpu_parse_key_word_parsing_function = Dict{Symbol, Function}()
 
-
+"""
+    Translates x Expr into a new StarpuExpr object
+"""
 function starpu_parse(x :: Expr)
 
     if (x.head == :macrocall)
@@ -43,7 +45,10 @@ starpu_parse_key_word_parsing_function[:(=)] = starpu_parse_affect
 starpu_parse_key_word_parsing_function[:(.)] = starpu_parse_field
 
 
-
+"""
+    Executes the starpu_parse function on the following expression,
+    and returns the obtained StarpuExpr
+"""
 macro parse(x)
     y = Expr(:quote, x)
     :(starpu_parse($y))

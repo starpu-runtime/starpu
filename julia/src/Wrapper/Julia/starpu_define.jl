@@ -2,18 +2,21 @@
 
 
 
-STARPU_MAXIMPLEMENTATIONS = 1 # TODO : good value
-STARPU_NMAXBUFS = 8 # TODO : good value
+STARPU_MAXIMPLEMENTATIONS = 1 # TODO : These must be the same values as defined in C macros !
+STARPU_NMAXBUFS = 8 # TODO : find a way to make it automatically match
 
 
 STARPU_CPU = 1 << 1
 STARPU_CUDA = 1 << 3
 
-
 macro starpufunc(symbol)
     :($symbol, "libjlstarpu_c_wrapper")
 end
 
+"""
+    Used to call a StarPU function compiled inside "libjlstarpu_c_wrapper.so"
+    Works as ccall function
+"""
 macro starpucall(func, ret_type, arg_types, args...)
     return Expr(:call, :ccall, (func, "libjlstarpu_c_wrapper"), esc(ret_type), esc(arg_types), map(esc, args)...)
 end
@@ -43,11 +46,4 @@ function jlstarpu_set_to_zero(x :: T) :: Ptr{Void} where {T}
           Ptr{Void}, (Ptr{Void}, Cint, Csize_t),
           Ref{T}(x), 0, sizeof(x)
         )
-end
-
-
-
-
-macro mutableview(t)
-    :(unsafe_wrap( Vector{eltype($t)}, Ptr{eltype($t)}(pointer_from_objref($t)), length($t)))
 end

@@ -1,5 +1,8 @@
 
-
+"""
+    Declares a Julia function wich is just calling the StarPU function
+    having the same name.
+"""
 macro starpu_noparam_function(func_name, ret_type)
 
     func = Symbol(func_name)

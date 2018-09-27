@@ -15,23 +15,6 @@ function StarpuNewDataHandle(ptr :: StarpuDataHandlePointer, destr :: Function..
     return StarpuDestructible(ptr, destr...)
 end
 
-#=
-struct StarpuDataHandle
-
-    pointer :: StarpuDataHandlePointer
-    #destructors :: Vector{Function}
-
-    function StarpuDataHandle(ptr :: StarpuDataHandlePointer, destr = Function[])
-        return new(ptr)
-        #output = new(ptr)#, destr)
-        #push!(starpu_data_handle_list, output)
-        #return output
-    end
-
-end
-=#
-#starpu_data_handle_list = StarpuDataHandle[]
-
 
 
 function starpu_data_unregister_pointer(ptr :: StarpuDataHandlePointer)
@@ -134,18 +117,6 @@ end
 
 
 
-
-#function starpu_data_get_sub_data(root_data :: StarpuDataHandle, ids...)
-#
-#    nb_ids = lengths(ids)
-#    type_args = Tuple((Cint for i in (1 : nb_ids)))
-
-#    ccall((:starpu_data_get_sub_data, "libjlstarpu_c_wrapper"),
-#            Ptr{Void}, (Ptr{Void}, Cuint, type_args...),
-#            root_data, nb_ids, ids...
-#        )
-#end
-
 export starpu_data_get_sub_data
 
 function starpu_data_get_sub_data(root_data :: StarpuDataHandle, id)
@@ -190,6 +161,9 @@ export STARPU_MATRIX_FILTER_VERTICAL_BLOCK, STARPU_MATRIX_FILTER_BLOCK
 )
 
 export StarpuDataFilter
+"""
+    TODO : use real function pointers loaded from starpu shared library
+"""
 mutable struct StarpuDataFilter
 
     filter_func :: StarpuDataFilterFunc

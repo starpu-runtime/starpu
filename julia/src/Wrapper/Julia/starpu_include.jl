@@ -1,6 +1,5 @@
 
 __precompile__()
-
 module StarPU
 
 

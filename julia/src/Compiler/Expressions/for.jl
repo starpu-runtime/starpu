@@ -64,9 +64,20 @@ function print(io :: IO, x :: StarpuExprFor ; indent = 0)
     iter = "iter_" * id
 
     print_newline(io, indent, 2)
-    print(io, "for ($iter = 0, $(x.iter) = $start ; ")
-    print(io, "$iter < $dim ; ")
-    print(io, "$iter += 1, $(x.iter) += $step)")
+
+    if isa(x.set.step, StarpuExprValue)
+        print(io, "for ($(x.iter) = $start ; ")
+        comparison_op = (x.set.step.value >= 0) ? "<=" : ">="
+        print(io, "$(x.iter) $comparison_op $stop ; ")
+        print(io, "$(x.iter) += $(x.set.step.value))")
+
+    else
+        print(io, "for ($iter = 0, $(x.iter) = $start ; ")
+        print(io, "$iter < $dim ; ")
+        print(io, "$iter += 1, $(x.iter) += $step)")
+
+    end
+
     print_newline(io, indent)
     print(io, "{")
     print_newline(io, indent + starpu_indent_size)

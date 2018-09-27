@@ -1,6 +1,11 @@
 
 
-
+"""
+	Compiles C source file opened by starpu_new_cpu_kernel_file
+    and filled by @cpu_kernel declarations.
+    Output file is a shared library which can be provided to starpu_init() in
+    order to find kernel.
+"""
 function compile_cpu_kernels(output_file :: String)
 
     starpu_cflags = readstring(`pkg-config --cflags starpu-1.3`)[1:end-1]
@@ -15,6 +20,12 @@ function compile_cpu_kernels(output_file :: String)
 end
 
 
+"""
+	Compiles Cuda source file opened by starpu_new_cuda_kernel_file
+    and filled by @cuda_kernel declarations.
+    Output file is a shared library which can be provided to starpu_init() in
+    order to find kernel.
+"""
 function compile_cuda_kernels(output_file :: String)
 
     starpu_cflags = readstring(`pkg-config --cflags starpu-1.3`)[1:end-1]
@@ -29,7 +40,11 @@ function compile_cuda_kernels(output_file :: String)
 end
 
 
-
+"""
+    Combines several shared library into a new one.
+    Can be used to have both CPU and Cuda kernels (from compile_cpu_kernels
+    compile_cuda_kernels) accessible from the same library.
+"""
 function combine_kernel_files(output_file :: String, input_files :: Vector{String})
 
     input_str = (*)(map((x -> x * " "), input_files)...)

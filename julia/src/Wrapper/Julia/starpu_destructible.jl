@@ -1,7 +1,10 @@
 
 
 
-
+"""
+    Object used to store a lost of function which must
+    be applied to and object
+"""
 mutable struct StarpuDestructible{T}
 
     object :: T
@@ -39,7 +42,9 @@ function starpu_enter_new_block()
     push!(starpu_block_list, LinkedList{StarpuDestructible}())
 end
 
-
+"""
+    Applies every stored destructores to the StarpuDestructible stored object
+"""
 function starpu_destruct!(x :: StarpuDestructible)
 
     for destr in x.destructors
@@ -62,7 +67,10 @@ function starpu_exit_block()
 
 end
 
-
+"""
+    Adds new destructors to the list of function. They will be executed before
+        already stored ones when calling starpu_destruct!
+"""
 function starpu_add_destructor!(x :: StarpuDestructible, destrs :: Function...)
 
     for d in destrs
@@ -72,7 +80,9 @@ function starpu_add_destructor!(x :: StarpuDestructible, destrs :: Function...)
     return nothing
 end
 
-
+"""
+    Removes detsructor without executing it
+"""
 function starpu_remove_destructor!(x :: StarpuDestructible, destr :: Function)
 
     @foreach_asc x.destructors lnk begin
@@ -86,6 +96,13 @@ function starpu_remove_destructor!(x :: StarpuDestructible, destr :: Function)
     return nothing
 end
 
+
+"""
+    Executes "destr" function. If it was one of the stored destructors, it
+    is removed.
+    This function can be used to allow user to execute a specific action manually
+        (ex : explicit call to starpu_data_unpartition() without unregistering)
+"""
 function starpu_execute_destructor!(x :: StarpuDestructible, destr :: Function)
 
     starpu_remove_destructor!(x, destr)
@@ -94,54 +111,15 @@ end
 
 
 export @starpu_block
+
+"""
+    Declares a block of code. Every declared StarpuDestructible in this code
+    will execute its destructors on its object, once the block is exited
+"""
 macro starpu_block(expr)
     quote
         starpu_enter_new_block()
         $(esc(expr))
         starpu_exit_block()
     end
-end
-
-
-
-if false
-
-@starpu_block let
-    println("Begining of block")
-    x = StarpuDestructible(1, println)
-    println("End of block")
-end
-
-
-
-@starpu_block let
-    println("Begining of block")
-    x = StarpuDestructible(2, (x -> @show x), println)
-    println("End of block")
-end
-
-
-@starpu_block let
-    println("Begining of block")
-    x = StarpuDestructible(3, (x -> @show x), println)
-    starpu_add_destructor!(x, (x -> @show x+1))
-    println("End of block")
-end
-
-@starpu_block let
-    println("Begining of block")
-    x = StarpuDestructible(4, (x -> @show x), println)
-    starpu_add_destructor!(x, (x -> @show x+1))
-    starpu_remove_destructor!(x, println)
-    println("End of block")
-end
-
-@starpu_block let
-    println("Begining of block")
-    x = StarpuDestructible(4, (x -> @show x), println)
-    starpu_add_destructor!(x, (x -> @show x+1))
-    starpu_execute_destructor!(x, println)
-    println("End of block")
-end
-
 end
