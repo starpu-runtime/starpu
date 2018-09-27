@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2011-2018                                Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
 # Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
@@ -52,6 +52,9 @@ AC_SUBST([LIBSTARPUMPI_INTERFACE_AGE])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_CURRENT])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_REVISION])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_AGE])
+AC_SUBST([LIBSTARPURM_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPURM_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPURM_INTERFACE_AGE])
 AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
 AC_SUBST([LIBSOCL_INTERFACE_REVISION])
 AC_SUBST([LIBSOCL_INTERFACE_AGE])
@@ -3318,6 +3321,132 @@ m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
 
 ##########################################
+# Resource Manager                       #
+##########################################
+
+starpurm_support=no
+starpurm_dlb_support=no
+
+AC_ARG_ENABLE(starpurm, [AS_HELP_STRING([--enable-starpurm], [enable resource management support])],
+                    enable_starpurm=$enableval, enable_starpurm=no)
+if test "x$enable_starpurm" != xno
+then
+	starpurm_support=yes
+
+	# DLB
+	DLB_CFLAGS=""
+	DLB_LIBS=""
+	AC_ARG_ENABLE(dlb, [AS_HELP_STRING([--enable-dlb], [enable DLB support])],
+	                    enable_dlb=$enableval, enable_dlb=no)
+	if test "x$enable_dlb" != xno
+	then
+		AC_ARG_WITH(dlb-include-dir,
+			[AS_HELP_STRING([--with-dlb-include-dir=<path>],
+			[specify where DLB headers are installed])],
+			[dlb_inc_dirs="$withval"], [dlb_inc_dirs=""])
+	
+		dlb_inc_dirs="${dlb_inc_dirs} /usr/include/dlb"
+	
+		dlb_incdir_found=no
+		for dlb_incdir in $dlb_inc_dirs
+		do
+			if test -n "$dlb_incdir"
+			then
+				SAVED_CPPFLAGS="${CPPFLAGS}"
+				CPPFLAGS=-I${dlb_incdir}
+				AC_CHECK_HEADERS([dlb.h])
+				if test "$ac_cv_header_dlb_h" = "yes"
+				then
+					CPPFLAGS="-I$dlb_incdir ${SAVED_CPPFLAGS}"
+					DLB_CFLAGS="-I${dlb_incdir}"
+					dlb_incdir_found=yes
+					break
+				else
+					CPPFLAGS=${SAVED_CPPFLAGS}
+				fi
+				unset ac_cv_header_dlb_h
+			fi
+		done
+	
+		AC_ARG_WITH(dlb-lib-dir,
+			[AS_HELP_STRING([--with-dlb-lib-dir=<path>],
+			[specify where DLB libraries are installed])],
+			[dlb_lib_dirs="$withval"], [dlb_lib_dirs=""])
+	
+		dlb_lib_dirs="${dlb_lib_dirs} /usr/lib/dlb"
+	
+		dlb_libdir_found=no
+		for dlb_libdir in $dlb_lib_dirs
+		do
+			if test -n "$dlb_libdir" 
+			then
+				SAVED_LDFLAGS="${LDFLAGS}"
+				LDFLAGS=-L${dlb_libdir}
+				AC_CHECK_LIB(dlb, [DLB_Init])
+				if test "$ac_cv_lib_dlb_DLB_Init" = "yes"
+				then
+					LDFLAGS="-L${dlb_libdir} ${SAVED_LDFLAGS} ${STARPU_DLB_LDFLAGS}"
+					DLB_LIBS="-L${dlb_libdir} -ldlb"
+					dlb_libdir_found=yes
+					break
+				else
+					LDFLAGS=${SAVED_LDFLAGS}
+				fi
+				unset ac_cv_lib_dlb_DLB_Init
+			fi
+		done
+	
+		SAVED_CPPFLAGS="${CPPFLAGS}"
+		SAVED_CFLAGS="${CFLAGS}"
+		SAVED_LDFLAGS="${LDFLAGS}"
+		CPPFLAGS="$HWLOC_CPPFLAGS -D_GNU_SOURCE $CPPFLAGS"
+		CFLAGS="$HWLOC_CFLAGS $CFLAGS"
+		LIBS="$HWLOC_LIBS $LIBS"
+		# check whether libhwloc has a dedicated glibc-sched.h include for conversion with glibc cpusets
+		AC_CHECK_HEADERS([hwloc/glibc-sched.h])
+		CPPFLAGS="$SAVED_CPPFLAGS"
+		CFLAGS="$SAVED_CFLAGS"
+		LIBS="$SAVED_LIBS"
+	
+		SAVED_CPPFLAGS="${CPPFLAGS}"
+		SAVED_CFLAGS="${CFLAGS}"
+		SAVED_LDFLAGS="${LDFLAGS}"
+		CPPFLAGS="$STARPU_CPPFLAGS $CPPFLAGS"
+		CFLAGS="$STARPU_CFLAGS $CFLAGS"
+		LIBS="$STARPU_LIBS $LIBS"
+		# check if StarPU implements starpu_worker_set_going_to_sleep_callback()
+		AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
+		CPPFLAGS="$SAVED_CPPFLAGS"
+		CFLAGS="$SAVED_CFLAGS"
+		LIBS="$SAVED_LIBS"
+	
+		if test "x$dlb_incdir_found" != "xyes" -o "x$dlb_libdir_found" != "xyes"
+		then
+			enable_dlb=no
+		fi
+	fi
+	
+	AC_MSG_CHECKING(whether DLB support should be enabled)
+	AC_MSG_RESULT($enable_dlb)
+	if test "x$enable_dlb" != "xno"
+	then
+		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
+		starpurm_dlb_support=yes
+	fi
+	AC_SUBST(DLB_CFLAGS)
+	AC_SUBST(DLB_LIBS)
+fi
+AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
+AM_CONDITIONAL(BUILD_STARPURM, [test x$starpurm_support = xyes])
+
+AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
+			[enable build of StarPU Resource Manager examples])],
+			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
+AM_CONDITIONAL(BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
+
+
+
+##########################################
 # Documentation                          #
 ##########################################
 
@@ -3436,7 +3565,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/src/config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
@@ -3477,6 +3606,10 @@ AC_OUTPUT([
 	starpufft/starpufft-1.1.pc
 	starpufft/starpufft-1.2.pc
 	starpufft/starpufft-1.3.pc
+	starpurm/Makefile
+	starpurm/src/Makefile
+	starpurm/examples/Makefile
+	starpurm/starpurm-1.3.pc
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -3549,6 +3682,7 @@ AC_MSG_NOTICE([
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
+	       Resource Management enable:                    $starpurm_support
 	       GCC plug-in:                                   $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
 	       OpenMP runtime support enabled:                $enable_openmp

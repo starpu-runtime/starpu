@@ -389,7 +389,11 @@ int submit_tasks(void)
 
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
-			printf("\rSubmitting task %lu", currentTask->submit_order);
+			if (!(currentTask->submit_order % 1000))
+			{
+				printf("\rSubmitting task %lu", currentTask->submit_order);
+				fflush(stdout);
+			}
 			last_submitorder++;
 		}
 
@@ -830,7 +834,7 @@ eof:
 
 	starpu_task_wait_for_all();
 
-	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start);
+	printf("Simulation ended. Elapsed time: %g ms\n", (starpu_timing_now() - start) / 1000.);
 
 	/* FREE allocated memory */
 
