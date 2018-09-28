@@ -69,6 +69,20 @@ struct starpu_omp_task_region_attr
 	int final_clause;
 	int untied_clause;
 	int mergeable_clause;
+
+   /*
+    * taskloop attribute
+    * */
+   int is_loop;
+   int nogroup_clause;
+
+   int collapse;
+   int num_tasks;
+   unsigned long long nb_iterations;
+   unsigned long long grainsize;
+   unsigned long long begin_i;
+   unsigned long long end_i;
+   unsigned long long chunk;
 };
 
 #ifdef __cplusplus
@@ -104,6 +118,8 @@ extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup_inline_begin(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup_inline_end(void) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_taskloop_inline_begin(struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_taskloop_inline_end(const struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;

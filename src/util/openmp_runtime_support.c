@@ -381,24 +381,29 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
-	if (starpu_worker->arch == STARPU_CPU_WORKER)
-	{
-		task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
-	}
+   /* XXX on work */
+   if (task->is_loop) {
+      starpu_omp_for_inline_first_alt(task->nb_iterations, task->chunk, starpu_omp_sched_static, 1, &task->begin_i, &task->end_i);
+   }
+   if (starpu_worker->arch == STARPU_CPU_WORKER)
+   {
+      task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
+   }
 #ifdef STARPU_USE_CUDA
-	else if (starpu_worker->arch == STARPU_CUDA_WORKER)
-	{
-		task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
-	}
+   else if (starpu_worker->arch == STARPU_CUDA_WORKER)
+   {
+      task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
+   }
 #endif
 #ifdef STARPU_USE_OPENCL
-	else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
-	{
-		task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
-	}
+   else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
+   {
+      task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
+   }
 #endif
-	else
-		_STARPU_ERROR("invalid worker architecture");
+   else
+      _STARPU_ERROR("invalid worker architecture");
+   /**/
 	_starpu_omp_unregister_task_handles(task);
 	_starpu_spin_lock(&task->lock);
 	task->state = starpu_omp_task_state_terminated;
@@ -1624,8 +1629,20 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			generated_task->flags |= STARPU_OMP_TASK_FLAGS_UNDEFERRED;
 		}
-		generated_task->task_group = generating_task->task_group;
-		generated_task->rank = -1;
+      // XXX taskgroup exist
+      if (!attr->nogroup_clause)
+      {
+         generated_task->task_group = generating_task->task_group;
+      }
+      generated_task->rank = -1;
+
+      /* XXX taskloop attributes */
+      generated_task->is_loop = attr->is_loop;
+      generated_task->nb_iterations = attr->nb_iterations;
+      generated_task->grainsize = attr->grainsize;
+      generated_task->chunk = attr->chunk;
+      generated_task->begin_i = attr->begin_i;
+      generated_task->end_i = attr->end_i;
 
 		/*
 		 * save pointer to the regions user function from the task region codelet
@@ -1792,6 +1809,45 @@ void starpu_omp_taskgroup_inline_end(void)
 	}
 	task->task_group = p_task_group->p_previous_task_group;
 	free(p_task_group);
+}
+
+// XXX on work
+void starpu_omp_taskloop_inline_begin(struct starpu_omp_task_region_attr *attr)
+{
+   if (!attr->nogroup_clause)
+   {
+      starpu_omp_taskgroup_inline_begin();
+   }
+
+   int nb_subloop;
+   if (attr->num_tasks) {
+      nb_subloop = attr->num_tasks;
+   } else if (attr->grainsize) {
+      nb_subloop = attr->nb_iterations / attr->grainsize;
+   } else {
+      nb_subloop = 4;
+   }
+
+   attr->is_loop = 1;
+
+   int i;
+   int nb_iter_i = attr->nb_iterations / nb_subloop;
+   for (i = 0; i < nb_subloop; i++)
+   {
+      attr->begin_i = nb_iter_i * i;
+      attr->end_i = attr->begin_i + nb_iter_i;
+      attr->end_i += (i+1 != nb_subloop) ? 0 : (attr->nb_iterations % nb_subloop);
+      attr->chunk = attr->end_i - attr->begin_i;
+      starpu_omp_task_region(attr);
+   }
+}
+
+// XXX on work
+void starpu_omp_taskloop_inline_end(const struct starpu_omp_task_region_attr *attr)
+{
+   if (!attr->nogroup_clause) {
+      starpu_omp_taskgroup_inline_end();
+   }
 }
 
 static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
