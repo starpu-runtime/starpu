@@ -135,6 +135,8 @@ int main(void)
 	starpu_data_handle_t sub_handles[PARTS];
 
 	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (starpu_cpu_worker_get_count() == 0)
