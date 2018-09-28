@@ -129,6 +129,21 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 	return _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, A, dim, flags);
 }
 
+/* Return whether we should pin the allocated data */
+static int _starpu_malloc_should_pin(int flags)
+{
+	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0)
+	{
+		if (_starpu_can_submit_cuda_task())
+		{
+			return 1;
+		}
+//		if (_starpu_can_submit_opencl_task())
+//			return 1;
+	}
+	return 0;
+}
+
 int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int flags)
 {
 	int ret=0;
@@ -159,7 +174,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
 
-	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
@@ -424,7 +439,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
 {
-	if (flags & STARPU_MALLOC_PINNED && disable_pinning <= 0 && STARPU_RUNNING_ON_VALGRIND == 0)
+	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
@@ -944,11 +959,21 @@ static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node, int flags)
 	return chunk;
 }
 
+/* Return whether we should use our suballocator */
+static int _starpu_malloc_should_suballoc(unsigned dst_node, size_t size, int flags)
+{
+	return size <= CHUNK_ALLOC_MAX &&
+			(   starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
+			|| (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
+			    && _starpu_malloc_should_pin(flags))
+			);
+}
+
 uintptr_t
 starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 {
 	/* Big allocation, allocate normally */
-	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
+	if (!_starpu_malloc_should_suballoc(dst_node, size, flags))
 		return _starpu_malloc_on_node(dst_node, size, flags);
 
 	/* Round up allocation to block size */
@@ -1046,7 +1071,7 @@ void
 starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
 	/* Big allocation, deallocate normally */
-	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
+	if (!_starpu_malloc_should_suballoc(dst_node, size, flags))
 	{
 		_starpu_free_on_node_flags(dst_node, addr, size, flags);
 		return;
