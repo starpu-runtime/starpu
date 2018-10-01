@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <starpu.h>
 #include <stdio.h>
+#include "../helper.h"
 
 /*
  * Check the OpenMP orphaned task support.
