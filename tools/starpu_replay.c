@@ -308,12 +308,13 @@ void reset(void)
 
 void fix_wontuse_handle(struct task * wontuseTask)
 {
+	STARPU_ASSERT(wontuseTask);
+
 	if (!wontuseTask->reg_signal)
 		/* Data was already registered when we created this task, so it's already a handle */
 		return;
 
 	struct handle *handle_tmp;
-	STARPU_ASSERT(wontuseTask);
 
 	/* Data was not registered when we created this task, so this is the application pointer, look it up now */
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
