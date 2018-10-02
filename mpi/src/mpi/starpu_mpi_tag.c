@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2011-2015,2017-2018                           Université de Bordeaux
+ * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2011-2015,2017-2018                      Université de Bordeaux
  * Copyright (C) 2014                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -98,7 +98,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t
 #ifndef STARPU_NO_ASSERT
 	struct handle_tag_entry *old;
 	HASH_FIND(hh, registered_tag_handles, &data_tag, sizeof(entry->data_tag), old);
-	STARPU_ASSERT_MSG(!old, "tag %"PRIi64" being registered for data %p, but is already used by data %p!\n", data_tag, handle, old->handle);
+	STARPU_ASSERT_MSG(!old, "tag %"PRIi64" being registered for data %p, but is already used by data %p!\n", data_tag, handle, old?old->handle:NULL);
 #endif
 	HASH_ADD(hh, registered_tag_handles, data_tag, sizeof(entry->data_tag), entry);
 	_starpu_spin_unlock(&registered_tag_handles_lock);
