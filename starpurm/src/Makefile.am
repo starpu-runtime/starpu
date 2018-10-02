@@ -39,11 +39,8 @@ libstarpurm_@STARPU_EFFECTIVE_VERSION@_la_SOURCES	+= \
 	starpurm_dlb.c
 endif
 
-versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
-versinclude_HEADERS = 					\
-	include/starpurm.h
 noinst_HEADERS = 					\
-	src/starpurm_private.h
+	starpurm_private.h
 
 showcheck:
 	-cat /dev/null
