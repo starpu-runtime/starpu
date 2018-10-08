@@ -327,7 +327,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 		r->is_requested_by_codelet = request_from_codelet;
 		r->j = j;
 		r->buffer_index = buffer_index;
-		r->prio = j->task->priority;
+		r->prio = j ? j->task->priority : 0;
 		r->ready_data_callback = callback;
 		r->argcb = argcb;
 
@@ -471,7 +471,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		r->is_requested_by_codelet = 1;
 		r->j = j;
 		r->buffer_index = start_buf_arbiter;
-		r->prio = j->task->priority;
+		r->prio = j ? j->task->priority : 0;
 		r->ready_data_callback = NULL;
 		r->argcb = NULL;
 
