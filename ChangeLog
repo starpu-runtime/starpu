@@ -117,6 +117,7 @@ Changes:
   * Deprecate starpu_data_interface_ops::handle_to_pointer interface
     operation in favor of new starpu_data_interface_ops::to_pointer
     operation.
+  * Sort data access requests by priority.
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
