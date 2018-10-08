@@ -133,6 +133,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_init(&r->lock);
 
+       _STARPU_TRACE_DATA_REQUEST_CREATED(handle, src_replicate->memory_node, dst_replicate->memory_node, prio, is_prefetch);
+
 	r->origin = origin;
 	r->handle = handle;
 	r->src_replicate = src_replicate;

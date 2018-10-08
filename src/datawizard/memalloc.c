@@ -1344,7 +1344,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle);
+       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
@@ -1372,7 +1372,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle);
+               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
