@@ -327,10 +327,11 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 		r->is_requested_by_codelet = request_from_codelet;
 		r->j = j;
 		r->buffer_index = buffer_index;
+		r->prio = j->task->priority;
 		r->ready_data_callback = callback;
 		r->argcb = argcb;
 
-		_starpu_data_requester_list_push_back(&handle->arbitered_req_list, r);
+		_starpu_data_requester_prio_list_push_back(&handle->arbitered_req_list, r);
 
 		/* failed */
 		put_in_list = 1;
@@ -470,11 +471,12 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		r->is_requested_by_codelet = 1;
 		r->j = j;
 		r->buffer_index = start_buf_arbiter;
+		r->prio = j->task->priority;
 		r->ready_data_callback = NULL;
 		r->argcb = NULL;
 
 		/* store node in list */
-		_starpu_data_requester_list_push_front(&handle->arbitered_req_list, r);
+		_starpu_data_requester_prio_list_push_front(&handle->arbitered_req_list, r);
 
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
@@ -542,7 +544,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 #endif
 
 	/* Since the request has been posted the handle may have been proceed and released */
-	if (_starpu_data_requester_list_empty(&handle->arbitered_req_list))
+	if (_starpu_data_requester_prio_list_empty(&handle->arbitered_req_list))
 	{
 		/* No waiter, just remove our reference */
 		_starpu_spin_lock(&handle->header_lock);
@@ -573,12 +575,12 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 	/* Note: we may be putting back our own requests, so avoid looping by
 	 * extracting the list */
-	struct _starpu_data_requester_list l = handle->arbitered_req_list;
-	_starpu_data_requester_list_init(&handle->arbitered_req_list);
+	struct _starpu_data_requester_prio_list l = handle->arbitered_req_list;
+	_starpu_data_requester_prio_list_init(&handle->arbitered_req_list);
 
-	while (!_starpu_data_requester_list_empty(&l))
+	while (!_starpu_data_requester_prio_list_empty(&l))
 	{
-		struct _starpu_data_requester *r = _starpu_data_requester_list_pop_front(&l);
+		struct _starpu_data_requester *r = _starpu_data_requester_prio_list_pop_front_highest(&l);
 
 		if (!r->is_requested_by_codelet)
 		{
@@ -599,10 +601,10 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			_starpu_spin_unlock(&handle->header_lock);
 
 			if (put_in_list)
-				_starpu_data_requester_list_push_front(&l, r);
+				_starpu_data_requester_prio_list_push_front(&l, r);
 
 			/* Put back remaining requests */
-			_starpu_data_requester_list_push_list_back(&handle->arbitered_req_list, &l);
+			_starpu_data_requester_prio_list_push_prio_list_back(&handle->arbitered_req_list, &l);
 #ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
@@ -676,7 +678,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 				_starpu_spin_unlock(&handle->header_lock);
 
 			/* Put back remaining requests */
-			_starpu_data_requester_list_push_list_back(&handle->arbitered_req_list, &l);
+			_starpu_data_requester_prio_list_push_prio_list_back(&handle->arbitered_req_list, &l);
 #ifndef LOCK_OR_DELEGATE
 			STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
@@ -696,7 +698,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 			/* store node in list */
 			r->mode = mode;
-			_starpu_data_requester_list_push_front(&handle_arbiter->arbitered_req_list, r);
+			_starpu_data_requester_prio_list_push_front(&handle_arbiter->arbitered_req_list, r);
 
 			/* Move check_busy reference too */
 			_starpu_spin_lock(&handle->header_lock);

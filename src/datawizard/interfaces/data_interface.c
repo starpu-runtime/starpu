@@ -262,7 +262,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	_starpu_data_requester_list_init(&handle->req_list);
+	_starpu_data_requester_prio_list_init(&handle->req_list);
 	handle->refcnt = 0;
 	handle->unlocking_reqs = 0;
 	handle->busy_count = 0;
@@ -316,7 +316,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->init_cl = NULL;
 
 	handle->reduction_refcnt = 0;
-	_starpu_data_requester_list_init(&handle->reduction_req_list);
+	_starpu_data_requester_prio_list_init(&handle->reduction_req_list);
 	handle->reduction_tmp_handles = NULL;
 	handle->write_invalidation_req = NULL;
 
@@ -339,7 +339,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
 	else
 		handle->arbiter = NULL;
-	_starpu_data_requester_list_init(&handle->arbitered_req_list);
+	_starpu_data_requester_prio_list_init(&handle->arbitered_req_list);
 	handle->last_locality = -1;
 
 	/* that new data is invalid from all nodes perpective except for the
