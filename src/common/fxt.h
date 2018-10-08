@@ -614,10 +614,10 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_END_CALLBACK, job, _starpu_gettid());
 
 #define _STARPU_TRACE_JOB_PUSH(task, prio)	\
-	FUT_DO_PROBE3(_STARPU_FUT_JOB_PUSH, task, prio, _starpu_gettid());
+	FUT_DO_PROBE3(_STARPU_FUT_JOB_PUSH, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
 
 #define _STARPU_TRACE_JOB_POP(task, prio)	\
-	FUT_DO_PROBE3(_STARPU_FUT_JOB_POP, task, prio, _starpu_gettid());
+	FUT_DO_PROBE3(_STARPU_FUT_JOB_POP, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
 
 #define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	\
 	FUT_DO_PROBE2(_STARPU_FUT_UPDATE_TASK_CNT, counter, _starpu_gettid())
