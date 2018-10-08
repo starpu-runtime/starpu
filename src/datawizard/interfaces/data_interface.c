@@ -1105,7 +1105,7 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 	return handle->ops->get_size(handle);
 }
 
-void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
+void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TRACE_DATA_NAME(handle, name);
 }
@@ -1115,7 +1115,7 @@ int starpu_data_get_home_node(starpu_data_handle_t handle)
 	return handle->home_node;
 }
 
-void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, int dimensions STARPU_ATTRIBUTE_UNUSED, int dims[] STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
 }
