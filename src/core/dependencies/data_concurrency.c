@@ -63,7 +63,7 @@
 /* the handle header lock must be taken by the caller */
 static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
-	struct _starpu_data_requester_list *req_list;
+	struct _starpu_data_requester_prio_list *req_list;
 
 	if (handle->reduction_refcnt > 0)
 	{
@@ -71,26 +71,26 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 	}
 	else
 	{
-		if (_starpu_data_requester_list_empty(&handle->reduction_req_list))
+		if (_starpu_data_requester_prio_list_empty(&handle->reduction_req_list))
 			req_list = &handle->req_list;
 		else
 			req_list = &handle->reduction_req_list;
 	}
 
 	/* if there is no one to unlock ... */
-	if (_starpu_data_requester_list_empty(req_list))
+	if (_starpu_data_requester_prio_list_empty(req_list))
 		return NULL;
 
 	/* if there is no reference to the data anymore, we can use it */
 	if (handle->refcnt == 0)
-		return _starpu_data_requester_list_pop_front(req_list);
+		return _starpu_data_requester_prio_list_pop_front_highest(req_list);
 
 	/* Already writing to it, do not let another write access through */
 	if (handle->current_mode == STARPU_W)
 		return NULL;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
-	struct _starpu_data_requester *r = _starpu_data_requester_list_front(req_list);
+	struct _starpu_data_requester *r = _starpu_data_requester_prio_list_front_highest(req_list);
 
 	enum starpu_data_access_mode r_mode = r->mode;
 	if (r_mode == STARPU_RW)
@@ -100,7 +100,7 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 	 * access, we only proceed if the current mode is the same as the
 	 * requested mode. */
 	if (r_mode == handle->current_mode)
-		return _starpu_data_requester_list_pop_front(req_list);
+		return _starpu_data_requester_prio_list_pop_front_highest(req_list);
 	else
 		return NULL;
 }
@@ -196,14 +196,15 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		r->is_requested_by_codelet = request_from_codelet;
 		r->j = j;
 		r->buffer_index = buffer_index;
+		r->prio = j->task->priority;
 		r->ready_data_callback = callback;
 		r->argcb = argcb;
 
 		/* We put the requester in a specific list if this is a reduction task */
-		struct _starpu_data_requester_list *req_list =
+		struct _starpu_data_requester_prio_list *req_list =
 			is_a_reduction_task?&handle->reduction_req_list:&handle->req_list;
 
-		_starpu_data_requester_list_push_back(req_list, r);
+		_starpu_data_requester_prio_list_push_back(req_list, r);
 
 		/* failed */
 		put_in_list = 1;
@@ -405,8 +406,8 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 	{
 		/* Keep our reference for now, _starpu_notify_arbitered_dependencies
 		 * will drop it when it needs to */
-		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->req_list));
-		STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->reduction_req_list));
+		STARPU_ASSERT(_starpu_data_requester_prio_list_empty(&handle->req_list));
+		STARPU_ASSERT(_starpu_data_requester_prio_list_empty(&handle->reduction_req_list));
 		_starpu_spin_unlock(&handle->header_lock);
 		/* _starpu_notify_arbitered_dependencies will handle its own locking */
 		_starpu_notify_arbitered_dependencies(handle);
@@ -423,7 +424,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		/* Handle was destroyed, nothing left to do.  */
 		return 1;
 
-	STARPU_ASSERT(_starpu_data_requester_list_empty(&handle->arbitered_req_list));
+	STARPU_ASSERT(_starpu_data_requester_prio_list_empty(&handle->arbitered_req_list));
 
 	/* In case there is a pending reduction, and that this is the last
 	 * requester, we may go back to a "normal" coherency model. */
@@ -472,7 +473,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		{
 			/* We need to put the request back because we must
 			 * perform a reduction before. */
-			_starpu_data_requester_list_push_front(&handle->req_list, r);
+			_starpu_data_requester_prio_list_push_front(&handle->req_list, r);
 		}
 		else
 		{

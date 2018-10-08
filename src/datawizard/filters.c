@@ -257,8 +257,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->home_node = initial_handle->home_node;
 
 		/* initialize the chunk lock */
-		_starpu_data_requester_list_init(&child->req_list);
-		_starpu_data_requester_list_init(&child->reduction_req_list);
+		_starpu_data_requester_prio_list_init(&child->req_list);
+		_starpu_data_requester_prio_list_init(&child->reduction_req_list);
 		child->reduction_tmp_handles = NULL;
 		child->write_invalidation_req = NULL;
 		child->refcnt = 0;
@@ -300,7 +300,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
 		else
 			child->arbiter = NULL;
-		_starpu_data_requester_list_init(&child->arbitered_req_list);
+		_starpu_data_requester_prio_list_init(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
