@@ -795,6 +795,9 @@ restart:
 			continue;
 		if (is_prefetch == 1 && !mc->wontuse)
 			/* Do not evict something that we might reuse, just for a prefetch */
+			/* FIXME: but perhaps we won't have any task using it in
+                         * the close future, we should perhaps rather check
+                         * mc->replicate->refcnt? */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
