@@ -471,7 +471,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		r->is_requested_by_codelet = 1;
 		r->j = j;
 		r->buffer_index = start_buf_arbiter;
-		r->prio = j ? j->task->priority : 0;
+		r->prio = j->task->priority;
 		r->ready_data_callback = NULL;
 		r->argcb = NULL;
 
