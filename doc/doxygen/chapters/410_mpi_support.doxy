@@ -794,7 +794,7 @@ for(x = 0; x < nblocks ;  x++)
 }
 
 /* Scatter the matrix among the nodes */
-starpu_mpi_scatter_detached(data_handles, nblocks, root, MPI_COMM_WORLD);
+starpu_mpi_scatter_detached(data_handles, nblocks, root, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 
 /* Calculation */
 for(x = 0; x < nblocks ;  x++) {
@@ -807,7 +807,7 @@ for(x = 0; x < nblocks ;  x++) {
 }
 
 /* Gather the matrix on main node */
-starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD);
+starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 \endcode
 
 */
