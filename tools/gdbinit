@@ -569,14 +569,28 @@ define starpu-print-request
   end
 end
 
-define starpu-print-requests-list
-  set $request = $arg0.list._head
+define starpu-print-requests-treelist
+  set $list = $arg0
+  set $request = $list->_head
   while $request != 0
     printf " Request %p: handle %p ", $request, $request->handle
     starpu-print-mode $request->mode
     printf "\n"
     set $request = $request->_next
   end
+end
+
+define starpu-print-requests-tree
+  if $arg0
+    starpu-print-requests-tree $arg0->children[0]
+    set $stage = (struct _starpu_data_request_prio_list_stage *) $arg0
+    starpu-print-requests-treelist (&($stage->list))
+    starpu-print-requests-tree $arg0->children[1]
+  end
+end
+
+define starpu-print-requests-list
+  starpu-print-requests-tree $arg0.tree.root
 end
 
 define starpu-print-requests
