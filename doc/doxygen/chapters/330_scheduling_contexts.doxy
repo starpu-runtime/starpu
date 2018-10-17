@@ -74,7 +74,7 @@ the context */
 int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 /* let StarPU know that the following tasks will be submitted to this context */
-starpu_sched_ctx_set_task_context(id);
+starpu_sched_ctx_set_context(id);
 
 /* submit the task to StarPU */
 starpu_task_submit(task);
@@ -209,13 +209,34 @@ starpu_sched_ctx_delete(sched_ctx1);
 \section EmptyingAContext Emptying A Context
 
 A context may have no resources at the begining or at a certain
-moment of the execution. Task can still be submitted to these contexts
+moment of the execution. Tasks can still be submitted to these contexts
 and they will be executed as soon as the contexts will have resources. A list
-of tasks pending to be executed is kept and when workers are added to
-the contexts these tasks start being submitted. However, if resources
-are never allocated to the context the program will not terminate.
-If these tasks have low
-priority the programmer can forbid the application to submit them
-by calling the function starpu_sched_ctx_stop_task_submission().
+of tasks pending to be executed is kept and will be submitted when
+workers are added to the contexts.
+
+\code{.c}
+/* create a empty context */
+unsigned sched_ctx_id = starpu_sched_ctx_create(NULL, 0, "ctx", 0);
+
+/* submit a task to this context */
+starpu_sched_ctx_set_context(&sched_ctx_id);
+ret = starpu_task_insert(&codelet, 0);
+STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+/* add CPU workers to the context */
+int procs[STARPU_NMAXWORKERS];
+int nprocs = starpu_cpu_worker_get_count();
+starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs, nprocs);
+starpu_sched_ctx_add_workers(procs, nprocs, sched_ctx_id);
+
+/* and wait for the task termination */
+starpu_task_wait_for_all();
+\endcode
+
+However, if resources are never allocated to the context, the
+application will not terminate. If these tasks have low priority, the
+application can inform StarPU to not submit them by calling the
+function starpu_sched_ctx_stop_task_submission().
+
 
 */

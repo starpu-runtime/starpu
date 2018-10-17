@@ -125,7 +125,20 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
-StarPU 1.2.5 (git revision xxx)
+StarPU 1.2.7 (git revision xxx)
+==============================================
+
+Small changes:
+  * Fix code to allow to submit tasks to empty contexts
+
+StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
+==============================================
+
+Small changes:
+  * Fix crash for lws scheduler
+  * Avoid making hwloc load PCI topology when CUDA is not enabled
+
+StarPU 1.2.5 (git revision 22f32916916d158e3420033aa160854d1dd341bd)
 ==============================================
 
 Small features:
