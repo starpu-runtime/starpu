@@ -569,17 +569,21 @@ define starpu-print-request
   end
 end
 
+define starpu-print-requests-list
+  set $request = $arg0.list._head
+  while $request != 0
+    printf " Request %p: handle %p ", $request, $request->handle
+    starpu-print-mode $request->mode
+    printf "\n"
+    set $request = $request->_next
+  end
+end
+
 define starpu-print-requests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = data_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list data_requests[$node]
     set $node = $node + 1
   end
 end
@@ -589,13 +593,7 @@ define starpu-print-prequests
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     printf "%u pending requests\n", data_requests_npending[$node]
-    set $request = data_requests_pending[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list data_requests_pending[$node]
     set $node = $node + 1
   end
 end
@@ -622,13 +620,7 @@ define starpu-print-frequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = prefetch_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list prefetch_requests[$node]
     set $node = $node + 1
   end
 end
@@ -637,13 +629,7 @@ define starpu-print-irequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = idle_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list idle_requests[$node]
     set $node = $node + 1
   end
 end
