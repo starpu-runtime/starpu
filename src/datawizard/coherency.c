@@ -1151,7 +1151,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		if (async)
 		{
 			ret = _starpu_fetch_data_on_node(handle, node, local_replicate, mode, 0, 0, 1,
-					_starpu_fetch_task_input_cb, worker, 0, "_starpu_src_common_worker_internal_work");
+					_starpu_fetch_task_input_cb, worker, 0, "_starpu_fetch_task_input");
 #ifdef STARPU_SIMGRID
 			if (_starpu_simgrid_fetching_input_cost())
 				MSG_process_sleep(0.000001);
