@@ -53,10 +53,12 @@ plot \\
 EOF
 
 N=2
+COMMA=""
 for STARPU_SCHED in $STARPU_SCHEDS
 do
-	echo "'cholesky.output' using 1:$N with lines title '$STARPU_SCHED', \\" >> cholesky.gp
+	echo "$COMMA'cholesky.output' using 1:$N with lines title '$STARPU_SCHED' \\" >> cholesky.gp
 	N=$(($N + 1))
+	COMMA=", "
 done
 gnuplot cholesky.gp
 gv $OUTFILE
