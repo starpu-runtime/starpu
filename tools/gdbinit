@@ -529,14 +529,56 @@ define starpu-print-datas-summary
   printf "Number of allocated per-worker replicates: %d\n", $pw_replicate_n_allocated
 end
 
+define starpu-print-replicate
+  set $repl = (struct _starpu_data_replicate*) $arg0
+  printf "Handle %p\n", $repl->handle
+  printf "Interface %p\n", $repl->data_interface
+  printf "Refcnt %u\n", $repl->refcnt
+  printf "Node %u\n", $repl->memory_node
+  if $repl->state == 0
+    printf "Owner\n"
+  end
+  if $repl->state == 1
+    printf "Shared\n"
+  end
+  if $repl->state == 2
+    printf "Invalid\n"
+  end
+  if $repl->relaxed_coherency
+    printf " relaxed_coherency"
+  end
+  if $repl->initialized
+    printf " initialized"
+  end
+  if $repl->allocated
+    printf " allocated"
+  end
+  if $repl->automatically_allocated
+    printf " automatically allocated"
+  end
+  if $repl->requested
+    printf " requested"
+  end
+  printf "\n"
+  printf "MC %p\n", $repl->mc
+end
+
 define starpu-print-request
   set $r = (struct _starpu_data_request *)$arg0
   printf "Request %p\n", $r
   printf "Origin %s\n", $r->origin
   printf "Refcnt %d\n", $r->refcnt
   printf "Handle %p\n", $r->handle
-  printf "src_replicate %p\n", $r->src_replicate
-  printf "dst_replicate %p\n", $r->dst_replicate
+  printf "src_replicate %p", $r->src_replicate
+  if $r->src_replicate
+    printf " (%d)", $r->src_replicate->memory_node
+  end
+  printf "\n"
+  printf "dst_replicate %p", $r->dst_replicate
+  if $r->dst_replicate
+    printf " (%d)", $r->dst_replicate->memory_node
+  end
+  printf "\n"
   printf "handling_node %d\n", $r->handling_node
   if ($r->mode & 1)
     printf "R"
@@ -928,6 +970,7 @@ starpu-print-task-and-successor    prints a StarPU task and its successors
 starpu-print-data                  prints a StarPU data handle
 starpu-print-datas                 prints all StarPU data handles
 starpu-print-datas-summary         prints a summary of data handles
+starpu-print-replicate             prints a StarPU data replicate
 starpu-print-request               prints a StarPU data request
 starpu-print-prequests             prints all pending StarPU data requests
 starpu-print-requests              prints all queued StarPU data requests
