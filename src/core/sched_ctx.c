@@ -1107,9 +1107,13 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 /* ctx_mutex must be held when calling this function */
 static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 {
-	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
+	struct starpu_task_list list;
+	starpu_task_list_move(&list, &sched_ctx->empty_ctx_tasks);
+
+	_starpu_sched_ctx_unlock_write(sched_ctx->id);
+	while(!starpu_task_list_empty(&list))
 	{
-		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
+		struct starpu_task *old_task = starpu_task_list_pop_back(&list);
 		if(old_task == &stop_submission_task)
 			break;
 
@@ -1123,6 +1127,7 @@ static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 		if (ret == -EAGAIN)
 			break;
 	}
+	_starpu_sched_ctx_lock_write(sched_ctx->id);
 }
 
 unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
