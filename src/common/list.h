@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2012,2015-2017                      CNRS
+ * Copyright (C) 2010-2012,2015-2018                      CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -264,7 +264,9 @@
     { struct ENAME *i=l->_head; while(i) \
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
-      i=i->_next;} return 1; }
+      i=i->_next;} return 1; } \
+  /** @internal */LIST_INLINE void ENAME##_list_move(struct ENAME##_list *ldst, struct ENAME##_list *lsrc) \
+    { ENAME##_list_init(ldst); ldst->_head = lsrc->_head; ldst->_tail = lsrc->_tail; lsrc->_head = NULL; lsrc->_tail = NULL; }
 
 
 #ifdef STARPU_DEBUG
