@@ -133,6 +133,12 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
 
+StarPU 1.2.7 (git revision xxx)
+==============================================
+
+Small changes:
+  * Fix code to allow to submit tasks to empty contexts
+
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ==============================================
 
