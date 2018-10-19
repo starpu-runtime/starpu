@@ -3521,6 +3521,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
+  chmod +x doc/doxygen_dev/doxygen_filter.sh
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
@@ -3637,6 +3638,9 @@ AC_OUTPUT([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
+	doc/doxygen_dev/Makefile
+	doc/doxygen_dev/doxygen-config.cfg
+	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
 ])
