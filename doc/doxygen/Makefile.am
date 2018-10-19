@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2018                                Inria
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2009,2011,2013-2014,2017                 Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -65,7 +65,7 @@ chapters =	\
 	chapters/320_scheduling.doxy		\
 	chapters/330_scheduling_contexts.doxy		\
 	chapters/340_scheduling_context_hypervisor.doxy		\
-	chapters/350_modularized_scheduler.doxy		\
+	chapters/350_scheduling_policy_definition.doxy		\
 	chapters/360_debugging_tools.doxy		\
 	chapters/370_online_performance_tools.doxy		\
 	chapters/380_offline_performance_tools.doxy		\
