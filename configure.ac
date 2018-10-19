@@ -2474,15 +2474,15 @@ if test "x$enable_starpu_top" != "xno" ; then
 	can_build_starpu_top=no
 	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
 	if test x$QMAKE != xnot-found; then
-		QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
-		QT_VERSION=`$QMAKE --version 2>&1 | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
-		if test $QT_VERSION -ge 5 ; then
+		QMAKE_VERSION=`$QMAKE --version 2>/dev/null | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
+		QT_VERSION=`$QMAKE --version 2>/dev/null | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
+		if test 0$QT_VERSION -ge 5 ; then
 			can_build_starpu_top=yes
-		elif test $QMAKE_VERSION -ge 2 ; then
+		elif test 0$QMAKE_VERSION -ge 2 ; then
 			PKG_CHECK_EXISTS([QtGui QtOpenGL QtSql], [
 				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
 				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
-				if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
+				if test 0$QT_MAJVERSION -gt 4 -o \( 0$QT_MAJVERSION -eq 4 -a 0$QT_MINVERSION -ge 7 \) ; then
 					can_build_starpu_top=yes
 				fi
 			])
@@ -3543,6 +3543,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
+  mkdir -p examples/cholesky
   test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
