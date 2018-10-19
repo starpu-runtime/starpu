@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2017                                CNRS
+# Copyright (C) 2013-2018                                CNRS
 # Copyright (C) 2015                                     Inria
 # Copyright (C) 2015                                     Université de Bordeaux
 #
@@ -16,7 +16,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 SUBDIRS = doxygen
+SUBDIRS += doxygen_dev
 DIST_SUBDIRS = doxygen
+DIST_SUBDIRS += doxygen_dev
 
 EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/hello_world_plugin.c \
