@@ -55,7 +55,8 @@ endif
 endif
 
 chapters =	\
-	chapters/000_introduction.doxy
+	chapters/000_introduction.doxy \
+	chapters/010_core.doxy
 
 images =
 
