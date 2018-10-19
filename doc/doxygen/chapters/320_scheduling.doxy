@@ -217,65 +217,6 @@ contexts, otherwise the workers' corresponding scheduling structures may not be 
 the execution of the application may deadlock. Moreover, the hypervisor should not be used when
 statically scheduling tasks.
 
-\section DefiningANewSchedulingPolicy Defining A New Scheduling Policy
-
-A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory <c>examples/scheduler/</c>.
-
-The scheduler has to provide methods:
-
-\code{.c}
-static struct starpu_sched_policy dummy_sched_policy =
-{
-    .init_sched = init_dummy_sched,
-    .deinit_sched = deinit_dummy_sched,
-    .add_workers = dummy_sched_add_workers,
-    .remove_workers = dummy_sched_remove_workers,
-    .push_task = push_task_dummy,
-    .pop_task = pop_task_dummy,
-    .policy_name = "dummy",
-    .policy_description = "dummy scheduling strategy"
-};
-\endcode
-
-The idea is that when a task becomes ready for execution, the
-starpu_sched_policy::push_task method is called. When a worker is idle, the
-starpu_sched_policy::pop_task method is called to get a task. It is up to the
-scheduler to implement what is between. A simple eager scheduler is for instance
-to make starpu_sched_policy::push_task push the task to a global list, and make
-starpu_sched_policy::pop_task pop from this list.
-
-The \ref starpu_sched_policy section provides the exact rules that govern the
-methods of the policy.
-
-Make sure to have a look at the \ref API_Scheduling_Policy section, which
-provides a list of the available functions for writing advanced schedulers, such
-as starpu_task_expected_length(), starpu_task_expected_data_transfer_time_for(),
-starpu_task_expected_energy(), etc. Other
-useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
-starpu_transfer_predict(), ...
-
-Usual functions can also be used on tasks, for instance one can do
-
-\code{.c}
-size = 0;
-write = 0;
-if (task->cl)
-    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-    {
-        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
-	size_t datasize = starpu_data_get_size(data);
-        size += datasize;
-	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
-	    write += datasize;
-    }
-\endcode
-
-And various queues can be used in schedulers. A variety of examples of
-schedulers can be read in <c>src/sched_policies</c>, for
-instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
-<c>work_stealing_policy.c</c>
-
 \section GraphScheduling Graph-based Scheduling
 
 For performance reasons, most of the schedulers shipped with StarPU use simple
