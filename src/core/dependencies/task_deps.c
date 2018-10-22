@@ -95,7 +95,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		if (check)
 		{
-			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Unless it is not to be destroyed automatically, a task dependencies have to be set before submission");
+			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || !dep_job->task->detach, "Unless it is not to be destroyed automatically, task dependencies have to be set before submission");
 			STARPU_ASSERT_MSG(dep_job->submitted != 2, "For resubmited tasks, dependencies have to be set before first re-submission");
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->regenerate, "For regenerated tasks, dependencies have to be set before first submission");
 		}
