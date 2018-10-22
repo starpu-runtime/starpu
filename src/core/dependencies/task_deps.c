@@ -164,11 +164,58 @@ void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...)
 	unsigned i;
 	va_list pa;
 	va_start(pa, ndeps);
-	for (i = 0; i < ndeps; i++) {
+	for (i = 0; i < ndeps; i++)
+	{
 		tasks[i] = va_arg(pa, struct starpu_task *);
 	}
 	va_end(pa);
 	starpu_task_declare_deps_array(task, ndeps, tasks);
+}
+
+void starpu_task_declare_end_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+{
+	unsigned i;
+
+	starpu_task_end_dep_add(task, ndeps);
+	for (i = 0; i < ndeps; i++)
+	{
+		struct starpu_task *dep_task = task_array[i];
+		struct _starpu_job *dep_job = _starpu_get_job_associated_to_task(dep_task);
+		int done = 0;
+
+		STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || !dep_job->task->detach || starpu_task_get_current() == dep_task, "Unless it is not to be destroyed automatically, task end dependencies have to be set before submission");
+		STARPU_ASSERT_MSG(dep_job->submitted != 2, "For resubmited tasks, dependencies have to be set before first re-submission");
+		STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->regenerate, "For regenerated tasks, dependencies have to be set before first submission");
+
+		STARPU_ASSERT_MSG(!dep_job->end_rdep, "multiple end dependencies are not supported yet");
+		STARPU_ASSERT_MSG(!dep_job->task->regenerate, "end dependencies are not supported yet for regenerated tasks");
+
+		STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
+		dep_job->end_rdep = task;
+		if (dep_job->terminated)
+			/* It's actually already over */
+			done = 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
+
+		if (done)
+			starpu_task_end_dep_release(task);
+	}
+}
+
+void starpu_task_declare_end_deps(struct starpu_task *task, unsigned ndeps, ...)
+{
+	if (ndeps == 0)
+		return;
+	struct starpu_task *tasks[ndeps];
+	unsigned i;
+	va_list pa;
+	va_start(pa, ndeps);
+	for (i = 0; i < ndeps; i++)
+	{
+		tasks[i] = va_arg(pa, struct starpu_task *);
+	}
+	va_end(pa);
+	starpu_task_declare_end_deps_array(task, ndeps, tasks);
 }
 
 int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])

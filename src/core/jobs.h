@@ -110,6 +110,9 @@ struct _starpu_job
 	 * */
 	struct _starpu_cg_list job_successors;
 
+	/* Task whose termination depends on this task */
+	struct starpu_task *end_rdep;
+
 	/* For tasks with cl==NULL but submitted with explicit data dependency,
 	 * the handle for this dependency, so as to remove the task from the
 	 * last_writer/readers */
