@@ -156,6 +156,21 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	_starpu_task_declare_deps_array(task, ndeps, task_array, 1);
 }
 
+void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...)
+{
+	if (ndeps == 0)
+		return;
+	struct starpu_task *tasks[ndeps];
+	unsigned i;
+	va_list pa;
+	va_start(pa, ndeps);
+	for (i = 0; i < ndeps; i++) {
+		tasks[i] = va_arg(pa, struct starpu_task *);
+	}
+	va_end(pa);
+	starpu_task_declare_deps_array(task, ndeps, tasks);
+}
+
 int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
