@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2018                               CNRS
  * Copyright (C) 2016,2018                                Inria
  * Copyright (C) 2016                                     Université de Bordeaux
  *
@@ -111,8 +111,8 @@ int main(void)
 	starpu_task_wait_for_all();
 
 	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
-	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
+	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_shutdown();
 	free(procs);
 	free(procs1);
