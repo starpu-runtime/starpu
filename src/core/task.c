@@ -239,7 +239,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait must not be called from a task or callback");
 
-	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_STARPU_TRACE_TASK_WAIT_START(j);
 
