@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010-2012,2015                           CNRS
- * Copyright (C) 2010,2013-2014,2016                      Université de Bordeaux
+ * Copyright (C) 2010,2013-2014,2016, 2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,13 +43,17 @@ int main(int argc, char **argv)
 		if (i > 0)
 		{
 			starpu_task_declare_deps_array(tasks[i], 1, &tasks[i-1]);
-			ret = starpu_task_submit(tasks[i]);
-			if (ret == -ENODEV) goto enodev;
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		if (i == (N-1))
 			tasks[i]->detach = 0;
+	}
+
+	for (i = 1; i < N; i++)
+	{
+		ret = starpu_task_submit(tasks[i]);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	ret = starpu_task_submit(tasks[0]);
