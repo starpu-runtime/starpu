@@ -30,11 +30,14 @@ starpu.log
 /tests/datawizard/handle_to_pointer
 /tests/datawizard/data_lookup
 /doc/stamp-vti
-/doc/chapters/version.texi
 /doc/doxygen/chapters/version.sty
 /doc/doxygen/chapters/version.html
 /doc/doxygen/doxygen-config.cfg
 /doc/doxygen/doxygen_filter.sh
+/doc/doxygen_dev/chapters/version.sty
+/doc/doxygen_dev/chapters/version.html
+/doc/doxygen_dev/doxygen-config.cfg
+/doc/doxygen_dev/doxygen_filter.sh
 /examples/basic_examples/block
 /examples/basic_examples/hello_world
 /examples/basic_examples/mult
