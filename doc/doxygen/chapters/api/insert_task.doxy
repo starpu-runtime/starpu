@@ -152,8 +152,15 @@ task to.
 \def STARPU_TASK_DEPS_ARRAY
 \ingroup API_Insert_Task
 Used when calling starpu_task_insert(), must
-be followed by a number of tasks, and an array containing these tasks.
+be followed by a number of tasks as int, and an array containing these tasks.
 The function starpu_task_declare_deps_array() will be called with the
+given values.
+
+\def STARPU_TASK_END_DEPS_ARRAY
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must
+be followed by a number of tasks as int, and an array containing these tasks.
+The function starpu_task_declare_end_deps_array() will be called with the
 given values.
 
 \def STARPU_TASK_COLOR

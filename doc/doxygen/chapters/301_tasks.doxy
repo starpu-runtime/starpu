@@ -111,9 +111,10 @@ starpu_task::tag_id and using the function starpu_tag_declare_deps()
 or starpu_tag_declare_deps_array().
 
 The termination of a task can be delayed through the function
-starpu_task_end_dep_add() which specifies the number of calls to the
-function starpu_task_end_dep_release() needed to trigger the task
-termination.
+starpu_task_end_dep_add() which specifies the number of calls to the function
+starpu_task_end_dep_release() needed to trigger the task termination. One can
+also use starpu_task_declare_end_deps() or starpu_task_declare_end_deps_array()
+to delay the termination of a task until the termination of other tasks.
 
 \section SettingManyDataHandlesForATask Setting Many Data Handles For a Task
 

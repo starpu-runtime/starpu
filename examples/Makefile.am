@@ -254,6 +254,7 @@ STARPU_EXAMPLES +=				\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	dependency/task_end_dep			\
+	dependency/task_end_dep_add		\
 	dependency/sequential_consistency
 
 endif
