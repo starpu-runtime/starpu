@@ -114,6 +114,11 @@ counter, itself protected by the worker's sched_mutex. When state_relax_refcnt
 >the observation must repeatedly wait on the targeted worker's sched_cond
 >condition until state_relax_refcnt > 0.
 
+The relaxed mode, while on, can actually be seen as a transactional consistency
+model, where concurrent accesses are authorized and potential conflicts are
+resolved after the fact. When the relaxed mode is off, the consistency model
+becomes a mutual exclusion model, where the sched_mutex of the worker must be
+held in order to access or change the worker state.
 
 Parallel tasks related states
 
