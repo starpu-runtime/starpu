@@ -269,7 +269,10 @@ void starpu_task_end_dep_release(struct starpu_task *t)
 
 void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
 {
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(t);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	t->nb_termination_call_required += nb_deps;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 }
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
@@ -284,6 +287,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	}
 
 	struct starpu_task *task = j->task;
+	struct starpu_task *end_rdep = NULL;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
 	const unsigned continuation =
@@ -316,6 +320,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * function. A value of 1 means that the codelet was executed but that
 		 * the callback is not done yet. */
 		j->terminated = 1;
+		end_rdep = j->end_rdep;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
@@ -411,6 +416,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (!continuation)
 	{
 		/* in case there are dependencies, wake up the proper tasks */
+		if (end_rdep)
+			starpu_task_end_dep_release(end_rdep);
 		_starpu_notify_dependencies(j);
 	}
 

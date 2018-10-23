@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013,2015,2017,2018                      CNRS
- * Copyright (C) 2009-2011,2014-2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2016, 2018                      Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,6 +31,36 @@ behaviour. If \p ndeps is 0, no dependency is added. It is possible to
 call starpu_task_declare_deps_array() several times on the same task,
 in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
+
+\fn void starpu_task_declare_deps(starpu_task *task, unsigned ndeps, ...)
+\ingroup API_Explicit_Dependencies
+Declare task dependencies between a \p task and an series of \p ndeps tasks,
+similarly to starpu_task_declare_deps_array(), but the tasks are passed after \p
+ndeps, which indicates how many tasks \p task shall be made to depend on.
+If \p ndeps is 0, no dependency is added.
+
+\fn void starpu_task_declare_end_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+\ingroup API_Explicit_Dependencies
+Declare task end dependencies between a \p task and an array of
+tasks of length \p ndeps. \p task will appear as terminated not only when \p
+task is termination, but also when the tasks of \p task_array have terminated.
+This function must be called prior to the
+termination of the task, but it may called after the submission or the
+execution of the tasks in the array, provided the tasks are still
+valid (i.e. they were not automatically destroyed). Calling this
+function on a task that was already terminated or with an entry of
+\p task_array that is no longer a valid task results in an undefined
+behaviour. If \p ndeps is 0, no dependency is added. It is possible to
+call starpu_task_declare_end_deps_array() several times on the same task,
+in this case, the dependencies are added. It is currently not implemented to have
+redundancy in the task dependencies.
+
+\fn void starpu_task_declare_end_deps(starpu_task *task, unsigned ndeps, ...)
+\ingroup API_Explicit_Dependencies
+Declare task end dependencies between a \p task and an series of \p ndeps tasks,
+similarly to starpu_task_declare_end_deps_array(), but the tasks are passed after \p
+ndeps, which indicates how many tasks \p task 's termination shall be made to depend on.
+If \p ndeps is 0, no dependency is added.
 
 \fn int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
 \ingroup API_Explicit_Dependencies

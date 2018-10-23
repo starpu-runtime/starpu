@@ -303,7 +303,11 @@ struct starpu_task
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
+void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...);
 void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
+
+void starpu_task_declare_end_deps(struct starpu_task *task, unsigned ndeps, ...);
+void starpu_task_declare_end_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
 void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps);
 void starpu_task_end_dep_release(struct starpu_task *t);

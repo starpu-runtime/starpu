@@ -1011,8 +1011,10 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	_starpu_sched_ctx_lock_write(sched_ctx_id);
+
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
+	_starpu_sched_ctx_lock_write(inheritor_sched_ctx_id);
 
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
 
@@ -1052,6 +1054,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		notify_workers_about_changing_ctx_done(nworkers_ctx, backup_workerids);
 		occupied_sms -= sched_ctx->nsms;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
@@ -1060,6 +1063,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		notify_workers_about_changing_ctx_done(nworkers_ctx, backup_workerids);
 		occupied_sms -= sched_ctx->nsms;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 	}
 	/* workerids is malloc-ed in starpu_sched_ctx_get_workers_list, don't forget to free it when
 	   you don't use it anymore */

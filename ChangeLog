@@ -51,7 +51,9 @@ New features:
   * Add possibility to delay the termination of a task with the
     functions starpu_task_end_dep_add() which specifies the number of
     calls to the function starpu_task_end_dep_release() needed to
-    trigger the task termination.
+    trigger the task termination, or with starpu_task_declare_end_deps_array()
+    and starpu_task_declare_end_deps() to just declare termination dependencies
+    between tasks.
   * Add possibility to define the sequential consistency at the task level
     for each handle used by the task.
   * Add STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_CPU, and
@@ -116,6 +118,7 @@ Small features:
   * New function starpu_data_partition_not_automatic() to disable the
     automatic partitioning of a data handle for which a asynchronous
     plan has previously been submitted
+  * Add starpu_task_declare_deps()
 
 Changes:
   * Vastly improve simgrid simulation time.

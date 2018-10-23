@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016, 2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -169,12 +169,10 @@ int main(int argc, char **argv)
 	taskD.regenerate = 1;
 	taskD.handles[0] = check_data;
 
-	struct starpu_task *depsBC_array[1] = {&taskA};
-	starpu_task_declare_deps_array(&taskB, 1, depsBC_array);
-	starpu_task_declare_deps_array(&taskC, 1, depsBC_array);
+	starpu_task_declare_deps(&taskB, 1, &taskA);
+	starpu_task_declare_deps(&taskC, 1, &taskA);
 
-	struct starpu_task *depsD_array[2] = {&taskB, &taskC};
-	starpu_task_declare_deps_array(&taskD, 2, depsD_array);
+	starpu_task_declare_deps(&taskD, 2, &taskB, &taskC);
 
 	ret = starpu_task_submit(&taskA); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	ret = starpu_task_submit(&taskB); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
