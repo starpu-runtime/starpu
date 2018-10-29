@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -20,6 +20,9 @@
 
 #ifndef __WORKERS_H__
 #define __WORKERS_H__
+
+/** \addtogroup workers */
+/* @{ */
 
 #include <limits.h>
 
@@ -68,31 +71,32 @@ enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 struct _starpu_ctx_change_list;
 
-/* This is initialized from in _starpu_worker_init */
+/** This is initialized by _starpu_worker_init() */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
         starpu_pthread_mutex_t mutex;
-	enum starpu_worker_archtype arch; /* what is the type of worker ? */
-	uint32_t worker_mask; /* what is the type of worker ? */
-	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
-	starpu_pthread_t worker_thread; /* the thread which runs the worker */
-	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
-	unsigned subworkerid; /* which sub-worker this one is for the cpu/gpu */
-	int bindid; /* which cpu is the driver bound to ? (logical index) */
-	int workerid; /* uniquely identify the worker among all processing units types */
-	int combined_workerid; /* combined worker currently using this worker */
-	int current_rank; /* current rank in case the worker is used in a parallel fashion */
-	int worker_size; /* size of the worker in case we use a combined worker */
-	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
-	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
-	unsigned memory_node; /* which memory node is the worker associated with ? */
-	unsigned numa_memory_node; /* which numa memory node is the worker associated with? (logical index) */
-	/* condition variable used for passive waiting operations on worker
-	 * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
-	 * since the condition is shared for multiple purpose */
+	enum starpu_worker_archtype arch; /**< what is the type of worker ? */
+	uint32_t worker_mask; /**< what is the type of worker ? */
+	struct starpu_perfmodel_arch perf_arch; /**< in case there are different models of the same arch */
+	starpu_pthread_t worker_thread; /**< the thread which runs the worker */
+	unsigned devid; /**< which cpu/gpu/etc is controlled by the worker ? */
+	unsigned subworkerid; /**< which sub-worker this one is for the cpu/gpu */
+	int bindid; /**< which cpu is the driver bound to ? (logical index) */
+	int workerid; /**< uniquely identify the worker among all processing units types */
+	int combined_workerid; /**< combined worker currently using this worker */
+	int current_rank; /**< current rank in case the worker is used in a parallel fashion */
+	int worker_size; /**< size of the worker in case we use a combined worker */
+	starpu_pthread_cond_t started_cond; /**< indicate when the worker is ready */
+	starpu_pthread_cond_t ready_cond; /**< indicate when the worker is ready */
+	unsigned memory_node; /**< which memory node is the worker associated with ? */
+	unsigned numa_memory_node; /**< which numa memory node is the worker associated with? (logical index) */
+	  /**
+	   * condition variable used for passive waiting operations on worker
+	   * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
+	   * since the condition is shared for multiple purpose */
 	starpu_pthread_cond_t sched_cond;
-        starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
-	unsigned state_relax_refcnt; /* mark scheduling sections where other workers can safely access the worker state */
+        starpu_pthread_mutex_t sched_mutex; /**< mutex protecting sched_cond */
+	unsigned state_relax_refcnt; /**< mark scheduling sections where other workers can safely access the worker state */
 #ifdef STARPU_SPINLOCK_CHECK
 	const char *relax_on_file;
 	int relax_on_line;
@@ -101,88 +105,90 @@ LIST_TYPE(_starpu_worker,
 	int relax_off_line;
 	const char *relax_off_func;
 #endif
-	unsigned state_sched_op_pending; /* a task pop is ongoing even though sched_mutex may temporarily be unlocked */
-	unsigned state_changing_ctx_waiting; /* a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
-	unsigned state_changing_ctx_notice; /* the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
-	unsigned state_blocked_in_parallel; /* worker is currently blocked on a parallel section */
-	unsigned state_blocked_in_parallel_observed; /* the blocked state of the worker has been observed by another worker during a relaxed section */
-	unsigned state_block_in_parallel_req; /* a request for state transition from unblocked to blocked is pending */
-	unsigned state_block_in_parallel_ack; /* a block request has been honored */
-	unsigned state_unblock_in_parallel_req; /* a request for state transition from blocked to unblocked is pending */
-	unsigned state_unblock_in_parallel_ack; /* an unblock request has been honored */
-	 /* cumulative blocking depth
-	  * - =0  worker unblocked
-	  * - >0  worker blocked
-	  * - transition from 0 to 1 triggers a block_req
-	  * - transition from 1 to 0 triggers a unblock_req
-	  */
+	unsigned state_sched_op_pending; /**< a task pop is ongoing even though sched_mutex may temporarily be unlocked */
+	unsigned state_changing_ctx_waiting; /**< a thread is waiting for operations such as pop to complete before acquiring sched_mutex and modifying the worker ctx*/
+	unsigned state_changing_ctx_notice; /**< the worker ctx is about to change or being changed, wait for flag to be cleared before starting new scheduling operations */
+	unsigned state_blocked_in_parallel; /**< worker is currently blocked on a parallel section */
+	unsigned state_blocked_in_parallel_observed; /**< the blocked state of the worker has been observed by another worker during a relaxed section */
+	unsigned state_block_in_parallel_req; /**< a request for state transition from unblocked to blocked is pending */
+	unsigned state_block_in_parallel_ack; /**< a block request has been honored */
+	unsigned state_unblock_in_parallel_req; /**< a request for state transition from blocked to unblocked is pending */
+	unsigned state_unblock_in_parallel_ack; /**< an unblock request has been honored */
+	  /**
+	   * cumulative blocking depth
+	   * - =0  worker unblocked
+	   * - >0  worker blocked
+	   * - transition from 0 to 1 triggers a block_req
+	   * - transition from 1 to 0 triggers a unblock_req
+	   */
 	unsigned block_in_parallel_ref_count;
-	starpu_pthread_t thread_changing_ctx; /* thread currently changing a sched_ctx containing the worker */
-	/* list of deferred context changes
-	 *
-	 * when the current thread is a worker, _and_ this worker is in a
-	 * scheduling operation, new ctx changes are queued to this list for
-	 * subsequent processing once worker completes the ongoing scheduling
-	 * operation */
+	starpu_pthread_t thread_changing_ctx; /**< thread currently changing a sched_ctx containing the worker */
+	  /**
+	     list of deferred context changes
+	     *
+	     * when the current thread is a worker, _and_ this worker is in a
+	     * scheduling operation, new ctx changes are queued to this list for
+	     * subsequent processing once worker completes the ongoing scheduling
+	     * operation */
 	struct _starpu_ctx_change_list ctx_change_list;
-	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
-	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
-	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
-	unsigned current_ordered_task; /* this records the index (within local_ordered_tasks) of the next ordered task to be executed */
-	unsigned current_ordered_task_order; /* this records the order of the next ordered task to be executed */
-	struct starpu_task *current_task; /* task currently executed by this worker (non-pipelined version) */
-	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /* tasks currently executed by this worker (pipelined version) */
+	struct starpu_task_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
+	struct starpu_task **local_ordered_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
+	unsigned local_ordered_tasks_size; /**< this records the size of local_ordered_tasks */
+	unsigned current_ordered_task; /**< this records the index (within local_ordered_tasks) of the next ordered task to be executed */
+	unsigned current_ordered_task_order; /**< this records the order of the next ordered task to be executed */
+	struct starpu_task *current_task; /**< task currently executed by this worker (non-pipelined version) */
+	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /**< tasks currently executed by this worker (pipelined version) */
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_t wait;
 #endif
 
-	struct timespec cl_start; /* Codelet start time of the task currently running */
-	struct timespec cl_end; /* Codelet end time of the last task running */
-	unsigned char first_task; /* Index of first task in the pipeline */
-	unsigned char ntasks; /* number of tasks in the pipeline */
-	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
-	unsigned char pipeline_stuck; /* whether a task prevents us from pipelining */
-	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
+	struct timespec cl_start; /**< Codelet start time of the task currently running */
+	struct timespec cl_end; /**< Codelet end time of the last task running */
+	unsigned char first_task; /**< Index of first task in the pipeline */
+	unsigned char ntasks; /**< number of tasks in the pipeline */
+	unsigned char pipeline_length; /**< number of tasks to be put in the pipeline */
+	unsigned char pipeline_stuck; /**< whether a task prevents us from pipelining */
+	struct _starpu_worker_set *set; /**< in case this worker belongs to a set */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
-	enum _starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
-	unsigned state_keep_awake; /* !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
+	enum _starpu_worker_status status; /**< what is the worker doing now ? (eg. CALLBACK) */
+	unsigned state_keep_awake; /**< !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
 	char name[64];
 	char short_name[32];
-	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
+	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
-	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
-	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
+	unsigned nsched_ctxs; /**< the no of contexts a worker belongs to*/
+	struct _starpu_barrier_counter tasks_barrier; /**< wait for the tasks submitted */
 
-	unsigned has_prev_init; /* had already been inited in another ctx */
+	unsigned has_prev_init; /**< had already been inited in another ctx */
 
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS+1];
 
-	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
+	unsigned spinning_backoff ; /**< number of cycles to pause when spinning  */
 
-	unsigned nb_buffers_transferred; /* number of piece of data already send to worker */
-	unsigned nb_buffers_totransfer; /* number of piece of data already send to worker */
-	struct starpu_task *task_transferring; /* The buffers of this task are being sent */
+	unsigned nb_buffers_transferred; /**< number of piece of data already send to worker */
+	unsigned nb_buffers_totransfer; /**< number of piece of data already send to worker */
+	struct starpu_task *task_transferring; /**< The buffers of this task are being sent */
 
-	/* indicate whether the workers shares tasks lists with other workers*/
-	/* in this case when removing him from a context it disapears instantly */
+	  /**
+	   * indicate whether the workers shares tasks lists with other workers
+	   * in this case when removing him from a context it disapears instantly
+	   */
 	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
-        /* boolean to chose the next ctx a worker will pop into */
-	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1];
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1]; 	  /**< boolean to chose the next ctx a worker will pop into */
 
-       /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
-       /* one for each of the 2 priorities*/
+	  /**
+	   * boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx
+	   * one for each of the 2 priorities
+	   */
 	unsigned reverse_phase[2];
 
-	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
-	unsigned pop_ctx_priority;
-
-	/* bool to indicate if the worker is slave in a ctx */
-	unsigned is_slave_somewhere;
+	unsigned pop_ctx_priority; 	  /**< indicate which priority of ctx is currently active: the values are 0 or 1*/
+	unsigned is_slave_somewhere; 	  /**< bool to indicate if the worker is slave in a ctx */
 
 	struct _starpu_sched_ctx *stream_ctx;
 
@@ -196,10 +202,10 @@ LIST_TYPE(_starpu_worker,
 
 struct _starpu_combined_worker
 {
-	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
-	uint32_t worker_mask; /* what is the type of workers ? */
+	struct starpu_perfmodel_arch perf_arch; 	 /**< in case there are different models of the same arch */
+	uint32_t worker_mask; /**< what is the type of workers ? */
 	int worker_size;
-	unsigned memory_node; /* which memory node is associated that worker to ? */
+	unsigned memory_node; 	 /**< which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_MP
 	int count;
@@ -214,17 +220,19 @@ struct _starpu_combined_worker
 #endif
 };
 
-/* in case a single CPU worker may control multiple
- * accelerators (eg. Gordon for n SPUs) */
+/**
+ * in case a single CPU worker may control multiple
+ * accelerators (eg. Gordon for n SPUs)
+*/
 struct _starpu_worker_set
 {
         starpu_pthread_mutex_t mutex;
-	starpu_pthread_t worker_thread; /* the thread which runs the worker */
+	starpu_pthread_t worker_thread; /**< the thread which runs the worker */
 	unsigned nworkers;
-	unsigned started; /* Only one thread for the whole set */
+	unsigned started; /**< Only one thread for the whole set */
 	void *retval;
 	struct _starpu_worker *workers;
-        starpu_pthread_cond_t ready_cond; /* indicate when the set is ready */
+        starpu_pthread_cond_t ready_cond; /**< indicate when the set is ready */
 	unsigned set_is_initialized;
 };
 
@@ -234,82 +242,82 @@ extern struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 
 struct _starpu_machine_topology
 {
-	/* Total number of workers. */
+	/** Total number of workers. */
 	unsigned nworkers;
 
-	/* Total number of combined workers. */
+	/** Total number of combined workers. */
 	unsigned ncombinedworkers;
 
 	unsigned nsched_ctxs;
 
 #ifdef STARPU_HAVE_HWLOC
-	/* Topology as detected by hwloc. */
+	/** Topology as detected by hwloc. */
 	hwloc_topology_t hwtopology;
 #endif
-	/* custom hwloc tree*/
+	/** custom hwloc tree*/
 	struct starpu_tree *tree;
 
-	/* Total number of CPU cores, as detected by the topology code. May
+	/** Total number of CPU cores, as detected by the topology code. May
 	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwcpus;
 
-	/* Total number of PUs (i.e. threads), as detected by the topology code. May
+	/** Total number of PUs (i.e. threads), as detected by the topology code. May
 	 * be different from the actual number of PU workers.
 	 */
 	unsigned nhwpus;
 
-	/* Total number of CUDA devices, as detected. May be different
+	/** Total number of CUDA devices, as detected. May be different
 	 * from the actual number of CUDA workers.
 	 */
 	unsigned nhwcudagpus;
 
-	/* Total number of OpenCL devices, as detected. May be
+	/** Total number of OpenCL devices, as detected. May be
 	 * different from the actual number of OpenCL workers.
 	 */
 	unsigned nhwopenclgpus;
 
-	/* Total number of SCC cores, as detected. May be different
+	/** Total number of SCC cores, as detected. May be different
 	 * from the actual number of core workers.
 	 */
 	unsigned nhwscc;
 
-	/* Total number of MPI nodes, as detected. May be different
+	/** Total number of MPI nodes, as detected. May be different
 	 * from the actual number of node workers.
 	 */
 	unsigned nhwmpi;
 
-	/* Actual number of CPU workers used by StarPU. */
+	/** Actual number of CPU workers used by StarPU. */
 	unsigned ncpus;
 
-	/* Actual number of CUDA GPUs used by StarPU. */
+	/** Actual number of CUDA GPUs used by StarPU. */
 	unsigned ncudagpus;
 	unsigned nworkerpercuda;
 	int cuda_th_per_stream;
 	int cuda_th_per_dev;
 
-	/* Actual number of OpenCL workers used by StarPU. */
+	/** Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;
 
-	/* Actual number of SCC workers used by StarPU. */
+	/** Actual number of SCC workers used by StarPU. */
 	unsigned nsccdevices;
 
-	/* Actual number of MPI workers used by StarPU. */
+	/** Actual number of MPI workers used by StarPU. */
 	unsigned nmpidevices;
         unsigned nhwmpidevices;
 
-	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; // Each MPI node has its set of cores.
+	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; /**< Each MPI node has its set of cores. */
 	unsigned nmpicores[STARPU_MAXMPIDEVS];
 
-	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
+	/** Topology of MP nodes (mainly MIC and SCC) as well as necessary
 	 * objects to communicate with them. */
 	unsigned nhwmicdevices;
 	unsigned nmicdevices;
 
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
+	unsigned nhwmiccores[STARPU_MAXMICDEVS]; /**< Each MIC node has its set of cores. */
 	unsigned nmiccores[STARPU_MAXMICDEVS];
 
-	/* Indicates the successive logical PU identifier that should be used
+	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
@@ -318,7 +326,7 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 
-	/* Indicates the successive CUDA identifier that should be
+	/** Indicates the successive CUDA identifier that should be
 	 * used by the CUDA driver.  It is either filled according to
 	 * the user's explicit parameters (from starpu_conf) or
 	 * according to the STARPU_WORKERS_CUDAID env. variable.
@@ -326,7 +334,7 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
 
-	/* Indicates the successive OpenCL identifier that should be
+	/** Indicates the successive OpenCL identifier that should be
 	 * used by the OpenCL driver.  It is either filled according
 	 * to the user's explicit parameters (from starpu_conf) or
 	 * according to the STARPU_WORKERS_OPENCLID env. variable.
@@ -334,16 +342,16 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/** Indicates the successive MIC devices that should be used
+	/*** Indicates the successive MIC devices that should be used
 	 * by the MIC driver.  It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
 	 * are taken in ID order. */
-	/* TODO */
-	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
+	/** TODO */
+	/** unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
 
-	/* Which SCC(s) do we use ? */
-	/* Indicates the successive SCC devices that should be used by
+	/** Which SCC(s) do we use ? */
+	/** Indicates the successive SCC devices that should be used by
 	 * the SCC driver.  It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_SCCID env. variable. Otherwise, they
@@ -363,76 +371,76 @@ struct _starpu_machine_config
 	int pu_depth;
 #endif
 
-	/* Where to bind next worker ? */
+	/** Where to bind next worker ? */
 	int current_bindid;
 	char currently_bound[STARPU_NMAXWORKERS];
 	char currently_shared[STARPU_NMAXWORKERS];
 
-	/* Which GPU(s) do we use for CUDA ? */
+	/** Which GPU(s) do we use for CUDA ? */
 	int current_cuda_gpuid;
 
-	/* Which GPU(s) do we use for OpenCL ? */
+	/** Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
 
-	/* Which MIC do we use? */
+	/** Which MIC do we use? */
 	int current_mic_deviceid;
 
-	/* Which SCC do we use? */
+	/** Which SCC do we use? */
 	int current_scc_deviceid;
 
-	/* Which MPI do we use? */
+	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
-	/* Memory node for cpus, if only one */
+	/** Memory node for cpus, if only one */
 	int cpus_nodeid;
-	/* Memory node for CUDA, if only one */
+	/** Memory node for CUDA, if only one */
 	int cuda_nodeid;
-	/* Memory node for OpenCL, if only one */
+	/** Memory node for OpenCL, if only one */
 	int opencl_nodeid;
-	/* Memory node for MIC, if only one */
+	/** Memory node for MIC, if only one */
 	int mic_nodeid;
-	/* Memory node for SCC, if only one */
+	/** Memory node for SCC, if only one */
 	int scc_nodeid;
-	/* Memory node for MPI, if only one */
+	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
-	/* Basic workers : each of this worker is running its own driver and
+	/** Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
 
-	/* Combined workers: these worker are a combination of basic workers
+	/** Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
-	/* Translation table from bindid to worker IDs */
+	/** Translation table from bindid to worker IDs */
 	struct
 	{
 		int *workerids;
-		unsigned nworkers; /* size of workerids */
+		unsigned nworkers; /**< size of workerids */
 	} *bindid_workers;
-	unsigned nbindid; /* size of bindid_workers */
+	unsigned nbindid; /**< size of bindid_workers */
 
-	/* This bitmask indicates which kinds of worker are available. For
+	/** This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
 	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
-        /* either the user given configuration passed to starpu_init or a default configuration */
+        /** either the user given configuration passed to starpu_init or a default configuration */
 	struct starpu_conf conf;
 
-	/* this flag is set until the runtime is stopped */
+	/** this flag is set until the runtime is stopped */
 	unsigned running;
 
 	int disable_kernels;
 
-	/* Number of calls to starpu_pause() - calls to starpu_resume(). When >0,
+	/** Number of calls to starpu_pause() - calls to starpu_resume(). When >0,
 	 * StarPU should pause. */
 	int pause_depth;
 
-	/* all the sched ctx of the current instance of starpu */
+	/** all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS+1];
 
-	/* this flag is set until the application is finished submitting tasks */
+	/** this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
 
 	int watchdog_ok;
@@ -447,18 +455,18 @@ extern int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
 extern starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
 extern starpu_pthread_key_t _starpu_worker_set_key STARPU_ATTRIBUTE_INTERNAL;
 
-/* Three functions to manage argv, argc */
+/** Three functions to manage argv, argc */
 void _starpu_set_argc_argv(int *argc, char ***argv);
 int *_starpu_get_argc();
 char ***_starpu_get_argv();
 
-/* Fill conf with environment variables */
+/** Fill conf with environment variables */
 void _starpu_conf_check_environment(struct starpu_conf *conf);
 
-/* Called by the driver when it is ready to pause  */
+/** Called by the driver when it is ready to pause  */
 void _starpu_may_pause(void);
 
-/* Has starpu_shutdown already been called ? */
+/** Has starpu_shutdown already been called ? */
 static inline unsigned _starpu_machine_is_running(void)
 {
 	unsigned ret;
@@ -472,33 +480,36 @@ static inline unsigned _starpu_machine_is_running(void)
 }
 
 
-/* Check if there is a worker that may execute the task. */
+/** initialise a worker */
+void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig);
+
+/** Check if there is a worker that may execute the task. */
 uint32_t _starpu_worker_exists(struct starpu_task *);
 
-/* Is there a worker that can execute CUDA code ? */
+/** Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_cuda_task(void);
 
-/* Is there a worker that can execute CPU code ? */
+/** Is there a worker that can execute CPU code ? */
 uint32_t _starpu_can_submit_cpu_task(void);
 
-/* Is there a worker that can execute OpenCL code ? */
+/** Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_can_submit_opencl_task(void);
 
-/* Is there a worker that can execute OpenCL code ? */
+/** Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_can_submit_scc_task(void);
 
-/* Check whether there is anything that the worker should do instead of
+/** Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
 unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worker);
 
-/* This function must be called to block a worker. It puts the worker in a
+/** This function must be called to block a worker. It puts the worker in a
  * sleeping state until there is some event that forces the worker to wake up.
  * */
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
-/* This function initializes the current driver for the given worker */
+/** This function initializes the current driver for the given worker */
 void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
-/* This function initializes the current thread for the given worker */
+/** This function initializes the current thread for the given worker */
 void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
 
 static inline unsigned _starpu_worker_get_count(void)
@@ -507,7 +518,7 @@ static inline unsigned _starpu_worker_get_count(void)
 }
 #define starpu_worker_get_count _starpu_worker_get_count
 
-/* The _starpu_worker structure describes all the state of a StarPU worker.
+/** The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
 static inline void _starpu_set_local_worker_key(struct _starpu_worker *worker)
@@ -516,7 +527,7 @@ static inline void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, worker);
 }
 
-/* Returns the _starpu_worker structure that describes the state of the
+/** Returns the _starpu_worker structure that describes the state of the
  * current worker. */
 static inline struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
@@ -525,7 +536,7 @@ static inline struct _starpu_worker *_starpu_get_local_worker_key(void)
 	return (struct _starpu_worker *) STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
 }
 
-/* The _starpu_worker_set structure describes all the state of a StarPU worker_set.
+/** The _starpu_worker_set structure describes all the state of a StarPU worker_set.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
 static inline void _starpu_set_local_worker_set_key(struct _starpu_worker_set *worker)
@@ -534,7 +545,7 @@ static inline void _starpu_set_local_worker_set_key(struct _starpu_worker_set *w
 	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, worker);
 }
 
-/* Returns the _starpu_worker_set structure that describes the state of the
+/** Returns the _starpu_worker_set structure that describes the state of the
  * current worker_set. */
 static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
 {
@@ -543,7 +554,7 @@ static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
 	return (struct _starpu_worker_set *) STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 }
 
-/* Returns the _starpu_worker structure that describes the state of the
+/** Returns the _starpu_worker structure that describes the state of the
  * specified worker. */
 static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
@@ -551,7 +562,7 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 	return &_starpu_config.workers[id];
 }
 
-/* Returns the starpu_sched_ctx structure that describes the state of the
+/** Returns the starpu_sched_ctx structure that describes the state of the
  * specified ctx */
 static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
@@ -560,33 +571,33 @@ static inline struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id);
 
-/* Returns the structure that describes the overall machine configuration (eg.
+/** Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */
 static inline struct _starpu_machine_config *_starpu_get_machine_config(void)
 {
 	return &_starpu_config;
 }
 
-/* Return whether kernels should be run (<=0) or not (>0) */
+/** Return whether kernels should be run (<=0) or not (>0) */
 static inline int _starpu_get_disable_kernels(void)
 {
 	return _starpu_config.disable_kernels;
 }
 
-/* Retrieve the status which indicates what the worker is currently doing. */
+/** Retrieve the status which indicates what the worker is currently doing. */
 static inline enum _starpu_worker_status _starpu_worker_get_status(int workerid)
 {
 	return _starpu_config.workers[workerid].status;
 }
 
-/* Change the status of the worker which indicates what the worker is currently
+/** Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
 static inline void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 {
 	_starpu_config.workers[workerid].status = status;
 }
 
-/* We keep an initial sched ctx which might be used in case no other ctx is available */
+/** We keep an initial sched ctx which might be used in case no other ctx is available */
 static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 {
 	return &_starpu_config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
@@ -594,7 +605,7 @@ static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/* returns workers not belonging to any context, be careful no mutex is used,
+/** returns workers not belonging to any context, be careful no mutex is used,
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
@@ -609,7 +620,7 @@ static inline int _starpu_worker_get_nsched_ctxs(int workerid)
 	return _starpu_config.workers[workerid].nsched_ctxs;
 }
 
-/* Get the total number of sched_ctxs created till now */
+/** Get the total number of sched_ctxs created till now */
 static inline unsigned _starpu_get_nsched_ctxs(void)
 {
 	/* topology.nsched_ctxs may be increased asynchronously in sched_ctx_create */
@@ -617,7 +628,7 @@ static inline unsigned _starpu_get_nsched_ctxs(void)
 	return _starpu_config.topology.nsched_ctxs;
 }
 
-/* Inlined version when building the core.  */
+/** Inlined version when building the core.  */
 static inline int _starpu_worker_get_id(void)
 {
 	struct _starpu_worker * worker;
@@ -636,8 +647,8 @@ static inline int _starpu_worker_get_id(void)
 }
 #define starpu_worker_get_id _starpu_worker_get_id
 
-/* Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
-/* This returns an unsigned object on purpose, so that the caller is sure to get a positive value */
+/** Similar behaviour to starpu_worker_get_id() but fails when called from outside a worker */
+/** This returns an unsigned object on purpose, so that the caller is sure to get a positive value */
 static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 {
 	(void) l;
@@ -652,7 +663,7 @@ void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
 
-/* Send a request to the worker to block, before a parallel task is about to
+/** Send a request to the worker to block, before a parallel task is about to
  * begin.
  *
  * Must be called with worker's sched_mutex held.
@@ -702,7 +713,7 @@ static inline void _starpu_worker_request_blocking_in_parallel(struct _starpu_wo
 	}
 }
 
-/* Send a request to the worker to unblock, after a parallel task is complete.
+/** Send a request to the worker to unblock, after a parallel task is complete.
  *
  * Must be called with worker's sched_mutex held.
  */
@@ -750,7 +761,7 @@ static inline void _starpu_worker_request_unblocking_in_parallel(struct _starpu_
 	}
 }
 
-/* Called by the the worker to process incoming requests to block or unblock on
+/** Called by the the worker to process incoming requests to block or unblock on
  * parallel task boundaries.
  *
  * Must be called with worker's sched_mutex held.
@@ -791,7 +802,7 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
 	}
 }
 
-/* Mark the beginning of a scheduling operation by the worker. No worker
+/** Mark the beginning of a scheduling operation by the worker. No worker
  * blocking operations on parallel tasks and no scheduling context change
  * operations must be performed on contexts containing the worker, on
  * contexts about to add the worker and on contexts about to remove the
@@ -856,7 +867,7 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 #define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
 #endif
 
-/* Mark the end of a scheduling operation by the worker.
+/** Mark the end of a scheduling operation by the worker.
  *
  * Must be called with worker's sched_mutex held.
  */
@@ -892,7 +903,7 @@ static inline int _starpu_worker_sched_op_pending(void)
 	return worker->state_sched_op_pending;
 }
 
-/* Must be called before altering a context related to the worker
+/** Must be called before altering a context related to the worker
  * whether about adding the worker to a context, removing it from a
  * context or modifying the set of workers of a context of which the
  * worker is a member, to mark the beginning of a context change
@@ -939,7 +950,7 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 	}
 }
 
-/* Mark the end of a context change operation.
+/** Mark the end of a context change operation.
  *
  * Must be called with worker's sched_mutex held.
  */
@@ -950,7 +961,7 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
 
-/* Temporarily allow other worker to access current worker state, when still scheduling,
+/** Temporarily allow other worker to access current worker state, when still scheduling,
  * but the scheduling has not yet been made or is already done */
 #ifdef STARPU_SPINLOCK_CHECK
 static inline void __starpu_worker_relax_on(const char*file, int line, const char* func)
@@ -983,7 +994,7 @@ static inline void _starpu_worker_relax_on(void)
 #endif
 #define starpu_worker_relax_on _starpu_worker_relax_on
 
-/* Same, but with current worker mutex already held */
+/** Same, but with current worker mutex already held */
 #ifdef STARPU_SPINLOCK_CHECK
 static inline void __starpu_worker_relax_on_locked(struct _starpu_worker *worker, const char*file, int line, const char* func)
 #else
@@ -1081,7 +1092,7 @@ static inline int _starpu_worker_get_relax_state(void)
 }
 #define starpu_worker_get_relax_state _starpu_worker_get_relax_state
 
-/* lock a worker for observing contents
+/** lock a worker for observing contents
  *
  * notes:
  * - if the observed worker is not in state_relax_refcnt, the function block until the state is reached */
@@ -1174,8 +1185,12 @@ static inline int _starpu_wake_worker_relax(int workerid)
 
 int starpu_wake_worker_relax_light(int workerid);
 
-/* Allow a worker pulling a task it cannot execute to properly refuse it and
- * send it back to the scheduler.
+/**
+ * Allow a worker pulling a task it cannot execute to properly refuse it and
+ *  send it back to the scheduler.
  */
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task);
+
+/* @}*/
+
 #endif // __WORKERS_H__
