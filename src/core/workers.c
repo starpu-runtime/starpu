@@ -525,7 +525,7 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 struct itimerval prof_itimer;
 #endif
 
-static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
 {
 	workerarg->config = pconfig;
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
