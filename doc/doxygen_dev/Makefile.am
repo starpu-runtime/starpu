@@ -114,8 +114,6 @@ $(DOX_TAG): $(dox_inputs)
 	@$(DOXYGEN) $(DOX_CONFIG)
 	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
-
-old:
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
 	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
@@ -123,7 +121,7 @@ old:
 	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
 	@cat $(top_srcdir)/doc/doxygen_dev/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
-$(DOX_PDF): $(DOX_TAG) #refman.tex
+$(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen_dev/chapters/version.sty $(DOX_LATEX_DIR)
 	@-cp $(top_srcdir)/doc/doxygen_dev/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
