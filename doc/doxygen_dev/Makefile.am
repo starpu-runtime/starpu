@@ -22,12 +22,12 @@ MAKEINDEX = makeindex
 DOX_DIR = $(top_builddir)/doc/doxygen_dev
 DOX_CONFIG = $(top_srcdir)/doc/doxygen_dev/doxygen.cfg
 
-DOX_HTML_DIR = html
+DOX_HTML_DIR = html_dev
 DOX_LATEX_DIR = latex
-DOX_PDF = $(DOX_DIR)/starpu.pdf
+DOX_PDF = $(DOX_DIR)/starpu_dev.pdf
 DOX_TAG = starpu.tag
 
-txtdir   = $(docdir)/manual/dev
+txtdir   = $(docdir)/manual
 
 EXTRA_DIST =
 
@@ -37,20 +37,20 @@ EXTRA_DIST += $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/dev/html
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/dev/html \;)
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/dev/html
+	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 else
 if AVAILABLE_DOC
-EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html $(top_srcdir)/doc/doxygen_dev/starpu.pdf
-txt_DATA = $(top_srcdir)/doc/doxygen_dev/starpu.pdf
-DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen_dev/html
+EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html_dev $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
+txt_DATA = $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
+DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen_dev/html_dev
 install-exec-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/dev/html
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/dev/html \;)
+	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
+	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/dev/html
+	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 endif
 endif
 
@@ -112,11 +112,11 @@ dox_inputs = $(DOX_CONFIG) 				\
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	@$(DOXYGEN) $(DOX_CONFIG)
-	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
-	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
+	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html_dev/index.html
+	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html_dev/index.html
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
-	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
+	@if test -f html_dev/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html_dev/navtree.js ; fi
+	@$(SED) -i 's/.*"Files.html".*//' html_dev/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
 	@cat $(top_srcdir)/doc/doxygen_dev/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
@@ -158,7 +158,7 @@ EXTRA_DIST += doxygen.cfg $(chapters) $(images)
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
-	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/doc/dev
+	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
 
 showcheck:
 	-cat /dev/null
