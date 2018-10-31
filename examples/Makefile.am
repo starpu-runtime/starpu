@@ -248,6 +248,7 @@ STARPU_EXAMPLES +=				\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
 	sched_ctx/sched_ctx_empty		\
+	sched_ctx/sched_ctx_delete		\
 	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
