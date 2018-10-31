@@ -26,5 +26,6 @@ make V=1
 make dist
 cp *gz ..
 cp doc/doxygen/starpu.pdf ..
+cp doc/doxygen_dev/starpu_dev.pdf ..
 make clean
 
