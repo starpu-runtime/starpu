@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgebd2_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgebd2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *d__, doublereal *e, doublereal *tauq, doublereal *
 	taup, doublereal *work, integer *info)
 {
@@ -26,10 +26,10 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfg_(integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+	    doublereal *), _starpu_dlarfg_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -185,7 +185,7 @@ static integer c__1 = 1;
     }
     if (*info < 0) {
 	i__1 = -(*info);
-	xerbla_("DGEBD2", &i__1);
+	_starpu_xerbla_("DGEBD2", &i__1);
 	return 0;
     }
 
@@ -201,7 +201,7 @@ static integer c__1 = 1;
 	    i__2 = *m - i__ + 1;
 /* Computing MIN */
 	    i__3 = i__ + 1;
-	    dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[min(i__3, *m)+ i__ * 
+	    _starpu_dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[min(i__3, *m)+ i__ * 
 		    a_dim1], &c__1, &tauq[i__]);
 	    d__[i__] = a[i__ + i__ * a_dim1];
 	    a[i__ + i__ * a_dim1] = 1.;
@@ -211,7 +211,7 @@ static integer c__1 = 1;
 	    if (i__ < *n) {
 		i__2 = *m - i__ + 1;
 		i__3 = *n - i__;
-		dlarf_("Left", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &
+		_starpu_dlarf_("Left", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &
 			tauq[i__], &a[i__ + (i__ + 1) * a_dim1], lda, &work[1]
 );
 	    }
@@ -225,7 +225,7 @@ static integer c__1 = 1;
 		i__2 = *n - i__;
 /* Computing MIN */
 		i__3 = i__ + 2;
-		dlarfg_(&i__2, &a[i__ + (i__ + 1) * a_dim1], &a[i__ + min(
+		_starpu_dlarfg_(&i__2, &a[i__ + (i__ + 1) * a_dim1], &a[i__ + min(
 			i__3, *n)* a_dim1], lda, &taup[i__]);
 		e[i__] = a[i__ + (i__ + 1) * a_dim1];
 		a[i__ + (i__ + 1) * a_dim1] = 1.;
@@ -234,7 +234,7 @@ static integer c__1 = 1;
 
 		i__2 = *m - i__;
 		i__3 = *n - i__;
-		dlarf_("Right", &i__2, &i__3, &a[i__ + (i__ + 1) * a_dim1], 
+		_starpu_dlarf_("Right", &i__2, &i__3, &a[i__ + (i__ + 1) * a_dim1], 
 			lda, &taup[i__], &a[i__ + 1 + (i__ + 1) * a_dim1], 
 			lda, &work[1]);
 		a[i__ + (i__ + 1) * a_dim1] = e[i__];
@@ -255,7 +255,7 @@ static integer c__1 = 1;
 	    i__2 = *n - i__ + 1;
 /* Computing MIN */
 	    i__3 = i__ + 1;
-	    dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* 
+	    _starpu_dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* 
 		    a_dim1], lda, &taup[i__]);
 	    d__[i__] = a[i__ + i__ * a_dim1];
 	    a[i__ + i__ * a_dim1] = 1.;
@@ -265,7 +265,7 @@ static integer c__1 = 1;
 	    if (i__ < *m) {
 		i__2 = *m - i__;
 		i__3 = *n - i__ + 1;
-		dlarf_("Right", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &
+		_starpu_dlarf_("Right", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &
 			taup[i__], &a[i__ + 1 + i__ * a_dim1], lda, &work[1]);
 	    }
 	    a[i__ + i__ * a_dim1] = d__[i__];
@@ -278,7 +278,7 @@ static integer c__1 = 1;
 		i__2 = *m - i__;
 /* Computing MIN */
 		i__3 = i__ + 2;
-		dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *m)+ 
+		_starpu_dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *m)+ 
 			i__ * a_dim1], &c__1, &tauq[i__]);
 		e[i__] = a[i__ + 1 + i__ * a_dim1];
 		a[i__ + 1 + i__ * a_dim1] = 1.;
@@ -287,7 +287,7 @@ static integer c__1 = 1;
 
 		i__2 = *m - i__;
 		i__3 = *n - i__;
-		dlarf_("Left", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &
+		_starpu_dlarf_("Left", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &
 			c__1, &tauq[i__], &a[i__ + 1 + (i__ + 1) * a_dim1], 
 			lda, &work[1]);
 		a[i__ + 1 + i__ * a_dim1] = e[i__];
@@ -301,4 +301,4 @@ static integer c__1 = 1;
 
 /*     End of DGEBD2 */
 
-} /* dgebd2_ */
+} /* _starpu_dgebd2_ */

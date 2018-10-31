@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dlaed1_(integer *n, doublereal *d__, doublereal *q, 
+/* Subroutine */ int _starpu_dlaed1_(integer *n, doublereal *d__, doublereal *q, 
 	integer *ldq, integer *indxq, doublereal *rho, integer *cutpnt, 
 	doublereal *work, integer *iwork, integer *info)
 {
@@ -27,19 +27,19 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, k, n1, n2, is, iw, iz, iq2, zpp1, indx, indxc;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer indxp;
-    extern /* Subroutine */ int dlaed2_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaed2_(integer *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     integer *, integer *, integer *, integer *), dlaed3_(integer *, 
+	     integer *, integer *, integer *, integer *), _starpu_dlaed3_(integer *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *);
     integer idlmda;
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer *);
     integer coltyp;
 
 
@@ -173,7 +173,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED1", &i__1);
+	_starpu_xerbla_("DLAED1", &i__1);
 	return 0;
     }
 
@@ -201,14 +201,14 @@ static integer c_n1 = -1;
 /*     Form the z-vector which consists of the last row of Q_1 and the */
 /*     first row of Q_2. */
 
-    dcopy_(cutpnt, &q[*cutpnt + q_dim1], ldq, &work[iz], &c__1);
+    _starpu_dcopy_(cutpnt, &q[*cutpnt + q_dim1], ldq, &work[iz], &c__1);
     zpp1 = *cutpnt + 1;
     i__1 = *n - *cutpnt;
-    dcopy_(&i__1, &q[zpp1 + zpp1 * q_dim1], ldq, &work[iz + *cutpnt], &c__1);
+    _starpu_dcopy_(&i__1, &q[zpp1 + zpp1 * q_dim1], ldq, &work[iz + *cutpnt], &c__1);
 
 /*     Deflate eigenvalues. */
 
-    dlaed2_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, &indxq[1], rho, &work[
+    _starpu_dlaed2_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, &indxq[1], rho, &work[
 	    iz], &work[idlmda], &work[iw], &work[iq2], &iwork[indx], &iwork[
 	    indxc], &iwork[indxp], &iwork[coltyp], info);
 
@@ -221,7 +221,7 @@ static integer c_n1 = -1;
     if (k != 0) {
 	is = (iwork[coltyp] + iwork[coltyp + 1]) * *cutpnt + (iwork[coltyp + 
 		1] + iwork[coltyp + 2]) * (*n - *cutpnt) + iq2;
-	dlaed3_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, rho, &work[idlmda], 
+	_starpu_dlaed3_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, rho, &work[idlmda], 
 		 &work[iq2], &iwork[indxc], &iwork[coltyp], &work[iw], &work[
 		is], info);
 	if (*info != 0) {
@@ -232,7 +232,7 @@ static integer c_n1 = -1;
 
 	n1 = k;
 	n2 = *n - k;
-	dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
+	_starpu_dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
     } else {
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
@@ -246,4 +246,4 @@ L20:
 
 /*     End of DLAED1 */
 
-} /* dlaed1_ */
+} /* _starpu_dlaed1_ */

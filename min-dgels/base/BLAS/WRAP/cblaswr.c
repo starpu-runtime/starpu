@@ -67,7 +67,7 @@ f2c_cdotu(complex* retval,
           complex* X, integer* incX, 
           complex* Y, integer* incY)
 {
-    cblas_cdotu_sub(*N, X, *incX, Y, *incY, retval);
+    cblas_starpu_cdotu_sub(*N, X, *incX, Y, *incY, retval);
 }
 
 void
@@ -76,7 +76,7 @@ f2c_cdotc(complex* retval,
           complex* X, integer* incX, 
           complex* Y, integer* incY)
 {
-    cblas_cdotc_sub(*N, X, *incX, Y, *incY, retval);
+    cblas_starpu_cdotc_sub(*N, X, *incX, Y, *incY, retval);
 }
 
 void
@@ -85,7 +85,7 @@ f2c_zdotu(doublecomplex* retval,
           doublecomplex* X, integer* incX, 
           doublecomplex* Y, integer* incY)
 {
-    cblas_zdotu_sub(*N, X, *incX, Y, *incY, retval);
+    cblas_starpu_zdotu_sub(*N, X, *incX, Y, *incY, retval);
 }
 
 void
@@ -94,7 +94,7 @@ f2c_zdotc(doublecomplex* retval,
           doublecomplex* X, integer* incX, 
           doublecomplex* Y, integer* incY)
 {
-    cblas_zdotc_sub(*N, X, *incX, Y, *incY, retval);
+    cblas_starpu_zdotc_sub(*N, X, *incX, Y, *incY, retval);
 }
 
 

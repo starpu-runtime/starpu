@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__3 = 3;
 static integer c__2 = 2;
 
-/* Subroutine */ int dgeqp3_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeqp3_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *jpvt, doublereal *tau, doublereal *work, integer *lwork, 
 	 integer *info)
 {
@@ -29,24 +29,24 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer j, jb, na, nb, sm, sn, nx, fjb, iws, nfxd;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     integer nbmin, minmn;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer minws;
-    extern /* Subroutine */ int dlaqp2_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaqp2_(integer *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *), dgeqrf_(integer *, integer *, 
+	    doublereal *, doublereal *), _starpu_dgeqrf_(integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlaqps_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaqps_(integer *, integer *, integer *, 
 	    integer *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
     integer topbmn, sminmn;
-    extern /* Subroutine */ int dormqr_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormqr_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
     integer lwkopt;
@@ -177,7 +177,7 @@ static integer c__2 = 2;
 	    lwkopt = 1;
 	} else {
 	    iws = *n * 3 + 1;
-	    nb = ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
 	    lwkopt = (*n << 1) + (*n + 1) * nb;
 	}
 	work[1] = (doublereal) lwkopt;
@@ -189,7 +189,7 @@ static integer c__2 = 2;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEQP3", &i__1);
+	_starpu_xerbla_("DGEQP3", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -208,7 +208,7 @@ static integer c__2 = 2;
     for (j = 1; j <= i__1; ++j) {
 	if (jpvt[j] != 0) {
 	    if (j != nfxd) {
-		dswap_(m, &a[j * a_dim1 + 1], &c__1, &a[nfxd * a_dim1 + 1], &
+		_starpu_dswap_(m, &a[j * a_dim1 + 1], &c__1, &a[nfxd * a_dim1 + 1], &
 			c__1);
 		jpvt[j] = jpvt[nfxd];
 		jpvt[nfxd] = j;
@@ -232,7 +232,7 @@ static integer c__2 = 2;
     if (nfxd > 0) {
 	na = min(*m,nfxd);
 /* CC      CALL DGEQR2( M, NA, A, LDA, TAU, WORK, INFO ) */
-	dgeqrf_(m, &na, &a[a_offset], lda, &tau[1], &work[1], lwork, info);
+	_starpu_dgeqrf_(m, &na, &a[a_offset], lda, &tau[1], &work[1], lwork, info);
 /* Computing MAX */
 	i__1 = iws, i__2 = (integer) work[1];
 	iws = max(i__1,i__2);
@@ -240,7 +240,7 @@ static integer c__2 = 2;
 /* CC         CALL DORM2R( 'Left', 'Transpose', M, N-NA, NA, A, LDA, */
 /* CC  $                   TAU, A( 1, NA+1 ), LDA, WORK, INFO ) */
 	    i__1 = *n - na;
-	    dormqr_("Left", "Transpose", m, &i__1, &na, &a[a_offset], lda, &
+	    _starpu_dormqr_("Left", "Transpose", m, &i__1, &na, &a[a_offset], lda, &
 		    tau[1], &a[(na + 1) * a_dim1 + 1], lda, &work[1], lwork, 
 		    info);
 /* Computing MAX */
@@ -260,7 +260,7 @@ static integer c__2 = 2;
 
 /*        Determine the block size. */
 
-	nb = ilaenv_(&c__1, "DGEQRF", " ", &sm, &sn, &c_n1, &c_n1);
+	nb = _starpu_ilaenv_(&c__1, "DGEQRF", " ", &sm, &sn, &c_n1, &c_n1);
 	nbmin = 2;
 	nx = 0;
 
@@ -269,7 +269,7 @@ static integer c__2 = 2;
 /*           Determine when to cross over from blocked to unblocked code. */
 
 /* Computing MAX */
-	    i__1 = 0, i__2 = ilaenv_(&c__3, "DGEQRF", " ", &sm, &sn, &c_n1, &
+	    i__1 = 0, i__2 = _starpu_ilaenv_(&c__3, "DGEQRF", " ", &sm, &sn, &c_n1, &
 		    c_n1);
 	    nx = max(i__1,i__2);
 
@@ -287,7 +287,7 @@ static integer c__2 = 2;
 
 		    nb = (*lwork - (sn << 1)) / (sn + 1);
 /* Computing MAX */
-		    i__1 = 2, i__2 = ilaenv_(&c__2, "DGEQRF", " ", &sm, &sn, &
+		    i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DGEQRF", " ", &sm, &sn, &
 			    c_n1, &c_n1);
 		    nbmin = max(i__1,i__2);
 
@@ -301,7 +301,7 @@ static integer c__2 = 2;
 
 	i__1 = *n;
 	for (j = nfxd + 1; j <= i__1; ++j) {
-	    work[j] = dnrm2_(&sm, &a[nfxd + 1 + j * a_dim1], &c__1);
+	    work[j] = _starpu_dnrm2_(&sm, &a[nfxd + 1 + j * a_dim1], &c__1);
 	    work[*n + j] = work[j];
 /* L20: */
 	}
@@ -327,7 +327,7 @@ L30:
 		i__1 = *n - j + 1;
 		i__2 = j - 1;
 		i__3 = *n - j + 1;
-		dlaqps_(m, &i__1, &i__2, &jb, &fjb, &a[j * a_dim1 + 1], lda, &
+		_starpu_dlaqps_(m, &i__1, &i__2, &jb, &fjb, &a[j * a_dim1 + 1], lda, &
 			jpvt[j], &tau[j], &work[j], &work[*n + j], &work[(*n 
 			<< 1) + 1], &work[(*n << 1) + jb + 1], &i__3);
 
@@ -344,7 +344,7 @@ L30:
 	if (j <= minmn) {
 	    i__1 = *n - j + 1;
 	    i__2 = j - 1;
-	    dlaqp2_(m, &i__1, &i__2, &a[j * a_dim1 + 1], lda, &jpvt[j], &tau[
+	    _starpu_dlaqp2_(m, &i__1, &i__2, &a[j * a_dim1 + 1], lda, &jpvt[j], &tau[
 		    j], &work[j], &work[*n + j], &work[(*n << 1) + 1]);
 	}
 
@@ -355,4 +355,4 @@ L30:
 
 /*     End of DGEQP3 */
 
-} /* dgeqp3_ */
+} /* _starpu_dgeqp3_ */

@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c_n1 = -1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dsytrf_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsytrf_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -27,15 +27,15 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer j, k, kb, nb, iws;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nbmin, iinfo;
     logical upper;
-    extern /* Subroutine */ int dsytf2_(char *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer 
+    extern /* Subroutine */ int _starpu_dsytf2_(char *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer 
 	    *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlasyf_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dlasyf_(char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
     integer ldwork, lwkopt;
@@ -181,9 +181,9 @@ static integer c__2 = 2;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1;
-    if (! upper && ! lsame_(uplo, "L")) {
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -197,14 +197,14 @@ static integer c__2 = 2;
 
 /*        Determine the block size */
 
-	nb = ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
+	nb = _starpu_ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
 	lwkopt = *n * nb;
 	work[1] = (doublereal) lwkopt;
     }
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTRF", &i__1);
+	_starpu_xerbla_("DSYTRF", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -219,7 +219,7 @@ static integer c__2 = 2;
 	    i__1 = *lwork / ldwork;
 	    nb = max(i__1,1);
 /* Computing MAX */
-	    i__1 = 2, i__2 = ilaenv_(&c__2, "DSYTRF", uplo, n, &c_n1, &c_n1, &
+	    i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DSYTRF", uplo, n, &c_n1, &c_n1, &
 		    c_n1);
 	    nbmin = max(i__1,i__2);
 	}
@@ -252,13 +252,13 @@ L10:
 /*           Factorize columns k-kb+1:k of A and use blocked code to */
 /*           update columns 1:k-kb */
 
-	    dlasyf_(uplo, &k, &nb, &kb, &a[a_offset], lda, &ipiv[1], &work[1], 
+	    _starpu_dlasyf_(uplo, &k, &nb, &kb, &a[a_offset], lda, &ipiv[1], &work[1], 
 		     &ldwork, &iinfo);
 	} else {
 
 /*           Use unblocked code to factorize columns 1:k of A */
 
-	    dsytf2_(uplo, &k, &a[a_offset], lda, &ipiv[1], &iinfo);
+	    _starpu_dsytf2_(uplo, &k, &a[a_offset], lda, &ipiv[1], &iinfo);
 	    kb = k;
 	}
 
@@ -296,14 +296,14 @@ L20:
 /*           update columns k+kb:n */
 
 	    i__1 = *n - k + 1;
-	    dlasyf_(uplo, &i__1, &nb, &kb, &a[k + k * a_dim1], lda, &ipiv[k], 
+	    _starpu_dlasyf_(uplo, &i__1, &nb, &kb, &a[k + k * a_dim1], lda, &ipiv[k], 
 		    &work[1], &ldwork, &iinfo);
 	} else {
 
 /*           Use unblocked code to factorize columns k:n of A */
 
 	    i__1 = *n - k + 1;
-	    dsytf2_(uplo, &i__1, &a[k + k * a_dim1], lda, &ipiv[k], &iinfo);
+	    _starpu_dsytf2_(uplo, &i__1, &a[k + k * a_dim1], lda, &ipiv[k], &iinfo);
 	    kb = *n - k + 1;
 	}
 
@@ -338,4 +338,4 @@ L40:
 
 /*     End of DSYTRF */
 
-} /* dsytrf_ */
+} /* _starpu_dsytrf_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer ieeeck_(integer *ispec, real *zero, real *one)
+integer _starpu_ieeeck_(integer *ispec, real *zero, real *one)
 {
     /* System generated locals */
     integer ret_val;
@@ -163,4 +163,4 @@ integer ieeeck_(integer *ispec, real *zero, real *one)
     }
 
     return ret_val;
-} /* ieeeck_ */
+} /* _starpu_ieeeck_ */

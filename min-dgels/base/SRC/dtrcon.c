@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dtrcon_(char *norm, char *uplo, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtrcon_(char *norm, char *uplo, char *diag, integer *n, 
 	doublereal *a, integer *lda, doublereal *rcond, doublereal *work, 
 	integer *iwork, integer *info)
 {
@@ -28,22 +28,22 @@ static integer c__1 = 1;
     /* Local variables */
     integer ix, kase, kase1;
     doublereal scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int drscl_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_drscl_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal anorm;
     logical upper;
     doublereal xnorm;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern doublereal dlantr_(char *, char *, char *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern doublereal _starpu_dlantr_(char *, char *, char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dlatrs_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dlatrs_(char *, char *, char *, char *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
     logical onenrm;
@@ -146,15 +146,15 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    onenrm = *(unsigned char *)norm == '1' || lsame_(norm, "O");
-    nounit = lsame_(diag, "N");
+    upper = _starpu_lsame_(uplo, "U");
+    onenrm = *(unsigned char *)norm == '1' || _starpu_lsame_(norm, "O");
+    nounit = _starpu_lsame_(diag, "N");
 
-    if (! onenrm && ! lsame_(norm, "I")) {
+    if (! onenrm && ! _starpu_lsame_(norm, "I")) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -163,7 +163,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTRCON", &i__1);
+	_starpu_xerbla_("DTRCON", &i__1);
 	return 0;
     }
 
@@ -175,11 +175,11 @@ static integer c__1 = 1;
     }
 
     *rcond = 0.;
-    smlnum = dlamch_("Safe minimum") * (doublereal) max(1,*n);
+    smlnum = _starpu_dlamch_("Safe minimum") * (doublereal) max(1,*n);
 
 /*     Compute the norm of the triangular matrix A. */
 
-    anorm = dlantr_(norm, uplo, diag, n, n, &a[a_offset], lda, &work[1]);
+    anorm = _starpu_dlantr_(norm, uplo, diag, n, n, &a[a_offset], lda, &work[1]);
 
 /*     Continue only if ANORM > 0. */
 
@@ -196,19 +196,19 @@ static integer c__1 = 1;
 	}
 	kase = 0;
 L10:
-	dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+	_starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
 	if (kase != 0) {
 	    if (kase == kase1) {
 
 /*              Multiply by inv(A). */
 
-		dlatrs_(uplo, "No transpose", diag, normin, n, &a[a_offset], 
+		_starpu_dlatrs_(uplo, "No transpose", diag, normin, n, &a[a_offset], 
 			lda, &work[1], &scale, &work[(*n << 1) + 1], info);
 	    } else {
 
 /*              Multiply by inv(A'). */
 
-		dlatrs_(uplo, "Transpose", diag, normin, n, &a[a_offset], lda, 
+		_starpu_dlatrs_(uplo, "Transpose", diag, normin, n, &a[a_offset], lda, 
 			 &work[1], &scale, &work[(*n << 1) + 1], info);
 	    }
 	    *(unsigned char *)normin = 'Y';
@@ -216,12 +216,12 @@ L10:
 /*           Multiply by 1/SCALE if doing so will not cause overflow. */
 
 	    if (scale != 1.) {
-		ix = idamax_(n, &work[1], &c__1);
+		ix = _starpu_idamax_(n, &work[1], &c__1);
 		xnorm = (d__1 = work[ix], abs(d__1));
 		if (scale < xnorm * smlnum || scale == 0.) {
 		    goto L20;
 		}
-		drscl_(n, &scale, &work[1], &c__1);
+		_starpu_drscl_(n, &scale, &work[1], &c__1);
 	    }
 	    goto L10;
 	}
@@ -238,4 +238,4 @@ L20:
 
 /*     End of DTRCON */
 
-} /* dtrcon_ */
+} /* _starpu_dtrcon_ */

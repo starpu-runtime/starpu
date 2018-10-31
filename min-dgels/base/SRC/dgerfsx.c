@@ -19,7 +19,7 @@ static integer c_n1 = -1;
 static integer c__0 = 0;
 static integer c__1 = 1;
 
-/* Subroutine */ int dgerfsx_(char *trans, char *equed, integer *n, integer *
+/* Subroutine */ int _starpu_dgerfsx_(char *trans, char *equed, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	integer *ipiv, doublereal *r__, doublereal *c__, doublereal *b, 
 	integer *ldb, doublereal *x, integer *ldx, doublereal *rcond, 
@@ -39,15 +39,15 @@ static integer c__1 = 1;
     /* Local variables */
     doublereal illrcond_thresh__, unstable_thresh__, err_lbnd__;
     integer ref_type__;
-    extern integer ilatrans_(char *);
+    extern integer _starpu_ilatrans_(char *);
     integer j;
     doublereal rcond_tmp__;
     integer prec_type__, trans_type__;
-    extern doublereal dla_gercond__(char *, integer *, doublereal *, integer *
+    extern doublereal _starpu_dla_gercond__(char *, integer *, doublereal *, integer *
 	    , doublereal *, integer *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, ftnlen);
     doublereal cwise_wrong__;
-    extern /* Subroutine */ int dla_gerfsx_extended__(integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dla_gerfsx_extended__(integer *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, logical *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
@@ -56,15 +56,15 @@ static integer c__1 = 1;
 	     doublereal *, logical *, integer *);
     char norm[1];
     logical ignore_cwise__;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dgecon_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgecon_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    integer *), xerbla_(char *, integer *);
+	    integer *), _starpu_xerbla_(char *, integer *);
     logical colequ, notran, rowequ;
-    extern integer ilaprec_(char *);
+    extern integer _starpu_ilaprec_(char *);
     integer ithresh, n_norms__;
     doublereal rthresh;
 
@@ -411,7 +411,7 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    trans_type__ = ilatrans_(trans);
+    trans_type__ = _starpu_ilatrans_(trans);
     ref_type__ = 1;
     if (*nparams >= 1) {
 	if (params[1] < 0.) {
@@ -423,7 +423,7 @@ static integer c__1 = 1;
 
 /*     Set default parameters. */
 
-    illrcond_thresh__ = (doublereal) (*n) * dlamch_("Epsilon");
+    illrcond_thresh__ = (doublereal) (*n) * _starpu_dlamch_("Epsilon");
     ithresh = 10;
     rthresh = .5;
     unstable_thresh__ = .25;
@@ -455,15 +455,15 @@ static integer c__1 = 1;
 	n_norms__ = 2;
     }
 
-    notran = lsame_(trans, "N");
-    rowequ = lsame_(equed, "R") || lsame_(equed, "B");
-    colequ = lsame_(equed, "C") || lsame_(equed, "B");
+    notran = _starpu_lsame_(trans, "N");
+    rowequ = _starpu_lsame_(equed, "R") || _starpu_lsame_(equed, "B");
+    colequ = _starpu_lsame_(equed, "C") || _starpu_lsame_(equed, "B");
 
 /*     Test input parameters. */
 
     if (trans_type__ == -1) {
 	*info = -1;
-    } else if (! rowequ && ! colequ && ! lsame_(equed, "N")) {
+    } else if (! rowequ && ! colequ && ! _starpu_lsame_(equed, "N")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -480,7 +480,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGERFSX", &i__1);
+	_starpu_xerbla_("DGERFSX", &i__1);
 	return 0;
     }
 
@@ -531,16 +531,16 @@ static integer c__1 = 1;
     } else {
 	*(unsigned char *)norm = '1';
     }
-    anorm = dlange_(norm, n, n, &a[a_offset], lda, &work[1]);
-    dgecon_(norm, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
+    anorm = _starpu_dlange_(norm, n, n, &a[a_offset], lda, &work[1]);
+    _starpu_dgecon_(norm, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
 	     info);
 
 /*     Perform refinement on each right-hand side */
 
     if (ref_type__ != 0) {
-	prec_type__ = ilaprec_("E");
+	prec_type__ = _starpu_ilaprec_("E");
 	if (notran) {
-	    dla_gerfsx_extended__(&prec_type__, &trans_type__, n, nrhs, &a[
+	    _starpu_dla_gerfsx_extended__(&prec_type__, &trans_type__, n, nrhs, &a[
 		    a_offset], lda, &af[af_offset], ldaf, &ipiv[1], &colequ, &
 		    c__[1], &b[b_offset], ldb, &x[x_offset], ldx, &berr[1], &
 		    n_norms__, &err_bnds_norm__[err_bnds_norm_offset], &
@@ -548,7 +548,7 @@ static integer c__1 = 1;
 		    work[1], &work[(*n << 1) + 1], &work[1], rcond, &ithresh, 
 		    &rthresh, &unstable_thresh__, &ignore_cwise__, info);
 	} else {
-	    dla_gerfsx_extended__(&prec_type__, &trans_type__, n, nrhs, &a[
+	    _starpu_dla_gerfsx_extended__(&prec_type__, &trans_type__, n, nrhs, &a[
 		    a_offset], lda, &af[af_offset], ldaf, &ipiv[1], &rowequ, &
 		    r__[1], &b[b_offset], ldb, &x[x_offset], ldx, &berr[1], &
 		    n_norms__, &err_bnds_norm__[err_bnds_norm_offset], &
@@ -559,21 +559,21 @@ static integer c__1 = 1;
     }
 /* Computing MAX */
     d__1 = 10., d__2 = sqrt((doublereal) (*n));
-    err_lbnd__ = max(d__1,d__2) * dlamch_("Epsilon");
+    err_lbnd__ = max(d__1,d__2) * _starpu_dlamch_("Epsilon");
     if (*n_err_bnds__ >= 1 && n_norms__ >= 1) {
 
 /*     Compute scaled normwise condition number cond(A*C). */
 
 	if (colequ && notran) {
-	    rcond_tmp__ = dla_gercond__(trans, n, &a[a_offset], lda, &af[
+	    rcond_tmp__ = _starpu_dla_gercond__(trans, n, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &ipiv[1], &c_n1, &c__[1], info, &work[1]
 		    , &iwork[1], (ftnlen)1);
 	} else if (rowequ && ! notran) {
-	    rcond_tmp__ = dla_gercond__(trans, n, &a[a_offset], lda, &af[
+	    rcond_tmp__ = _starpu_dla_gercond__(trans, n, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &ipiv[1], &c_n1, &r__[1], info, &work[1]
 		    , &iwork[1], (ftnlen)1);
 	} else {
-	    rcond_tmp__ = dla_gercond__(trans, n, &a[a_offset], lda, &af[
+	    rcond_tmp__ = _starpu_dla_gercond__(trans, n, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &ipiv[1], &c__0, &r__[1], info, &work[1]
 		    , &iwork[1], (ftnlen)1);
 	}
@@ -618,12 +618,12 @@ static integer c__1 = 1;
 /*     the inverse condition number is set to 0.0 when the estimated */
 /*     cwise error is at least CWISE_WRONG. */
 
-	cwise_wrong__ = sqrt(dlamch_("Epsilon"));
+	cwise_wrong__ = sqrt(_starpu_dlamch_("Epsilon"));
 	i__1 = *nrhs;
 	for (j = 1; j <= i__1; ++j) {
 	    if (err_bnds_comp__[j + (err_bnds_comp_dim1 << 1)] < 
 		    cwise_wrong__) {
-		rcond_tmp__ = dla_gercond__(trans, n, &a[a_offset], lda, &af[
+		rcond_tmp__ = _starpu_dla_gercond__(trans, n, &a[a_offset], lda, &af[
 			af_offset], ldaf, &ipiv[1], &c__1, &x[j * x_dim1 + 1],
 			 info, &work[1], &iwork[1], (ftnlen)1);
 	    } else {
@@ -663,4 +663,4 @@ static integer c__1 = 1;
 
 /*     End of DGERFSX */
 
-} /* dgerfsx_ */
+} /* _starpu_dgerfsx_ */

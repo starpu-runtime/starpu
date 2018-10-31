@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dppequ_(char *uplo, integer *n, doublereal *ap, 
+/* Subroutine */ int _starpu_dppequ_(char *uplo, integer *n, doublereal *ap, 
 	doublereal *s, doublereal *scond, doublereal *amax, integer *info)
 {
     /* System generated locals */
@@ -26,9 +26,9 @@
     /* Local variables */
     integer i__, jj;
     doublereal smin;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -109,15 +109,15 @@
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPPEQU", &i__1);
+	_starpu_xerbla_("DPPEQU", &i__1);
 	return 0;
     }
 
@@ -205,4 +205,4 @@
 
 /*     End of DPPEQU */
 
-} /* dppequ_ */
+} /* _starpu_dppequ_ */

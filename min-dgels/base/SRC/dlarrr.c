@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarrr_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dlarrr_(integer *n, doublereal *d__, doublereal *e, 
 	integer *info)
 {
     /* System generated locals */
@@ -26,7 +26,7 @@
     /* Local variables */
     integer i__;
     doublereal eps, tmp, tmp2, rmin;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal offdig, safmin;
     logical yesrel;
     doublereal smlnum, offdig2;
@@ -97,8 +97,8 @@
 
     /* Function Body */
     *info = 1;
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     rmin = sqrt(smlnum);
 /*     Tests for relative accuracy */
@@ -173,4 +173,4 @@ L11:
 
 /*     END OF DLARRR */
 
-} /* dlarrr_ */
+} /* _starpu_dlarrr_ */

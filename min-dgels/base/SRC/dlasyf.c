@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b8 = -1.;
 static doublereal c_b9 = 1.;
 
-/* Subroutine */ int dlasyf_(char *uplo, integer *n, integer *nb, integer *kb, 
+/* Subroutine */ int _starpu_dlasyf_(char *uplo, integer *n, integer *nb, integer *kb, 
 	 doublereal *a, integer *lda, integer *ipiv, doublereal *w, integer *
 	ldw, integer *info)
 {
@@ -35,19 +35,19 @@ static doublereal c_b9 = 1.;
     doublereal t, r1, d11, d21, d22;
     integer jb, jj, kk, jp, kp, kw, kkw, imax, jmax;
     doublereal alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemm_(char *, char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemm_(char *, char *, integer *, integer *, integer *
 , doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), dswap_(integer 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dswap_(integer 
 	    *, doublereal *, integer *, doublereal *, integer *);
     integer kstep;
     doublereal absakk;
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal colmax, rowmax;
 
 
@@ -168,7 +168,7 @@ static doublereal c_b9 = 1.;
 
     alpha = (sqrt(17.) + 1.) / 8.;
 
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Factorize the trailing columns of A using the upper triangle */
 /*        of A and working backwards, and compute the matrix W = U12*D */
@@ -190,10 +190,10 @@ L10:
 
 /*        Copy column K of A to column KW of W and update it */
 
-	dcopy_(&k, &a[k * a_dim1 + 1], &c__1, &w[kw * w_dim1 + 1], &c__1);
+	_starpu_dcopy_(&k, &a[k * a_dim1 + 1], &c__1, &w[kw * w_dim1 + 1], &c__1);
 	if (k < *n) {
 	    i__1 = *n - k;
-	    dgemv_("No transpose", &k, &i__1, &c_b8, &a[(k + 1) * a_dim1 + 1], 
+	    _starpu_dgemv_("No transpose", &k, &i__1, &c_b8, &a[(k + 1) * a_dim1 + 1], 
 		     lda, &w[k + (kw + 1) * w_dim1], ldw, &c_b9, &w[kw * 
 		    w_dim1 + 1], &c__1);
 	}
@@ -210,7 +210,7 @@ L10:
 
 	if (k > 1) {
 	    i__1 = k - 1;
-	    imax = idamax_(&i__1, &w[kw * w_dim1 + 1], &c__1);
+	    imax = _starpu_idamax_(&i__1, &w[kw * w_dim1 + 1], &c__1);
 	    colmax = (d__1 = w[imax + kw * w_dim1], abs(d__1));
 	} else {
 	    colmax = 0.;
@@ -234,14 +234,14 @@ L10:
 
 /*              Copy column IMAX to column KW-1 of W and update it */
 
-		dcopy_(&imax, &a[imax * a_dim1 + 1], &c__1, &w[(kw - 1) * 
+		_starpu_dcopy_(&imax, &a[imax * a_dim1 + 1], &c__1, &w[(kw - 1) * 
 			w_dim1 + 1], &c__1);
 		i__1 = k - imax;
-		dcopy_(&i__1, &a[imax + (imax + 1) * a_dim1], lda, &w[imax + 
+		_starpu_dcopy_(&i__1, &a[imax + (imax + 1) * a_dim1], lda, &w[imax + 
 			1 + (kw - 1) * w_dim1], &c__1);
 		if (k < *n) {
 		    i__1 = *n - k;
-		    dgemv_("No transpose", &k, &i__1, &c_b8, &a[(k + 1) * 
+		    _starpu_dgemv_("No transpose", &k, &i__1, &c_b8, &a[(k + 1) * 
 			    a_dim1 + 1], lda, &w[imax + (kw + 1) * w_dim1], 
 			    ldw, &c_b9, &w[(kw - 1) * w_dim1 + 1], &c__1);
 		}
@@ -250,12 +250,12 @@ L10:
 /*              element in row IMAX, and ROWMAX is its absolute value */
 
 		i__1 = k - imax;
-		jmax = imax + idamax_(&i__1, &w[imax + 1 + (kw - 1) * w_dim1], 
+		jmax = imax + _starpu_idamax_(&i__1, &w[imax + 1 + (kw - 1) * w_dim1], 
 			 &c__1);
 		rowmax = (d__1 = w[jmax + (kw - 1) * w_dim1], abs(d__1));
 		if (imax > 1) {
 		    i__1 = imax - 1;
-		    jmax = idamax_(&i__1, &w[(kw - 1) * w_dim1 + 1], &c__1);
+		    jmax = _starpu_idamax_(&i__1, &w[(kw - 1) * w_dim1 + 1], &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = w[jmax + (kw - 1) * w_dim1],
 			     abs(d__1));
@@ -277,7 +277,7 @@ L10:
 
 /*                 copy column KW-1 of W to column KW */
 
-		    dcopy_(&k, &w[(kw - 1) * w_dim1 + 1], &c__1, &w[kw * 
+		    _starpu_dcopy_(&k, &w[(kw - 1) * w_dim1 + 1], &c__1, &w[kw * 
 			    w_dim1 + 1], &c__1);
 		} else {
 
@@ -300,18 +300,18 @@ L10:
 
 		a[kp + k * a_dim1] = a[kk + k * a_dim1];
 		i__1 = k - 1 - kp;
-		dcopy_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + (kp + 
+		_starpu_dcopy_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + (kp + 
 			1) * a_dim1], lda);
-		dcopy_(&kp, &a[kk * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], &
+		_starpu_dcopy_(&kp, &a[kk * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], &
 			c__1);
 
 /*              Interchange rows KK and KP in last KK columns of A and W */
 
 		i__1 = *n - kk + 1;
-		dswap_(&i__1, &a[kk + kk * a_dim1], lda, &a[kp + kk * a_dim1], 
+		_starpu_dswap_(&i__1, &a[kk + kk * a_dim1], lda, &a[kp + kk * a_dim1], 
 			 lda);
 		i__1 = *n - kk + 1;
-		dswap_(&i__1, &w[kk + kkw * w_dim1], ldw, &w[kp + kkw * 
+		_starpu_dswap_(&i__1, &w[kk + kkw * w_dim1], ldw, &w[kp + kkw * 
 			w_dim1], ldw);
 	    }
 
@@ -325,11 +325,11 @@ L10:
 
 /*              Store U(k) in column k of A */
 
-		dcopy_(&k, &w[kw * w_dim1 + 1], &c__1, &a[k * a_dim1 + 1], &
+		_starpu_dcopy_(&k, &w[kw * w_dim1 + 1], &c__1, &a[k * a_dim1 + 1], &
 			c__1);
 		r1 = 1. / a[k + k * a_dim1];
 		i__1 = k - 1;
-		dscal_(&i__1, &r1, &a[k * a_dim1 + 1], &c__1);
+		_starpu_dscal_(&i__1, &r1, &a[k * a_dim1 + 1], &c__1);
 	    } else {
 
 /*              2-by-2 pivot block D(k): columns KW and KW-1 of W now */
@@ -402,7 +402,7 @@ L30:
 	    for (jj = j; jj <= i__2; ++jj) {
 		i__3 = jj - j + 1;
 		i__4 = *n - k;
-		dgemv_("No transpose", &i__3, &i__4, &c_b8, &a[j + (k + 1) * 
+		_starpu_dgemv_("No transpose", &i__3, &i__4, &c_b8, &a[j + (k + 1) * 
 			a_dim1], lda, &w[jj + (kw + 1) * w_dim1], ldw, &c_b9, 
 			&a[j + jj * a_dim1], &c__1);
 /* L40: */
@@ -412,7 +412,7 @@ L30:
 
 	    i__2 = j - 1;
 	    i__3 = *n - k;
-	    dgemm_("No transpose", "Transpose", &i__2, &jb, &i__3, &c_b8, &a[(
+	    _starpu_dgemm_("No transpose", "Transpose", &i__2, &jb, &i__3, &c_b8, &a[(
 		    k + 1) * a_dim1 + 1], lda, &w[j + (kw + 1) * w_dim1], ldw, 
 		     &c_b9, &a[j * a_dim1 + 1], lda);
 /* L50: */
@@ -432,7 +432,7 @@ L60:
 	++j;
 	if (jp != jj && j <= *n) {
 	    i__1 = *n - j + 1;
-	    dswap_(&i__1, &a[jp + j * a_dim1], lda, &a[jj + j * a_dim1], lda);
+	    _starpu_dswap_(&i__1, &a[jp + j * a_dim1], lda, &a[jj + j * a_dim1], lda);
 	}
 	if (j <= *n) {
 	    goto L60;
@@ -462,10 +462,10 @@ L70:
 /*        Copy column K of A to column K of W and update it */
 
 	i__1 = *n - k + 1;
-	dcopy_(&i__1, &a[k + k * a_dim1], &c__1, &w[k + k * w_dim1], &c__1);
+	_starpu_dcopy_(&i__1, &a[k + k * a_dim1], &c__1, &w[k + k * w_dim1], &c__1);
 	i__1 = *n - k + 1;
 	i__2 = k - 1;
-	dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[k + a_dim1], lda, &w[k 
+	_starpu_dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[k + a_dim1], lda, &w[k 
 		+ w_dim1], ldw, &c_b9, &w[k + k * w_dim1], &c__1);
 
 	kstep = 1;
@@ -480,7 +480,7 @@ L70:
 
 	if (k < *n) {
 	    i__1 = *n - k;
-	    imax = k + idamax_(&i__1, &w[k + 1 + k * w_dim1], &c__1);
+	    imax = k + _starpu_idamax_(&i__1, &w[k + 1 + k * w_dim1], &c__1);
 	    colmax = (d__1 = w[imax + k * w_dim1], abs(d__1));
 	} else {
 	    colmax = 0.;
@@ -505,14 +505,14 @@ L70:
 /*              Copy column IMAX to column K+1 of W and update it */
 
 		i__1 = imax - k;
-		dcopy_(&i__1, &a[imax + k * a_dim1], lda, &w[k + (k + 1) * 
+		_starpu_dcopy_(&i__1, &a[imax + k * a_dim1], lda, &w[k + (k + 1) * 
 			w_dim1], &c__1);
 		i__1 = *n - imax + 1;
-		dcopy_(&i__1, &a[imax + imax * a_dim1], &c__1, &w[imax + (k + 
+		_starpu_dcopy_(&i__1, &a[imax + imax * a_dim1], &c__1, &w[imax + (k + 
 			1) * w_dim1], &c__1);
 		i__1 = *n - k + 1;
 		i__2 = k - 1;
-		dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[k + a_dim1], 
+		_starpu_dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[k + a_dim1], 
 			lda, &w[imax + w_dim1], ldw, &c_b9, &w[k + (k + 1) * 
 			w_dim1], &c__1);
 
@@ -520,12 +520,12 @@ L70:
 /*              element in row IMAX, and ROWMAX is its absolute value */
 
 		i__1 = imax - k;
-		jmax = k - 1 + idamax_(&i__1, &w[k + (k + 1) * w_dim1], &c__1)
+		jmax = k - 1 + _starpu_idamax_(&i__1, &w[k + (k + 1) * w_dim1], &c__1)
 			;
 		rowmax = (d__1 = w[jmax + (k + 1) * w_dim1], abs(d__1));
 		if (imax < *n) {
 		    i__1 = *n - imax;
-		    jmax = imax + idamax_(&i__1, &w[imax + 1 + (k + 1) * 
+		    jmax = imax + _starpu_idamax_(&i__1, &w[imax + 1 + (k + 1) * 
 			    w_dim1], &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = w[jmax + (k + 1) * w_dim1], 
@@ -549,7 +549,7 @@ L70:
 /*                 copy column K+1 of W to column K */
 
 		    i__1 = *n - k + 1;
-		    dcopy_(&i__1, &w[k + (k + 1) * w_dim1], &c__1, &w[k + k * 
+		    _starpu_dcopy_(&i__1, &w[k + (k + 1) * w_dim1], &c__1, &w[k + k * 
 			    w_dim1], &c__1);
 		} else {
 
@@ -571,16 +571,16 @@ L70:
 
 		a[kp + k * a_dim1] = a[kk + k * a_dim1];
 		i__1 = kp - k - 1;
-		dcopy_(&i__1, &a[k + 1 + kk * a_dim1], &c__1, &a[kp + (k + 1) 
+		_starpu_dcopy_(&i__1, &a[k + 1 + kk * a_dim1], &c__1, &a[kp + (k + 1) 
 			* a_dim1], lda);
 		i__1 = *n - kp + 1;
-		dcopy_(&i__1, &a[kp + kk * a_dim1], &c__1, &a[kp + kp * 
+		_starpu_dcopy_(&i__1, &a[kp + kk * a_dim1], &c__1, &a[kp + kp * 
 			a_dim1], &c__1);
 
 /*              Interchange rows KK and KP in first KK columns of A and W */
 
-		dswap_(&kk, &a[kk + a_dim1], lda, &a[kp + a_dim1], lda);
-		dswap_(&kk, &w[kk + w_dim1], ldw, &w[kp + w_dim1], ldw);
+		_starpu_dswap_(&kk, &a[kk + a_dim1], lda, &a[kp + a_dim1], lda);
+		_starpu_dswap_(&kk, &w[kk + w_dim1], ldw, &w[kp + w_dim1], ldw);
 	    }
 
 	    if (kstep == 1) {
@@ -594,12 +594,12 @@ L70:
 /*              Store L(k) in column k of A */
 
 		i__1 = *n - k + 1;
-		dcopy_(&i__1, &w[k + k * w_dim1], &c__1, &a[k + k * a_dim1], &
+		_starpu_dcopy_(&i__1, &w[k + k * w_dim1], &c__1, &a[k + k * a_dim1], &
 			c__1);
 		if (k < *n) {
 		    r1 = 1. / a[k + k * a_dim1];
 		    i__1 = *n - k;
-		    dscal_(&i__1, &r1, &a[k + 1 + k * a_dim1], &c__1);
+		    _starpu_dscal_(&i__1, &r1, &a[k + 1 + k * a_dim1], &c__1);
 		}
 	    } else {
 
@@ -672,7 +672,7 @@ L90:
 	    for (jj = j; jj <= i__3; ++jj) {
 		i__4 = j + jb - jj;
 		i__5 = k - 1;
-		dgemv_("No transpose", &i__4, &i__5, &c_b8, &a[jj + a_dim1], 
+		_starpu_dgemv_("No transpose", &i__4, &i__5, &c_b8, &a[jj + a_dim1], 
 			lda, &w[jj + w_dim1], ldw, &c_b9, &a[jj + jj * a_dim1]
 , &c__1);
 /* L100: */
@@ -683,7 +683,7 @@ L90:
 	    if (j + jb <= *n) {
 		i__3 = *n - j - jb + 1;
 		i__4 = k - 1;
-		dgemm_("No transpose", "Transpose", &i__3, &jb, &i__4, &c_b8, 
+		_starpu_dgemm_("No transpose", "Transpose", &i__3, &jb, &i__4, &c_b8, 
 			&a[j + jb + a_dim1], lda, &w[j + w_dim1], ldw, &c_b9, 
 			&a[j + jb + j * a_dim1], lda);
 	    }
@@ -703,7 +703,7 @@ L120:
 	}
 	--j;
 	if (jp != jj && j >= 1) {
-	    dswap_(&j, &a[jp + a_dim1], lda, &a[jj + a_dim1], lda);
+	    _starpu_dswap_(&j, &a[jp + a_dim1], lda, &a[jj + a_dim1], lda);
 	}
 	if (j >= 1) {
 	    goto L120;
@@ -718,4 +718,4 @@ L120:
 
 /*     End of DLASYF */
 
-} /* dlasyf_ */
+} /* _starpu_dlasyf_ */

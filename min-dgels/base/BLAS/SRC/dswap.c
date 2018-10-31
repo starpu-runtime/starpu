@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dswap_(integer *n, doublereal *dx, integer *incx, 
+/* Subroutine */ int _starpu_dswap_(integer *n, doublereal *dx, integer *incx, 
 	doublereal *dy, integer *incy)
 {
     /* System generated locals */
@@ -111,4 +111,4 @@ L40:
 /* L50: */
     }
     return 0;
-} /* dswap_ */
+} /* _starpu_dswap_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dger_(integer *m, integer *n, doublereal *alpha, 
+/* Subroutine */ int _starpu_dger_(integer *m, integer *n, doublereal *alpha, 
 	doublereal *x, integer *incx, doublereal *y, integer *incy, 
 	doublereal *a, integer *lda)
 {
@@ -23,7 +23,7 @@
     /* Local variables */
     integer i__, j, ix, jy, kx, info;
     doublereal temp;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -132,7 +132,7 @@
 	info = 9;
     }
     if (info != 0) {
-	xerbla_("DGER  ", &info);
+	_starpu_xerbla_("DGER  ", &info);
 	return 0;
     }
 
@@ -191,4 +191,4 @@
 
 /*     End of DGER  . */
 
-} /* dger_ */
+} /* _starpu_dger_ */

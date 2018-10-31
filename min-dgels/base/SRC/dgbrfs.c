@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b15 = -1.;
 static doublereal c_b17 = 1.;
 
-/* Subroutine */ int dgbrfs_(char *trans, integer *n, integer *kl, integer *
+/* Subroutine */ int _starpu_dgbrfs_(char *trans, integer *n, integer *kl, integer *
 	ku, integer *nrhs, doublereal *ab, integer *ldab, doublereal *afb, 
 	integer *ldafb, integer *ipiv, doublereal *b, integer *ldb, 
 	doublereal *x, integer *ldx, doublereal *ferr, doublereal *berr, 
@@ -39,20 +39,20 @@ static doublereal c_b17 = 1.;
     doublereal eps;
     integer kase;
     doublereal safe1, safe2;
-    extern /* Subroutine */ int dgbmv_(char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dgbmv_(char *, integer *, integer *, integer *
 , integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), daxpy_(integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_daxpy_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     integer count;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dgbtrs_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dgbtrs_(
 	    char *, integer *, integer *, integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *);
     logical notran;
@@ -203,8 +203,8 @@ static doublereal c_b17 = 1.;
 
     /* Function Body */
     *info = 0;
-    notran = lsame_(trans, "N");
-    if (! notran && ! lsame_(trans, "T") && ! lsame_(
+    notran = _starpu_lsame_(trans, "N");
+    if (! notran && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(
 	    trans, "C")) {
 	*info = -1;
     } else if (*n < 0) {
@@ -226,7 +226,7 @@ static doublereal c_b17 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBRFS", &i__1);
+	_starpu_xerbla_("DGBRFS", &i__1);
 	return 0;
     }
 
@@ -253,8 +253,8 @@ static doublereal c_b17 = 1.;
 /* Computing MIN */
     i__1 = *kl + *ku + 2, i__2 = *n + 1;
     nz = min(i__1,i__2);
-    eps = dlamch_("Epsilon");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    safmin = _starpu_dlamch_("Safe minimum");
     safe1 = nz * safmin;
     safe2 = safe1 / eps;
 
@@ -272,8 +272,8 @@ L20:
 /*        Compute residual R = B - op(A) * X, */
 /*        where op(A) = A, A**T, or A**H, depending on TRANS. */
 
-	dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
-	dgbmv_(trans, n, n, kl, ku, &c_b15, &ab[ab_offset], ldab, &x[j * 
+	_starpu_dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
+	_starpu_dgbmv_(trans, n, n, kl, ku, &c_b15, &ab[ab_offset], ldab, &x[j * 
 		x_dim1 + 1], &c__1, &c_b17, &work[*n + 1], &c__1);
 
 /*        Compute componentwise relative backward error from formula */
@@ -357,9 +357,9 @@ L20:
 
 /*           Update solution and try again. */
 
-	    dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &ipiv[1]
+	    _starpu_dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &ipiv[1]
 , &work[*n + 1], n, info);
-	    daxpy_(n, &c_b17, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
+	    _starpu_daxpy_(n, &c_b17, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
 		    ;
 	    lstres = berr[j];
 	    ++count;
@@ -402,14 +402,14 @@ L20:
 
 	kase = 0;
 L100:
-	dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
+	_starpu_dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
 		kase, isave);
 	if (kase != 0) {
 	    if (kase == 1) {
 
 /*              Multiply by diag(W)*inv(op(A)**T). */
 
-		dgbtrs_(transt, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &
+		_starpu_dgbtrs_(transt, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &
 			ipiv[1], &work[*n + 1], n, info);
 		i__2 = *n;
 		for (i__ = 1; i__ <= i__2; ++i__) {
@@ -425,7 +425,7 @@ L100:
 		    work[*n + i__] *= work[i__];
 /* L120: */
 		}
-		dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &
+		_starpu_dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &
 			ipiv[1], &work[*n + 1], n, info);
 	    }
 	    goto L100;
@@ -452,4 +452,4 @@ L100:
 
 /*     End of DGBRFS */
 
-} /* dgbrfs_ */
+} /* _starpu_dgbrfs_ */

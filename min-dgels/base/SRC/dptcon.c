@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dptcon_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dptcon_(integer *n, doublereal *d__, doublereal *e, 
 	doublereal *anorm, doublereal *rcond, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -26,8 +26,8 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__, ix;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal ainvnm;
 
 
@@ -117,7 +117,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPTCON", &i__1);
+	_starpu_xerbla_("DPTCON", &i__1);
 	return 0;
     }
 
@@ -168,7 +168,7 @@ static integer c__1 = 1;
 
 /*     Compute AINVNM = max(x(i)), 1<=i<=n. */
 
-    ix = idamax_(n, &work[1], &c__1);
+    ix = _starpu_idamax_(n, &work[1], &c__1);
     ainvnm = (d__1 = work[ix], abs(d__1));
 
 /*     Compute the reciprocal condition number. */
@@ -181,4 +181,4 @@ static integer c__1 = 1;
 
 /*     End of DPTCON */
 
-} /* dptcon_ */
+} /* _starpu_dptcon_ */

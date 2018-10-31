@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlargv_(integer *n, doublereal *x, integer *incx, 
+/* Subroutine */ int _starpu_dlargv_(integer *n, doublereal *x, integer *incx, 
 	doublereal *y, integer *incy, doublereal *c__, integer *incc)
 {
     /* System generated locals */
@@ -127,4 +127,4 @@
 
 /*     End of DLARGV */
 
-} /* dlargv_ */
+} /* _starpu_dlargv_ */

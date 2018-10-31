@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarrb_(integer *n, doublereal *d__, doublereal *lld, 
+/* Subroutine */ int _starpu_dlarrb_(integer *n, doublereal *d__, doublereal *lld, 
 	integer *ifirst, integer *ilast, doublereal *rtol1, doublereal *rtol2, 
 	 integer *offset, doublereal *w, doublereal *wgap, doublereal *werr, 
 	doublereal *work, integer *iwork, doublereal *pivmin, doublereal *
@@ -31,7 +31,7 @@
     doublereal gap, mid, tmp, back, lgap, rgap, left;
     integer iter, nint, prev, next;
     doublereal cvrgd, right, width;
-    extern integer dlaneg_(integer *, doublereal *, doublereal *, doublereal *
+    extern integer _starpu_dlaneg_(integer *, doublereal *, doublereal *, doublereal *
 , doublereal *, integer *);
     integer negcnt;
     doublereal mnwdth;
@@ -202,7 +202,7 @@
 
 	back = werr[ii];
 L20:
-	negcnt = dlaneg_(n, &d__[1], &lld[1], &left, pivmin, &r__);
+	negcnt = _starpu_dlaneg_(n, &d__[1], &lld[1], &left, pivmin, &r__);
 	if (negcnt > i__ - 1) {
 	    left -= back;
 	    back *= 2.;
@@ -214,7 +214,7 @@ L20:
 
 	back = werr[ii];
 L50:
-	negcnt = dlaneg_(n, &d__[1], &lld[1], &right, pivmin, &r__);
+	negcnt = _starpu_dlaneg_(n, &d__[1], &lld[1], &right, pivmin, &r__);
 	if (negcnt < i__) {
 	    right += back;
 	    back *= 2.;
@@ -302,7 +302,7 @@ L80:
 
 /*        Perform one bisection step */
 
-	negcnt = dlaneg_(n, &d__[1], &lld[1], &mid, pivmin, &r__);
+	negcnt = _starpu_dlaneg_(n, &d__[1], &lld[1], &mid, pivmin, &r__);
 	if (negcnt <= i__ - 1) {
 	    work[k - 1] = mid;
 	} else {
@@ -347,4 +347,4 @@ L100:
 
 /*     End of DLARRB */
 
-} /* dlarrb_ */
+} /* _starpu_dlarrb_ */

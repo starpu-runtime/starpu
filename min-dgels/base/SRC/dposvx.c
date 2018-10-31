@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dposvx_(char *fact, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dposvx_(char *fact, char *uplo, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	char *equed, doublereal *s, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *rcond, doublereal *ferr, doublereal *
@@ -27,30 +27,30 @@
     /* Local variables */
     integer i__, j;
     doublereal amax, smin, smax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal scond, anorm;
     logical equil, rcequ;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dpocon_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpocon_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
 	    integer *);
     integer infequ;
-    extern doublereal dlansy_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansy_(char *, char *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dlaqsy_(char *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, char *), dpoequ_(integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, doublereal *, integer *), dporfs_(
+    extern /* Subroutine */ int _starpu_dlaqsy_(char *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, doublereal *, char *), _starpu_dpoequ_(integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, integer *), _starpu_dporfs_(
 	    char *, integer *, integer *, doublereal *, integer *, doublereal 
 	    *, integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, doublereal *, integer *, integer *), dpotrf_(char *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, integer *, integer *), _starpu_dpotrf_(char *, integer *, doublereal *, integer *, 
 	    integer *);
     doublereal smlnum;
-    extern /* Subroutine */ int dpotrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dpotrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
 
 
@@ -287,22 +287,22 @@
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rcequ = FALSE_;
     } else {
-	rcequ = lsame_(equed, "Y");
-	smlnum = dlamch_("Safe minimum");
+	rcequ = _starpu_lsame_(equed, "Y");
+	smlnum = _starpu_dlamch_("Safe minimum");
 	bignum = 1. / smlnum;
     }
 
 /*     Test the input parameters. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! lsame_(uplo, "U") && ! lsame_(uplo, 
+    } else if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, 
 	    "L")) {
 	*info = -2;
     } else if (*n < 0) {
@@ -313,7 +313,7 @@
 	*info = -6;
     } else if (*ldaf < max(1,*n)) {
 	*info = -8;
-    } else if (lsame_(fact, "F") && ! (rcequ || lsame_(
+    } else if (_starpu_lsame_(fact, "F") && ! (rcequ || _starpu_lsame_(
 	    equed, "N"))) {
 	*info = -9;
     } else {
@@ -349,7 +349,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOSVX", &i__1);
+	_starpu_xerbla_("DPOSVX", &i__1);
 	return 0;
     }
 
@@ -357,13 +357,13 @@
 
 /*        Compute row and column scalings to equilibrate the matrix A. */
 
-	dpoequ_(n, &a[a_offset], lda, &s[1], &scond, &amax, &infequ);
+	_starpu_dpoequ_(n, &a[a_offset], lda, &s[1], &scond, &amax, &infequ);
 	if (infequ == 0) {
 
 /*           Equilibrate the matrix. */
 
-	    dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
-	    rcequ = lsame_(equed, "Y");
+	    _starpu_dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
+	    rcequ = _starpu_lsame_(equed, "Y");
 	}
     }
 
@@ -385,8 +385,8 @@
 
 /*        Compute the Cholesky factorization A = U'*U or A = L*L'. */
 
-	dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
-	dpotrf_(uplo, n, &af[af_offset], ldaf, info);
+	_starpu_dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
+	_starpu_dpotrf_(uplo, n, &af[af_offset], ldaf, info);
 
 /*        Return if INFO is non-zero. */
 
@@ -398,22 +398,22 @@
 
 /*     Compute the norm of the matrix A. */
 
-    anorm = dlansy_("1", uplo, n, &a[a_offset], lda, &work[1]);
+    anorm = _starpu_dlansy_("1", uplo, n, &a[a_offset], lda, &work[1]);
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dpocon_(uplo, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
+    _starpu_dpocon_(uplo, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
 	     info);
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dpotrs_(uplo, n, nrhs, &af[af_offset], ldaf, &x[x_offset], ldx, info);
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dpotrs_(uplo, n, nrhs, &af[af_offset], ldaf, &x[x_offset], ldx, info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dporfs_(uplo, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &b[
+    _starpu_dporfs_(uplo, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &b[
 	    b_offset], ldb, &x[x_offset], ldx, &ferr[1], &berr[1], &work[1], &
 	    iwork[1], info);
 
@@ -439,7 +439,7 @@
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
 
@@ -447,4 +447,4 @@
 
 /*     End of DPOSVX */
 
-} /* dposvx_ */
+} /* _starpu_dposvx_ */

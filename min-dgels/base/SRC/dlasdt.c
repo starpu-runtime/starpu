@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasdt_(integer *n, integer *lvl, integer *nd, integer *
+/* Subroutine */ int _starpu_dlasdt_(integer *n, integer *lvl, integer *nd, integer *
 	inode, integer *ndiml, integer *ndimr, integer *msub)
 {
     /* System generated locals */
@@ -133,4 +133,4 @@
 
 /*     End of DLASDT */
 
-} /* dlasdt_ */
+} /* _starpu_dlasdt_ */

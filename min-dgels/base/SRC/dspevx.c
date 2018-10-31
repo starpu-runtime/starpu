@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspevx_(char *jobz, char *range, char *uplo, integer *n, 
+/* Subroutine */ int _starpu_dspevx_(char *jobz, char *range, char *uplo, integer *n, 
 	doublereal *ap, doublereal *vl, doublereal *vu, integer *il, integer *
 	iu, doublereal *abstol, integer *m, doublereal *w, doublereal *z__, 
 	integer *ldz, doublereal *work, integer *iwork, integer *ifail, 
@@ -39,41 +39,41 @@ static integer c__1 = 1;
     doublereal rmin, rmax;
     logical test;
     integer itmp1, indee;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     char order[1];
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     logical wantz;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical alleig, indeig;
     integer iscale, indibl;
     logical valeig;
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal abstll, bignum;
-    extern doublereal dlansp_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansp_(char *, char *, integer *, doublereal *, 
 	    doublereal *);
     integer indtau, indisp;
-    extern /* Subroutine */ int dstein_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dstein_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *), 
-	    dsterf_(integer *, doublereal *, doublereal *, integer *);
+	    _starpu_dsterf_(integer *, doublereal *, doublereal *, integer *);
     integer indiwo;
-    extern /* Subroutine */ int dstebz_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dstebz_(char *, char *, integer *, doublereal 
 	    *, doublereal *, integer *, integer *, doublereal *, doublereal *, 
 	     doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *, doublereal *, integer *, integer *);
     integer indwrk;
-    extern /* Subroutine */ int dopgtr_(char *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *, doublereal *, integer *), dsptrd_(char *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, integer *), dsteqr_(char *, 
+    extern /* Subroutine */ int _starpu_dopgtr_(char *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *, doublereal *, integer *), _starpu_dsptrd_(char *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *), _starpu_dsteqr_(char *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dopmtr_(char *, char *, char *, 
+	    doublereal *, integer *), _starpu_dopmtr_(char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     integer nsplit;
@@ -234,17 +234,17 @@ static integer c__1 = 1;
     --ifail;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    alleig = lsame_(range, "A");
-    valeig = lsame_(range, "V");
-    indeig = lsame_(range, "I");
+    wantz = _starpu_lsame_(jobz, "V");
+    alleig = _starpu_lsame_(range, "A");
+    valeig = _starpu_lsame_(range, "V");
+    indeig = _starpu_lsame_(range, "I");
 
     *info = 0;
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
     } else if (! (alleig || valeig || indeig)) {
 	*info = -2;
-    } else if (! (lsame_(uplo, "L") || lsame_(uplo, 
+    } else if (! (_starpu_lsame_(uplo, "L") || _starpu_lsame_(uplo, 
 	    "U"))) {
 	*info = -3;
     } else if (*n < 0) {
@@ -270,7 +270,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPEVX", &i__1);
+	_starpu_xerbla_("DSPEVX", &i__1);
 	return 0;
     }
 
@@ -299,8 +299,8 @@ static integer c__1 = 1;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -319,7 +319,7 @@ static integer c__1 = 1;
 	vll = 0.;
 	vuu = 0.;
     }
-    anrm = dlansp_("M", uplo, n, &ap[1], &work[1]);
+    anrm = _starpu_dlansp_("M", uplo, n, &ap[1], &work[1]);
     if (anrm > 0. && anrm < rmin) {
 	iscale = 1;
 	sigma = rmin / anrm;
@@ -329,7 +329,7 @@ static integer c__1 = 1;
     }
     if (iscale == 1) {
 	i__1 = *n * (*n + 1) / 2;
-	dscal_(&i__1, &sigma, &ap[1], &c__1);
+	_starpu_dscal_(&i__1, &sigma, &ap[1], &c__1);
 	if (*abstol > 0.) {
 	    abstll = *abstol * sigma;
 	}
@@ -345,7 +345,7 @@ static integer c__1 = 1;
     inde = indtau + *n;
     indd = inde + *n;
     indwrk = indd + *n;
-    dsptrd_(uplo, n, &ap[1], &work[indd], &work[inde], &work[indtau], &iinfo);
+    _starpu_dsptrd_(uplo, n, &ap[1], &work[indd], &work[inde], &work[indtau], &iinfo);
 
 /*     If all eigenvalues are desired and ABSTOL is less than or equal */
 /*     to zero, then call DSTERF or DOPGTR and SSTEQR.  If this fails */
@@ -358,18 +358,18 @@ static integer c__1 = 1;
 	}
     }
     if ((alleig || test) && *abstol <= 0.) {
-	dcopy_(n, &work[indd], &c__1, &w[1], &c__1);
+	_starpu_dcopy_(n, &work[indd], &c__1, &w[1], &c__1);
 	indee = indwrk + (*n << 1);
 	if (! wantz) {
 	    i__1 = *n - 1;
-	    dcopy_(&i__1, &work[inde], &c__1, &work[indee], &c__1);
-	    dsterf_(n, &w[1], &work[indee], info);
+	    _starpu_dcopy_(&i__1, &work[inde], &c__1, &work[indee], &c__1);
+	    _starpu_dsterf_(n, &w[1], &work[indee], info);
 	} else {
-	    dopgtr_(uplo, n, &ap[1], &work[indtau], &z__[z_offset], ldz, &
+	    _starpu_dopgtr_(uplo, n, &ap[1], &work[indtau], &z__[z_offset], ldz, &
 		    work[indwrk], &iinfo);
 	    i__1 = *n - 1;
-	    dcopy_(&i__1, &work[inde], &c__1, &work[indee], &c__1);
-	    dsteqr_(jobz, n, &w[1], &work[indee], &z__[z_offset], ldz, &work[
+	    _starpu_dcopy_(&i__1, &work[inde], &c__1, &work[indee], &c__1);
+	    _starpu_dsteqr_(jobz, n, &w[1], &work[indee], &z__[z_offset], ldz, &work[
 		    indwrk], info);
 	    if (*info == 0) {
 		i__1 = *n;
@@ -396,19 +396,19 @@ static integer c__1 = 1;
     indibl = 1;
     indisp = indibl + *n;
     indiwo = indisp + *n;
-    dstebz_(range, order, n, &vll, &vuu, il, iu, &abstll, &work[indd], &work[
+    _starpu_dstebz_(range, order, n, &vll, &vuu, il, iu, &abstll, &work[indd], &work[
 	    inde], m, &nsplit, &w[1], &iwork[indibl], &iwork[indisp], &work[
 	    indwrk], &iwork[indiwo], info);
 
     if (wantz) {
-	dstein_(n, &work[indd], &work[inde], m, &w[1], &iwork[indibl], &iwork[
+	_starpu_dstein_(n, &work[indd], &work[inde], m, &w[1], &iwork[indibl], &iwork[
 		indisp], &z__[z_offset], ldz, &work[indwrk], &iwork[indiwo], &
 		ifail[1], info);
 
 /*        Apply orthogonal matrix used in reduction to tridiagonal */
 /*        form to eigenvectors returned by DSTEIN. */
 
-	dopmtr_("L", uplo, "N", n, m, &ap[1], &work[indtau], &z__[z_offset], 
+	_starpu_dopmtr_("L", uplo, "N", n, m, &ap[1], &work[indtau], &z__[z_offset], 
 		ldz, &work[indwrk], &iinfo);
     }
 
@@ -422,7 +422,7 @@ L20:
 	    imax = *info - 1;
 	}
 	d__1 = 1. / sigma;
-	dscal_(&imax, &d__1, &w[1], &c__1);
+	_starpu_dscal_(&imax, &d__1, &w[1], &c__1);
     }
 
 /*     If eigenvalues are not in order, then sort them, along with */
@@ -448,7 +448,7 @@ L20:
 		iwork[indibl + i__ - 1] = iwork[indibl + j - 1];
 		w[j] = tmp1;
 		iwork[indibl + j - 1] = itmp1;
-		dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[j * z_dim1 + 1], 
+		_starpu_dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[j * z_dim1 + 1], 
 			 &c__1);
 		if (*info != 0) {
 		    itmp1 = ifail[i__];
@@ -464,4 +464,4 @@ L20:
 
 /*     End of DSPEVX */
 
-} /* dspevx_ */
+} /* _starpu_dspevx_ */

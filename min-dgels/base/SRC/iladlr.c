@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer iladlr_(integer *m, integer *n, doublereal *a, integer *lda)
+integer _starpu_iladlr_(integer *m, integer *n, doublereal *a, integer *lda)
 {
     /* System generated locals */
     integer a_dim1, a_offset, ret_val, i__1;
@@ -87,4 +87,4 @@ integer iladlr_(integer *m, integer *n, doublereal *a, integer *lda)
 	}
     }
     return ret_val;
-} /* iladlr_ */
+} /* _starpu_iladlr_ */

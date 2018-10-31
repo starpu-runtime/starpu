@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlascl_(char *type__, integer *kl, integer *ku, 
+/* Subroutine */ int _starpu_dlascl_(char *type__, integer *kl, integer *ku, 
 	doublereal *cfrom, doublereal *cto, integer *m, integer *n, 
 	doublereal *a, integer *lda, integer *info)
 {
@@ -25,13 +25,13 @@
     doublereal mul, cto1;
     logical done;
     doublereal ctoc;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer itype;
     doublereal cfrom1;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal cfromc;
-    extern logical disnan_(doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern logical _starpu_disnan_(doublereal *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum, smlnum;
 
 
@@ -127,19 +127,19 @@
     /* Function Body */
     *info = 0;
 
-    if (lsame_(type__, "G")) {
+    if (_starpu_lsame_(type__, "G")) {
 	itype = 0;
-    } else if (lsame_(type__, "L")) {
+    } else if (_starpu_lsame_(type__, "L")) {
 	itype = 1;
-    } else if (lsame_(type__, "U")) {
+    } else if (_starpu_lsame_(type__, "U")) {
 	itype = 2;
-    } else if (lsame_(type__, "H")) {
+    } else if (_starpu_lsame_(type__, "H")) {
 	itype = 3;
-    } else if (lsame_(type__, "B")) {
+    } else if (_starpu_lsame_(type__, "B")) {
 	itype = 4;
-    } else if (lsame_(type__, "Q")) {
+    } else if (_starpu_lsame_(type__, "Q")) {
 	itype = 5;
-    } else if (lsame_(type__, "Z")) {
+    } else if (_starpu_lsame_(type__, "Z")) {
 	itype = 6;
     } else {
 	itype = -1;
@@ -147,9 +147,9 @@
 
     if (itype == -1) {
 	*info = -1;
-    } else if (*cfrom == 0. || disnan_(cfrom)) {
+    } else if (*cfrom == 0. || _starpu_disnan_(cfrom)) {
 	*info = -4;
-    } else if (disnan_(cto)) {
+    } else if (_starpu_disnan_(cto)) {
 	*info = -5;
     } else if (*m < 0) {
 	*info = -6;
@@ -177,7 +177,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASCL", &i__1);
+	_starpu_xerbla_("DLASCL", &i__1);
 	return 0;
     }
 
@@ -189,7 +189,7 @@
 
 /*     Get machine parameters */
 
-    smlnum = dlamch_("S");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
 
     cfromc = *cfrom;
@@ -351,4 +351,4 @@ L10:
 
 /*     End of DLASCL */
 
-} /* dlascl_ */
+} /* _starpu_dlascl_ */

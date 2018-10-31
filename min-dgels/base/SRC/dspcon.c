@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspcon_(char *uplo, integer *n, doublereal *ap, integer *
+/* Subroutine */ int _starpu_dspcon_(char *uplo, integer *n, doublereal *ap, integer *
 	ipiv, doublereal *anorm, doublereal *rcond, doublereal *work, integer 
 	*iwork, integer *info)
 {
@@ -26,14 +26,14 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__, ip, kase;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
     logical upper;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dsptrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsptrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
 
 
@@ -119,8 +119,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -129,7 +129,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPCON", &i__1);
+	_starpu_xerbla_("DSPCON", &i__1);
 	return 0;
     }
 
@@ -176,12 +176,12 @@ static integer c__1 = 1;
 
     kase = 0;
 L30:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 
 /*        Multiply by inv(L*D*L') or inv(U*D*U'). */
 
-	dsptrs_(uplo, n, &c__1, &ap[1], &ipiv[1], &work[1], n, info);
+	_starpu_dsptrs_(uplo, n, &c__1, &ap[1], &ipiv[1], &work[1], n, info);
 	goto L30;
     }
 
@@ -195,4 +195,4 @@ L30:
 
 /*     End of DSPCON */
 
-} /* dspcon_ */
+} /* _starpu_dspcon_ */

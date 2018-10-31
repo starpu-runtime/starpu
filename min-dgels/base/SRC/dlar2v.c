@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlar2v_(integer *n, doublereal *x, doublereal *y, 
+/* Subroutine */ int _starpu_dlar2v_(integer *n, doublereal *x, doublereal *y, 
 	doublereal *z__, integer *incx, doublereal *c__, doublereal *s, 
 	integer *incc)
 {
@@ -118,4 +118,4 @@
 /*     End of DLAR2V */
 
     return 0;
-} /* dlar2v_ */
+} /* _starpu_dlar2v_ */

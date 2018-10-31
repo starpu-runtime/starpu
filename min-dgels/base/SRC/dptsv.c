@@ -13,15 +13,15 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dptsv_(integer *n, integer *nrhs, doublereal *d__, 
+/* Subroutine */ int _starpu_dptsv_(integer *n, integer *nrhs, doublereal *d__, 
 	doublereal *e, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
     integer b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpttrf_(
-	    integer *, doublereal *, doublereal *, integer *), dpttrs_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpttrf_(
+	    integer *, doublereal *, doublereal *, integer *), _starpu_dpttrs_(
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    integer *, integer *);
 
@@ -110,21 +110,21 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPTSV ", &i__1);
+	_starpu_xerbla_("DPTSV ", &i__1);
 	return 0;
     }
 
 /*     Compute the L*D*L' (or U'*D*U) factorization of A. */
 
-    dpttrf_(n, &d__[1], &e[1], info);
+    _starpu_dpttrf_(n, &d__[1], &e[1], info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dpttrs_(n, nrhs, &d__[1], &e[1], &b[b_offset], ldb, info);
+	_starpu_dpttrs_(n, nrhs, &d__[1], &e[1], &b[b_offset], ldb, info);
     }
     return 0;
 
 /*     End of DPTSV */
 
-} /* dptsv_ */
+} /* _starpu_dptsv_ */

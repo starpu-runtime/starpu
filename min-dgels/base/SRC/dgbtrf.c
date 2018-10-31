@@ -20,7 +20,7 @@ static integer c__65 = 65;
 static doublereal c_b18 = -1.;
 static doublereal c_b31 = 1.;
 
-/* Subroutine */ int dgbtrf_(integer *m, integer *n, integer *kl, integer *ku, 
+/* Subroutine */ int _starpu_dgbtrf_(integer *m, integer *n, integer *kl, integer *ku, 
 	 doublereal *ab, integer *ldab, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -30,29 +30,29 @@ static doublereal c_b31 = 1.;
     /* Local variables */
     integer i__, j, i2, i3, j2, j3, k2, jb, nb, ii, jj, jm, ip, jp, km, ju, 
 	    kv, nw;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal temp;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemm_(char *, char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemm_(char *, char *, integer *, integer *, integer *
 , doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(
 	    integer *, doublereal *, integer *, doublereal *, integer *), 
-	    dswap_(integer *, doublereal *, integer *, doublereal *, integer *
+	    _starpu_dswap_(integer *, doublereal *, integer *, doublereal *, integer *
 );
     doublereal work13[4160]	/* was [65][64] */, work31[4160]	/* 
 	    was [65][64] */;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dgbtf2_(
+	    doublereal *, integer *), _starpu_dgbtf2_(
 	    integer *, integer *, integer *, integer *, doublereal *, integer 
 	    *, integer *, integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaswp_(integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *, integer *);
 
 
@@ -179,7 +179,7 @@ static doublereal c_b31 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBTRF", &i__1);
+	_starpu_xerbla_("DGBTRF", &i__1);
 	return 0;
     }
 
@@ -191,7 +191,7 @@ static doublereal c_b31 = 1.;
 
 /*     Determine the block size for this environment */
 
-    nb = ilaenv_(&c__1, "DGBTRF", " ", m, n, kl, ku);
+    nb = _starpu_ilaenv_(&c__1, "DGBTRF", " ", m, n, kl, ku);
 
 /*     The block size must not exceed the limit set by the size of the */
 /*     local arrays WORK13 and WORK31. */
@@ -202,7 +202,7 @@ static doublereal c_b31 = 1.;
 
 /*        Use unblocked code */
 
-	dgbtf2_(m, n, kl, ku, &ab[ab_offset], ldab, &ipiv[1], info);
+	_starpu_dgbtf2_(m, n, kl, ku, &ab[ab_offset], ldab, &ipiv[1], info);
     } else {
 
 /*        Use blocked code */
@@ -300,7 +300,7 @@ static doublereal c_b31 = 1.;
 		i__4 = *kl, i__5 = *m - jj;
 		km = min(i__4,i__5);
 		i__4 = km + 1;
-		jp = idamax_(&i__4, &ab[kv + 1 + jj * ab_dim1], &c__1);
+		jp = _starpu_idamax_(&i__4, &ab[kv + 1 + jj * ab_dim1], &c__1);
 		ipiv[jj] = jp + jj - j;
 		if (ab[kv + jp + jj * ab_dim1] != 0.) {
 /* Computing MAX */
@@ -316,7 +316,7 @@ static doublereal c_b31 = 1.;
 
 			    i__4 = *ldab - 1;
 			    i__5 = *ldab - 1;
-			    dswap_(&jb, &ab[kv + 1 + jj - j + j * ab_dim1], &
+			    _starpu_dswap_(&jb, &ab[kv + 1 + jj - j + j * ab_dim1], &
 				    i__4, &ab[kv + jp + jj - j + j * ab_dim1], 
 				     &i__5);
 			} else {
@@ -326,13 +326,13 @@ static doublereal c_b31 = 1.;
 
 			    i__4 = jj - j;
 			    i__5 = *ldab - 1;
-			    dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], 
+			    _starpu_dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], 
 				    &i__5, &work31[jp + jj - j - *kl - 1], &
 				    c__65);
 			    i__4 = j + jb - jj;
 			    i__5 = *ldab - 1;
 			    i__6 = *ldab - 1;
-			    dswap_(&i__4, &ab[kv + 1 + jj * ab_dim1], &i__5, &
+			    _starpu_dswap_(&i__4, &ab[kv + 1 + jj * ab_dim1], &i__5, &
 				    ab[kv + jp + jj * ab_dim1], &i__6);
 			}
 		    }
@@ -340,7 +340,7 @@ static doublereal c_b31 = 1.;
 /*                 Compute multipliers */
 
 		    d__1 = 1. / ab[kv + 1 + jj * ab_dim1];
-		    dscal_(&km, &d__1, &ab[kv + 2 + jj * ab_dim1], &c__1);
+		    _starpu_dscal_(&km, &d__1, &ab[kv + 2 + jj * ab_dim1], &c__1);
 
 /*                 Update trailing submatrix within the band and within */
 /*                 the current block. JM is the index of the last column */
@@ -353,7 +353,7 @@ static doublereal c_b31 = 1.;
 			i__4 = jm - jj;
 			i__5 = *ldab - 1;
 			i__6 = *ldab - 1;
-			dger_(&km, &i__4, &c_b18, &ab[kv + 2 + jj * ab_dim1], 
+			_starpu_dger_(&km, &i__4, &c_b18, &ab[kv + 2 + jj * ab_dim1], 
 				&c__1, &ab[kv + (jj + 1) * ab_dim1], &i__5, &
 				ab[kv + 1 + (jj + 1) * ab_dim1], &i__6);
 		    }
@@ -373,7 +373,7 @@ static doublereal c_b31 = 1.;
 		i__4 = jj - j + 1;
 		nw = min(i__4,i3);
 		if (nw > 0) {
-		    dcopy_(&nw, &ab[kv + *kl + 1 - jj + j + jj * ab_dim1], &
+		    _starpu_dcopy_(&nw, &ab[kv + *kl + 1 - jj + j + jj * ab_dim1], &
 			    c__1, &work31[(jj - j + 1) * 65 - 65], &c__1);
 		}
 /* L80: */
@@ -393,7 +393,7 @@ static doublereal c_b31 = 1.;
 /*              A32. */
 
 		i__3 = *ldab - 1;
-		dlaswp_(&j2, &ab[kv + 1 - jb + (j + jb) * ab_dim1], &i__3, &
+		_starpu_dlaswp_(&j2, &ab[kv + 1 - jb + (j + jb) * ab_dim1], &i__3, &
 			c__1, &jb, &ipiv[j], &c__1);
 
 /*              Adjust the pivot indices. */
@@ -433,7 +433,7 @@ static doublereal c_b31 = 1.;
 
 		    i__3 = *ldab - 1;
 		    i__4 = *ldab - 1;
-		    dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &j2, 
+		    _starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &j2, 
 			    &c_b31, &ab[kv + 1 + j * ab_dim1], &i__3, &ab[kv 
 			    + 1 - jb + (j + jb) * ab_dim1], &i__4);
 
@@ -444,7 +444,7 @@ static doublereal c_b31 = 1.;
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
 			i__5 = *ldab - 1;
-			dgemm_("No transpose", "No transpose", &i2, &j2, &jb, 
+			_starpu_dgemm_("No transpose", "No transpose", &i2, &j2, &jb, 
 				&c_b18, &ab[kv + 1 + jb + j * ab_dim1], &i__3, 
 				 &ab[kv + 1 - jb + (j + jb) * ab_dim1], &i__4, 
 				 &c_b31, &ab[kv + 1 + (j + jb) * ab_dim1], &
@@ -457,7 +457,7 @@ static doublereal c_b31 = 1.;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dgemm_("No transpose", "No transpose", &i3, &j2, &jb, 
+			_starpu_dgemm_("No transpose", "No transpose", &i3, &j2, &jb, 
 				&c_b18, work31, &c__65, &ab[kv + 1 - jb + (j 
 				+ jb) * ab_dim1], &i__3, &c_b31, &ab[kv + *kl 
 				+ 1 - jb + (j + jb) * ab_dim1], &i__4);
@@ -483,7 +483,7 @@ static doublereal c_b31 = 1.;
 /*                 Update A13 in the work array */
 
 		    i__3 = *ldab - 1;
-		    dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &j3, 
+		    _starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &j3, 
 			    &c_b31, &ab[kv + 1 + j * ab_dim1], &i__3, work13, 
 			    &c__65);
 
@@ -493,7 +493,7 @@ static doublereal c_b31 = 1.;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dgemm_("No transpose", "No transpose", &i2, &j3, &jb, 
+			_starpu_dgemm_("No transpose", "No transpose", &i2, &j3, &jb, 
 				&c_b18, &ab[kv + 1 + jb + j * ab_dim1], &i__3, 
 				 work13, &c__65, &c_b31, &ab[jb + 1 + (j + kv)
 				 * ab_dim1], &i__4);
@@ -504,7 +504,7 @@ static doublereal c_b31 = 1.;
 /*                    Update A33 */
 
 			i__3 = *ldab - 1;
-			dgemm_("No transpose", "No transpose", &i3, &j3, &jb, 
+			_starpu_dgemm_("No transpose", "No transpose", &i3, &j3, &jb, 
 				&c_b18, work31, &c__65, work13, &c__65, &
 				c_b31, &ab[*kl + 1 + (j + kv) * ab_dim1], &
 				i__3);
@@ -552,7 +552,7 @@ static doublereal c_b31 = 1.;
 			i__4 = jj - j;
 			i__5 = *ldab - 1;
 			i__6 = *ldab - 1;
-			dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], &
+			_starpu_dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], &
 				i__5, &ab[kv + jp + jj - j + j * ab_dim1], &
 				i__6);
 		    } else {
@@ -561,7 +561,7 @@ static doublereal c_b31 = 1.;
 
 			i__4 = jj - j;
 			i__5 = *ldab - 1;
-			dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], &
+			_starpu_dswap_(&i__4, &ab[kv + 1 + jj - j + j * ab_dim1], &
 				i__5, &work31[jp + jj - j - *kl - 1], &c__65);
 		    }
 		}
@@ -572,7 +572,7 @@ static doublereal c_b31 = 1.;
 		i__4 = i3, i__5 = jj - j + 1;
 		nw = min(i__4,i__5);
 		if (nw > 0) {
-		    dcopy_(&nw, &work31[(jj - j + 1) * 65 - 65], &c__1, &ab[
+		    _starpu_dcopy_(&nw, &work31[(jj - j + 1) * 65 - 65], &c__1, &ab[
 			    kv + *kl + 1 - jj + j + jj * ab_dim1], &c__1);
 		}
 /* L170: */
@@ -585,4 +585,4 @@ static doublereal c_b31 = 1.;
 
 /*     End of DGBTRF */
 
-} /* dgbtrf_ */
+} /* _starpu_dgbtrf_ */

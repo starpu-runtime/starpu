@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlasd7_(integer *icompq, integer *nl, integer *nr, 
+/* Subroutine */ int _starpu_dlasd7_(integer *icompq, integer *nl, integer *nr, 
 	integer *sqre, integer *k, doublereal *d__, doublereal *z__, 
 	doublereal *zw, doublereal *vf, doublereal *vfw, doublereal *vl, 
 	doublereal *vlw, doublereal *alpha, doublereal *beta, doublereal *
@@ -35,15 +35,15 @@ static integer c__1 = 1;
     integer jp;
     doublereal eps, tau, tol;
     integer nlp1, nlp2, idxi, idxj;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer idxjp;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer jprev;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer *);
     doublereal hlftol;
 
 
@@ -255,7 +255,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD7", &i__1);
+	_starpu_xerbla_("DLASD7", &i__1);
 	return 0;
     }
 
@@ -309,7 +309,7 @@ static integer c__1 = 1;
 /* L40: */
     }
 
-    dlamrg_(nl, nr, &dsigma[2], &c__1, &c__1, &idx[2]);
+    _starpu_dlamrg_(nl, nr, &dsigma[2], &c__1, &c__1, &idx[2]);
 
     i__1 = n;
     for (i__ = 2; i__ <= i__1; ++i__) {
@@ -323,7 +323,7 @@ static integer c__1 = 1;
 
 /*     Calculate the allowable deflation tolerence */
 
-    eps = dlamch_("Epsilon");
+    eps = _starpu_dlamch_("Epsilon");
 /* Computing MAX */
     d__1 = abs(*alpha), d__2 = abs(*beta);
     tol = max(d__1,d__2);
@@ -396,7 +396,7 @@ L80:
 /*           Find sqrt(a**2+b**2) without overflow or */
 /*           destructive underflow. */
 
-	    tau = dlapy2_(c__, s);
+	    tau = _starpu_dlapy2_(c__, s);
 	    z__[j] = tau;
 	    z__[jprev] = 0.;
 	    *c__ /= tau;
@@ -419,8 +419,8 @@ L80:
 		givnum[*givptr + (givnum_dim1 << 1)] = *c__;
 		givnum[*givptr + givnum_dim1] = *s;
 	    }
-	    drot_(&c__1, &vf[jprev], &c__1, &vf[j], &c__1, c__, s);
-	    drot_(&c__1, &vl[jprev], &c__1, &vl[j], &c__1, c__, s);
+	    _starpu_drot_(&c__1, &vf[jprev], &c__1, &vf[j], &c__1, c__, s);
+	    _starpu_drot_(&c__1, &vl[jprev], &c__1, &vl[j], &c__1, c__, s);
 	    --k2;
 	    idxp[k2] = jprev;
 	    jprev = j;
@@ -472,7 +472,7 @@ L100:
 /*     D. */
 
     i__1 = n - *k;
-    dcopy_(&i__1, &dsigma[*k + 1], &c__1, &d__[*k + 1], &c__1);
+    _starpu_dcopy_(&i__1, &dsigma[*k + 1], &c__1, &d__[*k + 1], &c__1);
 
 /*     Determine DSIGMA(1), DSIGMA(2), Z(1), VF(1), VL(1), VF(M), and */
 /*     VL(M). */
@@ -483,7 +483,7 @@ L100:
 	dsigma[2] = hlftol;
     }
     if (m > n) {
-	z__[1] = dlapy2_(&z1, &z__[m]);
+	z__[1] = _starpu_dlapy2_(&z1, &z__[m]);
 	if (z__[1] <= tol) {
 	    *c__ = 1.;
 	    *s = 0.;
@@ -492,8 +492,8 @@ L100:
 	    *c__ = z1 / z__[1];
 	    *s = -z__[m] / z__[1];
 	}
-	drot_(&c__1, &vf[m], &c__1, &vf[1], &c__1, c__, s);
-	drot_(&c__1, &vl[m], &c__1, &vl[1], &c__1, c__, s);
+	_starpu_drot_(&c__1, &vf[m], &c__1, &vf[1], &c__1, c__, s);
+	_starpu_drot_(&c__1, &vl[m], &c__1, &vl[1], &c__1, c__, s);
     } else {
 	if (abs(z1) <= tol) {
 	    z__[1] = tol;
@@ -505,14 +505,14 @@ L100:
 /*     Restore Z, VF, and VL. */
 
     i__1 = *k - 1;
-    dcopy_(&i__1, &zw[2], &c__1, &z__[2], &c__1);
+    _starpu_dcopy_(&i__1, &zw[2], &c__1, &z__[2], &c__1);
     i__1 = n - 1;
-    dcopy_(&i__1, &vfw[2], &c__1, &vf[2], &c__1);
+    _starpu_dcopy_(&i__1, &vfw[2], &c__1, &vf[2], &c__1);
     i__1 = n - 1;
-    dcopy_(&i__1, &vlw[2], &c__1, &vl[2], &c__1);
+    _starpu_dcopy_(&i__1, &vlw[2], &c__1, &vl[2], &c__1);
 
     return 0;
 
 /*     End of DLASD7 */
 
-} /* dlasd7_ */
+} /* _starpu_dlasd7_ */

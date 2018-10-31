@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaruv_(integer *iseed, integer *n, doublereal *x)
+/* Subroutine */ int _starpu_dlaruv_(integer *iseed, integer *n, doublereal *x)
 {
     /* Initialized data */
 
@@ -189,4 +189,4 @@ L20:
 
 /*     End of DLARUV */
 
-} /* dlaruv_ */
+} /* _starpu_dlaruv_ */

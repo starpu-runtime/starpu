@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b23 = 1.;
 static doublereal c_b37 = -1.;
 
-/* Subroutine */ int dlatdf_(integer *ijob, integer *n, doublereal *z__, 
+/* Subroutine */ int _starpu_dlatdf_(integer *ijob, integer *n, doublereal *z__, 
 	integer *ldz, doublereal *rhs, doublereal *rdsum, doublereal *rdscal, 
 	integer *ipiv, integer *jpiv)
 {
@@ -34,25 +34,25 @@ static doublereal c_b37 = -1.;
     /* Local variables */
     integer i__, j, k;
     doublereal bm, bp, xm[8], xp[8];
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     integer info;
     doublereal temp, work[32];
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern doublereal dasum_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
     doublereal pmone;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), daxpy_(integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_daxpy_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal sminu;
     integer iwork[8];
     doublereal splus;
-    extern /* Subroutine */ int dgesc2_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, integer *, doublereal *), dgecon_(char *, 
+    extern /* Subroutine */ int _starpu_dgesc2_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, integer *, doublereal *), _starpu_dgecon_(char *, 
 	     integer *, doublereal *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *, integer *), dlassq_(integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dlaswp_(
+	    doublereal *, integer *, integer *), _starpu_dlassq_(integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dlaswp_(
 	    integer *, doublereal *, integer *, integer *, integer *, integer 
 	    *, integer *);
 
@@ -181,7 +181,7 @@ static doublereal c_b37 = -1.;
 /*        Apply permutations IPIV to RHS */
 
 	i__1 = *n - 1;
-	dlaswp_(&c__1, &rhs[1], ldz, &c__1, &i__1, &ipiv[1], &c__1);
+	_starpu_dlaswp_(&c__1, &rhs[1], ldz, &c__1, &i__1, &ipiv[1], &c__1);
 
 /*        Solve for L-part choosing RHS either to +1 or -1. */
 
@@ -197,10 +197,10 @@ static doublereal c_b37 = -1.;
 /*           SMIN computed more efficiently than in BSOLVE [1]. */
 
 	    i__2 = *n - j;
-	    splus += ddot_(&i__2, &z__[j + 1 + j * z_dim1], &c__1, &z__[j + 1 
+	    splus += _starpu_ddot_(&i__2, &z__[j + 1 + j * z_dim1], &c__1, &z__[j + 1 
 		    + j * z_dim1], &c__1);
 	    i__2 = *n - j;
-	    sminu = ddot_(&i__2, &z__[j + 1 + j * z_dim1], &c__1, &rhs[j + 1], 
+	    sminu = _starpu_ddot_(&i__2, &z__[j + 1 + j * z_dim1], &c__1, &rhs[j + 1], 
 		     &c__1);
 	    splus *= rhs[j];
 	    if (splus > sminu) {
@@ -223,7 +223,7 @@ static doublereal c_b37 = -1.;
 
 	    temp = -rhs[j];
 	    i__2 = *n - j;
-	    daxpy_(&i__2, &temp, &z__[j + 1 + j * z_dim1], &c__1, &rhs[j + 1], 
+	    _starpu_daxpy_(&i__2, &temp, &z__[j + 1 + j * z_dim1], &c__1, &rhs[j + 1], 
 		     &c__1);
 
 /* L10: */
@@ -235,7 +235,7 @@ static doublereal c_b37 = -1.;
 /*        and not to L. U(N, N) is an approximation to sigma_min(LU). */
 
 	i__1 = *n - 1;
-	dcopy_(&i__1, &rhs[1], &c__1, xp, &c__1);
+	_starpu_dcopy_(&i__1, &rhs[1], &c__1, xp, &c__1);
 	xp[*n - 1] = rhs[*n] + 1.;
 	rhs[*n] += -1.;
 	splus = 0.;
@@ -255,44 +255,44 @@ static doublereal c_b37 = -1.;
 /* L30: */
 	}
 	if (splus > sminu) {
-	    dcopy_(n, xp, &c__1, &rhs[1], &c__1);
+	    _starpu_dcopy_(n, xp, &c__1, &rhs[1], &c__1);
 	}
 
 /*        Apply the permutations JPIV to the computed solution (RHS) */
 
 	i__1 = *n - 1;
-	dlaswp_(&c__1, &rhs[1], ldz, &c__1, &i__1, &jpiv[1], &c_n1);
+	_starpu_dlaswp_(&c__1, &rhs[1], ldz, &c__1, &i__1, &jpiv[1], &c_n1);
 
 /*        Compute the sum of squares */
 
-	dlassq_(n, &rhs[1], &c__1, rdscal, rdsum);
+	_starpu_dlassq_(n, &rhs[1], &c__1, rdscal, rdsum);
 
     } else {
 
 /*        IJOB = 2, Compute approximate nullvector XM of Z */
 
-	dgecon_("I", n, &z__[z_offset], ldz, &c_b23, &temp, work, iwork, &
+	_starpu_dgecon_("I", n, &z__[z_offset], ldz, &c_b23, &temp, work, iwork, &
 		info);
-	dcopy_(n, &work[*n], &c__1, xm, &c__1);
+	_starpu_dcopy_(n, &work[*n], &c__1, xm, &c__1);
 
 /*        Compute RHS */
 
 	i__1 = *n - 1;
-	dlaswp_(&c__1, xm, ldz, &c__1, &i__1, &ipiv[1], &c_n1);
-	temp = 1. / sqrt(ddot_(n, xm, &c__1, xm, &c__1));
-	dscal_(n, &temp, xm, &c__1);
-	dcopy_(n, xm, &c__1, xp, &c__1);
-	daxpy_(n, &c_b23, &rhs[1], &c__1, xp, &c__1);
-	daxpy_(n, &c_b37, xm, &c__1, &rhs[1], &c__1);
-	dgesc2_(n, &z__[z_offset], ldz, &rhs[1], &ipiv[1], &jpiv[1], &temp);
-	dgesc2_(n, &z__[z_offset], ldz, xp, &ipiv[1], &jpiv[1], &temp);
-	if (dasum_(n, xp, &c__1) > dasum_(n, &rhs[1], &c__1)) {
-	    dcopy_(n, xp, &c__1, &rhs[1], &c__1);
+	_starpu_dlaswp_(&c__1, xm, ldz, &c__1, &i__1, &ipiv[1], &c_n1);
+	temp = 1. / sqrt(_starpu_ddot_(n, xm, &c__1, xm, &c__1));
+	_starpu_dscal_(n, &temp, xm, &c__1);
+	_starpu_dcopy_(n, xm, &c__1, xp, &c__1);
+	_starpu_daxpy_(n, &c_b23, &rhs[1], &c__1, xp, &c__1);
+	_starpu_daxpy_(n, &c_b37, xm, &c__1, &rhs[1], &c__1);
+	_starpu_dgesc2_(n, &z__[z_offset], ldz, &rhs[1], &ipiv[1], &jpiv[1], &temp);
+	_starpu_dgesc2_(n, &z__[z_offset], ldz, xp, &ipiv[1], &jpiv[1], &temp);
+	if (_starpu_dasum_(n, xp, &c__1) > _starpu_dasum_(n, &rhs[1], &c__1)) {
+	    _starpu_dcopy_(n, xp, &c__1, &rhs[1], &c__1);
 	}
 
 /*        Compute the sum of squares */
 
-	dlassq_(n, &rhs[1], &c__1, rdscal, rdsum);
+	_starpu_dlassq_(n, &rhs[1], &c__1, rdscal, rdsum);
 
     }
 
@@ -300,4 +300,4 @@ static doublereal c_b37 = -1.;
 
 /*     End of DLATDF */
 
-} /* dlatdf_ */
+} /* _starpu_dlatdf_ */

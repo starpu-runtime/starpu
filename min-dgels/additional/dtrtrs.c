@@ -17,7 +17,7 @@
 
 static doublereal c_b12 = 1.;
 
-/* Subroutine */ int dtrtrs_(char *uplo, char *trans, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtrtrs_(char *uplo, char *trans, char *diag, integer *n, 
 	integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *
 	ldb, integer *info)
 {
@@ -25,10 +25,10 @@ static doublereal c_b12 = 1.;
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), xerbla_(
+	    doublereal *, integer *), _starpu_xerbla_(
 	    char *, integer *);
     logical nounit;
 
@@ -129,13 +129,13 @@ static doublereal c_b12 = 1.;
 
     /* Function Body */
     *info = 0;
-    nounit = lsame_(diag, "N");
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    nounit = _starpu_lsame_(diag, "N");
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
-	    "T") && ! lsame_(trans, "C")) {
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
+	    "T") && ! _starpu_lsame_(trans, "C")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -148,7 +148,7 @@ static doublereal c_b12 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTRTRS", &i__1);
+	_starpu_xerbla_("DTRTRS", &i__1);
 	return 0;
     }
 
@@ -173,11 +173,11 @@ static doublereal c_b12 = 1.;
 
 /*     Solve A * x = b  or  A' * x = b. */
 
-    dtrsm_("Left", uplo, trans, diag, n, nrhs, &c_b12, &a[a_offset], lda, &b[
+    _starpu_dtrsm_("Left", uplo, trans, diag, n, nrhs, &c_b12, &a[a_offset], lda, &b[
 	    b_offset], ldb);
 
     return 0;
 
 /*     End of DTRTRS */
 
-} /* dtrtrs_ */
+} /* _starpu_dtrtrs_ */

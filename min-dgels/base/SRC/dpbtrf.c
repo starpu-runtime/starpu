@@ -21,7 +21,7 @@ static doublereal c_b18 = 1.;
 static doublereal c_b21 = -1.;
 static integer c__33 = 33;
 
-/* Subroutine */ int dpbtrf_(char *uplo, integer *n, integer *kd, doublereal *
+/* Subroutine */ int _starpu_dpbtrf_(char *uplo, integer *n, integer *kd, doublereal *
 	ab, integer *ldab, integer *info)
 {
     /* System generated locals */
@@ -30,19 +30,19 @@ static integer c__33 = 33;
     /* Local variables */
     integer i__, j, i2, i3, ib, nb, ii, jj;
     doublereal work[1056]	/* was [33][32] */;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dsyrk_(
+	    doublereal *, integer *), _starpu_dsyrk_(
 	    char *, char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *),
-	     dpbtf2_(char *, integer *, integer *, doublereal *, integer *, 
-	    integer *), dpotf2_(char *, integer *, doublereal *, 
-	    integer *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	     _starpu_dpbtf2_(char *, integer *, integer *, doublereal *, integer *, 
+	    integer *), _starpu_dpotf2_(char *, integer *, doublereal *, 
+	    integer *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
 
@@ -152,7 +152,7 @@ static integer c__33 = 33;
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -163,7 +163,7 @@ static integer c__33 = 33;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBTRF", &i__1);
+	_starpu_xerbla_("DPBTRF", &i__1);
 	return 0;
     }
 
@@ -175,7 +175,7 @@ static integer c__33 = 33;
 
 /*     Determine the block size for this environment */
 
-    nb = ilaenv_(&c__1, "DPBTRF", uplo, n, kd, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DPBTRF", uplo, n, kd, &c_n1, &c_n1);
 
 /*     The block size must not exceed the semi-bandwidth KD, and must not */
 /*     exceed the limit set by the size of the local array WORK. */
@@ -186,12 +186,12 @@ static integer c__33 = 33;
 
 /*        Use unblocked code */
 
-	dpbtf2_(uplo, n, kd, &ab[ab_offset], ldab, info);
+	_starpu_dpbtf2_(uplo, n, kd, &ab[ab_offset], ldab, info);
     } else {
 
 /*        Use blocked code */
 
-	if (lsame_(uplo, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
 
 /*           Compute the Cholesky factorization of a symmetric band */
 /*           matrix, given the upper triangle of the matrix in band */
@@ -221,7 +221,7 @@ static integer c__33 = 33;
 /*              Factorize the diagonal block */
 
 		i__3 = *ldab - 1;
-		dpotf2_(uplo, &ib, &ab[*kd + 1 + i__ * ab_dim1], &i__3, &ii);
+		_starpu_dpotf2_(uplo, &ib, &ab[*kd + 1 + i__ * ab_dim1], &i__3, &ii);
 		if (ii != 0) {
 		    *info = i__ + ii - 1;
 		    goto L150;
@@ -255,7 +255,7 @@ static integer c__33 = 33;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dtrsm_("Left", "Upper", "Transpose", "Non-unit", &ib, 
+			_starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", &ib, 
 				&i2, &c_b18, &ab[*kd + 1 + i__ * ab_dim1], &
 				i__3, &ab[*kd + 1 - ib + (i__ + ib) * ab_dim1]
 , &i__4);
@@ -264,7 +264,7 @@ static integer c__33 = 33;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dsyrk_("Upper", "Transpose", &i2, &ib, &c_b21, &ab[*
+			_starpu_dsyrk_("Upper", "Transpose", &i2, &ib, &c_b21, &ab[*
 				kd + 1 - ib + (i__ + ib) * ab_dim1], &i__3, &
 				c_b18, &ab[*kd + 1 + (i__ + ib) * ab_dim1], &
 				i__4);
@@ -288,7 +288,7 @@ static integer c__33 = 33;
 /*                    Update A13 (in the work array). */
 
 			i__3 = *ldab - 1;
-			dtrsm_("Left", "Upper", "Transpose", "Non-unit", &ib, 
+			_starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", &ib, 
 				&i3, &c_b18, &ab[*kd + 1 + i__ * ab_dim1], &
 				i__3, work, &c__33);
 
@@ -297,7 +297,7 @@ static integer c__33 = 33;
 			if (i2 > 0) {
 			    i__3 = *ldab - 1;
 			    i__4 = *ldab - 1;
-			    dgemm_("Transpose", "No Transpose", &i2, &i3, &ib, 
+			    _starpu_dgemm_("Transpose", "No Transpose", &i2, &i3, &ib, 
 				     &c_b21, &ab[*kd + 1 - ib + (i__ + ib) * 
 				    ab_dim1], &i__3, work, &c__33, &c_b18, &
 				    ab[ib + 1 + (i__ + *kd) * ab_dim1], &i__4);
@@ -306,7 +306,7 @@ static integer c__33 = 33;
 /*                    Update A33 */
 
 			i__3 = *ldab - 1;
-			dsyrk_("Upper", "Transpose", &i3, &ib, &c_b21, work, &
+			_starpu_dsyrk_("Upper", "Transpose", &i3, &ib, &c_b21, work, &
 				c__33, &c_b18, &ab[*kd + 1 + (i__ + *kd) * 
 				ab_dim1], &i__3);
 
@@ -356,7 +356,7 @@ static integer c__33 = 33;
 /*              Factorize the diagonal block */
 
 		i__3 = *ldab - 1;
-		dpotf2_(uplo, &ib, &ab[i__ * ab_dim1 + 1], &i__3, &ii);
+		_starpu_dpotf2_(uplo, &ib, &ab[i__ * ab_dim1 + 1], &i__3, &ii);
 		if (ii != 0) {
 		    *info = i__ + ii - 1;
 		    goto L150;
@@ -390,7 +390,7 @@ static integer c__33 = 33;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i2, 
+			_starpu_dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i2, 
 				 &ib, &c_b18, &ab[i__ * ab_dim1 + 1], &i__3, &
 				ab[ib + 1 + i__ * ab_dim1], &i__4);
 
@@ -398,7 +398,7 @@ static integer c__33 = 33;
 
 			i__3 = *ldab - 1;
 			i__4 = *ldab - 1;
-			dsyrk_("Lower", "No Transpose", &i2, &ib, &c_b21, &ab[
+			_starpu_dsyrk_("Lower", "No Transpose", &i2, &ib, &c_b21, &ab[
 				ib + 1 + i__ * ab_dim1], &i__3, &c_b18, &ab[(
 				i__ + ib) * ab_dim1 + 1], &i__4);
 		    }
@@ -421,7 +421,7 @@ static integer c__33 = 33;
 /*                    Update A31 (in the work array). */
 
 			i__3 = *ldab - 1;
-			dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i3, 
+			_starpu_dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i3, 
 				 &ib, &c_b18, &ab[i__ * ab_dim1 + 1], &i__3, 
 				work, &c__33);
 
@@ -430,7 +430,7 @@ static integer c__33 = 33;
 			if (i2 > 0) {
 			    i__3 = *ldab - 1;
 			    i__4 = *ldab - 1;
-			    dgemm_("No transpose", "Transpose", &i3, &i2, &ib, 
+			    _starpu_dgemm_("No transpose", "Transpose", &i3, &i2, &ib, 
 				     &c_b21, work, &c__33, &ab[ib + 1 + i__ * 
 				    ab_dim1], &i__3, &c_b18, &ab[*kd + 1 - ib 
 				    + (i__ + ib) * ab_dim1], &i__4);
@@ -439,7 +439,7 @@ static integer c__33 = 33;
 /*                    Update A33 */
 
 			i__3 = *ldab - 1;
-			dsyrk_("Lower", "No Transpose", &i3, &ib, &c_b21, 
+			_starpu_dsyrk_("Lower", "No Transpose", &i3, &ib, &c_b21, 
 				work, &c__33, &c_b18, &ab[(i__ + *kd) * 
 				ab_dim1 + 1], &i__3);
 
@@ -468,4 +468,4 @@ L150:
 
 /*     End of DPBTRF */
 
-} /* dpbtrf_ */
+} /* _starpu_dpbtrf_ */

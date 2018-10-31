@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b30 = 0.;
 
-/* Subroutine */ int dlasd2_(integer *nl, integer *nr, integer *sqre, integer 
+/* Subroutine */ int _starpu_dlasd2_(integer *nl, integer *nr, integer *sqre, integer 
 	*k, doublereal *d__, doublereal *z__, doublereal *alpha, doublereal *
 	beta, doublereal *u, integer *ldu, doublereal *vt, integer *ldvt, 
 	doublereal *dsigma, doublereal *u2, integer *ldu2, doublereal *vt2, 
@@ -39,17 +39,17 @@ static doublereal c_b30 = 0.;
     integer ct, jp;
     doublereal eps, tau, tol;
     integer psm[4], nlp1, nlp2, idxi, idxj;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer ctot[4], idxjp;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer jprev;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), dlacpy_(char *, integer *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *), dlaset_(char *, integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, 
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_dlacpy_(char *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *), _starpu_dlaset_(char *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal hlftol;
 
@@ -274,7 +274,7 @@ static doublereal c_b30 = 0.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD2", &i__1);
+	_starpu_xerbla_("DLASD2", &i__1);
 	return 0;
     }
 
@@ -333,7 +333,7 @@ static doublereal c_b30 = 0.;
 /* L60: */
     }
 
-    dlamrg_(nl, nr, &dsigma[2], &c__1, &c__1, &idx[2]);
+    _starpu_dlamrg_(nl, nr, &dsigma[2], &c__1, &c__1, &idx[2]);
 
     i__1 = n;
     for (i__ = 2; i__ <= i__1; ++i__) {
@@ -346,7 +346,7 @@ static doublereal c_b30 = 0.;
 
 /*     Calculate the allowable deflation tolerance */
 
-    eps = dlamch_("Epsilon");
+    eps = _starpu_dlamch_("Epsilon");
 /* Computing MAX */
     d__1 = abs(*alpha), d__2 = abs(*beta);
     tol = max(d__1,d__2);
@@ -421,7 +421,7 @@ L100:
 /*           Find sqrt(a**2+b**2) without overflow or */
 /*           destructive underflow. */
 
-	    tau = dlapy2_(&c__, &s);
+	    tau = _starpu_dlapy2_(&c__, &s);
 	    c__ /= tau;
 	    s = -s / tau;
 	    z__[j] = tau;
@@ -438,9 +438,9 @@ L100:
 	    if (idxj <= nlp1) {
 		--idxj;
 	    }
-	    drot_(&n, &u[idxjp * u_dim1 + 1], &c__1, &u[idxj * u_dim1 + 1], &
+	    _starpu_drot_(&n, &u[idxjp * u_dim1 + 1], &c__1, &u[idxj * u_dim1 + 1], &
 		    c__1, &c__, &s);
-	    drot_(&m, &vt[idxjp + vt_dim1], ldvt, &vt[idxj + vt_dim1], ldvt, &
+	    _starpu_drot_(&m, &vt[idxjp + vt_dim1], ldvt, &vt[idxj + vt_dim1], ldvt, &
 		    c__, &s);
 	    if (coltyp[j] != coltyp[jprev]) {
 		coltyp[j] = 3;
@@ -521,8 +521,8 @@ L120:
 	if (idxj <= nlp1) {
 	    --idxj;
 	}
-	dcopy_(&n, &u[idxj * u_dim1 + 1], &c__1, &u2[j * u2_dim1 + 1], &c__1);
-	dcopy_(&m, &vt[idxj + vt_dim1], ldvt, &vt2[j + vt2_dim1], ldvt2);
+	_starpu_dcopy_(&n, &u[idxj * u_dim1 + 1], &c__1, &u2[j * u2_dim1 + 1], &c__1);
+	_starpu_dcopy_(&m, &vt[idxj + vt_dim1], ldvt, &vt2[j + vt2_dim1], ldvt2);
 /* L160: */
     }
 
@@ -534,7 +534,7 @@ L120:
 	dsigma[2] = hlftol;
     }
     if (m > n) {
-	z__[1] = dlapy2_(&z1, &z__[m]);
+	z__[1] = _starpu_dlapy2_(&z1, &z__[m]);
 	if (z__[1] <= tol) {
 	    c__ = 1.;
 	    s = 0.;
@@ -554,12 +554,12 @@ L120:
 /*     Move the rest of the updating row to Z. */
 
     i__1 = *k - 1;
-    dcopy_(&i__1, &u2[u2_dim1 + 2], &c__1, &z__[2], &c__1);
+    _starpu_dcopy_(&i__1, &u2[u2_dim1 + 2], &c__1, &z__[2], &c__1);
 
 /*     Determine the first column of U2, the first row of VT2 and the */
 /*     last row of VT. */
 
-    dlaset_("A", &n, &c__1, &c_b30, &c_b30, &u2[u2_offset], ldu2);
+    _starpu_dlaset_("A", &n, &c__1, &c_b30, &c_b30, &u2[u2_offset], ldu2);
     u2[nlp1 + u2_dim1] = 1.;
     if (m > n) {
 	i__1 = nlp1;
@@ -575,10 +575,10 @@ L120:
 /* L180: */
 	}
     } else {
-	dcopy_(&m, &vt[nlp1 + vt_dim1], ldvt, &vt2[vt2_dim1 + 1], ldvt2);
+	_starpu_dcopy_(&m, &vt[nlp1 + vt_dim1], ldvt, &vt2[vt2_dim1 + 1], ldvt2);
     }
     if (m > n) {
-	dcopy_(&m, &vt[m + vt_dim1], ldvt, &vt2[m + vt2_dim1], ldvt2);
+	_starpu_dcopy_(&m, &vt[m + vt_dim1], ldvt, &vt2[m + vt2_dim1], ldvt2);
     }
 
 /*     The deflated singular values and their corresponding vectors go */
@@ -586,12 +586,12 @@ L120:
 
     if (n > *k) {
 	i__1 = n - *k;
-	dcopy_(&i__1, &dsigma[*k + 1], &c__1, &d__[*k + 1], &c__1);
+	_starpu_dcopy_(&i__1, &dsigma[*k + 1], &c__1, &d__[*k + 1], &c__1);
 	i__1 = n - *k;
-	dlacpy_("A", &n, &i__1, &u2[(*k + 1) * u2_dim1 + 1], ldu2, &u[(*k + 1)
+	_starpu_dlacpy_("A", &n, &i__1, &u2[(*k + 1) * u2_dim1 + 1], ldu2, &u[(*k + 1)
 		 * u_dim1 + 1], ldu);
 	i__1 = n - *k;
-	dlacpy_("A", &i__1, &m, &vt2[*k + 1 + vt2_dim1], ldvt2, &vt[*k + 1 + 
+	_starpu_dlacpy_("A", &i__1, &m, &vt2[*k + 1 + vt2_dim1], ldvt2, &vt[*k + 1 + 
 		vt_dim1], ldvt);
     }
 
@@ -606,4 +606,4 @@ L120:
 
 /*     End of DLASD2 */
 
-} /* dlasd2_ */
+} /* _starpu_dlasd2_ */

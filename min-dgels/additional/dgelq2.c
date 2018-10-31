@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgelq2_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgelq2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -22,10 +22,10 @@
     /* Local variables */
     integer i__, k;
     doublereal aii;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfp_(integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+	    doublereal *), _starpu_dlarfp_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -120,7 +120,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGELQ2", &i__1);
+	_starpu_xerbla_("DGELQ2", &i__1);
 	return 0;
     }
 
@@ -134,7 +134,7 @@
 	i__2 = *n - i__ + 1;
 /* Computing MIN */
 	i__3 = i__ + 1;
-	dlarfp_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* a_dim1]
+	_starpu_dlarfp_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* a_dim1]
 , lda, &tau[i__]);
 	if (i__ < *m) {
 
@@ -144,7 +144,7 @@
 	    a[i__ + i__ * a_dim1] = 1.;
 	    i__2 = *m - i__;
 	    i__3 = *n - i__ + 1;
-	    dlarf_("Right", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &tau[
+	    _starpu_dlarf_("Right", &i__2, &i__3, &a[i__ + i__ * a_dim1], lda, &tau[
 		    i__], &a[i__ + 1 + i__ * a_dim1], lda, &work[1]);
 	    a[i__ + i__ * a_dim1] = aii;
 	}
@@ -154,4 +154,4 @@
 
 /*     End of DGELQ2 */
 
-} /* dgelq2_ */
+} /* _starpu_dgelq2_ */

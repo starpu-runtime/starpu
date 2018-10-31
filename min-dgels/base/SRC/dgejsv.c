@@ -21,7 +21,7 @@ static doublereal c_b35 = 1.;
 static integer c__0 = 0;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgejsv_(char *joba, char *jobu, char *jobv, char *jobr, 
+/* Subroutine */ int _starpu_dgejsv_(char *joba, char *jobu, char *jobv, char *jobr, 
 	char *jobt, char *jobp, integer *m, integer *n, doublereal *a, 
 	integer *lda, doublereal *sva, doublereal *u, integer *ldu, 
 	doublereal *v, integer *ldv, doublereal *work, integer *lwork, 
@@ -44,64 +44,64 @@ static integer c_n1 = -1;
     doublereal aapp, aaqq;
     logical kill;
     integer ierr;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal temp1;
     logical jracc;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal small, entra, sfmin;
     logical lsvec;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     doublereal epsln;
     logical rsvec;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical l2aber;
-    extern /* Subroutine */ int dgeqp3_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgeqp3_(integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *);
     doublereal condr1, condr2, uscal1, uscal2;
     logical l2kill, l2rank, l2tran, l2pert;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dgelqf_(integer *, integer *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dgelqf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal scalem;
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     doublereal sconda;
     logical goscal;
     doublereal aatmin;
-    extern /* Subroutine */ int dgeqrf_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgeqrf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *);
     doublereal aatmax;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *), xerbla_(char *, integer *);
+	    _starpu_dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, integer *), _starpu_xerbla_(char *, integer *);
     logical noscal;
-    extern /* Subroutine */ int dpocon_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpocon_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    integer *), dgesvj_(char *, char *, char *, integer *, 
+	    integer *), _starpu_dgesvj_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, integer *, integer *), dlassq_(integer *, doublereal *, integer 
-	    *, doublereal *, doublereal *), dlaswp_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *, integer *, integer *), _starpu_dlassq_(integer *, doublereal *, integer 
+	    *, doublereal *, doublereal *), _starpu_dlaswp_(integer *, doublereal *, 
 	    integer *, integer *, integer *, integer *, integer *);
     doublereal entrat;
     logical almort;
-    extern /* Subroutine */ int dorgqr_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorgqr_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dormlq_(char *, char *, integer *, integer *, integer 
+	    integer *), _starpu_dormlq_(char *, char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	     doublereal *, integer *, integer *);
     doublereal maxprj;
     logical errest;
-    extern /* Subroutine */ int dormqr_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormqr_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
     logical transp, rowpiv;
@@ -503,31 +503,31 @@ static integer c_n1 = -1;
     --iwork;
 
     /* Function Body */
-    lsvec = lsame_(jobu, "U") || lsame_(jobu, "F");
-    jracc = lsame_(jobv, "J");
-    rsvec = lsame_(jobv, "V") || jracc;
-    rowpiv = lsame_(joba, "F") || lsame_(joba, "G");
-    l2rank = lsame_(joba, "R");
-    l2aber = lsame_(joba, "A");
-    errest = lsame_(joba, "E") || lsame_(joba, "G");
-    l2tran = lsame_(jobt, "T");
-    l2kill = lsame_(jobr, "R");
-    defr = lsame_(jobr, "N");
-    l2pert = lsame_(jobp, "P");
+    lsvec = _starpu_lsame_(jobu, "U") || _starpu_lsame_(jobu, "F");
+    jracc = _starpu_lsame_(jobv, "J");
+    rsvec = _starpu_lsame_(jobv, "V") || jracc;
+    rowpiv = _starpu_lsame_(joba, "F") || _starpu_lsame_(joba, "G");
+    l2rank = _starpu_lsame_(joba, "R");
+    l2aber = _starpu_lsame_(joba, "A");
+    errest = _starpu_lsame_(joba, "E") || _starpu_lsame_(joba, "G");
+    l2tran = _starpu_lsame_(jobt, "T");
+    l2kill = _starpu_lsame_(jobr, "R");
+    defr = _starpu_lsame_(jobr, "N");
+    l2pert = _starpu_lsame_(jobp, "P");
 
-    if (! (rowpiv || l2rank || l2aber || errest || lsame_(joba, "C"))) {
+    if (! (rowpiv || l2rank || l2aber || errest || _starpu_lsame_(joba, "C"))) {
 	*info = -1;
-    } else if (! (lsvec || lsame_(jobu, "N") || lsame_(
+    } else if (! (lsvec || _starpu_lsame_(jobu, "N") || _starpu_lsame_(
 	    jobu, "W"))) {
 	*info = -2;
-    } else if (! (rsvec || lsame_(jobv, "N") || lsame_(
+    } else if (! (rsvec || _starpu_lsame_(jobv, "N") || _starpu_lsame_(
 	    jobv, "W")) || jracc && ! lsvec) {
 	*info = -3;
     } else if (! (l2kill || defr)) {
 	*info = -4;
-    } else if (! (l2tran || lsame_(jobt, "N"))) {
+    } else if (! (l2tran || _starpu_lsame_(jobt, "N"))) {
 	*info = -5;
-    } else if (! (l2pert || lsame_(jobp, "N"))) {
+    } else if (! (l2pert || _starpu_lsame_(jobp, "N"))) {
 	*info = -6;
     } else if (*m < 0) {
 	*info = -7;
@@ -568,7 +568,7 @@ static integer c_n1 = -1;
     if (*info != 0) {
 /*       #:( */
 	i__1 = -(*info);
-	xerbla_("DGEJSV", &i__1);
+	_starpu_xerbla_("DGEJSV", &i__1);
     }
 
 /*     Quick return for void matrix (Y3K safe) */
@@ -581,7 +581,7 @@ static integer c_n1 = -1;
 
     if (lsvec) {
 	n1 = *n;
-	if (lsame_(jobu, "F")) {
+	if (_starpu_lsame_(jobu, "F")) {
 	    n1 = *m;
 	}
     }
@@ -590,10 +590,10 @@ static integer c_n1 = -1;
 
 /* !    NOTE: Make sure DLAMCH() does not fail on the target architecture. */
 
-    epsln = dlamch_("Epsilon");
-    sfmin = dlamch_("SafeMinimum");
+    epsln = _starpu_dlamch_("Epsilon");
+    sfmin = _starpu_dlamch_("SafeMinimum");
     small = sfmin / epsln;
-    big = dlamch_("O");
+    big = _starpu_dlamch_("O");
 /*     BIG   = ONE / SFMIN */
 
 /*     Initialize SVA(1:N) = diag( ||A e_i||_2 )_1^N */
@@ -609,11 +609,11 @@ static integer c_n1 = -1;
     for (p = 1; p <= i__1; ++p) {
 	aapp = 0.;
 	aaqq = 0.;
-	dlassq_(m, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
+	_starpu_dlassq_(m, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
 	if (aapp > big) {
 	    *info = -9;
 	    i__2 = -(*info);
-	    xerbla_("DGEJSV", &i__2);
+	    _starpu_xerbla_("DGEJSV", &i__2);
 	    return 0;
 	}
 	aaqq = sqrt(aaqq);
@@ -625,7 +625,7 @@ static integer c_n1 = -1;
 	    if (goscal) {
 		goscal = FALSE_;
 		i__2 = p - 1;
-		dscal_(&i__2, &scalem, &sva[1], &c__1);
+		_starpu_dscal_(&i__2, &scalem, &sva[1], &c__1);
 	    }
 	}
 /* L1874: */
@@ -654,11 +654,11 @@ static integer c_n1 = -1;
 /* #:) */
     if (aapp == 0.) {
 	if (lsvec) {
-	    dlaset_("G", m, &n1, &c_b34, &c_b35, &u[u_offset], ldu)
+	    _starpu_dlaset_("G", m, &n1, &c_b34, &c_b35, &u[u_offset], ldu)
 		    ;
 	}
 	if (rsvec) {
-	    dlaset_("G", n, n, &c_b34, &c_b35, &v[v_offset], ldv);
+	    _starpu_dlaset_("G", n, n, &c_b34, &c_b35, &v[v_offset], ldv);
 	}
 	work[1] = 1.;
 	work[2] = 1.;
@@ -694,18 +694,18 @@ static integer c_n1 = -1;
     if (*n == 1) {
 
 	if (lsvec) {
-	    dlascl_("G", &c__0, &c__0, &sva[1], &scalem, m, &c__1, &a[a_dim1 
+	    _starpu_dlascl_("G", &c__0, &c__0, &sva[1], &scalem, m, &c__1, &a[a_dim1 
 		    + 1], lda, &ierr);
-	    dlacpy_("A", m, &c__1, &a[a_offset], lda, &u[u_offset], ldu);
+	    _starpu_dlacpy_("A", m, &c__1, &a[a_offset], lda, &u[u_offset], ldu);
 /*           computing all M left singular vectors of the M x 1 matrix */
 	    if (n1 != *n) {
 		i__1 = *lwork - *n;
-		dgeqrf_(m, n, &u[u_offset], ldu, &work[1], &work[*n + 1], &
+		_starpu_dgeqrf_(m, n, &u[u_offset], ldu, &work[1], &work[*n + 1], &
 			i__1, &ierr);
 		i__1 = *lwork - *n;
-		dorgqr_(m, &n1, &c__1, &u[u_offset], ldu, &work[1], &work[*n 
+		_starpu_dorgqr_(m, &n1, &c__1, &u[u_offset], ldu, &work[1], &work[*n 
 			+ 1], &i__1, &ierr);
-		dcopy_(m, &a[a_dim1 + 1], &c__1, &u[u_dim1 + 1], &c__1);
+		_starpu_dcopy_(m, &a[a_dim1 + 1], &c__1, &u[u_dim1 + 1], &c__1);
 	    }
 	}
 	if (rsvec) {
@@ -760,7 +760,7 @@ static integer c_n1 = -1;
 	    for (p = 1; p <= i__1; ++p) {
 		xsc = 0.;
 		temp1 = 0.;
-		dlassq_(n, &a[p + a_dim1], lda, &xsc, &temp1);
+		_starpu_dlassq_(n, &a[p + a_dim1], lda, &xsc, &temp1);
 /*              DLASSQ gets both the ell_2 and the ell_infinity norm */
 /*              in one pass through the vector */
 		work[*m + *n + p] = xsc * scalem;
@@ -778,7 +778,7 @@ static integer c_n1 = -1;
 	} else {
 	    i__1 = *m;
 	    for (p = 1; p <= i__1; ++p) {
-		work[*m + *n + p] = scalem * (d__1 = a[p + idamax_(n, &a[p + 
+		work[*m + *n + p] = scalem * (d__1 = a[p + _starpu_idamax_(n, &a[p + 
 			a_dim1], lda) * a_dim1], abs(d__1));
 /* Computing MAX */
 		d__1 = aatmax, d__2 = work[*m + *n + p];
@@ -805,7 +805,7 @@ static integer c_n1 = -1;
 
 	xsc = 0.;
 	temp1 = 0.;
-	dlassq_(n, &sva[1], &c__1, &xsc, &temp1);
+	_starpu_dlassq_(n, &sva[1], &c__1, &xsc, &temp1);
 	temp1 = 1. / temp1;
 
 	entra = 0.;
@@ -896,14 +896,14 @@ static integer c_n1 = -1;
     big1 = sqrt(big);
     temp1 = sqrt(big / (doublereal) (*n));
 
-    dlascl_("G", &c__0, &c__0, &aapp, &temp1, n, &c__1, &sva[1], n, &ierr);
+    _starpu_dlascl_("G", &c__0, &c__0, &aapp, &temp1, n, &c__1, &sva[1], n, &ierr);
     if (aaqq > aapp * sfmin) {
 	aaqq = aaqq / aapp * temp1;
     } else {
 	aaqq = aaqq * temp1 / aapp;
     }
     temp1 *= scalem;
-    dlascl_("G", &c__0, &c__0, &aapp, &temp1, m, n, &a[a_offset], lda, &ierr);
+    _starpu_dlascl_("G", &c__0, &c__0, &aapp, &temp1, m, n, &a[a_offset], lda, &ierr);
 
 /*     To undo scaling at the end of this procedure, multiply the */
 /*     computed singular values with USCAL2 / USCAL1. */
@@ -936,7 +936,7 @@ static integer c_n1 = -1;
 	i__1 = *n;
 	for (p = 1; p <= i__1; ++p) {
 	    if (sva[p] < xsc) {
-		dlaset_("A", m, &c__1, &c_b34, &c_b34, &a[p * a_dim1 + 1], 
+		_starpu_dlaset_("A", m, &c__1, &c_b34, &c_b34, &a[p * a_dim1 + 1], 
 			lda);
 		sva[p] = 0.;
 	    }
@@ -955,7 +955,7 @@ static integer c_n1 = -1;
 	i__1 = *m - 1;
 	for (p = 1; p <= i__1; ++p) {
 	    i__2 = *m - p + 1;
-	    q = idamax_(&i__2, &work[*m + *n + p], &c__1) + p - 1;
+	    q = _starpu_idamax_(&i__2, &work[*m + *n + p], &c__1) + p - 1;
 	    iwork[(*n << 1) + p] = q;
 	    if (p != q) {
 		temp1 = work[*m + *n + p];
@@ -965,7 +965,7 @@ static integer c_n1 = -1;
 /* L1952: */
 	}
 	i__1 = *m - 1;
-	dlaswp_(n, &a[a_offset], lda, &c__1, &i__1, &iwork[(*n << 1) + 1], &
+	_starpu_dlaswp_(n, &a[a_offset], lda, &c__1, &i__1, &iwork[(*n << 1) + 1], &
 		c__1);
     }
 
@@ -991,7 +991,7 @@ static integer c_n1 = -1;
 /* L1963: */
     }
     i__1 = *lwork - *n;
-    dgeqp3_(m, n, &a[a_offset], lda, &iwork[1], &work[1], &work[*n + 1], &
+    _starpu_dgeqp3_(m, n, &a[a_offset], lda, &iwork[1], &work[1], &work[*n + 1], &
 	    i__1, &ierr);
 
 /*     The upper triangular matrix R1 from the first QRF is inspected for */
@@ -1088,39 +1088,39 @@ L3302:
 	if (*n == nr) {
 	    if (rsvec) {
 /*              .. V is available as workspace */
-		dlacpy_("U", n, n, &a[a_offset], lda, &v[v_offset], ldv);
+		_starpu_dlacpy_("U", n, n, &a[a_offset], lda, &v[v_offset], ldv);
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
 		    temp1 = sva[iwork[p]];
 		    d__1 = 1. / temp1;
-		    dscal_(&p, &d__1, &v[p * v_dim1 + 1], &c__1);
+		    _starpu_dscal_(&p, &d__1, &v[p * v_dim1 + 1], &c__1);
 /* L3053: */
 		}
-		dpocon_("U", n, &v[v_offset], ldv, &c_b35, &temp1, &work[*n + 
+		_starpu_dpocon_("U", n, &v[v_offset], ldv, &c_b35, &temp1, &work[*n + 
 			1], &iwork[(*n << 1) + *m + 1], &ierr);
 	    } else if (lsvec) {
 /*              .. U is available as workspace */
-		dlacpy_("U", n, n, &a[a_offset], lda, &u[u_offset], ldu);
+		_starpu_dlacpy_("U", n, n, &a[a_offset], lda, &u[u_offset], ldu);
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
 		    temp1 = sva[iwork[p]];
 		    d__1 = 1. / temp1;
-		    dscal_(&p, &d__1, &u[p * u_dim1 + 1], &c__1);
+		    _starpu_dscal_(&p, &d__1, &u[p * u_dim1 + 1], &c__1);
 /* L3054: */
 		}
-		dpocon_("U", n, &u[u_offset], ldu, &c_b35, &temp1, &work[*n + 
+		_starpu_dpocon_("U", n, &u[u_offset], ldu, &c_b35, &temp1, &work[*n + 
 			1], &iwork[(*n << 1) + *m + 1], &ierr);
 	    } else {
-		dlacpy_("U", n, n, &a[a_offset], lda, &work[*n + 1], n);
+		_starpu_dlacpy_("U", n, n, &a[a_offset], lda, &work[*n + 1], n);
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
 		    temp1 = sva[iwork[p]];
 		    d__1 = 1. / temp1;
-		    dscal_(&p, &d__1, &work[*n + (p - 1) * *n + 1], &c__1);
+		    _starpu_dscal_(&p, &d__1, &work[*n + (p - 1) * *n + 1], &c__1);
 /* L3052: */
 		}
 /*           .. the columns of R are scaled to have unit Euclidean lengths. */
-		dpocon_("U", n, &work[*n + 1], n, &c_b35, &temp1, &work[*n + *
+		_starpu_dpocon_("U", n, &work[*n + 1], n, &c_b35, &temp1, &work[*n + *
 			n * *n + 1], &iwork[(*n << 1) + *m + 1], &ierr);
 	    }
 	    sconda = 1. / sqrt(temp1);
@@ -1147,7 +1147,7 @@ L3302:
 	i__1 = min(i__2,nr);
 	for (p = 1; p <= i__1; ++p) {
 	    i__2 = *n - p;
-	    dcopy_(&i__2, &a[p + (p + 1) * a_dim1], lda, &a[p + 1 + p * 
+	    _starpu_dcopy_(&i__2, &a[p + (p + 1) * a_dim1], lda, &a[p + 1 + p * 
 		    a_dim1], &c__1);
 /* L1946: */
 	}
@@ -1186,21 +1186,21 @@ L3302:
 	    } else {
 		i__1 = nr - 1;
 		i__2 = nr - 1;
-		dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &a[(a_dim1 << 1) + 
+		_starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &a[(a_dim1 << 1) + 
 			1], lda);
 	    }
 
 /*            .. second preconditioning using the QR factorization */
 
 	    i__1 = *lwork - *n;
-	    dgeqrf_(n, &nr, &a[a_offset], lda, &work[1], &work[*n + 1], &i__1, 
+	    _starpu_dgeqrf_(n, &nr, &a[a_offset], lda, &work[1], &work[*n + 1], &i__1, 
 		     &ierr);
 
 /*           .. and transpose upper to lower triangular */
 	    i__1 = nr - 1;
 	    for (p = 1; p <= i__1; ++p) {
 		i__2 = nr - p;
-		dcopy_(&i__2, &a[p + (p + 1) * a_dim1], lda, &a[p + 1 + p * 
+		_starpu_dcopy_(&i__2, &a[p + (p + 1) * a_dim1], lda, &a[p + 1 + p * 
 			a_dim1], &c__1);
 /* L1948: */
 	    }
@@ -1231,7 +1231,7 @@ L3302:
 	} else {
 	    i__1 = nr - 1;
 	    i__2 = nr - 1;
-	    dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &a[(a_dim1 << 1) + 1], 
+	    _starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &a[(a_dim1 << 1) + 1], 
 		    lda);
 	}
 
@@ -1239,7 +1239,7 @@ L3302:
 /*           triangular matrix (plus perturbation which is ignored in */
 /*           the part which destroys triangular form (confusing?!)) */
 
-	dgesvj_("L", "NoU", "NoV", &nr, &nr, &a[a_offset], lda, &sva[1], n, &
+	_starpu_dgesvj_("L", "NoU", "NoV", &nr, &nr, &a[a_offset], lda, &sva[1], n, &
 		v[v_offset], ldv, &work[1], lwork, info);
 
 	scalem = work[1];
@@ -1256,16 +1256,16 @@ L3302:
 	    i__1 = nr;
 	    for (p = 1; p <= i__1; ++p) {
 		i__2 = *n - p + 1;
-		dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], &
+		_starpu_dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], &
 			c__1);
 /* L1998: */
 	    }
 	    i__1 = nr - 1;
 	    i__2 = nr - 1;
-	    dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
+	    _starpu_dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
 		    1], ldv);
 
-	    dgesvj_("L", "U", "N", n, &nr, &v[v_offset], ldv, &sva[1], &nr, &
+	    _starpu_dgesvj_("L", "U", "N", n, &nr, &v[v_offset], ldv, &sva[1], &nr, &
 		    a[a_offset], lda, &work[1], lwork, info);
 	    scalem = work[1];
 	    numrank = i_dnnt(&work[2]);
@@ -1276,63 +1276,63 @@ L3302:
 
 	    i__1 = nr - 1;
 	    i__2 = nr - 1;
-	    dlaset_("Lower", &i__1, &i__2, &c_b34, &c_b34, &a[a_dim1 + 2], 
+	    _starpu_dlaset_("Lower", &i__1, &i__2, &c_b34, &c_b34, &a[a_dim1 + 2], 
 		    lda);
 	    i__1 = *lwork - *n;
-	    dgelqf_(&nr, n, &a[a_offset], lda, &work[1], &work[*n + 1], &i__1, 
+	    _starpu_dgelqf_(&nr, n, &a[a_offset], lda, &work[1], &work[*n + 1], &i__1, 
 		     &ierr);
-	    dlacpy_("Lower", &nr, &nr, &a[a_offset], lda, &v[v_offset], ldv);
+	    _starpu_dlacpy_("Lower", &nr, &nr, &a[a_offset], lda, &v[v_offset], ldv);
 	    i__1 = nr - 1;
 	    i__2 = nr - 1;
-	    dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
+	    _starpu_dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
 		    1], ldv);
 	    i__1 = *lwork - (*n << 1);
-	    dgeqrf_(&nr, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*n << 
+	    _starpu_dgeqrf_(&nr, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*n << 
 		    1) + 1], &i__1, &ierr);
 	    i__1 = nr;
 	    for (p = 1; p <= i__1; ++p) {
 		i__2 = nr - p + 1;
-		dcopy_(&i__2, &v[p + p * v_dim1], ldv, &v[p + p * v_dim1], &
+		_starpu_dcopy_(&i__2, &v[p + p * v_dim1], ldv, &v[p + p * v_dim1], &
 			c__1);
 /* L8998: */
 	    }
 	    i__1 = nr - 1;
 	    i__2 = nr - 1;
-	    dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
+	    _starpu_dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
 		    1], ldv);
 
-	    dgesvj_("Lower", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[1], &
+	    _starpu_dgesvj_("Lower", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[1], &
 		    nr, &u[u_offset], ldu, &work[*n + 1], lwork, info);
 	    scalem = work[*n + 1];
 	    numrank = i_dnnt(&work[*n + 2]);
 	    if (nr < *n) {
 		i__1 = *n - nr;
-		dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + v_dim1], 
+		_starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + v_dim1], 
 			ldv);
 		i__1 = *n - nr;
-		dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) * v_dim1 
+		_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) * v_dim1 
 			+ 1], ldv);
 		i__1 = *n - nr;
 		i__2 = *n - nr;
-		dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 + (nr + 
+		_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 + (nr + 
 			1) * v_dim1], ldv);
 	    }
 
 	    i__1 = *lwork - *n;
-	    dormlq_("Left", "Transpose", n, n, &nr, &a[a_offset], lda, &work[
+	    _starpu_dormlq_("Left", "Transpose", n, n, &nr, &a[a_offset], lda, &work[
 		    1], &v[v_offset], ldv, &work[*n + 1], &i__1, &ierr);
 
 	}
 
 	i__1 = *n;
 	for (p = 1; p <= i__1; ++p) {
-	    dcopy_(n, &v[p + v_dim1], ldv, &a[iwork[p] + a_dim1], lda);
+	    _starpu_dcopy_(n, &v[p + v_dim1], ldv, &a[iwork[p] + a_dim1], lda);
 /* L8991: */
 	}
-	dlacpy_("All", n, n, &a[a_offset], lda, &v[v_offset], ldv);
+	_starpu_dlacpy_("All", n, n, &a[a_offset], lda, &v[v_offset], ldv);
 
 	if (transp) {
-	    dlacpy_("All", n, n, &v[v_offset], ldv, &u[u_offset], ldu);
+	    _starpu_dlacpy_("All", n, n, &v[v_offset], ldv, &u[u_offset], ldu);
 	}
 
     } else if (lsvec && ! rsvec) {
@@ -1344,69 +1344,69 @@ L3302:
 	i__1 = nr;
 	for (p = 1; p <= i__1; ++p) {
 	    i__2 = *n - p + 1;
-	    dcopy_(&i__2, &a[p + p * a_dim1], lda, &u[p + p * u_dim1], &c__1);
+	    _starpu_dcopy_(&i__2, &a[p + p * a_dim1], lda, &u[p + p * u_dim1], &c__1);
 /* L1965: */
 	}
 	i__1 = nr - 1;
 	i__2 = nr - 1;
-	dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 1], 
+	_starpu_dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 1], 
 		ldu);
 
 	i__1 = *lwork - (*n << 1);
-	dgeqrf_(n, &nr, &u[u_offset], ldu, &work[*n + 1], &work[(*n << 1) + 1]
+	_starpu_dgeqrf_(n, &nr, &u[u_offset], ldu, &work[*n + 1], &work[(*n << 1) + 1]
 , &i__1, &ierr);
 
 	i__1 = nr - 1;
 	for (p = 1; p <= i__1; ++p) {
 	    i__2 = nr - p;
-	    dcopy_(&i__2, &u[p + (p + 1) * u_dim1], ldu, &u[p + 1 + p * 
+	    _starpu_dcopy_(&i__2, &u[p + (p + 1) * u_dim1], ldu, &u[p + 1 + p * 
 		    u_dim1], &c__1);
 /* L1967: */
 	}
 	i__1 = nr - 1;
 	i__2 = nr - 1;
-	dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 1], 
+	_starpu_dlaset_("Upper", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 1], 
 		ldu);
 
 	i__1 = *lwork - *n;
-	dgesvj_("Lower", "U", "N", &nr, &nr, &u[u_offset], ldu, &sva[1], &nr, 
+	_starpu_dgesvj_("Lower", "U", "N", &nr, &nr, &u[u_offset], ldu, &sva[1], &nr, 
 		&a[a_offset], lda, &work[*n + 1], &i__1, info);
 	scalem = work[*n + 1];
 	numrank = i_dnnt(&work[*n + 2]);
 
 	if (nr < *m) {
 	    i__1 = *m - nr;
-	    dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &u[nr + 1 + u_dim1], ldu);
+	    _starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &u[nr + 1 + u_dim1], ldu);
 	    if (nr < n1) {
 		i__1 = n1 - nr;
-		dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &u[(nr + 1) * u_dim1 
+		_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &u[(nr + 1) * u_dim1 
 			+ 1], ldu);
 		i__1 = *m - nr;
 		i__2 = n1 - nr;
-		dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 + (nr + 
+		_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 + (nr + 
 			1) * u_dim1], ldu);
 	    }
 	}
 
 	i__1 = *lwork - *n;
-	dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[1], &u[
+	_starpu_dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[1], &u[
 		u_offset], ldu, &work[*n + 1], &i__1, &ierr);
 
 	if (rowpiv) {
 	    i__1 = *m - 1;
-	    dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n << 1) + 
+	    _starpu_dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n << 1) + 
 		    1], &c_n1);
 	}
 
 	i__1 = n1;
 	for (p = 1; p <= i__1; ++p) {
-	    xsc = 1. / dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
-	    dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
+	    xsc = 1. / _starpu_dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
+	    _starpu_dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
 /* L1974: */
 	}
 
 	if (transp) {
-	    dlacpy_("All", n, n, &u[u_offset], ldu, &v[v_offset], ldv);
+	    _starpu_dlacpy_("All", n, n, &u[u_offset], ldu, &v[v_offset], ldv);
 	}
 
     } else {
@@ -1427,7 +1427,7 @@ L3302:
 		i__1 = nr;
 		for (p = 1; p <= i__1; ++p) {
 		    i__2 = *n - p + 1;
-		    dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], 
+		    _starpu_dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], 
 			     &c__1);
 /* L1968: */
 		}
@@ -1466,7 +1466,7 @@ L3302:
 		} else {
 		    i__1 = nr - 1;
 		    i__2 = nr - 1;
-		    dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 
+		    _starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 
 			    1) + 1], ldv);
 		}
 
@@ -1474,20 +1474,20 @@ L3302:
 /*           (If R1 is rectangular, N > NR, then the condition number */
 /*           of the leading NR x NR submatrix is estimated.) */
 
-		dlacpy_("L", &nr, &nr, &v[v_offset], ldv, &work[(*n << 1) + 1]
+		_starpu_dlacpy_("L", &nr, &nr, &v[v_offset], ldv, &work[(*n << 1) + 1]
 , &nr);
 		i__1 = nr;
 		for (p = 1; p <= i__1; ++p) {
 		    i__2 = nr - p + 1;
-		    temp1 = dnrm2_(&i__2, &work[(*n << 1) + (p - 1) * nr + p], 
+		    temp1 = _starpu_dnrm2_(&i__2, &work[(*n << 1) + (p - 1) * nr + p], 
 			     &c__1);
 		    i__2 = nr - p + 1;
 		    d__1 = 1. / temp1;
-		    dscal_(&i__2, &d__1, &work[(*n << 1) + (p - 1) * nr + p], 
+		    _starpu_dscal_(&i__2, &d__1, &work[(*n << 1) + (p - 1) * nr + p], 
 			    &c__1);
 /* L3950: */
 		}
-		dpocon_("Lower", &nr, &work[(*n << 1) + 1], &nr, &c_b35, &
+		_starpu_dpocon_("Lower", &nr, &work[(*n << 1) + 1], &nr, &c_b35, &
 			temp1, &work[(*n << 1) + nr * nr + 1], &iwork[*m + (*
 			n << 1) + 1], &ierr);
 		condr1 = 1. / sqrt(temp1);
@@ -1504,7 +1504,7 @@ L3302:
 /*              of a lower triangular matrix. */
 /*              R1^t = Q2 * R2 */
 		    i__1 = *lwork - (*n << 1);
-		    dgeqrf_(n, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*
+		    _starpu_dgeqrf_(n, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*
 			    n << 1) + 1], &i__1, &ierr);
 
 		    if (l2pert) {
@@ -1530,7 +1530,7 @@ L3302:
 		    }
 
 		    if (nr != *n) {
-			dlacpy_("A", n, &nr, &v[v_offset], ldv, &work[(*n << 
+			_starpu_dlacpy_("A", n, &nr, &v[v_offset], ldv, &work[(*n << 
 				1) + 1], n);
 		    }
 /*              .. save ... */
@@ -1539,7 +1539,7 @@ L3302:
 		    i__1 = nr - 1;
 		    for (p = 1; p <= i__1; ++p) {
 			i__2 = nr - p;
-			dcopy_(&i__2, &v[p + (p + 1) * v_dim1], ldv, &v[p + 1 
+			_starpu_dcopy_(&i__2, &v[p + (p + 1) * v_dim1], ldv, &v[p + 1 
 				+ p * v_dim1], &c__1);
 /* L1969: */
 		    }
@@ -1562,7 +1562,7 @@ L3302:
 /* L3003: */
 		    }
 		    i__1 = *lwork - (*n << 1);
-		    dgeqp3_(n, &nr, &v[v_offset], ldv, &iwork[*n + 1], &work[*
+		    _starpu_dgeqp3_(n, &nr, &v[v_offset], ldv, &iwork[*n + 1], &work[*
 			    n + 1], &work[(*n << 1) + 1], &i__1, &ierr);
 /* *               CALL DGEQRF( N, NR, V, LDV, WORK(N+1), WORK(2*N+1), */
 /* *     &              LWORK-2*N, IERR ) */
@@ -1588,7 +1588,7 @@ L3302:
 			}
 		    }
 
-		    dlacpy_("A", n, &nr, &v[v_offset], ldv, &work[(*n << 1) + 
+		    _starpu_dlacpy_("A", n, &nr, &v[v_offset], ldv, &work[(*n << 1) + 
 			    1], n);
 
 		    if (l2pert) {
@@ -1611,27 +1611,27 @@ L3302:
 		    } else {
 			i__1 = nr - 1;
 			i__2 = nr - 1;
-			dlaset_("L", &i__1, &i__2, &c_b34, &c_b34, &v[v_dim1 
+			_starpu_dlaset_("L", &i__1, &i__2, &c_b34, &c_b34, &v[v_dim1 
 				+ 2], ldv);
 		    }
 /*              Now, compute R2 = L3 * Q3, the LQ factorization. */
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dgelqf_(&nr, &nr, &v[v_offset], ldv, &work[(*n << 1) + *n 
+		    _starpu_dgelqf_(&nr, &nr, &v[v_offset], ldv, &work[(*n << 1) + *n 
 			    * nr + 1], &work[(*n << 1) + *n * nr + nr + 1], &
 			    i__1, &ierr);
 /*              .. and estimate the condition number */
-		    dlacpy_("L", &nr, &nr, &v[v_offset], ldv, &work[(*n << 1) 
+		    _starpu_dlacpy_("L", &nr, &nr, &v[v_offset], ldv, &work[(*n << 1) 
 			    + *n * nr + nr + 1], &nr);
 		    i__1 = nr;
 		    for (p = 1; p <= i__1; ++p) {
-			temp1 = dnrm2_(&p, &work[(*n << 1) + *n * nr + nr + p]
+			temp1 = _starpu_dnrm2_(&p, &work[(*n << 1) + *n * nr + nr + p]
 , &nr);
 			d__1 = 1. / temp1;
-			dscal_(&p, &d__1, &work[(*n << 1) + *n * nr + nr + p], 
+			_starpu_dscal_(&p, &d__1, &work[(*n << 1) + *n * nr + nr + p], 
 				 &nr);
 /* L4950: */
 		    }
-		    dpocon_("L", &nr, &work[(*n << 1) + *n * nr + nr + 1], &
+		    _starpu_dpocon_("L", &nr, &work[(*n << 1) + *n * nr + nr + 1], &
 			    nr, &c_b35, &temp1, &work[(*n << 1) + *n * nr + 
 			    nr + nr * nr + 1], &iwork[*m + (*n << 1) + 1], &
 			    ierr);
@@ -1642,7 +1642,7 @@ L3302:
 /*                 (this overwrittes the copy of R2, as it will not be */
 /*                 needed in this branch, but it does not overwritte the */
 /*                 Huseholder vectors of Q2.). */
-			dlacpy_("U", &nr, &nr, &v[v_offset], ldv, &work[(*n <<
+			_starpu_dlacpy_("U", &nr, &nr, &v[v_offset], ldv, &work[(*n <<
 				 1) + 1], n);
 /*                 .. and the rest of the information on Q3 is in */
 /*                 WORK(2*N+N*NR+1:2*N+N*NR+N) */
@@ -1667,7 +1667,7 @@ L3302:
 		} else {
 		    i__1 = nr - 1;
 		    i__2 = nr - 1;
-		    dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 
+		    _starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 
 			    1) + 1], ldv);
 		}
 
@@ -1680,16 +1680,16 @@ L3302:
 		if (condr1 < cond_ok__) {
 
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dgesvj_("L", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[
+		    _starpu_dgesvj_("L", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[
 			    1], &nr, &u[u_offset], ldu, &work[(*n << 1) + *n *
 			     nr + nr + 1], &i__1, info);
 		    scalem = work[(*n << 1) + *n * nr + nr + 1];
 		    numrank = i_dnnt(&work[(*n << 1) + *n * nr + nr + 2]);
 		    i__1 = nr;
 		    for (p = 1; p <= i__1; ++p) {
-			dcopy_(&nr, &v[p * v_dim1 + 1], &c__1, &u[p * u_dim1 
+			_starpu_dcopy_(&nr, &v[p * v_dim1 + 1], &c__1, &u[p * u_dim1 
 				+ 1], &c__1);
-			dscal_(&nr, &sva[p], &v[p * v_dim1 + 1], &c__1);
+			_starpu_dscal_(&nr, &sva[p], &v[p * v_dim1 + 1], &c__1);
 /* L3970: */
 		    }
 /*        .. pick the right matrix equation and solve it */
@@ -1699,29 +1699,29 @@ L3302:
 /*                 equation is Q2*V2 = the product of the Jacobi rotations */
 /*                 used in DGESVJ, premultiplied with the orthogonal matrix */
 /*                 from the second QR factorization. */
-			dtrsm_("L", "U", "N", "N", &nr, &nr, &c_b35, &a[
+			_starpu_dtrsm_("L", "U", "N", "N", &nr, &nr, &c_b35, &a[
 				a_offset], lda, &v[v_offset], ldv);
 		    } else {
 /*                 .. R1 is well conditioned, but non-square. Transpose(R2) */
 /*                 is inverted to get the product of the Jacobi rotations */
 /*                 used in DGESVJ. The Q-factor from the second QR */
 /*                 factorization is then built in explicitly. */
-			dtrsm_("L", "U", "T", "N", &nr, &nr, &c_b35, &work[(*
+			_starpu_dtrsm_("L", "U", "T", "N", &nr, &nr, &c_b35, &work[(*
 				n << 1) + 1], n, &v[v_offset], ldv);
 			if (nr < *n) {
 			    i__1 = *n - nr;
-			    dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 
+			    _starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 
 				    1 + v_dim1], ldv);
 			    i__1 = *n - nr;
-			    dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 
+			    _starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 
 				    1) * v_dim1 + 1], ldv);
 			    i__1 = *n - nr;
 			    i__2 = *n - nr;
-			    dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr 
+			    _starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr 
 				    + 1 + (nr + 1) * v_dim1], ldv);
 			}
 			i__1 = *lwork - (*n << 1) - *n * nr - nr;
-			dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, 
+			_starpu_dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, 
 				&work[*n + 1], &v[v_offset], ldv, &work[(*n <<
 				 1) + *n * nr + nr + 1], &i__1, &ierr);
 		    }
@@ -1735,19 +1735,19 @@ L3302:
 /*              the lower triangular L3 from the LQ factorization of */
 /*              R2=L3*Q3), pre-multiplied with the transposed Q3. */
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dgesvj_("L", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[
+		    _starpu_dgesvj_("L", "U", "N", &nr, &nr, &v[v_offset], ldv, &sva[
 			    1], &nr, &u[u_offset], ldu, &work[(*n << 1) + *n *
 			     nr + nr + 1], &i__1, info);
 		    scalem = work[(*n << 1) + *n * nr + nr + 1];
 		    numrank = i_dnnt(&work[(*n << 1) + *n * nr + nr + 2]);
 		    i__1 = nr;
 		    for (p = 1; p <= i__1; ++p) {
-			dcopy_(&nr, &v[p * v_dim1 + 1], &c__1, &u[p * u_dim1 
+			_starpu_dcopy_(&nr, &v[p * v_dim1 + 1], &c__1, &u[p * u_dim1 
 				+ 1], &c__1);
-			dscal_(&nr, &sva[p], &u[p * u_dim1 + 1], &c__1);
+			_starpu_dscal_(&nr, &sva[p], &u[p * u_dim1 + 1], &c__1);
 /* L3870: */
 		    }
-		    dtrsm_("L", "U", "N", "N", &nr, &nr, &c_b35, &work[(*n << 
+		    _starpu_dtrsm_("L", "U", "N", "N", &nr, &nr, &c_b35, &work[(*n << 
 			    1) + 1], n, &u[u_offset], ldu);
 /*              .. apply the permutation from the second QR factorization */
 		    i__1 = nr;
@@ -1768,18 +1768,18 @@ L3302:
 		    }
 		    if (nr < *n) {
 			i__1 = *n - nr;
-			dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + 
+			_starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + 
 				v_dim1], ldv);
 			i__1 = *n - nr;
-			dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) *
+			_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) *
 				 v_dim1 + 1], ldv);
 			i__1 = *n - nr;
 			i__2 = *n - nr;
-			dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 
+			_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 
 				+ (nr + 1) * v_dim1], ldv);
 		    }
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &
+		    _starpu_dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &
 			    work[*n + 1], &v[v_offset], ldv, &work[(*n << 1) 
 			    + *n * nr + nr + 1], &i__1, &ierr);
 		} else {
@@ -1795,30 +1795,30 @@ L3302:
 /*              Compute the full SVD of L3 using DGESVJ with explicit */
 /*              accumulation of Jacobi rotations. */
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dgesvj_("L", "U", "V", &nr, &nr, &v[v_offset], ldv, &sva[
+		    _starpu_dgesvj_("L", "U", "V", &nr, &nr, &v[v_offset], ldv, &sva[
 			    1], &nr, &u[u_offset], ldu, &work[(*n << 1) + *n *
 			     nr + nr + 1], &i__1, info);
 		    scalem = work[(*n << 1) + *n * nr + nr + 1];
 		    numrank = i_dnnt(&work[(*n << 1) + *n * nr + nr + 2]);
 		    if (nr < *n) {
 			i__1 = *n - nr;
-			dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + 
+			_starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + 
 				v_dim1], ldv);
 			i__1 = *n - nr;
-			dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) *
+			_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) *
 				 v_dim1 + 1], ldv);
 			i__1 = *n - nr;
 			i__2 = *n - nr;
-			dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 
+			_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 
 				+ (nr + 1) * v_dim1], ldv);
 		    }
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &
+		    _starpu_dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &
 			    work[*n + 1], &v[v_offset], ldv, &work[(*n << 1) 
 			    + *n * nr + nr + 1], &i__1, &ierr);
 
 		    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-		    dormlq_("L", "T", &nr, &nr, &nr, &work[(*n << 1) + 1], n, 
+		    _starpu_dormlq_("L", "T", &nr, &nr, &nr, &work[(*n << 1) + 1], n, 
 			    &work[(*n << 1) + *n * nr + 1], &u[u_offset], ldu, 
 			     &work[(*n << 1) + *n * nr + nr + 1], &i__1, &
 			    ierr);
@@ -1860,9 +1860,9 @@ L3302:
 				;
 /* L973: */
 		    }
-		    xsc = 1. / dnrm2_(n, &v[q * v_dim1 + 1], &c__1);
+		    xsc = 1. / _starpu_dnrm2_(n, &v[q * v_dim1 + 1], &c__1);
 		    if (xsc < 1. - temp1 || xsc > temp1 + 1.) {
-			dscal_(n, &xsc, &v[q * v_dim1 + 1], &c__1);
+			_starpu_dscal_(n, &xsc, &v[q * v_dim1 + 1], &c__1);
 		    }
 /* L1972: */
 		}
@@ -1870,15 +1870,15 @@ L3302:
 /*           Next, assemble the left singular vector matrix U (M x N). */
 		if (nr < *m) {
 		    i__1 = *m - nr;
-		    dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &u[nr + 1 + 
+		    _starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &u[nr + 1 + 
 			    u_dim1], ldu);
 		    if (nr < n1) {
 			i__1 = n1 - nr;
-			dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &u[(nr + 1) *
+			_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &u[(nr + 1) *
 				 u_dim1 + 1], ldu);
 			i__1 = *m - nr;
 			i__2 = n1 - nr;
-			dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 
+			_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 
 				+ (nr + 1) * u_dim1], ldu);
 		    }
 		}
@@ -1887,15 +1887,15 @@ L3302:
 /*           matrix U. This applies to all cases. */
 
 		i__1 = *lwork - *n;
-		dormqr_("Left", "No_Tr", m, &n1, n, &a[a_offset], lda, &work[
+		_starpu_dormqr_("Left", "No_Tr", m, &n1, n, &a[a_offset], lda, &work[
 			1], &u[u_offset], ldu, &work[*n + 1], &i__1, &ierr);
 /*           The columns of U are normalized. The cost is O(M*N) flops. */
 		temp1 = sqrt((doublereal) (*m)) * epsln;
 		i__1 = nr;
 		for (p = 1; p <= i__1; ++p) {
-		    xsc = 1. / dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
+		    xsc = 1. / _starpu_dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
 		    if (xsc < 1. - temp1 || xsc > temp1 + 1.) {
-			dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
+			_starpu_dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
 		    }
 /* L1973: */
 		}
@@ -1905,7 +1905,7 @@ L3302:
 
 		if (rowpiv) {
 		    i__1 = *m - 1;
-		    dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n 
+		    _starpu_dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n 
 			    << 1) + 1], &c_n1);
 		}
 
@@ -1914,7 +1914,7 @@ L3302:
 /*        .. the initial matrix A has almost orthogonal columns and */
 /*        the second QRF is not needed */
 
-		dlacpy_("Upper", n, n, &a[a_offset], lda, &work[*n + 1], n);
+		_starpu_dlacpy_("Upper", n, n, &a[a_offset], lda, &work[*n + 1], n);
 		if (l2pert) {
 		    xsc = sqrt(small);
 		    i__1 = *n;
@@ -1931,12 +1931,12 @@ L3302:
 		} else {
 		    i__1 = *n - 1;
 		    i__2 = *n - 1;
-		    dlaset_("Lower", &i__1, &i__2, &c_b34, &c_b34, &work[*n + 
+		    _starpu_dlaset_("Lower", &i__1, &i__2, &c_b34, &c_b34, &work[*n + 
 			    2], n);
 		}
 
 		i__1 = *lwork - *n - *n * *n;
-		dgesvj_("Upper", "U", "N", n, n, &work[*n + 1], n, &sva[1], n, 
+		_starpu_dgesvj_("Upper", "U", "N", n, n, &work[*n + 1], n, &sva[1], n, 
 			 &u[u_offset], ldu, &work[*n + *n * *n + 1], &i__1, 
 			info);
 
@@ -1944,25 +1944,25 @@ L3302:
 		numrank = i_dnnt(&work[*n + *n * *n + 2]);
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
-		    dcopy_(n, &work[*n + (p - 1) * *n + 1], &c__1, &u[p * 
+		    _starpu_dcopy_(n, &work[*n + (p - 1) * *n + 1], &c__1, &u[p * 
 			    u_dim1 + 1], &c__1);
-		    dscal_(n, &sva[p], &work[*n + (p - 1) * *n + 1], &c__1);
+		    _starpu_dscal_(n, &sva[p], &work[*n + (p - 1) * *n + 1], &c__1);
 /* L6970: */
 		}
 
-		dtrsm_("Left", "Upper", "NoTrans", "No UD", n, n, &c_b35, &a[
+		_starpu_dtrsm_("Left", "Upper", "NoTrans", "No UD", n, n, &c_b35, &a[
 			a_offset], lda, &work[*n + 1], n);
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
-		    dcopy_(n, &work[*n + p], n, &v[iwork[p] + v_dim1], ldv);
+		    _starpu_dcopy_(n, &work[*n + p], n, &v[iwork[p] + v_dim1], ldv);
 /* L6972: */
 		}
 		temp1 = sqrt((doublereal) (*n)) * epsln;
 		i__1 = *n;
 		for (p = 1; p <= i__1; ++p) {
-		    xsc = 1. / dnrm2_(n, &v[p * v_dim1 + 1], &c__1);
+		    xsc = 1. / _starpu_dnrm2_(n, &v[p * v_dim1 + 1], &c__1);
 		    if (xsc < 1. - temp1 || xsc > temp1 + 1.) {
-			dscal_(n, &xsc, &v[p * v_dim1 + 1], &c__1);
+			_starpu_dscal_(n, &xsc, &v[p * v_dim1 + 1], &c__1);
 		    }
 /* L6971: */
 		}
@@ -1971,34 +1971,34 @@ L3302:
 
 		if (*n < *m) {
 		    i__1 = *m - *n;
-		    dlaset_("A", &i__1, n, &c_b34, &c_b34, &u[nr + 1 + u_dim1]
+		    _starpu_dlaset_("A", &i__1, n, &c_b34, &c_b34, &u[nr + 1 + u_dim1]
 , ldu);
 		    if (*n < n1) {
 			i__1 = n1 - *n;
-			dlaset_("A", n, &i__1, &c_b34, &c_b34, &u[(*n + 1) * 
+			_starpu_dlaset_("A", n, &i__1, &c_b34, &c_b34, &u[(*n + 1) * 
 				u_dim1 + 1], ldu);
 			i__1 = *m - *n;
 			i__2 = n1 - *n;
-			dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 
+			_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 
 				+ (*n + 1) * u_dim1], ldu);
 		    }
 		}
 		i__1 = *lwork - *n;
-		dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[
+		_starpu_dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[
 			1], &u[u_offset], ldu, &work[*n + 1], &i__1, &ierr);
 		temp1 = sqrt((doublereal) (*m)) * epsln;
 		i__1 = n1;
 		for (p = 1; p <= i__1; ++p) {
-		    xsc = 1. / dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
+		    xsc = 1. / _starpu_dnrm2_(m, &u[p * u_dim1 + 1], &c__1);
 		    if (xsc < 1. - temp1 || xsc > temp1 + 1.) {
-			dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
+			_starpu_dscal_(m, &xsc, &u[p * u_dim1 + 1], &c__1);
 		    }
 /* L6973: */
 		}
 
 		if (rowpiv) {
 		    i__1 = *m - 1;
-		    dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n 
+		    _starpu_dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n 
 			    << 1) + 1], &c_n1);
 		}
 
@@ -2021,7 +2021,7 @@ L3302:
 	    i__1 = nr;
 	    for (p = 1; p <= i__1; ++p) {
 		i__2 = *n - p + 1;
-		dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], &
+		_starpu_dcopy_(&i__2, &a[p + p * a_dim1], lda, &v[p + p * v_dim1], &
 			c__1);
 /* L7968: */
 	    }
@@ -2048,18 +2048,18 @@ L3302:
 	    } else {
 		i__1 = nr - 1;
 		i__2 = nr - 1;
-		dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
+		_starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &v[(v_dim1 << 1) + 
 			1], ldv);
 	    }
 	    i__1 = *lwork - (*n << 1);
-	    dgeqrf_(n, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*n << 1) 
+	    _starpu_dgeqrf_(n, &nr, &v[v_offset], ldv, &work[*n + 1], &work[(*n << 1) 
 		    + 1], &i__1, &ierr);
-	    dlacpy_("L", n, &nr, &v[v_offset], ldv, &work[(*n << 1) + 1], n);
+	    _starpu_dlacpy_("L", n, &nr, &v[v_offset], ldv, &work[(*n << 1) + 1], n);
 
 	    i__1 = nr;
 	    for (p = 1; p <= i__1; ++p) {
 		i__2 = nr - p + 1;
-		dcopy_(&i__2, &v[p + p * v_dim1], ldv, &u[p + p * u_dim1], &
+		_starpu_dcopy_(&i__2, &v[p + p * v_dim1], ldv, &u[p + p * u_dim1], &
 			c__1);
 /* L7969: */
 	    }
@@ -2082,29 +2082,29 @@ L3302:
 	    } else {
 		i__1 = nr - 1;
 		i__2 = nr - 1;
-		dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 
+		_starpu_dlaset_("U", &i__1, &i__2, &c_b34, &c_b34, &u[(u_dim1 << 1) + 
 			1], ldu);
 	    }
 	    i__1 = *lwork - (*n << 1) - *n * nr;
-	    dgesvj_("G", "U", "V", &nr, &nr, &u[u_offset], ldu, &sva[1], n, &
+	    _starpu_dgesvj_("G", "U", "V", &nr, &nr, &u[u_offset], ldu, &sva[1], n, &
 		    v[v_offset], ldv, &work[(*n << 1) + *n * nr + 1], &i__1, 
 		    info);
 	    scalem = work[(*n << 1) + *n * nr + 1];
 	    numrank = i_dnnt(&work[(*n << 1) + *n * nr + 2]);
 	    if (nr < *n) {
 		i__1 = *n - nr;
-		dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + v_dim1], 
+		_starpu_dlaset_("A", &i__1, &nr, &c_b34, &c_b34, &v[nr + 1 + v_dim1], 
 			ldv);
 		i__1 = *n - nr;
-		dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) * v_dim1 
+		_starpu_dlaset_("A", &nr, &i__1, &c_b34, &c_b34, &v[(nr + 1) * v_dim1 
 			+ 1], ldv);
 		i__1 = *n - nr;
 		i__2 = *n - nr;
-		dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 + (nr + 
+		_starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &v[nr + 1 + (nr + 
 			1) * v_dim1], ldv);
 	    }
 	    i__1 = *lwork - (*n << 1) - *n * nr - nr;
-	    dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &work[*n + 
+	    _starpu_dormqr_("L", "N", n, n, &nr, &work[(*n << 1) + 1], n, &work[*n + 
 		    1], &v[v_offset], ldv, &work[(*n << 1) + *n * nr + nr + 1]
 , &i__1, &ierr);
 
@@ -2126,9 +2126,9 @@ L3302:
 		    v[p + q * v_dim1] = work[(*n << 1) + *n * nr + nr + p];
 /* L8973: */
 		}
-		xsc = 1. / dnrm2_(n, &v[q * v_dim1 + 1], &c__1);
+		xsc = 1. / _starpu_dnrm2_(n, &v[q * v_dim1 + 1], &c__1);
 		if (xsc < 1. - temp1 || xsc > temp1 + 1.) {
-		    dscal_(n, &xsc, &v[q * v_dim1 + 1], &c__1);
+		    _starpu_dscal_(n, &xsc, &v[q * v_dim1 + 1], &c__1);
 		}
 /* L7972: */
 	    }
@@ -2138,26 +2138,26 @@ L3302:
 
 	    if (*n < *m) {
 		i__1 = *m - *n;
-		dlaset_("A", &i__1, n, &c_b34, &c_b34, &u[nr + 1 + u_dim1], 
+		_starpu_dlaset_("A", &i__1, n, &c_b34, &c_b34, &u[nr + 1 + u_dim1], 
 			ldu);
 		if (*n < n1) {
 		    i__1 = n1 - *n;
-		    dlaset_("A", n, &i__1, &c_b34, &c_b34, &u[(*n + 1) * 
+		    _starpu_dlaset_("A", n, &i__1, &c_b34, &c_b34, &u[(*n + 1) * 
 			    u_dim1 + 1], ldu);
 		    i__1 = *m - *n;
 		    i__2 = n1 - *n;
-		    dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 + (*
+		    _starpu_dlaset_("A", &i__1, &i__2, &c_b34, &c_b35, &u[nr + 1 + (*
 			    n + 1) * u_dim1], ldu);
 		}
 	    }
 
 	    i__1 = *lwork - *n;
-	    dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[1], &
+	    _starpu_dormqr_("Left", "No Tr", m, &n1, n, &a[a_offset], lda, &work[1], &
 		    u[u_offset], ldu, &work[*n + 1], &i__1, &ierr);
 
 	    if (rowpiv) {
 		i__1 = *m - 1;
-		dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n << 1)
+		_starpu_dlaswp_(&n1, &u[u_offset], ldu, &c__1, &i__1, &iwork[(*n << 1)
 			 + 1], &c_n1);
 	    }
 
@@ -2167,7 +2167,7 @@ L3302:
 /*           .. swap U and V because the procedure worked on A^t */
 	    i__1 = *n;
 	    for (p = 1; p <= i__1; ++p) {
-		dswap_(n, &u[p * u_dim1 + 1], &c__1, &v[p * v_dim1 + 1], &
+		_starpu_dswap_(n, &u[p * u_dim1 + 1], &c__1, &v[p * v_dim1 + 1], &
 			c__1);
 /* L6974: */
 	    }
@@ -2179,7 +2179,7 @@ L3302:
 /*     Undo scaling, if necessary (and possible) */
 
     if (uscal2 <= big / sva[1] * uscal1) {
-	dlascl_("G", &c__0, &c__0, &uscal1, &uscal2, &nr, &c__1, &sva[1], n, &
+	_starpu_dlascl_("G", &c__0, &c__0, &uscal1, &uscal2, &nr, &c__1, &sva[1], n, &
 		ierr);
 	uscal1 = 1.;
 	uscal2 = 1.;
@@ -2215,4 +2215,4 @@ L3302:
 /*     .. */
 /*     .. END OF DGEJSV */
 /*     .. */
-} /* dgejsv_ */
+} /* _starpu_dgejsv_ */

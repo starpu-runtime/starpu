@@ -18,7 +18,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int xerbla_(char *srname, integer *info)
+/* Subroutine */ int _starpu_xerbla_(char *srname, integer *info)
 {
     /* Format strings */
     static char fmt_9999[] = "(\002 ** On entry to \002,a,\002 parameter num"
@@ -74,4 +74,4 @@ static integer c__1 = 1;
 /*     End of XERBLA */
 
     return 0;
-} /* xerbla_ */
+} /* _starpu_xerbla_ */

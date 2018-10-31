@@ -21,7 +21,7 @@ static integer c__1 = 1;
 static integer c__0 = 0;
 static integer c__2 = 2;
 
-/* Subroutine */ int dgesvj_(char *joba, char *jobu, char *jobv, integer *m, 
+/* Subroutine */ int _starpu_dgesvj_(char *joba, char *jobu, char *jobv, integer *m, 
 	integer *n, doublereal *a, integer *lda, doublereal *sva, integer *mv, 
 	 doublereal *v, integer *ldv, doublereal *work, integer *lwork, 
 	integer *info)
@@ -47,50 +47,50 @@ static integer c__2 = 2;
     doublereal tol;
     integer mvl;
     doublereal aapp, aapq, aaqq;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal ctol;
     integer ierr;
     doublereal aapp0;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal temp1;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal scale, large, apoaq, aqoap;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal theta, small, sfmin;
     logical lsvec;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     doublereal fastr[5];
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical applv, rsvec;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     logical uctol;
-    extern /* Subroutine */ int drotm_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drotm_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *);
     logical lower, upper, rotok;
-    extern /* Subroutine */ int dgsvj0_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgsvj0_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), dgsvj1_(
+	     integer *, doublereal *, integer *, integer *), _starpu_dgsvj1_(
 	    char *, integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     integer *, integer *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     integer ijblsk, swband, blskip;
     doublereal mxaapq;
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
     doublereal thsign, mxsinj;
     integer emptsw, notrot, iswrot, lkahead;
@@ -391,19 +391,19 @@ static integer c__2 = 2;
     --work;
 
     /* Function Body */
-    lsvec = lsame_(jobu, "U");
-    uctol = lsame_(jobu, "C");
-    rsvec = lsame_(jobv, "V");
-    applv = lsame_(jobv, "A");
-    upper = lsame_(joba, "U");
-    lower = lsame_(joba, "L");
+    lsvec = _starpu_lsame_(jobu, "U");
+    uctol = _starpu_lsame_(jobu, "C");
+    rsvec = _starpu_lsame_(jobv, "V");
+    applv = _starpu_lsame_(jobv, "A");
+    upper = _starpu_lsame_(joba, "U");
+    lower = _starpu_lsame_(joba, "L");
 
-    if (! (upper || lower || lsame_(joba, "G"))) {
+    if (! (upper || lower || _starpu_lsame_(joba, "G"))) {
 	*info = -1;
-    } else if (! (lsvec || uctol || lsame_(jobu, "N"))) 
+    } else if (! (lsvec || uctol || _starpu_lsame_(jobu, "N"))) 
 	    {
 	*info = -2;
-    } else if (! (rsvec || applv || lsame_(jobv, "N"))) 
+    } else if (! (rsvec || applv || _starpu_lsame_(jobv, "N"))) 
 	    {
 	*info = -3;
     } else if (*m < 0) {
@@ -431,7 +431,7 @@ static integer c__2 = 2;
 /*     #:( */
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGESVJ", &i__1);
+	_starpu_xerbla_("DGESVJ", &i__1);
 	return 0;
     }
 
@@ -462,12 +462,12 @@ static integer c__2 = 2;
 /*     ... and the machine dependent parameters are */
 /* [!]  (Make sure that DLAMCH() works properly on the target machine.) */
 
-    epsilon = dlamch_("Epsilon");
+    epsilon = _starpu_dlamch_("Epsilon");
     rooteps = sqrt(epsilon);
-    sfmin = dlamch_("SafeMinimum");
+    sfmin = _starpu_dlamch_("SafeMinimum");
     rootsfmin = sqrt(sfmin);
     small = sfmin / epsilon;
-    big = dlamch_("Overflow");
+    big = _starpu_dlamch_("Overflow");
 /*     BIG         = ONE    / SFMIN */
     rootbig = 1. / rootsfmin;
     large = big / sqrt((doublereal) (*m * *n));
@@ -479,7 +479,7 @@ static integer c__2 = 2;
     if ((doublereal) (*m) * epsilon >= 1.) {
 	*info = -5;
 	i__1 = -(*info);
-	xerbla_("DGESVJ", &i__1);
+	_starpu_xerbla_("DGESVJ", &i__1);
 	return 0;
     }
 
@@ -487,7 +487,7 @@ static integer c__2 = 2;
 
     if (rsvec) {
 	mvl = *n;
-	dlaset_("A", &mvl, n, &c_b17, &c_b18, &v[v_offset], ldv);
+	_starpu_dlaset_("A", &mvl, n, &c_b17, &c_b18, &v[v_offset], ldv);
     } else if (applv) {
 	mvl = *mv;
     }
@@ -513,11 +513,11 @@ static integer c__2 = 2;
 	    aapp = 0.;
 	    aaqq = 0.;
 	    i__2 = *m - p + 1;
-	    dlassq_(&i__2, &a[p + p * a_dim1], &c__1, &aapp, &aaqq);
+	    _starpu_dlassq_(&i__2, &a[p + p * a_dim1], &c__1, &aapp, &aaqq);
 	    if (aapp > big) {
 		*info = -6;
 		i__2 = -(*info);
-		xerbla_("DGESVJ", &i__2);
+		_starpu_xerbla_("DGESVJ", &i__2);
 		return 0;
 	    }
 	    aaqq = sqrt(aaqq);
@@ -543,11 +543,11 @@ static integer c__2 = 2;
 	for (p = 1; p <= i__1; ++p) {
 	    aapp = 0.;
 	    aaqq = 0.;
-	    dlassq_(&p, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
+	    _starpu_dlassq_(&p, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
 	    if (aapp > big) {
 		*info = -6;
 		i__2 = -(*info);
-		xerbla_("DGESVJ", &i__2);
+		_starpu_xerbla_("DGESVJ", &i__2);
 		return 0;
 	    }
 	    aaqq = sqrt(aaqq);
@@ -573,11 +573,11 @@ static integer c__2 = 2;
 	for (p = 1; p <= i__1; ++p) {
 	    aapp = 0.;
 	    aaqq = 0.;
-	    dlassq_(m, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
+	    _starpu_dlassq_(m, &a[p * a_dim1 + 1], &c__1, &aapp, &aaqq);
 	    if (aapp > big) {
 		*info = -6;
 		i__2 = -(*info);
-		xerbla_("DGESVJ", &i__2);
+		_starpu_xerbla_("DGESVJ", &i__2);
 		return 0;
 	    }
 	    aaqq = sqrt(aaqq);
@@ -626,7 +626,7 @@ static integer c__2 = 2;
 
     if (aapp == 0.) {
 	if (lsvec) {
-	    dlaset_("G", m, n, &c_b17, &c_b18, &a[a_offset], lda);
+	    _starpu_dlaset_("G", m, n, &c_b17, &c_b18, &a[a_offset], lda);
 	}
 	work[1] = 1.;
 	work[2] = 0.;
@@ -641,7 +641,7 @@ static integer c__2 = 2;
 
     if (*n == 1) {
 	if (lsvec) {
-	    dlascl_("G", &c__0, &c__0, &sva[1], &scale, m, &c__1, &a[a_dim1 + 
+	    _starpu_dlascl_("G", &c__0, &c__0, &sva[1], &scale, m, &c__1, &a[a_dim1 + 
 		    1], lda, &ierr);
 	}
 	work[1] = 1. / scale;
@@ -693,12 +693,12 @@ static integer c__2 = 2;
 /*     Scale, if necessary */
 
     if (temp1 != 1.) {
-	dlascl_("G", &c__0, &c__0, &c_b18, &temp1, n, &c__1, &sva[1], n, &
+	_starpu_dlascl_("G", &c__0, &c__0, &c_b18, &temp1, n, &c__1, &sva[1], n, &
 		ierr);
     }
     scale = temp1 * scale;
     if (scale != 1.) {
-	dlascl_(joba, &c__0, &c__0, &c_b18, &scale, m, n, &a[a_offset], lda, &
+	_starpu_dlascl_(joba, &c__0, &c__0, &c_b18, &scale, m, n, &a[a_offset], lda, &
 		ierr);
 	scale = 1. / scale;
     }
@@ -782,7 +782,7 @@ static integer c__2 = 2;
 	    i__1 = *m - n34;
 	    i__2 = *n - n34;
 	    i__3 = *lwork - *n;
-	    dgsvj0_(jobv, &i__1, &i__2, &a[n34 + 1 + (n34 + 1) * a_dim1], lda, 
+	    _starpu_dgsvj0_(jobv, &i__1, &i__2, &a[n34 + 1 + (n34 + 1) * a_dim1], lda, 
 		     &work[n34 + 1], &sva[n34 + 1], &mvl, &v[n34 * q + 1 + (
 		    n34 + 1) * v_dim1], ldv, &epsilon, &sfmin, &tol, &c__2, &
 		    work[*n + 1], &i__3, &ierr);
@@ -790,7 +790,7 @@ static integer c__2 = 2;
 	    i__1 = *m - n2;
 	    i__2 = n34 - n2;
 	    i__3 = *lwork - *n;
-	    dgsvj0_(jobv, &i__1, &i__2, &a[n2 + 1 + (n2 + 1) * a_dim1], lda, &
+	    _starpu_dgsvj0_(jobv, &i__1, &i__2, &a[n2 + 1 + (n2 + 1) * a_dim1], lda, &
 		    work[n2 + 1], &sva[n2 + 1], &mvl, &v[n2 * q + 1 + (n2 + 1)
 		     * v_dim1], ldv, &epsilon, &sfmin, &tol, &c__2, &work[*n 
 		    + 1], &i__3, &ierr);
@@ -798,7 +798,7 @@ static integer c__2 = 2;
 	    i__1 = *m - n2;
 	    i__2 = *n - n2;
 	    i__3 = *lwork - *n;
-	    dgsvj1_(jobv, &i__1, &i__2, &n4, &a[n2 + 1 + (n2 + 1) * a_dim1], 
+	    _starpu_dgsvj1_(jobv, &i__1, &i__2, &n4, &a[n2 + 1 + (n2 + 1) * a_dim1], 
 		    lda, &work[n2 + 1], &sva[n2 + 1], &mvl, &v[n2 * q + 1 + (
 		    n2 + 1) * v_dim1], ldv, &epsilon, &sfmin, &tol, &c__1, &
 		    work[*n + 1], &i__3, &ierr);
@@ -806,18 +806,18 @@ static integer c__2 = 2;
 	    i__1 = *m - n4;
 	    i__2 = n2 - n4;
 	    i__3 = *lwork - *n;
-	    dgsvj0_(jobv, &i__1, &i__2, &a[n4 + 1 + (n4 + 1) * a_dim1], lda, &
+	    _starpu_dgsvj0_(jobv, &i__1, &i__2, &a[n4 + 1 + (n4 + 1) * a_dim1], lda, &
 		    work[n4 + 1], &sva[n4 + 1], &mvl, &v[n4 * q + 1 + (n4 + 1)
 		     * v_dim1], ldv, &epsilon, &sfmin, &tol, &c__1, &work[*n 
 		    + 1], &i__3, &ierr);
 
 	    i__1 = *lwork - *n;
-	    dgsvj0_(jobv, m, &n4, &a[a_offset], lda, &work[1], &sva[1], &mvl, 
+	    _starpu_dgsvj0_(jobv, m, &n4, &a[a_offset], lda, &work[1], &sva[1], &mvl, 
 		    &v[v_offset], ldv, &epsilon, &sfmin, &tol, &c__1, &work[*
 		    n + 1], &i__1, &ierr);
 
 	    i__1 = *lwork - *n;
-	    dgsvj1_(jobv, m, &n2, &n4, &a[a_offset], lda, &work[1], &sva[1], &
+	    _starpu_dgsvj1_(jobv, m, &n2, &n4, &a[a_offset], lda, &work[1], &sva[1], &
 		    mvl, &v[v_offset], ldv, &epsilon, &sfmin, &tol, &c__1, &
 		    work[*n + 1], &i__1, &ierr);
 
@@ -826,24 +826,24 @@ static integer c__2 = 2;
 
 
 	    i__1 = *lwork - *n;
-	    dgsvj0_(jobv, &n4, &n4, &a[a_offset], lda, &work[1], &sva[1], &
+	    _starpu_dgsvj0_(jobv, &n4, &n4, &a[a_offset], lda, &work[1], &sva[1], &
 		    mvl, &v[v_offset], ldv, &epsilon, &sfmin, &tol, &c__2, &
 		    work[*n + 1], &i__1, &ierr);
 
 	    i__1 = *lwork - *n;
-	    dgsvj0_(jobv, &n2, &n4, &a[(n4 + 1) * a_dim1 + 1], lda, &work[n4 
+	    _starpu_dgsvj0_(jobv, &n2, &n4, &a[(n4 + 1) * a_dim1 + 1], lda, &work[n4 
 		    + 1], &sva[n4 + 1], &mvl, &v[n4 * q + 1 + (n4 + 1) * 
 		    v_dim1], ldv, &epsilon, &sfmin, &tol, &c__1, &work[*n + 1]
 , &i__1, &ierr);
 
 	    i__1 = *lwork - *n;
-	    dgsvj1_(jobv, &n2, &n2, &n4, &a[a_offset], lda, &work[1], &sva[1], 
+	    _starpu_dgsvj1_(jobv, &n2, &n2, &n4, &a[a_offset], lda, &work[1], &sva[1], 
 		     &mvl, &v[v_offset], ldv, &epsilon, &sfmin, &tol, &c__1, &
 		    work[*n + 1], &i__1, &ierr);
 
 	    i__1 = n2 + n4;
 	    i__2 = *lwork - *n;
-	    dgsvj0_(jobv, &i__1, &n4, &a[(n2 + 1) * a_dim1 + 1], lda, &work[
+	    _starpu_dgsvj0_(jobv, &i__1, &n4, &a[(n2 + 1) * a_dim1 + 1], lda, &work[
 		    n2 + 1], &sva[n2 + 1], &mvl, &v[n2 * q + 1 + (n2 + 1) * 
 		    v_dim1], ldv, &epsilon, &sfmin, &tol, &c__1, &work[*n + 1]
 , &i__2, &ierr);
@@ -889,12 +889,12 @@ static integer c__2 = 2;
 /*     .. de Rijk's pivoting */
 
 		    i__4 = *n - p + 1;
-		    q = idamax_(&i__4, &sva[p], &c__1) + p - 1;
+		    q = _starpu_idamax_(&i__4, &sva[p], &c__1) + p - 1;
 		    if (p != q) {
-			dswap_(m, &a[p * a_dim1 + 1], &c__1, &a[q * a_dim1 + 
+			_starpu_dswap_(m, &a[p * a_dim1 + 1], &c__1, &a[q * a_dim1 + 
 				1], &c__1);
 			if (rsvec) {
-			    dswap_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
+			    _starpu_dswap_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
 				    v_dim1 + 1], &c__1);
 			}
 			temp1 = sva[p];
@@ -920,12 +920,12 @@ static integer c__2 = 2;
 /*        below should read "AAPP = DNRM2( M, A(1,p), 1 ) * WORK(p)". */
 
 			if (sva[p] < rootbig && sva[p] > rootsfmin) {
-			    sva[p] = dnrm2_(m, &a[p * a_dim1 + 1], &c__1) * 
+			    sva[p] = _starpu_dnrm2_(m, &a[p * a_dim1 + 1], &c__1) * 
 				    work[p];
 			} else {
 			    temp1 = 0.;
 			    aapp = 0.;
-			    dlassq_(m, &a[p * a_dim1 + 1], &c__1, &temp1, &
+			    _starpu_dlassq_(m, &a[p * a_dim1 + 1], &c__1, &temp1, &
 				    aapp);
 			    sva[p] = temp1 * sqrt(aapp) * work[p];
 			}
@@ -951,34 +951,34 @@ static integer c__2 = 2;
 				if (aaqq >= 1.) {
 				    rotok = small * aapp <= aaqq;
 				    if (aapp < big / aaqq) {
-					aapq = ddot_(m, &a[p * a_dim1 + 1], &
+					aapq = _starpu_ddot_(m, &a[p * a_dim1 + 1], &
 						c__1, &a[q * a_dim1 + 1], &
 						c__1) * work[p] * work[q] / 
 						aaqq / aapp;
 				    } else {
-					dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
+					_starpu_dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
 						work[*n + 1], &c__1);
-					dlascl_("G", &c__0, &c__0, &aapp, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aapp, &
 						work[p], m, &c__1, &work[*n + 
 						1], lda, &ierr);
-					aapq = ddot_(m, &work[*n + 1], &c__1, 
+					aapq = _starpu_ddot_(m, &work[*n + 1], &c__1, 
 						&a[q * a_dim1 + 1], &c__1) * 
 						work[q] / aaqq;
 				    }
 				} else {
 				    rotok = aapp <= aaqq / small;
 				    if (aapp > small / aaqq) {
-					aapq = ddot_(m, &a[p * a_dim1 + 1], &
+					aapq = _starpu_ddot_(m, &a[p * a_dim1 + 1], &
 						c__1, &a[q * a_dim1 + 1], &
 						c__1) * work[p] * work[q] / 
 						aaqq / aapp;
 				    } else {
-					dcopy_(m, &a[q * a_dim1 + 1], &c__1, &
+					_starpu_dcopy_(m, &a[q * a_dim1 + 1], &c__1, &
 						work[*n + 1], &c__1);
-					dlascl_("G", &c__0, &c__0, &aaqq, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aaqq, &
 						work[q], m, &c__1, &work[*n + 
 						1], lda, &ierr);
-					aapq = ddot_(m, &work[*n + 1], &c__1, 
+					aapq = _starpu_ddot_(m, &work[*n + 1], &c__1, 
 						&a[p * a_dim1 + 1], &c__1) * 
 						work[p] / aapp;
 				    }
@@ -1013,11 +1013,11 @@ static integer c__2 = 2;
 					    t = .5 / theta;
 					    fastr[2] = t * work[p] / work[q];
 					    fastr[3] = -t * work[q] / work[p];
-					    drotm_(m, &a[p * a_dim1 + 1], &
+					    _starpu_drotm_(m, &a[p * a_dim1 + 1], &
 						    c__1, &a[q * a_dim1 + 1], 
 						    &c__1, fastr);
 					    if (rsvec) {
-			  drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
+			  _starpu_drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
 				  v_dim1 + 1], &c__1, fastr);
 					    }
 /* Computing MAX */
@@ -1062,84 +1062,84 @@ static integer c__2 = 2;
 			      fastr[3] = -t * aqoap;
 			      work[p] *= cs;
 			      work[q] *= cs;
-			      drotm_(m, &a[p * a_dim1 + 1], &c__1, &a[q * 
+			      _starpu_drotm_(m, &a[p * a_dim1 + 1], &c__1, &a[q * 
 				      a_dim1 + 1], &c__1, fastr);
 			      if (rsvec) {
-				  drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[
+				  _starpu_drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[
 					  q * v_dim1 + 1], &c__1, fastr);
 			      }
 			  } else {
 			      d__1 = -t * aqoap;
-			      daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
 				      p * a_dim1 + 1], &c__1);
 			      d__1 = cs * sn * apoaq;
-			      daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
 				      q * a_dim1 + 1], &c__1);
 			      work[p] *= cs;
 			      work[q] /= cs;
 			      if (rsvec) {
 				  d__1 = -t * aqoap;
-				  daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
 					  c__1, &v[p * v_dim1 + 1], &c__1);
 				  d__1 = cs * sn * apoaq;
-				  daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
 					  c__1, &v[q * v_dim1 + 1], &c__1);
 			      }
 			  }
 					    } else {
 			  if (work[q] >= 1.) {
 			      d__1 = t * apoaq;
-			      daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
 				      q * a_dim1 + 1], &c__1);
 			      d__1 = -cs * sn * aqoap;
-			      daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
 				      p * a_dim1 + 1], &c__1);
 			      work[p] /= cs;
 			      work[q] *= cs;
 			      if (rsvec) {
 				  d__1 = t * apoaq;
-				  daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
 					  c__1, &v[q * v_dim1 + 1], &c__1);
 				  d__1 = -cs * sn * aqoap;
-				  daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
 					  c__1, &v[p * v_dim1 + 1], &c__1);
 			      }
 			  } else {
 			      if (work[p] >= work[q]) {
 				  d__1 = -t * aqoap;
-				  daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
 					  &a[p * a_dim1 + 1], &c__1);
 				  d__1 = cs * sn * apoaq;
-				  daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
 					  &a[q * a_dim1 + 1], &c__1);
 				  work[p] *= cs;
 				  work[q] /= cs;
 				  if (rsvec) {
 				      d__1 = -t * aqoap;
-				      daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
 					      &c__1, &v[p * v_dim1 + 1], &
 					      c__1);
 				      d__1 = cs * sn * apoaq;
-				      daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
 					      &c__1, &v[q * v_dim1 + 1], &
 					      c__1);
 				  }
 			      } else {
 				  d__1 = t * apoaq;
-				  daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
 					  &a[q * a_dim1 + 1], &c__1);
 				  d__1 = -cs * sn * aqoap;
-				  daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
 					  &a[p * a_dim1 + 1], &c__1);
 				  work[p] /= cs;
 				  work[q] *= cs;
 				  if (rsvec) {
 				      d__1 = t * apoaq;
-				      daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
 					      &c__1, &v[q * v_dim1 + 1], &
 					      c__1);
 				      d__1 = -cs * sn * aqoap;
-				      daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
 					      &c__1, &v[p * v_dim1 + 1], &
 					      c__1);
 				  }
@@ -1150,19 +1150,19 @@ static integer c__2 = 2;
 
 				    } else {
 /*              .. have to use modified Gram-Schmidt like transformation */
-					dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
+					_starpu_dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
 						work[*n + 1], &c__1);
-					dlascl_("G", &c__0, &c__0, &aapp, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aapp, &
 						c_b18, m, &c__1, &work[*n + 1]
 , lda, &ierr);
-					dlascl_("G", &c__0, &c__0, &aaqq, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aaqq, &
 						c_b18, m, &c__1, &a[q * 
 						a_dim1 + 1], lda, &ierr);
 					temp1 = -aapq * work[p] / work[q];
-					daxpy_(m, &temp1, &work[*n + 1], &
+					_starpu_daxpy_(m, &temp1, &work[*n + 1], &
 						c__1, &a[q * a_dim1 + 1], &
 						c__1);
-					dlascl_("G", &c__0, &c__0, &c_b18, &
+					_starpu_dlascl_("G", &c__0, &c__0, &c_b18, &
 						aaqq, m, &c__1, &a[q * a_dim1 
 						+ 1], lda, &ierr);
 /* Computing MAX */
@@ -1181,12 +1181,12 @@ static integer c__2 = 2;
 				    if (d__1 * d__1 <= rooteps) {
 					if (aaqq < rootbig && aaqq > 
 						rootsfmin) {
-					    sva[q] = dnrm2_(m, &a[q * a_dim1 
+					    sva[q] = _starpu_dnrm2_(m, &a[q * a_dim1 
 						    + 1], &c__1) * work[q];
 					} else {
 					    t = 0.;
 					    aaqq = 0.;
-					    dlassq_(m, &a[q * a_dim1 + 1], &
+					    _starpu_dlassq_(m, &a[q * a_dim1 + 1], &
 						    c__1, &t, &aaqq);
 					    sva[q] = t * sqrt(aaqq) * work[q];
 					}
@@ -1194,12 +1194,12 @@ static integer c__2 = 2;
 				    if (aapp / aapp0 <= rooteps) {
 					if (aapp < rootbig && aapp > 
 						rootsfmin) {
-					    aapp = dnrm2_(m, &a[p * a_dim1 + 
+					    aapp = _starpu_dnrm2_(m, &a[p * a_dim1 + 
 						    1], &c__1) * work[p];
 					} else {
 					    t = 0.;
 					    aapp = 0.;
-					    dlassq_(m, &a[p * a_dim1 + 1], &
+					    _starpu_dlassq_(m, &a[p * a_dim1 + 1], &
 						    c__1, &t, &aapp);
 					    aapp = t * sqrt(aapp) * work[p];
 					}
@@ -1298,17 +1298,17 @@ L2103:
 					rotok = small * aaqq <= aapp;
 				    }
 				    if (aapp < big / aaqq) {
-					aapq = ddot_(m, &a[p * a_dim1 + 1], &
+					aapq = _starpu_ddot_(m, &a[p * a_dim1 + 1], &
 						c__1, &a[q * a_dim1 + 1], &
 						c__1) * work[p] * work[q] / 
 						aaqq / aapp;
 				    } else {
-					dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
+					_starpu_dcopy_(m, &a[p * a_dim1 + 1], &c__1, &
 						work[*n + 1], &c__1);
-					dlascl_("G", &c__0, &c__0, &aapp, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aapp, &
 						work[p], m, &c__1, &work[*n + 
 						1], lda, &ierr);
-					aapq = ddot_(m, &work[*n + 1], &c__1, 
+					aapq = _starpu_ddot_(m, &work[*n + 1], &c__1, 
 						&a[q * a_dim1 + 1], &c__1) * 
 						work[q] / aaqq;
 				    }
@@ -1319,17 +1319,17 @@ L2103:
 					rotok = aaqq <= aapp / small;
 				    }
 				    if (aapp > small / aaqq) {
-					aapq = ddot_(m, &a[p * a_dim1 + 1], &
+					aapq = _starpu_ddot_(m, &a[p * a_dim1 + 1], &
 						c__1, &a[q * a_dim1 + 1], &
 						c__1) * work[p] * work[q] / 
 						aaqq / aapp;
 				    } else {
-					dcopy_(m, &a[q * a_dim1 + 1], &c__1, &
+					_starpu_dcopy_(m, &a[q * a_dim1 + 1], &c__1, &
 						work[*n + 1], &c__1);
-					dlascl_("G", &c__0, &c__0, &aaqq, &
+					_starpu_dlascl_("G", &c__0, &c__0, &aaqq, &
 						work[q], m, &c__1, &work[*n + 
 						1], lda, &ierr);
-					aapq = ddot_(m, &work[*n + 1], &c__1, 
+					aapq = _starpu_ddot_(m, &work[*n + 1], &c__1, 
 						&a[p * a_dim1 + 1], &c__1) * 
 						work[p] / aapp;
 				    }
@@ -1361,11 +1361,11 @@ L2103:
 					    t = .5 / theta;
 					    fastr[2] = t * work[p] / work[q];
 					    fastr[3] = -t * work[q] / work[p];
-					    drotm_(m, &a[p * a_dim1 + 1], &
+					    _starpu_drotm_(m, &a[p * a_dim1 + 1], &
 						    c__1, &a[q * a_dim1 + 1], 
 						    &c__1, fastr);
 					    if (rsvec) {
-			  drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
+			  _starpu_drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * 
 				  v_dim1 + 1], &c__1, fastr);
 					    }
 /* Computing MAX */
@@ -1412,25 +1412,25 @@ L2103:
 			      fastr[3] = -t * aqoap;
 			      work[p] *= cs;
 			      work[q] *= cs;
-			      drotm_(m, &a[p * a_dim1 + 1], &c__1, &a[q * 
+			      _starpu_drotm_(m, &a[p * a_dim1 + 1], &c__1, &a[q * 
 				      a_dim1 + 1], &c__1, fastr);
 			      if (rsvec) {
-				  drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[
+				  _starpu_drotm_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[
 					  q * v_dim1 + 1], &c__1, fastr);
 			      }
 			  } else {
 			      d__1 = -t * aqoap;
-			      daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
 				      p * a_dim1 + 1], &c__1);
 			      d__1 = cs * sn * apoaq;
-			      daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
 				      q * a_dim1 + 1], &c__1);
 			      if (rsvec) {
 				  d__1 = -t * aqoap;
-				  daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
 					  c__1, &v[p * v_dim1 + 1], &c__1);
 				  d__1 = cs * sn * apoaq;
-				  daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
 					  c__1, &v[q * v_dim1 + 1], &c__1);
 			      }
 			      work[p] *= cs;
@@ -1439,17 +1439,17 @@ L2103:
 					    } else {
 			  if (work[q] >= 1.) {
 			      d__1 = t * apoaq;
-			      daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, &a[
 				      q * a_dim1 + 1], &c__1);
 			      d__1 = -cs * sn * aqoap;
-			      daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
+			      _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, &a[
 				      p * a_dim1 + 1], &c__1);
 			      if (rsvec) {
 				  d__1 = t * apoaq;
-				  daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], &
 					  c__1, &v[q * v_dim1 + 1], &c__1);
 				  d__1 = -cs * sn * aqoap;
-				  daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
+				  _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], &
 					  c__1, &v[p * v_dim1 + 1], &c__1);
 			      }
 			      work[p] /= cs;
@@ -1457,39 +1457,39 @@ L2103:
 			  } else {
 			      if (work[p] >= work[q]) {
 				  d__1 = -t * aqoap;
-				  daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
 					  &a[p * a_dim1 + 1], &c__1);
 				  d__1 = cs * sn * apoaq;
-				  daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
 					  &a[q * a_dim1 + 1], &c__1);
 				  work[p] *= cs;
 				  work[q] /= cs;
 				  if (rsvec) {
 				      d__1 = -t * aqoap;
-				      daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
 					      &c__1, &v[p * v_dim1 + 1], &
 					      c__1);
 				      d__1 = cs * sn * apoaq;
-				      daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
 					      &c__1, &v[q * v_dim1 + 1], &
 					      c__1);
 				  }
 			      } else {
 				  d__1 = t * apoaq;
-				  daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[p * a_dim1 + 1], &c__1, 
 					  &a[q * a_dim1 + 1], &c__1);
 				  d__1 = -cs * sn * aqoap;
-				  daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
+				  _starpu_daxpy_(m, &d__1, &a[q * a_dim1 + 1], &c__1, 
 					  &a[p * a_dim1 + 1], &c__1);
 				  work[p] /= cs;
 				  work[q] *= cs;
 				  if (rsvec) {
 				      d__1 = t * apoaq;
-				      daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[p * v_dim1 + 1], 
 					      &c__1, &v[q * v_dim1 + 1], &
 					      c__1);
 				      d__1 = -cs * sn * aqoap;
-				      daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
+				      _starpu_daxpy_(&mvl, &d__1, &v[q * v_dim1 + 1], 
 					      &c__1, &v[p * v_dim1 + 1], &
 					      c__1);
 				  }
@@ -1500,20 +1500,20 @@ L2103:
 
 				    } else {
 					if (aapp > aaqq) {
-					    dcopy_(m, &a[p * a_dim1 + 1], &
+					    _starpu_dcopy_(m, &a[p * a_dim1 + 1], &
 						    c__1, &work[*n + 1], &
 						    c__1);
-					    dlascl_("G", &c__0, &c__0, &aapp, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &aapp, 
 						    &c_b18, m, &c__1, &work[*
 						    n + 1], lda, &ierr);
-					    dlascl_("G", &c__0, &c__0, &aaqq, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &aaqq, 
 						    &c_b18, m, &c__1, &a[q * 
 						    a_dim1 + 1], lda, &ierr);
 					    temp1 = -aapq * work[p] / work[q];
-					    daxpy_(m, &temp1, &work[*n + 1], &
+					    _starpu_daxpy_(m, &temp1, &work[*n + 1], &
 						    c__1, &a[q * a_dim1 + 1], 
 						    &c__1);
-					    dlascl_("G", &c__0, &c__0, &c_b18, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &c_b18, 
 						     &aaqq, m, &c__1, &a[q * 
 						    a_dim1 + 1], lda, &ierr);
 /* Computing MAX */
@@ -1523,20 +1523,20 @@ L2103:
 						    d__2)));
 					    mxsinj = max(mxsinj,sfmin);
 					} else {
-					    dcopy_(m, &a[q * a_dim1 + 1], &
+					    _starpu_dcopy_(m, &a[q * a_dim1 + 1], &
 						    c__1, &work[*n + 1], &
 						    c__1);
-					    dlascl_("G", &c__0, &c__0, &aaqq, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &aaqq, 
 						    &c_b18, m, &c__1, &work[*
 						    n + 1], lda, &ierr);
-					    dlascl_("G", &c__0, &c__0, &aapp, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &aapp, 
 						    &c_b18, m, &c__1, &a[p * 
 						    a_dim1 + 1], lda, &ierr);
 					    temp1 = -aapq * work[q] / work[p];
-					    daxpy_(m, &temp1, &work[*n + 1], &
+					    _starpu_daxpy_(m, &temp1, &work[*n + 1], &
 						    c__1, &a[p * a_dim1 + 1], 
 						    &c__1);
-					    dlascl_("G", &c__0, &c__0, &c_b18, 
+					    _starpu_dlascl_("G", &c__0, &c__0, &c_b18, 
 						     &aapp, m, &c__1, &a[p * 
 						    a_dim1 + 1], lda, &ierr);
 /* Computing MAX */
@@ -1556,12 +1556,12 @@ L2103:
 				    if (d__1 * d__1 <= rooteps) {
 					if (aaqq < rootbig && aaqq > 
 						rootsfmin) {
-					    sva[q] = dnrm2_(m, &a[q * a_dim1 
+					    sva[q] = _starpu_dnrm2_(m, &a[q * a_dim1 
 						    + 1], &c__1) * work[q];
 					} else {
 					    t = 0.;
 					    aaqq = 0.;
-					    dlassq_(m, &a[q * a_dim1 + 1], &
+					    _starpu_dlassq_(m, &a[q * a_dim1 + 1], &
 						    c__1, &t, &aaqq);
 					    sva[q] = t * sqrt(aaqq) * work[q];
 					}
@@ -1571,12 +1571,12 @@ L2103:
 				    if (d__1 * d__1 <= rooteps) {
 					if (aapp < rootbig && aapp > 
 						rootsfmin) {
-					    aapp = dnrm2_(m, &a[p * a_dim1 + 
+					    aapp = _starpu_dnrm2_(m, &a[p * a_dim1 + 
 						    1], &c__1) * work[p];
 					} else {
 					    t = 0.;
 					    aapp = 0.;
-					    dlassq_(m, &a[p * a_dim1 + 1], &
+					    _starpu_dlassq_(m, &a[p * a_dim1 + 1], &
 						    c__1, &t, &aapp);
 					    aapp = t * sqrt(aapp) * work[p];
 					}
@@ -1648,11 +1648,11 @@ L2011:
 
 /*     .. update SVA(N) */
 	if (sva[*n] < rootbig && sva[*n] > rootsfmin) {
-	    sva[*n] = dnrm2_(m, &a[*n * a_dim1 + 1], &c__1) * work[*n];
+	    sva[*n] = _starpu_dnrm2_(m, &a[*n * a_dim1 + 1], &c__1) * work[*n];
 	} else {
 	    t = 0.;
 	    aapp = 0.;
-	    dlassq_(m, &a[*n * a_dim1 + 1], &c__1, &t, &aapp);
+	    _starpu_dlassq_(m, &a[*n * a_dim1 + 1], &c__1, &t, &aapp);
 	    sva[*n] = t * sqrt(aapp) * work[*n];
 	}
 
@@ -1695,7 +1695,7 @@ L1995:
     i__1 = *n - 1;
     for (p = 1; p <= i__1; ++p) {
 	i__2 = *n - p + 1;
-	q = idamax_(&i__2, &sva[p], &c__1) + p - 1;
+	q = _starpu_idamax_(&i__2, &sva[p], &c__1) + p - 1;
 	if (p != q) {
 	    temp1 = sva[p];
 	    sva[p] = sva[q];
@@ -1703,9 +1703,9 @@ L1995:
 	    temp1 = work[p];
 	    work[p] = work[q];
 	    work[q] = temp1;
-	    dswap_(m, &a[p * a_dim1 + 1], &c__1, &a[q * a_dim1 + 1], &c__1);
+	    _starpu_dswap_(m, &a[p * a_dim1 + 1], &c__1, &a[q * a_dim1 + 1], &c__1);
 	    if (rsvec) {
-		dswap_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * v_dim1 + 1], &
+		_starpu_dswap_(&mvl, &v[p * v_dim1 + 1], &c__1, &v[q * v_dim1 + 1], &
 			c__1);
 	    }
 	}
@@ -1730,7 +1730,7 @@ L1995:
 	i__1 = n2;
 	for (p = 1; p <= i__1; ++p) {
 	    d__1 = work[p] / sva[p];
-	    dscal_(m, &d__1, &a[p * a_dim1 + 1], &c__1);
+	    _starpu_dscal_(m, &d__1, &a[p * a_dim1 + 1], &c__1);
 /* L1998: */
 	}
     }
@@ -1741,14 +1741,14 @@ L1995:
 	if (applv) {
 	    i__1 = *n;
 	    for (p = 1; p <= i__1; ++p) {
-		dscal_(&mvl, &work[p], &v[p * v_dim1 + 1], &c__1);
+		_starpu_dscal_(&mvl, &work[p], &v[p * v_dim1 + 1], &c__1);
 /* L2398: */
 	    }
 	} else {
 	    i__1 = *n;
 	    for (p = 1; p <= i__1; ++p) {
-		temp1 = 1. / dnrm2_(&mvl, &v[p * v_dim1 + 1], &c__1);
-		dscal_(&mvl, &temp1, &v[p * v_dim1 + 1], &c__1);
+		temp1 = 1. / _starpu_dnrm2_(&mvl, &v[p * v_dim1 + 1], &c__1);
+		_starpu_dscal_(&mvl, &temp1, &v[p * v_dim1 + 1], &c__1);
 /* L2399: */
 	    }
 	}
@@ -1793,4 +1793,4 @@ L1995:
 /*     .. */
 /*     .. END OF DGESVJ */
 /*     .. */
-} /* dgesvj_ */
+} /* _starpu_dgesvj_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dtrmm_(char *side, char *uplo, char *transa, char *diag, 
+/* Subroutine */ int _starpu_dtrmm_(char *side, char *uplo, char *transa, char *diag, 
 	integer *m, integer *n, doublereal *alpha, doublereal *a, integer *
 	lda, doublereal *b, integer *ldb)
 {
@@ -24,10 +24,10 @@
     integer i__, j, k, info;
     doublereal temp;
     logical lside;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nrowa;
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical nounit;
 
 /*     .. Scalar Arguments .. */
@@ -173,24 +173,24 @@
     b -= b_offset;
 
     /* Function Body */
-    lside = lsame_(side, "L");
+    lside = _starpu_lsame_(side, "L");
     if (lside) {
 	nrowa = *m;
     } else {
 	nrowa = *n;
     }
-    nounit = lsame_(diag, "N");
-    upper = lsame_(uplo, "U");
+    nounit = _starpu_lsame_(diag, "N");
+    upper = _starpu_lsame_(uplo, "U");
 
     info = 0;
-    if (! lside && ! lsame_(side, "R")) {
+    if (! lside && ! _starpu_lsame_(side, "R")) {
 	info = 1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	info = 2;
-    } else if (! lsame_(transa, "N") && ! lsame_(transa, 
-	     "T") && ! lsame_(transa, "C")) {
+    } else if (! _starpu_lsame_(transa, "N") && ! _starpu_lsame_(transa, 
+	     "T") && ! _starpu_lsame_(transa, "C")) {
 	info = 3;
-    } else if (! lsame_(diag, "U") && ! lsame_(diag, 
+    } else if (! _starpu_lsame_(diag, "U") && ! _starpu_lsame_(diag, 
 	    "N")) {
 	info = 4;
     } else if (*m < 0) {
@@ -203,7 +203,7 @@
 	info = 11;
     }
     if (info != 0) {
-	xerbla_("DTRMM ", &info);
+	_starpu_xerbla_("DTRMM ", &info);
 	return 0;
     }
 
@@ -231,7 +231,7 @@
 /*     Start the operations. */
 
     if (lside) {
-	if (lsame_(transa, "N")) {
+	if (_starpu_lsame_(transa, "N")) {
 
 /*           Form  B := alpha*A*B. */
 
@@ -323,7 +323,7 @@
 	    }
 	}
     } else {
-	if (lsame_(transa, "N")) {
+	if (_starpu_lsame_(transa, "N")) {
 
 /*           Form  B := alpha*B*A. */
 
@@ -450,4 +450,4 @@
 
 /*     End of DTRMM . */
 
-} /* dtrmm_ */
+} /* _starpu_dtrmm_ */

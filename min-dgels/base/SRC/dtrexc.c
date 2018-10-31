@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dtrexc_(char *compq, integer *n, doublereal *t, integer *
+/* Subroutine */ int _starpu_dtrexc_(char *compq, integer *n, doublereal *t, integer *
 	ldt, doublereal *q, integer *ldq, integer *ifst, integer *ilst, 
 	doublereal *work, integer *info)
 {
@@ -27,11 +27,11 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer nbf, nbl, here;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical wantq;
-    extern /* Subroutine */ int dlaexc_(logical *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaexc_(logical *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *, integer 
-	    *, doublereal *, integer *), xerbla_(char *, integer *);
+	    *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
     integer nbnext;
 
 
@@ -136,8 +136,8 @@ static integer c__2 = 2;
 
     /* Function Body */
     *info = 0;
-    wantq = lsame_(compq, "V");
-    if (! wantq && ! lsame_(compq, "N")) {
+    wantq = _starpu_lsame_(compq, "V");
+    if (! wantq && ! _starpu_lsame_(compq, "N")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -152,7 +152,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTREXC", &i__1);
+	_starpu_xerbla_("DTREXC", &i__1);
 	return 0;
     }
 
@@ -223,7 +223,7 @@ L10:
 		    nbnext = 2;
 		}
 	    }
-	    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &here, &
+	    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &here, &
 		    nbf, &nbnext, &work[1], info);
 	    if (*info != 0) {
 		*ilst = here;
@@ -251,7 +251,7 @@ L10:
 		}
 	    }
 	    i__1 = here + 1;
-	    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
+	    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
 		    c__1, &nbnext, &work[1], info);
 	    if (*info != 0) {
 		*ilst = here;
@@ -261,7 +261,7 @@ L10:
 
 /*              Swap two 1 by 1 blocks, no problems possible */
 
-		dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		_starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			here, &c__1, &nbnext, &work[1], info);
 		++here;
 	    } else {
@@ -275,7 +275,7 @@ L10:
 
 /*                 2 by 2 Block did not split */
 
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    here, &c__1, &nbnext, &work[1], info);
 		    if (*info != 0) {
 			*ilst = here;
@@ -286,10 +286,10 @@ L10:
 
 /*                 2 by 2 Block did split */
 
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    here, &c__1, &c__1, &work[1], info);
 		    i__1 = here + 1;
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    i__1, &c__1, &c__1, &work[1], info);
 		    here += 2;
 		}
@@ -317,7 +317,7 @@ L20:
 		}
 	    }
 	    i__1 = here - nbnext;
-	    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
+	    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
 		    nbnext, &nbf, &work[1], info);
 	    if (*info != 0) {
 		*ilst = here;
@@ -345,7 +345,7 @@ L20:
 		}
 	    }
 	    i__1 = here - nbnext;
-	    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
+	    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &i__1, &
 		    nbnext, &c__1, &work[1], info);
 	    if (*info != 0) {
 		*ilst = here;
@@ -355,7 +355,7 @@ L20:
 
 /*              Swap two 1 by 1 blocks, no problems possible */
 
-		dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		_starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			here, &nbnext, &c__1, &work[1], info);
 		--here;
 	    } else {
@@ -370,7 +370,7 @@ L20:
 /*                 2 by 2 Block did not split */
 
 		    i__1 = here - 1;
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    i__1, &c__2, &c__1, &work[1], info);
 		    if (*info != 0) {
 			*ilst = here;
@@ -381,10 +381,10 @@ L20:
 
 /*                 2 by 2 Block did split */
 
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    here, &c__1, &c__1, &work[1], info);
 		    i__1 = here - 1;
-		    dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dlaexc_(&wantq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    i__1, &c__1, &c__1, &work[1], info);
 		    here += -2;
 		}
@@ -400,4 +400,4 @@ L20:
 
 /*     End of DTREXC */
 
-} /* dtrexc_ */
+} /* _starpu_dtrexc_ */

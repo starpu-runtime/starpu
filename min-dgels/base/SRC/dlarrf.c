@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlarrf_(integer *n, doublereal *d__, doublereal *l, 
+/* Subroutine */ int _starpu_dlarrf_(integer *n, doublereal *d__, doublereal *l, 
 	doublereal *ld, integer *clstrt, integer *clend, doublereal *w, 
 	doublereal *wgap, doublereal *werr, doublereal *spdiam, doublereal *
 	clgapl, doublereal *clgapr, doublereal *pivmin, doublereal *sigma, 
@@ -39,14 +39,14 @@ static integer c__1 = 1;
     integer ktry;
     doublereal fail2, avgap, ldmax, rdmax;
     integer shift;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical dorrr1;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal ldelta;
     logical nofail;
     doublereal mingap, lsigma, rdelta;
-    extern logical disnan_(doublereal *);
+    extern logical _starpu_disnan_(doublereal *);
     logical forcer;
     doublereal rsigma, clwdth;
     logical sawnan1, sawnan2, tryrrr1;
@@ -165,7 +165,7 @@ static integer c__1 = 1;
     /* Function Body */
     *info = 0;
     fact = 2.;
-    eps = dlamch_("Precision");
+    eps = _starpu_dlamch_("Precision");
     shift = 0;
     forcer = FALSE_;
 /*     Note that we cannot guarantee that for any of the shifts tried, */
@@ -208,7 +208,7 @@ static integer c__1 = 1;
 
 /*     Initialize the record of the best representation found */
 
-    s = dlamch_("S");
+    s = _starpu_dlamch_("S");
     smlgrowth = 1. / s;
     fail = (doublereal) (*n - 1) * mingap / (*spdiam * eps);
     fail2 = (doublereal) (*n - 1) * mingap / (*spdiam * sqrt(eps));
@@ -251,7 +251,7 @@ L5:
 	max1 = max(d__2,d__3);
 /* L6: */
     }
-    sawnan1 = sawnan1 || disnan_(&max1);
+    sawnan1 = sawnan1 || _starpu_disnan_(&max1);
     if (forcer || max1 <= growthbound && ! sawnan1) {
 	*sigma = lsigma;
 	shift = 1;
@@ -283,7 +283,7 @@ L5:
 	max2 = max(d__2,d__3);
 /* L7: */
     }
-    sawnan2 = sawnan2 || disnan_(&max2);
+    sawnan2 = sawnan2 || _starpu_disnan_(&max2);
     if (forcer || max2 <= growthbound && ! sawnan2) {
 	*sigma = rsigma;
 	shift = 2;
@@ -412,12 +412,12 @@ L100:
     if (shift == 1) {
     } else if (shift == 2) {
 /*        store new L and D back into DPLUS, LPLUS */
-	dcopy_(n, &work[1], &c__1, &dplus[1], &c__1);
+	_starpu_dcopy_(n, &work[1], &c__1, &dplus[1], &c__1);
 	i__1 = *n - 1;
-	dcopy_(&i__1, &work[*n + 1], &c__1, &lplus[1], &c__1);
+	_starpu_dcopy_(&i__1, &work[*n + 1], &c__1, &lplus[1], &c__1);
     }
     return 0;
 
 /*     End of DLARRF */
 
-} /* dlarrf_ */
+} /* _starpu_dlarrf_ */

@@ -17,7 +17,7 @@
 
 static doublereal c_b9 = 1.;
 
-/* Subroutine */ int dpotrs_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dpotrs_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
 	info)
 {
@@ -25,12 +25,12 @@ static doublereal c_b9 = 1.;
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -107,8 +107,8 @@ static doublereal c_b9 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -121,7 +121,7 @@ static doublereal c_b9 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOTRS", &i__1);
+	_starpu_xerbla_("DPOTRS", &i__1);
 	return 0;
     }
 
@@ -137,12 +137,12 @@ static doublereal c_b9 = 1.;
 
 /*        Solve U'*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Upper", "Transpose", "Non-unit", n, nrhs, &c_b9, &a[
+	_starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", n, nrhs, &c_b9, &a[
 		a_offset], lda, &b[b_offset], ldb);
 
 /*        Solve U*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Upper", "No transpose", "Non-unit", n, nrhs, &c_b9, &
+	_starpu_dtrsm_("Left", "Upper", "No transpose", "Non-unit", n, nrhs, &c_b9, &
 		a[a_offset], lda, &b[b_offset], ldb);
     } else {
 
@@ -150,12 +150,12 @@ static doublereal c_b9 = 1.;
 
 /*        Solve L*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Lower", "No transpose", "Non-unit", n, nrhs, &c_b9, &
+	_starpu_dtrsm_("Left", "Lower", "No transpose", "Non-unit", n, nrhs, &c_b9, &
 		a[a_offset], lda, &b[b_offset], ldb);
 
 /*        Solve L'*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Lower", "Transpose", "Non-unit", n, nrhs, &c_b9, &a[
+	_starpu_dtrsm_("Left", "Lower", "Transpose", "Non-unit", n, nrhs, &c_b9, &a[
 		a_offset], lda, &b[b_offset], ldb);
     }
 
@@ -163,4 +163,4 @@ static doublereal c_b9 = 1.;
 
 /*     End of DPOTRS */
 
-} /* dpotrs_ */
+} /* _starpu_dpotrs_ */

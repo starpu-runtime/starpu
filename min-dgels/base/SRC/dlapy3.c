@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dlapy3_(doublereal *x, doublereal *y, doublereal *z__)
+doublereal _starpu_dlapy3_(doublereal *x, doublereal *y, doublereal *z__)
 {
     /* System generated locals */
     doublereal ret_val, d__1, d__2, d__3;
@@ -80,4 +80,4 @@ doublereal dlapy3_(doublereal *x, doublereal *y, doublereal *z__)
 
 /*     End of DLAPY3 */
 
-} /* dlapy3_ */
+} /* _starpu_dlapy3_ */

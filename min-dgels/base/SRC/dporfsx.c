@@ -19,7 +19,7 @@ static integer c_n1 = -1;
 static integer c__0 = 0;
 static integer c__1 = 1;
 
-/* Subroutine */ int dporfsx_(char *uplo, char *equed, integer *n, integer *
+/* Subroutine */ int _starpu_dporfsx_(char *uplo, char *equed, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	doublereal *s, doublereal *b, integer *ldb, doublereal *x, integer *
 	ldx, doublereal *rcond, doublereal *berr, integer *n_err_bnds__, 
@@ -41,11 +41,11 @@ static integer c__1 = 1;
     integer ref_type__, j;
     doublereal rcond_tmp__;
     integer prec_type__;
-    extern doublereal dla_porcond__(char *, integer *, doublereal *, integer *
+    extern doublereal _starpu_dla_porcond__(char *, integer *, doublereal *, integer *
 	    , doublereal *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, ftnlen);
     doublereal cwise_wrong__;
-    extern /* Subroutine */ int dla_porfsx_extended__(integer *, char *, 
+    extern /* Subroutine */ int _starpu_dla_porfsx_extended__(integer *, char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, logical *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
@@ -54,16 +54,16 @@ static integer c__1 = 1;
 	     logical *, integer *, ftnlen);
     char norm[1];
     logical ignore_cwise__;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
     logical rcequ;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpocon_(
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpocon_(
 	    char *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, integer *);
-    extern doublereal dlansy_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansy_(char *, char *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern integer ilaprec_(char *);
+    extern integer _starpu_ilaprec_(char *);
     integer ithresh, n_norms__;
     doublereal rthresh;
 
@@ -399,7 +399,7 @@ static integer c__1 = 1;
 
 /*     Set default parameters. */
 
-    illrcond_thresh__ = (doublereal) (*n) * dlamch_("Epsilon");
+    illrcond_thresh__ = (doublereal) (*n) * _starpu_dlamch_("Epsilon");
     ithresh = 10;
     rthresh = .5;
     unstable_thresh__ = .25;
@@ -431,13 +431,13 @@ static integer c__1 = 1;
 	n_norms__ = 2;
     }
 
-    rcequ = lsame_(equed, "Y");
+    rcequ = _starpu_lsame_(equed, "Y");
 
 /*     Test input parameters. */
 
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! rcequ && ! lsame_(equed, "N")) {
+    } else if (! rcequ && ! _starpu_lsame_(equed, "N")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -454,7 +454,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPORFSX", &i__1);
+	_starpu_xerbla_("DPORFSX", &i__1);
 	return 0;
     }
 
@@ -501,15 +501,15 @@ static integer c__1 = 1;
 /*     number of A. */
 
     *(unsigned char *)norm = 'I';
-    anorm = dlansy_(norm, uplo, n, &a[a_offset], lda, &work[1]);
-    dpocon_(uplo, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
+    anorm = _starpu_dlansy_(norm, uplo, n, &a[a_offset], lda, &work[1]);
+    _starpu_dpocon_(uplo, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
 	     info);
 
 /*     Perform refinement on each right-hand side */
 
     if (ref_type__ != 0) {
-	prec_type__ = ilaprec_("E");
-	dla_porfsx_extended__(&prec_type__, uplo, n, nrhs, &a[a_offset], lda, 
+	prec_type__ = _starpu_ilaprec_("E");
+	_starpu_dla_porfsx_extended__(&prec_type__, uplo, n, nrhs, &a[a_offset], lda, 
 		&af[af_offset], ldaf, &rcequ, &s[1], &b[b_offset], ldb, &x[
 		x_offset], ldx, &berr[1], &n_norms__, &err_bnds_norm__[
 		err_bnds_norm_offset], &err_bnds_comp__[err_bnds_comp_offset],
@@ -519,17 +519,17 @@ static integer c__1 = 1;
     }
 /* Computing MAX */
     d__1 = 10., d__2 = sqrt((doublereal) (*n));
-    err_lbnd__ = max(d__1,d__2) * dlamch_("Epsilon");
+    err_lbnd__ = max(d__1,d__2) * _starpu_dlamch_("Epsilon");
     if (*n_err_bnds__ >= 1 && n_norms__ >= 1) {
 
 /*     Compute scaled normwise condition number cond(A*C). */
 
 	if (rcequ) {
-	    rcond_tmp__ = dla_porcond__(uplo, n, &a[a_offset], lda, &af[
+	    rcond_tmp__ = _starpu_dla_porcond__(uplo, n, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &c_n1, &s[1], info, &work[1], &iwork[1],
 		     (ftnlen)1);
 	} else {
-	    rcond_tmp__ = dla_porcond__(uplo, n, &a[a_offset], lda, &af[
+	    rcond_tmp__ = _starpu_dla_porcond__(uplo, n, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &c__0, &s[1], info, &work[1], &iwork[1],
 		     (ftnlen)1);
 	}
@@ -574,12 +574,12 @@ static integer c__1 = 1;
 /*     the inverse condition number is set to 0.0 when the estimated */
 /*     cwise error is at least CWISE_WRONG. */
 
-	cwise_wrong__ = sqrt(dlamch_("Epsilon"));
+	cwise_wrong__ = sqrt(_starpu_dlamch_("Epsilon"));
 	i__1 = *nrhs;
 	for (j = 1; j <= i__1; ++j) {
 	    if (err_bnds_comp__[j + (err_bnds_comp_dim1 << 1)] < 
 		    cwise_wrong__) {
-		rcond_tmp__ = dla_porcond__(uplo, n, &a[a_offset], lda, &af[
+		rcond_tmp__ = _starpu_dla_porcond__(uplo, n, &a[a_offset], lda, &af[
 			af_offset], ldaf, &c__1, &x[j * x_dim1 + 1], info, &
 			work[1], &iwork[1], (ftnlen)1);
 	    } else {
@@ -619,4 +619,4 @@ static integer c__1 = 1;
 
 /*     End of DPORFSX */
 
-} /* dporfsx_ */
+} /* _starpu_dporfsx_ */

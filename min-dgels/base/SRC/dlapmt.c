@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlapmt_(logical *forwrd, integer *m, integer *n, 
+/* Subroutine */ int _starpu_dlapmt_(logical *forwrd, integer *m, integer *n, 
 	doublereal *x, integer *ldx, integer *k)
 {
     /* System generated locals */
@@ -175,4 +175,4 @@ L80:
 
 /*     End of DLAPMT */
 
-} /* dlapmt_ */
+} /* _starpu_dlapmt_ */

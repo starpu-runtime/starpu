@@ -17,7 +17,7 @@
 
 static doublereal c_b4 = 1.;
 
-/* Subroutine */ int drotg_(doublereal *da, doublereal *db, doublereal *c__, 
+/* Subroutine */ int _starpu_drotg_(doublereal *da, doublereal *db, doublereal *c__, 
 	doublereal *s)
 {
     /* System generated locals */
@@ -76,4 +76,4 @@ L20:
     *da = r__;
     *db = z__;
     return 0;
-} /* drotg_ */
+} /* _starpu_drotg_ */

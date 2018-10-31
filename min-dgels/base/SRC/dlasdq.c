@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlasdq_(char *uplo, integer *sqre, integer *n, integer *
+/* Subroutine */ int _starpu_dlasdq_(char *uplo, integer *sqre, integer *n, integer *
 	ncvt, integer *nru, integer *ncc, doublereal *d__, doublereal *e, 
 	doublereal *vt, integer *ldvt, doublereal *u, integer *ldu, 
 	doublereal *c__, integer *ldc, doublereal *work, integer *info)
@@ -32,14 +32,14 @@ static integer c__1 = 1;
     integer np1, isub;
     doublereal smin;
     integer sqre1;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dlasr_(char *, char *, char *, integer *, 
-	    integer *, doublereal *, doublereal *, doublereal *, integer *), dswap_(integer *, doublereal *, integer *
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dlasr_(char *, char *, char *, integer *, 
+	    integer *, doublereal *, doublereal *, doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer *
 , doublereal *, integer *);
     integer iuplo;
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), xerbla_(char *, 
-	    integer *), dbdsqr_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), _starpu_xerbla_(char *, 
+	    integer *), _starpu_dbdsqr_(char *, integer *, integer *, integer 
 	    *, integer *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
@@ -202,10 +202,10 @@ static integer c__1 = 1;
     /* Function Body */
     *info = 0;
     iuplo = 0;
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 	iuplo = 1;
     }
-    if (lsame_(uplo, "L")) {
+    if (_starpu_lsame_(uplo, "L")) {
 	iuplo = 2;
     }
     if (iuplo == 0) {
@@ -229,7 +229,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASDQ", &i__1);
+	_starpu_xerbla_("DLASDQ", &i__1);
 	return 0;
     }
     if (*n == 0) {
@@ -248,7 +248,7 @@ static integer c__1 = 1;
     if (iuplo == 1 && sqre1 == 1) {
 	i__1 = *n - 1;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
+	    _starpu_dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
 	    d__[i__] = r__;
 	    e[i__] = sn * d__[i__ + 1];
 	    d__[i__ + 1] = cs * d__[i__ + 1];
@@ -258,7 +258,7 @@ static integer c__1 = 1;
 	    }
 /* L10: */
 	}
-	dlartg_(&d__[*n], &e[*n], &cs, &sn, &r__);
+	_starpu_dlartg_(&d__[*n], &e[*n], &cs, &sn, &r__);
 	d__[*n] = r__;
 	e[*n] = 0.;
 	if (rotate) {
@@ -271,7 +271,7 @@ static integer c__1 = 1;
 /*        Update singular vectors if desired. */
 
 	if (*ncvt > 0) {
-	    dlasr_("L", "V", "F", &np1, ncvt, &work[1], &work[np1], &vt[
+	    _starpu_dlasr_("L", "V", "F", &np1, ncvt, &work[1], &work[np1], &vt[
 		    vt_offset], ldvt);
 	}
     }
@@ -282,7 +282,7 @@ static integer c__1 = 1;
     if (iuplo == 2) {
 	i__1 = *n - 1;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
+	    _starpu_dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
 	    d__[i__] = r__;
 	    e[i__] = sn * d__[i__ + 1];
 	    d__[i__ + 1] = cs * d__[i__ + 1];
@@ -297,7 +297,7 @@ static integer c__1 = 1;
 /*        rotation is needed. */
 
 	if (sqre1 == 1) {
-	    dlartg_(&d__[*n], &e[*n], &cs, &sn, &r__);
+	    _starpu_dlartg_(&d__[*n], &e[*n], &cs, &sn, &r__);
 	    d__[*n] = r__;
 	    if (rotate) {
 		work[*n] = cs;
@@ -309,19 +309,19 @@ static integer c__1 = 1;
 
 	if (*nru > 0) {
 	    if (sqre1 == 0) {
-		dlasr_("R", "V", "F", nru, n, &work[1], &work[np1], &u[
+		_starpu_dlasr_("R", "V", "F", nru, n, &work[1], &work[np1], &u[
 			u_offset], ldu);
 	    } else {
-		dlasr_("R", "V", "F", nru, &np1, &work[1], &work[np1], &u[
+		_starpu_dlasr_("R", "V", "F", nru, &np1, &work[1], &work[np1], &u[
 			u_offset], ldu);
 	    }
 	}
 	if (*ncc > 0) {
 	    if (sqre1 == 0) {
-		dlasr_("L", "V", "F", n, ncc, &work[1], &work[np1], &c__[
+		_starpu_dlasr_("L", "V", "F", n, ncc, &work[1], &work[np1], &c__[
 			c_offset], ldc);
 	    } else {
-		dlasr_("L", "V", "F", &np1, ncc, &work[1], &work[np1], &c__[
+		_starpu_dlasr_("L", "V", "F", &np1, ncc, &work[1], &work[np1], &c__[
 			c_offset], ldc);
 	    }
 	}
@@ -330,7 +330,7 @@ static integer c__1 = 1;
 /*     Call DBDSQR to compute the SVD of the reduced real */
 /*     N-by-N upper bidiagonal matrix. */
 
-    dbdsqr_("U", n, ncvt, nru, ncc, &d__[1], &e[1], &vt[vt_offset], ldvt, &u[
+    _starpu_dbdsqr_("U", n, ncvt, nru, ncc, &d__[1], &e[1], &vt[vt_offset], ldvt, &u[
 	    u_offset], ldu, &c__[c_offset], ldc, &work[1], info);
 
 /*     Sort the singular values into ascending order (insertion sort on */
@@ -358,15 +358,15 @@ static integer c__1 = 1;
 	    d__[isub] = d__[i__];
 	    d__[i__] = smin;
 	    if (*ncvt > 0) {
-		dswap_(ncvt, &vt[isub + vt_dim1], ldvt, &vt[i__ + vt_dim1], 
+		_starpu_dswap_(ncvt, &vt[isub + vt_dim1], ldvt, &vt[i__ + vt_dim1], 
 			ldvt);
 	    }
 	    if (*nru > 0) {
-		dswap_(nru, &u[isub * u_dim1 + 1], &c__1, &u[i__ * u_dim1 + 1]
+		_starpu_dswap_(nru, &u[isub * u_dim1 + 1], &c__1, &u[i__ * u_dim1 + 1]
 , &c__1);
 	    }
 	    if (*ncc > 0) {
-		dswap_(ncc, &c__[isub + c_dim1], ldc, &c__[i__ + c_dim1], ldc)
+		_starpu_dswap_(ncc, &c__[isub + c_dim1], ldc, &c__[i__ + c_dim1], ldc)
 			;
 	    }
 	}
@@ -377,4 +377,4 @@ static integer c__1 = 1;
 
 /*     End of DLASDQ */
 
-} /* dlasdq_ */
+} /* _starpu_dlasdq_ */

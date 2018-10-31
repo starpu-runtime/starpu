@@ -25,7 +25,7 @@ static logical c_false = FALSE_;
 static integer c__1 = 1;
 static integer c__3 = 3;
 
-/* Subroutine */ int dlaqr4_(logical *wantt, logical *wantz, integer *n, 
+/* Subroutine */ int _starpu_dlaqr4_(logical *wantt, logical *wantz, integer *n, 
 	integer *ilo, integer *ihi, doublereal *h__, integer *ldh, doublereal 
 	*wr, doublereal *wi, integer *iloz, integer *ihiz, doublereal *z__, 
 	integer *ldz, doublereal *work, integer *lwork, integer *info)
@@ -49,26 +49,26 @@ static integer c__3 = 3;
     integer ktop;
     doublereal zdum[1]	/* was [1][1] */;
     integer kacc22, itmax, nsmax, nwmax, kwtop;
-    extern /* Subroutine */ int dlaqr2_(logical *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaqr2_(logical *, logical *, integer *, 
 	    integer *, integer *, integer *, doublereal *, integer *, integer 
 	    *, integer *, doublereal *, integer *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlanv2_(doublereal *, doublereal *, 
+	    doublereal *, integer *), _starpu_dlanv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *), dlaqr5_(
+	    doublereal *, doublereal *, doublereal *, doublereal *), _starpu_dlaqr5_(
 	    logical *, logical *, integer *, integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *);
     integer nibble;
-    extern /* Subroutine */ int dlahqr_(logical *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dlahqr_(logical *, logical *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
-	    integer *), dlacpy_(char *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dlacpy_(char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     char jbcmpz[1];
     integer nwupbd;
@@ -302,7 +302,7 @@ static integer c__3 = 3;
 
 	lwkopt = 1;
 	if (*lwork != -1) {
-	    dlahqr_(wantt, wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], &
+	    _starpu_dlahqr_(wantt, wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], &
 		    wi[1], iloz, ihiz, &z__[z_offset], ldz, info);
 	}
     } else {
@@ -333,7 +333,7 @@ static integer c__3 = 3;
 /*        .    (In fact, there is enough subdiagonal space for */
 /*        .    NWR.GE.3.) ==== */
 
-	nwr = ilaenv_(&c__13, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
+	nwr = _starpu_ilaenv_(&c__13, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
 	nwr = max(2,nwr);
 /* Computing MIN */
 	i__1 = *ihi - *ilo + 1, i__2 = (*n - 1) / 3, i__1 = min(i__1,i__2);
@@ -344,7 +344,7 @@ static integer c__3 = 3;
 /*        .    enough subdiagonal workspace for NSR to be even */
 /*        .    and greater than or equal to two as required. ==== */
 
-	nsr = ilaenv_(&c__15, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
+	nsr = _starpu_ilaenv_(&c__15, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
 /* Computing MIN */
 	i__1 = nsr, i__2 = (*n + 6) / 9, i__1 = min(i__1,i__2), i__2 = *ihi - 
 		*ilo;
@@ -358,7 +358,7 @@ static integer c__3 = 3;
 /*        ==== Workspace query call to DLAQR2 ==== */
 
 	i__1 = nwr + 1;
-	dlaqr2_(wantt, wantz, n, ilo, ihi, &i__1, &h__[h_offset], ldh, iloz, 
+	_starpu_dlaqr2_(wantt, wantz, n, ilo, ihi, &i__1, &h__[h_offset], ldh, iloz, 
 		ihiz, &z__[z_offset], ldz, &ls, &ld, &wr[1], &wi[1], &h__[
 		h_offset], ldh, n, &h__[h_offset], ldh, n, &h__[h_offset], 
 		ldh, &work[1], &c_n1);
@@ -378,18 +378,18 @@ static integer c__3 = 3;
 
 /*        ==== DLAHQR/DLAQR0 crossover point ==== */
 
-	nmin = ilaenv_(&c__12, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
+	nmin = _starpu_ilaenv_(&c__12, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
 	nmin = max(11,nmin);
 
 /*        ==== Nibble crossover point ==== */
 
-	nibble = ilaenv_(&c__14, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
+	nibble = _starpu_ilaenv_(&c__14, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
 	nibble = max(0,nibble);
 
 /*        ==== Accumulate reflections during ttswp?  Use block */
 /*        .    2-by-2 structure during matrix-matrix multiply? ==== */
 
-	kacc22 = ilaenv_(&c__16, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
+	kacc22 = _starpu_ilaenv_(&c__16, "DLAQR4", jbcmpz, n, ilo, ihi, lwork);
 	kacc22 = max(0,kacc22);
 	kacc22 = min(2,kacc22);
 
@@ -513,7 +513,7 @@ L20:
 
 /*           ==== Aggressive early deflation ==== */
 
-	    dlaqr2_(wantt, wantz, n, &ktop, &kbot, &nw, &h__[h_offset], ldh, 
+	    _starpu_dlaqr2_(wantt, wantz, n, &ktop, &kbot, &nw, &h__[h_offset], ldh, 
 		    iloz, ihiz, &z__[z_offset], ldz, &ls, &ld, &wr[1], &wi[1], 
 		     &h__[kv + h_dim1], ldh, &nho, &h__[kv + kt * h_dim1], 
 		    ldh, &nve, &h__[kwv + h_dim1], ldh, &work[1], lwork);
@@ -566,7 +566,7 @@ L20:
 			bb = ss;
 			cc = ss * -.4375;
 			dd = aa;
-			dlanv2_(&aa, &bb, &cc, &dd, &wr[i__ - 1], &wi[i__ - 1]
+			_starpu_dlanv2_(&aa, &bb, &cc, &dd, &wr[i__ - 1], &wi[i__ - 1]
 , &wr[i__], &wi[i__], &cs, &sn);
 /* L30: */
 		    }
@@ -587,9 +587,9 @@ L20:
 		    if (kbot - ks + 1 <= ns / 2) {
 			ks = kbot - ns + 1;
 			kt = *n - ns + 1;
-			dlacpy_("A", &ns, &ns, &h__[ks + ks * h_dim1], ldh, &
+			_starpu_dlacpy_("A", &ns, &ns, &h__[ks + ks * h_dim1], ldh, &
 				h__[kt + h_dim1], ldh);
-			dlahqr_(&c_false, &c_false, &ns, &c__1, &ns, &h__[kt 
+			_starpu_dlahqr_(&c_false, &c_false, &ns, &c__1, &ns, &h__[kt 
 				+ h_dim1], ldh, &wr[ks], &wi[ks], &c__1, &
 				c__1, zdum, &c__1, &inf);
 			ks += inf;
@@ -603,7 +603,7 @@ L20:
 			    cc = h__[kbot + (kbot - 1) * h_dim1];
 			    bb = h__[kbot - 1 + kbot * h_dim1];
 			    dd = h__[kbot + kbot * h_dim1];
-			    dlanv2_(&aa, &bb, &cc, &dd, &wr[kbot - 1], &wi[
+			    _starpu_dlanv2_(&aa, &bb, &cc, &dd, &wr[kbot - 1], &wi[
 				    kbot - 1], &wr[kbot], &wi[kbot], &cs, &sn)
 				    ;
 			    ks = kbot - 1;
@@ -717,7 +717,7 @@ L60:
 
 /*              ==== Small-bulge multi-shift QR sweep ==== */
 
-		dlaqr5_(wantt, wantz, &kacc22, n, &ktop, &kbot, &ns, &wr[ks], 
+		_starpu_dlaqr5_(wantt, wantz, &kacc22, n, &ktop, &kbot, &ns, &wr[ks], 
 			&wi[ks], &h__[h_offset], ldh, iloz, ihiz, &z__[
 			z_offset], ldz, &work[1], &c__3, &h__[ku + h_dim1], 
 			ldh, &nve, &h__[kwv + h_dim1], ldh, &nho, &h__[ku + 
@@ -751,4 +751,4 @@ L90:
 /*     ==== End of DLAQR4 ==== */
 
     return 0;
-} /* dlaqr4_ */
+} /* _starpu_dlaqr4_ */

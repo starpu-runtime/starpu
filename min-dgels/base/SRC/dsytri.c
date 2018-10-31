@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b11 = -1.;
 static doublereal c_b13 = 0.;
 
-/* Subroutine */ int dsytri_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsytri_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -32,18 +32,18 @@ static doublereal c_b13 = 0.;
     doublereal t, ak;
     integer kp;
     doublereal akp1;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal temp, akkp1;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     integer kstep;
     logical upper;
-    extern /* Subroutine */ int dsymv_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsymv_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *), xerbla_(char *, integer *);
+	    doublereal *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -125,8 +125,8 @@ static doublereal c_b13 = 0.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -135,7 +135,7 @@ static doublereal c_b13 = 0.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTRI", &i__1);
+	_starpu_xerbla_("DSYTRI", &i__1);
 	return 0;
     }
 
@@ -199,12 +199,12 @@ L30:
 
 	    if (k > 1) {
 		i__1 = k - 1;
-		dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &work[1], &c__1);
 		i__1 = k - 1;
-		dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
 			c__1, &c_b13, &a[k * a_dim1 + 1], &c__1);
 		i__1 = k - 1;
-		a[k + k * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &a[k * 
+		a[k + k * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &a[k * 
 			a_dim1 + 1], &c__1);
 	    }
 	    kstep = 1;
@@ -227,24 +227,24 @@ L30:
 
 	    if (k > 1) {
 		i__1 = k - 1;
-		dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &work[1], &c__1);
 		i__1 = k - 1;
-		dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
 			c__1, &c_b13, &a[k * a_dim1 + 1], &c__1);
 		i__1 = k - 1;
-		a[k + k * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &a[k * 
+		a[k + k * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &a[k * 
 			a_dim1 + 1], &c__1);
 		i__1 = k - 1;
-		a[k + (k + 1) * a_dim1] -= ddot_(&i__1, &a[k * a_dim1 + 1], &
+		a[k + (k + 1) * a_dim1] -= _starpu_ddot_(&i__1, &a[k * a_dim1 + 1], &
 			c__1, &a[(k + 1) * a_dim1 + 1], &c__1);
 		i__1 = k - 1;
-		dcopy_(&i__1, &a[(k + 1) * a_dim1 + 1], &c__1, &work[1], &
+		_starpu_dcopy_(&i__1, &a[(k + 1) * a_dim1 + 1], &c__1, &work[1], &
 			c__1);
 		i__1 = k - 1;
-		dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[a_offset], lda, &work[1], &
 			c__1, &c_b13, &a[(k + 1) * a_dim1 + 1], &c__1);
 		i__1 = k - 1;
-		a[k + 1 + (k + 1) * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &
+		a[k + 1 + (k + 1) * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &
 			a[(k + 1) * a_dim1 + 1], &c__1);
 	    }
 	    kstep = 2;
@@ -257,10 +257,10 @@ L30:
 /*           submatrix A(1:k+1,1:k+1) */
 
 	    i__1 = kp - 1;
-	    dswap_(&i__1, &a[k * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], &
+	    _starpu_dswap_(&i__1, &a[k * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], &
 		    c__1);
 	    i__1 = k - kp - 1;
-	    dswap_(&i__1, &a[kp + 1 + k * a_dim1], &c__1, &a[kp + (kp + 1) * 
+	    _starpu_dswap_(&i__1, &a[kp + 1 + k * a_dim1], &c__1, &a[kp + (kp + 1) * 
 		    a_dim1], lda);
 	    temp = a[k + k * a_dim1];
 	    a[k + k * a_dim1] = a[kp + kp * a_dim1];
@@ -305,13 +305,13 @@ L50:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dcopy_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &work[1], &c__1);
 		i__1 = *n - k;
-		dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
 			 &work[1], &c__1, &c_b13, &a[k + 1 + k * a_dim1], &
 			c__1);
 		i__1 = *n - k;
-		a[k + k * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &a[k + 1 + 
+		a[k + k * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &a[k + 1 + 
 			k * a_dim1], &c__1);
 	    }
 	    kstep = 1;
@@ -334,26 +334,26 @@ L50:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dcopy_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &work[1], &c__1);
 		i__1 = *n - k;
-		dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
 			 &work[1], &c__1, &c_b13, &a[k + 1 + k * a_dim1], &
 			c__1);
 		i__1 = *n - k;
-		a[k + k * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &a[k + 1 + 
+		a[k + k * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &a[k + 1 + 
 			k * a_dim1], &c__1);
 		i__1 = *n - k;
-		a[k + (k - 1) * a_dim1] -= ddot_(&i__1, &a[k + 1 + k * a_dim1]
+		a[k + (k - 1) * a_dim1] -= _starpu_ddot_(&i__1, &a[k + 1 + k * a_dim1]
 , &c__1, &a[k + 1 + (k - 1) * a_dim1], &c__1);
 		i__1 = *n - k;
-		dcopy_(&i__1, &a[k + 1 + (k - 1) * a_dim1], &c__1, &work[1], &
+		_starpu_dcopy_(&i__1, &a[k + 1 + (k - 1) * a_dim1], &c__1, &work[1], &
 			c__1);
 		i__1 = *n - k;
-		dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
+		_starpu_dsymv_(uplo, &i__1, &c_b11, &a[k + 1 + (k + 1) * a_dim1], lda, 
 			 &work[1], &c__1, &c_b13, &a[k + 1 + (k - 1) * a_dim1]
 , &c__1);
 		i__1 = *n - k;
-		a[k - 1 + (k - 1) * a_dim1] -= ddot_(&i__1, &work[1], &c__1, &
+		a[k - 1 + (k - 1) * a_dim1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &
 			a[k + 1 + (k - 1) * a_dim1], &c__1);
 	    }
 	    kstep = 2;
@@ -367,11 +367,11 @@ L50:
 
 	    if (kp < *n) {
 		i__1 = *n - kp;
-		dswap_(&i__1, &a[kp + 1 + k * a_dim1], &c__1, &a[kp + 1 + kp *
+		_starpu_dswap_(&i__1, &a[kp + 1 + k * a_dim1], &c__1, &a[kp + 1 + kp *
 			 a_dim1], &c__1);
 	    }
 	    i__1 = kp - k - 1;
-	    dswap_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &a[kp + (k + 1) * 
+	    _starpu_dswap_(&i__1, &a[k + 1 + k * a_dim1], &c__1, &a[kp + (k + 1) * 
 		    a_dim1], lda);
 	    temp = a[k + k * a_dim1];
 	    a[k + k * a_dim1] = a[kp + kp * a_dim1];
@@ -393,4 +393,4 @@ L60:
 
 /*     End of DSYTRI */
 
-} /* dsytri_ */
+} /* _starpu_dsytri_ */

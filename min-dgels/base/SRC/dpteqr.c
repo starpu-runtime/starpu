@@ -20,7 +20,7 @@ static doublereal c_b8 = 1.;
 static integer c__0 = 0;
 static integer c__1 = 1;
 
-/* Subroutine */ int dpteqr_(char *compz, integer *n, doublereal *d__, 
+/* Subroutine */ int _starpu_dpteqr_(char *compz, integer *n, doublereal *d__, 
 	doublereal *e, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *info)
 {
@@ -35,15 +35,15 @@ static integer c__1 = 1;
     integer i__;
     doublereal vt[1]	/* was [1][1] */;
     integer nru;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dbdsqr_(char *, integer *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dbdsqr_(char *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *);
     integer icompz;
-    extern /* Subroutine */ int dpttrf_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpttrf_(integer *, doublereal *, doublereal *, 
 	     integer *);
 
 
@@ -159,11 +159,11 @@ static integer c__1 = 1;
     /* Function Body */
     *info = 0;
 
-    if (lsame_(compz, "N")) {
+    if (_starpu_lsame_(compz, "N")) {
 	icompz = 0;
-    } else if (lsame_(compz, "V")) {
+    } else if (_starpu_lsame_(compz, "V")) {
 	icompz = 1;
-    } else if (lsame_(compz, "I")) {
+    } else if (_starpu_lsame_(compz, "I")) {
 	icompz = 2;
     } else {
 	icompz = -1;
@@ -177,7 +177,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPTEQR", &i__1);
+	_starpu_xerbla_("DPTEQR", &i__1);
 	return 0;
     }
 
@@ -194,12 +194,12 @@ static integer c__1 = 1;
 	return 0;
     }
     if (icompz == 2) {
-	dlaset_("Full", n, n, &c_b7, &c_b8, &z__[z_offset], ldz);
+	_starpu_dlaset_("Full", n, n, &c_b7, &c_b8, &z__[z_offset], ldz);
     }
 
 /*     Call DPTTRF to factor the matrix. */
 
-    dpttrf_(n, &d__[1], &e[1], info);
+    _starpu_dpttrf_(n, &d__[1], &e[1], info);
     if (*info != 0) {
 	return 0;
     }
@@ -222,7 +222,7 @@ static integer c__1 = 1;
     } else {
 	nru = 0;
     }
-    dbdsqr_("Lower", n, &c__0, &nru, &c__0, &d__[1], &e[1], vt, &c__1, &z__[
+    _starpu_dbdsqr_("Lower", n, &c__0, &nru, &c__0, &d__[1], &e[1], vt, &c__1, &z__[
 	    z_offset], ldz, c__, &c__1, &work[1], info);
 
 /*     Square the singular values. */
@@ -241,4 +241,4 @@ static integer c__1 = 1;
 
 /*     End of DPTEQR */
 
-} /* dpteqr_ */
+} /* _starpu_dpteqr_ */

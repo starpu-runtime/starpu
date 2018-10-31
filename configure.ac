@@ -3125,6 +3125,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 					AC_MSG_RESULT(yes)
 					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
 					AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+					AC_DEFINE(STARPU_BUILT_IN_MIN_DGELS, [1], [use built-in min_dgels])
 					AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 					install_min_dgels=yes
 				fi

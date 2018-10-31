@@ -1,4 +1,4 @@
-/* dla_geamv.f -- translated by f2c (version 20061008).
+/* _starpu_dla_geamv.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dla_geamv__(integer *trans, integer *m, integer *n, 
+/* Subroutine */ int _starpu_dla_geamv__(integer *trans, integer *m, integer *n, 
 	doublereal *alpha, doublereal *a, integer *lda, doublereal *x, 
 	integer *incx, doublereal *beta, doublereal *y, integer *incy)
 {
@@ -25,15 +25,15 @@
     double d_sign(doublereal *, doublereal *);
 
     /* Local variables */
-    extern integer ilatrans_(char *);
+    extern integer _starpu_ilatrans_(char *);
     integer i__, j;
     logical symb_zero__;
     integer iy, jx, kx, ky, info;
     doublereal temp;
     integer lenx, leny;
     doublereal safe1;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*     -- LAPACK routine (version 3.2)                                 -- */
@@ -166,7 +166,7 @@
 
     /* Function Body */
     info = 0;
-    if (! (*trans == ilatrans_("N") || *trans == ilatrans_("T") || *trans == ilatrans_("C"))) {
+    if (! (*trans == _starpu_ilatrans_("N") || *trans == _starpu_ilatrans_("T") || *trans == _starpu_ilatrans_("C"))) {
 	info = 1;
     } else if (*m < 0) {
 	info = 2;
@@ -180,7 +180,7 @@
 	info = 11;
     }
     if (info != 0) {
-	xerbla_("DLA_GEAMV ", &info);
+	_starpu_xerbla_("DLA_GEAMV ", &info);
 	return 0;
     }
 
@@ -193,7 +193,7 @@
 /*     Set  LENX  and  LENY, the lengths of the vectors x and y, and set */
 /*     up the start points in  X  and  Y. */
 
-    if (*trans == ilatrans_("N")) {
+    if (*trans == _starpu_ilatrans_("N")) {
 	lenx = *n;
 	leny = *m;
     } else {
@@ -214,7 +214,7 @@
 /*     Set SAFE1 essentially to be the underflow threshold times the */
 /*     number of additions in each row. */
 
-    safe1 = dlamch_("Safe minimum");
+    safe1 = _starpu_dlamch_("Safe minimum");
     safe1 = (*n + 1) * safe1;
 
 /*     Form  y := alpha*abs(A)*abs(x) + beta*abs(y). */
@@ -239,7 +239,7 @@
 	    if (*alpha != 0.) {
 		i__2 = lenx;
 		for (j = 1; j <= i__2; ++j) {
-		    if (*trans == ilatrans_("N")) {
+		    if (*trans == _starpu_ilatrans_("N")) {
 			temp = (d__1 = a[i__ + j * a_dim1], abs(d__1));
 		    } else {
 			temp = (d__1 = a[j + i__ * a_dim1], abs(d__1));
@@ -269,7 +269,7 @@
 		jx = kx;
 		i__2 = lenx;
 		for (j = 1; j <= i__2; ++j) {
-		    if (*trans == ilatrans_("N")) {
+		    if (*trans == _starpu_ilatrans_("N")) {
 			temp = (d__1 = a[i__ + j * a_dim1], abs(d__1));
 		    } else {
 			temp = (d__1 = a[j + i__ * a_dim1], abs(d__1));
@@ -290,4 +290,4 @@
 
 /*     End of DLA_GEAMV */
 
-} /* dla_geamv__ */
+} /* _starpu_dla_geamv__ */

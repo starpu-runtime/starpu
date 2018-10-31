@@ -13,13 +13,13 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer ilauplo_(char *uplo)
+integer _starpu_ilauplo_(char *uplo)
 {
     /* System generated locals */
     integer ret_val;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -51,9 +51,9 @@ integer ilauplo_(char *uplo)
 /*     .. External Functions .. */
 /*     .. */
 /*     .. Executable Statements .. */
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 	ret_val = 121;
-    } else if (lsame_(uplo, "L")) {
+    } else if (_starpu_lsame_(uplo, "L")) {
 	ret_val = 122;
     } else {
 	ret_val = -1;
@@ -62,4 +62,4 @@ integer ilauplo_(char *uplo)
 
 /*     End of ILAUPLO */
 
-} /* ilauplo_ */
+} /* _starpu_ilauplo_ */

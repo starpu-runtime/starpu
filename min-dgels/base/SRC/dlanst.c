@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
+doublereal _starpu_dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
 {
     /* System generated locals */
     integer i__1;
@@ -29,9 +29,9 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
     /* Local variables */
     integer i__;
     doublereal sum, scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
 
 
@@ -107,7 +107,7 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
     /* Function Body */
     if (*n <= 0) {
 	anorm = 0.;
-    } else if (lsame_(norm, "M")) {
+    } else if (_starpu_lsame_(norm, "M")) {
 
 /*        Find max(abs(A(i,j))). */
 
@@ -122,8 +122,8 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
 	    anorm = max(d__2,d__3);
 /* L10: */
 	}
-    } else if (lsame_(norm, "O") || *(unsigned char *)
-	    norm == '1' || lsame_(norm, "I")) {
+    } else if (_starpu_lsame_(norm, "O") || *(unsigned char *)
+	    norm == '1' || _starpu_lsame_(norm, "I")) {
 
 /*        Find norm1(A). */
 
@@ -143,7 +143,7 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
 /* L20: */
 	    }
 	}
-    } else if (lsame_(norm, "F") || lsame_(norm, "E")) {
+    } else if (_starpu_lsame_(norm, "F") || _starpu_lsame_(norm, "E")) {
 
 /*        Find normF(A). */
 
@@ -151,10 +151,10 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
 	sum = 1.;
 	if (*n > 1) {
 	    i__1 = *n - 1;
-	    dlassq_(&i__1, &e[1], &c__1, &scale, &sum);
+	    _starpu_dlassq_(&i__1, &e[1], &c__1, &scale, &sum);
 	    sum *= 2;
 	}
-	dlassq_(n, &d__[1], &c__1, &scale, &sum);
+	_starpu_dlassq_(n, &d__[1], &c__1, &scale, &sum);
 	anorm = scale * sqrt(sum);
     }
 
@@ -163,4 +163,4 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e)
 
 /*     End of DLANST */
 
-} /* dlanst_ */
+} /* _starpu_dlanst_ */

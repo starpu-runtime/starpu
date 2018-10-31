@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b9 = -1.;
 
-/* Subroutine */ int dpbstf_(char *uplo, integer *n, integer *kd, doublereal *
+/* Subroutine */ int _starpu_dpbstf_(char *uplo, integer *n, integer *kd, doublereal *
 	ab, integer *ldab, integer *info)
 {
     /* System generated locals */
@@ -32,12 +32,12 @@ static doublereal c_b9 = -1.;
     integer j, m, km;
     doublereal ajj;
     integer kld;
-    extern /* Subroutine */ int dsyr_(char *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *), dscal_(
+    extern /* Subroutine */ int _starpu_dsyr_(char *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dscal_(
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -156,8 +156,8 @@ static doublereal c_b9 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -168,7 +168,7 @@ static doublereal c_b9 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBSTF", &i__1);
+	_starpu_xerbla_("DPBSTF", &i__1);
 	return 0;
     }
 
@@ -209,8 +209,8 @@ static doublereal c_b9 = -1.;
 /*           the leading submatrix within the band. */
 
 	    d__1 = 1. / ajj;
-	    dscal_(&km, &d__1, &ab[*kd + 1 - km + j * ab_dim1], &c__1);
-	    dsyr_("Upper", &km, &c_b9, &ab[*kd + 1 - km + j * ab_dim1], &c__1, 
+	    _starpu_dscal_(&km, &d__1, &ab[*kd + 1 - km + j * ab_dim1], &c__1);
+	    _starpu_dsyr_("Upper", &km, &c_b9, &ab[*kd + 1 - km + j * ab_dim1], &c__1, 
 		     &ab[*kd + 1 + (j - km) * ab_dim1], &kld);
 /* L10: */
 	}
@@ -237,8 +237,8 @@ static doublereal c_b9 = -1.;
 
 	    if (km > 0) {
 		d__1 = 1. / ajj;
-		dscal_(&km, &d__1, &ab[*kd + (j + 1) * ab_dim1], &kld);
-		dsyr_("Upper", &km, &c_b9, &ab[*kd + (j + 1) * ab_dim1], &kld, 
+		_starpu_dscal_(&km, &d__1, &ab[*kd + (j + 1) * ab_dim1], &kld);
+		_starpu_dsyr_("Upper", &km, &c_b9, &ab[*kd + (j + 1) * ab_dim1], &kld, 
 			 &ab[*kd + 1 + (j + 1) * ab_dim1], &kld);
 	    }
 /* L20: */
@@ -266,8 +266,8 @@ static doublereal c_b9 = -1.;
 /*           trailing submatrix within the band. */
 
 	    d__1 = 1. / ajj;
-	    dscal_(&km, &d__1, &ab[km + 1 + (j - km) * ab_dim1], &kld);
-	    dsyr_("Lower", &km, &c_b9, &ab[km + 1 + (j - km) * ab_dim1], &kld, 
+	    _starpu_dscal_(&km, &d__1, &ab[km + 1 + (j - km) * ab_dim1], &kld);
+	    _starpu_dsyr_("Lower", &km, &c_b9, &ab[km + 1 + (j - km) * ab_dim1], &kld, 
 		     &ab[(j - km) * ab_dim1 + 1], &kld);
 /* L30: */
 	}
@@ -294,8 +294,8 @@ static doublereal c_b9 = -1.;
 
 	    if (km > 0) {
 		d__1 = 1. / ajj;
-		dscal_(&km, &d__1, &ab[j * ab_dim1 + 2], &c__1);
-		dsyr_("Lower", &km, &c_b9, &ab[j * ab_dim1 + 2], &c__1, &ab[(
+		_starpu_dscal_(&km, &d__1, &ab[j * ab_dim1 + 2], &c__1);
+		_starpu_dsyr_("Lower", &km, &c_b9, &ab[j * ab_dim1 + 2], &c__1, &ab[(
 			j + 1) * ab_dim1 + 1], &kld);
 	    }
 /* L40: */
@@ -309,4 +309,4 @@ L50:
 
 /*     End of DPBSTF */
 
-} /* dpbstf_ */
+} /* _starpu_dpbstf_ */

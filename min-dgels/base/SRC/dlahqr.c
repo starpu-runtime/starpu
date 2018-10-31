@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlahqr_(logical *wantt, logical *wantz, integer *n, 
+/* Subroutine */ int _starpu_dlahqr_(logical *wantt, logical *wantz, integer *n, 
 	integer *ilo, integer *ihi, doublereal *h__, integer *ldh, doublereal 
 	*wr, doublereal *wi, integer *iloz, integer *ihiz, doublereal *z__, 
 	integer *ldz, integer *info)
@@ -42,14 +42,14 @@ static integer c__1 = 1;
     doublereal det, h21s;
     integer its;
     doublereal ulp, sum, tst, rt1i, rt2i, rt1r, rt2r;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dcopy_(
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dcopy_(
 	    integer *, doublereal *, integer *, doublereal *, integer *), 
-	    dlanv2_(doublereal *, doublereal *, doublereal *, doublereal *, 
+	    _starpu_dlanv2_(doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *), dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlarfg_(integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *), _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlarfg_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *);
     doublereal safmin, safmax, rtdisc, smlnum;
 
@@ -229,10 +229,10 @@ static integer c__1 = 1;
 
 /*     Set machine-dependent constants for the stopping criterion. */
 
-    safmin = dlamch_("SAFE MINIMUM");
+    safmin = _starpu_dlamch_("SAFE MINIMUM");
     safmax = 1. / safmin;
-    dlabad_(&safmin, &safmax);
-    ulp = dlamch_("PRECISION");
+    _starpu_dlabad_(&safmin, &safmax);
+    ulp = _starpu_dlamch_("PRECISION");
     smlnum = safmin * ((doublereal) nh / ulp);
 
 /*     I1 and I2 are the indices of the first row and last column of H */
@@ -462,9 +462,9 @@ L60:
 	    i__2 = 3, i__3 = i__ - k + 1;
 	    nr = min(i__2,i__3);
 	    if (k > m) {
-		dcopy_(&nr, &h__[k + (k - 1) * h_dim1], &c__1, v, &c__1);
+		_starpu_dcopy_(&nr, &h__[k + (k - 1) * h_dim1], &c__1, v, &c__1);
 	    }
-	    dlarfg_(&nr, v, &v[1], &c__1, &t1);
+	    _starpu_dlarfg_(&nr, v, &v[1], &c__1, &t1);
 	    if (k > m) {
 		h__[k + (k - 1) * h_dim1] = v[0];
 		h__[k + 1 + (k - 1) * h_dim1] = 0.;
@@ -591,7 +591,7 @@ L150:
 /*        Transform the 2-by-2 submatrix to standard Schur form, */
 /*        and compute and store the eigenvalues. */
 
-	dlanv2_(&h__[i__ - 1 + (i__ - 1) * h_dim1], &h__[i__ - 1 + i__ * 
+	_starpu_dlanv2_(&h__[i__ - 1 + (i__ - 1) * h_dim1], &h__[i__ - 1 + i__ * 
 		h_dim1], &h__[i__ + (i__ - 1) * h_dim1], &h__[i__ + i__ * 
 		h_dim1], &wr[i__ - 1], &wi[i__ - 1], &wr[i__], &wi[i__], &cs, 
 		&sn);
@@ -602,18 +602,18 @@ L150:
 
 	    if (i2 > i__) {
 		i__1 = i2 - i__;
-		drot_(&i__1, &h__[i__ - 1 + (i__ + 1) * h_dim1], ldh, &h__[
+		_starpu_drot_(&i__1, &h__[i__ - 1 + (i__ + 1) * h_dim1], ldh, &h__[
 			i__ + (i__ + 1) * h_dim1], ldh, &cs, &sn);
 	    }
 	    i__1 = i__ - i1 - 1;
-	    drot_(&i__1, &h__[i1 + (i__ - 1) * h_dim1], &c__1, &h__[i1 + i__ *
+	    _starpu_drot_(&i__1, &h__[i1 + (i__ - 1) * h_dim1], &c__1, &h__[i1 + i__ *
 		     h_dim1], &c__1, &cs, &sn);
 	}
 	if (*wantz) {
 
 /*           Apply the transformation to Z. */
 
-	    drot_(&nz, &z__[*iloz + (i__ - 1) * z_dim1], &c__1, &z__[*iloz + 
+	    _starpu_drot_(&nz, &z__[*iloz + (i__ - 1) * z_dim1], &c__1, &z__[*iloz + 
 		    i__ * z_dim1], &c__1, &cs, &sn);
 	}
     }
@@ -628,4 +628,4 @@ L160:
 
 /*     End of DLAHQR */
 
-} /* dlahqr_ */
+} /* _starpu_dlahqr_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dggbak_(char *job, char *side, integer *n, integer *ilo, 
+/* Subroutine */ int _starpu_dggbak_(char *job, char *side, integer *n, integer *ilo, 
 	integer *ihi, doublereal *lscale, doublereal *rscale, integer *m, 
 	doublereal *v, integer *ldv, integer *info)
 {
@@ -22,13 +22,13 @@
 
     /* Local variables */
     integer i__, k;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical leftv;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical rightv;
 
 
@@ -124,12 +124,12 @@
     v -= v_offset;
 
     /* Function Body */
-    rightv = lsame_(side, "R");
-    leftv = lsame_(side, "L");
+    rightv = _starpu_lsame_(side, "R");
+    leftv = _starpu_lsame_(side, "L");
 
     *info = 0;
-    if (! lsame_(job, "N") && ! lsame_(job, "P") && ! lsame_(job, "S") 
-	    && ! lsame_(job, "B")) {
+    if (! _starpu_lsame_(job, "N") && ! _starpu_lsame_(job, "P") && ! _starpu_lsame_(job, "S") 
+	    && ! _starpu_lsame_(job, "B")) {
 	*info = -1;
     } else if (! rightv && ! leftv) {
 	*info = -2;
@@ -150,7 +150,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGBAK", &i__1);
+	_starpu_xerbla_("DGGBAK", &i__1);
 	return 0;
     }
 
@@ -162,7 +162,7 @@
     if (*m == 0) {
 	return 0;
     }
-    if (lsame_(job, "N")) {
+    if (_starpu_lsame_(job, "N")) {
 	return 0;
     }
 
@@ -172,14 +172,14 @@
 
 /*     Backward balance */
 
-    if (lsame_(job, "S") || lsame_(job, "B")) {
+    if (_starpu_lsame_(job, "S") || _starpu_lsame_(job, "B")) {
 
 /*        Backward transformation on right eigenvectors */
 
 	if (rightv) {
 	    i__1 = *ihi;
 	    for (i__ = *ilo; i__ <= i__1; ++i__) {
-		dscal_(m, &rscale[i__], &v[i__ + v_dim1], ldv);
+		_starpu_dscal_(m, &rscale[i__], &v[i__ + v_dim1], ldv);
 /* L10: */
 	    }
 	}
@@ -189,7 +189,7 @@
 	if (leftv) {
 	    i__1 = *ihi;
 	    for (i__ = *ilo; i__ <= i__1; ++i__) {
-		dscal_(m, &lscale[i__], &v[i__ + v_dim1], ldv);
+		_starpu_dscal_(m, &lscale[i__], &v[i__ + v_dim1], ldv);
 /* L20: */
 	    }
 	}
@@ -198,7 +198,7 @@
 /*     Backward permutation */
 
 L30:
-    if (lsame_(job, "P") || lsame_(job, "B")) {
+    if (_starpu_lsame_(job, "P") || _starpu_lsame_(job, "B")) {
 
 /*        Backward permutation on right eigenvectors */
 
@@ -212,7 +212,7 @@ L30:
 		if (k == i__) {
 		    goto L40;
 		}
-		dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
+		_starpu_dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
 L40:
 		;
 	    }
@@ -227,7 +227,7 @@ L50:
 		if (k == i__) {
 		    goto L60;
 		}
-		dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
+		_starpu_dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
 L60:
 		;
 	    }
@@ -245,7 +245,7 @@ L70:
 		if (k == i__) {
 		    goto L80;
 		}
-		dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
+		_starpu_dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
 L80:
 		;
 	    }
@@ -260,7 +260,7 @@ L90:
 		if (k == i__) {
 		    goto L100;
 		}
-		dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
+		_starpu_dswap_(m, &v[i__ + v_dim1], ldv, &v[k + v_dim1], ldv);
 L100:
 		;
 	    }
@@ -273,4 +273,4 @@ L110:
 
 /*     End of DGGBAK */
 
-} /* dggbak_ */
+} /* _starpu_dggbak_ */

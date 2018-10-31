@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__3 = 3;
 static integer c__2 = 2;
 
-/* Subroutine */ int dorgql_(integer *m, integer *n, integer *k, doublereal *
+/* Subroutine */ int _starpu_dorgql_(integer *m, integer *n, integer *k, doublereal *
 	a, integer *lda, doublereal *tau, doublereal *work, integer *lwork, 
 	integer *info)
 {
@@ -29,13 +29,13 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer i__, j, l, ib, nb, kk, nx, iws, nbmin, iinfo;
-    extern /* Subroutine */ int dorg2l_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorg2l_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *), 
-	    dlarfb_(char *, char *, char *, char *, integer *, integer *, 
+	    _starpu_dlarfb_(char *, char *, char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, integer *), dlarft_(char *, char *, integer *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dlarft_(char *, char *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer ldwork, lwkopt;
     logical lquery;
@@ -145,7 +145,7 @@ static integer c__2 = 2;
 	if (*n == 0) {
 	    lwkopt = 1;
 	} else {
-	    nb = ilaenv_(&c__1, "DORGQL", " ", m, n, k, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DORGQL", " ", m, n, k, &c_n1);
 	    lwkopt = *n * nb;
 	}
 	work[1] = (doublereal) lwkopt;
@@ -157,7 +157,7 @@ static integer c__2 = 2;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORGQL", &i__1);
+	_starpu_xerbla_("DORGQL", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -177,7 +177,7 @@ static integer c__2 = 2;
 /*        Determine when to cross over from blocked to unblocked code. */
 
 /* Computing MAX */
-	i__1 = 0, i__2 = ilaenv_(&c__3, "DORGQL", " ", m, n, k, &c_n1);
+	i__1 = 0, i__2 = _starpu_ilaenv_(&c__3, "DORGQL", " ", m, n, k, &c_n1);
 	nx = max(i__1,i__2);
 	if (nx < *k) {
 
@@ -192,7 +192,7 @@ static integer c__2 = 2;
 
 		nb = *lwork / ldwork;
 /* Computing MAX */
-		i__1 = 2, i__2 = ilaenv_(&c__2, "DORGQL", " ", m, n, k, &c_n1);
+		i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DORGQL", " ", m, n, k, &c_n1);
 		nbmin = max(i__1,i__2);
 	    }
 	}
@@ -227,7 +227,7 @@ static integer c__2 = 2;
     i__1 = *m - kk;
     i__2 = *n - kk;
     i__3 = *k - kk;
-    dorg2l_(&i__1, &i__2, &i__3, &a[a_offset], lda, &tau[1], &work[1], &iinfo)
+    _starpu_dorg2l_(&i__1, &i__2, &i__3, &a[a_offset], lda, &tau[1], &work[1], &iinfo)
 	    ;
 
     if (kk > 0) {
@@ -247,14 +247,14 @@ static integer c__2 = 2;
 /*              H = H(i+ib-1) . . . H(i+1) H(i) */
 
 		i__3 = *m - *k + i__ + ib - 1;
-		dlarft_("Backward", "Columnwise", &i__3, &ib, &a[(*n - *k + 
+		_starpu_dlarft_("Backward", "Columnwise", &i__3, &ib, &a[(*n - *k + 
 			i__) * a_dim1 + 1], lda, &tau[i__], &work[1], &ldwork);
 
 /*              Apply H to A(1:m-k+i+ib-1,1:n-k+i-1) from the left */
 
 		i__3 = *m - *k + i__ + ib - 1;
 		i__4 = *n - *k + i__ - 1;
-		dlarfb_("Left", "No transpose", "Backward", "Columnwise", &
+		_starpu_dlarfb_("Left", "No transpose", "Backward", "Columnwise", &
 			i__3, &i__4, &ib, &a[(*n - *k + i__) * a_dim1 + 1], 
 			lda, &work[1], &ldwork, &a[a_offset], lda, &work[ib + 
 			1], &ldwork);
@@ -263,7 +263,7 @@ static integer c__2 = 2;
 /*           Apply H to rows 1:m-k+i+ib-1 of current block */
 
 	    i__3 = *m - *k + i__ + ib - 1;
-	    dorg2l_(&i__3, &ib, &ib, &a[(*n - *k + i__) * a_dim1 + 1], lda, &
+	    _starpu_dorg2l_(&i__3, &ib, &ib, &a[(*n - *k + i__) * a_dim1 + 1], lda, &
 		    tau[i__], &work[1], &iinfo);
 
 /*           Set rows m-k+i+ib:m of current block to zero */
@@ -286,4 +286,4 @@ static integer c__2 = 2;
 
 /*     End of DORGQL */
 
-} /* dorgql_ */
+} /* _starpu_dorgql_ */

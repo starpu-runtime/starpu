@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgbsv_(integer *n, integer *kl, integer *ku, integer *
+/* Subroutine */ int _starpu_dgbsv_(integer *n, integer *kl, integer *ku, integer *
 	nrhs, doublereal *ab, integer *ldab, integer *ipiv, doublereal *b, 
 	integer *ldb, integer *info)
 {
@@ -21,9 +21,9 @@
     integer ab_dim1, ab_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern /* Subroutine */ int dgbtrf_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgbtrf_(integer *, integer *, integer *, 
 	    integer *, doublereal *, integer *, integer *, integer *), 
-	    xerbla_(char *, integer *), dgbtrs_(char *, integer *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dgbtrs_(char *, integer *, 
 	    integer *, integer *, integer *, doublereal *, integer *, integer 
 	    *, doublereal *, integer *, integer *);
 
@@ -155,22 +155,22 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBSV ", &i__1);
+	_starpu_xerbla_("DGBSV ", &i__1);
 	return 0;
     }
 
 /*     Compute the LU factorization of the band matrix A. */
 
-    dgbtrf_(n, n, kl, ku, &ab[ab_offset], ldab, &ipiv[1], info);
+    _starpu_dgbtrf_(n, n, kl, ku, &ab[ab_offset], ldab, &ipiv[1], info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dgbtrs_("No transpose", n, kl, ku, nrhs, &ab[ab_offset], ldab, &ipiv[
+	_starpu_dgbtrs_("No transpose", n, kl, ku, nrhs, &ab[ab_offset], ldab, &ipiv[
 		1], &b[b_offset], ldb, info);
     }
     return 0;
 
 /*     End of DGBSV */
 
-} /* dgbsv_ */
+} /* _starpu_dgbsv_ */

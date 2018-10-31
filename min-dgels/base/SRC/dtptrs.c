@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dtptrs_(char *uplo, char *trans, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtptrs_(char *uplo, char *trans, char *diag, integer *n, 
 	integer *nrhs, doublereal *ap, doublereal *b, integer *ldb, integer *
 	info)
 {
@@ -26,11 +26,11 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer j, jc;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int dtpsv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtpsv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     logical nounit;
 
 
@@ -123,14 +123,14 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    nounit = lsame_(diag, "N");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    nounit = _starpu_lsame_(diag, "N");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
-	    "T") && ! lsame_(trans, "C")) {
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
+	    "T") && ! _starpu_lsame_(trans, "C")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -141,7 +141,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTPTRS", &i__1);
+	_starpu_xerbla_("DTPTRS", &i__1);
 	return 0;
     }
 
@@ -182,7 +182,7 @@ static integer c__1 = 1;
 
     i__1 = *nrhs;
     for (j = 1; j <= i__1; ++j) {
-	dtpsv_(uplo, trans, diag, n, &ap[1], &b[j * b_dim1 + 1], &c__1);
+	_starpu_dtpsv_(uplo, trans, diag, n, &ap[1], &b[j * b_dim1 + 1], &c__1);
 /* L30: */
     }
 
@@ -190,4 +190,4 @@ static integer c__1 = 1;
 
 /*     End of DTPTRS */
 
-} /* dtptrs_ */
+} /* _starpu_dtptrs_ */

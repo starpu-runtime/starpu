@@ -18,7 +18,7 @@
 static integer c__2 = 2;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlagv2_(doublereal *a, integer *lda, doublereal *b, 
+/* Subroutine */ int _starpu_dlagv2_(doublereal *a, integer *lda, doublereal *b, 
 	integer *ldb, doublereal *alphar, doublereal *alphai, doublereal *
 	beta, doublereal *csl, doublereal *snl, doublereal *csr, doublereal *
 	snr)
@@ -29,20 +29,20 @@ static integer c__1 = 1;
 
     /* Local variables */
     doublereal r__, t, h1, h2, h3, wi, qq, rr, wr1, wr2, ulp;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dlag2_(
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dlag2_(
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
     doublereal anorm, bnorm, scale1, scale2;
-    extern /* Subroutine */ int dlasv2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
-    extern doublereal dlapy2_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *);
     doublereal ascale, bscale;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
 
 
@@ -154,8 +154,8 @@ static integer c__1 = 1;
     --beta;
 
     /* Function Body */
-    safmin = dlamch_("S");
-    ulp = dlamch_("P");
+    safmin = _starpu_dlamch_("S");
+    ulp = _starpu_dlamch_("P");
 
 /*     Scale A */
 
@@ -195,21 +195,21 @@ static integer c__1 = 1;
 /*     Check if B is singular */
 
     } else if ((d__1 = b[b_dim1 + 1], abs(d__1)) <= ulp) {
-	dlartg_(&a[a_dim1 + 1], &a[a_dim1 + 2], csl, snl, &r__);
+	_starpu_dlartg_(&a[a_dim1 + 1], &a[a_dim1 + 2], csl, snl, &r__);
 	*csr = 1.;
 	*snr = 0.;
-	drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
-	drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
+	_starpu_drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
+	_starpu_drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
 	a[a_dim1 + 2] = 0.;
 	b[b_dim1 + 1] = 0.;
 	b[b_dim1 + 2] = 0.;
 
     } else if ((d__1 = b[(b_dim1 << 1) + 2], abs(d__1)) <= ulp) {
-	dlartg_(&a[(a_dim1 << 1) + 2], &a[a_dim1 + 2], csr, snr, &t);
+	_starpu_dlartg_(&a[(a_dim1 << 1) + 2], &a[a_dim1 + 2], csr, snr, &t);
 	*snr = -(*snr);
-	drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, csr, 
+	_starpu_drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, csr, 
 		 snr);
-	drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, csr, 
+	_starpu_drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, csr, 
 		 snr);
 	*csl = 1.;
 	*snl = 0.;
@@ -221,7 +221,7 @@ static integer c__1 = 1;
 
 /*        B is nonsingular, first compute the eigenvalues of (A,B) */
 
-	dlag2_(&a[a_offset], lda, &b[b_offset], ldb, &safmin, &scale1, &
+	_starpu_dlag2_(&a[a_offset], lda, &b[b_offset], ldb, &safmin, &scale1, &
 		scale2, &wr1, &wr2, &wi);
 
 	if (wi == 0.) {
@@ -232,16 +232,16 @@ static integer c__1 = 1;
 	    h2 = scale1 * a[(a_dim1 << 1) + 1] - wr1 * b[(b_dim1 << 1) + 1];
 	    h3 = scale1 * a[(a_dim1 << 1) + 2] - wr1 * b[(b_dim1 << 1) + 2];
 
-	    rr = dlapy2_(&h1, &h2);
+	    rr = _starpu_dlapy2_(&h1, &h2);
 	    d__1 = scale1 * a[a_dim1 + 2];
-	    qq = dlapy2_(&d__1, &h3);
+	    qq = _starpu_dlapy2_(&d__1, &h3);
 
 	    if (rr > qq) {
 
 /*              find right rotation matrix to zero 1,1 element of */
 /*              (sA - wB) */
 
-		dlartg_(&h2, &h1, csr, snr, &t);
+		_starpu_dlartg_(&h2, &h1, csr, snr, &t);
 
 	    } else {
 
@@ -249,14 +249,14 @@ static integer c__1 = 1;
 /*              (sA - wB) */
 
 		d__1 = scale1 * a[a_dim1 + 2];
-		dlartg_(&h3, &d__1, csr, snr, &t);
+		_starpu_dlartg_(&h3, &d__1, csr, snr, &t);
 
 	    }
 
 	    *snr = -(*snr);
-	    drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, 
+	    _starpu_drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, 
 		    csr, snr);
-	    drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, 
+	    _starpu_drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, 
 		    csr, snr);
 
 /*           compute inf norms of A and B */
@@ -276,18 +276,18 @@ static integer c__1 = 1;
 
 /*              find left rotation matrix Q to zero out B(2,1) */
 
-		dlartg_(&b[b_dim1 + 1], &b[b_dim1 + 2], csl, snl, &r__);
+		_starpu_dlartg_(&b[b_dim1 + 1], &b[b_dim1 + 2], csl, snl, &r__);
 
 	    } else {
 
 /*              find left rotation matrix Q to zero out A(2,1) */
 
-		dlartg_(&a[a_dim1 + 1], &a[a_dim1 + 2], csl, snl, &r__);
+		_starpu_dlartg_(&a[a_dim1 + 1], &a[a_dim1 + 2], csl, snl, &r__);
 
 	    }
 
-	    drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
-	    drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
+	    _starpu_drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
+	    _starpu_drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
 
 	    a[a_dim1 + 2] = 0.;
 	    b[b_dim1 + 2] = 0.;
@@ -297,17 +297,17 @@ static integer c__1 = 1;
 /*           a pair of complex conjugate eigenvalues */
 /*           first compute the SVD of the matrix B */
 
-	    dlasv2_(&b[b_dim1 + 1], &b[(b_dim1 << 1) + 1], &b[(b_dim1 << 1) + 
+	    _starpu_dlasv2_(&b[b_dim1 + 1], &b[(b_dim1 << 1) + 1], &b[(b_dim1 << 1) + 
 		    2], &r__, &t, snr, csr, snl, csl);
 
 /*           Form (A,B) := Q(A,B)Z' where Q is left rotation matrix and */
 /*           Z is right rotation matrix computed from DLASV2 */
 
-	    drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
-	    drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
-	    drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, 
+	    _starpu_drot_(&c__2, &a[a_dim1 + 1], lda, &a[a_dim1 + 2], lda, csl, snl);
+	    _starpu_drot_(&c__2, &b[b_dim1 + 1], ldb, &b[b_dim1 + 2], ldb, csl, snl);
+	    _starpu_drot_(&c__2, &a[a_dim1 + 1], &c__1, &a[(a_dim1 << 1) + 1], &c__1, 
 		    csr, snr);
-	    drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, 
+	    _starpu_drot_(&c__2, &b[b_dim1 + 1], &c__1, &b[(b_dim1 << 1) + 1], &c__1, 
 		    csr, snr);
 
 	    b[b_dim1 + 2] = 0.;
@@ -348,4 +348,4 @@ static integer c__1 = 1;
 
 /*     End of DLAGV2 */
 
-} /* dlagv2_ */
+} /* _starpu_dlagv2_ */

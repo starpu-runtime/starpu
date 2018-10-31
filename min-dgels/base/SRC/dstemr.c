@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b18 = .001;
 
-/* Subroutine */ int dstemr_(char *jobz, char *range, integer *n, doublereal *
+/* Subroutine */ int _starpu_dstemr_(char *jobz, char *range, integer *n, doublereal *
 	d__, doublereal *e, doublereal *vl, doublereal *vu, integer *il, 
 	integer *iu, integer *m, doublereal *w, doublereal *z__, integer *ldz, 
 	 integer *nzc, integer *isuppz, logical *tryrac, doublereal *work, 
@@ -44,33 +44,33 @@ static doublereal c_b18 = .001;
     doublereal rmin, rmax;
     integer itmp;
     doublereal tnrm;
-    extern /* Subroutine */ int dlae2_(doublereal *, doublereal *, doublereal 
+    extern /* Subroutine */ int _starpu_dlae2_(doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *);
     integer inde2, itmp2;
     doublereal rtol1, rtol2;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal scale;
     integer indgp;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo, iindw, ilast;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     integer lwmin;
     logical wantz;
-    extern /* Subroutine */ int dlaev2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaev2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical alleig;
     integer ibegin;
     logical indeig;
     integer iindbl;
     logical valeig;
-    extern /* Subroutine */ int dlarrc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarrc_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     integer *, integer *, integer *), dlarre_(char *, 
+	     integer *, integer *, integer *), _starpu_dlarre_(char *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, integer *, integer *, integer *, 
@@ -78,20 +78,20 @@ static doublereal c_b18 = .001;
 	    doublereal *, doublereal *, doublereal *, integer *, integer *);
     integer wbegin;
     doublereal safmin;
-    extern /* Subroutine */ int dlarrj_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarrj_(integer *, doublereal *, doublereal *, 
 	     integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *), xerbla_(char *, integer *);
+	     integer *), _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     integer inderr, iindwk, indgrs, offset;
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dlarrr_(integer *, doublereal *, doublereal *, 
-	     integer *), dlarrv_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlanst_(char *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlarrr_(integer *, doublereal *, doublereal *, 
+	     integer *), _starpu_dlarrv_(integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlasrt_(char *, integer *, doublereal *, 
+	    integer *, integer *), _starpu_dlasrt_(char *, integer *, doublereal *, 
 	    integer *);
     doublereal thresh;
     integer iinspl, ifirst, indwrk, liwmin, nzcmin;
@@ -331,10 +331,10 @@ static doublereal c_b18 = .001;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    alleig = lsame_(range, "A");
-    valeig = lsame_(range, "V");
-    indeig = lsame_(range, "I");
+    wantz = _starpu_lsame_(jobz, "V");
+    alleig = _starpu_lsame_(range, "A");
+    valeig = _starpu_lsame_(range, "V");
+    indeig = _starpu_lsame_(range, "I");
 
     lquery = *lwork == -1 || *liwork == -1;
     zquery = *nzc == -1;
@@ -366,7 +366,7 @@ static doublereal c_b18 = .001;
     }
 
     *info = 0;
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
     } else if (! (alleig || valeig || indeig)) {
 	*info = -2;
@@ -388,8 +388,8 @@ static doublereal c_b18 = .001;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -404,7 +404,7 @@ static doublereal c_b18 = .001;
 	if (wantz && alleig) {
 	    nzcmin = *n;
 	} else if (wantz && valeig) {
-	    dlarrc_("T", n, vl, vu, &d__[1], &e[1], &safmin, &nzcmin, &itmp, &
+	    _starpu_dlarrc_("T", n, vl, vu, &d__[1], &e[1], &safmin, &nzcmin, &itmp, &
 		    itmp2, info);
 	} else if (wantz && indeig) {
 	    nzcmin = iiu - iil + 1;
@@ -421,7 +421,7 @@ static doublereal c_b18 = .001;
     if (*info != 0) {
 
 	i__1 = -(*info);
-	xerbla_("DSTEMR", &i__1);
+	_starpu_xerbla_("DSTEMR", &i__1);
 
 	return 0;
     } else if (lquery || zquery) {
@@ -455,9 +455,9 @@ static doublereal c_b18 = .001;
 
     if (*n == 2) {
 	if (! wantz) {
-	    dlae2_(&d__[1], &e[1], &d__[2], &r1, &r2);
+	    _starpu_dlae2_(&d__[1], &e[1], &d__[2], &r1, &r2);
 	} else if (wantz && ! zquery) {
-	    dlaev2_(&d__[1], &e[1], &d__[2], &r1, &r2, &cs, &sn);
+	    _starpu_dlaev2_(&d__[1], &e[1], &d__[2], &r1, &r2, &cs, &sn);
 	}
 	if (alleig || valeig && r2 > wl && r2 <= wu || indeig && iil == 1) {
 	    ++(*m);
@@ -523,16 +523,16 @@ static doublereal c_b18 = .001;
 /*     RMAX threshold. */
 
     scale = 1.;
-    tnrm = dlanst_("M", n, &d__[1], &e[1]);
+    tnrm = _starpu_dlanst_("M", n, &d__[1], &e[1]);
     if (tnrm > 0. && tnrm < rmin) {
 	scale = rmin / tnrm;
     } else if (tnrm > rmax) {
 	scale = rmax / tnrm;
     }
     if (scale != 1.) {
-	dscal_(n, &scale, &d__[1], &c__1);
+	_starpu_dscal_(n, &scale, &d__[1], &c__1);
 	i__1 = *n - 1;
-	dscal_(&i__1, &scale, &e[1], &c__1);
+	_starpu_dscal_(&i__1, &scale, &e[1], &c__1);
 	tnrm *= scale;
 	if (valeig) {
 /*           If eigenvalues in interval have to be found, */
@@ -552,7 +552,7 @@ static doublereal c_b18 = .001;
 
     if (*tryrac) {
 /*        Test whether the matrix warrants the more expensive relative approach. */
-	dlarrr_(n, &d__[1], &e[1], &iinfo);
+	_starpu_dlarrr_(n, &d__[1], &e[1], &iinfo);
     } else {
 /*        The user does not care about relative accurately eigenvalues */
 	iinfo = -1;
@@ -568,7 +568,7 @@ static doublereal c_b18 = .001;
 
     if (*tryrac) {
 /*        Copy original diagonal, needed to guarantee relative accuracy */
-	dcopy_(n, &d__[1], &c__1, &work[indd], &c__1);
+	_starpu_dcopy_(n, &d__[1], &c__1, &work[indd], &c__1);
     }
 /*     Store the squares of the offdiagonal values of T */
     i__1 = *n - 1;
@@ -593,7 +593,7 @@ static doublereal c_b18 = .001;
 	d__1 = sqrt(eps) * .005, d__2 = eps * 4.;
 	rtol2 = max(d__1,d__2);
     }
-    dlarre_(range, n, &wl, &wu, &iil, &iiu, &d__[1], &e[1], &work[inde2], &
+    _starpu_dlarre_(range, n, &wl, &wu, &iil, &iiu, &d__[1], &e[1], &work[inde2], &
 	    rtol1, &rtol2, &thresh, &nsplit, &iwork[iinspl], m, &w[1], &work[
 	    inderr], &work[indgp], &iwork[iindbl], &iwork[iindw], &work[
 	    indgrs], &pivmin, &work[indwrk], &iwork[iindwk], &iinfo);
@@ -609,7 +609,7 @@ static doublereal c_b18 = .001;
 /*        Compute the desired eigenvectors corresponding to the computed */
 /*        eigenvalues */
 
-	dlarrv_(n, &wl, &wu, &d__[1], &e[1], &pivmin, &iwork[iinspl], m, &
+	_starpu_dlarrv_(n, &wl, &wu, &d__[1], &e[1], &pivmin, &iwork[iinspl], m, &
 		c__1, m, &c_b18, &rtol1, &rtol2, &w[1], &work[inderr], &work[
 		indgp], &iwork[iindbl], &iwork[iindw], &work[indgrs], &z__[
 		z_offset], ldz, &isuppz[1], &work[indwrk], &iwork[iindwk], &
@@ -658,7 +658,7 @@ L36:
 	    ifirst = iwork[iindw + wbegin - 1];
 	    ilast = iwork[iindw + wend - 1];
 	    rtol2 = eps * 4.;
-	    dlarrj_(&in, &work[indd + ibegin - 1], &work[inde2 + ibegin - 1], 
+	    _starpu_dlarrj_(&in, &work[indd + ibegin - 1], &work[inde2 + ibegin - 1], 
 		    &ifirst, &ilast, &rtol2, &offset, &w[wbegin], &work[
 		    inderr + wbegin - 1], &work[indwrk], &iwork[iindwk], &
 		    pivmin, &tnrm, &iinfo);
@@ -673,7 +673,7 @@ L39:
 
     if (scale != 1.) {
 	d__1 = 1. / scale;
-	dscal_(m, &d__1, &w[1], &c__1);
+	_starpu_dscal_(m, &d__1, &w[1], &c__1);
     }
 
 /*     If eigenvalues are not in increasing order, then sort them, */
@@ -681,7 +681,7 @@ L39:
 
     if (nsplit > 1) {
 	if (! wantz) {
-	    dlasrt_("I", m, &w[1], &iinfo);
+	    _starpu_dlasrt_("I", m, &w[1], &iinfo);
 	    if (iinfo != 0) {
 		*info = 3;
 		return 0;
@@ -703,7 +703,7 @@ L39:
 		    w[i__] = w[j];
 		    w[j] = tmp;
 		    if (wantz) {
-			dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[j * 
+			_starpu_dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[j * 
 				z_dim1 + 1], &c__1);
 			itmp = isuppz[(i__ << 1) - 1];
 			isuppz[(i__ << 1) - 1] = isuppz[(j << 1) - 1];
@@ -725,4 +725,4 @@ L39:
 
 /*     End of DSTEMR */
 
-} /* dstemr_ */
+} /* _starpu_dstemr_ */

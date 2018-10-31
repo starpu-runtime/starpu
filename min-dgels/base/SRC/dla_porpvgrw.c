@@ -1,4 +1,4 @@
-/* dla_porpvgrw.f -- translated by f2c (version 20061008).
+/* _starpu_dla_porpvgrw.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
+doublereal _starpu_dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
 	lda, doublereal *af, integer *ldaf, doublereal *work, ftnlen uplo_len)
 {
     /* System generated locals */
@@ -23,7 +23,7 @@ doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
     /* Local variables */
     integer i__, j;
     doublereal amax, umax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
     doublereal rpvgrw;
 
@@ -97,7 +97,7 @@ doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
     --work;
 
     /* Function Body */
-    upper = lsame_("Upper", uplo);
+    upper = _starpu_lsame_("Upper", uplo);
 
 /*     DPOTRF will have factored only the NCOLSxNCOLS leading minor, so */
 /*     we restrict the growth search to that minor and use only the first */
@@ -138,7 +138,7 @@ doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
 /*     Now find the max magnitude entry of each column of the factor in */
 /*     AF.  No pivoting, so no permutations. */
 
-    if (lsame_("Upper", uplo)) {
+    if (_starpu_lsame_("Upper", uplo)) {
 	i__1 = *ncols;
 	for (j = 1; j <= i__1; ++j) {
 	    i__2 = j;
@@ -169,7 +169,7 @@ doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
 /*     as growth in itself, so simply ignore terms with zero */
 /*     denominators. */
 
-    if (lsame_("Upper", uplo)) {
+    if (_starpu_lsame_("Upper", uplo)) {
 	i__1 = *ncols;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    umax = work[i__];
@@ -194,4 +194,4 @@ doublereal dla_porpvgrw__(char *uplo, integer *ncols, doublereal *a, integer *
     }
     ret_val = rpvgrw;
     return ret_val;
-} /* dla_porpvgrw__ */
+} /* _starpu_dla_porpvgrw__ */

@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b32 = 0.;
 
-doublereal dlamch_(char *cmach)
+doublereal _starpu_dlamch_(char *cmach)
 {
     /* Initialized data */
 
@@ -41,10 +41,10 @@ doublereal dlamch_(char *cmach)
     logical lrnd;
     static doublereal rmin, rmax;
     doublereal rmach;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal small;
     static doublereal sfmin;
-    extern /* Subroutine */ int dlamc2_(integer *, integer *, logical *, 
+    extern /* Subroutine */ int _starpu_dlamc2_(integer *, integer *, logical *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *);
 
 
@@ -106,7 +106,7 @@ doublereal dlamch_(char *cmach)
 /*     .. Executable Statements .. */
 
     if (first) {
-	dlamc2_(&beta, &it, &lrnd, &eps, &imin, &rmin, &imax, &rmax);
+	_starpu_dlamc2_(&beta, &it, &lrnd, &eps, &imin, &rmin, &imax, &rmax);
 	base = (doublereal) beta;
 	t = (doublereal) it;
 	if (lrnd) {
@@ -132,25 +132,25 @@ doublereal dlamch_(char *cmach)
 	}
     }
 
-    if (lsame_(cmach, "E")) {
+    if (_starpu_lsame_(cmach, "E")) {
 	rmach = eps;
-    } else if (lsame_(cmach, "S")) {
+    } else if (_starpu_lsame_(cmach, "S")) {
 	rmach = sfmin;
-    } else if (lsame_(cmach, "B")) {
+    } else if (_starpu_lsame_(cmach, "B")) {
 	rmach = base;
-    } else if (lsame_(cmach, "P")) {
+    } else if (_starpu_lsame_(cmach, "P")) {
 	rmach = prec;
-    } else if (lsame_(cmach, "N")) {
+    } else if (_starpu_lsame_(cmach, "N")) {
 	rmach = t;
-    } else if (lsame_(cmach, "R")) {
+    } else if (_starpu_lsame_(cmach, "R")) {
 	rmach = rnd;
-    } else if (lsame_(cmach, "M")) {
+    } else if (_starpu_lsame_(cmach, "M")) {
 	rmach = emin;
-    } else if (lsame_(cmach, "U")) {
+    } else if (_starpu_lsame_(cmach, "U")) {
 	rmach = rmin;
-    } else if (lsame_(cmach, "L")) {
+    } else if (_starpu_lsame_(cmach, "L")) {
 	rmach = emax;
-    } else if (lsame_(cmach, "O")) {
+    } else if (_starpu_lsame_(cmach, "O")) {
 	rmach = rmax;
     }
 
@@ -160,12 +160,12 @@ doublereal dlamch_(char *cmach)
 
 /*     End of DLAMCH */
 
-} /* dlamch_ */
+} /* _starpu_dlamch_ */
 
 
 /* *********************************************************************** */
 
-/* Subroutine */ int dlamc1_(integer *beta, integer *t, logical *rnd, logical 
+/* Subroutine */ int _starpu_dlamc1_(integer *beta, integer *t, logical *rnd, logical 
 	*ieee1)
 {
     /* Initialized data */
@@ -182,7 +182,7 @@ doublereal dlamch_(char *cmach)
     static logical lrnd;
     static integer lbeta;
     doublereal savec;
-    extern doublereal dlamc3_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
     static logical lieee1;
 
 
@@ -265,9 +265,9 @@ doublereal dlamch_(char *cmach)
 L10:
 	if (c__ == one) {
 	    a *= 2;
-	    c__ = dlamc3_(&a, &one);
+	    c__ = _starpu_dlamc3_(&a, &one);
 	    d__1 = -a;
-	    c__ = dlamc3_(&c__, &d__1);
+	    c__ = _starpu_dlamc3_(&c__, &d__1);
 	    goto L10;
 	}
 /* +       END WHILE */
@@ -278,13 +278,13 @@ L10:
 /*           fl( a + b ) .gt. a. */
 
 	b = 1.;
-	c__ = dlamc3_(&a, &b);
+	c__ = _starpu_dlamc3_(&a, &b);
 
 /* +       WHILE( C.EQ.A )LOOP */
 L20:
 	if (c__ == a) {
 	    b *= 2;
-	    c__ = dlamc3_(&a, &b);
+	    c__ = _starpu_dlamc3_(&a, &b);
 	    goto L20;
 	}
 /* +       END WHILE */
@@ -297,7 +297,7 @@ L20:
 	qtr = one / 4;
 	savec = c__;
 	d__1 = -a;
-	c__ = dlamc3_(&c__, &d__1);
+	c__ = _starpu_dlamc3_(&c__, &d__1);
 	lbeta = (integer) (c__ + qtr);
 
 /*        Now determine whether rounding or chopping occurs,  by adding a */
@@ -306,8 +306,8 @@ L20:
 	b = (doublereal) lbeta;
 	d__1 = b / 2;
 	d__2 = -b / 100;
-	f = dlamc3_(&d__1, &d__2);
-	c__ = dlamc3_(&f, &a);
+	f = _starpu_dlamc3_(&d__1, &d__2);
+	c__ = _starpu_dlamc3_(&f, &a);
 	if (c__ == a) {
 	    lrnd = TRUE_;
 	} else {
@@ -315,8 +315,8 @@ L20:
 	}
 	d__1 = b / 2;
 	d__2 = b / 100;
-	f = dlamc3_(&d__1, &d__2);
-	c__ = dlamc3_(&f, &a);
+	f = _starpu_dlamc3_(&d__1, &d__2);
+	c__ = _starpu_dlamc3_(&f, &a);
 	if (lrnd && c__ == a) {
 	    lrnd = FALSE_;
 	}
@@ -328,9 +328,9 @@ L20:
 /*        A, but adding B/2 to SAVEC should change SAVEC. */
 
 	d__1 = b / 2;
-	t1 = dlamc3_(&d__1, &a);
+	t1 = _starpu_dlamc3_(&d__1, &a);
 	d__1 = b / 2;
-	t2 = dlamc3_(&d__1, &savec);
+	t2 = _starpu_dlamc3_(&d__1, &savec);
 	lieee1 = t1 == a && t2 > savec && lrnd;
 
 /*        Now find  the  mantissa, t.  It should  be the  integer part of */
@@ -349,9 +349,9 @@ L30:
 	if (c__ == one) {
 	    ++lt;
 	    a *= lbeta;
-	    c__ = dlamc3_(&a, &one);
+	    c__ = _starpu_dlamc3_(&a, &one);
 	    d__1 = -a;
-	    c__ = dlamc3_(&c__, &d__1);
+	    c__ = _starpu_dlamc3_(&c__, &d__1);
 	    goto L30;
 	}
 /* +       END WHILE */
@@ -367,12 +367,12 @@ L30:
 
 /*     End of DLAMC1 */
 
-} /* dlamc1_ */
+} /* _starpu_dlamc1_ */
 
 
 /* *********************************************************************** */
 
-/* Subroutine */ int dlamc2_(integer *beta, integer *t, logical *rnd, 
+/* Subroutine */ int _starpu_dlamc2_(integer *beta, integer *t, logical *rnd, 
 	doublereal *eps, integer *emin, doublereal *rmin, integer *emax, 
 	doublereal *rmax)
 {
@@ -415,12 +415,12 @@ L30:
     doublereal third;
     static doublereal lrmin, lrmax;
     doublereal sixth;
-    extern /* Subroutine */ int dlamc1_(integer *, integer *, logical *, 
+    extern /* Subroutine */ int _starpu_dlamc1_(integer *, integer *, logical *, 
 	    logical *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
     logical lieee1;
-    extern /* Subroutine */ int dlamc4_(integer *, doublereal *, integer *), 
-	    dlamc5_(integer *, integer *, integer *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dlamc4_(integer *, doublereal *, integer *), 
+	    _starpu_dlamc5_(integer *, integer *, integer *, logical *, integer *, 
 	    doublereal *);
     integer ngnmin, ngpmin;
 
@@ -516,7 +516,7 @@ L30:
 
 /*        DLAMC1 returns the parameters  LBETA, LT, LRND and LIEEE1. */
 
-	dlamc1_(&lbeta, &lt, &lrnd, &lieee1);
+	_starpu_dlamc1_(&lbeta, &lt, &lrnd, &lieee1);
 
 /*        Start to find EPS. */
 
@@ -530,11 +530,11 @@ L30:
 	b = two / 3;
 	half = one / 2;
 	d__1 = -half;
-	sixth = dlamc3_(&b, &d__1);
-	third = dlamc3_(&sixth, &sixth);
+	sixth = _starpu_dlamc3_(&b, &d__1);
+	third = _starpu_dlamc3_(&sixth, &sixth);
 	d__1 = -half;
-	b = dlamc3_(&third, &d__1);
-	b = dlamc3_(&b, &sixth);
+	b = _starpu_dlamc3_(&third, &d__1);
+	b = _starpu_dlamc3_(&b, &sixth);
 	b = abs(b);
 	if (b < leps) {
 	    b = leps;
@@ -552,13 +552,13 @@ L10:
 /* Computing 2nd power */
 	    d__5 = leps;
 	    d__2 = d__4 * (d__3 * d__3) * (d__5 * d__5);
-	    c__ = dlamc3_(&d__1, &d__2);
+	    c__ = _starpu_dlamc3_(&d__1, &d__2);
 	    d__1 = -c__;
-	    c__ = dlamc3_(&half, &d__1);
-	    b = dlamc3_(&half, &c__);
+	    c__ = _starpu_dlamc3_(&half, &d__1);
+	    b = _starpu_dlamc3_(&half, &c__);
 	    d__1 = -b;
-	    c__ = dlamc3_(&half, &d__1);
-	    b = dlamc3_(&half, &c__);
+	    c__ = _starpu_dlamc3_(&half, &d__1);
+	    b = _starpu_dlamc3_(&half, &c__);
 	    goto L10;
 	}
 /* +       END WHILE */
@@ -577,16 +577,16 @@ L10:
 	small = one;
 	for (i__ = 1; i__ <= 3; ++i__) {
 	    d__1 = small * rbase;
-	    small = dlamc3_(&d__1, &zero);
+	    small = _starpu_dlamc3_(&d__1, &zero);
 /* L20: */
 	}
-	a = dlamc3_(&one, &small);
-	dlamc4_(&ngpmin, &one, &lbeta);
+	a = _starpu_dlamc3_(&one, &small);
+	_starpu_dlamc4_(&ngpmin, &one, &lbeta);
 	d__1 = -one;
-	dlamc4_(&ngnmin, &d__1, &lbeta);
-	dlamc4_(&gpmin, &a, &lbeta);
+	_starpu_dlamc4_(&ngnmin, &d__1, &lbeta);
+	_starpu_dlamc4_(&gpmin, &a, &lbeta);
 	d__1 = -a;
-	dlamc4_(&gnmin, &d__1, &lbeta);
+	_starpu_dlamc4_(&gnmin, &d__1, &lbeta);
 	ieee = FALSE_;
 
 	if (ngpmin == ngnmin && gpmin == gnmin) {
@@ -661,13 +661,13 @@ L10:
 	i__1 = 1 - lemin;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    d__1 = lrmin * rbase;
-	    lrmin = dlamc3_(&d__1, &zero);
+	    lrmin = _starpu_dlamc3_(&d__1, &zero);
 /* L30: */
 	}
 
 /*        Finally, call DLAMC5 to compute EMAX and RMAX. */
 
-	dlamc5_(&lbeta, &lt, &lemin, &ieee, &lemax, &lrmax);
+	_starpu_dlamc5_(&lbeta, &lt, &lemin, &ieee, &lemax, &lrmax);
     }
 
     *beta = lbeta;
@@ -684,12 +684,12 @@ L10:
 
 /*     End of DLAMC2 */
 
-} /* dlamc2_ */
+} /* _starpu_dlamc2_ */
 
 
 /* *********************************************************************** */
 
-doublereal dlamc3_(doublereal *a, doublereal *b)
+doublereal _starpu_dlamc3_(doublereal *a, doublereal *b)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -726,12 +726,12 @@ doublereal dlamc3_(doublereal *a, doublereal *b)
 
 /*     End of DLAMC3 */
 
-} /* dlamc3_ */
+} /* _starpu_dlamc3_ */
 
 
 /* *********************************************************************** */
 
-/* Subroutine */ int dlamc4_(integer *emin, doublereal *start, integer *base)
+/* Subroutine */ int _starpu_dlamc4_(integer *emin, doublereal *start, integer *base)
 {
     /* System generated locals */
     integer i__1;
@@ -741,7 +741,7 @@ doublereal dlamc3_(doublereal *a, doublereal *b)
     doublereal a;
     integer i__;
     doublereal b1, b2, c1, c2, d1, d2, one, zero, rbase;
-    extern doublereal dlamc3_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -784,7 +784,7 @@ doublereal dlamc3_(doublereal *a, doublereal *b)
     zero = 0.;
     *emin = 1;
     d__1 = a * rbase;
-    b1 = dlamc3_(&d__1, &zero);
+    b1 = _starpu_dlamc3_(&d__1, &zero);
     c1 = a;
     c2 = a;
     d1 = a;
@@ -796,9 +796,9 @@ L10:
 	--(*emin);
 	a = b1;
 	d__1 = a / *base;
-	b1 = dlamc3_(&d__1, &zero);
+	b1 = _starpu_dlamc3_(&d__1, &zero);
 	d__1 = b1 * *base;
-	c1 = dlamc3_(&d__1, &zero);
+	c1 = _starpu_dlamc3_(&d__1, &zero);
 	d1 = zero;
 	i__1 = *base;
 	for (i__ = 1; i__ <= i__1; ++i__) {
@@ -806,9 +806,9 @@ L10:
 /* L20: */
 	}
 	d__1 = a * rbase;
-	b2 = dlamc3_(&d__1, &zero);
+	b2 = _starpu_dlamc3_(&d__1, &zero);
 	d__1 = b2 / rbase;
-	c2 = dlamc3_(&d__1, &zero);
+	c2 = _starpu_dlamc3_(&d__1, &zero);
 	d2 = zero;
 	i__1 = *base;
 	for (i__ = 1; i__ <= i__1; ++i__) {
@@ -823,12 +823,12 @@ L10:
 
 /*     End of DLAMC4 */
 
-} /* dlamc4_ */
+} /* _starpu_dlamc4_ */
 
 
 /* *********************************************************************** */
 
-/* Subroutine */ int dlamc5_(integer *beta, integer *p, integer *emin, 
+/* Subroutine */ int _starpu_dlamc5_(integer *beta, integer *p, integer *emin, 
 	logical *ieee, integer *emax, doublereal *rmax)
 {
     /* System generated locals */
@@ -841,7 +841,7 @@ L10:
     integer try__, lexp;
     doublereal oldy;
     integer uexp, nbits;
-    extern doublereal dlamc3_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
     doublereal recbas;
     integer exbits, expsum;
 
@@ -977,7 +977,7 @@ L10:
 	if (y < 1.) {
 	    oldy = y;
 	}
-	y = dlamc3_(&y, &z__);
+	y = _starpu_dlamc3_(&y, &z__);
 /* L20: */
     }
     if (y >= 1.) {
@@ -989,7 +989,7 @@ L10:
     i__1 = *emax;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	d__1 = y * *beta;
-	y = dlamc3_(&d__1, &c_b32);
+	y = _starpu_dlamc3_(&d__1, &c_b32);
 /* L30: */
     }
 
@@ -998,4 +998,4 @@ L10:
 
 /*     End of DLAMC5 */
 
-} /* dlamc5_ */
+} /* _starpu_dlamc5_ */

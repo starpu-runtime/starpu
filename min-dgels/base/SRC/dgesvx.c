@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgesvx_(char *fact, char *trans, integer *n, integer *
+/* Subroutine */ int _starpu_dgesvx_(char *fact, char *trans, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	integer *ipiv, char *equed, doublereal *r__, doublereal *c__, 
 	doublereal *b, integer *ldb, doublereal *x, integer *ldx, doublereal *
@@ -29,34 +29,34 @@
     integer i__, j;
     doublereal amax;
     char norm[1];
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal rcmin, rcmax, anorm;
     logical equil;
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dlaqge_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaqge_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	     doublereal *, char *), dgecon_(char *, integer *, 
+	     doublereal *, char *), _starpu_dgecon_(char *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
 	     integer *, integer *);
     doublereal colcnd;
     logical nofact;
-    extern /* Subroutine */ int dgeequ_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgeequ_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	     doublereal *, integer *), dgerfs_(char *, integer *, integer *, 
+	     doublereal *, integer *), _starpu_dgerfs_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, integer *), 
-	    dgetrf_(integer *, integer *, doublereal *, integer *, integer *, 
-	    integer *), dlacpy_(char *, integer *, integer *, doublereal *, 
-	    integer *, doublereal *, integer *), xerbla_(char *, 
+	    _starpu_dgetrf_(integer *, integer *, doublereal *, integer *, integer *, 
+	    integer *), _starpu_dlacpy_(char *, integer *, integer *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal bignum;
-    extern doublereal dlantr_(char *, char *, char *, integer *, integer *, 
+    extern doublereal _starpu_dlantr_(char *, char *, char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *);
     integer infequ;
     logical colequ;
-    extern /* Subroutine */ int dgetrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgetrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
     doublereal rowcnd;
@@ -337,28 +337,28 @@
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
-    notran = lsame_(trans, "N");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
+    notran = _starpu_lsame_(trans, "N");
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rowequ = FALSE_;
 	colequ = FALSE_;
     } else {
-	rowequ = lsame_(equed, "R") || lsame_(equed, 
+	rowequ = _starpu_lsame_(equed, "R") || _starpu_lsame_(equed, 
 		"B");
-	colequ = lsame_(equed, "C") || lsame_(equed, 
+	colequ = _starpu_lsame_(equed, "C") || _starpu_lsame_(equed, 
 		"B");
-	smlnum = dlamch_("Safe minimum");
+	smlnum = _starpu_dlamch_("Safe minimum");
 	bignum = 1. / smlnum;
     }
 
 /*     Test the input parameters. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T") && ! 
-	    lsame_(trans, "C")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T") && ! 
+	    _starpu_lsame_(trans, "C")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -368,8 +368,8 @@
 	*info = -6;
     } else if (*ldaf < max(1,*n)) {
 	*info = -8;
-    } else if (lsame_(fact, "F") && ! (rowequ || colequ 
-	    || lsame_(equed, "N"))) {
+    } else if (_starpu_lsame_(fact, "F") && ! (rowequ || colequ 
+	    || _starpu_lsame_(equed, "N"))) {
 	*info = -10;
     } else {
 	if (rowequ) {
@@ -425,7 +425,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGESVX", &i__1);
+	_starpu_xerbla_("DGESVX", &i__1);
 	return 0;
     }
 
@@ -433,17 +433,17 @@
 
 /*        Compute row and column scalings to equilibrate the matrix A. */
 
-	dgeequ_(n, n, &a[a_offset], lda, &r__[1], &c__[1], &rowcnd, &colcnd, &
+	_starpu_dgeequ_(n, n, &a[a_offset], lda, &r__[1], &c__[1], &rowcnd, &colcnd, &
 		amax, &infequ);
 	if (infequ == 0) {
 
 /*           Equilibrate the matrix. */
 
-	    dlaqge_(n, n, &a[a_offset], lda, &r__[1], &c__[1], &rowcnd, &
+	    _starpu_dlaqge_(n, n, &a[a_offset], lda, &r__[1], &c__[1], &rowcnd, &
 		    colcnd, &amax, equed);
-	    rowequ = lsame_(equed, "R") || lsame_(equed, 
+	    rowequ = _starpu_lsame_(equed, "R") || _starpu_lsame_(equed, 
 		     "B");
-	    colequ = lsame_(equed, "C") || lsame_(equed, 
+	    colequ = _starpu_lsame_(equed, "C") || _starpu_lsame_(equed, 
 		     "B");
 	}
     }
@@ -478,8 +478,8 @@
 
 /*        Compute the LU factorization of A. */
 
-	dlacpy_("Full", n, n, &a[a_offset], lda, &af[af_offset], ldaf);
-	dgetrf_(n, n, &af[af_offset], ldaf, &ipiv[1], info);
+	_starpu_dlacpy_("Full", n, n, &a[a_offset], lda, &af[af_offset], ldaf);
+	_starpu_dgetrf_(n, n, &af[af_offset], ldaf, &ipiv[1], info);
 
 /*        Return if INFO is non-zero. */
 
@@ -488,12 +488,12 @@
 /*           Compute the reciprocal pivot growth factor of the */
 /*           leading rank-deficient INFO columns of A. */
 
-	    rpvgrw = dlantr_("M", "U", "N", info, info, &af[af_offset], ldaf, 
+	    rpvgrw = _starpu_dlantr_("M", "U", "N", info, info, &af[af_offset], ldaf, 
 		    &work[1]);
 	    if (rpvgrw == 0.) {
 		rpvgrw = 1.;
 	    } else {
-		rpvgrw = dlange_("M", n, info, &a[a_offset], lda, &work[1]) / rpvgrw;
+		rpvgrw = _starpu_dlange_("M", n, info, &a[a_offset], lda, &work[1]) / rpvgrw;
 	    }
 	    work[1] = rpvgrw;
 	    *rcond = 0.;
@@ -509,30 +509,30 @@
     } else {
 	*(unsigned char *)norm = 'I';
     }
-    anorm = dlange_(norm, n, n, &a[a_offset], lda, &work[1]);
-    rpvgrw = dlantr_("M", "U", "N", n, n, &af[af_offset], ldaf, &work[1]);
+    anorm = _starpu_dlange_(norm, n, n, &a[a_offset], lda, &work[1]);
+    rpvgrw = _starpu_dlantr_("M", "U", "N", n, n, &af[af_offset], ldaf, &work[1]);
     if (rpvgrw == 0.) {
 	rpvgrw = 1.;
     } else {
-	rpvgrw = dlange_("M", n, n, &a[a_offset], lda, &work[1]) / 
+	rpvgrw = _starpu_dlange_("M", n, n, &a[a_offset], lda, &work[1]) / 
 		rpvgrw;
     }
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dgecon_(norm, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
+    _starpu_dgecon_(norm, n, &af[af_offset], ldaf, &anorm, rcond, &work[1], &iwork[1], 
 	     info);
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dgetrs_(trans, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dgetrs_(trans, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
 	     info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dgerfs_(trans, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &ipiv[1], 
+    _starpu_dgerfs_(trans, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &ipiv[1], 
 	     &b[b_offset], ldb, &x[x_offset], ldx, &ferr[1], &berr[1], &work[
 	    1], &iwork[1], info);
 
@@ -577,11 +577,11 @@
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
     return 0;
 
 /*     End of DGESVX */
 
-} /* dgesvx_ */
+} /* _starpu_dgesvx_ */

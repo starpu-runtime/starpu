@@ -18,7 +18,7 @@
 static integer c__0 = 0;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlasd0_(integer *n, integer *sqre, doublereal *d__, 
+/* Subroutine */ int _starpu_dlasd0_(integer *n, integer *sqre, doublereal *d__, 
 	doublereal *e, doublereal *u, integer *ldu, doublereal *vt, integer *
 	ldvt, integer *smlsiz, integer *iwork, doublereal *work, integer *
 	info)
@@ -36,14 +36,14 @@ static integer c__2 = 2;
     integer idxq, nlvl;
     doublereal alpha;
     integer inode, ndiml, idxqc, ndimr, itemp, sqrei;
-    extern /* Subroutine */ int dlasd1_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlasd1_(integer *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, integer *, integer *, integer *, doublereal *, 
-	    integer *), dlasdq_(char *, integer *, integer *, integer *, 
+	    integer *), _starpu_dlasdq_(char *, integer *, integer *, integer *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlasdt_(integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *), xerbla_(
+	    doublereal *, integer *), _starpu_dlasdt_(integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *), _starpu_xerbla_(
 	    char *, integer *);
 
 
@@ -165,14 +165,14 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD0", &i__1);
+	_starpu_xerbla_("DLASD0", &i__1);
 	return 0;
     }
 
 /*     If the input matrix is too small, call DLASDQ to find the SVD. */
 
     if (*n <= *smlsiz) {
-	dlasdq_("U", sqre, n, &m, n, &c__0, &d__[1], &e[1], &vt[vt_offset], 
+	_starpu_dlasdq_("U", sqre, n, &m, n, &c__0, &d__[1], &e[1], &vt[vt_offset], 
 		ldvt, &u[u_offset], ldu, &u[u_offset], ldu, &work[1], info);
 	return 0;
     }
@@ -184,7 +184,7 @@ static integer c__2 = 2;
     ndimr = ndiml + *n;
     idxq = ndimr + *n;
     iwk = idxq + *n;
-    dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
+    _starpu_dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
 	    smlsiz);
 
 /*     For the nodes on bottom level of the tree, solve */
@@ -210,7 +210,7 @@ static integer c__2 = 2;
 	nlf = ic - nl;
 	nrf = ic + 1;
 	sqrei = 1;
-	dlasdq_("U", &sqrei, &nl, &nlp1, &nl, &ncc, &d__[nlf], &e[nlf], &vt[
+	_starpu_dlasdq_("U", &sqrei, &nl, &nlp1, &nl, &ncc, &d__[nlf], &e[nlf], &vt[
 		nlf + nlf * vt_dim1], ldvt, &u[nlf + nlf * u_dim1], ldu, &u[
 		nlf + nlf * u_dim1], ldu, &work[1], info);
 	if (*info != 0) {
@@ -228,7 +228,7 @@ static integer c__2 = 2;
 	    sqrei = 1;
 	}
 	nrp1 = nr + sqrei;
-	dlasdq_("U", &sqrei, &nr, &nrp1, &nr, &ncc, &d__[nrf], &e[nrf], &vt[
+	_starpu_dlasdq_("U", &sqrei, &nr, &nrp1, &nr, &ncc, &d__[nrf], &e[nrf], &vt[
 		nrf + nrf * vt_dim1], ldvt, &u[nrf + nrf * u_dim1], ldu, &u[
 		nrf + nrf * u_dim1], ldu, &work[1], info);
 	if (*info != 0) {
@@ -273,7 +273,7 @@ static integer c__2 = 2;
 	    idxqc = idxq + nlf - 1;
 	    alpha = d__[ic];
 	    beta = e[ic];
-	    dlasd1_(&nl, &nr, &sqrei, &d__[nlf], &alpha, &beta, &u[nlf + nlf *
+	    _starpu_dlasd1_(&nl, &nr, &sqrei, &d__[nlf], &alpha, &beta, &u[nlf + nlf *
 		     u_dim1], ldu, &vt[nlf + nlf * vt_dim1], ldvt, &iwork[
 		    idxqc], &iwork[iwk], &work[1], info);
 	    if (*info != 0) {
@@ -288,4 +288,4 @@ static integer c__2 = 2;
 
 /*     End of DLASD0 */
 
-} /* dlasd0_ */
+} /* _starpu_dlasd0_ */

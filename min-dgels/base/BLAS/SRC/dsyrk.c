@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsyrk_(char *uplo, char *trans, integer *n, integer *k, 
+/* Subroutine */ int _starpu_dsyrk_(char *uplo, char *trans, integer *n, integer *k, 
 	doublereal *alpha, doublereal *a, integer *lda, doublereal *beta, 
 	doublereal *c__, integer *ldc)
 {
@@ -23,10 +23,10 @@
     /* Local variables */
     integer i__, j, l, info;
     doublereal temp;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nrowa;
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -163,18 +163,18 @@
     c__ -= c_offset;
 
     /* Function Body */
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 	nrowa = *n;
     } else {
 	nrowa = *k;
     }
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
 
     info = 0;
-    if (! upper && ! lsame_(uplo, "L")) {
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	info = 1;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
-	    "T") && ! lsame_(trans, "C")) {
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
+	    "T") && ! _starpu_lsame_(trans, "C")) {
 	info = 2;
     } else if (*n < 0) {
 	info = 3;
@@ -186,7 +186,7 @@
 	info = 10;
     }
     if (info != 0) {
-	xerbla_("DSYRK ", &info);
+	_starpu_xerbla_("DSYRK ", &info);
 	return 0;
     }
 
@@ -249,7 +249,7 @@
 
 /*     Start the operations. */
 
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 
 /*        Form  C := alpha*A*A' + beta*C. */
 
@@ -369,4 +369,4 @@
 
 /*     End of DSYRK . */
 
-} /* dsyrk_ */
+} /* _starpu_dsyrk_ */

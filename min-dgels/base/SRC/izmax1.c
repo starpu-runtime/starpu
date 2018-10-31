@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer izmax1_(integer *n, doublecomplex *cx, integer *incx)
+integer _starpu_izmax1_(integer *n, doublecomplex *cx, integer *incx)
 {
     /* System generated locals */
     integer ret_val, i__1;
@@ -124,4 +124,4 @@ L40:
 
 /*     End of IZMAX1 */
 
-} /* izmax1_ */
+} /* _starpu_izmax1_ */

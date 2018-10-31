@@ -22,7 +22,7 @@ static doublereal c_b17 = 0.;
 static doublereal c_b18 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dstedc_(char *compz, integer *n, doublereal *d__, 
+/* Subroutine */ int _starpu_dstedc_(char *compz, integer *n, doublereal *d__, 
 	doublereal *e, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *iwork, integer *liwork, integer *info)
 {
@@ -40,33 +40,33 @@ static integer c__1 = 1;
     doublereal p;
     integer ii, lgn;
     doublereal eps, tiny;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer lwmin;
-    extern /* Subroutine */ int dlaed0_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaed0_(integer *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
     integer start;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlacpy_(char *, integer *, integer 
+	    integer *, integer *), _starpu_dlacpy_(char *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *), 
-	    dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    _starpu_dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer finish;
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dsterf_(integer *, doublereal *, doublereal *, 
-	     integer *), dlasrt_(char *, integer *, doublereal *, integer *);
+    extern doublereal _starpu_dlanst_(char *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dsterf_(integer *, doublereal *, doublereal *, 
+	     integer *), _starpu_dlasrt_(char *, integer *, doublereal *, integer *);
     integer liwmin, icompz;
-    extern /* Subroutine */ int dsteqr_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsteqr_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *);
     doublereal orgnrm;
     logical lquery;
@@ -218,11 +218,11 @@ static integer c__1 = 1;
     *info = 0;
     lquery = *lwork == -1 || *liwork == -1;
 
-    if (lsame_(compz, "N")) {
+    if (_starpu_lsame_(compz, "N")) {
 	icompz = 0;
-    } else if (lsame_(compz, "V")) {
+    } else if (_starpu_lsame_(compz, "V")) {
 	icompz = 1;
-    } else if (lsame_(compz, "I")) {
+    } else if (_starpu_lsame_(compz, "I")) {
 	icompz = 2;
     } else {
 	icompz = -1;
@@ -239,7 +239,7 @@ static integer c__1 = 1;
 
 /*        Compute the workspace requirements */
 
-	smlsiz = ilaenv_(&c__9, "DSTEDC", " ", &c__0, &c__0, &c__0, &c__0);
+	smlsiz = _starpu_ilaenv_(&c__9, "DSTEDC", " ", &c__0, &c__0, &c__0, &c__0);
 	if (*n <= 1 || icompz == 0) {
 	    liwmin = 1;
 	    lwmin = 1;
@@ -278,7 +278,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSTEDC", &i__1);
+	_starpu_xerbla_("DSTEDC", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -308,7 +308,7 @@ static integer c__1 = 1;
 /*     If COMPZ = 'N', use DSTERF to compute the eigenvalues. */
 
     if (icompz == 0) {
-	dsterf_(n, &d__[1], &e[1], info);
+	_starpu_dsterf_(n, &d__[1], &e[1], info);
 	goto L50;
     }
 
@@ -317,7 +317,7 @@ static integer c__1 = 1;
 
     if (*n <= smlsiz) {
 
-	dsteqr_(compz, n, &d__[1], &e[1], &z__[z_offset], ldz, &work[1], info);
+	_starpu_dsteqr_(compz, n, &d__[1], &e[1], &z__[z_offset], ldz, &work[1], info);
 
     } else {
 
@@ -331,17 +331,17 @@ static integer c__1 = 1;
 	}
 
 	if (icompz == 2) {
-	    dlaset_("Full", n, n, &c_b17, &c_b18, &z__[z_offset], ldz);
+	    _starpu_dlaset_("Full", n, n, &c_b17, &c_b18, &z__[z_offset], ldz);
 	}
 
 /*        Scale. */
 
-	orgnrm = dlanst_("M", n, &d__[1], &e[1]);
+	orgnrm = _starpu_dlanst_("M", n, &d__[1], &e[1]);
 	if (orgnrm == 0.) {
 	    goto L50;
 	}
 
-	eps = dlamch_("Epsilon");
+	eps = _starpu_dlamch_("Epsilon");
 
 	start = 1;
 
@@ -378,12 +378,12 @@ L20:
 
 /*              Scale. */
 
-		orgnrm = dlanst_("M", &m, &d__[start], &e[start]);
-		dlascl_("G", &c__0, &c__0, &orgnrm, &c_b18, &m, &c__1, &d__[
+		orgnrm = _starpu_dlanst_("M", &m, &d__[start], &e[start]);
+		_starpu_dlascl_("G", &c__0, &c__0, &orgnrm, &c_b18, &m, &c__1, &d__[
 			start], &m, info);
 		i__1 = m - 1;
 		i__2 = m - 1;
-		dlascl_("G", &c__0, &c__0, &orgnrm, &c_b18, &i__1, &c__1, &e[
+		_starpu_dlascl_("G", &c__0, &c__0, &orgnrm, &c_b18, &i__1, &c__1, &e[
 			start], &i__2, info);
 
 		if (icompz == 1) {
@@ -391,7 +391,7 @@ L20:
 		} else {
 		    strtrw = start;
 		}
-		dlaed0_(&icompz, n, &m, &d__[start], &e[start], &z__[strtrw + 
+		_starpu_dlaed0_(&icompz, n, &m, &d__[start], &e[start], &z__[strtrw + 
 			start * z_dim1], ldz, &work[1], n, &work[storez], &
 			iwork[1], info);
 		if (*info != 0) {
@@ -402,7 +402,7 @@ L20:
 
 /*              Scale back. */
 
-		dlascl_("G", &c__0, &c__0, &c_b18, &orgnrm, &m, &c__1, &d__[
+		_starpu_dlascl_("G", &c__0, &c__0, &c_b18, &orgnrm, &m, &c__1, &d__[
 			start], &m, info);
 
 	    } else {
@@ -412,18 +412,18 @@ L20:
 /*                 the length of D, we must solve the sub-problem in a */
 /*                 workspace and then multiply back into Z. */
 
-		    dsteqr_("I", &m, &d__[start], &e[start], &work[1], &m, &
+		    _starpu_dsteqr_("I", &m, &d__[start], &e[start], &work[1], &m, &
 			    work[m * m + 1], info);
-		    dlacpy_("A", n, &m, &z__[start * z_dim1 + 1], ldz, &work[
+		    _starpu_dlacpy_("A", n, &m, &z__[start * z_dim1 + 1], ldz, &work[
 			    storez], n);
-		    dgemm_("N", "N", n, &m, &m, &c_b18, &work[storez], n, &
+		    _starpu_dgemm_("N", "N", n, &m, &m, &c_b18, &work[storez], n, &
 			    work[1], &m, &c_b17, &z__[start * z_dim1 + 1], 
 			    ldz);
 		} else if (icompz == 2) {
-		    dsteqr_("I", &m, &d__[start], &e[start], &z__[start + 
+		    _starpu_dsteqr_("I", &m, &d__[start], &e[start], &z__[start + 
 			    start * z_dim1], ldz, &work[1], info);
 		} else {
-		    dsterf_(&m, &d__[start], &e[start], info);
+		    _starpu_dsterf_(&m, &d__[start], &e[start], info);
 		}
 		if (*info != 0) {
 		    *info = start * (*n + 1) + finish;
@@ -446,7 +446,7 @@ L20:
 
 /*              Use Quick Sort */
 
-		dlasrt_("I", n, &d__[1], info);
+		_starpu_dlasrt_("I", n, &d__[1], info);
 
 	    } else {
 
@@ -468,7 +468,7 @@ L20:
 		    if (k != i__) {
 			d__[k] = d__[i__];
 			d__[i__] = p;
-			dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[k * 
+			_starpu_dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[k * 
 				z_dim1 + 1], &c__1);
 		    }
 /* L40: */
@@ -485,4 +485,4 @@ L50:
 
 /*     End of DSTEDC */
 
-} /* dstedc_ */
+} /* _starpu_dstedc_ */

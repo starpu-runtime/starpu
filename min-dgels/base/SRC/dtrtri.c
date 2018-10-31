@@ -21,7 +21,7 @@ static integer c__2 = 2;
 static doublereal c_b18 = 1.;
 static doublereal c_b22 = -1.;
 
-/* Subroutine */ int dtrtri_(char *uplo, char *diag, integer *n, doublereal *
+/* Subroutine */ int _starpu_dtrtri_(char *uplo, char *diag, integer *n, doublereal *
 	a, integer *lda, integer *info)
 {
     /* System generated locals */
@@ -34,17 +34,17 @@ static doublereal c_b22 = -1.;
 
     /* Local variables */
     integer j, jb, nb, nn;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dtrsm_(
+	    doublereal *, integer *), _starpu_dtrsm_(
 	    char *, char *, char *, char *, integer *, integer *, doublereal *
 , doublereal *, integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dtrti2_(char *, char *, integer *, doublereal 
-	    *, integer *, integer *), xerbla_(char *, integer 
+    extern /* Subroutine */ int _starpu_dtrti2_(char *, char *, integer *, doublereal 
+	    *, integer *, integer *), _starpu_xerbla_(char *, integer 
 	    *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     logical nounit;
 
@@ -125,11 +125,11 @@ static doublereal c_b22 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    nounit = lsame_(diag, "N");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    nounit = _starpu_lsame_(diag, "N");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -138,7 +138,7 @@ static doublereal c_b22 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTRTRI", &i__1);
+	_starpu_xerbla_("DTRTRI", &i__1);
 	return 0;
     }
 
@@ -167,12 +167,12 @@ static doublereal c_b22 = -1.;
     i__2[0] = 1, a__1[0] = uplo;
     i__2[1] = 1, a__1[1] = diag;
     s_cat(ch__1, a__1, i__2, &c__2, (ftnlen)2);
-    nb = ilaenv_(&c__1, "DTRTRI", ch__1, n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DTRTRI", ch__1, n, &c_n1, &c_n1, &c_n1);
     if (nb <= 1 || nb >= *n) {
 
 /*        Use unblocked code */
 
-	dtrti2_(uplo, diag, n, &a[a_offset], lda, info);
+	_starpu_dtrti2_(uplo, diag, n, &a[a_offset], lda, info);
     } else {
 
 /*        Use blocked code */
@@ -191,16 +191,16 @@ static doublereal c_b22 = -1.;
 /*              Compute rows 1:j-1 of current block column */
 
 		i__4 = j - 1;
-		dtrmm_("Left", "Upper", "No transpose", diag, &i__4, &jb, &
+		_starpu_dtrmm_("Left", "Upper", "No transpose", diag, &i__4, &jb, &
 			c_b18, &a[a_offset], lda, &a[j * a_dim1 + 1], lda);
 		i__4 = j - 1;
-		dtrsm_("Right", "Upper", "No transpose", diag, &i__4, &jb, &
+		_starpu_dtrsm_("Right", "Upper", "No transpose", diag, &i__4, &jb, &
 			c_b22, &a[j + j * a_dim1], lda, &a[j * a_dim1 + 1], 
 			lda);
 
 /*              Compute inverse of current diagonal block */
 
-		dtrti2_("Upper", diag, &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dtrti2_("Upper", diag, &jb, &a[j + j * a_dim1], lda, info);
 /* L20: */
 	    }
 	} else {
@@ -218,18 +218,18 @@ static doublereal c_b22 = -1.;
 /*                 Compute rows j+jb:n of current block column */
 
 		    i__1 = *n - j - jb + 1;
-		    dtrmm_("Left", "Lower", "No transpose", diag, &i__1, &jb, 
+		    _starpu_dtrmm_("Left", "Lower", "No transpose", diag, &i__1, &jb, 
 			    &c_b18, &a[j + jb + (j + jb) * a_dim1], lda, &a[j 
 			    + jb + j * a_dim1], lda);
 		    i__1 = *n - j - jb + 1;
-		    dtrsm_("Right", "Lower", "No transpose", diag, &i__1, &jb, 
+		    _starpu_dtrsm_("Right", "Lower", "No transpose", diag, &i__1, &jb, 
 			     &c_b22, &a[j + j * a_dim1], lda, &a[j + jb + j * 
 			    a_dim1], lda);
 		}
 
 /*              Compute inverse of current diagonal block */
 
-		dtrti2_("Lower", diag, &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dtrti2_("Lower", diag, &jb, &a[j + j * a_dim1], lda, info);
 /* L30: */
 	    }
 	}
@@ -239,4 +239,4 @@ static doublereal c_b22 = -1.;
 
 /*     End of DTRTRI */
 
-} /* dtrtri_ */
+} /* _starpu_dtrtri_ */

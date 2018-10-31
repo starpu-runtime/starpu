@@ -1,4 +1,4 @@
-/* dla_gbrfsx_extended.f -- translated by f2c (version 20061008).
+/* _starpu_dla_gbrfsx_extended.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b6 = -1.;
 static doublereal c_b8 = 1.;
 
-/* Subroutine */ int dla_gbrfsx_extended__(integer *prec_type__, integer *
+/* Subroutine */ int _starpu_dla_gbrfsx_extended__(integer *prec_type__, integer *
 	trans_type__, integer *n, integer *kl, integer *ku, integer *nrhs, 
 	doublereal *ab, integer *ldab, doublereal *afb, integer *ldafb, 
 	integer *ipiv, logical *colequ, doublereal *c__, doublereal *b, 
@@ -39,20 +39,20 @@ static doublereal c_b8 = 1.;
     /* Local variables */
     doublereal dxratmax, dzratmax;
     integer i__, j, m;
-    extern /* Subroutine */ int dla_gbamv__(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dla_gbamv__(integer *, integer *, integer *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *);
     logical incr_prec__;
     doublereal prev_dz_z__, yk, final_dx_x__;
-    extern /* Subroutine */ int dla_wwaddw__(integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dla_wwaddw__(integer *, doublereal *, 
 	    doublereal *, doublereal *);
     doublereal final_dz_z__, prevnormdx;
     integer cnt;
     doublereal dyk, eps, incr_thresh__, dx_x__, dz_z__;
-    extern /* Subroutine */ int dla_lin_berr__(integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dla_lin_berr__(integer *, integer *, integer *
 	    , doublereal *, doublereal *, doublereal *);
     doublereal ymin;
-    extern /* Subroutine */ int blas_dgbmv_x__(integer *, integer *, integer *
+    extern /* Subroutine */ int blas_starpu_dgbmv_x__(integer *, integer *, integer *
 	    , integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *);
@@ -60,21 +60,21 @@ static doublereal c_b8 = 1.;
     extern /* Subroutine */ int blas_dgbmv2_x__(integer *, integer *, integer 
 	    *, integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *,
-	     integer *, integer *), dgbmv_(char *, integer *, integer *, 
+	     integer *, integer *), _starpu_dgbmv_(char *, integer *, integer *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *), dcopy_(integer *, doublereal *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal dxrat, dzrat;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     char trans[1];
     doublereal normx, normy;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dgbtrs_(char *, integer *, integer *, integer 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dgbtrs_(char *, integer *, integer *, integer 
 	    *, integer *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     doublereal normdx;
-    extern /* Character */ VOID chla_transtype__(char *, ftnlen, integer *);
+    extern /* Character */ VOID _starpu_chla_transtype__(char *, ftnlen, integer *);
     doublereal hugeval;
     integer x_state__, z_state__;
 
@@ -390,10 +390,10 @@ static doublereal c_b8 = 1.;
     if (*info != 0) {
 	return 0;
     }
-    chla_transtype__(ch__1, (ftnlen)1, trans_type__);
+    _starpu_chla_transtype__(ch__1, (ftnlen)1, trans_type__);
     *(unsigned char *)trans = *(unsigned char *)&ch__1[0];
-    eps = dlamch_("Epsilon");
-    hugeval = dlamch_("Overflow");
+    eps = _starpu_dlamch_("Epsilon");
+    hugeval = _starpu_dlamch_("Overflow");
 /*     Force HUGEVAL to Inf */
     hugeval *= hugeval;
 /*     Using HUGEVAL may lead to spurious underflows. */
@@ -427,12 +427,12 @@ static doublereal c_b8 = 1.;
 /*        Compute residual RES = B_s - op(A_s) * Y, */
 /*            op(A) = A, A**T, or A**H depending on TRANS (and type). */
 
-	    dcopy_(n, &b[j * b_dim1 + 1], &c__1, &res[1], &c__1);
+	    _starpu_dcopy_(n, &b[j * b_dim1 + 1], &c__1, &res[1], &c__1);
 	    if (y_prec_state__ == 0) {
-		dgbmv_(trans, &m, n, kl, ku, &c_b6, &ab[ab_offset], ldab, &y[
+		_starpu_dgbmv_(trans, &m, n, kl, ku, &c_b6, &ab[ab_offset], ldab, &y[
 			j * y_dim1 + 1], &c__1, &c_b8, &res[1], &c__1);
 	    } else if (y_prec_state__ == 1) {
-		blas_dgbmv_x__(trans_type__, n, n, kl, ku, &c_b6, &ab[
+		blas_starpu_dgbmv_x__(trans_type__, n, n, kl, ku, &c_b6, &ab[
 			ab_offset], ldab, &y[j * y_dim1 + 1], &c__1, &c_b8, &
 			res[1], &c__1, prec_type__);
 	    } else {
@@ -441,8 +441,8 @@ static doublereal c_b8 = 1.;
 			c__1, &c_b8, &res[1], &c__1, prec_type__);
 	    }
 /*        XXX: RES is no longer needed. */
-	    dcopy_(n, &res[1], &c__1, &dy[1], &c__1);
-	    dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &ipiv[1]
+	    _starpu_dcopy_(n, &res[1], &c__1, &dy[1], &c__1);
+	    _starpu_dgbtrs_(trans, n, kl, ku, &c__1, &afb[afb_offset], ldafb, &ipiv[1]
 , &dy[1], n, info);
 
 /*         Calculate relative changes DX_X, DZ_Z and ratios DXRAT, DZRAT. */
@@ -572,9 +572,9 @@ static doublereal c_b8 = 1.;
 /*           Update soluton. */
 
 	    if (y_prec_state__ < 2) {
-		daxpy_(n, &c_b8, &dy[1], &c__1, &y[j * y_dim1 + 1], &c__1);
+		_starpu_daxpy_(n, &c_b8, &dy[1], &c__1, &y[j * y_dim1 + 1], &c__1);
 	    } else {
-		dla_wwaddw__(n, &y[j * y_dim1 + 1], &y_tail__[1], &dy[1]);
+		_starpu_dla_wwaddw__(n, &y[j * y_dim1 + 1], &y_tail__[1], &dy[1]);
 	    }
 	}
 /*        Target of "IF (Z_STOP .AND. X_STOP)".  Sun's f77 won't EXIT. */
@@ -608,8 +608,8 @@ L666:
 /*        Compute residual RES = B_s - op(A_s) * Y, */
 /*            op(A) = A, A**T, or A**H depending on TRANS (and type). */
 
-	dcopy_(n, &b[j * b_dim1 + 1], &c__1, &res[1], &c__1);
-	dgbmv_(trans, n, n, kl, ku, &c_b6, &ab[ab_offset], ldab, &y[j * 
+	_starpu_dcopy_(n, &b[j * b_dim1 + 1], &c__1, &res[1], &c__1);
+	_starpu_dgbmv_(trans, n, n, kl, ku, &c_b6, &ab[ab_offset], ldab, &y[j * 
 		y_dim1 + 1], &c__1, &c_b8, &res[1], &c__1);
 	i__2 = *n;
 	for (i__ = 1; i__ <= i__2; ++i__) {
@@ -618,13 +618,13 @@ L666:
 
 /*     Compute abs(op(A_s))*abs(Y) + abs(B_s). */
 
-	dla_gbamv__(trans_type__, n, n, kl, ku, &c_b8, &ab[ab_offset], ldab, &
+	_starpu_dla_gbamv__(trans_type__, n, n, kl, ku, &c_b8, &ab[ab_offset], ldab, &
 		y[j * y_dim1 + 1], &c__1, &c_b8, &ayb[1], &c__1);
-	dla_lin_berr__(n, n, &c__1, &res[1], &ayb[1], &berr_out__[j]);
+	_starpu_dla_lin_berr__(n, n, &c__1, &res[1], &ayb[1], &berr_out__[j]);
 
 /*     End of loop for each RHS */
 
     }
 
     return 0;
-} /* dla_gbrfsx_extended__ */
+} /* _starpu_dla_gbrfsx_extended__ */

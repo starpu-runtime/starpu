@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlag2_(doublereal *a, integer *lda, doublereal *b, 
+/* Subroutine */ int _starpu_dlag2_(doublereal *a, integer *lda, doublereal *b, 
 	integer *ldb, doublereal *safmin, doublereal *scale1, doublereal *
 	scale2, doublereal *wr1, doublereal *wr2, doublereal *wi)
 {
@@ -353,4 +353,4 @@
 /*     End of DLAG2 */
 
     return 0;
-} /* dlag2_ */
+} /* _starpu_dlag2_ */

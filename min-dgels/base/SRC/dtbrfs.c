@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b19 = -1.;
 
-/* Subroutine */ int dtbrfs_(char *uplo, char *trans, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtbrfs_(char *uplo, char *trans, char *diag, integer *n, 
 	integer *kd, integer *nrhs, doublereal *ab, integer *ldab, doublereal 
 	*b, integer *ldb, doublereal *x, integer *ldx, doublereal *ferr, 
 	doublereal *berr, doublereal *work, integer *iwork, integer *info)
@@ -35,20 +35,20 @@ static doublereal c_b19 = -1.;
     doublereal eps;
     integer kase;
     doublereal safe1, safe2;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dtbmv_(char *, char *, char *, integer *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *), dcopy_(integer *, doublereal *, integer *
-, doublereal *, integer *), dtbsv_(char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtbmv_(char *, char *, char *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *), _starpu_dcopy_(integer *, doublereal *, integer *
+, doublereal *, integer *), _starpu_dtbsv_(char *, char *, char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), daxpy_(integer *, doublereal *
+	    integer *), _starpu_daxpy_(integer *, doublereal *
 , doublereal *, integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical notran;
     char transt[1];
     logical nounit;
@@ -187,16 +187,16 @@ static doublereal c_b19 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    notran = lsame_(trans, "N");
-    nounit = lsame_(diag, "N");
+    upper = _starpu_lsame_(uplo, "U");
+    notran = _starpu_lsame_(trans, "N");
+    nounit = _starpu_lsame_(diag, "N");
 
-    if (! upper && ! lsame_(uplo, "L")) {
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T") && ! 
-	    lsame_(trans, "C")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T") && ! 
+	    _starpu_lsame_(trans, "C")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -213,7 +213,7 @@ static doublereal c_b19 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTBRFS", &i__1);
+	_starpu_xerbla_("DTBRFS", &i__1);
 	return 0;
     }
 
@@ -238,8 +238,8 @@ static doublereal c_b19 = -1.;
 /*     NZ = maximum number of nonzero elements in each row of A, plus 1 */
 
     nz = *kd + 2;
-    eps = dlamch_("Epsilon");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    safmin = _starpu_dlamch_("Safe minimum");
     safe1 = nz * safmin;
     safe2 = safe1 / eps;
 
@@ -251,10 +251,10 @@ static doublereal c_b19 = -1.;
 /*        Compute residual R = B - op(A) * X, */
 /*        where op(A) = A or A', depending on TRANS. */
 
-	dcopy_(n, &x[j * x_dim1 + 1], &c__1, &work[*n + 1], &c__1);
-	dtbmv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &work[*n + 1], 
+	_starpu_dcopy_(n, &x[j * x_dim1 + 1], &c__1, &work[*n + 1], &c__1);
+	_starpu_dtbmv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &work[*n + 1], 
 		&c__1);
-	daxpy_(n, &c_b19, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
+	_starpu_daxpy_(n, &c_b19, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
 
 /*        Compute componentwise relative backward error from formula */
 
@@ -466,14 +466,14 @@ static doublereal c_b19 = -1.;
 
 	kase = 0;
 L210:
-	dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
+	_starpu_dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
 		kase, isave);
 	if (kase != 0) {
 	    if (kase == 1) {
 
 /*              Multiply by diag(W)*inv(op(A)'). */
 
-		dtbsv_(uplo, transt, diag, n, kd, &ab[ab_offset], ldab, &work[
+		_starpu_dtbsv_(uplo, transt, diag, n, kd, &ab[ab_offset], ldab, &work[
 			*n + 1], &c__1);
 		i__2 = *n;
 		for (i__ = 1; i__ <= i__2; ++i__) {
@@ -489,7 +489,7 @@ L210:
 		    work[*n + i__] = work[i__] * work[*n + i__];
 /* L230: */
 		}
-		dtbsv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &work[*
+		_starpu_dtbsv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &work[*
 			n + 1], &c__1);
 	    }
 	    goto L210;
@@ -516,4 +516,4 @@ L210:
 
 /*     End of DTBRFS */
 
-} /* dtbrfs_ */
+} /* _starpu_dtbrfs_ */

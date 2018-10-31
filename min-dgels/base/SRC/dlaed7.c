@@ -21,7 +21,7 @@ static doublereal c_b10 = 1.;
 static doublereal c_b11 = 0.;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dlaed7_(integer *icompq, integer *n, integer *qsiz, 
+/* Subroutine */ int _starpu_dlaed7_(integer *icompq, integer *n, integer *qsiz, 
 	integer *tlvls, integer *curlvl, integer *curpbm, doublereal *d__, 
 	doublereal *q, integer *ldq, integer *indxq, doublereal *rho, integer 
 	*cutpnt, doublereal *qstore, integer *qptr, integer *prmptr, integer *
@@ -36,24 +36,24 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, k, n1, n2, is, iw, iz, iq2, ptr, ldq2, indx, curr;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer indxc, indxp;
-    extern /* Subroutine */ int dlaed8_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaed8_(integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *, integer *, 
-	    doublereal *, integer *, integer *, integer *), dlaed9_(integer *, 
+	    doublereal *, integer *, integer *, integer *), _starpu_dlaed9_(integer *, 
 	     integer *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	     integer *, integer *), dlaeda_(integer *, integer *, integer *, 
+	     integer *, integer *), _starpu_dlaeda_(integer *, integer *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, doublereal 
 	    *, doublereal *, integer *, doublereal *, doublereal *, integer *)
 	    ;
     integer idlmda;
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer *);
     integer coltyp;
 
 
@@ -250,7 +250,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED7", &i__1);
+	_starpu_xerbla_("DLAED7", &i__1);
 	return 0;
     }
 
@@ -292,7 +292,7 @@ static integer c_n1 = -1;
 /* L10: */
     }
     curr = ptr + *curpbm;
-    dlaeda_(n, tlvls, curlvl, curpbm, &prmptr[1], &perm[1], &givptr[1], &
+    _starpu_dlaeda_(n, tlvls, curlvl, curpbm, &prmptr[1], &perm[1], &givptr[1], &
 	    givcol[3], &givnum[3], &qstore[1], &qptr[1], &work[iz], &work[iz 
 	    + *n], info);
 
@@ -308,7 +308,7 @@ static integer c_n1 = -1;
 
 /*     Sort and Deflate eigenvalues. */
 
-    dlaed8_(icompq, &k, n, qsiz, &d__[1], &q[q_offset], ldq, &indxq[1], rho, 
+    _starpu_dlaed8_(icompq, &k, n, qsiz, &d__[1], &q[q_offset], ldq, &indxq[1], rho, 
 	    cutpnt, &work[iz], &work[idlmda], &work[iq2], &ldq2, &work[iw], &
 	    perm[prmptr[curr]], &givptr[curr + 1], &givcol[(givptr[curr] << 1)
 	     + 1], &givnum[(givptr[curr] << 1) + 1], &iwork[indxp], &iwork[
@@ -319,13 +319,13 @@ static integer c_n1 = -1;
 /*     Solve Secular Equation. */
 
     if (k != 0) {
-	dlaed9_(&k, &c__1, &k, n, &d__[1], &work[is], &k, rho, &work[idlmda], 
+	_starpu_dlaed9_(&k, &c__1, &k, n, &d__[1], &work[is], &k, rho, &work[idlmda], 
 		&work[iw], &qstore[qptr[curr]], &k, info);
 	if (*info != 0) {
 	    goto L30;
 	}
 	if (*icompq == 1) {
-	    dgemm_("N", "N", qsiz, &k, &k, &c_b10, &work[iq2], &ldq2, &qstore[
+	    _starpu_dgemm_("N", "N", qsiz, &k, &k, &c_b10, &work[iq2], &ldq2, &qstore[
 		    qptr[curr]], &k, &c_b11, &q[q_offset], ldq);
 	}
 /* Computing 2nd power */
@@ -336,7 +336,7 @@ static integer c_n1 = -1;
 
 	n1 = k;
 	n2 = *n - k;
-	dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
+	_starpu_dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
     } else {
 	qptr[curr + 1] = qptr[curr];
 	i__1 = *n;
@@ -351,4 +351,4 @@ L30:
 
 /*     End of DLAED7 */
 
-} /* dlaed7_ */
+} /* _starpu_dlaed7_ */

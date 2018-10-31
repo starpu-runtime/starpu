@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dstevd_(char *jobz, integer *n, doublereal *d__, 
+/* Subroutine */ int _starpu_dstevd_(char *jobz, integer *n, doublereal *d__, 
 	doublereal *e, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *iwork, integer *liwork, integer *info)
 {
@@ -30,22 +30,22 @@ static integer c__1 = 1;
 
     /* Local variables */
     doublereal eps, rmin, rmax, tnrm;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer lwmin;
     logical wantz;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer iscale;
-    extern /* Subroutine */ int dstedc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dstedc_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dsterf_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlanst_(char *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dsterf_(integer *, doublereal *, doublereal *, 
 	     integer *);
     integer liwmin;
     doublereal smlnum;
@@ -167,7 +167,7 @@ static integer c__1 = 1;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
+    wantz = _starpu_lsame_(jobz, "V");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
@@ -180,7 +180,7 @@ static integer c__1 = 1;
 	liwmin = *n * 5 + 3;
     }
 
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -201,7 +201,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSTEVD", &i__1);
+	_starpu_xerbla_("DSTEVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -222,8 +222,8 @@ static integer c__1 = 1;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -232,7 +232,7 @@ static integer c__1 = 1;
 /*     Scale matrix to allowable range, if necessary. */
 
     iscale = 0;
-    tnrm = dlanst_("M", n, &d__[1], &e[1]);
+    tnrm = _starpu_dlanst_("M", n, &d__[1], &e[1]);
     if (tnrm > 0. && tnrm < rmin) {
 	iscale = 1;
 	sigma = rmin / tnrm;
@@ -241,18 +241,18 @@ static integer c__1 = 1;
 	sigma = rmax / tnrm;
     }
     if (iscale == 1) {
-	dscal_(n, &sigma, &d__[1], &c__1);
+	_starpu_dscal_(n, &sigma, &d__[1], &c__1);
 	i__1 = *n - 1;
-	dscal_(&i__1, &sigma, &e[1], &c__1);
+	_starpu_dscal_(&i__1, &sigma, &e[1], &c__1);
     }
 
 /*     For eigenvalues only, call DSTERF.  For eigenvalues and */
 /*     eigenvectors, call DSTEDC. */
 
     if (! wantz) {
-	dsterf_(n, &d__[1], &e[1], info);
+	_starpu_dsterf_(n, &d__[1], &e[1], info);
     } else {
-	dstedc_("I", n, &d__[1], &e[1], &z__[z_offset], ldz, &work[1], lwork, 
+	_starpu_dstedc_("I", n, &d__[1], &e[1], &z__[z_offset], ldz, &work[1], lwork, 
 		&iwork[1], liwork, info);
     }
 
@@ -260,7 +260,7 @@ static integer c__1 = 1;
 
     if (iscale == 1) {
 	d__1 = 1. / sigma;
-	dscal_(n, &d__1, &d__[1], &c__1);
+	_starpu_dscal_(n, &d__1, &d__[1], &c__1);
     }
 
     work[1] = (doublereal) lwmin;
@@ -270,4 +270,4 @@ static integer c__1 = 1;
 
 /*     End of DSTEVD */
 
-} /* dstevd_ */
+} /* _starpu_dstevd_ */

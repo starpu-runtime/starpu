@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarrc_(char *jobt, integer *n, doublereal *vl, 
+/* Subroutine */ int _starpu_dlarrc_(char *jobt, integer *n, doublereal *vl, 
 	doublereal *vu, doublereal *d__, doublereal *e, doublereal *pivmin, 
 	integer *eigcnt, integer *lcnt, integer *rcnt, integer *info)
 {
@@ -25,7 +25,7 @@
     integer i__;
     doublereal sl, su, tmp, tmp2;
     logical matt;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal lpivot, rpivot;
 
 
@@ -109,7 +109,7 @@
     *lcnt = 0;
     *rcnt = 0;
     *eigcnt = 0;
-    matt = lsame_(jobt, "T");
+    matt = _starpu_lsame_(jobt, "T");
     if (matt) {
 /*        Sturm sequence count on T */
 	lpivot = d__[1] - *vl;
@@ -180,4 +180,4 @@
 
 /*     end of DLARRC */
 
-} /* dlarrc_ */
+} /* _starpu_dlarrc_ */

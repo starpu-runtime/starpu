@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlarre_(char *range, integer *n, doublereal *vl, 
+/* Subroutine */ int _starpu_dlarre_(char *range, integer *n, doublereal *vl, 
 	doublereal *vu, integer *il, integer *iu, doublereal *d__, doublereal 
 	*e, doublereal *e2, doublereal *rtol1, doublereal *rtol2, doublereal *
 	spltol, integer *nsplit, integer *isplit, integer *m, doublereal *w, 
@@ -52,39 +52,39 @@ static integer c__2 = 2;
     doublereal rtol;
     integer iseed[4];
     doublereal avgap, sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical norep;
-    extern /* Subroutine */ int dlasq2_(integer *, doublereal *, integer *);
-    extern doublereal dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlasq2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
     integer ibegin;
     logical forceb;
     integer irange;
     doublereal sgndef;
-    extern /* Subroutine */ int dlarra_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarra_(integer *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *, doublereal *, integer *, integer *, 
-	    integer *), dlarrb_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dlarrb_(integer *, doublereal *, doublereal *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     doublereal *, doublereal *, integer *, integer *), dlarrc_(char *
+	     doublereal *, doublereal *, integer *, integer *), _starpu_dlarrc_(char *
 , integer *, doublereal *, doublereal *, doublereal *, doublereal 
 	    *, doublereal *, integer *, integer *, integer *, integer *);
     integer wbegin;
-    extern /* Subroutine */ int dlarrd_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dlarrd_(char *, char *, integer *, doublereal 
 	    *, doublereal *, integer *, integer *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *, doublereal *, doublereal *, integer *
 , integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
     doublereal safmin, spdiam;
-    extern /* Subroutine */ int dlarrk_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarrk_(integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
     logical usedqd;
     doublereal clwdth, isleft;
-    extern /* Subroutine */ int dlarnv_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarnv_(integer *, integer *, integer *, 
 	    doublereal *);
     doublereal isrght, bsrtol, dpivot;
 
@@ -289,17 +289,17 @@ static integer c__2 = 2;
 
 /*     Decode RANGE */
 
-    if (lsame_(range, "A")) {
+    if (_starpu_lsame_(range, "A")) {
 	irange = 1;
-    } else if (lsame_(range, "V")) {
+    } else if (_starpu_lsame_(range, "V")) {
 	irange = 3;
-    } else if (lsame_(range, "I")) {
+    } else if (_starpu_lsame_(range, "I")) {
 	irange = 2;
     }
     *m = 0;
 /*     Get machine constants */
-    safmin = dlamch_("S");
-    eps = dlamch_("P");
+    safmin = _starpu_dlamch_("S");
+    eps = _starpu_dlamch_("P");
 /*     Set parameters */
     rtl = sqrt(eps);
     bsrtol = sqrt(eps);
@@ -360,7 +360,7 @@ static integer c__2 = 2;
 /*     estimate that is wrong by at most a factor of SQRT(2) */
     spdiam = gu - gl;
 /*     Compute splitting points */
-    dlarra_(n, &d__[1], &e[1], &e2[1], spltol, &spdiam, nsplit, &isplit[1], &
+    _starpu_dlarra_(n, &d__[1], &e[1], &e2[1], spltol, &spdiam, nsplit, &isplit[1], &
 	    iinfo);
 /*     Can force use of bisection instead of faster DQDS. */
 /*     Option left in the code for future multisection work. */
@@ -379,7 +379,7 @@ static integer c__2 = 2;
 /*        An interval [LEFT,RIGHT] has converged if */
 /*        RIGHT-LEFT.LT.RTOL*MAX(ABS(LEFT),ABS(RIGHT)) */
 /*        DLARRD needs a WORK of size 4*N, IWORK of size 3*N */
-	dlarrd_(range, "B", n, vl, vu, il, iu, &gers[1], &bsrtol, &d__[1], &e[
+	_starpu_dlarrd_(range, "B", n, vl, vu, il, iu, &gers[1], &bsrtol, &d__[1], &e[
 		1], &e2[1], pivmin, nsplit, &isplit[1], &mm, &w[1], &werr[1], 
 		vl, vu, &iblock[1], &indexw[1], &work[1], &iwork[1], &iinfo);
 	if (iinfo != 0) {
@@ -489,7 +489,7 @@ L21:
 	if (irange == 1 && ! forceb || usedqd) {
 /*           Case of DQDS */
 /*           Find approximations to the extremal eigenvalues of the block */
-	    dlarrk_(&in, &c__1, &gl, &gu, &d__[ibegin], &e2[ibegin], pivmin, &
+	    _starpu_dlarrk_(&in, &c__1, &gl, &gu, &d__[ibegin], &e2[ibegin], pivmin, &
 		    rtl, &tmp, &tmp1, &iinfo);
 	    if (iinfo != 0) {
 		*info = -1;
@@ -499,7 +499,7 @@ L21:
 	    d__2 = gl, d__3 = tmp - tmp1 - eps * 100. * (d__1 = tmp - tmp1, 
 		    abs(d__1));
 	    isleft = max(d__2,d__3);
-	    dlarrk_(&in, &in, &gl, &gu, &d__[ibegin], &e2[ibegin], pivmin, &
+	    _starpu_dlarrk_(&in, &in, &gl, &gu, &d__[ibegin], &e2[ibegin], pivmin, &
 		    rtl, &tmp, &tmp1, &iinfo);
 	    if (iinfo != 0) {
 		*info = -1;
@@ -558,7 +558,7 @@ L21:
 	}
 /*        Compute the negcount at the 1/4 and 3/4 points */
 	if (mb > 1) {
-	    dlarrc_("T", &in, &s1, &s2, &d__[ibegin], &e[ibegin], pivmin, &
+	    _starpu_dlarrc_("T", &in, &s1, &s2, &d__[ibegin], &e[ibegin], pivmin, &
 		    cnt, &cnt1, &cnt2, &iinfo);
 	}
 	if (mb == 1) {
@@ -695,9 +695,9 @@ L83:
 /*        Store the shift. */
 	e[iend] = sigma;
 /*        Store D and L. */
-	dcopy_(&in, &work[1], &c__1, &d__[ibegin], &c__1);
+	_starpu_dcopy_(&in, &work[1], &c__1, &d__[ibegin], &c__1);
 	i__2 = in - 1;
-	dcopy_(&i__2, &work[in + 1], &c__1, &e[ibegin], &c__1);
+	_starpu_dcopy_(&i__2, &work[in + 1], &c__1, &e[ibegin], &c__1);
 	if (mb > 1) {
 
 /*           Perturb each entry of the base representation by a small */
@@ -709,7 +709,7 @@ L83:
 /* L122: */
 	    }
 	    i__2 = (in << 1) - 1;
-	    dlarnv_(&c__2, iseed, &i__2, &work[1]);
+	    _starpu_dlarnv_(&c__2, iseed, &i__2, &work[1]);
 	    i__2 = in - 1;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
 		d__[ibegin + i__ - 1] *= eps * 8. * work[i__] + 1.;
@@ -748,7 +748,7 @@ L83:
 	    }
 /*           use bisection to find EV from INDL to INDU */
 	    i__2 = indl - 1;
-	    dlarrb_(&in, &d__[ibegin], &work[ibegin], &indl, &indu, rtol1, 
+	    _starpu_dlarrb_(&in, &d__[ibegin], &work[ibegin], &indl, &indu, rtol1, 
 		    rtol2, &i__2, &w[wbegin], &wgap[wbegin], &werr[wbegin], &
 		    work[(*n << 1) + 1], &iwork[1], pivmin, &spdiam, &in, &
 		    iinfo);
@@ -791,7 +791,7 @@ L83:
 	    }
 	    work[(in << 1) - 1] = (d__1 = d__[iend], abs(d__1));
 	    work[in * 2] = 0.;
-	    dlasq2_(&in, &work[1], &iinfo);
+	    _starpu_dlasq2_(&in, &work[1], &iinfo);
 	    if (iinfo != 0) {
 /*              If IINFO = -5 then an index is part of a tight cluster */
 /*              and should be changed. The index is in IWORK(1) and the */
@@ -858,4 +858,4 @@ L170:
 
 /*     end of DLARRE */
 
-} /* dlarre_ */
+} /* _starpu_dlarre_ */

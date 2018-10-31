@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c__0 = 0;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgeesx_(char *jobvs, char *sort, L_fp select, char *
+/* Subroutine */ int _starpu_dgeesx_(char *jobvs, char *sort, L_fp select, char *
 	sense, integer *n, doublereal *a, integer *lda, integer *sdim, 
 	doublereal *wr, doublereal *wi, doublereal *vs, integer *ldvs, 
 	doublereal *rconde, doublereal *rcondv, doublereal *work, integer *
@@ -37,39 +37,39 @@ static integer c_n1 = -1;
     integer ibal;
     doublereal anrm;
     integer ierr, itau, iwrk, lwrk, inxt, icond, ieval;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     logical cursl;
     integer liwrk;
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *), dgebak_(
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *), _starpu_dgebak_(
 	    char *, char *, integer *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *), 
-	    dgebal_(char *, integer *, doublereal *, integer *, integer *, 
+	    _starpu_dgebal_(char *, integer *, doublereal *, integer *, integer *, 
 	    integer *, doublereal *, integer *);
     logical lst2sl, scalea;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal cscale;
-    extern doublereal dlange_(char *, integer *, integer *, doublereal *, 
+    extern doublereal _starpu_dlange_(char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dgehrd_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgehrd_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dlascl_(char *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dlascl_(char *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
-	    integer *), dlacpy_(char *, integer *, integer *, 
+	    integer *), _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dorghr_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorghr_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dhseqr_(char *, char *, integer *, integer *, integer 
+	    integer *), _starpu_dhseqr_(char *, char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
     logical wantsb;
-    extern /* Subroutine */ int dtrsen_(char *, char *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrsen_(char *, char *, logical *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
 	     integer *, integer *, integer *, integer *);
@@ -286,16 +286,16 @@ static integer c_n1 = -1;
 
     /* Function Body */
     *info = 0;
-    wantvs = lsame_(jobvs, "V");
-    wantst = lsame_(sort, "S");
-    wantsn = lsame_(sense, "N");
-    wantse = lsame_(sense, "E");
-    wantsv = lsame_(sense, "V");
-    wantsb = lsame_(sense, "B");
+    wantvs = _starpu_lsame_(jobvs, "V");
+    wantst = _starpu_lsame_(sort, "S");
+    wantsn = _starpu_lsame_(sense, "N");
+    wantse = _starpu_lsame_(sense, "E");
+    wantsv = _starpu_lsame_(sense, "V");
+    wantsb = _starpu_lsame_(sense, "B");
     lquery = *lwork == -1 || *liwork == -1;
-    if (! wantvs && ! lsame_(jobvs, "N")) {
+    if (! wantvs && ! _starpu_lsame_(jobvs, "N")) {
 	*info = -1;
-    } else if (! wantst && ! lsame_(sort, "N")) {
+    } else if (! wantst && ! _starpu_lsame_(sort, "N")) {
 	*info = -2;
     } else if (! (wantsn || wantse || wantsv || wantsb) || ! wantst && ! 
 	    wantsn) {
@@ -328,11 +328,11 @@ static integer c_n1 = -1;
 	    minwrk = 1;
 	    lwrk = 1;
 	} else {
-	    maxwrk = (*n << 1) + *n * ilaenv_(&c__1, "DGEHRD", " ", n, &c__1, 
+	    maxwrk = (*n << 1) + *n * _starpu_ilaenv_(&c__1, "DGEHRD", " ", n, &c__1, 
 		    n, &c__0);
 	    minwrk = *n * 3;
 
-	    dhseqr_("S", jobvs, n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[1]
+	    _starpu_dhseqr_("S", jobvs, n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[1]
 , &vs[vs_offset], ldvs, &work[1], &c_n1, &ieval);
 	    hswork = (integer) work[1];
 
@@ -342,7 +342,7 @@ static integer c_n1 = -1;
 		maxwrk = max(i__1,i__2);
 	    } else {
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = (*n << 1) + (*n - 1) * ilaenv_(&c__1, 
+		i__1 = maxwrk, i__2 = (*n << 1) + (*n - 1) * _starpu_ilaenv_(&c__1, 
 			"DORGHR", " ", n, &c__1, n, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
@@ -371,7 +371,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEESX", &i__1);
+	_starpu_xerbla_("DGEESX", &i__1);
 	return 0;
     }
 
@@ -384,16 +384,16 @@ static integer c_n1 = -1;
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S");
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
     smlnum = sqrt(smlnum) / eps;
     bignum = 1. / smlnum;
 
 /*     Scale A if max element outside range [SMLNUM,BIGNUM] */
 
-    anrm = dlange_("M", n, n, &a[a_offset], lda, dum);
+    anrm = _starpu_dlange_("M", n, n, &a[a_offset], lda, dum);
     scalea = FALSE_;
     if (anrm > 0. && anrm < smlnum) {
 	scalea = TRUE_;
@@ -403,7 +403,7 @@ static integer c_n1 = -1;
 	cscale = bignum;
     }
     if (scalea) {
-	dlascl_("G", &c__0, &c__0, &anrm, &cscale, n, n, &a[a_offset], lda, &
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &cscale, n, n, &a[a_offset], lda, &
 		ierr);
     }
 
@@ -411,7 +411,7 @@ static integer c_n1 = -1;
 /*     (RWorkspace: need N) */
 
     ibal = 1;
-    dgebal_("P", n, &a[a_offset], lda, &ilo, &ihi, &work[ibal], &ierr);
+    _starpu_dgebal_("P", n, &a[a_offset], lda, &ilo, &ihi, &work[ibal], &ierr);
 
 /*     Reduce to upper Hessenberg form */
 /*     (RWorkspace: need 3*N, prefer 2*N+N*NB) */
@@ -419,21 +419,21 @@ static integer c_n1 = -1;
     itau = *n + ibal;
     iwrk = *n + itau;
     i__1 = *lwork - iwrk + 1;
-    dgehrd_(n, &ilo, &ihi, &a[a_offset], lda, &work[itau], &work[iwrk], &i__1, 
+    _starpu_dgehrd_(n, &ilo, &ihi, &a[a_offset], lda, &work[itau], &work[iwrk], &i__1, 
 	     &ierr);
 
     if (wantvs) {
 
 /*        Copy Householder vectors to VS */
 
-	dlacpy_("L", n, n, &a[a_offset], lda, &vs[vs_offset], ldvs)
+	_starpu_dlacpy_("L", n, n, &a[a_offset], lda, &vs[vs_offset], ldvs)
 		;
 
 /*        Generate orthogonal matrix in VS */
 /*        (RWorkspace: need 3*N-1, prefer 2*N+(N-1)*NB) */
 
 	i__1 = *lwork - iwrk + 1;
-	dorghr_(n, &ilo, &ihi, &vs[vs_offset], ldvs, &work[itau], &work[iwrk], 
+	_starpu_dorghr_(n, &ilo, &ihi, &vs[vs_offset], ldvs, &work[itau], &work[iwrk], 
 		 &i__1, &ierr);
     }
 
@@ -444,7 +444,7 @@ static integer c_n1 = -1;
 
     iwrk = itau;
     i__1 = *lwork - iwrk + 1;
-    dhseqr_("S", jobvs, n, &ilo, &ihi, &a[a_offset], lda, &wr[1], &wi[1], &vs[
+    _starpu_dhseqr_("S", jobvs, n, &ilo, &ihi, &a[a_offset], lda, &wr[1], &wi[1], &vs[
 	    vs_offset], ldvs, &work[iwrk], &i__1, &ieval);
     if (ieval > 0) {
 	*info = ieval;
@@ -454,9 +454,9 @@ static integer c_n1 = -1;
 
     if (wantst && *info == 0) {
 	if (scalea) {
-	    dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &wr[1], n, &
+	    _starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &wr[1], n, &
 		    ierr);
-	    dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &wi[1], n, &
+	    _starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &wi[1], n, &
 		    ierr);
 	}
 	i__1 = *n;
@@ -473,7 +473,7 @@ static integer c_n1 = -1;
 /*                     otherwise, need 0 ) */
 
 	i__1 = *lwork - iwrk + 1;
-	dtrsen_(sense, jobvs, &bwork[1], n, &a[a_offset], lda, &vs[vs_offset], 
+	_starpu_dtrsen_(sense, jobvs, &bwork[1], n, &a[a_offset], lda, &vs[vs_offset], 
 		 ldvs, &wr[1], &wi[1], sdim, rconde, rcondv, &work[iwrk], &
 		i__1, &iwork[1], liwork, &icond);
 	if (! wantsn) {
@@ -504,7 +504,7 @@ static integer c_n1 = -1;
 /*        Undo balancing */
 /*        (RWorkspace: need N) */
 
-	dgebak_("P", "R", n, &ilo, &ihi, &work[ibal], n, &vs[vs_offset], ldvs, 
+	_starpu_dgebak_("P", "R", n, &ilo, &ihi, &work[ibal], n, &vs[vs_offset], ldvs, 
 		 &ierr);
     }
 
@@ -512,13 +512,13 @@ static integer c_n1 = -1;
 
 /*        Undo scaling for the Schur form of A */
 
-	dlascl_("H", &c__0, &c__0, &cscale, &anrm, n, n, &a[a_offset], lda, &
+	_starpu_dlascl_("H", &c__0, &c__0, &cscale, &anrm, n, n, &a[a_offset], lda, &
 		ierr);
 	i__1 = *lda + 1;
-	dcopy_(n, &a[a_offset], &i__1, &wr[1], &c__1);
+	_starpu_dcopy_(n, &a[a_offset], &i__1, &wr[1], &c__1);
 	if ((wantsv || wantsb) && *info == 0) {
 	    dum[0] = *rcondv;
-	    dlascl_("G", &c__0, &c__0, &cscale, &anrm, &c__1, &c__1, dum, &
+	    _starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &c__1, &c__1, dum, &
 		    c__1, &ierr);
 	    *rcondv = dum[0];
 	}
@@ -532,7 +532,7 @@ static integer c_n1 = -1;
 		i1 = ieval + 1;
 		i2 = ihi - 1;
 		i__1 = ilo - 1;
-		dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[
+		_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[
 			1], n, &ierr);
 	    } else if (wantst) {
 		i1 = 1;
@@ -559,15 +559,15 @@ static integer c_n1 = -1;
 			wi[i__ + 1] = 0.;
 			if (i__ > 1) {
 			    i__2 = i__ - 1;
-			    dswap_(&i__2, &a[i__ * a_dim1 + 1], &c__1, &a[(
+			    _starpu_dswap_(&i__2, &a[i__ * a_dim1 + 1], &c__1, &a[(
 				    i__ + 1) * a_dim1 + 1], &c__1);
 			}
 			if (*n > i__ + 1) {
 			    i__2 = *n - i__ - 1;
-			    dswap_(&i__2, &a[i__ + (i__ + 2) * a_dim1], lda, &
+			    _starpu_dswap_(&i__2, &a[i__ + (i__ + 2) * a_dim1], lda, &
 				    a[i__ + 1 + (i__ + 2) * a_dim1], lda);
 			}
-			dswap_(n, &vs[i__ * vs_dim1 + 1], &c__1, &vs[(i__ + 1)
+			_starpu_dswap_(n, &vs[i__ * vs_dim1 + 1], &c__1, &vs[(i__ + 1)
 				 * vs_dim1 + 1], &c__1);
 			a[i__ + (i__ + 1) * a_dim1] = a[i__ + 1 + i__ * 
 				a_dim1];
@@ -583,7 +583,7 @@ L20:
 /* Computing MAX */
 	i__3 = *n - ieval;
 	i__2 = max(i__3,1);
-	dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[ieval + 
+	_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[ieval + 
 		1], &i__2, &ierr);
     }
 
@@ -646,4 +646,4 @@ L20:
 
 /*     End of DGEESX */
 
-} /* dgeesx_ */
+} /* _starpu_dgeesx_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaln2_(logical *ltrans, integer *na, integer *nw, 
+/* Subroutine */ int _starpu_dlaln2_(logical *ltrans, integer *na, integer *nw, 
 	doublereal *smin, doublereal *ca, doublereal *a, integer *lda, 
 	doublereal *d1, doublereal *d2, doublereal *b, integer *ldb, 
 	doublereal *wr, doublereal *wi, doublereal *x, integer *ldx, 
@@ -43,8 +43,8 @@
     doublereal bbnd, cmax, ui11r, ui12s, temp, ur11r, ur12s, u22abs;
     integer icmax;
     doublereal bnorm, cnorm, smini;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dladiv_(doublereal *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dladiv_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *);
     doublereal bignum, smlnum;
 
@@ -206,7 +206,7 @@
 
 /*     Compute BIGNUM */
 
-    smlnum = 2. * dlamch_("Safe minimum");
+    smlnum = 2. * _starpu_dlamch_("Safe minimum");
     bignum = 1. / smlnum;
     smini = max(*smin,smlnum);
 
@@ -285,7 +285,7 @@
 
 	    d__1 = *scale * b[b_dim1 + 1];
 	    d__2 = *scale * b[(b_dim1 << 1) + 1];
-	    dladiv_(&d__1, &d__2, &csr, &csi, &x[x_dim1 + 1], &x[(x_dim1 << 1)
+	    _starpu_dladiv_(&d__1, &d__2, &csr, &csi, &x[x_dim1 + 1], &x[(x_dim1 << 1)
 		     + 1]);
 	    *xnorm = (d__1 = x[x_dim1 + 1], abs(d__1)) + (d__2 = x[(x_dim1 << 
 		    1) + 1], abs(d__2));
@@ -529,7 +529,7 @@
 		}
 	    }
 
-	    dladiv_(&br2, &bi2, &ur22, &ui22, &xr2, &xi2);
+	    _starpu_dladiv_(&br2, &bi2, &ur22, &ui22, &xr2, &xi2);
 	    xr1 = ur11r * br1 - ui11r * bi1 - ur12s * xr2 + ui12s * xi2;
 	    xi1 = ui11r * br1 + ur11r * bi1 - ui12s * xr2 - ur12s * xi2;
 	    if (zswap[icmax - 1]) {
@@ -567,7 +567,7 @@
 
 /*     End of DLALN2 */
 
-} /* dlaln2_ */
+} /* _starpu_dlaln2_ */
 
 #undef crv
 #undef civ

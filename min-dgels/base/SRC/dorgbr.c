@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dorgbr_(char *vect, integer *m, integer *n, integer *k, 
+/* Subroutine */ int _starpu_dorgbr_(char *vect, integer *m, integer *n, integer *k, 
 	doublereal *a, integer *lda, doublereal *tau, doublereal *work, 
 	integer *lwork, integer *info)
 {
@@ -27,15 +27,15 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, j, nb, mn;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical wantq;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dorglq_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorglq_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dorgqr_(integer *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dorgqr_(integer *, integer *, integer *, doublereal *, 
 	     integer *, doublereal *, doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
@@ -155,10 +155,10 @@ static integer c_n1 = -1;
 
     /* Function Body */
     *info = 0;
-    wantq = lsame_(vect, "Q");
+    wantq = _starpu_lsame_(vect, "Q");
     mn = min(*m,*n);
     lquery = *lwork == -1;
-    if (! wantq && ! lsame_(vect, "P")) {
+    if (! wantq && ! _starpu_lsame_(vect, "P")) {
 	*info = -1;
     } else if (*m < 0) {
 	*info = -2;
@@ -175,9 +175,9 @@ static integer c_n1 = -1;
 
     if (*info == 0) {
 	if (wantq) {
-	    nb = ilaenv_(&c__1, "DORGQR", " ", m, n, k, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DORGQR", " ", m, n, k, &c_n1);
 	} else {
-	    nb = ilaenv_(&c__1, "DORGLQ", " ", m, n, k, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DORGLQ", " ", m, n, k, &c_n1);
 	}
 	lwkopt = max(1,mn) * nb;
 	work[1] = (doublereal) lwkopt;
@@ -185,7 +185,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORGBR", &i__1);
+	_starpu_xerbla_("DORGBR", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -207,7 +207,7 @@ static integer c_n1 = -1;
 
 /*           If m >= k, assume m >= n >= k */
 
-	    dorgqr_(m, n, k, &a[a_offset], lda, &tau[1], &work[1], lwork, &
+	    _starpu_dorgqr_(m, n, k, &a[a_offset], lda, &tau[1], &work[1], lwork, &
 		    iinfo);
 
 	} else {
@@ -240,7 +240,7 @@ static integer c_n1 = -1;
 		i__1 = *m - 1;
 		i__2 = *m - 1;
 		i__3 = *m - 1;
-		dorgqr_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[
+		_starpu_dorgqr_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[
 			1], &work[1], lwork, &iinfo);
 	    }
 	}
@@ -253,7 +253,7 @@ static integer c_n1 = -1;
 
 /*           If k < n, assume k <= m <= n */
 
-	    dorglq_(m, n, k, &a[a_offset], lda, &tau[1], &work[1], lwork, &
+	    _starpu_dorglq_(m, n, k, &a[a_offset], lda, &tau[1], &work[1], lwork, &
 		    iinfo);
 
 	} else {
@@ -286,7 +286,7 @@ static integer c_n1 = -1;
 		i__1 = *n - 1;
 		i__2 = *n - 1;
 		i__3 = *n - 1;
-		dorglq_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[
+		_starpu_dorglq_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[
 			1], &work[1], lwork, &iinfo);
 	    }
 	}
@@ -296,4 +296,4 @@ static integer c_n1 = -1;
 
 /*     End of DORGBR */
 
-} /* dorgbr_ */
+} /* _starpu_dorgbr_ */

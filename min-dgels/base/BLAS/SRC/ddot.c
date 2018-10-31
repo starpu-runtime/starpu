@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal ddot_(integer *n, doublereal *dx, integer *incx, doublereal *dy, 
+doublereal _starpu_ddot_(integer *n, doublereal *dx, integer *incx, doublereal *dy, 
 	integer *incy)
 {
     /* System generated locals */
@@ -107,4 +107,4 @@ L40:
 L60:
     ret_val = dtemp;
     return ret_val;
-} /* ddot_ */
+} /* _starpu_ddot_ */

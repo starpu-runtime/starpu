@@ -13,17 +13,17 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dpotri_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dpotri_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *), dlauum_(
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dlauum_(
 	    char *, integer *, doublereal *, integer *, integer *), 
-	    dtrtri_(char *, char *, integer *, doublereal *, integer *, 
+	    _starpu_dtrtri_(char *, char *, integer *, doublereal *, integer *, 
 	    integer *);
 
 
@@ -88,7 +88,7 @@
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -97,7 +97,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOTRI", &i__1);
+	_starpu_xerbla_("DPOTRI", &i__1);
 	return 0;
     }
 
@@ -109,17 +109,17 @@
 
 /*     Invert the triangular Cholesky factor U or L. */
 
-    dtrtri_(uplo, "Non-unit", n, &a[a_offset], lda, info);
+    _starpu_dtrtri_(uplo, "Non-unit", n, &a[a_offset], lda, info);
     if (*info > 0) {
 	return 0;
     }
 
 /*     Form inv(U)*inv(U)' or inv(L)'*inv(L). */
 
-    dlauum_(uplo, n, &a[a_offset], lda, info);
+    _starpu_dlauum_(uplo, n, &a[a_offset], lda, info);
 
     return 0;
 
 /*     End of DPOTRI */
 
-} /* dpotri_ */
+} /* _starpu_dpotri_ */

@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b13 = -1.;
 static doublereal c_b14 = 1.;
 
-/* Subroutine */ int dpotrf_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dpotrf_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *info)
 {
     /* System generated locals */
@@ -28,20 +28,20 @@ static doublereal c_b14 = 1.;
 
     /* Local variables */
     integer j, jb, nb;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dsyrk_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsyrk_(char *, char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *), dpotf2_(char *, integer *, 
-	    doublereal *, integer *, integer *), xerbla_(char *, 
+	     integer *), _starpu_dpotf2_(char *, integer *, 
+	    doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
 
@@ -122,8 +122,8 @@ static doublereal c_b14 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -132,7 +132,7 @@ static doublereal c_b14 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOTRF", &i__1);
+	_starpu_xerbla_("DPOTRF", &i__1);
 	return 0;
     }
 
@@ -144,12 +144,12 @@ static doublereal c_b14 = 1.;
 
 /*     Determine the block size for this environment. */
 
-    nb = ilaenv_(&c__1, "DPOTRF", uplo, n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DPOTRF", uplo, n, &c_n1, &c_n1, &c_n1);
     if (nb <= 1 || nb >= *n) {
 
 /*        Use unblocked code. */
 
-	dpotf2_(uplo, n, &a[a_offset], lda, info);
+	_starpu_dpotf2_(uplo, n, &a[a_offset], lda, info);
     } else {
 
 /*        Use blocked code. */
@@ -169,9 +169,9 @@ static doublereal c_b14 = 1.;
 		i__3 = nb, i__4 = *n - j + 1;
 		jb = min(i__3,i__4);
 		i__3 = j - 1;
-		dsyrk_("Upper", "Transpose", &jb, &i__3, &c_b13, &a[j * 
+		_starpu_dsyrk_("Upper", "Transpose", &jb, &i__3, &c_b13, &a[j * 
 			a_dim1 + 1], lda, &c_b14, &a[j + j * a_dim1], lda);
-		dpotf2_("Upper", &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dpotf2_("Upper", &jb, &a[j + j * a_dim1], lda, info);
 		if (*info != 0) {
 		    goto L30;
 		}
@@ -181,12 +181,12 @@ static doublereal c_b14 = 1.;
 
 		    i__3 = *n - j - jb + 1;
 		    i__4 = j - 1;
-		    dgemm_("Transpose", "No transpose", &jb, &i__3, &i__4, &
+		    _starpu_dgemm_("Transpose", "No transpose", &jb, &i__3, &i__4, &
 			    c_b13, &a[j * a_dim1 + 1], lda, &a[(j + jb) * 
 			    a_dim1 + 1], lda, &c_b14, &a[j + (j + jb) * 
 			    a_dim1], lda);
 		    i__3 = *n - j - jb + 1;
-		    dtrsm_("Left", "Upper", "Transpose", "Non-unit", &jb, &
+		    _starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", &jb, &
 			    i__3, &c_b14, &a[j + j * a_dim1], lda, &a[j + (j 
 			    + jb) * a_dim1], lda);
 		}
@@ -208,9 +208,9 @@ static doublereal c_b14 = 1.;
 		i__3 = nb, i__4 = *n - j + 1;
 		jb = min(i__3,i__4);
 		i__3 = j - 1;
-		dsyrk_("Lower", "No transpose", &jb, &i__3, &c_b13, &a[j + 
+		_starpu_dsyrk_("Lower", "No transpose", &jb, &i__3, &c_b13, &a[j + 
 			a_dim1], lda, &c_b14, &a[j + j * a_dim1], lda);
-		dpotf2_("Lower", &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dpotf2_("Lower", &jb, &a[j + j * a_dim1], lda, info);
 		if (*info != 0) {
 		    goto L30;
 		}
@@ -220,11 +220,11 @@ static doublereal c_b14 = 1.;
 
 		    i__3 = *n - j - jb + 1;
 		    i__4 = j - 1;
-		    dgemm_("No transpose", "Transpose", &i__3, &jb, &i__4, &
+		    _starpu_dgemm_("No transpose", "Transpose", &i__3, &jb, &i__4, &
 			    c_b13, &a[j + jb + a_dim1], lda, &a[j + a_dim1], 
 			    lda, &c_b14, &a[j + jb + j * a_dim1], lda);
 		    i__3 = *n - j - jb + 1;
-		    dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i__3, &
+		    _starpu_dtrsm_("Right", "Lower", "Transpose", "Non-unit", &i__3, &
 			    jb, &c_b14, &a[j + j * a_dim1], lda, &a[j + jb + 
 			    j * a_dim1], lda);
 		}
@@ -242,4 +242,4 @@ L40:
 
 /*     End of DPOTRF */
 
-} /* dpotrf_ */
+} /* _starpu_dpotrf_ */

@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgesc2_(integer *n, doublereal *a, integer *lda, 
+/* Subroutine */ int _starpu_dgesc2_(integer *n, doublereal *a, integer *lda, 
 	doublereal *rhs, integer *ipiv, integer *jpiv, doublereal *scale)
 {
     /* System generated locals */
@@ -28,12 +28,12 @@ static integer c_n1 = -1;
     /* Local variables */
     integer i__, j;
     doublereal eps, temp;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaswp_(integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *, integer *);
     doublereal smlnum;
 
@@ -118,15 +118,15 @@ static integer c_n1 = -1;
     --jpiv;
 
     /* Function Body */
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
 /*     Apply permutations IPIV to RHS */
 
     i__1 = *n - 1;
-    dlaswp_(&c__1, &rhs[1], lda, &c__1, &i__1, &ipiv[1], &c__1);
+    _starpu_dlaswp_(&c__1, &rhs[1], lda, &c__1, &i__1, &ipiv[1], &c__1);
 
 /*     Solve for L part */
 
@@ -146,11 +146,11 @@ static integer c_n1 = -1;
 
 /*     Check for scaling */
 
-    i__ = idamax_(n, &rhs[1], &c__1);
+    i__ = _starpu_idamax_(n, &rhs[1], &c__1);
     if (smlnum * 2. * (d__1 = rhs[i__], abs(d__1)) > (d__2 = a[*n + *n * 
 	    a_dim1], abs(d__2))) {
 	temp = .5 / (d__1 = rhs[i__], abs(d__1));
-	dscal_(n, &temp, &rhs[1], &c__1);
+	_starpu_dscal_(n, &temp, &rhs[1], &c__1);
 	*scale *= temp;
     }
 
@@ -168,9 +168,9 @@ static integer c_n1 = -1;
 /*     Apply permutations JPIV to the solution (RHS) */
 
     i__1 = *n - 1;
-    dlaswp_(&c__1, &rhs[1], lda, &c__1, &i__1, &jpiv[1], &c_n1);
+    _starpu_dlaswp_(&c__1, &rhs[1], lda, &c__1, &i__1, &jpiv[1], &c_n1);
     return 0;
 
 /*     End of DGESC2 */
 
-} /* dgesc2_ */
+} /* _starpu_dgesc2_ */

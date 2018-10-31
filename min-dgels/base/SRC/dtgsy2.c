@@ -21,7 +21,7 @@ static doublereal c_b27 = -1.;
 static doublereal c_b42 = 1.;
 static doublereal c_b56 = 0.;
 
-/* Subroutine */ int dtgsy2_(char *trans, integer *ijob, integer *m, integer *
+/* Subroutine */ int _starpu_dtgsy2_(char *trans, integer *ijob, integer *m, integer *
 	n, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
 	doublereal *c__, integer *ldc, doublereal *d__, integer *ldd, 
 	doublereal *e, integer *lde, doublereal *f, integer *ldf, doublereal *
@@ -38,30 +38,30 @@ static doublereal c_b56 = 0.;
     integer ie, je, mb, nb, ii, jj, is, js;
     doublereal rhs[8];
     integer isp1, jsp1;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     integer ierr, zdim, ipiv[8], jpiv[8];
     doublereal alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemm_(char *, char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemm_(char *, char *, integer *, integer *, integer *
 , doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), daxpy_(integer 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_daxpy_(integer 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *)
-	    , dgesc2_(integer *, doublereal *, integer *, doublereal *, 
-	    integer *, integer *, doublereal *), dgetc2_(integer *, 
+	    , _starpu_dgesc2_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *, integer *, doublereal *), _starpu_dgetc2_(integer *, 
 	    doublereal *, integer *, integer *, integer *, integer *), 
-	    dlatdf_(integer *, integer *, doublereal *, integer *, doublereal 
+	    _starpu_dlatdf_(integer *, integer *, doublereal *, integer *, doublereal 
 	    *, doublereal *, doublereal *, integer *, integer *);
     doublereal scaloc;
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     logical notran;
 
 
@@ -272,8 +272,8 @@ static doublereal c_b56 = 0.;
     /* Function Body */
     *info = 0;
     ierr = 0;
-    notran = lsame_(trans, "N");
-    if (! notran && ! lsame_(trans, "T")) {
+    notran = _starpu_lsame_(trans, "N");
+    if (! notran && ! _starpu_lsame_(trans, "T")) {
 	*info = -1;
     } else if (notran) {
 	if (*ijob < 0 || *ijob > 2) {
@@ -301,7 +301,7 @@ static doublereal c_b56 = 0.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGSY2", &i__1);
+	_starpu_xerbla_("DTGSY2", &i__1);
 	return 0;
     }
 
@@ -390,25 +390,25 @@ L40:
 
 /*                 Solve Z * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 
 		    if (*ijob == 0) {
-			dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+			_starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 			if (scaloc != 1.) {
 			    i__2 = *n;
 			    for (k = 1; k <= i__2; ++k) {
-				dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
+				_starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
 					c__1);
-				dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+				_starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L50: */
 			    }
 			    *scale *= scaloc;
 			}
 		    } else {
-			dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
+			_starpu_dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
 				ipiv, jpiv);
 		    }
 
@@ -423,18 +423,18 @@ L40:
 		    if (i__ > 1) {
 			alpha = -rhs[0];
 			i__2 = is - 1;
-			daxpy_(&i__2, &alpha, &a[is * a_dim1 + 1], &c__1, &
+			_starpu_daxpy_(&i__2, &alpha, &a[is * a_dim1 + 1], &c__1, &
 				c__[js * c_dim1 + 1], &c__1);
 			i__2 = is - 1;
-			daxpy_(&i__2, &alpha, &d__[is * d_dim1 + 1], &c__1, &
+			_starpu_daxpy_(&i__2, &alpha, &d__[is * d_dim1 + 1], &c__1, &
 				f[js * f_dim1 + 1], &c__1);
 		    }
 		    if (j < q) {
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[1], &b[js + (je + 1) * b_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[1], &b[js + (je + 1) * b_dim1], 
 				ldb, &c__[is + (je + 1) * c_dim1], ldc);
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[1], &e[js + (je + 1) * e_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[1], &e[js + (je + 1) * e_dim1], 
 				lde, &f[is + (je + 1) * f_dim1], ldf);
 		    }
 
@@ -471,25 +471,25 @@ L40:
 
 /*                 Solve Z * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 
 		    if (*ijob == 0) {
-			dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+			_starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 			if (scaloc != 1.) {
 			    i__2 = *n;
 			    for (k = 1; k <= i__2; ++k) {
-				dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
+				_starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
 					c__1);
-				dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+				_starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L60: */
 			    }
 			    *scale *= scaloc;
 			}
 		    } else {
-			dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
+			_starpu_dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
 				ipiv, jpiv);
 		    }
 
@@ -505,24 +505,24 @@ L40:
 
 		    if (i__ > 1) {
 			i__2 = is - 1;
-			dger_(&i__2, &nb, &c_b27, &a[is * a_dim1 + 1], &c__1, 
+			_starpu_dger_(&i__2, &nb, &c_b27, &a[is * a_dim1 + 1], &c__1, 
 				rhs, &c__1, &c__[js * c_dim1 + 1], ldc);
 			i__2 = is - 1;
-			dger_(&i__2, &nb, &c_b27, &d__[is * d_dim1 + 1], &
+			_starpu_dger_(&i__2, &nb, &c_b27, &d__[is * d_dim1 + 1], &
 				c__1, rhs, &c__1, &f[js * f_dim1 + 1], ldf);
 		    }
 		    if (j < q) {
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[2], &b[js + (je + 1) * b_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[2], &b[js + (je + 1) * b_dim1], 
 				ldb, &c__[is + (je + 1) * c_dim1], ldc);
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[2], &e[js + (je + 1) * e_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[2], &e[js + (je + 1) * e_dim1], 
 				lde, &f[is + (je + 1) * f_dim1], ldf);
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[3], &b[jsp1 + (je + 1) * b_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[3], &b[jsp1 + (je + 1) * b_dim1], 
 				ldb, &c__[is + (je + 1) * c_dim1], ldc);
 			i__2 = *n - je;
-			daxpy_(&i__2, &rhs[3], &e[jsp1 + (je + 1) * e_dim1], 
+			_starpu_daxpy_(&i__2, &rhs[3], &e[jsp1 + (je + 1) * e_dim1], 
 				lde, &f[is + (je + 1) * f_dim1], ldf);
 		    }
 
@@ -559,24 +559,24 @@ L40:
 
 /*                 Solve Z * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 		    if (*ijob == 0) {
-			dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+			_starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 			if (scaloc != 1.) {
 			    i__2 = *n;
 			    for (k = 1; k <= i__2; ++k) {
-				dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
+				_starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
 					c__1);
-				dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+				_starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L70: */
 			    }
 			    *scale *= scaloc;
 			}
 		    } else {
-			dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
+			_starpu_dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
 				ipiv, jpiv);
 		    }
 
@@ -592,21 +592,21 @@ L40:
 
 		    if (i__ > 1) {
 			i__2 = is - 1;
-			dgemv_("N", &i__2, &mb, &c_b27, &a[is * a_dim1 + 1], 
+			_starpu_dgemv_("N", &i__2, &mb, &c_b27, &a[is * a_dim1 + 1], 
 				lda, rhs, &c__1, &c_b42, &c__[js * c_dim1 + 1]
 , &c__1);
 			i__2 = is - 1;
-			dgemv_("N", &i__2, &mb, &c_b27, &d__[is * d_dim1 + 1], 
+			_starpu_dgemv_("N", &i__2, &mb, &c_b27, &d__[is * d_dim1 + 1], 
 				 ldd, rhs, &c__1, &c_b42, &f[js * f_dim1 + 1], 
 				 &c__1);
 		    }
 		    if (j < q) {
 			i__2 = *n - je;
-			dger_(&mb, &i__2, &c_b42, &rhs[2], &c__1, &b[js + (je 
+			_starpu_dger_(&mb, &i__2, &c_b42, &rhs[2], &c__1, &b[js + (je 
 				+ 1) * b_dim1], ldb, &c__[is + (je + 1) * 
 				c_dim1], ldc);
 			i__2 = *n - je;
-			dger_(&mb, &i__2, &c_b42, &rhs[2], &c__1, &e[js + (je 
+			_starpu_dger_(&mb, &i__2, &c_b42, &rhs[2], &c__1, &e[js + (je 
 				+ 1) * e_dim1], lde, &f[is + (je + 1) * 
 				f_dim1], ldf);
 		    }
@@ -615,7 +615,7 @@ L40:
 
 /*                 Build an 8-by-8 system Z * x = RHS */
 
-		    dlaset_("F", &c__8, &c__8, &c_b56, &c_b56, z__, &c__8);
+		    _starpu_dlaset_("F", &c__8, &c__8, &c_b56, &c_b56, z__, &c__8);
 
 		    z__[0] = a[is + is * a_dim1];
 		    z__[1] = a[isp1 + is * a_dim1];
@@ -659,9 +659,9 @@ L40:
 		    ii = mb * nb + 1;
 		    i__2 = nb - 1;
 		    for (jj = 0; jj <= i__2; ++jj) {
-			dcopy_(&mb, &c__[is + (js + jj) * c_dim1], &c__1, &
+			_starpu_dcopy_(&mb, &c__[is + (js + jj) * c_dim1], &c__1, &
 				rhs[k - 1], &c__1);
-			dcopy_(&mb, &f[is + (js + jj) * f_dim1], &c__1, &rhs[
+			_starpu_dcopy_(&mb, &f[is + (js + jj) * f_dim1], &c__1, &rhs[
 				ii - 1], &c__1);
 			k += mb;
 			ii += mb;
@@ -670,24 +670,24 @@ L40:
 
 /*                 Solve Z * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 		    if (*ijob == 0) {
-			dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+			_starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 			if (scaloc != 1.) {
 			    i__2 = *n;
 			    for (k = 1; k <= i__2; ++k) {
-				dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
+				_starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &
 					c__1);
-				dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+				_starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L90: */
 			    }
 			    *scale *= scaloc;
 			}
 		    } else {
-			dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
+			_starpu_dlatdf_(ijob, &zdim, z__, &c__8, rhs, rdsum, rdscal, 
 				ipiv, jpiv);
 		    }
 
@@ -697,9 +697,9 @@ L40:
 		    ii = mb * nb + 1;
 		    i__2 = nb - 1;
 		    for (jj = 0; jj <= i__2; ++jj) {
-			dcopy_(&mb, &rhs[k - 1], &c__1, &c__[is + (js + jj) * 
+			_starpu_dcopy_(&mb, &rhs[k - 1], &c__1, &c__[is + (js + jj) * 
 				c_dim1], &c__1);
-			dcopy_(&mb, &rhs[ii - 1], &c__1, &f[is + (js + jj) * 
+			_starpu_dcopy_(&mb, &rhs[ii - 1], &c__1, &f[is + (js + jj) * 
 				f_dim1], &c__1);
 			k += mb;
 			ii += mb;
@@ -711,22 +711,22 @@ L40:
 
 		    if (i__ > 1) {
 			i__2 = is - 1;
-			dgemm_("N", "N", &i__2, &nb, &mb, &c_b27, &a[is * 
+			_starpu_dgemm_("N", "N", &i__2, &nb, &mb, &c_b27, &a[is * 
 				a_dim1 + 1], lda, rhs, &mb, &c_b42, &c__[js * 
 				c_dim1 + 1], ldc);
 			i__2 = is - 1;
-			dgemm_("N", "N", &i__2, &nb, &mb, &c_b27, &d__[is * 
+			_starpu_dgemm_("N", "N", &i__2, &nb, &mb, &c_b27, &d__[is * 
 				d_dim1 + 1], ldd, rhs, &mb, &c_b42, &f[js * 
 				f_dim1 + 1], ldf);
 		    }
 		    if (j < q) {
 			k = mb * nb + 1;
 			i__2 = *n - je;
-			dgemm_("N", "N", &mb, &i__2, &nb, &c_b42, &rhs[k - 1], 
+			_starpu_dgemm_("N", "N", &mb, &i__2, &nb, &c_b42, &rhs[k - 1], 
 				 &mb, &b[js + (je + 1) * b_dim1], ldb, &c_b42, 
 				 &c__[is + (je + 1) * c_dim1], ldc);
 			i__2 = *n - je;
-			dgemm_("N", "N", &mb, &i__2, &nb, &c_b42, &rhs[k - 1], 
+			_starpu_dgemm_("N", "N", &mb, &i__2, &nb, &c_b42, &rhs[k - 1], 
 				 &mb, &e[js + (je + 1) * e_dim1], lde, &c_b42, 
 				 &f[is + (je + 1) * f_dim1], ldf);
 		    }
@@ -777,17 +777,17 @@ L40:
 
 /*                 Solve Z' * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 
-		    dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+		    _starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 		    if (scaloc != 1.) {
 			i__3 = *n;
 			for (k = 1; k <= i__3; ++k) {
-			    dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
-			    dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L130: */
 			}
 			*scale *= scaloc;
@@ -804,21 +804,21 @@ L40:
 		    if (j > p + 2) {
 			alpha = rhs[0];
 			i__3 = js - 1;
-			daxpy_(&i__3, &alpha, &b[js * b_dim1 + 1], &c__1, &f[
+			_starpu_daxpy_(&i__3, &alpha, &b[js * b_dim1 + 1], &c__1, &f[
 				is + f_dim1], ldf);
 			alpha = rhs[1];
 			i__3 = js - 1;
-			daxpy_(&i__3, &alpha, &e[js * e_dim1 + 1], &c__1, &f[
+			_starpu_daxpy_(&i__3, &alpha, &e[js * e_dim1 + 1], &c__1, &f[
 				is + f_dim1], ldf);
 		    }
 		    if (i__ < p) {
 			alpha = -rhs[0];
 			i__3 = *m - ie;
-			daxpy_(&i__3, &alpha, &a[is + (ie + 1) * a_dim1], lda, 
+			_starpu_daxpy_(&i__3, &alpha, &a[is + (ie + 1) * a_dim1], lda, 
 				 &c__[ie + 1 + js * c_dim1], &c__1);
 			alpha = -rhs[1];
 			i__3 = *m - ie;
-			daxpy_(&i__3, &alpha, &d__[is + (ie + 1) * d_dim1], 
+			_starpu_daxpy_(&i__3, &alpha, &d__[is + (ie + 1) * d_dim1], 
 				ldd, &c__[ie + 1 + js * c_dim1], &c__1);
 		    }
 
@@ -855,16 +855,16 @@ L40:
 
 /*                 Solve Z' * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
-		    dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+		    _starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 		    if (scaloc != 1.) {
 			i__3 = *n;
 			for (k = 1; k <= i__3; ++k) {
-			    dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
-			    dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L140: */
 			}
 			*scale *= scaloc;
@@ -882,25 +882,25 @@ L40:
 
 		    if (j > p + 2) {
 			i__3 = js - 1;
-			daxpy_(&i__3, rhs, &b[js * b_dim1 + 1], &c__1, &f[is 
+			_starpu_daxpy_(&i__3, rhs, &b[js * b_dim1 + 1], &c__1, &f[is 
 				+ f_dim1], ldf);
 			i__3 = js - 1;
-			daxpy_(&i__3, &rhs[1], &b[jsp1 * b_dim1 + 1], &c__1, &
+			_starpu_daxpy_(&i__3, &rhs[1], &b[jsp1 * b_dim1 + 1], &c__1, &
 				f[is + f_dim1], ldf);
 			i__3 = js - 1;
-			daxpy_(&i__3, &rhs[2], &e[js * e_dim1 + 1], &c__1, &f[
+			_starpu_daxpy_(&i__3, &rhs[2], &e[js * e_dim1 + 1], &c__1, &f[
 				is + f_dim1], ldf);
 			i__3 = js - 1;
-			daxpy_(&i__3, &rhs[3], &e[jsp1 * e_dim1 + 1], &c__1, &
+			_starpu_daxpy_(&i__3, &rhs[3], &e[jsp1 * e_dim1 + 1], &c__1, &
 				f[is + f_dim1], ldf);
 		    }
 		    if (i__ < p) {
 			i__3 = *m - ie;
-			dger_(&i__3, &nb, &c_b27, &a[is + (ie + 1) * a_dim1], 
+			_starpu_dger_(&i__3, &nb, &c_b27, &a[is + (ie + 1) * a_dim1], 
 				lda, rhs, &c__1, &c__[ie + 1 + js * c_dim1], 
 				ldc);
 			i__3 = *m - ie;
-			dger_(&i__3, &nb, &c_b27, &d__[is + (ie + 1) * d_dim1]
+			_starpu_dger_(&i__3, &nb, &c_b27, &d__[is + (ie + 1) * d_dim1]
 , ldd, &rhs[2], &c__1, &c__[ie + 1 + js * 
 				c_dim1], ldc);
 		    }
@@ -938,17 +938,17 @@ L40:
 
 /*                 Solve Z' * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 
-		    dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+		    _starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 		    if (scaloc != 1.) {
 			i__3 = *n;
 			for (k = 1; k <= i__3; ++k) {
-			    dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
-			    dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L150: */
 			}
 			*scale *= scaloc;
@@ -966,19 +966,19 @@ L40:
 
 		    if (j > p + 2) {
 			i__3 = js - 1;
-			dger_(&mb, &i__3, &c_b42, rhs, &c__1, &b[js * b_dim1 
+			_starpu_dger_(&mb, &i__3, &c_b42, rhs, &c__1, &b[js * b_dim1 
 				+ 1], &c__1, &f[is + f_dim1], ldf);
 			i__3 = js - 1;
-			dger_(&mb, &i__3, &c_b42, &rhs[2], &c__1, &e[js * 
+			_starpu_dger_(&mb, &i__3, &c_b42, &rhs[2], &c__1, &e[js * 
 				e_dim1 + 1], &c__1, &f[is + f_dim1], ldf);
 		    }
 		    if (i__ < p) {
 			i__3 = *m - ie;
-			dgemv_("T", &mb, &i__3, &c_b27, &a[is + (ie + 1) * 
+			_starpu_dgemv_("T", &mb, &i__3, &c_b27, &a[is + (ie + 1) * 
 				a_dim1], lda, rhs, &c__1, &c_b42, &c__[ie + 1 
 				+ js * c_dim1], &c__1);
 			i__3 = *m - ie;
-			dgemv_("T", &mb, &i__3, &c_b27, &d__[is + (ie + 1) * 
+			_starpu_dgemv_("T", &mb, &i__3, &c_b27, &d__[is + (ie + 1) * 
 				d_dim1], ldd, &rhs[2], &c__1, &c_b42, &c__[ie 
 				+ 1 + js * c_dim1], &c__1);
 		    }
@@ -987,7 +987,7 @@ L40:
 
 /*                 Build an 8-by-8 system Z' * x = RHS */
 
-		    dlaset_("F", &c__8, &c__8, &c_b56, &c_b56, z__, &c__8);
+		    _starpu_dlaset_("F", &c__8, &c__8, &c_b56, &c_b56, z__, &c__8);
 
 		    z__[0] = a[is + is * a_dim1];
 		    z__[1] = a[is + isp1 * a_dim1];
@@ -1031,9 +1031,9 @@ L40:
 		    ii = mb * nb + 1;
 		    i__3 = nb - 1;
 		    for (jj = 0; jj <= i__3; ++jj) {
-			dcopy_(&mb, &c__[is + (js + jj) * c_dim1], &c__1, &
+			_starpu_dcopy_(&mb, &c__[is + (js + jj) * c_dim1], &c__1, &
 				rhs[k - 1], &c__1);
-			dcopy_(&mb, &f[is + (js + jj) * f_dim1], &c__1, &rhs[
+			_starpu_dcopy_(&mb, &f[is + (js + jj) * f_dim1], &c__1, &rhs[
 				ii - 1], &c__1);
 			k += mb;
 			ii += mb;
@@ -1043,17 +1043,17 @@ L40:
 
 /*                 Solve Z' * x = RHS */
 
-		    dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
+		    _starpu_dgetc2_(&zdim, z__, &c__8, ipiv, jpiv, &ierr);
 		    if (ierr > 0) {
 			*info = ierr;
 		    }
 
-		    dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
+		    _starpu_dgesc2_(&zdim, z__, &c__8, rhs, ipiv, jpiv, &scaloc);
 		    if (scaloc != 1.) {
 			i__3 = *n;
 			for (k = 1; k <= i__3; ++k) {
-			    dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
-			    dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &c__[k * c_dim1 + 1], &c__1);
+			    _starpu_dscal_(m, &scaloc, &f[k * f_dim1 + 1], &c__1);
 /* L170: */
 			}
 			*scale *= scaloc;
@@ -1065,9 +1065,9 @@ L40:
 		    ii = mb * nb + 1;
 		    i__3 = nb - 1;
 		    for (jj = 0; jj <= i__3; ++jj) {
-			dcopy_(&mb, &rhs[k - 1], &c__1, &c__[is + (js + jj) * 
+			_starpu_dcopy_(&mb, &rhs[k - 1], &c__1, &c__[is + (js + jj) * 
 				c_dim1], &c__1);
-			dcopy_(&mb, &rhs[ii - 1], &c__1, &f[is + (js + jj) * 
+			_starpu_dcopy_(&mb, &rhs[ii - 1], &c__1, &f[is + (js + jj) * 
 				f_dim1], &c__1);
 			k += mb;
 			ii += mb;
@@ -1079,21 +1079,21 @@ L40:
 
 		    if (j > p + 2) {
 			i__3 = js - 1;
-			dgemm_("N", "T", &mb, &i__3, &nb, &c_b42, &c__[is + 
+			_starpu_dgemm_("N", "T", &mb, &i__3, &nb, &c_b42, &c__[is + 
 				js * c_dim1], ldc, &b[js * b_dim1 + 1], ldb, &
 				c_b42, &f[is + f_dim1], ldf);
 			i__3 = js - 1;
-			dgemm_("N", "T", &mb, &i__3, &nb, &c_b42, &f[is + js *
+			_starpu_dgemm_("N", "T", &mb, &i__3, &nb, &c_b42, &f[is + js *
 				 f_dim1], ldf, &e[js * e_dim1 + 1], lde, &
 				c_b42, &f[is + f_dim1], ldf);
 		    }
 		    if (i__ < p) {
 			i__3 = *m - ie;
-			dgemm_("T", "N", &i__3, &nb, &mb, &c_b27, &a[is + (ie 
+			_starpu_dgemm_("T", "N", &i__3, &nb, &mb, &c_b27, &a[is + (ie 
 				+ 1) * a_dim1], lda, &c__[is + js * c_dim1], 
 				ldc, &c_b42, &c__[ie + 1 + js * c_dim1], ldc);
 			i__3 = *m - ie;
-			dgemm_("T", "N", &i__3, &nb, &mb, &c_b27, &d__[is + (
+			_starpu_dgemm_("T", "N", &i__3, &nb, &mb, &c_b27, &d__[is + (
 				ie + 1) * d_dim1], ldd, &f[is + js * f_dim1], 
 				ldf, &c_b42, &c__[ie + 1 + js * c_dim1], ldc);
 		    }
@@ -1110,4 +1110,4 @@ L40:
 
 /*     End of DTGSY2 */
 
-} /* dtgsy2_ */
+} /* _starpu_dtgsy2_ */

@@ -13,16 +13,16 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dppsv_(char *uplo, integer *n, integer *nrhs, doublereal 
+/* Subroutine */ int _starpu_dppsv_(char *uplo, integer *n, integer *nrhs, doublereal 
 	*ap, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
     integer b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpptrf_(
-	    char *, integer *, doublereal *, integer *), dpptrs_(char 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpptrf_(
+	    char *, integer *, doublereal *, integer *), _starpu_dpptrs_(char 
 	    *, integer *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *);
 
@@ -129,7 +129,7 @@
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -140,22 +140,22 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPPSV ", &i__1);
+	_starpu_xerbla_("DPPSV ", &i__1);
 	return 0;
     }
 
 /*     Compute the Cholesky factorization A = U'*U or A = L*L'. */
 
-    dpptrf_(uplo, n, &ap[1], info);
+    _starpu_dpptrf_(uplo, n, &ap[1], info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dpptrs_(uplo, n, nrhs, &ap[1], &b[b_offset], ldb, info);
+	_starpu_dpptrs_(uplo, n, nrhs, &ap[1], &b[b_offset], ldb, info);
 
     }
     return 0;
 
 /*     End of DPPSV */
 
-} /* dppsv_ */
+} /* _starpu_dppsv_ */

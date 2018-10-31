@@ -21,7 +21,7 @@ static real c_b163 = 0.f;
 static real c_b164 = 1.f;
 static integer c__0 = 0;
 
-integer ilaenv_(integer *ispec, char *name__, char *opts, integer *n1, 
+integer _starpu_ilaenv_(integer *ispec, char *name__, char *opts, integer *n1, 
 	integer *n2, integer *n3, integer *n4)
 {
     /* System generated locals */
@@ -38,9 +38,9 @@ integer ilaenv_(integer *ispec, char *name__, char *opts, integer *n1,
     logical cname;
     integer nbmin;
     logical sname;
-    extern integer ieeeck_(integer *, real *, real *);
+    extern integer _starpu_ieeeck_(integer *, real *, real *);
     char subnam[1];
-    extern integer iparmq_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_iparmq_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
     ftnlen name_len, opts_len;
@@ -626,7 +626,7 @@ L140:
 /*     ILAENV = 0 */
     ret_val = 1;
     if (ret_val == 1) {
-	ret_val = ieeeck_(&c__1, &c_b163, &c_b164);
+	ret_val = _starpu_ieeeck_(&c__1, &c_b163, &c_b164);
     }
     return ret_val;
 
@@ -637,7 +637,7 @@ L150:
 /*     ILAENV = 0 */
     ret_val = 1;
     if (ret_val == 1) {
-	ret_val = ieeeck_(&c__0, &c_b163, &c_b164);
+	ret_val = _starpu_ieeeck_(&c__0, &c_b163, &c_b164);
     }
     return ret_val;
 
@@ -645,10 +645,10 @@ L160:
 
 /*     12 <= ISPEC <= 16: xHSEQR or one of its subroutines. */
 
-    ret_val = iparmq_(ispec, name__, opts, n1, n2, n3, n4)
+    ret_val = _starpu_iparmq_(ispec, name__, opts, n1, n2, n3, n4)
 	    ;
     return ret_val;
 
 /*     End of ILAENV */
 
-} /* ilaenv_ */
+} /* _starpu_ilaenv_ */

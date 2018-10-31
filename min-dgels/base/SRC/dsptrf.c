@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dsptrf_(char *uplo, integer *n, doublereal *ap, integer *
+/* Subroutine */ int _starpu_dsptrf_(char *uplo, integer *n, doublereal *ap, integer *
 	ipiv, integer *info)
 {
     /* System generated locals */
@@ -35,19 +35,19 @@ static integer c__1 = 1;
     integer kx, knc, kpc, npp;
     doublereal wkm1, wkp1;
     integer imax, jmax;
-    extern /* Subroutine */ int dspr_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dspr_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *);
     doublereal alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer kstep;
     logical upper;
     doublereal absakk;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal colmax, rowmax;
 
 
@@ -173,15 +173,15 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPTRF", &i__1);
+	_starpu_xerbla_("DSPTRF", &i__1);
 	return 0;
     }
 
@@ -218,7 +218,7 @@ L10:
 
 	if (k > 1) {
 	    i__1 = k - 1;
-	    imax = idamax_(&i__1, &ap[kc], &c__1);
+	    imax = _starpu_idamax_(&i__1, &ap[kc], &c__1);
 	    colmax = (d__1 = ap[kc + imax - 1], abs(d__1));
 	} else {
 	    colmax = 0.;
@@ -258,7 +258,7 @@ L10:
 		kpc = (imax - 1) * imax / 2 + 1;
 		if (imax > 1) {
 		    i__1 = imax - 1;
-		    jmax = idamax_(&i__1, &ap[kpc], &c__1);
+		    jmax = _starpu_idamax_(&i__1, &ap[kpc], &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = ap[kpc + jmax - 1], abs(
 			    d__1));
@@ -297,7 +297,7 @@ L10:
 /*              submatrix A(1:k,1:k) */
 
 		i__1 = kp - 1;
-		dswap_(&i__1, &ap[knc], &c__1, &ap[kpc], &c__1);
+		_starpu_dswap_(&i__1, &ap[knc], &c__1, &ap[kpc], &c__1);
 		kx = kpc + kp - 1;
 		i__1 = kk - 1;
 		for (j = kp + 1; j <= i__1; ++j) {
@@ -334,12 +334,12 @@ L10:
 		r1 = 1. / ap[kc + k - 1];
 		i__1 = k - 1;
 		d__1 = -r1;
-		dspr_(uplo, &i__1, &d__1, &ap[kc], &c__1, &ap[1]);
+		_starpu_dspr_(uplo, &i__1, &d__1, &ap[kc], &c__1, &ap[1]);
 
 /*              Store U(k) in column k */
 
 		i__1 = k - 1;
-		dscal_(&i__1, &r1, &ap[kc], &c__1);
+		_starpu_dscal_(&i__1, &r1, &ap[kc], &c__1);
 	    } else {
 
 /*              2-by-2 pivot block D(k): columns k and k-1 now hold */
@@ -428,7 +428,7 @@ L60:
 
 	if (k < *n) {
 	    i__1 = *n - k;
-	    imax = k + idamax_(&i__1, &ap[kc + 1], &c__1);
+	    imax = k + _starpu_idamax_(&i__1, &ap[kc + 1], &c__1);
 	    colmax = (d__1 = ap[kc + imax - k], abs(d__1));
 	} else {
 	    colmax = 0.;
@@ -467,7 +467,7 @@ L60:
 		kpc = npp - (*n - imax + 1) * (*n - imax + 2) / 2 + 1;
 		if (imax < *n) {
 		    i__1 = *n - imax;
-		    jmax = imax + idamax_(&i__1, &ap[kpc + 1], &c__1);
+		    jmax = imax + _starpu_idamax_(&i__1, &ap[kpc + 1], &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = ap[kpc + jmax - imax], abs(
 			    d__1));
@@ -506,7 +506,7 @@ L60:
 
 		if (kp < *n) {
 		    i__1 = *n - kp;
-		    dswap_(&i__1, &ap[knc + kp - kk + 1], &c__1, &ap[kpc + 1], 
+		    _starpu_dswap_(&i__1, &ap[knc + kp - kk + 1], &c__1, &ap[kpc + 1], 
 			     &c__1);
 		}
 		kx = knc + kp - kk;
@@ -547,13 +547,13 @@ L60:
 		    r1 = 1. / ap[kc];
 		    i__1 = *n - k;
 		    d__1 = -r1;
-		    dspr_(uplo, &i__1, &d__1, &ap[kc + 1], &c__1, &ap[kc + *n 
+		    _starpu_dspr_(uplo, &i__1, &d__1, &ap[kc + 1], &c__1, &ap[kc + *n 
 			    - k + 1]);
 
 /*                 Store L(k) in column K */
 
 		    i__1 = *n - k;
-		    dscal_(&i__1, &r1, &ap[kc + 1], &c__1);
+		    _starpu_dscal_(&i__1, &r1, &ap[kc + 1], &c__1);
 		}
 	    } else {
 
@@ -625,4 +625,4 @@ L110:
 
 /*     End of DSPTRF */
 
-} /* dsptrf_ */
+} /* _starpu_dsptrf_ */

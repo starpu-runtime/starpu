@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlartv_(integer *n, doublereal *x, integer *incx, 
+/* Subroutine */ int _starpu_dlartv_(integer *n, doublereal *x, integer *incx, 
 	doublereal *y, integer *incy, doublereal *c__, doublereal *s, integer 
 	*incc)
 {
@@ -103,4 +103,4 @@
 
 /*     End of DLARTV */
 
-} /* dlartv_ */
+} /* _starpu_dlartv_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsyr_(char *uplo, integer *n, doublereal *alpha, 
+/* Subroutine */ int _starpu_dsyr_(char *uplo, integer *n, doublereal *alpha, 
 	doublereal *x, integer *incx, doublereal *a, integer *lda)
 {
     /* System generated locals */
@@ -22,8 +22,8 @@
     /* Local variables */
     integer i__, j, ix, jx, kx, info;
     doublereal temp;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -127,7 +127,7 @@
 
     /* Function Body */
     info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	info = 1;
     } else if (*n < 0) {
 	info = 2;
@@ -137,7 +137,7 @@
 	info = 7;
     }
     if (info != 0) {
-	xerbla_("DSYR  ", &info);
+	_starpu_xerbla_("DSYR  ", &info);
 	return 0;
     }
 
@@ -159,7 +159,7 @@
 /*     accessed sequentially with one pass through the triangular part */
 /*     of A. */
 
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Form  A  when A is stored in upper triangle. */
 
@@ -235,4 +235,4 @@
 
 /*     End of DSYR  . */
 
-} /* dsyr_ */
+} /* _starpu_dsyr_ */

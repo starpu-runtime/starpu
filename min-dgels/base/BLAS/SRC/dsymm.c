@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsymm_(char *side, char *uplo, integer *m, integer *n, 
+/* Subroutine */ int _starpu_dsymm_(char *side, char *uplo, integer *m, integer *n, 
 	doublereal *alpha, doublereal *a, integer *lda, doublereal *b, 
 	integer *ldb, doublereal *beta, doublereal *c__, integer *ldc)
 {
@@ -24,10 +24,10 @@
     /* Local variables */
     integer i__, j, k, info;
     doublereal temp1, temp2;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nrowa;
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -183,19 +183,19 @@
     c__ -= c_offset;
 
     /* Function Body */
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 	nrowa = *m;
     } else {
 	nrowa = *n;
     }
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
 
 /*     Test the input parameters. */
 
     info = 0;
-    if (! lsame_(side, "L") && ! lsame_(side, "R")) {
+    if (! _starpu_lsame_(side, "L") && ! _starpu_lsame_(side, "R")) {
 	info = 1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	info = 2;
     } else if (*m < 0) {
 	info = 3;
@@ -209,7 +209,7 @@
 	info = 12;
     }
     if (info != 0) {
-	xerbla_("DSYMM ", &info);
+	_starpu_xerbla_("DSYMM ", &info);
 	return 0;
     }
 
@@ -248,7 +248,7 @@
 
 /*     Start the operations. */
 
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 
 /*        Form  C := alpha*A*B + beta*C. */
 
@@ -359,4 +359,4 @@
 
 /*     End of DSYMM . */
 
-} /* dsymm_ */
+} /* _starpu_dsymm_ */

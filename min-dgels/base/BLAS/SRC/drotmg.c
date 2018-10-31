@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int drotmg_(doublereal *dd1, doublereal *dd2, doublereal *
+/* Subroutine */ int _starpu_drotmg_(doublereal *dd1, doublereal *dd2, doublereal *
 	dx1, doublereal *dy1, doublereal *dparam)
 {
     /* Initialized data */
@@ -290,4 +290,4 @@ L250:
 L260:
     dparam[1] = dflag;
     return 0;
-} /* drotmg_ */
+} /* _starpu_drotmg_ */

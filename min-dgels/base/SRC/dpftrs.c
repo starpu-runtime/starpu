@@ -17,7 +17,7 @@
 
 static doublereal c_b10 = 1.;
 
-/* Subroutine */ int dpftrs_(char *transr, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dpftrs_(char *transr, char *uplo, integer *n, integer *
 	nrhs, doublereal *a, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
@@ -25,12 +25,12 @@ static doublereal c_b10 = 1.;
 
     /* Local variables */
     logical normaltransr;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtfsm_(char *, char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtfsm_(char *, char *, char *, char *, char *, 
 	     integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    integer *);
     logical lower;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2)                                    -- */
@@ -194,11 +194,11 @@ static doublereal c_b10 = 1.;
 
     /* Function Body */
     *info = 0;
-    normaltransr = lsame_(transr, "N");
-    lower = lsame_(uplo, "L");
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    normaltransr = _starpu_lsame_(transr, "N");
+    lower = _starpu_lsame_(uplo, "L");
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	*info = -1;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -209,7 +209,7 @@ static doublereal c_b10 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPFTRS", &i__1);
+	_starpu_xerbla_("DPFTRS", &i__1);
 	return 0;
     }
 
@@ -222,14 +222,14 @@ static doublereal c_b10 = 1.;
 /*     start execution: there are two triangular solves */
 
     if (lower) {
-	dtfsm_(transr, "L", uplo, "N", "N", n, nrhs, &c_b10, a, &b[b_offset], 
+	_starpu_dtfsm_(transr, "L", uplo, "N", "N", n, nrhs, &c_b10, a, &b[b_offset], 
 		ldb);
-	dtfsm_(transr, "L", uplo, "T", "N", n, nrhs, &c_b10, a, &b[b_offset], 
+	_starpu_dtfsm_(transr, "L", uplo, "T", "N", n, nrhs, &c_b10, a, &b[b_offset], 
 		ldb);
     } else {
-	dtfsm_(transr, "L", uplo, "T", "N", n, nrhs, &c_b10, a, &b[b_offset], 
+	_starpu_dtfsm_(transr, "L", uplo, "T", "N", n, nrhs, &c_b10, a, &b[b_offset], 
 		ldb);
-	dtfsm_(transr, "L", uplo, "N", "N", n, nrhs, &c_b10, a, &b[b_offset], 
+	_starpu_dtfsm_(transr, "L", uplo, "N", "N", n, nrhs, &c_b10, a, &b[b_offset], 
 		ldb);
     }
 
@@ -237,4 +237,4 @@ static doublereal c_b10 = 1.;
 
 /*     End of DPFTRS */
 
-} /* dpftrs_ */
+} /* _starpu_dpftrs_ */

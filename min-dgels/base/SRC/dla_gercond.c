@@ -1,4 +1,4 @@
-/* dla_gercond.f -- translated by f2c (version 20061008).
+/* _starpu_dla_gercond.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
+doublereal _starpu_dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
 	 doublereal *af, integer *ldaf, integer *ipiv, integer *cmode, 
 	doublereal *c__, integer *info, doublereal *work, integer *iwork, 
 	ftnlen trans_len)
@@ -30,13 +30,13 @@ doublereal dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
     integer i__, j;
     doublereal tmp;
     integer kase;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dgetrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgetrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
     logical notrans;
@@ -149,8 +149,8 @@ doublereal dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
     ret_val = 0.;
 
     *info = 0;
-    notrans = lsame_(trans, "N");
-    if (! notrans && ! lsame_(trans, "T") && ! lsame_(
+    notrans = _starpu_lsame_(trans, "N");
+    if (! notrans && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(
 	    trans, "C")) {
 	*info = -1;
     } else if (*n < 0) {
@@ -162,7 +162,7 @@ doublereal dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLA_GERCOND", &i__1);
+	_starpu_xerbla_("DLA_GERCOND", &i__1);
 	return ret_val;
     }
     if (*n == 0) {
@@ -224,7 +224,7 @@ doublereal dla_gercond__(char *trans, integer *n, doublereal *a, integer *lda,
     ainvnm = 0.;
     kase = 0;
 L10:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == 2) {
 
@@ -235,10 +235,10 @@ L10:
 		work[i__] *= work[(*n << 1) + i__];
 	    }
 	    if (notrans) {
-		dgetrs_("No transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[
+		_starpu_dgetrs_("No transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[
 			1], &work[1], n, info);
 	    } else {
-		dgetrs_("Transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[1], 
+		_starpu_dgetrs_("Transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[1], 
 			 &work[1], n, info);
 	    }
 
@@ -271,10 +271,10 @@ L10:
 		}
 	    }
 	    if (notrans) {
-		dgetrs_("Transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[1], 
+		_starpu_dgetrs_("Transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[1], 
 			 &work[1], n, info);
 	    } else {
-		dgetrs_("No transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[
+		_starpu_dgetrs_("No transpose", n, &c__1, &af[af_offset], ldaf, &ipiv[
 			1], &work[1], n, info);
 	    }
 
@@ -296,4 +296,4 @@ L10:
 
     return ret_val;
 
-} /* dla_gercond__ */
+} /* _starpu_dla_gercond__ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dptts2_(integer *n, integer *nrhs, doublereal *d__, 
+/* Subroutine */ int _starpu_dptts2_(integer *n, integer *nrhs, doublereal *d__, 
 	doublereal *e, doublereal *b, integer *ldb)
 {
     /* System generated locals */
@@ -22,7 +22,7 @@
 
     /* Local variables */
     integer i__, j;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
 
 
@@ -94,7 +94,7 @@
     if (*n <= 1) {
 	if (*n == 1) {
 	    d__1 = 1. / d__[1];
-	    dscal_(nrhs, &d__1, &b[b_offset], ldb);
+	    _starpu_dscal_(nrhs, &d__1, &b[b_offset], ldb);
 	}
 	return 0;
     }
@@ -128,4 +128,4 @@
 
 /*     End of DPTTS2 */
 
-} /* dptts2_ */
+} /* _starpu_dptts2_ */

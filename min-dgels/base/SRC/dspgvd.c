@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspgvd_(integer *itype, char *jobz, char *uplo, integer *
+/* Subroutine */ int _starpu_dspgvd_(integer *itype, char *jobz, char *uplo, integer *
 	n, doublereal *ap, doublereal *bp, doublereal *w, doublereal *z__, 
 	integer *ldz, doublereal *work, integer *lwork, integer *iwork, 
 	integer *liwork, integer *info)
@@ -28,22 +28,22 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer j, neig;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer lwmin;
     char trans[1];
     logical upper;
-    extern /* Subroutine */ int dtpmv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtpmv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *), 
-	    dtpsv_(char *, char *, char *, integer *, doublereal *, 
+	    _starpu_dtpsv_(char *, char *, char *, integer *, doublereal *, 
 	    doublereal *, integer *);
     logical wantz;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dspevd_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dspevd_(
 	    char *, char *, integer *, doublereal *, doublereal *, doublereal 
 	    *, integer *, doublereal *, integer *, integer *, integer *, 
 	    integer *);
     integer liwmin;
-    extern /* Subroutine */ int dpptrf_(char *, integer *, doublereal *, 
-	    integer *), dspgst_(integer *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dpptrf_(char *, integer *, doublereal *, 
+	    integer *), _starpu_dspgst_(integer *, char *, integer *, 
 	    doublereal *, doublereal *, integer *);
     logical lquery;
 
@@ -202,16 +202,16 @@ static integer c__1 = 1;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    upper = lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! (wantz || lsame_(jobz, "N"))) {
+    } else if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -2;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -246,7 +246,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPGVD", &i__1);
+	_starpu_xerbla_("DSPGVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -260,7 +260,7 @@ static integer c__1 = 1;
 
 /*     Form a Cholesky factorization of BP. */
 
-    dpptrf_(uplo, n, &bp[1], info);
+    _starpu_dpptrf_(uplo, n, &bp[1], info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -268,8 +268,8 @@ static integer c__1 = 1;
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
-    dspgst_(itype, uplo, n, &ap[1], &bp[1], info);
-    dspevd_(jobz, uplo, n, &ap[1], &w[1], &z__[z_offset], ldz, &work[1], 
+    _starpu_dspgst_(itype, uplo, n, &ap[1], &bp[1], info);
+    _starpu_dspevd_(jobz, uplo, n, &ap[1], &w[1], &z__[z_offset], ldz, &work[1], 
 	    lwork, &iwork[1], liwork, info);
 /* Computing MAX */
     d__1 = (doublereal) lwmin;
@@ -299,7 +299,7 @@ static integer c__1 = 1;
 
 	    i__1 = neig;
 	    for (j = 1; j <= i__1; ++j) {
-		dtpsv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
+		_starpu_dtpsv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
 			1], &c__1);
 /* L10: */
 	    }
@@ -317,7 +317,7 @@ static integer c__1 = 1;
 
 	    i__1 = neig;
 	    for (j = 1; j <= i__1; ++j) {
-		dtpmv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
+		_starpu_dtpmv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
 			1], &c__1);
 /* L20: */
 	    }
@@ -331,4 +331,4 @@ static integer c__1 = 1;
 
 /*     End of DSPGVD */
 
-} /* dspgvd_ */
+} /* _starpu_dspgvd_ */

@@ -18,7 +18,7 @@
 static logical c_false = FALSE_;
 static logical c_true = TRUE_;
 
-/* Subroutine */ int dhsein_(char *side, char *eigsrc, char *initv, logical *
+/* Subroutine */ int _starpu_dhsein_(char *side, char *eigsrc, char *initv, logical *
 	select, integer *n, doublereal *h__, integer *ldh, doublereal *wr, 
 	doublereal *wi, doublereal *vl, integer *ldvl, doublereal *vr, 
 	integer *ldvr, integer *mm, integer *m, doublereal *work, integer *
@@ -36,18 +36,18 @@ static logical c_true = TRUE_;
     doublereal ulp, wkr, eps3;
     logical pair;
     doublereal unfl;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical leftv, bothv;
     doublereal hnorm;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlaein_(logical *, logical *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlaein_(logical *, logical *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
 , doublereal *, doublereal *, integer *);
-    extern doublereal dlanhs_(char *, integer *, doublereal *, integer *, 
+    extern doublereal _starpu_dlanhs_(char *, integer *, doublereal *, integer *, 
 	    doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     logical noinit;
     integer ldwork;
@@ -244,13 +244,13 @@ static logical c_true = TRUE_;
     --ifailr;
 
     /* Function Body */
-    bothv = lsame_(side, "B");
-    rightv = lsame_(side, "R") || bothv;
-    leftv = lsame_(side, "L") || bothv;
+    bothv = _starpu_lsame_(side, "B");
+    rightv = _starpu_lsame_(side, "R") || bothv;
+    leftv = _starpu_lsame_(side, "L") || bothv;
 
-    fromqr = lsame_(eigsrc, "Q");
+    fromqr = _starpu_lsame_(eigsrc, "Q");
 
-    noinit = lsame_(initv, "N");
+    noinit = _starpu_lsame_(initv, "N");
 
 /*     Set M to the number of columns required to store the selected */
 /*     eigenvectors, and standardize the array SELECT. */
@@ -281,9 +281,9 @@ static logical c_true = TRUE_;
     *info = 0;
     if (! rightv && ! leftv) {
 	*info = -1;
-    } else if (! fromqr && ! lsame_(eigsrc, "N")) {
+    } else if (! fromqr && ! _starpu_lsame_(eigsrc, "N")) {
 	*info = -2;
-    } else if (! noinit && ! lsame_(initv, "U")) {
+    } else if (! noinit && ! _starpu_lsame_(initv, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -5;
@@ -298,7 +298,7 @@ static logical c_true = TRUE_;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DHSEIN", &i__1);
+	_starpu_xerbla_("DHSEIN", &i__1);
 	return 0;
     }
 
@@ -310,8 +310,8 @@ static logical c_true = TRUE_;
 
 /*     Set machine-dependent constants. */
 
-    unfl = dlamch_("Safe minimum");
-    ulp = dlamch_("Precision");
+    unfl = _starpu_dlamch_("Safe minimum");
+    ulp = _starpu_dlamch_("Precision");
     smlnum = unfl * (*n / ulp);
     bignum = (1. - ulp) / smlnum;
 
@@ -374,7 +374,7 @@ L50:
 /*              has not ben computed before. */
 
 		i__2 = kr - kl + 1;
-		hnorm = dlanhs_("I", &i__2, &h__[kl + kl * h_dim1], ldh, &
+		hnorm = _starpu_dlanhs_("I", &i__2, &h__[kl + kl * h_dim1], ldh, &
 			work[1]);
 		if (hnorm > 0.) {
 		    eps3 = hnorm * ulp;
@@ -412,7 +412,7 @@ L60:
 /*              Compute left eigenvector. */
 
 		i__2 = *n - kl + 1;
-		dlaein_(&c_false, &noinit, &i__2, &h__[kl + kl * h_dim1], ldh, 
+		_starpu_dlaein_(&c_false, &noinit, &i__2, &h__[kl + kl * h_dim1], ldh, 
 			 &wkr, &wki, &vl[kl + ksr * vl_dim1], &vl[kl + ksi * 
 			vl_dim1], &work[1], &ldwork, &work[*n * *n + *n + 1], 
 			&eps3, &smlnum, &bignum, &iinfo);
@@ -445,7 +445,7 @@ L60:
 
 /*              Compute right eigenvector. */
 
-		dlaein_(&c_true, &noinit, &kr, &h__[h_offset], ldh, &wkr, &
+		_starpu_dlaein_(&c_true, &noinit, &kr, &h__[h_offset], ldh, &wkr, &
 			wki, &vr[ksr * vr_dim1 + 1], &vr[ksi * vr_dim1 + 1], &
 			work[1], &ldwork, &work[*n * *n + *n + 1], &eps3, &
 			smlnum, &bignum, &iinfo);
@@ -488,4 +488,4 @@ L60:
 
 /*     End of DHSEIN */
 
-} /* dhsein_ */
+} /* _starpu_dhsein_ */

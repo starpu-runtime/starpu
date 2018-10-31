@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c_n1 = -1;
 static doublereal c_b19 = 1.;
 
-/* Subroutine */ int dsygvx_(integer *itype, char *jobz, char *range, char *
+/* Subroutine */ int _starpu_dsygvx_(integer *itype, char *jobz, char *range, char *
 	uplo, integer *n, doublereal *a, integer *lda, doublereal *b, integer 
 	*ldb, doublereal *vl, doublereal *vu, integer *il, integer *iu, 
 	doublereal *abstol, integer *m, doublereal *w, doublereal *z__, 
@@ -31,26 +31,26 @@ static doublereal c_b19 = 1.;
 
     /* Local variables */
     integer nb;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     char trans[1];
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical upper, wantz, alleig, indeig, valeig;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpotrf_(char *, integer *, doublereal *, 
 	    integer *, integer *);
     integer lwkmin;
-    extern /* Subroutine */ int dsygst_(integer *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dsygst_(integer *, char *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
-    extern /* Subroutine */ int dsyevx_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dsyevx_(char *, char *, char *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *, integer 
@@ -262,21 +262,21 @@ static doublereal c_b19 = 1.;
     --ifail;
 
     /* Function Body */
-    upper = lsame_(uplo, "U");
-    wantz = lsame_(jobz, "V");
-    alleig = lsame_(range, "A");
-    valeig = lsame_(range, "V");
-    indeig = lsame_(range, "I");
+    upper = _starpu_lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    alleig = _starpu_lsame_(range, "A");
+    valeig = _starpu_lsame_(range, "V");
+    indeig = _starpu_lsame_(range, "I");
     lquery = *lwork == -1;
 
     *info = 0;
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! (wantz || lsame_(jobz, "N"))) {
+    } else if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -2;
     } else if (! (alleig || valeig || indeig)) {
 	*info = -3;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -4;
     } else if (*n < 0) {
 	*info = -5;
@@ -307,7 +307,7 @@ static doublereal c_b19 = 1.;
 /* Computing MAX */
 	i__1 = 1, i__2 = *n << 3;
 	lwkmin = max(i__1,i__2);
-	nb = ilaenv_(&c__1, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
+	nb = _starpu_ilaenv_(&c__1, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
 /* Computing MAX */
 	i__1 = lwkmin, i__2 = (nb + 3) * *n;
 	lwkopt = max(i__1,i__2);
@@ -320,7 +320,7 @@ static doublereal c_b19 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYGVX", &i__1);
+	_starpu_xerbla_("DSYGVX", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -335,7 +335,7 @@ static doublereal c_b19 = 1.;
 
 /*     Form a Cholesky factorization of B. */
 
-    dpotrf_(uplo, n, &b[b_offset], ldb, info);
+    _starpu_dpotrf_(uplo, n, &b[b_offset], ldb, info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -343,8 +343,8 @@ static doublereal c_b19 = 1.;
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
-    dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
-    dsyevx_(jobz, range, uplo, n, &a[a_offset], lda, vl, vu, il, iu, abstol, 
+    _starpu_dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
+    _starpu_dsyevx_(jobz, range, uplo, n, &a[a_offset], lda, vl, vu, il, iu, abstol, 
 	    m, &w[1], &z__[z_offset], ldz, &work[1], lwork, &iwork[1], &ifail[
 	    1], info);
 
@@ -366,7 +366,7 @@ static doublereal c_b19 = 1.;
 		*(unsigned char *)trans = 'T';
 	    }
 
-	    dtrsm_("Left", uplo, trans, "Non-unit", n, m, &c_b19, &b[b_offset]
+	    _starpu_dtrsm_("Left", uplo, trans, "Non-unit", n, m, &c_b19, &b[b_offset]
 , ldb, &z__[z_offset], ldz);
 
 	} else if (*itype == 3) {
@@ -380,7 +380,7 @@ static doublereal c_b19 = 1.;
 		*(unsigned char *)trans = 'N';
 	    }
 
-	    dtrmm_("Left", uplo, trans, "Non-unit", n, m, &c_b19, &b[b_offset]
+	    _starpu_dtrmm_("Left", uplo, trans, "Non-unit", n, m, &c_b19, &b[b_offset]
 , ldb, &z__[z_offset], ldz);
 	}
     }
@@ -393,4 +393,4 @@ static doublereal c_b19 = 1.;
 
 /*     End of DSYGVX */
 
-} /* dsygvx_ */
+} /* _starpu_dsygvx_ */

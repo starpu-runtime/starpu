@@ -13,15 +13,15 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer 
+/* Subroutine */ int _starpu_dgesv_(integer *n, integer *nrhs, doublereal *a, integer 
 	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern /* Subroutine */ int dgetrf_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *), dgetrs_(char *, integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgetrf_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer *), _starpu_dgetrs_(char *, integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *);
 
 
@@ -117,22 +117,22 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGESV ", &i__1);
+	_starpu_xerbla_("DGESV ", &i__1);
 	return 0;
     }
 
 /*     Compute the LU factorization of A. */
 
-    dgetrf_(n, n, &a[a_offset], lda, &ipiv[1], info);
+    _starpu_dgetrf_(n, n, &a[a_offset], lda, &ipiv[1], info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dgetrs_("No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[
+	_starpu_dgetrs_("No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[
 		b_offset], ldb, info);
     }
     return 0;
 
 /*     End of DGESV */
 
-} /* dgesv_ */
+} /* _starpu_dgesv_ */

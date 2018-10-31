@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b10 = -1.;
 
-/* Subroutine */ int dgetc2_(integer *n, doublereal *a, integer *lda, integer 
+/* Subroutine */ int _starpu_dgetc2_(integer *n, doublereal *a, integer *lda, integer 
 	*ipiv, integer *jpiv, integer *info)
 {
     /* System generated locals */
@@ -29,13 +29,13 @@ static doublereal c_b10 = -1.;
     integer i__, j, ip, jp;
     doublereal eps;
     integer ipv, jpv;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal smin, xmax;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal bignum, smlnum;
 
 
@@ -120,10 +120,10 @@ static doublereal c_b10 = -1.;
 
     /* Function Body */
     *info = 0;
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
 /*     Factorize A using complete pivoting. */
 /*     Set pivots less than SMIN to SMIN. */
@@ -156,14 +156,14 @@ static doublereal c_b10 = -1.;
 /*        Swap rows */
 
 	if (ipv != i__) {
-	    dswap_(n, &a[ipv + a_dim1], lda, &a[i__ + a_dim1], lda);
+	    _starpu_dswap_(n, &a[ipv + a_dim1], lda, &a[i__ + a_dim1], lda);
 	}
 	ipiv[i__] = ipv;
 
 /*        Swap columns */
 
 	if (jpv != i__) {
-	    dswap_(n, &a[jpv * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
+	    _starpu_dswap_(n, &a[jpv * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
 		    c__1);
 	}
 	jpiv[i__] = jpv;
@@ -181,7 +181,7 @@ static doublereal c_b10 = -1.;
 	}
 	i__2 = *n - i__;
 	i__3 = *n - i__;
-	dger_(&i__2, &i__3, &c_b10, &a[i__ + 1 + i__ * a_dim1], &c__1, &a[i__ 
+	_starpu_dger_(&i__2, &i__3, &c_b10, &a[i__ + 1 + i__ * a_dim1], &c__1, &a[i__ 
 		+ (i__ + 1) * a_dim1], lda, &a[i__ + 1 + (i__ + 1) * a_dim1], 
 		lda);
 /* L40: */
@@ -196,4 +196,4 @@ static doublereal c_b10 = -1.;
 
 /*     End of DGETC2 */
 
-} /* dgetc2_ */
+} /* _starpu_dgetc2_ */

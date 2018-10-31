@@ -18,7 +18,7 @@
 static doublereal c_b12 = 1.;
 static doublereal c_b15 = -1.;
 
-/* Subroutine */ int dpftrf_(char *transr, char *uplo, integer *n, doublereal 
+/* Subroutine */ int _starpu_dpftrf_(char *transr, char *uplo, integer *n, doublereal 
 	*a, integer *info)
 {
     /* System generated locals */
@@ -27,16 +27,16 @@ static doublereal c_b15 = -1.;
     /* Local variables */
     integer k, n1, n2;
     logical normaltransr;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical lower;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dsyrk_(
+	    doublereal *, integer *), _starpu_dsyrk_(
 	    char *, char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *),
-	     xerbla_(char *, integer *);
+	     _starpu_xerbla_(char *, integer *);
     logical nisodd;
-    extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpotrf_(char *, integer *, doublereal *, 
 	    integer *, integer *);
 
 
@@ -204,18 +204,18 @@ static doublereal c_b15 = -1.;
 /*     Test the input parameters. */
 
     *info = 0;
-    normaltransr = lsame_(transr, "N");
-    lower = lsame_(uplo, "L");
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    normaltransr = _starpu_lsame_(transr, "N");
+    lower = _starpu_lsame_(uplo, "L");
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	*info = -1;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPFTRF", &i__1);
+	_starpu_xerbla_("DPFTRF", &i__1);
 	return 0;
     }
 
@@ -261,14 +261,14 @@ static doublereal c_b15 = -1.;
 /*             T1 -> a(0,0), T2 -> a(0,1), S -> a(n1,0) */
 /*             T1 -> a(0), T2 -> a(n), S -> a(n1) */
 
-		dpotrf_("L", &n1, a, n, info);
+		_starpu_dpotrf_("L", &n1, a, n, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("R", "L", "T", "N", &n2, &n1, &c_b12, a, n, &a[n1], n);
-		dsyrk_("U", "N", &n2, &n1, &c_b15, &a[n1], n, &c_b12, &a[*n], 
+		_starpu_dtrsm_("R", "L", "T", "N", &n2, &n1, &c_b12, a, n, &a[n1], n);
+		_starpu_dsyrk_("U", "N", &n2, &n1, &c_b15, &a[n1], n, &c_b12, &a[*n], 
 			n);
-		dpotrf_("U", &n2, &a[*n], n, info);
+		_starpu_dpotrf_("U", &n2, &a[*n], n, info);
 		if (*info > 0) {
 		    *info += n1;
 		}
@@ -279,13 +279,13 @@ static doublereal c_b15 = -1.;
 /*             T1 -> a(n1+1,0), T2 -> a(n1,0), S -> a(0,0) */
 /*             T1 -> a(n2), T2 -> a(n1), S -> a(0) */
 
-		dpotrf_("L", &n1, &a[n2], n, info);
+		_starpu_dpotrf_("L", &n1, &a[n2], n, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("L", "L", "N", "N", &n1, &n2, &c_b12, &a[n2], n, a, n);
-		dsyrk_("U", "T", &n2, &n1, &c_b15, a, n, &c_b12, &a[n1], n);
-		dpotrf_("U", &n2, &a[n1], n, info);
+		_starpu_dtrsm_("L", "L", "N", "N", &n1, &n2, &c_b12, &a[n2], n, a, n);
+		_starpu_dsyrk_("U", "T", &n2, &n1, &c_b15, a, n, &c_b12, &a[n1], n);
+		_starpu_dpotrf_("U", &n2, &a[n1], n, info);
 		if (*info > 0) {
 		    *info += n1;
 		}
@@ -302,15 +302,15 @@ static doublereal c_b15 = -1.;
 /*              T1 -> A(0,0) , T2 -> A(1,0) , S -> A(0,n1) */
 /*              T1 -> a(0+0) , T2 -> a(1+0) , S -> a(0+n1*n1); lda=n1 */
 
-		dpotrf_("U", &n1, a, &n1, info);
+		_starpu_dpotrf_("U", &n1, a, &n1, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("L", "U", "T", "N", &n1, &n2, &c_b12, a, &n1, &a[n1 * 
+		_starpu_dtrsm_("L", "U", "T", "N", &n1, &n2, &c_b12, a, &n1, &a[n1 * 
 			n1], &n1);
-		dsyrk_("L", "T", &n2, &n1, &c_b15, &a[n1 * n1], &n1, &c_b12, &
+		_starpu_dsyrk_("L", "T", &n2, &n1, &c_b15, &a[n1 * n1], &n1, &c_b12, &
 			a[1], &n1);
-		dpotrf_("L", &n2, &a[1], &n1, info);
+		_starpu_dpotrf_("L", &n2, &a[1], &n1, info);
 		if (*info > 0) {
 		    *info += n1;
 		}
@@ -321,15 +321,15 @@ static doublereal c_b15 = -1.;
 /*              T1 -> A(0,n1+1), T2 -> A(0,n1), S -> A(0,0) */
 /*              T1 -> a(n2*n2), T2 -> a(n1*n2), S -> a(0); lda = n2 */
 
-		dpotrf_("U", &n1, &a[n2 * n2], &n2, info);
+		_starpu_dpotrf_("U", &n1, &a[n2 * n2], &n2, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("R", "U", "N", "N", &n2, &n1, &c_b12, &a[n2 * n2], &n2, 
+		_starpu_dtrsm_("R", "U", "N", "N", &n2, &n1, &c_b12, &a[n2 * n2], &n2, 
 			 a, &n2);
-		dsyrk_("L", "N", &n2, &n1, &c_b15, a, &n2, &c_b12, &a[n1 * n2]
+		_starpu_dsyrk_("L", "N", &n2, &n1, &c_b15, a, &n2, &c_b12, &a[n1 * n2]
 , &n2);
-		dpotrf_("L", &n2, &a[n1 * n2], &n2, info);
+		_starpu_dpotrf_("L", &n2, &a[n1 * n2], &n2, info);
 		if (*info > 0) {
 		    *info += n1;
 		}
@@ -353,20 +353,20 @@ static doublereal c_b15 = -1.;
 /*              T1 -> a(1), T2 -> a(0), S -> a(k+1) */
 
 		i__1 = *n + 1;
-		dpotrf_("L", &k, &a[1], &i__1, info);
+		_starpu_dpotrf_("L", &k, &a[1], &i__1, info);
 		if (*info > 0) {
 		    return 0;
 		}
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dtrsm_("R", "L", "T", "N", &k, &k, &c_b12, &a[1], &i__1, &a[k 
+		_starpu_dtrsm_("R", "L", "T", "N", &k, &k, &c_b12, &a[1], &i__1, &a[k 
 			+ 1], &i__2);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dsyrk_("U", "N", &k, &k, &c_b15, &a[k + 1], &i__1, &c_b12, a, 
+		_starpu_dsyrk_("U", "N", &k, &k, &c_b15, &a[k + 1], &i__1, &c_b12, a, 
 			&i__2);
 		i__1 = *n + 1;
-		dpotrf_("U", &k, a, &i__1, info);
+		_starpu_dpotrf_("U", &k, a, &i__1, info);
 		if (*info > 0) {
 		    *info += k;
 		}
@@ -378,20 +378,20 @@ static doublereal c_b15 = -1.;
 /*              T1 -> a(k+1), T2 -> a(k), S -> a(0) */
 
 		i__1 = *n + 1;
-		dpotrf_("L", &k, &a[k + 1], &i__1, info);
+		_starpu_dpotrf_("L", &k, &a[k + 1], &i__1, info);
 		if (*info > 0) {
 		    return 0;
 		}
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dtrsm_("L", "L", "N", "N", &k, &k, &c_b12, &a[k + 1], &i__1, 
+		_starpu_dtrsm_("L", "L", "N", "N", &k, &k, &c_b12, &a[k + 1], &i__1, 
 			a, &i__2);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dsyrk_("U", "T", &k, &k, &c_b15, a, &i__1, &c_b12, &a[k], &
+		_starpu_dsyrk_("U", "T", &k, &k, &c_b15, a, &i__1, &c_b12, &a[k], &
 			i__2);
 		i__1 = *n + 1;
-		dpotrf_("U", &k, &a[k], &i__1, info);
+		_starpu_dpotrf_("U", &k, &a[k], &i__1, info);
 		if (*info > 0) {
 		    *info += k;
 		}
@@ -408,15 +408,15 @@ static doublereal c_b15 = -1.;
 /*              T1 -> B(0,1), T2 -> B(0,0), S -> B(0,k+1) */
 /*              T1 -> a(0+k), T2 -> a(0+0), S -> a(0+k*(k+1)); lda=k */
 
-		dpotrf_("U", &k, &a[k], &k, info);
+		_starpu_dpotrf_("U", &k, &a[k], &k, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("L", "U", "T", "N", &k, &k, &c_b12, &a[k], &n1, &a[k * 
+		_starpu_dtrsm_("L", "U", "T", "N", &k, &k, &c_b12, &a[k], &n1, &a[k * 
 			(k + 1)], &k);
-		dsyrk_("L", "T", &k, &k, &c_b15, &a[k * (k + 1)], &k, &c_b12, 
+		_starpu_dsyrk_("L", "T", &k, &k, &c_b15, &a[k * (k + 1)], &k, &c_b12, 
 			a, &k);
-		dpotrf_("L", &k, a, &k, info);
+		_starpu_dpotrf_("L", &k, a, &k, info);
 		if (*info > 0) {
 		    *info += k;
 		}
@@ -427,14 +427,14 @@ static doublereal c_b15 = -1.;
 /*              T1 -> B(0,k+1),     T2 -> B(0,k),   S -> B(0,0) */
 /*              T1 -> a(0+k*(k+1)), T2 -> a(0+k*k), S -> a(0+0)); lda=k */
 
-		dpotrf_("U", &k, &a[k * (k + 1)], &k, info);
+		_starpu_dpotrf_("U", &k, &a[k * (k + 1)], &k, info);
 		if (*info > 0) {
 		    return 0;
 		}
-		dtrsm_("R", "U", "N", "N", &k, &k, &c_b12, &a[k * (k + 1)], &
+		_starpu_dtrsm_("R", "U", "N", "N", &k, &k, &c_b12, &a[k * (k + 1)], &
 			k, a, &k);
-		dsyrk_("L", "N", &k, &k, &c_b15, a, &k, &c_b12, &a[k * k], &k);
-		dpotrf_("L", &k, &a[k * k], &k, info);
+		_starpu_dsyrk_("L", "N", &k, &k, &c_b15, a, &k, &c_b12, &a[k * k], &k);
+		_starpu_dpotrf_("L", &k, &a[k * k], &k, info);
 		if (*info > 0) {
 		    *info += k;
 		}
@@ -449,4 +449,4 @@ static doublereal c_b15 = -1.;
 
 /*     End of DPFTRF */
 
-} /* dpftrf_ */
+} /* _starpu_dpftrf_ */

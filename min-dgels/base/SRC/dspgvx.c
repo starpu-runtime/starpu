@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspgvx_(integer *itype, char *jobz, char *range, char *
+/* Subroutine */ int _starpu_dspgvx_(integer *itype, char *jobz, char *range, char *
 	uplo, integer *n, doublereal *ap, doublereal *bp, doublereal *vl, 
 	doublereal *vu, integer *il, integer *iu, doublereal *abstol, integer 
 	*m, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
@@ -28,18 +28,18 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer j;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     char trans[1];
     logical upper;
-    extern /* Subroutine */ int dtpmv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtpmv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *), 
-	    dtpsv_(char *, char *, char *, integer *, doublereal *, 
+	    _starpu_dtpsv_(char *, char *, char *, integer *, doublereal *, 
 	    doublereal *, integer *);
     logical wantz, alleig, indeig, valeig;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpptrf_(
-	    char *, integer *, doublereal *, integer *), dspgst_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpptrf_(
+	    char *, integer *, doublereal *, integer *), _starpu_dspgst_(
 	    integer *, char *, integer *, doublereal *, doublereal *, integer 
-	    *), dspevx_(char *, char *, char *, integer *, doublereal 
+	    *), _starpu_dspevx_(char *, char *, char *, integer *, doublereal 
 	    *, doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	     integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *);
@@ -226,20 +226,20 @@ static integer c__1 = 1;
     --ifail;
 
     /* Function Body */
-    upper = lsame_(uplo, "U");
-    wantz = lsame_(jobz, "V");
-    alleig = lsame_(range, "A");
-    valeig = lsame_(range, "V");
-    indeig = lsame_(range, "I");
+    upper = _starpu_lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    alleig = _starpu_lsame_(range, "A");
+    valeig = _starpu_lsame_(range, "V");
+    indeig = _starpu_lsame_(range, "I");
 
     *info = 0;
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! (wantz || lsame_(jobz, "N"))) {
+    } else if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -2;
     } else if (! (alleig || valeig || indeig)) {
 	*info = -3;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -4;
     } else if (*n < 0) {
 	*info = -5;
@@ -264,7 +264,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPGVX", &i__1);
+	_starpu_xerbla_("DSPGVX", &i__1);
 	return 0;
     }
 
@@ -277,7 +277,7 @@ static integer c__1 = 1;
 
 /*     Form a Cholesky factorization of B. */
 
-    dpptrf_(uplo, n, &bp[1], info);
+    _starpu_dpptrf_(uplo, n, &bp[1], info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -285,8 +285,8 @@ static integer c__1 = 1;
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
-    dspgst_(itype, uplo, n, &ap[1], &bp[1], info);
-    dspevx_(jobz, range, uplo, n, &ap[1], vl, vu, il, iu, abstol, m, &w[1], &
+    _starpu_dspgst_(itype, uplo, n, &ap[1], &bp[1], info);
+    _starpu_dspevx_(jobz, range, uplo, n, &ap[1], vl, vu, il, iu, abstol, m, &w[1], &
 	    z__[z_offset], ldz, &work[1], &iwork[1], &ifail[1], info);
 
     if (wantz) {
@@ -309,7 +309,7 @@ static integer c__1 = 1;
 
 	    i__1 = *m;
 	    for (j = 1; j <= i__1; ++j) {
-		dtpsv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
+		_starpu_dtpsv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
 			1], &c__1);
 /* L10: */
 	    }
@@ -327,7 +327,7 @@ static integer c__1 = 1;
 
 	    i__1 = *m;
 	    for (j = 1; j <= i__1; ++j) {
-		dtpmv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
+		_starpu_dtpmv_(uplo, trans, "Non-unit", n, &bp[1], &z__[j * z_dim1 + 
 			1], &c__1);
 /* L20: */
 	    }
@@ -338,4 +338,4 @@ static integer c__1 = 1;
 
 /*     End of DSPGVX */
 
-} /* dspgvx_ */
+} /* _starpu_dspgvx_ */

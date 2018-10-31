@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgeqpf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeqpf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *jpvt, doublereal *tau, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -32,22 +32,22 @@ static integer c__1 = 1;
     doublereal aii;
     integer pvt;
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal temp2, tol3z;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *);
     integer itemp;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dgeqr2_(integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dgeqr2_(integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *), 
-	    dorm2r_(char *, char *, integer *, integer *, integer *, 
+	    _starpu_dorm2r_(char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlarfp_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *), xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlarfp_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK deprecated driver routine (version 3.2) -- */
@@ -162,12 +162,12 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEQPF", &i__1);
+	_starpu_xerbla_("DGEQPF", &i__1);
 	return 0;
     }
 
     mn = min(*m,*n);
-    tol3z = sqrt(dlamch_("Epsilon"));
+    tol3z = sqrt(_starpu_dlamch_("Epsilon"));
 
 /*     Move initial columns up front */
 
@@ -176,7 +176,7 @@ static integer c__1 = 1;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	if (jpvt[i__] != 0) {
 	    if (i__ != itemp) {
-		dswap_(m, &a[i__ * a_dim1 + 1], &c__1, &a[itemp * a_dim1 + 1], 
+		_starpu_dswap_(m, &a[i__ * a_dim1 + 1], &c__1, &a[itemp * a_dim1 + 1], 
 			 &c__1);
 		jpvt[i__] = jpvt[itemp];
 		jpvt[itemp] = i__;
@@ -195,10 +195,10 @@ static integer c__1 = 1;
 
     if (itemp > 0) {
 	ma = min(itemp,*m);
-	dgeqr2_(m, &ma, &a[a_offset], lda, &tau[1], &work[1], info);
+	_starpu_dgeqr2_(m, &ma, &a[a_offset], lda, &tau[1], &work[1], info);
 	if (ma < *n) {
 	    i__1 = *n - ma;
-	    dorm2r_("Left", "Transpose", m, &i__1, &ma, &a[a_offset], lda, &
+	    _starpu_dorm2r_("Left", "Transpose", m, &i__1, &ma, &a[a_offset], lda, &
 		    tau[1], &a[(ma + 1) * a_dim1 + 1], lda, &work[1], info);
 	}
     }
@@ -211,7 +211,7 @@ static integer c__1 = 1;
 	i__1 = *n;
 	for (i__ = itemp + 1; i__ <= i__1; ++i__) {
 	    i__2 = *m - itemp;
-	    work[i__] = dnrm2_(&i__2, &a[itemp + 1 + i__ * a_dim1], &c__1);
+	    work[i__] = _starpu_dnrm2_(&i__2, &a[itemp + 1 + i__ * a_dim1], &c__1);
 	    work[*n + i__] = work[i__];
 /* L20: */
 	}
@@ -224,10 +224,10 @@ static integer c__1 = 1;
 /*           Determine ith pivot column and swap if necessary */
 
 	    i__2 = *n - i__ + 1;
-	    pvt = i__ - 1 + idamax_(&i__2, &work[i__], &c__1);
+	    pvt = i__ - 1 + _starpu_idamax_(&i__2, &work[i__], &c__1);
 
 	    if (pvt != i__) {
-		dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
+		_starpu_dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
 			c__1);
 		itemp = jpvt[pvt];
 		jpvt[pvt] = jpvt[i__];
@@ -240,10 +240,10 @@ static integer c__1 = 1;
 
 	    if (i__ < *m) {
 		i__2 = *m - i__ + 1;
-		dlarfp_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + 1 + i__ * 
+		_starpu_dlarfp_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + 1 + i__ * 
 			a_dim1], &c__1, &tau[i__]);
 	    } else {
-		dlarfp_(&c__1, &a[*m + *m * a_dim1], &a[*m + *m * a_dim1], &
+		_starpu_dlarfp_(&c__1, &a[*m + *m * a_dim1], &a[*m + *m * a_dim1], &
 			c__1, &tau[*m]);
 	    }
 
@@ -255,7 +255,7 @@ static integer c__1 = 1;
 		a[i__ + i__ * a_dim1] = 1.;
 		i__2 = *m - i__ + 1;
 		i__3 = *n - i__;
-		dlarf_("LEFT", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &
+		_starpu_dlarf_("LEFT", &i__2, &i__3, &a[i__ + i__ * a_dim1], &c__1, &
 			tau[i__], &a[i__ + (i__ + 1) * a_dim1], lda, &work[(*
 			n << 1) + 1]);
 		a[i__ + i__ * a_dim1] = aii;
@@ -280,7 +280,7 @@ static integer c__1 = 1;
 		    if (temp2 <= tol3z) {
 			if (*m - i__ > 0) {
 			    i__3 = *m - i__;
-			    work[j] = dnrm2_(&i__3, &a[i__ + 1 + j * a_dim1], 
+			    work[j] = _starpu_dnrm2_(&i__3, &a[i__ + 1 + j * a_dim1], 
 				    &c__1);
 			    work[*n + j] = work[j];
 			} else {
@@ -301,4 +301,4 @@ static integer c__1 = 1;
 
 /*     End of DGEQPF */
 
-} /* dgeqpf_ */
+} /* _starpu_dgeqpf_ */

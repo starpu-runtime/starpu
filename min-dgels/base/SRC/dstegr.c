@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dstegr_(char *jobz, char *range, integer *n, doublereal *
+/* Subroutine */ int _starpu_dstegr_(char *jobz, char *range, integer *n, doublereal *
 	d__, doublereal *e, doublereal *vl, doublereal *vu, integer *il, 
 	integer *iu, doublereal *abstol, integer *m, doublereal *w, 
 	doublereal *z__, integer *ldz, integer *isuppz, doublereal *work, 
@@ -23,7 +23,7 @@
     integer z_dim1, z_offset;
 
     /* Local variables */
-    extern /* Subroutine */ int dstemr_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dstemr_(char *, char *, integer *, doublereal 
 	    *, doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	     integer *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, logical *, doublereal *, integer *, integer *, integer 
@@ -201,11 +201,11 @@
     /* Function Body */
     *info = 0;
     tryrac = FALSE_;
-    dstemr_(jobz, range, n, &d__[1], &e[1], vl, vu, il, iu, m, &w[1], &z__[
+    _starpu_dstemr_(jobz, range, n, &d__[1], &e[1], vl, vu, il, iu, m, &w[1], &z__[
 	    z_offset], ldz, n, &isuppz[1], &tryrac, &work[1], lwork, &iwork[1]
 , liwork, info);
 
 /*     End of DSTEGR */
 
     return 0;
-} /* dstegr_ */
+} /* _starpu_dstegr_ */

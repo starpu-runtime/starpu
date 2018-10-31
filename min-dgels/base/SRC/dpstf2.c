@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b16 = -1.;
 static doublereal c_b18 = 1.;
 
-/* Subroutine */ int dpstf2_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dpstf2_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *piv, integer *rank, doublereal *tol, doublereal *work, 
 	integer *info)
 {
@@ -34,22 +34,22 @@ static doublereal c_b18 = 1.;
     integer i__, j, maxlocval;
     doublereal ajj;
     integer pvt;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     doublereal dtemp;
     integer itemp;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     doublereal dstop;
     logical upper;
-    extern doublereal dlamch_(char *);
-    extern logical disnan_(doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer dmaxloc_(doublereal *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern logical _starpu_disnan_(doublereal *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_dmaxloc_(doublereal *, integer *);
 
 
 /*  -- LAPACK PROTOTYPE routine (version 3.2) -- */
@@ -150,8 +150,8 @@ static doublereal c_b18 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -160,7 +160,7 @@ static doublereal c_b18 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPSTF2", &i__1);
+	_starpu_xerbla_("DPSTF2", &i__1);
 	return 0;
     }
 
@@ -189,7 +189,7 @@ static doublereal c_b18 = 1.;
 	    ajj = a[pvt + pvt * a_dim1];
 	}
     }
-    if (ajj == 0. || disnan_(&ajj)) {
+    if (ajj == 0. || _starpu_disnan_(&ajj)) {
 	*rank = 0;
 	*info = 1;
 	goto L170;
@@ -198,7 +198,7 @@ static doublereal c_b18 = 1.;
 /*     Compute stopping value if not supplied */
 
     if (*tol < 0.) {
-	dstop = *n * dlamch_("Epsilon") * ajj;
+	dstop = *n * _starpu_dlamch_("Epsilon") * ajj;
     } else {
 	dstop = *tol;
     }
@@ -237,10 +237,10 @@ static doublereal c_b18 = 1.;
 
 	    if (j > 1) {
 		maxlocval = (*n << 1) - (*n + j) + 1;
-		itemp = dmaxloc_(&work[*n + j], &maxlocval);
+		itemp = _starpu_dmaxloc_(&work[*n + j], &maxlocval);
 		pvt = itemp + j - 1;
 		ajj = work[*n + pvt];
-		if (ajj <= dstop || disnan_(&ajj)) {
+		if (ajj <= dstop || _starpu_disnan_(&ajj)) {
 		    a[j + j * a_dim1] = ajj;
 		    goto L160;
 		}
@@ -252,15 +252,15 @@ static doublereal c_b18 = 1.;
 
 		a[pvt + pvt * a_dim1] = a[j + j * a_dim1];
 		i__2 = j - 1;
-		dswap_(&i__2, &a[j * a_dim1 + 1], &c__1, &a[pvt * a_dim1 + 1], 
+		_starpu_dswap_(&i__2, &a[j * a_dim1 + 1], &c__1, &a[pvt * a_dim1 + 1], 
 			 &c__1);
 		if (pvt < *n) {
 		    i__2 = *n - pvt;
-		    dswap_(&i__2, &a[j + (pvt + 1) * a_dim1], lda, &a[pvt + (
+		    _starpu_dswap_(&i__2, &a[j + (pvt + 1) * a_dim1], lda, &a[pvt + (
 			    pvt + 1) * a_dim1], lda);
 		}
 		i__2 = pvt - j - 1;
-		dswap_(&i__2, &a[j + (j + 1) * a_dim1], lda, &a[j + 1 + pvt * 
+		_starpu_dswap_(&i__2, &a[j + (j + 1) * a_dim1], lda, &a[j + 1 + pvt * 
 			a_dim1], &c__1);
 
 /*              Swap dot products and PIV */
@@ -281,12 +281,12 @@ static doublereal c_b18 = 1.;
 	    if (j < *n) {
 		i__2 = j - 1;
 		i__3 = *n - j;
-		dgemv_("Trans", &i__2, &i__3, &c_b16, &a[(j + 1) * a_dim1 + 1]
+		_starpu_dgemv_("Trans", &i__2, &i__3, &c_b16, &a[(j + 1) * a_dim1 + 1]
 , lda, &a[j * a_dim1 + 1], &c__1, &c_b18, &a[j + (j + 
 			1) * a_dim1], lda);
 		i__2 = *n - j;
 		d__1 = 1. / ajj;
-		dscal_(&i__2, &d__1, &a[j + (j + 1) * a_dim1], lda);
+		_starpu_dscal_(&i__2, &d__1, &a[j + (j + 1) * a_dim1], lda);
 	    }
 
 /* L130: */
@@ -318,10 +318,10 @@ static doublereal c_b18 = 1.;
 
 	    if (j > 1) {
 		maxlocval = (*n << 1) - (*n + j) + 1;
-		itemp = dmaxloc_(&work[*n + j], &maxlocval);
+		itemp = _starpu_dmaxloc_(&work[*n + j], &maxlocval);
 		pvt = itemp + j - 1;
 		ajj = work[*n + pvt];
-		if (ajj <= dstop || disnan_(&ajj)) {
+		if (ajj <= dstop || _starpu_disnan_(&ajj)) {
 		    a[j + j * a_dim1] = ajj;
 		    goto L160;
 		}
@@ -333,14 +333,14 @@ static doublereal c_b18 = 1.;
 
 		a[pvt + pvt * a_dim1] = a[j + j * a_dim1];
 		i__2 = j - 1;
-		dswap_(&i__2, &a[j + a_dim1], lda, &a[pvt + a_dim1], lda);
+		_starpu_dswap_(&i__2, &a[j + a_dim1], lda, &a[pvt + a_dim1], lda);
 		if (pvt < *n) {
 		    i__2 = *n - pvt;
-		    dswap_(&i__2, &a[pvt + 1 + j * a_dim1], &c__1, &a[pvt + 1 
+		    _starpu_dswap_(&i__2, &a[pvt + 1 + j * a_dim1], &c__1, &a[pvt + 1 
 			    + pvt * a_dim1], &c__1);
 		}
 		i__2 = pvt - j - 1;
-		dswap_(&i__2, &a[j + 1 + j * a_dim1], &c__1, &a[pvt + (j + 1) 
+		_starpu_dswap_(&i__2, &a[j + 1 + j * a_dim1], &c__1, &a[pvt + (j + 1) 
 			* a_dim1], lda);
 
 /*              Swap dot products and PIV */
@@ -361,12 +361,12 @@ static doublereal c_b18 = 1.;
 	    if (j < *n) {
 		i__2 = *n - j;
 		i__3 = j - 1;
-		dgemv_("No Trans", &i__2, &i__3, &c_b16, &a[j + 1 + a_dim1], 
+		_starpu_dgemv_("No Trans", &i__2, &i__3, &c_b16, &a[j + 1 + a_dim1], 
 			lda, &a[j + a_dim1], lda, &c_b18, &a[j + 1 + j * 
 			a_dim1], &c__1);
 		i__2 = *n - j;
 		d__1 = 1. / ajj;
-		dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
+		_starpu_dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
 	    }
 
 /* L150: */
@@ -392,4 +392,4 @@ L170:
 
 /*     End of DPSTF2 */
 
-} /* dpstf2_ */
+} /* _starpu_dpstf2_ */

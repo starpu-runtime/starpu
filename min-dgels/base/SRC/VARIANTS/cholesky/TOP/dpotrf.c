@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b15 = 1.;
 static doublereal c_b18 = -1.;
 
-/* Subroutine */ int dpotrf_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dpotrf_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *info)
 {
     /* System generated locals */
@@ -28,17 +28,17 @@ static doublereal c_b18 = -1.;
 
     /* Local variables */
     integer j, jb, nb;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dsyrk_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsyrk_(char *, char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *), dpotf2_(char *, integer *, 
-	    doublereal *, integer *, integer *), xerbla_(char *, 
+	     integer *), _starpu_dpotf2_(char *, integer *, 
+	    doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
 
@@ -119,8 +119,8 @@ static doublereal c_b18 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -129,7 +129,7 @@ static doublereal c_b18 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOTRF", &i__1);
+	_starpu_xerbla_("DPOTRF", &i__1);
 	return 0;
     }
 
@@ -141,12 +141,12 @@ static doublereal c_b18 = -1.;
 
 /*     Determine the block size for this environment. */
 
-    nb = ilaenv_(&c__1, "DPOTRF", uplo, n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DPOTRF", uplo, n, &c_n1, &c_n1, &c_n1);
     if (nb <= 1 || nb >= *n) {
 
 /*        Use unblocked code. */
 
-	dpotf2_(uplo, n, &a[a_offset], lda, info);
+	_starpu_dpotf2_(uplo, n, &a[a_offset], lda, info);
     } else {
 
 /*        Use blocked code. */
@@ -165,16 +165,16 @@ static doublereal c_b18 = -1.;
 /*              Compute the current block. */
 
 		i__3 = j - 1;
-		dtrsm_("Left", "Upper", "Transpose", "Non-unit", &i__3, &jb, &
+		_starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", &i__3, &jb, &
 			c_b15, &a[a_dim1 + 1], lda, &a[j * a_dim1 + 1], lda);
 		i__3 = j - 1;
-		dsyrk_("Upper", "Transpose", &jb, &i__3, &c_b18, &a[j * 
+		_starpu_dsyrk_("Upper", "Transpose", &jb, &i__3, &c_b18, &a[j * 
 			a_dim1 + 1], lda, &c_b15, &a[j + j * a_dim1], lda);
 
 /*              Update and factorize the current diagonal block and test */
 /*              for non-positive-definiteness. */
 
-		dpotf2_("Upper", &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dpotf2_("Upper", &jb, &a[j + j * a_dim1], lda, info);
 		if (*info != 0) {
 		    goto L30;
 		}
@@ -195,16 +195,16 @@ static doublereal c_b18 = -1.;
 /*              Compute the current block. */
 
 		i__3 = j - 1;
-		dtrsm_("Right", "Lower", "Transpose", "Non-unit", &jb, &i__3, 
+		_starpu_dtrsm_("Right", "Lower", "Transpose", "Non-unit", &jb, &i__3, 
 			&c_b15, &a[a_dim1 + 1], lda, &a[j + a_dim1], lda);
 		i__3 = j - 1;
-		dsyrk_("Lower", "No Transpose", &jb, &i__3, &c_b18, &a[j + 
+		_starpu_dsyrk_("Lower", "No Transpose", &jb, &i__3, &c_b18, &a[j + 
 			a_dim1], lda, &c_b15, &a[j + j * a_dim1], lda);
 
 /*              Update and factorize the current diagonal block and test */
 /*              for non-positive-definiteness. */
 
-		dpotf2_("Lower", &jb, &a[j + j * a_dim1], lda, info);
+		_starpu_dpotf2_("Lower", &jb, &a[j + j * a_dim1], lda, info);
 		if (*info != 0) {
 		    goto L30;
 		}
@@ -222,4 +222,4 @@ L40:
 
 /*     End of DPOTRF */
 
-} /* dpotrf_ */
+} /* _starpu_dpotrf_ */

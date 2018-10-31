@@ -13,13 +13,13 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer ilaprec_(char *prec)
+integer _starpu_ilaprec_(char *prec)
 {
     /* System generated locals */
     integer ret_val;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -54,13 +54,13 @@ integer ilaprec_(char *prec)
 /*     .. External Functions .. */
 /*     .. */
 /*     .. Executable Statements .. */
-    if (lsame_(prec, "S")) {
+    if (_starpu_lsame_(prec, "S")) {
 	ret_val = 211;
-    } else if (lsame_(prec, "D")) {
+    } else if (_starpu_lsame_(prec, "D")) {
 	ret_val = 212;
-    } else if (lsame_(prec, "I")) {
+    } else if (_starpu_lsame_(prec, "I")) {
 	ret_val = 213;
-    } else if (lsame_(prec, "X") || lsame_(prec, "E")) {
+    } else if (_starpu_lsame_(prec, "X") || _starpu_lsame_(prec, "E")) {
 	ret_val = 214;
     } else {
 	ret_val = -1;
@@ -69,4 +69,4 @@ integer ilaprec_(char *prec)
 
 /*     End of ILAPREC */
 
-} /* ilaprec_ */
+} /* _starpu_ilaprec_ */

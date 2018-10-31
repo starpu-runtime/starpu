@@ -22,7 +22,7 @@ static integer c__2 = 2;
 static doublereal c_b22 = -1.;
 static doublereal c_b23 = 1.;
 
-/* Subroutine */ int dsytrd_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsytrd_(char *uplo, integer *n, doublereal *a, integer *
 	lda, doublereal *d__, doublereal *e, doublereal *tau, doublereal *
 	work, integer *lwork, integer *info)
 {
@@ -31,17 +31,17 @@ static doublereal c_b23 = 1.;
 
     /* Local variables */
     integer i__, j, nb, kk, nx, iws;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nbmin, iinfo;
     logical upper;
-    extern /* Subroutine */ int dsytd2_(char *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, integer *), dsyr2k_(char *, char *, integer *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dsytd2_(char *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, doublereal *, integer *), _starpu_dsyr2k_(char *, char *, integer *, integer *, doublereal 
 	    *, doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	     doublereal *, integer *), dlatrd_(char *, 
+	     doublereal *, integer *), _starpu_dlatrd_(char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, 
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer ldwork, lwkopt;
     logical lquery;
@@ -194,9 +194,9 @@ static doublereal c_b23 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1;
-    if (! upper && ! lsame_(uplo, "L")) {
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -210,14 +210,14 @@ static doublereal c_b23 = 1.;
 
 /*        Determine the block size. */
 
-	nb = ilaenv_(&c__1, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
+	nb = _starpu_ilaenv_(&c__1, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
 	lwkopt = *n * nb;
 	work[1] = (doublereal) lwkopt;
     }
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTRD", &i__1);
+	_starpu_xerbla_("DSYTRD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -238,7 +238,7 @@ static doublereal c_b23 = 1.;
 /*        (last block is always handled by unblocked code). */
 
 /* Computing MAX */
-	i__1 = nb, i__2 = ilaenv_(&c__3, "DSYTRD", uplo, n, &c_n1, &c_n1, &
+	i__1 = nb, i__2 = _starpu_ilaenv_(&c__3, "DSYTRD", uplo, n, &c_n1, &c_n1, &
 		c_n1);
 	nx = max(i__1,i__2);
 	if (nx < *n) {
@@ -256,7 +256,7 @@ static doublereal c_b23 = 1.;
 /* Computing MAX */
 		i__1 = *lwork / ldwork;
 		nb = max(i__1,1);
-		nbmin = ilaenv_(&c__2, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
+		nbmin = _starpu_ilaenv_(&c__2, "DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1);
 		if (nb < nbmin) {
 		    nx = *n;
 		}
@@ -284,14 +284,14 @@ static doublereal c_b23 = 1.;
 /*           the matrix */
 
 	    i__3 = i__ + nb - 1;
-	    dlatrd_(uplo, &i__3, &nb, &a[a_offset], lda, &e[1], &tau[1], &
+	    _starpu_dlatrd_(uplo, &i__3, &nb, &a[a_offset], lda, &e[1], &tau[1], &
 		    work[1], &ldwork);
 
 /*           Update the unreduced submatrix A(1:i-1,1:i-1), using an */
 /*           update of the form:  A := A - V*W' - W*V' */
 
 	    i__3 = i__ - 1;
-	    dsyr2k_(uplo, "No transpose", &i__3, &nb, &c_b22, &a[i__ * a_dim1 
+	    _starpu_dsyr2k_(uplo, "No transpose", &i__3, &nb, &c_b22, &a[i__ * a_dim1 
 		    + 1], lda, &work[1], &ldwork, &c_b23, &a[a_offset], lda);
 
 /*           Copy superdiagonal elements back into A, and diagonal */
@@ -308,7 +308,7 @@ static doublereal c_b23 = 1.;
 
 /*        Use unblocked code to reduce the last or only block */
 
-	dsytd2_(uplo, &kk, &a[a_offset], lda, &d__[1], &e[1], &tau[1], &iinfo);
+	_starpu_dsytd2_(uplo, &kk, &a[a_offset], lda, &d__[1], &e[1], &tau[1], &iinfo);
     } else {
 
 /*        Reduce the lower triangle of A */
@@ -322,14 +322,14 @@ static doublereal c_b23 = 1.;
 /*           the matrix */
 
 	    i__3 = *n - i__ + 1;
-	    dlatrd_(uplo, &i__3, &nb, &a[i__ + i__ * a_dim1], lda, &e[i__], &
+	    _starpu_dlatrd_(uplo, &i__3, &nb, &a[i__ + i__ * a_dim1], lda, &e[i__], &
 		    tau[i__], &work[1], &ldwork);
 
 /*           Update the unreduced submatrix A(i+ib:n,i+ib:n), using */
 /*           an update of the form:  A := A - V*W' - W*V' */
 
 	    i__3 = *n - i__ - nb + 1;
-	    dsyr2k_(uplo, "No transpose", &i__3, &nb, &c_b22, &a[i__ + nb + 
+	    _starpu_dsyr2k_(uplo, "No transpose", &i__3, &nb, &c_b22, &a[i__ + nb + 
 		    i__ * a_dim1], lda, &work[nb + 1], &ldwork, &c_b23, &a[
 		    i__ + nb + (i__ + nb) * a_dim1], lda);
 
@@ -348,7 +348,7 @@ static doublereal c_b23 = 1.;
 /*        Use unblocked code to reduce the last or only block */
 
 	i__1 = *n - i__ + 1;
-	dsytd2_(uplo, &i__1, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[i__], 
+	_starpu_dsytd2_(uplo, &i__1, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[i__], 
 		&tau[i__], &iinfo);
     }
 
@@ -357,4 +357,4 @@ static doublereal c_b23 = 1.;
 
 /*     End of DSYTRD */
 
-} /* dsytrd_ */
+} /* _starpu_dsytrd_ */

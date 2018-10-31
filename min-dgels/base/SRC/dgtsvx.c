@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgtsvx_(char *fact, char *trans, integer *n, integer *
+/* Subroutine */ int _starpu_dgtsvx_(char *fact, char *trans, integer *n, integer *
 	nrhs, doublereal *dl, doublereal *d__, doublereal *du, doublereal *
 	dlf, doublereal *df, doublereal *duf, doublereal *du2, integer *ipiv, 
 	doublereal *b, integer *ldb, doublereal *x, integer *ldx, doublereal *
@@ -29,25 +29,25 @@ static integer c__1 = 1;
 
     /* Local variables */
     char norm[1];
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *), dlangt_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlangt_(char *, integer *, 
 	    doublereal *, doublereal *, doublereal *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dgtcon_(char *, integer *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dgtcon_(char *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     doublereal *, doublereal *, doublereal *, integer *, integer *), dgtrfs_(char *, integer *, integer *, doublereal *, 
+	     doublereal *, doublereal *, doublereal *, integer *, integer *), _starpu_dgtrfs_(char *, integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *, integer *), dgttrf_(integer *, doublereal *, 
+	     integer *, integer *), _starpu_dgttrf_(integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *);
     logical notran;
-    extern /* Subroutine */ int dgttrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgttrs_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, integer *, integer *);
 
@@ -266,12 +266,12 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    notran = lsame_(trans, "N");
-    if (! nofact && ! lsame_(fact, "F")) {
+    nofact = _starpu_lsame_(fact, "N");
+    notran = _starpu_lsame_(trans, "N");
+    if (! nofact && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T") && ! 
-	    lsame_(trans, "C")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T") && ! 
+	    _starpu_lsame_(trans, "C")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -284,7 +284,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGTSVX", &i__1);
+	_starpu_xerbla_("DGTSVX", &i__1);
 	return 0;
     }
 
@@ -292,14 +292,14 @@ static integer c__1 = 1;
 
 /*        Compute the LU factorization of A. */
 
-	dcopy_(n, &d__[1], &c__1, &df[1], &c__1);
+	_starpu_dcopy_(n, &d__[1], &c__1, &df[1], &c__1);
 	if (*n > 1) {
 	    i__1 = *n - 1;
-	    dcopy_(&i__1, &dl[1], &c__1, &dlf[1], &c__1);
+	    _starpu_dcopy_(&i__1, &dl[1], &c__1, &dlf[1], &c__1);
 	    i__1 = *n - 1;
-	    dcopy_(&i__1, &du[1], &c__1, &duf[1], &c__1);
+	    _starpu_dcopy_(&i__1, &du[1], &c__1, &duf[1], &c__1);
 	}
-	dgttrf_(n, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], info);
+	_starpu_dgttrf_(n, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], info);
 
 /*        Return if INFO is non-zero. */
 
@@ -316,29 +316,29 @@ static integer c__1 = 1;
     } else {
 	*(unsigned char *)norm = 'I';
     }
-    anorm = dlangt_(norm, n, &dl[1], &d__[1], &du[1]);
+    anorm = _starpu_dlangt_(norm, n, &dl[1], &d__[1], &du[1]);
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dgtcon_(norm, n, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], &anorm, 
+    _starpu_dgtcon_(norm, n, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], &anorm, 
 	    rcond, &work[1], &iwork[1], info);
 
 /*     Compute the solution vectors X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dgttrs_(trans, n, nrhs, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], &x[
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dgttrs_(trans, n, nrhs, &dlf[1], &df[1], &duf[1], &du2[1], &ipiv[1], &x[
 	    x_offset], ldx, info);
 
 /*     Use iterative refinement to improve the computed solutions and */
 /*     compute error bounds and backward error estimates for them. */
 
-    dgtrfs_(trans, n, nrhs, &dl[1], &d__[1], &du[1], &dlf[1], &df[1], &duf[1], 
+    _starpu_dgtrfs_(trans, n, nrhs, &dl[1], &d__[1], &du[1], &dlf[1], &df[1], &duf[1], 
 	     &du2[1], &ipiv[1], &b[b_offset], ldb, &x[x_offset], ldx, &ferr[1]
 , &berr[1], &work[1], &iwork[1], info);
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
 
@@ -346,4 +346,4 @@ static integer c__1 = 1;
 
 /*     End of DGTSVX */
 
-} /* dgtsvx_ */
+} /* _starpu_dgtsvx_ */

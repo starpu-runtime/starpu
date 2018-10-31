@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer 
+integer _starpu_iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer 
 	*ilo, integer *ihi, integer *lwork)
 {
     /* System generated locals */
@@ -279,4 +279,4 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 /*     ==== End of IPARMQ ==== */
 
     return ret_val;
-} /* iparmq_ */
+} /* _starpu_iparmq_ */

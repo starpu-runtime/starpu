@@ -13,15 +13,15 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int drscl_(integer *n, doublereal *sa, doublereal *sx, 
+/* Subroutine */ int _starpu_drscl_(integer *n, doublereal *sa, doublereal *sx, 
 	integer *incx)
 {
     doublereal mul, cden;
     logical done;
     doublereal cnum, cden1, cnum1;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal bignum, smlnum;
 
 
@@ -85,9 +85,9 @@
 
 /*     Get machine parameters */
 
-    smlnum = dlamch_("S");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
 /*     Initialize the denominator to SA and the numerator to 1. */
 
@@ -121,7 +121,7 @@ L10:
 
 /*     Scale the vector X by MUL */
 
-    dscal_(n, &mul, &sx[1], incx);
+    _starpu_dscal_(n, &mul, &sx[1], incx);
 
     if (! done) {
 	goto L10;
@@ -131,4 +131,4 @@ L10:
 
 /*     End of DRSCL */
 
-} /* drscl_ */
+} /* _starpu_drscl_ */

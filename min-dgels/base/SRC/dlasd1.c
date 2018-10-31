@@ -20,7 +20,7 @@ static doublereal c_b7 = 1.;
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dlasd1_(integer *nl, integer *nr, integer *sqre, 
+/* Subroutine */ int _starpu_dlasd1_(integer *nl, integer *nr, integer *sqre, 
 	doublereal *d__, doublereal *alpha, doublereal *beta, doublereal *u, 
 	integer *ldu, doublereal *vt, integer *ldvt, integer *idxq, integer *
 	iwork, doublereal *work, integer *info)
@@ -32,21 +32,21 @@ static integer c_n1 = -1;
     /* Local variables */
     integer i__, k, m, n, n1, n2, iq, iz, iu2, ldq, idx, ldu2, ivt2, idxc, 
 	    idxp, ldvt2;
-    extern /* Subroutine */ int dlasd2_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlasd2_(integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *), dlasd3_(
+	    integer *, integer *, integer *, integer *, integer *), _starpu_dlasd3_(
 	    integer *, integer *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *, doublereal *, integer *), 
-	    dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    _starpu_dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dlamrg_(integer *, integer *, doublereal *, integer *, integer *, 
+	     _starpu_dlamrg_(integer *, integer *, doublereal *, integer *, integer *, 
 	     integer *);
     integer isigma;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal orgnrm;
     integer coltyp;
 
@@ -212,7 +212,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD1", &i__1);
+	_starpu_xerbla_("DLASD1", &i__1);
 	return 0;
     }
 
@@ -250,13 +250,13 @@ static integer c_n1 = -1;
 	}
 /* L10: */
     }
-    dlascl_("G", &c__0, &c__0, &orgnrm, &c_b7, &n, &c__1, &d__[1], &n, info);
+    _starpu_dlascl_("G", &c__0, &c__0, &orgnrm, &c_b7, &n, &c__1, &d__[1], &n, info);
     *alpha /= orgnrm;
     *beta /= orgnrm;
 
 /*     Deflate singular values. */
 
-    dlasd2_(nl, nr, sqre, &k, &d__[1], &work[iz], alpha, beta, &u[u_offset], 
+    _starpu_dlasd2_(nl, nr, sqre, &k, &d__[1], &work[iz], alpha, beta, &u[u_offset], 
 	    ldu, &vt[vt_offset], ldvt, &work[isigma], &work[iu2], &ldu2, &
 	    work[ivt2], &ldvt2, &iwork[idxp], &iwork[idx], &iwork[idxc], &
 	    idxq[1], &iwork[coltyp], info);
@@ -264,7 +264,7 @@ static integer c_n1 = -1;
 /*     Solve Secular Equation and update singular vectors. */
 
     ldq = k;
-    dlasd3_(nl, nr, sqre, &k, &d__[1], &work[iq], &ldq, &work[isigma], &u[
+    _starpu_dlasd3_(nl, nr, sqre, &k, &d__[1], &work[iq], &ldq, &work[isigma], &u[
 	    u_offset], ldu, &work[iu2], &ldu2, &vt[vt_offset], ldvt, &work[
 	    ivt2], &ldvt2, &iwork[idxc], &iwork[coltyp], &work[iz], info);
     if (*info != 0) {
@@ -273,16 +273,16 @@ static integer c_n1 = -1;
 
 /*     Unscale. */
 
-    dlascl_("G", &c__0, &c__0, &c_b7, &orgnrm, &n, &c__1, &d__[1], &n, info);
+    _starpu_dlascl_("G", &c__0, &c__0, &c_b7, &orgnrm, &n, &c__1, &d__[1], &n, info);
 
 /*     Prepare the IDXQ sorting permutation. */
 
     n1 = k;
     n2 = n - k;
-    dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &idxq[1]);
+    _starpu_dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &idxq[1]);
 
     return 0;
 
 /*     End of DLASD1 */
 
-} /* dlasd1_ */
+} /* _starpu_dlasd1_ */

@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dsycon_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsycon_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, doublereal *anorm, doublereal *rcond, doublereal *
 	work, integer *iwork, integer *info)
 {
@@ -26,14 +26,14 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__, kase;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
     logical upper;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dsytrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsytrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -126,8 +126,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -138,7 +138,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYCON", &i__1);
+	_starpu_xerbla_("DSYCON", &i__1);
 	return 0;
     }
 
@@ -181,12 +181,12 @@ static integer c__1 = 1;
 
     kase = 0;
 L30:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 
 /*        Multiply by inv(L*D*L') or inv(U*D*U'). */
 
-	dsytrs_(uplo, n, &c__1, &a[a_offset], lda, &ipiv[1], &work[1], n, 
+	_starpu_dsytrs_(uplo, n, &c__1, &a[a_offset], lda, &ipiv[1], &work[1], n, 
 		info);
 	goto L30;
     }
@@ -201,4 +201,4 @@ L30:
 
 /*     End of DSYCON */
 
-} /* dsycon_ */
+} /* _starpu_dsycon_ */

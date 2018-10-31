@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dggsvd_(char *jobu, char *jobv, char *jobq, integer *m, 
+/* Subroutine */ int _starpu_dggsvd_(char *jobu, char *jobv, char *jobq, integer *m, 
 	integer *n, integer *p, integer *k, integer *l, doublereal *a, 
 	integer *lda, doublereal *b, integer *ldb, doublereal *alpha, 
 	doublereal *beta, doublereal *u, integer *ldu, doublereal *v, integer 
@@ -35,21 +35,21 @@ static integer c__1 = 1;
     doublereal tola;
     integer isub;
     doublereal tolb, unfl, temp, smax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm, bnorm;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical wantq, wantu, wantv;
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dtgsja_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtgsja_(char *, char *, char *, integer *, 
 	    integer *, integer *, integer *, integer *, doublereal *, integer 
 	    *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
     integer ncycle;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dggsvp_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dggsvp_(
 	    char *, char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
@@ -306,16 +306,16 @@ static integer c__1 = 1;
     --iwork;
 
     /* Function Body */
-    wantu = lsame_(jobu, "U");
-    wantv = lsame_(jobv, "V");
-    wantq = lsame_(jobq, "Q");
+    wantu = _starpu_lsame_(jobu, "U");
+    wantv = _starpu_lsame_(jobv, "V");
+    wantq = _starpu_lsame_(jobq, "Q");
 
     *info = 0;
-    if (! (wantu || lsame_(jobu, "N"))) {
+    if (! (wantu || _starpu_lsame_(jobu, "N"))) {
 	*info = -1;
-    } else if (! (wantv || lsame_(jobv, "N"))) {
+    } else if (! (wantv || _starpu_lsame_(jobv, "N"))) {
 	*info = -2;
-    } else if (! (wantq || lsame_(jobq, "N"))) {
+    } else if (! (wantq || _starpu_lsame_(jobq, "N"))) {
 	*info = -3;
     } else if (*m < 0) {
 	*info = -4;
@@ -336,39 +336,39 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGSVD", &i__1);
+	_starpu_xerbla_("DGGSVD", &i__1);
 	return 0;
     }
 
 /*     Compute the Frobenius norm of matrices A and B */
 
-    anorm = dlange_("1", m, n, &a[a_offset], lda, &work[1]);
-    bnorm = dlange_("1", p, n, &b[b_offset], ldb, &work[1]);
+    anorm = _starpu_dlange_("1", m, n, &a[a_offset], lda, &work[1]);
+    bnorm = _starpu_dlange_("1", p, n, &b[b_offset], ldb, &work[1]);
 
 /*     Get machine precision and set up threshold for determining */
 /*     the effective numerical rank of the matrices A and B. */
 
-    ulp = dlamch_("Precision");
-    unfl = dlamch_("Safe Minimum");
+    ulp = _starpu_dlamch_("Precision");
+    unfl = _starpu_dlamch_("Safe Minimum");
     tola = max(*m,*n) * max(anorm,unfl) * ulp;
     tolb = max(*p,*n) * max(bnorm,unfl) * ulp;
 
 /*     Preprocessing */
 
-    dggsvp_(jobu, jobv, jobq, m, p, n, &a[a_offset], lda, &b[b_offset], ldb, &
+    _starpu_dggsvp_(jobu, jobv, jobq, m, p, n, &a[a_offset], lda, &b[b_offset], ldb, &
 	    tola, &tolb, k, l, &u[u_offset], ldu, &v[v_offset], ldv, &q[
 	    q_offset], ldq, &iwork[1], &work[1], &work[*n + 1], info);
 
 /*     Compute the GSVD of two upper "triangular" matrices */
 
-    dtgsja_(jobu, jobv, jobq, m, p, n, k, l, &a[a_offset], lda, &b[b_offset], 
+    _starpu_dtgsja_(jobu, jobv, jobq, m, p, n, k, l, &a[a_offset], lda, &b[b_offset], 
 	    ldb, &tola, &tolb, &alpha[1], &beta[1], &u[u_offset], ldu, &v[
 	    v_offset], ldv, &q[q_offset], ldq, &work[1], &ncycle, info);
 
 /*     Sort the singular values and store the pivot indices in IWORK */
 /*     Copy ALPHA to WORK, then sort ALPHA in WORK */
 
-    dcopy_(n, &alpha[1], &c__1, &work[1], &c__1);
+    _starpu_dcopy_(n, &alpha[1], &c__1, &work[1], &c__1);
 /* Computing MIN */
     i__1 = *l, i__2 = *m - *k;
     ibnd = min(i__1,i__2);
@@ -402,4 +402,4 @@ static integer c__1 = 1;
 
 /*     End of DGGSVD */
 
-} /* dggsvd_ */
+} /* _starpu_dggsvd_ */

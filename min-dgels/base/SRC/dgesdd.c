@@ -21,7 +21,7 @@ static integer c__0 = 0;
 static doublereal c_b227 = 0.;
 static doublereal c_b248 = 1.;
 
-/* Subroutine */ int dgesdd_(char *jobz, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_dgesdd_(char *jobz, integer *m, integer *n, doublereal *
 	a, integer *lda, doublereal *s, doublereal *u, integer *ldu, 
 	doublereal *vt, integer *ldvt, doublereal *work, integer *lwork, 
 	integer *iwork, integer *info)
@@ -39,42 +39,42 @@ static doublereal c_b248 = 1.;
     integer ivt, iscl;
     doublereal anrm;
     integer idum[1], ierr, itau;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer chunk, minmn, wrkbl, itaup, itauq, mnthr;
     logical wntqa;
     integer nwork;
     logical wntqn, wntqo, wntqs;
-    extern /* Subroutine */ int dbdsdc_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dbdsdc_(char *, char *, integer *, doublereal 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	     doublereal *, integer *, doublereal *, integer *, integer *), dgebrd_(integer *, integer *, doublereal *, 
+	     doublereal *, integer *, doublereal *, integer *, integer *), _starpu_dgebrd_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
     integer bdspac;
-    extern /* Subroutine */ int dgelqf_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgelqf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *), 
-	    dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    _starpu_dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dgeqrf_(integer *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *), dlacpy_(char *, 
+	     _starpu_dgeqrf_(integer *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, integer *, integer *), _starpu_dlacpy_(char *, 
 	     integer *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dlaset_(char *, integer *, integer *, 
+	    integer *), _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dorgbr_(char *, integer *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dorgbr_(char *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dormbr_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dormbr_(char *, char *, char *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *, integer *), dorglq_(integer *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *, integer *), _starpu_dorglq_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dorgqr_(integer *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dorgqr_(integer *, integer *, integer *, doublereal *, 
 	     integer *, doublereal *, doublereal *, integer *, integer *);
     integer ldwrkl, ldwrkr, minwrk, ldwrku, maxwrk, ldwkvt;
     doublereal smlnum;
@@ -251,11 +251,11 @@ static doublereal c_b248 = 1.;
     /* Function Body */
     *info = 0;
     minmn = min(*m,*n);
-    wntqa = lsame_(jobz, "A");
-    wntqs = lsame_(jobz, "S");
+    wntqa = _starpu_lsame_(jobz, "A");
+    wntqs = _starpu_lsame_(jobz, "S");
     wntqas = wntqa || wntqs;
-    wntqo = lsame_(jobz, "O");
-    wntqn = lsame_(jobz, "N");
+    wntqo = _starpu_lsame_(jobz, "O");
+    wntqn = _starpu_lsame_(jobz, "N");
     lquery = *lwork == -1;
 
     if (! (wntqa || wntqs || wntqo || wntqn)) {
@@ -299,10 +299,10 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 1 (M much larger than N, JOBZ='N') */
 
-		    wrkbl = *n + *n * ilaenv_(&c__1, "DGEQRF", " ", m, n, &
+		    wrkbl = *n + *n * _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", n, n, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -313,22 +313,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 2 (M much larger than N, JOBZ='O') */
 
-		    wrkbl = *n + *n * ilaenv_(&c__1, "DGEQRF", " ", m, n, &
+		    wrkbl = *n + *n * _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n + *n * ilaenv_(&c__1, "DORGQR", 
+		    i__1 = wrkbl, i__2 = *n + *n * _starpu_ilaenv_(&c__1, "DORGQR", 
 			    " ", m, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", n, n, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -340,22 +340,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 3 (M much larger than N, JOBZ='S') */
 
-		    wrkbl = *n + *n * ilaenv_(&c__1, "DGEQRF", " ", m, n, &
+		    wrkbl = *n + *n * _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n + *n * ilaenv_(&c__1, "DORGQR", 
+		    i__1 = wrkbl, i__2 = *n + *n * _starpu_ilaenv_(&c__1, "DORGQR", 
 			    " ", m, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", n, n, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -367,22 +367,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 4 (M much larger than N, JOBZ='A') */
 
-		    wrkbl = *n + *n * ilaenv_(&c__1, "DGEQRF", " ", m, n, &
+		    wrkbl = *n + *n * _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n + *m * ilaenv_(&c__1, "DORGQR", 
+		    i__1 = wrkbl, i__2 = *n + *m * _starpu_ilaenv_(&c__1, "DORGQR", 
 			    " ", m, m, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *n * 3 + (*n << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", n, n, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -395,7 +395,7 @@ static doublereal c_b248 = 1.;
 
 /*              Path 5 (M at least N, but not much larger) */
 
-		wrkbl = *n * 3 + (*m + *n) * ilaenv_(&c__1, "DGEBRD", " ", m, 
+		wrkbl = *n * 3 + (*m + *n) * _starpu_ilaenv_(&c__1, "DGEBRD", " ", m, 
 			n, &c_n1, &c_n1);
 		if (wntqn) {
 /* Computing MAX */
@@ -404,11 +404,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *n * 3 + max(*m,bdspac);
 		} else if (wntqo) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -420,11 +420,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *n * 3 + max(i__1,i__2);
 		} else if (wntqs) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -433,11 +433,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *n * 3 + max(*m,bdspac);
 		} else if (wntqa) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *n * 3 + *n * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *n * 3 + *n * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -461,10 +461,10 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 1t (N much larger than M, JOBZ='N') */
 
-		    wrkbl = *m + *m * ilaenv_(&c__1, "DGELQF", " ", m, n, &
+		    wrkbl = *m + *m * _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", m, m, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -475,22 +475,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 2t (N much larger than M, JOBZ='O') */
 
-		    wrkbl = *m + *m * ilaenv_(&c__1, "DGELQF", " ", m, n, &
+		    wrkbl = *m + *m * _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m + *m * ilaenv_(&c__1, "DORGLQ", 
+		    i__1 = wrkbl, i__2 = *m + *m * _starpu_ilaenv_(&c__1, "DORGLQ", 
 			    " ", m, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", m, m, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -502,22 +502,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 3t (N much larger than M, JOBZ='S') */
 
-		    wrkbl = *m + *m * ilaenv_(&c__1, "DGELQF", " ", m, n, &
+		    wrkbl = *m + *m * _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m + *m * ilaenv_(&c__1, "DORGLQ", 
+		    i__1 = wrkbl, i__2 = *m + *m * _starpu_ilaenv_(&c__1, "DORGLQ", 
 			    " ", m, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", m, m, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -529,22 +529,22 @@ static doublereal c_b248 = 1.;
 
 /*                 Path 4t (N much larger than M, JOBZ='A') */
 
-		    wrkbl = *m + *m * ilaenv_(&c__1, "DGELQF", " ", m, n, &
+		    wrkbl = *m + *m * _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &
 			    c_n1, &c_n1);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m + *n * ilaenv_(&c__1, "DORGLQ", 
+		    i__1 = wrkbl, i__2 = *m + *n * _starpu_ilaenv_(&c__1, "DORGLQ", 
 			    " ", n, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * ilaenv_(&c__1, 
+		    i__1 = wrkbl, i__2 = *m * 3 + (*m << 1) * _starpu_ilaenv_(&c__1, 
 			    "DGEBRD", " ", m, m, &c_n1, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", m, m, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -557,7 +557,7 @@ static doublereal c_b248 = 1.;
 
 /*              Path 5t (N greater than M, but not much larger) */
 
-		wrkbl = *m * 3 + (*m + *n) * ilaenv_(&c__1, "DGEBRD", " ", m, 
+		wrkbl = *m * 3 + (*m + *n) * _starpu_ilaenv_(&c__1, "DGEBRD", " ", m, 
 			n, &c_n1, &c_n1);
 		if (wntqn) {
 /* Computing MAX */
@@ -566,11 +566,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *m * 3 + max(*n,bdspac);
 		} else if (wntqo) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", m, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -582,11 +582,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *m * 3 + max(i__1,i__2);
 		} else if (wntqs) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", m, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -595,11 +595,11 @@ static doublereal c_b248 = 1.;
 		    minwrk = *m * 3 + max(*n,bdspac);
 		} else if (wntqa) {
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLN", m, m, n, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
-		    i__1 = wrkbl, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR"
+		    i__1 = wrkbl, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR"
 , "PRT", n, n, m, &c_n1);
 		    wrkbl = max(i__1,i__2);
 /* Computing MAX */
@@ -619,7 +619,7 @@ static doublereal c_b248 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGESDD", &i__1);
+	_starpu_xerbla_("DGESDD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -633,21 +633,21 @@ static doublereal c_b248 = 1.;
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = sqrt(dlamch_("S")) / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = sqrt(_starpu_dlamch_("S")) / eps;
     bignum = 1. / smlnum;
 
 /*     Scale A if max element outside range [SMLNUM,BIGNUM] */
 
-    anrm = dlange_("M", m, n, &a[a_offset], lda, dum);
+    anrm = _starpu_dlange_("M", m, n, &a[a_offset], lda, dum);
     iscl = 0;
     if (anrm > 0. && anrm < smlnum) {
 	iscl = 1;
-	dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, &
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, &
 		ierr);
     } else if (anrm > bignum) {
 	iscl = 1;
-	dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, &
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, &
 		ierr);
     }
 
@@ -671,14 +671,14 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 2*N, prefer N+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__1, &ierr);
 
 /*              Zero out below R */
 
 		i__1 = *n - 1;
 		i__2 = *n - 1;
-		dlaset_("L", &i__1, &i__2, &c_b227, &c_b227, &a[a_dim1 + 2], 
+		_starpu_dlaset_("L", &i__1, &i__2, &c_b227, &c_b227, &a[a_dim1 + 2], 
 			lda);
 		ie = 1;
 		itauq = ie + *n;
@@ -689,14 +689,14 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 4*N, prefer 3*N+2*N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgebrd_(n, n, &a[a_offset], lda, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(n, n, &a[a_offset], lda, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__1, &ierr);
 		nwork = ie + *n;
 
 /*              Perform bidiagonal SVD, computing singular values only */
 /*              (Workspace: need N+BDSPAC) */
 
-		dbdsdc_("U", "N", n, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
+		_starpu_dbdsdc_("U", "N", n, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
 			 dum, idum, &work[nwork], &iwork[1], info);
 
 	    } else if (wntqo) {
@@ -721,22 +721,22 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__1, &ierr);
 
 /*              Copy R to WORK(IR), zeroing out below it */
 
-		dlacpy_("U", n, n, &a[a_offset], lda, &work[ir], &ldwrkr);
+		_starpu_dlacpy_("U", n, n, &a[a_offset], lda, &work[ir], &ldwrkr);
 		i__1 = *n - 1;
 		i__2 = *n - 1;
-		dlaset_("L", &i__1, &i__2, &c_b227, &c_b227, &work[ir + 1], &
+		_starpu_dlaset_("L", &i__1, &i__2, &c_b227, &c_b227, &work[ir + 1], &
 			ldwrkr);
 
 /*              Generate Q in A */
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dorgqr_(m, n, n, &a[a_offset], lda, &work[itau], &work[nwork], 
+		_starpu_dorgqr_(m, n, n, &a[a_offset], lda, &work[itau], &work[nwork], 
 			 &i__1, &ierr);
 		ie = itau;
 		itauq = ie + *n;
@@ -747,7 +747,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+4*N, prefer N*N+3*N+2*N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgebrd_(n, n, &work[ir], &ldwrkr, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(n, n, &work[ir], &ldwrkr, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__1, &ierr);
 
 /*              WORK(IU) is N by N */
@@ -760,7 +760,7 @@ static doublereal c_b248 = 1.;
 /*              singular vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+N*N+BDSPAC) */
 
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], n, &vt[
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], n, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -769,10 +769,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 2*N*N+3*N, prefer 2*N*N+2*N+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", n, n, n, &work[ir], &ldwrkr, &work[
+		_starpu_dormbr_("Q", "L", "N", n, n, n, &work[ir], &ldwrkr, &work[
 			itauq], &work[iu], n, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, n, &work[ir], &ldwrkr, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, n, &work[ir], &ldwrkr, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__1, &
 			ierr);
 
@@ -787,9 +787,9 @@ static doublereal c_b248 = 1.;
 /* Computing MIN */
 		    i__3 = *m - i__ + 1;
 		    chunk = min(i__3,ldwrkr);
-		    dgemm_("N", "N", &chunk, n, n, &c_b248, &a[i__ + a_dim1], 
+		    _starpu_dgemm_("N", "N", &chunk, n, n, &c_b248, &a[i__ + a_dim1], 
 			    lda, &work[iu], n, &c_b227, &work[ir], &ldwrkr);
-		    dlacpy_("F", &chunk, n, &work[ir], &ldwrkr, &a[i__ + 
+		    _starpu_dlacpy_("F", &chunk, n, &work[ir], &ldwrkr, &a[i__ + 
 			    a_dim1], lda);
 /* L10: */
 		}
@@ -812,22 +812,22 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__2, &ierr);
 
 /*              Copy R to WORK(IR), zeroing out below it */
 
-		dlacpy_("U", n, n, &a[a_offset], lda, &work[ir], &ldwrkr);
+		_starpu_dlacpy_("U", n, n, &a[a_offset], lda, &work[ir], &ldwrkr);
 		i__2 = *n - 1;
 		i__1 = *n - 1;
-		dlaset_("L", &i__2, &i__1, &c_b227, &c_b227, &work[ir + 1], &
+		_starpu_dlaset_("L", &i__2, &i__1, &c_b227, &c_b227, &work[ir + 1], &
 			ldwrkr);
 
 /*              Generate Q in A */
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dorgqr_(m, n, n, &a[a_offset], lda, &work[itau], &work[nwork], 
+		_starpu_dorgqr_(m, n, n, &a[a_offset], lda, &work[itau], &work[nwork], 
 			 &i__2, &ierr);
 		ie = itau;
 		itauq = ie + *n;
@@ -838,7 +838,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+4*N, prefer N*N+3*N+2*N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgebrd_(n, n, &work[ir], &ldwrkr, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(n, n, &work[ir], &ldwrkr, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__2, &ierr);
 
 /*              Perform bidiagonal SVD, computing left singular vectors */
@@ -846,7 +846,7 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+BDSPAC) */
 
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -855,11 +855,11 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+3*N, prefer N*N+2*N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", n, n, n, &work[ir], &ldwrkr, &work[
+		_starpu_dormbr_("Q", "L", "N", n, n, n, &work[ir], &ldwrkr, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__2, &ierr);
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, n, &work[ir], &ldwrkr, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, n, &work[ir], &ldwrkr, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__2, &
 			ierr);
 
@@ -867,8 +867,8 @@ static doublereal c_b248 = 1.;
 /*              WORK(IR), storing result in U */
 /*              (Workspace: need N*N) */
 
-		dlacpy_("F", n, n, &u[u_offset], ldu, &work[ir], &ldwrkr);
-		dgemm_("N", "N", m, n, n, &c_b248, &a[a_offset], lda, &work[
+		_starpu_dlacpy_("F", n, n, &u[u_offset], ldu, &work[ir], &ldwrkr);
+		_starpu_dgemm_("N", "N", m, n, n, &c_b248, &a[a_offset], lda, &work[
 			ir], &ldwrkr, &c_b227, &u[u_offset], ldu);
 
 	    } else if (wntqa) {
@@ -889,21 +889,21 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__2, &ierr);
-		dlacpy_("L", m, n, &a[a_offset], lda, &u[u_offset], ldu);
+		_starpu_dlacpy_("L", m, n, &a[a_offset], lda, &u[u_offset], ldu);
 
 /*              Generate Q in U */
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 		i__2 = *lwork - nwork + 1;
-		dorgqr_(m, m, n, &u[u_offset], ldu, &work[itau], &work[nwork], 
+		_starpu_dorgqr_(m, m, n, &u[u_offset], ldu, &work[itau], &work[nwork], 
 			 &i__2, &ierr);
 
 /*              Produce R in A, zeroing out other entries */
 
 		i__2 = *n - 1;
 		i__1 = *n - 1;
-		dlaset_("L", &i__2, &i__1, &c_b227, &c_b227, &a[a_dim1 + 2], 
+		_starpu_dlaset_("L", &i__2, &i__1, &c_b227, &c_b227, &a[a_dim1 + 2], 
 			lda);
 		ie = itau;
 		itauq = ie + *n;
@@ -914,7 +914,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+4*N, prefer N*N+3*N+2*N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgebrd_(n, n, &a[a_offset], lda, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(n, n, &a[a_offset], lda, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__2, &ierr);
 
 /*              Perform bidiagonal SVD, computing left singular vectors */
@@ -922,7 +922,7 @@ static doublereal c_b248 = 1.;
 /*              singular vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+N*N+BDSPAC) */
 
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], n, &vt[
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], n, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -931,11 +931,11 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+3*N, prefer N*N+2*N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", n, n, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", n, n, n, &a[a_offset], lda, &work[
 			itauq], &work[iu], &ldwrku, &work[nwork], &i__2, &
 			ierr);
 		i__2 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__2, &
 			ierr);
 
@@ -943,12 +943,12 @@ static doublereal c_b248 = 1.;
 /*              WORK(IU), storing result in A */
 /*              (Workspace: need N*N) */
 
-		dgemm_("N", "N", m, n, n, &c_b248, &u[u_offset], ldu, &work[
+		_starpu_dgemm_("N", "N", m, n, n, &c_b248, &u[u_offset], ldu, &work[
 			iu], &ldwrku, &c_b227, &a[a_offset], lda);
 
 /*              Copy left singular vectors of A from A to U */
 
-		dlacpy_("F", m, n, &a[a_offset], lda, &u[u_offset], ldu);
+		_starpu_dlacpy_("F", m, n, &a[a_offset], lda, &u[u_offset], ldu);
 
 	    }
 
@@ -968,14 +968,14 @@ static doublereal c_b248 = 1.;
 /*           (Workspace: need 3*N+M, prefer 3*N+(M+N)*NB) */
 
 	    i__2 = *lwork - nwork + 1;
-	    dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
+	    _starpu_dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
 		    work[itaup], &work[nwork], &i__2, &ierr);
 	    if (wntqn) {
 
 /*              Perform bidiagonal SVD, only computing singular values */
 /*              (Workspace: need N+BDSPAC) */
 
-		dbdsdc_("U", "N", n, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
+		_starpu_dbdsdc_("U", "N", n, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
 			 dum, idum, &work[nwork], &iwork[1], info);
 	    } else if (wntqo) {
 		iu = nwork;
@@ -985,7 +985,7 @@ static doublereal c_b248 = 1.;
 
 		    ldwrku = *m;
 		    nwork = iu + ldwrku * *n;
-		    dlaset_("F", m, n, &c_b227, &c_b227, &work[iu], &ldwrku);
+		    _starpu_dlaset_("F", m, n, &c_b227, &c_b227, &work[iu], &ldwrku);
 		} else {
 
 /*                 WORK( IU ) is N by N */
@@ -1005,7 +1005,7 @@ static doublereal c_b248 = 1.;
 /*              singular vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+N*N+BDSPAC) */
 
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], &ldwrku, &
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &work[iu], &ldwrku, &
 			vt[vt_offset], ldvt, dum, idum, &work[nwork], &iwork[
 			1], info);
 
@@ -1013,7 +1013,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__2, &
 			ierr);
 
@@ -1023,20 +1023,20 @@ static doublereal c_b248 = 1.;
 /*                 (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		    i__2 = *lwork - nwork + 1;
-		    dormbr_("Q", "L", "N", m, n, n, &a[a_offset], lda, &work[
+		    _starpu_dormbr_("Q", "L", "N", m, n, n, &a[a_offset], lda, &work[
 			    itauq], &work[iu], &ldwrku, &work[nwork], &i__2, &
 			    ierr);
 
 /*                 Copy left singular vectors of A from WORK(IU) to A */
 
-		    dlacpy_("F", m, n, &work[iu], &ldwrku, &a[a_offset], lda);
+		    _starpu_dlacpy_("F", m, n, &work[iu], &ldwrku, &a[a_offset], lda);
 		} else {
 
 /*                 Generate Q in A */
 /*                 (Workspace: need N*N+2*N, prefer N*N+N+N*NB) */
 
 		    i__2 = *lwork - nwork + 1;
-		    dorgbr_("Q", m, n, n, &a[a_offset], lda, &work[itauq], &
+		    _starpu_dorgbr_("Q", m, n, n, &a[a_offset], lda, &work[itauq], &
 			    work[nwork], &i__2, &ierr);
 
 /*                 Multiply Q in A by left singular vectors of */
@@ -1051,10 +1051,10 @@ static doublereal c_b248 = 1.;
 /* Computing MIN */
 			i__3 = *m - i__ + 1;
 			chunk = min(i__3,ldwrkr);
-			dgemm_("N", "N", &chunk, n, n, &c_b248, &a[i__ + 
+			_starpu_dgemm_("N", "N", &chunk, n, n, &c_b248, &a[i__ + 
 				a_dim1], lda, &work[iu], &ldwrku, &c_b227, &
 				work[ir], &ldwrkr);
-			dlacpy_("F", &chunk, n, &work[ir], &ldwrkr, &a[i__ + 
+			_starpu_dlacpy_("F", &chunk, n, &work[ir], &ldwrkr, &a[i__ + 
 				a_dim1], lda);
 /* L20: */
 		    }
@@ -1067,8 +1067,8 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+BDSPAC) */
 
-		dlaset_("F", m, n, &c_b227, &c_b227, &u[u_offset], ldu);
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dlaset_("F", m, n, &c_b227, &c_b227, &u[u_offset], ldu);
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1077,10 +1077,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 3*N, prefer 2*N+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, n, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, n, n, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, n, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__1, &
 			ierr);
 	    } else if (wntqa) {
@@ -1090,8 +1090,8 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need N+BDSPAC) */
 
-		dlaset_("F", m, m, &c_b227, &c_b227, &u[u_offset], ldu);
-		dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dlaset_("F", m, m, &c_b227, &c_b227, &u[u_offset], ldu);
+		_starpu_dbdsdc_("U", "I", n, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1100,7 +1100,7 @@ static doublereal c_b248 = 1.;
 		if (*m > *n) {
 		    i__1 = *m - *n;
 		    i__2 = *m - *n;
-		    dlaset_("F", &i__1, &i__2, &c_b227, &c_b248, &u[*n + 1 + (
+		    _starpu_dlaset_("F", &i__1, &i__2, &c_b227, &c_b248, &u[*n + 1 + (
 			    *n + 1) * u_dim1], ldu);
 		}
 
@@ -1109,10 +1109,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need N*N+2*N+M, prefer N*N+2*N+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, m, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, m, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__1, &
 			ierr);
 	    }
@@ -1139,14 +1139,14 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 2*M, prefer M+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__1, &ierr);
 
 /*              Zero out above L */
 
 		i__1 = *m - 1;
 		i__2 = *m - 1;
-		dlaset_("U", &i__1, &i__2, &c_b227, &c_b227, &a[(a_dim1 << 1) 
+		_starpu_dlaset_("U", &i__1, &i__2, &c_b227, &c_b227, &a[(a_dim1 << 1) 
 			+ 1], lda);
 		ie = 1;
 		itauq = ie + *m;
@@ -1157,14 +1157,14 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 4*M, prefer 3*M+2*M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgebrd_(m, m, &a[a_offset], lda, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(m, m, &a[a_offset], lda, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__1, &ierr);
 		nwork = ie + *m;
 
 /*              Perform bidiagonal SVD, computing singular values only */
 /*              (Workspace: need M+BDSPAC) */
 
-		dbdsdc_("U", "N", m, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
+		_starpu_dbdsdc_("U", "N", m, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
 			 dum, idum, &work[nwork], &iwork[1], info);
 
 	    } else if (wntqo) {
@@ -1195,22 +1195,22 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__1, &ierr);
 
 /*              Copy L to WORK(IL), zeroing about above it */
 
-		dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwrkl);
+		_starpu_dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwrkl);
 		i__1 = *m - 1;
 		i__2 = *m - 1;
-		dlaset_("U", &i__1, &i__2, &c_b227, &c_b227, &work[il + 
+		_starpu_dlaset_("U", &i__1, &i__2, &c_b227, &c_b227, &work[il + 
 			ldwrkl], &ldwrkl);
 
 /*              Generate Q in A */
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dorglq_(m, n, m, &a[a_offset], lda, &work[itau], &work[nwork], 
+		_starpu_dorglq_(m, n, m, &a[a_offset], lda, &work[itau], &work[nwork], 
 			 &i__1, &ierr);
 		ie = itau;
 		itauq = ie + *m;
@@ -1221,7 +1221,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+4*M, prefer M*M+3*M+2*M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dgebrd_(m, m, &work[il], &ldwrkl, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(m, m, &work[il], &ldwrkl, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__1, &ierr);
 
 /*              Perform bidiagonal SVD, computing left singular vectors */
@@ -1229,7 +1229,7 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in WORK(IVT) */
 /*              (Workspace: need M+M*M+BDSPAC) */
 
-		dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
+		_starpu_dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
 			work[ivt], m, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1238,10 +1238,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 2*M*M+3*M, prefer 2*M*M+2*M+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, m, &work[il], &ldwrkl, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, m, &work[il], &ldwrkl, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", m, m, m, &work[il], &ldwrkl, &work[
+		_starpu_dormbr_("P", "R", "T", m, m, m, &work[il], &ldwrkl, &work[
 			itaup], &work[ivt], m, &work[nwork], &i__1, &ierr);
 
 /*              Multiply right singular vectors of L in WORK(IVT) by Q */
@@ -1255,10 +1255,10 @@ static doublereal c_b248 = 1.;
 /* Computing MIN */
 		    i__3 = *n - i__ + 1;
 		    blk = min(i__3,chunk);
-		    dgemm_("N", "N", m, &blk, m, &c_b248, &work[ivt], m, &a[
+		    _starpu_dgemm_("N", "N", m, &blk, m, &c_b248, &work[ivt], m, &a[
 			    i__ * a_dim1 + 1], lda, &c_b227, &work[il], &
 			    ldwrkl);
-		    dlacpy_("F", m, &blk, &work[il], &ldwrkl, &a[i__ * a_dim1 
+		    _starpu_dlacpy_("F", m, &blk, &work[il], &ldwrkl, &a[i__ * a_dim1 
 			    + 1], lda);
 /* L30: */
 		}
@@ -1281,22 +1281,22 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__2, &ierr);
 
 /*              Copy L to WORK(IL), zeroing out above it */
 
-		dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwrkl);
+		_starpu_dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwrkl);
 		i__2 = *m - 1;
 		i__1 = *m - 1;
-		dlaset_("U", &i__2, &i__1, &c_b227, &c_b227, &work[il + 
+		_starpu_dlaset_("U", &i__2, &i__1, &c_b227, &c_b227, &work[il + 
 			ldwrkl], &ldwrkl);
 
 /*              Generate Q in A */
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dorglq_(m, n, m, &a[a_offset], lda, &work[itau], &work[nwork], 
+		_starpu_dorglq_(m, n, m, &a[a_offset], lda, &work[itau], &work[nwork], 
 			 &i__2, &ierr);
 		ie = itau;
 		itauq = ie + *m;
@@ -1307,7 +1307,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+4*M, prefer M*M+3*M+2*M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgebrd_(m, m, &work[il], &ldwrkl, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(m, m, &work[il], &ldwrkl, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__2, &ierr);
 
 /*              Perform bidiagonal SVD, computing left singular vectors */
@@ -1315,7 +1315,7 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need M+BDSPAC) */
 
-		dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1324,10 +1324,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+3*M, prefer M*M+2*M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, m, &work[il], &ldwrkl, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, m, &work[il], &ldwrkl, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__2, &ierr);
 		i__2 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", m, m, m, &work[il], &ldwrkl, &work[
+		_starpu_dormbr_("P", "R", "T", m, m, m, &work[il], &ldwrkl, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__2, &
 			ierr);
 
@@ -1335,8 +1335,8 @@ static doublereal c_b248 = 1.;
 /*              Q in A, storing result in VT */
 /*              (Workspace: need M*M) */
 
-		dlacpy_("F", m, m, &vt[vt_offset], ldvt, &work[il], &ldwrkl);
-		dgemm_("N", "N", m, n, m, &c_b248, &work[il], &ldwrkl, &a[
+		_starpu_dlacpy_("F", m, m, &vt[vt_offset], ldvt, &work[il], &ldwrkl);
+		_starpu_dgemm_("N", "N", m, n, m, &c_b248, &work[il], &ldwrkl, &a[
 			a_offset], lda, &c_b227, &vt[vt_offset], ldvt);
 
 	    } else if (wntqa) {
@@ -1357,22 +1357,22 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
+		_starpu_dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &
 			i__2, &ierr);
-		dlacpy_("U", m, n, &a[a_offset], lda, &vt[vt_offset], ldvt);
+		_starpu_dlacpy_("U", m, n, &a[a_offset], lda, &vt[vt_offset], ldvt);
 
 /*              Generate Q in VT */
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dorglq_(n, n, m, &vt[vt_offset], ldvt, &work[itau], &work[
+		_starpu_dorglq_(n, n, m, &vt[vt_offset], ldvt, &work[itau], &work[
 			nwork], &i__2, &ierr);
 
 /*              Produce L in A, zeroing out other entries */
 
 		i__2 = *m - 1;
 		i__1 = *m - 1;
-		dlaset_("U", &i__2, &i__1, &c_b227, &c_b227, &a[(a_dim1 << 1) 
+		_starpu_dlaset_("U", &i__2, &i__1, &c_b227, &c_b227, &a[(a_dim1 << 1) 
 			+ 1], lda);
 		ie = itau;
 		itauq = ie + *m;
@@ -1383,7 +1383,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+4*M, prefer M*M+3*M+2*M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dgebrd_(m, m, &a[a_offset], lda, &s[1], &work[ie], &work[
+		_starpu_dgebrd_(m, m, &a[a_offset], lda, &s[1], &work[ie], &work[
 			itauq], &work[itaup], &work[nwork], &i__2, &ierr);
 
 /*              Perform bidiagonal SVD, computing left singular vectors */
@@ -1391,7 +1391,7 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in WORK(IVT) */
 /*              (Workspace: need M+M*M+BDSPAC) */
 
-		dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
+		_starpu_dbdsdc_("U", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
 			work[ivt], &ldwkvt, dum, idum, &work[nwork], &iwork[1]
 , info);
 
@@ -1400,10 +1400,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+3*M, prefer M*M+2*M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, m, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, m, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__2, &ierr);
 		i__2 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", m, m, m, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", m, m, m, &a[a_offset], lda, &work[
 			itaup], &work[ivt], &ldwkvt, &work[nwork], &i__2, &
 			ierr);
 
@@ -1411,12 +1411,12 @@ static doublereal c_b248 = 1.;
 /*              Q in VT, storing result in A */
 /*              (Workspace: need M*M) */
 
-		dgemm_("N", "N", m, n, m, &c_b248, &work[ivt], &ldwkvt, &vt[
+		_starpu_dgemm_("N", "N", m, n, m, &c_b248, &work[ivt], &ldwkvt, &vt[
 			vt_offset], ldvt, &c_b227, &a[a_offset], lda);
 
 /*              Copy right singular vectors of A from A to VT */
 
-		dlacpy_("F", m, n, &a[a_offset], lda, &vt[vt_offset], ldvt);
+		_starpu_dlacpy_("F", m, n, &a[a_offset], lda, &vt[vt_offset], ldvt);
 
 	    }
 
@@ -1436,14 +1436,14 @@ static doublereal c_b248 = 1.;
 /*           (Workspace: need 3*M+N, prefer 3*M+(M+N)*NB) */
 
 	    i__2 = *lwork - nwork + 1;
-	    dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
+	    _starpu_dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
 		    work[itaup], &work[nwork], &i__2, &ierr);
 	    if (wntqn) {
 
 /*              Perform bidiagonal SVD, only computing singular values */
 /*              (Workspace: need M+BDSPAC) */
 
-		dbdsdc_("L", "N", m, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
+		_starpu_dbdsdc_("L", "N", m, &s[1], &work[ie], dum, &c__1, dum, &c__1, 
 			 dum, idum, &work[nwork], &iwork[1], info);
 	    } else if (wntqo) {
 		ldwkvt = *m;
@@ -1452,7 +1452,7 @@ static doublereal c_b248 = 1.;
 
 /*                 WORK( IVT ) is M by N */
 
-		    dlaset_("F", m, n, &c_b227, &c_b227, &work[ivt], &ldwkvt);
+		    _starpu_dlaset_("F", m, n, &c_b227, &c_b227, &work[ivt], &ldwkvt);
 		    nwork = ivt + ldwkvt * *n;
 		} else {
 
@@ -1471,7 +1471,7 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in WORK(IVT) */
 /*              (Workspace: need M*M+BDSPAC) */
 
-		dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
+		_starpu_dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &
 			work[ivt], &ldwkvt, dum, idum, &work[nwork], &iwork[1]
 , info);
 
@@ -1479,7 +1479,7 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		i__2 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__2, &ierr);
 
 		if (*lwork >= *m * *n + *m * 3 + bdspac) {
@@ -1488,20 +1488,20 @@ static doublereal c_b248 = 1.;
 /*                 (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		    i__2 = *lwork - nwork + 1;
-		    dormbr_("P", "R", "T", m, n, m, &a[a_offset], lda, &work[
+		    _starpu_dormbr_("P", "R", "T", m, n, m, &a[a_offset], lda, &work[
 			    itaup], &work[ivt], &ldwkvt, &work[nwork], &i__2, 
 			    &ierr);
 
 /*                 Copy right singular vectors of A from WORK(IVT) to A */
 
-		    dlacpy_("F", m, n, &work[ivt], &ldwkvt, &a[a_offset], lda);
+		    _starpu_dlacpy_("F", m, n, &work[ivt], &ldwkvt, &a[a_offset], lda);
 		} else {
 
 /*                 Generate P**T in A */
 /*                 (Workspace: need M*M+2*M, prefer M*M+M+M*NB) */
 
 		    i__2 = *lwork - nwork + 1;
-		    dorgbr_("P", m, n, m, &a[a_offset], lda, &work[itaup], &
+		    _starpu_dorgbr_("P", m, n, m, &a[a_offset], lda, &work[itaup], &
 			    work[nwork], &i__2, &ierr);
 
 /*                 Multiply Q in A by right singular vectors of */
@@ -1516,10 +1516,10 @@ static doublereal c_b248 = 1.;
 /* Computing MIN */
 			i__3 = *n - i__ + 1;
 			blk = min(i__3,chunk);
-			dgemm_("N", "N", m, &blk, m, &c_b248, &work[ivt], &
+			_starpu_dgemm_("N", "N", m, &blk, m, &c_b248, &work[ivt], &
 				ldwkvt, &a[i__ * a_dim1 + 1], lda, &c_b227, &
 				work[il], m);
-			dlacpy_("F", m, &blk, &work[il], m, &a[i__ * a_dim1 + 
+			_starpu_dlacpy_("F", m, &blk, &work[il], m, &a[i__ * a_dim1 + 
 				1], lda);
 /* L40: */
 		    }
@@ -1531,8 +1531,8 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need M+BDSPAC) */
 
-		dlaset_("F", m, n, &c_b227, &c_b227, &vt[vt_offset], ldvt);
-		dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dlaset_("F", m, n, &c_b227, &c_b227, &vt[vt_offset], ldvt);
+		_starpu_dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1541,10 +1541,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 3*M, prefer 2*M+M*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", m, n, m, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", m, n, m, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__1, &
 			ierr);
 	    } else if (wntqa) {
@@ -1554,8 +1554,8 @@ static doublereal c_b248 = 1.;
 /*              vectors of bidiagonal matrix in VT */
 /*              (Workspace: need M+BDSPAC) */
 
-		dlaset_("F", n, n, &c_b227, &c_b227, &vt[vt_offset], ldvt);
-		dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
+		_starpu_dlaset_("F", n, n, &c_b227, &c_b227, &vt[vt_offset], ldvt);
+		_starpu_dbdsdc_("L", "I", m, &s[1], &work[ie], &u[u_offset], ldu, &vt[
 			vt_offset], ldvt, dum, idum, &work[nwork], &iwork[1], 
 			info);
 
@@ -1564,7 +1564,7 @@ static doublereal c_b248 = 1.;
 		if (*n > *m) {
 		    i__1 = *n - *m;
 		    i__2 = *n - *m;
-		    dlaset_("F", &i__1, &i__2, &c_b227, &c_b248, &vt[*m + 1 + 
+		    _starpu_dlaset_("F", &i__1, &i__2, &c_b227, &c_b248, &vt[*m + 1 + 
 			    (*m + 1) * vt_dim1], ldvt);
 		}
 
@@ -1573,10 +1573,10 @@ static doublereal c_b248 = 1.;
 /*              (Workspace: need 2*M+N, prefer 2*M+N*NB) */
 
 		i__1 = *lwork - nwork + 1;
-		dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
+		_starpu_dormbr_("Q", "L", "N", m, m, n, &a[a_offset], lda, &work[
 			itauq], &u[u_offset], ldu, &work[nwork], &i__1, &ierr);
 		i__1 = *lwork - nwork + 1;
-		dormbr_("P", "R", "T", n, n, m, &a[a_offset], lda, &work[
+		_starpu_dormbr_("P", "R", "T", n, n, m, &a[a_offset], lda, &work[
 			itaup], &vt[vt_offset], ldvt, &work[nwork], &i__1, &
 			ierr);
 	    }
@@ -1589,11 +1589,11 @@ static doublereal c_b248 = 1.;
 
     if (iscl == 1) {
 	if (anrm > bignum) {
-	    dlascl_("G", &c__0, &c__0, &bignum, &anrm, &minmn, &c__1, &s[1], &
+	    _starpu_dlascl_("G", &c__0, &c__0, &bignum, &anrm, &minmn, &c__1, &s[1], &
 		    minmn, &ierr);
 	}
 	if (anrm < smlnum) {
-	    dlascl_("G", &c__0, &c__0, &smlnum, &anrm, &minmn, &c__1, &s[1], &
+	    _starpu_dlascl_("G", &c__0, &c__0, &smlnum, &anrm, &minmn, &c__1, &s[1], &
 		    minmn, &ierr);
 	}
     }
@@ -1606,4 +1606,4 @@ static doublereal c_b248 = 1.;
 
 /*     End of DGESDD */
 
-} /* dgesdd_ */
+} /* _starpu_dgesdd_ */
