@@ -19,7 +19,7 @@ static doublereal c_b10 = -1.;
 static doublereal c_b11 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int _starpu_dstarpu_sposv_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu__starpu_dsposv_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info)
@@ -415,4 +415,4 @@ L40:
 
 /*     End of DSPOSV. */
 
-} /* _starpu_dstarpu_sposv_ */
+} /* _starpu__starpu_dsposv_ */

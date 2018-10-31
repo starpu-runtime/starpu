@@ -52,7 +52,7 @@ static doublereal c_b8 = 1.;
     extern /* Subroutine */ int _starpu_dla_lin_berr__(integer *, integer *, integer *
 	    , doublereal *, doublereal *, doublereal *);
     doublereal ymin;
-    extern /* Subroutine */ int blas_starpu_dgemv_x__(integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_blas_dgemv_x__(integer *, integer *, integer *
 	    , doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *);
     integer y_prec_state__;
@@ -425,7 +425,7 @@ static doublereal c_b8 = 1.;
 		_starpu_dgemv_(trans, n, n, &c_b6, &a[a_offset], lda, &y[j * y_dim1 + 
 			1], &c__1, &c_b8, &res[1], &c__1);
 	    } else if (y_prec_state__ == 1) {
-		blas_starpu_dgemv_x__(trans_type__, n, n, &c_b6, &a[a_offset], lda, &
+		_starpu_blas_dgemv_x__(trans_type__, n, n, &c_b6, &a[a_offset], lda, &
 			y[j * y_dim1 + 1], &c__1, &c_b8, &res[1], &c__1, 
 			prec_type__);
 	    } else {

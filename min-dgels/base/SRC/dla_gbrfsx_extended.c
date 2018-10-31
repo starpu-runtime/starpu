@@ -52,7 +52,7 @@ static doublereal c_b8 = 1.;
     extern /* Subroutine */ int _starpu_dla_lin_berr__(integer *, integer *, integer *
 	    , doublereal *, doublereal *, doublereal *);
     doublereal ymin;
-    extern /* Subroutine */ int blas_starpu_dgbmv_x__(integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_blas_dgbmv_x__(integer *, integer *, integer *
 	    , integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *);
@@ -432,7 +432,7 @@ static doublereal c_b8 = 1.;
 		_starpu_dgbmv_(trans, &m, n, kl, ku, &c_b6, &ab[ab_offset], ldab, &y[
 			j * y_dim1 + 1], &c__1, &c_b8, &res[1], &c__1);
 	    } else if (y_prec_state__ == 1) {
-		blas_starpu_dgbmv_x__(trans_type__, n, n, kl, ku, &c_b6, &ab[
+		_starpu_blas_dgbmv_x__(trans_type__, n, n, kl, ku, &c_b6, &ab[
 			ab_offset], ldab, &y[j * y_dim1 + 1], &c__1, &c_b8, &
 			res[1], &c__1, prec_type__);
 	    } else {

@@ -78,10 +78,10 @@ extern "C" {
 /* Subroutine */ int _starpu_cscal_(integer *n, complex *ca, complex *cx, integer *
 	incx);
 
-/* Subroutine */ int _starpu_cstarpu_srot_(integer *n, complex *cx, integer *incx, complex *
+/* Subroutine */ int _starpu__starpu_csrot_(integer *n, complex *cx, integer *incx, complex *
 	cy, integer *incy, real *c__, real *s);
 
-/* Subroutine */ int _starpu_cstarpu_sscal_(integer *n, real *sa, complex *cx, integer *incx);
+/* Subroutine */ int _starpu_csscal_(integer *n, real *sa, complex *cx, integer *incx);
 
 /* Subroutine */ int _starpu_cswap_(integer *n, complex *cx, integer *incx, complex *
 	cy, integer *incy);
@@ -176,7 +176,7 @@ doublereal _starpu_dnrm2_(integer *n, doublereal *x, integer *incx);
 /* Subroutine */ int _starpu_dscal_(integer *n, doublereal *da, doublereal *dx, 
 	integer *incx);
 
-doublereal _starpu_dstarpu_sdot_(integer *n, real *sx, integer *incx, real *sy, integer *
+doublereal _starpu_dsdot_(integer *n, real *sx, integer *incx, real *sy, integer *
 	incy);
 
 /* Subroutine */ int _starpu_dspmv_(char *uplo, integer *n, doublereal *alpha, 
@@ -272,7 +272,7 @@ doublereal _starpu_scnrm2_(integer *n, complex *x, integer *incx);
 
 doublereal _starpu_sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy);
 
-doublereal sstarpu_dstarpu_sdot_(integer *n, real *sb, real *sx, integer *incx, real *sy, 
+doublereal _starpu_sdsdot_(integer *n, real *sb, real *sx, integer *incx, real *sy, 
 	integer *incy);
 
 /* Subroutine */ int _starpu_sgbmv_(char *trans, integer *m, integer *n, integer *kl, 
@@ -386,10 +386,10 @@ doublereal _starpu_snrm2_(integer *n, real *x, integer *incx);
 /* Double Complex */ VOID _starpu_zdotu_(doublecomplex * ret_val, integer *n, 
 	doublecomplex *zx, integer *incx, doublecomplex *zy, integer *incy);
 
-/* Subroutine */ int zstarpu_drot_(integer *n, doublecomplex *cx, integer *incx, 
+/* Subroutine */ int _starpu_zdrot_(integer *n, doublecomplex *cx, integer *incx, 
 	doublecomplex *cy, integer *incy, doublereal *c__, doublereal *s);
 
-/* Subroutine */ int zstarpu_dscal_(integer *n, doublereal *da, doublecomplex *zx, 
+/* Subroutine */ int _starpu_zdscal_(integer *n, doublereal *da, doublecomplex *zx, 
 	integer *incx);
 
 /* Subroutine */ int _starpu_zgbmv_(char *trans, integer *m, integer *n, integer *kl, 
@@ -1720,7 +1720,7 @@ doublereal _starpu_clantr_(char *norm, char *uplo, char *diag, integer *m, integ
 /* Subroutine */ int _starpu_csptrs_(char *uplo, integer *n, integer *nrhs, complex *
 	ap, integer *ipiv, complex *b, integer *ldb, integer *info);
 
-/* Subroutine */ int _starpu_cstarpu_srscl_(integer *n, real *sa, complex *sx, integer *incx);
+/* Subroutine */ int _starpu__starpu_csrscl_(integer *n, real *sa, complex *sx, integer *incx);
 
 /* Subroutine */ int _starpu_cstedc_(char *compz, integer *n, real *d__, real *e, 
 	complex *z__, integer *ldz, complex *work, integer *lwork, real *
@@ -3456,7 +3456,7 @@ doublereal _starpu_dlapy3_(doublereal *x, doublereal *y, doublereal *z__);
 	 integer *k, doublereal *alpha, doublereal *a, integer *lda, 
 	doublereal *beta, doublereal *c__);
 
-/* Subroutine */ int _starpu_dstarpu_sgesv_(integer *n, integer *nrhs, doublereal *a, 
+/* Subroutine */ int _starpu__starpu_dsgesv_(integer *n, integer *nrhs, doublereal *a, 
 	integer *lda, integer *ipiv, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info);
@@ -3497,7 +3497,7 @@ doublereal _starpu_dlapy3_(doublereal *x, doublereal *y, doublereal *z__);
 	*m, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *iwork, integer *ifail, integer *info);
 
-/* Subroutine */ int _starpu_dstarpu_sposv_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu__starpu_dsposv_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info);
@@ -5479,17 +5479,17 @@ doublereal _starpu_slapy3_(real *x, real *y, real *z__);
 	integer *ldvt, doublecomplex *u, integer *ldu, doublecomplex *c__, 
 	integer *ldc, doublereal *rwork, integer *info);
 
-/* Subroutine */ int zstarpu_cgesv_(integer *n, integer *nrhs, doublecomplex *a, 
+/* Subroutine */ int _starpu_zcgesv_(integer *n, integer *nrhs, doublecomplex *a, 
 	integer *lda, integer *ipiv, doublecomplex *b, integer *ldb, 
 	doublecomplex *x, integer *ldx, doublecomplex *work, complex *swork, 
 	doublereal *rwork, integer *iter, integer *info);
 
-/* Subroutine */ int zstarpu_cposv_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_zcposv_(char *uplo, integer *n, integer *nrhs, 
 	doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb, 
 	doublecomplex *x, integer *ldx, doublecomplex *work, complex *swork, 
 	doublereal *rwork, integer *iter, integer *info);
 
-/* Subroutine */ int zstarpu_drscl_(integer *n, doublereal *sa, doublecomplex *sx, 
+/* Subroutine */ int _starpu_zdrscl_(integer *n, doublereal *sa, doublecomplex *sx, 
 	integer *incx);
 
 /* Subroutine */ int _starpu_zgbbrd_(char *vect, integer *m, integer *n, integer *ncc, 

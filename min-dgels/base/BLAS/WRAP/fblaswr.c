@@ -396,7 +396,7 @@ f2c_csscal(integer* N,
            real* alpha,
            complex* X, integer* incX)
 {
-    _starpu_cstarpu_sscal_(N, alpha, X, incX);
+    _starpu_csscal_(N, alpha, X, incX);
     return 0;
 }
 
@@ -406,7 +406,7 @@ f2c_zdscal(integer* N,
            doublereal* alpha,
            doublecomplex* X, integer* incX)
 {
-    zstarpu_dscal_(N, alpha, X, incX);
+    _starpu_zdscal_(N, alpha, X, incX);
     return 0;
 }
 
