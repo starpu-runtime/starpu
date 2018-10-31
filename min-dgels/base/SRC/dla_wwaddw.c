@@ -1,4 +1,4 @@
-/* dla_wwaddw.f -- translated by f2c (version 20061008).
+/* _starpu_dla_wwaddw.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dla_wwaddw__(integer *n, doublereal *x, doublereal *y, 
+/* Subroutine */ int _starpu_dla_wwaddw__(integer *n, doublereal *x, doublereal *y, 
 	doublereal *w)
 {
     /* System generated locals */
@@ -77,4 +77,4 @@
 /* L10: */
     }
     return 0;
-} /* dla_wwaddw__ */
+} /* _starpu_dla_wwaddw__ */

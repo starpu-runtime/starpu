@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgbsvxx_(char *fact, char *trans, integer *n, integer *
+/* Subroutine */ int _starpu_dgbsvxx_(char *fact, char *trans, integer *n, integer *
 	kl, integer *ku, integer *nrhs, doublereal *ab, integer *ldab, 
 	doublereal *afb, integer *ldafb, integer *ipiv, char *equed, 
 	doublereal *r__, doublereal *c__, doublereal *b, integer *ldb, 
@@ -31,24 +31,24 @@
     /* Local variables */
     integer i__, j;
     doublereal amax;
-    extern doublereal dla_gbrpvgrw__(integer *, integer *, integer *, integer 
+    extern doublereal _starpu_dla_gbrpvgrw__(integer *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal rcmin, rcmax;
     logical equil;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlaqgb_(integer *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlaqgb_(integer *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, char *);
     doublereal colcnd;
-    extern /* Subroutine */ int dgbtrf_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgbtrf_(integer *, integer *, integer *, 
 	    integer *, doublereal *, integer *, integer *, integer *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dgbtrs_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dgbtrs_(char *, integer *, integer *, integer 
 	    *, integer *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     integer infequ;
@@ -57,10 +57,10 @@
     logical notran;
     doublereal smlnum;
     logical rowequ;
-    extern /* Subroutine */ int dlascl2_(integer *, integer *, doublereal *, 
-	    doublereal *, integer *), dgbequb_(integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dlascl2_(integer *, integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_dgbequb_(integer *, integer *, integer *
 , integer *, doublereal *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, integer *), dgbrfsx_(
+	    doublereal *, doublereal *, doublereal *, integer *), _starpu_dgbrfsx_(
 	    char *, char *, integer *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
@@ -532,19 +532,19 @@
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
-    notran = lsame_(trans, "N");
-    smlnum = dlamch_("Safe minimum");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
+    notran = _starpu_lsame_(trans, "N");
+    smlnum = _starpu_dlamch_("Safe minimum");
     bignum = 1. / smlnum;
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rowequ = FALSE_;
 	colequ = FALSE_;
     } else {
-	rowequ = lsame_(equed, "R") || lsame_(equed, 
+	rowequ = _starpu_lsame_(equed, "R") || _starpu_lsame_(equed, 
 		"B");
-	colequ = lsame_(equed, "C") || lsame_(equed, 
+	colequ = _starpu_lsame_(equed, "C") || _starpu_lsame_(equed, 
 		"B");
     }
 
@@ -556,10 +556,10 @@
 
 /*     Test the input parameters.  PARAMS is not tested until DGBRFSX. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T") && ! 
-	    lsame_(trans, "C")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T") && ! 
+	    _starpu_lsame_(trans, "C")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -573,8 +573,8 @@
 	*info = -8;
     } else if (*ldafb < (*kl << 1) + *ku + 1) {
 	*info = -10;
-    } else if (lsame_(fact, "F") && ! (rowequ || colequ 
-	    || lsame_(equed, "N"))) {
+    } else if (_starpu_lsame_(fact, "F") && ! (rowequ || colequ 
+	    || _starpu_lsame_(equed, "N"))) {
 	*info = -12;
     } else {
 	if (rowequ) {
@@ -630,7 +630,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBSVXX", &i__1);
+	_starpu_xerbla_("DGBSVXX", &i__1);
 	return 0;
     }
 
@@ -638,17 +638,17 @@
 
 /*     Compute row and column scalings to equilibrate the matrix A. */
 
-	dgbequb_(n, n, kl, ku, &ab[ab_offset], ldab, &r__[1], &c__[1], &
+	_starpu_dgbequb_(n, n, kl, ku, &ab[ab_offset], ldab, &r__[1], &c__[1], &
 		rowcnd, &colcnd, &amax, &infequ);
 	if (infequ == 0) {
 
 /*     Equilibrate the matrix. */
 
-	    dlaqgb_(n, n, kl, ku, &ab[ab_offset], ldab, &r__[1], &c__[1], &
+	    _starpu_dlaqgb_(n, n, kl, ku, &ab[ab_offset], ldab, &r__[1], &c__[1], &
 		    rowcnd, &colcnd, &amax, equed);
-	    rowequ = lsame_(equed, "R") || lsame_(equed, 
+	    rowequ = _starpu_lsame_(equed, "R") || _starpu_lsame_(equed, 
 		     "B");
-	    colequ = lsame_(equed, "C") || lsame_(equed, 
+	    colequ = _starpu_lsame_(equed, "C") || _starpu_lsame_(equed, 
 		     "B");
 	}
 
@@ -672,11 +672,11 @@
 
     if (notran) {
 	if (rowequ) {
-	    dlascl2_(n, nrhs, &r__[1], &b[b_offset], ldb);
+	    _starpu_dlascl2_(n, nrhs, &r__[1], &b[b_offset], ldb);
 	}
     } else {
 	if (colequ) {
-	    dlascl2_(n, nrhs, &c__[1], &b[b_offset], ldb);
+	    _starpu_dlascl2_(n, nrhs, &c__[1], &b[b_offset], ldb);
 	}
     }
 
@@ -693,7 +693,7 @@
 	    }
 /* L40: */
 	}
-	dgbtrf_(n, n, kl, ku, &afb[afb_offset], ldafb, &ipiv[1], info);
+	_starpu_dgbtrf_(n, n, kl, ku, &afb[afb_offset], ldafb, &ipiv[1], info);
 
 /*        Return if INFO is non-zero. */
 
@@ -703,7 +703,7 @@
 /*           Compute the reciprocal pivot growth factor of the */
 /*           leading rank-deficient INFO columns of A. */
 
-	    *rpvgrw = dla_gbrpvgrw__(n, kl, ku, info, &ab[ab_offset], ldab, &
+	    *rpvgrw = _starpu_dla_gbrpvgrw__(n, kl, ku, info, &ab[ab_offset], ldab, &
 		    afb[afb_offset], ldafb);
 	    return 0;
 	}
@@ -711,19 +711,19 @@
 
 /*     Compute the reciprocal pivot growth factor RPVGRW. */
 
-    *rpvgrw = dla_gbrpvgrw__(n, kl, ku, n, &ab[ab_offset], ldab, &afb[
+    *rpvgrw = _starpu_dla_gbrpvgrw__(n, kl, ku, n, &ab[ab_offset], ldab, &afb[
 	    afb_offset], ldafb);
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dgbtrs_(trans, n, kl, ku, nrhs, &afb[afb_offset], ldafb, &ipiv[1], &x[
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dgbtrs_(trans, n, kl, ku, nrhs, &afb[afb_offset], ldafb, &ipiv[1], &x[
 	    x_offset], ldx, info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dgbrfsx_(trans, equed, n, kl, ku, nrhs, &ab[ab_offset], ldab, &afb[
+    _starpu_dgbrfsx_(trans, equed, n, kl, ku, nrhs, &ab[ab_offset], ldab, &afb[
 	    afb_offset], ldafb, &ipiv[1], &r__[1], &c__[1], &b[b_offset], ldb, 
 	     &x[x_offset], ldx, rcond, &berr[1], n_err_bnds__, &
 	    err_bnds_norm__[err_bnds_norm_offset], &err_bnds_comp__[
@@ -733,13 +733,13 @@
 /*     Scale solutions. */
 
     if (colequ && notran) {
-	dlascl2_(n, nrhs, &c__[1], &x[x_offset], ldx);
+	_starpu_dlascl2_(n, nrhs, &c__[1], &x[x_offset], ldx);
     } else if (rowequ && ! notran) {
-	dlascl2_(n, nrhs, &r__[1], &x[x_offset], ldx);
+	_starpu_dlascl2_(n, nrhs, &r__[1], &x[x_offset], ldx);
     }
 
     return 0;
 
 /*     End of DGBSVXX */
 
-} /* dgbsvxx_ */
+} /* _starpu_dgbsvxx_ */

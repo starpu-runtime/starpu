@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dsysv_(char *uplo, integer *n, integer *nrhs, doublereal 
+/* Subroutine */ int _starpu_dsysv_(char *uplo, integer *n, integer *nrhs, doublereal 
 	*a, integer *lda, integer *ipiv, doublereal *b, integer *ldb, 
 	doublereal *work, integer *lwork, integer *info)
 {
@@ -27,15 +27,15 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer nb;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dsytrf_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsytrf_(char *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
-    extern /* Subroutine */ int dsytrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsytrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -162,7 +162,7 @@ static integer c_n1 = -1;
     /* Function Body */
     *info = 0;
     lquery = *lwork == -1;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -180,7 +180,7 @@ static integer c_n1 = -1;
 	if (*n == 0) {
 	    lwkopt = 1;
 	} else {
-	    nb = ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
 	    lwkopt = *n * nb;
 	}
 	work[1] = (doublereal) lwkopt;
@@ -188,7 +188,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYSV ", &i__1);
+	_starpu_xerbla_("DSYSV ", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -196,12 +196,12 @@ static integer c_n1 = -1;
 
 /*     Compute the factorization A = U*D*U' or A = L*D*L'. */
 
-    dsytrf_(uplo, n, &a[a_offset], lda, &ipiv[1], &work[1], lwork, info);
+    _starpu_dsytrf_(uplo, n, &a[a_offset], lda, &ipiv[1], &work[1], lwork, info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dsytrs_(uplo, n, nrhs, &a[a_offset], lda, &ipiv[1], &b[b_offset], ldb, 
+	_starpu_dsytrs_(uplo, n, nrhs, &a[a_offset], lda, &ipiv[1], &b[b_offset], ldb, 
 		 info);
 
     }
@@ -212,4 +212,4 @@ static integer c_n1 = -1;
 
 /*     End of DSYSV */
 
-} /* dsysv_ */
+} /* _starpu_dsysv_ */

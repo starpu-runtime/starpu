@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static logical c_true = TRUE_;
 static logical c_false = FALSE_;
 
-/* Subroutine */ int dtrsna_(char *job, char *howmny, logical *select, 
+/* Subroutine */ int _starpu_dtrsna_(char *job, char *howmny, logical *select, 
 	integer *n, doublereal *t, integer *ldt, doublereal *vl, integer *
 	ldvl, doublereal *vr, integer *ldvr, doublereal *s, doublereal *sep, 
 	integer *mm, integer *m, doublereal *work, integer *ldwork, integer *
@@ -40,7 +40,7 @@ static logical c_false = FALSE_;
     doublereal sn, mu, eps, est;
     integer kase;
     doublereal cond;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     logical pair;
     integer ierr;
@@ -49,25 +49,25 @@ static logical c_false = FALSE_;
     doublereal lnrm;
     integer ilst;
     doublereal rnrm;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal prod1, prod2, scale, delta;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
     logical wants;
     doublereal dummy[1];
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlapy2_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     logical wantbh;
-    extern /* Subroutine */ int dlaqtr_(logical *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaqtr_(logical *, logical *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     doublereal *, doublereal *, integer *), dtrexc_(char *, integer *
+	     doublereal *, doublereal *, integer *), _starpu_dtrexc_(char *, integer *
 , doublereal *, integer *, doublereal *, integer *, integer *, 
 	    integer *, doublereal *, integer *);
     logical somcon;
@@ -277,16 +277,16 @@ static logical c_false = FALSE_;
     --iwork;
 
     /* Function Body */
-    wantbh = lsame_(job, "B");
-    wants = lsame_(job, "E") || wantbh;
-    wantsp = lsame_(job, "V") || wantbh;
+    wantbh = _starpu_lsame_(job, "B");
+    wants = _starpu_lsame_(job, "E") || wantbh;
+    wantsp = _starpu_lsame_(job, "V") || wantbh;
 
-    somcon = lsame_(howmny, "S");
+    somcon = _starpu_lsame_(howmny, "S");
 
     *info = 0;
     if (! wants && ! wantsp) {
 	*info = -1;
-    } else if (! lsame_(howmny, "A") && ! somcon) {
+    } else if (! _starpu_lsame_(howmny, "A") && ! somcon) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -4;
@@ -340,7 +340,7 @@ static logical c_false = FALSE_;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTRSNA", &i__1);
+	_starpu_xerbla_("DTRSNA", &i__1);
 	return 0;
     }
 
@@ -367,10 +367,10 @@ static logical c_false = FALSE_;
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
     ks = 0;
     pair = FALSE_;
@@ -414,30 +414,30 @@ static logical c_false = FALSE_;
 
 /*              Real eigenvalue. */
 
-		prod = ddot_(n, &vr[ks * vr_dim1 + 1], &c__1, &vl[ks * 
+		prod = _starpu_ddot_(n, &vr[ks * vr_dim1 + 1], &c__1, &vl[ks * 
 			vl_dim1 + 1], &c__1);
-		rnrm = dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
-		lnrm = dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
+		rnrm = _starpu_dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
+		lnrm = _starpu_dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
 		s[ks] = abs(prod) / (rnrm * lnrm);
 	    } else {
 
 /*              Complex eigenvalue. */
 
-		prod1 = ddot_(n, &vr[ks * vr_dim1 + 1], &c__1, &vl[ks * 
+		prod1 = _starpu_ddot_(n, &vr[ks * vr_dim1 + 1], &c__1, &vl[ks * 
 			vl_dim1 + 1], &c__1);
-		prod1 += ddot_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1, &vl[(ks 
+		prod1 += _starpu_ddot_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1, &vl[(ks 
 			+ 1) * vl_dim1 + 1], &c__1);
-		prod2 = ddot_(n, &vl[ks * vl_dim1 + 1], &c__1, &vr[(ks + 1) * 
+		prod2 = _starpu_ddot_(n, &vl[ks * vl_dim1 + 1], &c__1, &vr[(ks + 1) * 
 			vr_dim1 + 1], &c__1);
-		prod2 -= ddot_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1, &vr[ks *
+		prod2 -= _starpu_ddot_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1, &vr[ks *
 			 vr_dim1 + 1], &c__1);
-		d__1 = dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1);
-		rnrm = dlapy2_(&d__1, &d__2);
-		d__1 = dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1);
-		lnrm = dlapy2_(&d__1, &d__2);
-		cond = dlapy2_(&prod1, &prod2) / (rnrm * lnrm);
+		d__1 = _starpu_dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1);
+		rnrm = _starpu_dlapy2_(&d__1, &d__2);
+		d__1 = _starpu_dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1);
+		lnrm = _starpu_dlapy2_(&d__1, &d__2);
+		cond = _starpu_dlapy2_(&prod1, &prod2) / (rnrm * lnrm);
 		s[ks] = cond;
 		s[ks + 1] = cond;
 	    }
@@ -451,11 +451,11 @@ static logical c_false = FALSE_;
 /*           Copy the matrix T to the array WORK and swap the diagonal */
 /*           block beginning at T(k,k) to the (1,1) position. */
 
-	    dlacpy_("Full", n, n, &t[t_offset], ldt, &work[work_offset], 
+	    _starpu_dlacpy_("Full", n, n, &t[t_offset], ldt, &work[work_offset], 
 		    ldwork);
 	    ifst = k;
 	    ilst = 1;
-	    dtrexc_("No Q", n, &work[work_offset], ldwork, dummy, &c__1, &
+	    _starpu_dtrexc_("No Q", n, &work[work_offset], ldwork, dummy, &c__1, &
 		    ifst, &ilst, &work[(*n + 1) * work_dim1 + 1], &ierr);
 
 	    if (ierr == 1 || ierr == 2) {
@@ -491,7 +491,7 @@ static logical c_false = FALSE_;
 
 		    mu = sqrt((d__1 = work[(work_dim1 << 1) + 1], abs(d__1))) 
 			    * sqrt((d__2 = work[work_dim1 + 2], abs(d__2)));
-		    delta = dlapy2_(&mu, &work[work_dim1 + 2]);
+		    delta = _starpu_dlapy2_(&mu, &work[work_dim1 + 2]);
 		    cs = mu / delta;
 		    sn = -work[work_dim1 + 2] / delta;
 
@@ -531,7 +531,7 @@ static logical c_false = FALSE_;
 		est = 0.;
 		kase = 0;
 L50:
-		dlacn2_(&nn, &work[(*n + 2) * work_dim1 + 1], &work[(*n + 4) *
+		_starpu_dlacn2_(&nn, &work[(*n + 2) * work_dim1 + 1], &work[(*n + 4) *
 			 work_dim1 + 1], &iwork[1], &est, &kase, isave);
 		if (kase != 0) {
 		    if (kase == 1) {
@@ -540,7 +540,7 @@ L50:
 /*                       Real eigenvalue: solve C'*x = scale*c. */
 
 			    i__2 = *n - 1;
-			    dlaqtr_(&c_true, &c_true, &i__2, &work[(work_dim1 
+			    _starpu_dlaqtr_(&c_true, &c_true, &i__2, &work[(work_dim1 
 				    << 1) + 2], ldwork, dummy, &dumm, &scale, 
 				    &work[(*n + 4) * work_dim1 + 1], &work[(*
 				    n + 6) * work_dim1 + 1], &ierr);
@@ -550,7 +550,7 @@ L50:
 /*                       C'*(p+iq) = scale*(c+id) in real arithmetic. */
 
 			    i__2 = *n - 1;
-			    dlaqtr_(&c_true, &c_false, &i__2, &work[(
+			    _starpu_dlaqtr_(&c_true, &c_false, &i__2, &work[(
 				    work_dim1 << 1) + 2], ldwork, &work[(*n + 
 				    1) * work_dim1 + 1], &mu, &scale, &work[(*
 				    n + 4) * work_dim1 + 1], &work[(*n + 6) * 
@@ -562,7 +562,7 @@ L50:
 /*                       Real eigenvalue: solve C*x = scale*c. */
 
 			    i__2 = *n - 1;
-			    dlaqtr_(&c_false, &c_true, &i__2, &work[(
+			    _starpu_dlaqtr_(&c_false, &c_true, &i__2, &work[(
 				    work_dim1 << 1) + 2], ldwork, dummy, &
 				    dumm, &scale, &work[(*n + 4) * work_dim1 
 				    + 1], &work[(*n + 6) * work_dim1 + 1], &
@@ -573,7 +573,7 @@ L50:
 /*                       C*(p+iq) = scale*(c+id) in real arithmetic. */
 
 			    i__2 = *n - 1;
-			    dlaqtr_(&c_false, &c_false, &i__2, &work[(
+			    _starpu_dlaqtr_(&c_false, &c_false, &i__2, &work[(
 				    work_dim1 << 1) + 2], ldwork, &work[(*n + 
 				    1) * work_dim1 + 1], &mu, &scale, &work[(*
 				    n + 4) * work_dim1 + 1], &work[(*n + 6) * 
@@ -603,4 +603,4 @@ L60:
 
 /*     End of DTRSNA */
 
-} /* dtrsna_ */
+} /* _starpu_dtrsna_ */

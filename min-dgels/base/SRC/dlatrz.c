@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlatrz_(integer *m, integer *n, integer *l, doublereal *
+/* Subroutine */ int _starpu_dlatrz_(integer *m, integer *n, integer *l, doublereal *
 	a, integer *lda, doublereal *tau, doublereal *work)
 {
     /* System generated locals */
@@ -21,9 +21,9 @@
 
     /* Local variables */
     integer i__;
-    extern /* Subroutine */ int dlarz_(char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dlarz_(char *, integer *, integer *, integer *
 , doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfp_(integer *, doublereal *, 
+	    doublereal *), _starpu_dlarfp_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *);
 
 
@@ -143,14 +143,14 @@
 /*        [ A(i,i) A(i,n-l+1:n) ] */
 
 	i__1 = *l + 1;
-	dlarfp_(&i__1, &a[i__ + i__ * a_dim1], &a[i__ + (*n - *l + 1) * 
+	_starpu_dlarfp_(&i__1, &a[i__ + i__ * a_dim1], &a[i__ + (*n - *l + 1) * 
 		a_dim1], lda, &tau[i__]);
 
 /*        Apply H(i) to A(1:i-1,i:n) from the right */
 
 	i__1 = i__ - 1;
 	i__2 = *n - i__ + 1;
-	dlarz_("Right", &i__1, &i__2, l, &a[i__ + (*n - *l + 1) * a_dim1], 
+	_starpu_dlarz_("Right", &i__1, &i__2, l, &a[i__ + (*n - *l + 1) * a_dim1], 
 		lda, &tau[i__], &a[i__ * a_dim1 + 1], lda, &work[1]);
 
 /* L20: */
@@ -160,4 +160,4 @@
 
 /*     End of DLATRZ */
 
-} /* dlatrz_ */
+} /* _starpu_dlatrz_ */

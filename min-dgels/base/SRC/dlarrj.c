@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarrj_(integer *n, doublereal *d__, doublereal *e2, 
+/* Subroutine */ int _starpu_dlarrj_(integer *n, doublereal *d__, doublereal *e2, 
 	integer *ifirst, integer *ilast, doublereal *rtol, integer *offset, 
 	doublereal *w, doublereal *werr, doublereal *work, integer *iwork, 
 	doublereal *pivmin, doublereal *spdiam, integer *info)
@@ -335,4 +335,4 @@ L100:
 
 /*     End of DLARRJ */
 
-} /* dlarrj_ */
+} /* _starpu_dlarrj_ */

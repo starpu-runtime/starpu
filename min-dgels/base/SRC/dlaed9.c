@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaed9_(integer *k, integer *kstart, integer *kstop, 
+/* Subroutine */ int _starpu_dlaed9_(integer *k, integer *kstart, integer *kstop, 
 	integer *n, doublereal *d__, doublereal *q, integer *ldq, doublereal *
 	rho, doublereal *dlamda, doublereal *w, doublereal *s, integer *lds, 
 	integer *info)
@@ -32,13 +32,13 @@ static integer c__1 = 1;
     /* Local variables */
     integer i__, j;
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlaed4_(integer *, integer *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dlaed4_(integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -160,7 +160,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED9", &i__1);
+	_starpu_xerbla_("DLAED9", &i__1);
 	return 0;
     }
 
@@ -189,13 +189,13 @@ static integer c__1 = 1;
 
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	dlamda[i__] = dlamc3_(&dlamda[i__], &dlamda[i__]) - dlamda[i__];
+	dlamda[i__] = _starpu_dlamc3_(&dlamda[i__], &dlamda[i__]) - dlamda[i__];
 /* L10: */
     }
 
     i__1 = *kstop;
     for (j = *kstart; j <= i__1; ++j) {
-	dlaed4_(k, &j, &dlamda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], 
+	_starpu_dlaed4_(k, &j, &dlamda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], 
 		info);
 
 /*        If the zero finder fails, the computation is terminated. */
@@ -221,12 +221,12 @@ static integer c__1 = 1;
 
 /*     Compute updated W. */
 
-    dcopy_(k, &w[1], &c__1, &s[s_offset], &c__1);
+    _starpu_dcopy_(k, &w[1], &c__1, &s[s_offset], &c__1);
 
 /*     Initialize W(I) = Q(I,I) */
 
     i__1 = *ldq + 1;
-    dcopy_(k, &q[q_offset], &i__1, &w[1], &c__1);
+    _starpu_dcopy_(k, &q[q_offset], &i__1, &w[1], &c__1);
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
 	i__2 = j - 1;
@@ -257,7 +257,7 @@ static integer c__1 = 1;
 	    q[i__ + j * q_dim1] = w[i__] / q[i__ + j * q_dim1];
 /* L90: */
 	}
-	temp = dnrm2_(k, &q[j * q_dim1 + 1], &c__1);
+	temp = _starpu_dnrm2_(k, &q[j * q_dim1 + 1], &c__1);
 	i__2 = *k;
 	for (i__ = 1; i__ <= i__2; ++i__) {
 	    s[i__ + j * s_dim1] = q[i__ + j * q_dim1] / temp;
@@ -271,4 +271,4 @@ L120:
 
 /*     End of DLAED9 */
 
-} /* dlaed9_ */
+} /* _starpu_dlaed9_ */

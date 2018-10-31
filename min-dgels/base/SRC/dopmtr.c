@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dopmtr_(char *side, char *uplo, char *trans, integer *m, 
+/* Subroutine */ int _starpu_dopmtr_(char *side, char *uplo, char *trans, integer *m, 
 	integer *n, doublereal *ap, doublereal *tau, doublereal *c__, integer 
 	*ldc, doublereal *work, integer *info)
 {
@@ -28,12 +28,12 @@ static integer c__1 = 1;
     integer i__, i1, i2, i3, ic, jc, ii, mi, ni, nq;
     doublereal aii;
     logical left;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical notran, forwrd;
 
 
@@ -140,9 +140,9 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    left = lsame_(side, "L");
-    notran = lsame_(trans, "N");
-    upper = lsame_(uplo, "U");
+    left = _starpu_lsame_(side, "L");
+    notran = _starpu_lsame_(trans, "N");
+    upper = _starpu_lsame_(uplo, "U");
 
 /*     NQ is the order of Q */
 
@@ -151,11 +151,11 @@ static integer c__1 = 1;
     } else {
 	nq = *n;
     }
-    if (! left && ! lsame_(side, "R")) {
+    if (! left && ! _starpu_lsame_(side, "R")) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
-    } else if (! notran && ! lsame_(trans, "T")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T")) {
 	*info = -3;
     } else if (*m < 0) {
 	*info = -4;
@@ -166,7 +166,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DOPMTR", &i__1);
+	_starpu_xerbla_("DOPMTR", &i__1);
 	return 0;
     }
 
@@ -219,7 +219,7 @@ static integer c__1 = 1;
 
 	    aii = ap[ii];
 	    ap[ii] = 1.;
-	    dlarf_(side, &mi, &ni, &ap[ii - i__ + 1], &c__1, &tau[i__], &c__[
+	    _starpu_dlarf_(side, &mi, &ni, &ap[ii - i__ + 1], &c__1, &tau[i__], &c__[
 		    c_offset], ldc, &work[1]);
 	    ap[ii] = aii;
 
@@ -277,7 +277,7 @@ static integer c__1 = 1;
 
 /*           Apply H(i) */
 
-	    dlarf_(side, &mi, &ni, &ap[ii], &c__1, &tau[i__], &c__[ic + jc * 
+	    _starpu_dlarf_(side, &mi, &ni, &ap[ii], &c__1, &tau[i__], &c__[ic + jc * 
 		    c_dim1], ldc, &work[1]);
 	    ap[ii] = aii;
 
@@ -293,4 +293,4 @@ static integer c__1 = 1;
 
 /*     End of DOPMTR */
 
-} /* dopmtr_ */
+} /* _starpu_dopmtr_ */

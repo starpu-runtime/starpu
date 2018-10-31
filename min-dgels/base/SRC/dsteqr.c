@@ -21,7 +21,7 @@ static integer c__0 = 0;
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dsteqr_(char *compz, integer *n, doublereal *d__, 
+/* Subroutine */ int _starpu_dsteqr_(char *compz, integer *n, doublereal *d__, 
 	doublereal *e, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *info)
 {
@@ -41,30 +41,30 @@ static integer c__2 = 2;
     integer lsv;
     doublereal tst, eps2;
     integer lend, jtot;
-    extern /* Subroutine */ int dlae2_(doublereal *, doublereal *, doublereal 
+    extern /* Subroutine */ int _starpu_dlae2_(doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dlasr_(char *, char *, char *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dlasr_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *);
     doublereal anorm;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlaev2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dlaev2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
     integer lendm1, lendp1;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
     integer iscale;
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlaset_(char *, integer *, integer 
+	    integer *, integer *), _starpu_dlaset_(char *, integer *, integer 
 	    *, doublereal *, doublereal *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
     doublereal safmax;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern doublereal _starpu_dlanst_(char *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlasrt_(char *, integer *, doublereal *, 
 	    integer *);
     integer lendsv;
     doublereal ssfmin;
@@ -168,11 +168,11 @@ static integer c__2 = 2;
     /* Function Body */
     *info = 0;
 
-    if (lsame_(compz, "N")) {
+    if (_starpu_lsame_(compz, "N")) {
 	icompz = 0;
-    } else if (lsame_(compz, "V")) {
+    } else if (_starpu_lsame_(compz, "V")) {
 	icompz = 1;
-    } else if (lsame_(compz, "I")) {
+    } else if (_starpu_lsame_(compz, "I")) {
 	icompz = 2;
     } else {
 	icompz = -1;
@@ -186,7 +186,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSTEQR", &i__1);
+	_starpu_xerbla_("DSTEQR", &i__1);
 	return 0;
     }
 
@@ -205,11 +205,11 @@ static integer c__2 = 2;
 
 /*     Determine the unit roundoff and over/underflow thresholds. */
 
-    eps = dlamch_("E");
+    eps = _starpu_dlamch_("E");
 /* Computing 2nd power */
     d__1 = eps;
     eps2 = d__1 * d__1;
-    safmin = dlamch_("S");
+    safmin = _starpu_dlamch_("S");
     safmax = 1. / safmin;
     ssfmax = sqrt(safmax) / 3.;
     ssfmin = sqrt(safmin) / eps2;
@@ -218,7 +218,7 @@ static integer c__2 = 2;
 /*     matrix. */
 
     if (icompz == 2) {
-	dlaset_("Full", n, n, &c_b9, &c_b10, &z__[z_offset], ldz);
+	_starpu_dlaset_("Full", n, n, &c_b9, &c_b10, &z__[z_offset], ldz);
     }
 
     nmaxit = *n * 30;
@@ -268,7 +268,7 @@ L30:
 /*     Scale submatrix in rows and columns L to LEND */
 
     i__1 = lend - l + 1;
-    anorm = dlanst_("I", &i__1, &d__[l], &e[l]);
+    anorm = _starpu_dlanst_("I", &i__1, &d__[l], &e[l]);
     iscale = 0;
     if (anorm == 0.) {
 	goto L10;
@@ -276,18 +276,18 @@ L30:
     if (anorm > ssfmax) {
 	iscale = 1;
 	i__1 = lend - l + 1;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n, 
 		info);
 	i__1 = lend - l;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n, 
 		info);
     } else if (anorm < ssfmin) {
 	iscale = 2;
 	i__1 = lend - l + 1;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n, 
 		info);
 	i__1 = lend - l;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n, 
 		info);
     }
 
@@ -336,13 +336,13 @@ L60:
 
 	if (m == l + 1) {
 	    if (icompz > 0) {
-		dlaev2_(&d__[l], &e[l], &d__[l + 1], &rt1, &rt2, &c__, &s);
+		_starpu_dlaev2_(&d__[l], &e[l], &d__[l + 1], &rt1, &rt2, &c__, &s);
 		work[l] = c__;
 		work[*n - 1 + l] = s;
-		dlasr_("R", "V", "B", n, &c__2, &work[l], &work[*n - 1 + l], &
+		_starpu_dlasr_("R", "V", "B", n, &c__2, &work[l], &work[*n - 1 + l], &
 			z__[l * z_dim1 + 1], ldz);
 	    } else {
-		dlae2_(&d__[l], &e[l], &d__[l + 1], &rt1, &rt2);
+		_starpu_dlae2_(&d__[l], &e[l], &d__[l + 1], &rt1, &rt2);
 	    }
 	    d__[l] = rt1;
 	    d__[l + 1] = rt2;
@@ -362,7 +362,7 @@ L60:
 /*        Form shift. */
 
 	g = (d__[l + 1] - p) / (e[l] * 2.);
-	r__ = dlapy2_(&g, &c_b10);
+	r__ = _starpu_dlapy2_(&g, &c_b10);
 	g = d__[m] - p + e[l] / (g + d_sign(&r__, &g));
 
 	s = 1.;
@@ -376,7 +376,7 @@ L60:
 	for (i__ = mm1; i__ >= i__1; --i__) {
 	    f = s * e[i__];
 	    b = c__ * e[i__];
-	    dlartg_(&g, &f, &c__, &s, &r__);
+	    _starpu_dlartg_(&g, &f, &c__, &s, &r__);
 	    if (i__ != m - 1) {
 		e[i__ + 1] = r__;
 	    }
@@ -400,7 +400,7 @@ L60:
 
 	if (icompz > 0) {
 	    mm = m - l + 1;
-	    dlasr_("R", "V", "B", n, &mm, &work[l], &work[*n - 1 + l], &z__[l 
+	    _starpu_dlasr_("R", "V", "B", n, &mm, &work[l], &work[*n - 1 + l], &z__[l 
 		    * z_dim1 + 1], ldz);
 	}
 
@@ -457,14 +457,14 @@ L110:
 
 	if (m == l - 1) {
 	    if (icompz > 0) {
-		dlaev2_(&d__[l - 1], &e[l - 1], &d__[l], &rt1, &rt2, &c__, &s)
+		_starpu_dlaev2_(&d__[l - 1], &e[l - 1], &d__[l], &rt1, &rt2, &c__, &s)
 			;
 		work[m] = c__;
 		work[*n - 1 + m] = s;
-		dlasr_("R", "V", "F", n, &c__2, &work[m], &work[*n - 1 + m], &
+		_starpu_dlasr_("R", "V", "F", n, &c__2, &work[m], &work[*n - 1 + m], &
 			z__[(l - 1) * z_dim1 + 1], ldz);
 	    } else {
-		dlae2_(&d__[l - 1], &e[l - 1], &d__[l], &rt1, &rt2);
+		_starpu_dlae2_(&d__[l - 1], &e[l - 1], &d__[l], &rt1, &rt2);
 	    }
 	    d__[l - 1] = rt1;
 	    d__[l] = rt2;
@@ -484,7 +484,7 @@ L110:
 /*        Form shift. */
 
 	g = (d__[l - 1] - p) / (e[l - 1] * 2.);
-	r__ = dlapy2_(&g, &c_b10);
+	r__ = _starpu_dlapy2_(&g, &c_b10);
 	g = d__[m] - p + e[l - 1] / (g + d_sign(&r__, &g));
 
 	s = 1.;
@@ -498,7 +498,7 @@ L110:
 	for (i__ = m; i__ <= i__1; ++i__) {
 	    f = s * e[i__];
 	    b = c__ * e[i__];
-	    dlartg_(&g, &f, &c__, &s, &r__);
+	    _starpu_dlartg_(&g, &f, &c__, &s, &r__);
 	    if (i__ != m) {
 		e[i__ - 1] = r__;
 	    }
@@ -522,7 +522,7 @@ L110:
 
 	if (icompz > 0) {
 	    mm = l - m + 1;
-	    dlasr_("R", "V", "F", n, &mm, &work[m], &work[*n - 1 + m], &z__[m 
+	    _starpu_dlasr_("R", "V", "F", n, &mm, &work[m], &work[*n - 1 + m], &z__[m 
 		    * z_dim1 + 1], ldz);
 	}
 
@@ -548,17 +548,17 @@ L130:
 L140:
     if (iscale == 1) {
 	i__1 = lendsv - lsv + 1;
-	dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv], 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv], 
 		n, info);
 	i__1 = lendsv - lsv;
-	dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &e[lsv], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &e[lsv], n, 
 		info);
     } else if (iscale == 2) {
 	i__1 = lendsv - lsv + 1;
-	dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv], 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv], 
 		n, info);
 	i__1 = lendsv - lsv;
-	dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &e[lsv], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &e[lsv], n, 
 		info);
     }
 
@@ -584,7 +584,7 @@ L160:
 
 /*        Use Quick Sort */
 
-	dlasrt_("I", n, &d__[1], info);
+	_starpu_dlasrt_("I", n, &d__[1], info);
 
     } else {
 
@@ -606,7 +606,7 @@ L160:
 	    if (k != i__) {
 		d__[k] = d__[i__];
 		d__[i__] = p;
-		dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[k * z_dim1 + 1], 
+		_starpu_dswap_(n, &z__[i__ * z_dim1 + 1], &c__1, &z__[k * z_dim1 + 1], 
 			 &c__1);
 	    }
 /* L180: */
@@ -618,4 +618,4 @@ L190:
 
 /*     End of DSTEQR */
 
-} /* dsteqr_ */
+} /* _starpu_dsteqr_ */

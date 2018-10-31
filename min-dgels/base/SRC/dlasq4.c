@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasq4_(integer *i0, integer *n0, doublereal *z__, 
+/* Subroutine */ int _starpu_dlasq4_(integer *i0, integer *n0, doublereal *z__, 
 	integer *pp, integer *n0in, doublereal *dmin__, doublereal *dmin1, 
 	doublereal *dmin2, doublereal *dn, doublereal *dn1, doublereal *dn2, 
 	doublereal *tau, integer *ttype, doublereal *g)
@@ -400,4 +400,4 @@ L80:
 
 /*     End of DLASQ4 */
 
-} /* dlasq4_ */
+} /* _starpu_dlasq4_ */

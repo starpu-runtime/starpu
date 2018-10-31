@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgbmv_(char *trans, integer *m, integer *n, integer *kl, 
+/* Subroutine */ int _starpu_dgbmv_(char *trans, integer *m, integer *n, integer *kl, 
 	integer *ku, doublereal *alpha, doublereal *a, integer *lda, 
 	doublereal *x, integer *incx, doublereal *beta, doublereal *y, 
 	integer *incy)
@@ -25,8 +25,8 @@
     integer i__, j, k, ix, iy, jx, jy, kx, ky, kup1, info;
     doublereal temp;
     integer lenx, leny;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -171,7 +171,7 @@
 
     /* Function Body */
     info = 0;
-    if (! lsame_(trans, "N") && ! lsame_(trans, "T") && ! lsame_(trans, "C")
+    if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(trans, "C")
 	    ) {
 	info = 1;
     } else if (*m < 0) {
@@ -190,7 +190,7 @@
 	info = 13;
     }
     if (info != 0) {
-	xerbla_("DGBMV ", &info);
+	_starpu_xerbla_("DGBMV ", &info);
 	return 0;
     }
 
@@ -203,7 +203,7 @@
 /*     Set  LENX  and  LENY, the lengths of the vectors x and y, and set */
 /*     up the start points in  X  and  Y. */
 
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 	lenx = *n;
 	leny = *m;
     } else {
@@ -264,7 +264,7 @@
 	return 0;
     }
     kup1 = *ku + 1;
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 
 /*        Form  y := alpha*A*x + y. */
 
@@ -366,4 +366,4 @@
 
 /*     End of DGBMV . */
 
-} /* dgbmv_ */
+} /* _starpu_dgbmv_ */

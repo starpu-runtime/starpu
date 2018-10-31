@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaqge_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dlaqge_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *r__, doublereal *c__, doublereal *rowcnd, doublereal 
 	*colcnd, doublereal *amax, char *equed)
 {
@@ -23,7 +23,7 @@
     /* Local variables */
     integer i__, j;
     doublereal cj, large, small;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -122,7 +122,7 @@
 
 /*     Initialize LARGE and SMALL. */
 
-    small = dlamch_("Safe minimum") / dlamch_("Precision");
+    small = _starpu_dlamch_("Safe minimum") / _starpu_dlamch_("Precision");
     large = 1. / small;
 
     if (*rowcnd >= .1 && *amax >= small && *amax <= large) {
@@ -185,4 +185,4 @@
 
 /*     End of DLAQGE */
 
-} /* dlaqge_ */
+} /* _starpu_dlaqge_ */

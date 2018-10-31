@@ -1,4 +1,4 @@
-/* dla_syrpvgrw.f -- translated by f2c (version 20061008).
+/* _starpu_dla_syrpvgrw.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dla_syrpvgrw__(char *uplo, integer *n, integer *info, doublereal *
+doublereal _starpu_dla_syrpvgrw__(char *uplo, integer *n, integer *info, doublereal *
 	a, integer *lda, doublereal *af, integer *ldaf, integer *ipiv, 
 	doublereal *work, ftnlen uplo_len)
 {
@@ -24,7 +24,7 @@ doublereal dla_syrpvgrw__(char *uplo, integer *n, integer *info, doublereal *
     /* Local variables */
     integer i__, j, k, kp;
     doublereal tmp, amax, umax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer ncols;
     logical upper;
     doublereal rpvgrw;
@@ -112,7 +112,7 @@ doublereal dla_syrpvgrw__(char *uplo, integer *n, integer *info, doublereal *
     --work;
 
     /* Function Body */
-    upper = lsame_("Upper", uplo);
+    upper = _starpu_lsame_("Upper", uplo);
     if (*info == 0) {
 	if (upper) {
 	    ncols = 1;
@@ -327,4 +327,4 @@ doublereal dla_syrpvgrw__(char *uplo, integer *n, integer *info, doublereal *
     }
     ret_val = rpvgrw;
     return ret_val;
-} /* dla_syrpvgrw__ */
+} /* _starpu_dla_syrpvgrw__ */

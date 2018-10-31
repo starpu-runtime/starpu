@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int daxpy_(integer *n, doublereal *da, doublereal *dx, 
+/* Subroutine */ int _starpu_daxpy_(integer *n, doublereal *da, doublereal *dx, 
 	integer *incx, doublereal *dy, integer *incy)
 {
     /* System generated locals */
@@ -104,4 +104,4 @@ L40:
 /* L50: */
     }
     return 0;
-} /* daxpy_ */
+} /* _starpu_daxpy_ */

@@ -13,17 +13,17 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dspsv_(char *uplo, integer *n, integer *nrhs, doublereal 
+/* Subroutine */ int _starpu_dspsv_(char *uplo, integer *n, integer *nrhs, doublereal 
 	*ap, integer *ipiv, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
     integer b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *), dsptrf_(
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dsptrf_(
 	    char *, integer *, doublereal *, integer *, integer *), 
-	    dsptrs_(char *, integer *, integer *, doublereal *, integer *, 
+	    _starpu_dsptrs_(char *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, integer *);
 
 
@@ -144,7 +144,7 @@
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -155,22 +155,22 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPSV ", &i__1);
+	_starpu_xerbla_("DSPSV ", &i__1);
 	return 0;
     }
 
 /*     Compute the factorization A = U*D*U' or A = L*D*L'. */
 
-    dsptrf_(uplo, n, &ap[1], &ipiv[1], info);
+    _starpu_dsptrf_(uplo, n, &ap[1], &ipiv[1], info);
     if (*info == 0) {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dsptrs_(uplo, n, nrhs, &ap[1], &ipiv[1], &b[b_offset], ldb, info);
+	_starpu_dsptrs_(uplo, n, nrhs, &ap[1], &ipiv[1], &b[b_offset], ldb, info);
 
     }
     return 0;
 
 /*     End of DSPSV */
 
-} /* dspsv_ */
+} /* _starpu_dspsv_ */

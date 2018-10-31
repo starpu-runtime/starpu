@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgbcon_(char *norm, integer *n, integer *kl, integer *ku, 
+/* Subroutine */ int _starpu_dgbcon_(char *norm, integer *n, integer *kl, integer *ku, 
 	 doublereal *ab, integer *ldab, integer *ipiv, doublereal *anorm, 
 	doublereal *rcond, doublereal *work, integer *iwork, integer *info)
 {
@@ -29,24 +29,24 @@ static integer c__1 = 1;
     integer j;
     doublereal t;
     integer kd, lm, jp, ix, kase;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     integer kase1;
     doublereal scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int drscl_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_drscl_(integer *, doublereal *, doublereal *, 
 	    integer *);
     logical lnoti;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *), dlacn2_(integer *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_dlacn2_(integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlatbs_(char *, char *, char *, char *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlatbs_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
     doublereal ainvnm;
     logical onenrm;
     char normin[1];
@@ -151,8 +151,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    onenrm = *(unsigned char *)norm == '1' || lsame_(norm, "O");
-    if (! onenrm && ! lsame_(norm, "I")) {
+    onenrm = *(unsigned char *)norm == '1' || _starpu_lsame_(norm, "O");
+    if (! onenrm && ! _starpu_lsame_(norm, "I")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -167,7 +167,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBCON", &i__1);
+	_starpu_xerbla_("DGBCON", &i__1);
 	return 0;
     }
 
@@ -181,7 +181,7 @@ static integer c__1 = 1;
 	return 0;
     }
 
-    smlnum = dlamch_("Safe minimum");
+    smlnum = _starpu_dlamch_("Safe minimum");
 
 /*     Estimate the norm of inv(A). */
 
@@ -196,7 +196,7 @@ static integer c__1 = 1;
     lnoti = *kl > 0;
     kase = 0;
 L10:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == kase1) {
 
@@ -215,7 +215,7 @@ L10:
 			work[j] = t;
 		    }
 		    d__1 = -t;
-		    daxpy_(&lm, &d__1, &ab[kd + 1 + j * ab_dim1], &c__1, &
+		    _starpu_daxpy_(&lm, &d__1, &ab[kd + 1 + j * ab_dim1], &c__1, &
 			    work[j + 1], &c__1);
 /* L20: */
 		}
@@ -224,7 +224,7 @@ L10:
 /*           Multiply by inv(U). */
 
 	    i__1 = *kl + *ku;
-	    dlatbs_("Upper", "No transpose", "Non-unit", normin, n, &i__1, &
+	    _starpu_dlatbs_("Upper", "No transpose", "Non-unit", normin, n, &i__1, &
 		    ab[ab_offset], ldab, &work[1], &scale, &work[(*n << 1) + 
 		    1], info);
 	} else {
@@ -232,7 +232,7 @@ L10:
 /*           Multiply by inv(U'). */
 
 	    i__1 = *kl + *ku;
-	    dlatbs_("Upper", "Transpose", "Non-unit", normin, n, &i__1, &ab[
+	    _starpu_dlatbs_("Upper", "Transpose", "Non-unit", normin, n, &i__1, &ab[
 		    ab_offset], ldab, &work[1], &scale, &work[(*n << 1) + 1], 
 		    info);
 
@@ -243,7 +243,7 @@ L10:
 /* Computing MIN */
 		    i__1 = *kl, i__2 = *n - j;
 		    lm = min(i__1,i__2);
-		    work[j] -= ddot_(&lm, &ab[kd + 1 + j * ab_dim1], &c__1, &
+		    work[j] -= _starpu_ddot_(&lm, &ab[kd + 1 + j * ab_dim1], &c__1, &
 			    work[j + 1], &c__1);
 		    jp = ipiv[j];
 		    if (jp != j) {
@@ -260,12 +260,12 @@ L10:
 
 	*(unsigned char *)normin = 'Y';
 	if (scale != 1.) {
-	    ix = idamax_(n, &work[1], &c__1);
+	    ix = _starpu_idamax_(n, &work[1], &c__1);
 	    if (scale < (d__1 = work[ix], abs(d__1)) * smlnum || scale == 0.) 
 		    {
 		goto L40;
 	    }
-	    drscl_(n, &scale, &work[1], &c__1);
+	    _starpu_drscl_(n, &scale, &work[1], &c__1);
 	}
 	goto L10;
     }
@@ -281,4 +281,4 @@ L40:
 
 /*     End of DGBCON */
 
-} /* dgbcon_ */
+} /* _starpu_dgbcon_ */

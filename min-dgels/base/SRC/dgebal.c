@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgebal_(char *job, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgebal_(char *job, integer *n, doublereal *a, integer *
 	lda, integer *ilo, integer *ihi, doublereal *scale, integer *info)
 {
     /* System generated locals */
@@ -29,15 +29,15 @@ static integer c__1 = 1;
     integer i__, j, k, l, m;
     doublereal r__, s, ca, ra;
     integer ica, ira, iexc;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     doublereal sfmin1, sfmin2, sfmax1, sfmax2;
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical noconv;
 
 
@@ -160,8 +160,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(job, "N") && ! lsame_(job, "P") && ! lsame_(job, "S") 
-	    && ! lsame_(job, "B")) {
+    if (! _starpu_lsame_(job, "N") && ! _starpu_lsame_(job, "P") && ! _starpu_lsame_(job, "S") 
+	    && ! _starpu_lsame_(job, "B")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -170,7 +170,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEBAL", &i__1);
+	_starpu_xerbla_("DGEBAL", &i__1);
 	return 0;
     }
 
@@ -181,7 +181,7 @@ static integer c__1 = 1;
 	goto L210;
     }
 
-    if (lsame_(job, "N")) {
+    if (_starpu_lsame_(job, "N")) {
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    scale[i__] = 1.;
@@ -190,7 +190,7 @@ static integer c__1 = 1;
 	goto L210;
     }
 
-    if (lsame_(job, "S")) {
+    if (_starpu_lsame_(job, "S")) {
 	goto L120;
     }
 
@@ -206,9 +206,9 @@ L20:
 	goto L30;
     }
 
-    dswap_(&l, &a[j * a_dim1 + 1], &c__1, &a[m * a_dim1 + 1], &c__1);
+    _starpu_dswap_(&l, &a[j * a_dim1 + 1], &c__1, &a[m * a_dim1 + 1], &c__1);
     i__1 = *n - k + 1;
-    dswap_(&i__1, &a[j + k * a_dim1], lda, &a[m + k * a_dim1], lda);
+    _starpu_dswap_(&i__1, &a[j + k * a_dim1], lda, &a[m + k * a_dim1], lda);
 
 L30:
     switch (iexc) {
@@ -283,7 +283,7 @@ L120:
 /* L130: */
     }
 
-    if (lsame_(job, "P")) {
+    if (_starpu_lsame_(job, "P")) {
 	goto L210;
     }
 
@@ -291,7 +291,7 @@ L120:
 
 /*     Iterative loop for norm reduction */
 
-    sfmin1 = dlamch_("S") / dlamch_("P");
+    sfmin1 = _starpu_dlamch_("S") / _starpu_dlamch_("P");
     sfmax1 = 1. / sfmin1;
     sfmin2 = sfmin1 * 2.;
     sfmax2 = 1. / sfmin2;
@@ -313,10 +313,10 @@ L140:
 L150:
 	    ;
 	}
-	ica = idamax_(&l, &a[i__ * a_dim1 + 1], &c__1);
+	ica = _starpu_idamax_(&l, &a[i__ * a_dim1 + 1], &c__1);
 	ca = (d__1 = a[ica + i__ * a_dim1], abs(d__1));
 	i__2 = *n - k + 1;
-	ira = idamax_(&i__2, &a[i__ + k * a_dim1], lda);
+	ira = _starpu_idamax_(&i__2, &a[i__ + k * a_dim1], lda);
 	ra = (d__1 = a[i__ + (ira + k - 1) * a_dim1], abs(d__1));
 
 /*        Guard against zero C or R due to underflow. */
@@ -380,8 +380,8 @@ L190:
 	noconv = TRUE_;
 
 	i__2 = *n - k + 1;
-	dscal_(&i__2, &g, &a[i__ + k * a_dim1], lda);
-	dscal_(&l, &f, &a[i__ * a_dim1 + 1], &c__1);
+	_starpu_dscal_(&i__2, &g, &a[i__ + k * a_dim1], lda);
+	_starpu_dscal_(&l, &f, &a[i__ * a_dim1 + 1], &c__1);
 
 L200:
 	;
@@ -399,4 +399,4 @@ L210:
 
 /*     End of DGEBAL */
 
-} /* dgebal_ */
+} /* _starpu_dgebal_ */

@@ -18,7 +18,7 @@
 static doublereal c_b3 = -1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaed2_(integer *k, integer *n, integer *n1, doublereal *
+/* Subroutine */ int _starpu_dlaed2_(integer *k, integer *n, integer *n1, doublereal *
 	d__, doublereal *q, integer *ldq, integer *indxq, doublereal *rho, 
 	doublereal *z__, doublereal *dlamda, doublereal *w, doublereal *q2, 
 	integer *indx, integer *indxc, integer *indxp, integer *coltyp, 
@@ -38,17 +38,17 @@ static integer c__1 = 1;
     integer k2, n2, ct, nj, pj, js, iq1, iq2, n1p1;
     doublereal eps, tau, tol;
     integer psm[4], imax, jmax;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer ctot[4];
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dcopy_(integer *, doublereal *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dcopy_(integer *, doublereal *, integer *, doublereal 
 	    *, integer *);
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), dlacpy_(char *, integer *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *), xerbla_(char *, integer *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_dlacpy_(char *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -219,7 +219,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED2", &i__1);
+	_starpu_xerbla_("DLAED2", &i__1);
 	return 0;
     }
 
@@ -233,14 +233,14 @@ static integer c__1 = 1;
     n1p1 = *n1 + 1;
 
     if (*rho < 0.) {
-	dscal_(&n2, &c_b3, &z__[n1p1], &c__1);
+	_starpu_dscal_(&n2, &c_b3, &z__[n1p1], &c__1);
     }
 
 /*     Normalize z so that norm(z) = 1.  Since z is the concatenation of */
 /*     two normalized vectors, norm2(z) = sqrt(2). */
 
     t = 1. / sqrt(2.);
-    dscal_(n, &t, &z__[1], &c__1);
+    _starpu_dscal_(n, &t, &z__[1], &c__1);
 
 /*     RHO = ABS( norm(z)**2 * RHO ) */
 
@@ -261,7 +261,7 @@ static integer c__1 = 1;
 	dlamda[i__] = d__[indxq[i__]];
 /* L20: */
     }
-    dlamrg_(n1, &n2, &dlamda[1], &c__1, &c__1, &indxc[1]);
+    _starpu_dlamrg_(n1, &n2, &dlamda[1], &c__1, &c__1, &indxc[1]);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	indx[i__] = indxq[indxc[i__]];
@@ -270,9 +270,9 @@ static integer c__1 = 1;
 
 /*     Calculate the allowable deflation tolerance */
 
-    imax = idamax_(n, &z__[1], &c__1);
-    jmax = idamax_(n, &d__[1], &c__1);
-    eps = dlamch_("Epsilon");
+    imax = _starpu_idamax_(n, &z__[1], &c__1);
+    jmax = _starpu_idamax_(n, &d__[1], &c__1);
+    eps = _starpu_dlamch_("Epsilon");
 /* Computing MAX */
     d__3 = (d__1 = d__[jmax], abs(d__1)), d__4 = (d__2 = z__[imax], abs(d__2))
 	    ;
@@ -288,13 +288,13 @@ static integer c__1 = 1;
 	i__1 = *n;
 	for (j = 1; j <= i__1; ++j) {
 	    i__ = indx[j];
-	    dcopy_(n, &q[i__ * q_dim1 + 1], &c__1, &q2[iq2], &c__1);
+	    _starpu_dcopy_(n, &q[i__ * q_dim1 + 1], &c__1, &q2[iq2], &c__1);
 	    dlamda[j] = d__[i__];
 	    iq2 += *n;
 /* L40: */
 	}
-	dlacpy_("A", n, n, &q2[1], n, &q[q_offset], ldq);
-	dcopy_(n, &dlamda[1], &c__1, &d__[1], &c__1);
+	_starpu_dlacpy_("A", n, n, &q2[1], n, &q[q_offset], ldq);
+	_starpu_dcopy_(n, &dlamda[1], &c__1, &d__[1], &c__1);
 	goto L190;
     }
 
@@ -360,7 +360,7 @@ L80:
 /*        Find sqrt(a**2+b**2) without overflow or */
 /*        destructive underflow. */
 
-	tau = dlapy2_(&c__, &s);
+	tau = _starpu_dlapy2_(&c__, &s);
 	t = d__[nj] - d__[pj];
 	c__ /= tau;
 	s = -s / tau;
@@ -374,7 +374,7 @@ L80:
 		coltyp[nj] = 2;
 	    }
 	    coltyp[pj] = 4;
-	    drot_(n, &q[pj * q_dim1 + 1], &c__1, &q[nj * q_dim1 + 1], &c__1, &
+	    _starpu_drot_(n, &q[pj * q_dim1 + 1], &c__1, &q[nj * q_dim1 + 1], &c__1, &
 		    c__, &s);
 /* Computing 2nd power */
 	    d__1 = c__;
@@ -470,7 +470,7 @@ L100:
     i__1 = ctot[0];
     for (j = 1; j <= i__1; ++j) {
 	js = indx[i__];
-	dcopy_(n1, &q[js * q_dim1 + 1], &c__1, &q2[iq1], &c__1);
+	_starpu_dcopy_(n1, &q[js * q_dim1 + 1], &c__1, &q2[iq1], &c__1);
 	z__[i__] = d__[js];
 	++i__;
 	iq1 += *n1;
@@ -480,8 +480,8 @@ L100:
     i__1 = ctot[1];
     for (j = 1; j <= i__1; ++j) {
 	js = indx[i__];
-	dcopy_(n1, &q[js * q_dim1 + 1], &c__1, &q2[iq1], &c__1);
-	dcopy_(&n2, &q[*n1 + 1 + js * q_dim1], &c__1, &q2[iq2], &c__1);
+	_starpu_dcopy_(n1, &q[js * q_dim1 + 1], &c__1, &q2[iq1], &c__1);
+	_starpu_dcopy_(&n2, &q[*n1 + 1 + js * q_dim1], &c__1, &q2[iq2], &c__1);
 	z__[i__] = d__[js];
 	++i__;
 	iq1 += *n1;
@@ -492,7 +492,7 @@ L100:
     i__1 = ctot[2];
     for (j = 1; j <= i__1; ++j) {
 	js = indx[i__];
-	dcopy_(&n2, &q[*n1 + 1 + js * q_dim1], &c__1, &q2[iq2], &c__1);
+	_starpu_dcopy_(&n2, &q[*n1 + 1 + js * q_dim1], &c__1, &q2[iq2], &c__1);
 	z__[i__] = d__[js];
 	++i__;
 	iq2 += n2;
@@ -503,7 +503,7 @@ L100:
     i__1 = ctot[3];
     for (j = 1; j <= i__1; ++j) {
 	js = indx[i__];
-	dcopy_(n, &q[js * q_dim1 + 1], &c__1, &q2[iq2], &c__1);
+	_starpu_dcopy_(n, &q[js * q_dim1 + 1], &c__1, &q2[iq2], &c__1);
 	iq2 += *n;
 	z__[i__] = d__[js];
 	++i__;
@@ -513,9 +513,9 @@ L100:
 /*     The deflated eigenvalues and their corresponding vectors go back */
 /*     into the last N - K slots of D and Q respectively. */
 
-    dlacpy_("A", n, &ctot[3], &q2[iq1], n, &q[(*k + 1) * q_dim1 + 1], ldq);
+    _starpu_dlacpy_("A", n, &ctot[3], &q2[iq1], n, &q[(*k + 1) * q_dim1 + 1], ldq);
     i__1 = *n - *k;
-    dcopy_(&i__1, &z__[*k + 1], &c__1, &d__[*k + 1], &c__1);
+    _starpu_dcopy_(&i__1, &z__[*k + 1], &c__1, &d__[*k + 1], &c__1);
 
 /*     Copy CTOT into COLTYP for referencing in DLAED3. */
 
@@ -529,4 +529,4 @@ L190:
 
 /*     End of DLAED2 */
 
-} /* dlaed2_ */
+} /* _starpu_dlaed2_ */

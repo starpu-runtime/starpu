@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dtgexc_(logical *wantq, logical *wantz, integer *n, 
+/* Subroutine */ int _starpu_dtgexc_(logical *wantq, logical *wantz, integer *n, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	q, integer *ldq, doublereal *z__, integer *ldz, integer *ifst, 
 	integer *ilst, doublereal *work, integer *lwork, integer *info)
@@ -29,10 +29,10 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer nbf, nbl, here, lwmin;
-    extern /* Subroutine */ int dtgex2_(logical *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dtgex2_(logical *, logical *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *, integer 
-	    *, doublereal *, integer *, integer *), xerbla_(char *, integer *);
+	    *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, integer *);
     integer nbnext;
     logical lquery;
 
@@ -225,7 +225,7 @@ static integer c__2 = 2;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGEXC", &i__1);
+	_starpu_xerbla_("DTGEXC", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -297,7 +297,7 @@ L10:
 		    nbnext = 2;
 		}
 	    }
-	    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
+	    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
 		    q_offset], ldq, &z__[z_offset], ldz, &here, &nbf, &nbnext, 
 		     &work[1], lwork, info);
 	    if (*info != 0) {
@@ -326,7 +326,7 @@ L10:
 		}
 	    }
 	    i__1 = here + 1;
-	    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
+	    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
 		    q_offset], ldq, &z__[z_offset], ldz, &i__1, &c__1, &
 		    nbnext, &work[1], lwork, info);
 	    if (*info != 0) {
@@ -337,7 +337,7 @@ L10:
 
 /*              Swap two 1-by-1 blocks. */
 
-		dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, 
+		_starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, 
 			 &q[q_offset], ldq, &z__[z_offset], ldz, &here, &c__1, 
 			 &c__1, &work[1], lwork, info);
 		if (*info != 0) {
@@ -357,7 +357,7 @@ L10:
 
 /*                 2-by-2 block did not split. */
 
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    here, &c__1, &nbnext, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -369,7 +369,7 @@ L10:
 
 /*                 2-by-2 block did split. */
 
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    here, &c__1, &c__1, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -377,7 +377,7 @@ L10:
 			return 0;
 		    }
 		    ++here;
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    here, &c__1, &c__1, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -410,7 +410,7 @@ L20:
 		}
 	    }
 	    i__1 = here - nbnext;
-	    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
+	    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
 		    q_offset], ldq, &z__[z_offset], ldz, &i__1, &nbnext, &nbf, 
 		     &work[1], lwork, info);
 	    if (*info != 0) {
@@ -439,7 +439,7 @@ L20:
 		}
 	    }
 	    i__1 = here - nbnext;
-	    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
+	    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, &q[
 		    q_offset], ldq, &z__[z_offset], ldz, &i__1, &nbnext, &
 		    c__1, &work[1], lwork, info);
 	    if (*info != 0) {
@@ -450,7 +450,7 @@ L20:
 
 /*              Swap two 1-by-1 blocks. */
 
-		dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, 
+		_starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], ldb, 
 			 &q[q_offset], ldq, &z__[z_offset], ldz, &here, &
 			nbnext, &c__1, &work[1], lwork, info);
 		if (*info != 0) {
@@ -470,7 +470,7 @@ L20:
 /*                 2-by-2 block did not split. */
 
 		    i__1 = here - 1;
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    i__1, &c__2, &c__1, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -482,7 +482,7 @@ L20:
 
 /*                 2-by-2 block did split. */
 
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    here, &c__1, &c__1, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -490,7 +490,7 @@ L20:
 			return 0;
 		    }
 		    --here;
-		    dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgex2_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &
 			    here, &c__1, &c__1, &work[1], lwork, info);
 		    if (*info != 0) {
@@ -511,4 +511,4 @@ L20:
 
 /*     End of DTGEXC */
 
-} /* dtgexc_ */
+} /* _starpu_dtgexc_ */

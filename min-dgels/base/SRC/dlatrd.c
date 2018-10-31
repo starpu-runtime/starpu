@@ -20,7 +20,7 @@ static doublereal c_b6 = 1.;
 static integer c__1 = 1;
 static doublereal c_b16 = 0.;
 
-/* Subroutine */ int dlatrd_(char *uplo, integer *n, integer *nb, doublereal *
+/* Subroutine */ int _starpu_dlatrd_(char *uplo, integer *n, integer *nb, doublereal *
 	a, integer *lda, doublereal *e, doublereal *tau, doublereal *w, 
 	integer *ldw)
 {
@@ -29,18 +29,18 @@ static doublereal c_b16 = 0.;
 
     /* Local variables */
     integer i__, iw;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), daxpy_(integer *, 
+	    doublereal *, doublereal *, integer *), _starpu_daxpy_(integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *), 
-	    dsymv_(char *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *), dlarfg_(integer *, doublereal *, doublereal *, integer *, 
+	    _starpu_dsymv_(char *, integer *, doublereal *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *), _starpu_dlarfg_(integer *, doublereal *, doublereal *, integer *, 
 	     doublereal *);
 
 
@@ -205,7 +205,7 @@ static doublereal c_b16 = 0.;
 	return 0;
     }
 
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Reduce last NB columns of upper triangle */
 
@@ -217,11 +217,11 @@ static doublereal c_b16 = 0.;
 /*              Update A(1:i,i) */
 
 		i__2 = *n - i__;
-		dgemv_("No transpose", &i__, &i__2, &c_b5, &a[(i__ + 1) * 
+		_starpu_dgemv_("No transpose", &i__, &i__2, &c_b5, &a[(i__ + 1) * 
 			a_dim1 + 1], lda, &w[i__ + (iw + 1) * w_dim1], ldw, &
 			c_b6, &a[i__ * a_dim1 + 1], &c__1);
 		i__2 = *n - i__;
-		dgemv_("No transpose", &i__, &i__2, &c_b5, &w[(iw + 1) * 
+		_starpu_dgemv_("No transpose", &i__, &i__2, &c_b5, &w[(iw + 1) * 
 			w_dim1 + 1], ldw, &a[i__ + (i__ + 1) * a_dim1], lda, &
 			c_b6, &a[i__ * a_dim1 + 1], &c__1);
 	    }
@@ -231,7 +231,7 @@ static doublereal c_b16 = 0.;
 /*              A(1:i-2,i) */
 
 		i__2 = i__ - 1;
-		dlarfg_(&i__2, &a[i__ - 1 + i__ * a_dim1], &a[i__ * a_dim1 + 
+		_starpu_dlarfg_(&i__2, &a[i__ - 1 + i__ * a_dim1], &a[i__ * a_dim1 + 
 			1], &c__1, &tau[i__ - 1]);
 		e[i__ - 1] = a[i__ - 1 + i__ * a_dim1];
 		a[i__ - 1 + i__ * a_dim1] = 1.;
@@ -239,38 +239,38 @@ static doublereal c_b16 = 0.;
 /*              Compute W(1:i-1,i) */
 
 		i__2 = i__ - 1;
-		dsymv_("Upper", &i__2, &c_b6, &a[a_offset], lda, &a[i__ * 
+		_starpu_dsymv_("Upper", &i__2, &c_b6, &a[a_offset], lda, &a[i__ * 
 			a_dim1 + 1], &c__1, &c_b16, &w[iw * w_dim1 + 1], &
 			c__1);
 		if (i__ < *n) {
 		    i__2 = i__ - 1;
 		    i__3 = *n - i__;
-		    dgemv_("Transpose", &i__2, &i__3, &c_b6, &w[(iw + 1) * 
+		    _starpu_dgemv_("Transpose", &i__2, &i__3, &c_b6, &w[(iw + 1) * 
 			    w_dim1 + 1], ldw, &a[i__ * a_dim1 + 1], &c__1, &
 			    c_b16, &w[i__ + 1 + iw * w_dim1], &c__1);
 		    i__2 = i__ - 1;
 		    i__3 = *n - i__;
-		    dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[(i__ + 1) *
+		    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[(i__ + 1) *
 			     a_dim1 + 1], lda, &w[i__ + 1 + iw * w_dim1], &
 			    c__1, &c_b6, &w[iw * w_dim1 + 1], &c__1);
 		    i__2 = i__ - 1;
 		    i__3 = *n - i__;
-		    dgemv_("Transpose", &i__2, &i__3, &c_b6, &a[(i__ + 1) * 
+		    _starpu_dgemv_("Transpose", &i__2, &i__3, &c_b6, &a[(i__ + 1) * 
 			    a_dim1 + 1], lda, &a[i__ * a_dim1 + 1], &c__1, &
 			    c_b16, &w[i__ + 1 + iw * w_dim1], &c__1);
 		    i__2 = i__ - 1;
 		    i__3 = *n - i__;
-		    dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[(iw + 1) * 
+		    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[(iw + 1) * 
 			    w_dim1 + 1], ldw, &w[i__ + 1 + iw * w_dim1], &
 			    c__1, &c_b6, &w[iw * w_dim1 + 1], &c__1);
 		}
 		i__2 = i__ - 1;
-		dscal_(&i__2, &tau[i__ - 1], &w[iw * w_dim1 + 1], &c__1);
+		_starpu_dscal_(&i__2, &tau[i__ - 1], &w[iw * w_dim1 + 1], &c__1);
 		i__2 = i__ - 1;
-		alpha = tau[i__ - 1] * -.5 * ddot_(&i__2, &w[iw * w_dim1 + 1], 
+		alpha = tau[i__ - 1] * -.5 * _starpu_ddot_(&i__2, &w[iw * w_dim1 + 1], 
 			 &c__1, &a[i__ * a_dim1 + 1], &c__1);
 		i__2 = i__ - 1;
-		daxpy_(&i__2, &alpha, &a[i__ * a_dim1 + 1], &c__1, &w[iw * 
+		_starpu_daxpy_(&i__2, &alpha, &a[i__ * a_dim1 + 1], &c__1, &w[iw * 
 			w_dim1 + 1], &c__1);
 	    }
 
@@ -287,12 +287,12 @@ static doublereal c_b16 = 0.;
 
 	    i__2 = *n - i__ + 1;
 	    i__3 = i__ - 1;
-	    dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + a_dim1], lda, 
+	    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + a_dim1], lda, 
 		     &w[i__ + w_dim1], ldw, &c_b6, &a[i__ + i__ * a_dim1], &
 		    c__1);
 	    i__2 = *n - i__ + 1;
 	    i__3 = i__ - 1;
-	    dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[i__ + w_dim1], ldw, 
+	    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[i__ + w_dim1], ldw, 
 		     &a[i__ + a_dim1], lda, &c_b6, &a[i__ + i__ * a_dim1], &
 		    c__1);
 	    if (i__ < *n) {
@@ -303,7 +303,7 @@ static doublereal c_b16 = 0.;
 		i__2 = *n - i__;
 /* Computing MIN */
 		i__3 = i__ + 2;
-		dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ 
+		_starpu_dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ 
 			i__ * a_dim1], &c__1, &tau[i__]);
 		e[i__] = a[i__ + 1 + i__ * a_dim1];
 		a[i__ + 1 + i__ * a_dim1] = 1.;
@@ -311,36 +311,36 @@ static doublereal c_b16 = 0.;
 /*              Compute W(i+1:n,i) */
 
 		i__2 = *n - i__;
-		dsymv_("Lower", &i__2, &c_b6, &a[i__ + 1 + (i__ + 1) * a_dim1]
+		_starpu_dsymv_("Lower", &i__2, &c_b6, &a[i__ + 1 + (i__ + 1) * a_dim1]
 , lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b16, &w[
 			i__ + 1 + i__ * w_dim1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b6, &w[i__ + 1 + w_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b6, &w[i__ + 1 + w_dim1], 
 			 ldw, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b16, &w[
 			i__ * w_dim1 + 1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + 
 			a_dim1], lda, &w[i__ * w_dim1 + 1], &c__1, &c_b6, &w[
 			i__ + 1 + i__ * w_dim1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b6, &a[i__ + 1 + a_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b6, &a[i__ + 1 + a_dim1], 
 			 lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b16, &w[
 			i__ * w_dim1 + 1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &w[i__ + 1 + 
 			w_dim1], ldw, &w[i__ * w_dim1 + 1], &c__1, &c_b6, &w[
 			i__ + 1 + i__ * w_dim1], &c__1);
 		i__2 = *n - i__;
-		dscal_(&i__2, &tau[i__], &w[i__ + 1 + i__ * w_dim1], &c__1);
+		_starpu_dscal_(&i__2, &tau[i__], &w[i__ + 1 + i__ * w_dim1], &c__1);
 		i__2 = *n - i__;
-		alpha = tau[i__] * -.5 * ddot_(&i__2, &w[i__ + 1 + i__ * 
+		alpha = tau[i__] * -.5 * _starpu_ddot_(&i__2, &w[i__ + 1 + i__ * 
 			w_dim1], &c__1, &a[i__ + 1 + i__ * a_dim1], &c__1);
 		i__2 = *n - i__;
-		daxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &w[
+		_starpu_daxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &w[
 			i__ + 1 + i__ * w_dim1], &c__1);
 	    }
 
@@ -352,4 +352,4 @@ static doublereal c_b16 = 0.;
 
 /*     End of DLATRD */
 
-} /* dlatrd_ */
+} /* _starpu_dlatrd_ */

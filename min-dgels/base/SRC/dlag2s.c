@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlag2s_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dlag2s_(integer *m, integer *n, doublereal *a, integer *
 	lda, real *sa, integer *ldsa, integer *info)
 {
     /* System generated locals */
@@ -22,7 +22,7 @@
     /* Local variables */
     integer i__, j;
     doublereal rmax;
-    extern doublereal slamch_(char *);
+    extern doublereal _starpu_slamch_(char *);
 
 
 /*  -- LAPACK PROTOTYPE auxiliary routine (version 3.1.2) -- */
@@ -92,7 +92,7 @@
     sa -= sa_offset;
 
     /* Function Body */
-    rmax = slamch_("O");
+    rmax = _starpu_slamch_("O");
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
 	i__2 = *m;
@@ -112,4 +112,4 @@ L30:
 
 /*     End of DLAG2S */
 
-} /* dlag2s_ */
+} /* _starpu_dlag2s_ */

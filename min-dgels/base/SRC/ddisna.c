@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int ddisna_(char *job, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_ddisna_(char *job, integer *m, integer *n, doublereal *
 	d__, doublereal *sep, integer *info)
 {
     /* System generated locals */
@@ -24,12 +24,12 @@
     integer i__, k;
     doublereal eps;
     logical decr, left, incr, sing, eigen;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
     logical right;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal oldgap, safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal newgap, thresh;
 
 
@@ -116,9 +116,9 @@
 
     /* Function Body */
     *info = 0;
-    eigen = lsame_(job, "E");
-    left = lsame_(job, "L");
-    right = lsame_(job, "R");
+    eigen = _starpu_lsame_(job, "E");
+    left = _starpu_lsame_(job, "L");
+    right = _starpu_lsame_(job, "R");
     sing = left || right;
     if (eigen) {
 	k = *m;
@@ -158,7 +158,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DDISNA", &i__1);
+	_starpu_xerbla_("DDISNA", &i__1);
 	return 0;
     }
 
@@ -171,7 +171,7 @@
 /*     Compute reciprocal condition numbers */
 
     if (k == 1) {
-	sep[1] = dlamch_("O");
+	sep[1] = _starpu_dlamch_("O");
     } else {
 	oldgap = (d__1 = d__[2] - d__[1], abs(d__1));
 	sep[1] = oldgap;
@@ -200,8 +200,8 @@
 /*     Ensure that reciprocal condition numbers are not less than */
 /*     threshold, in order to limit the size of the error bound */
 
-    eps = dlamch_("E");
-    safmin = dlamch_("S");
+    eps = _starpu_dlamch_("E");
+    safmin = _starpu_dlamch_("S");
 /* Computing MAX */
     d__2 = abs(d__[1]), d__3 = (d__1 = d__[k], abs(d__1));
     anorm = max(d__2,d__3);
@@ -224,4 +224,4 @@
 
 /*     End of DDISNA */
 
-} /* ddisna_ */
+} /* _starpu_ddisna_ */

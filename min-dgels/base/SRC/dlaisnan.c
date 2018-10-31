@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-logical dlaisnan_(doublereal *din1, doublereal *din2)
+logical _starpu_dlaisnan_(doublereal *din1, doublereal *din2)
 {
     /* System generated locals */
     logical ret_val;
@@ -55,4 +55,4 @@ logical dlaisnan_(doublereal *din1, doublereal *din2)
 /*  .. Executable Statements .. */
     ret_val = *din1 != *din2;
     return ret_val;
-} /* dlaisnan_ */
+} /* _starpu_dlaisnan_ */

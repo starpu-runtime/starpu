@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b12 = -1.;
 static doublereal c_b14 = 1.;
 
-/* Subroutine */ int dpbrfs_(char *uplo, integer *n, integer *kd, integer *
+/* Subroutine */ int _starpu_dpbrfs_(char *uplo, integer *n, integer *kd, integer *
 	nrhs, doublereal *ab, integer *ldab, doublereal *afb, integer *ldafb, 
 	doublereal *b, integer *ldb, doublereal *x, integer *ldx, doublereal *
 	ferr, doublereal *berr, doublereal *work, integer *iwork, integer *
@@ -37,21 +37,21 @@ static doublereal c_b14 = 1.;
     doublereal eps;
     integer kase;
     doublereal safe1, safe2;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dsbmv_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsbmv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), daxpy_(integer 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_daxpy_(integer 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *)
 	    ;
     integer count;
     logical upper;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpbtrs_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpbtrs_(
 	    char *, integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, integer *);
     doublereal lstres;
@@ -191,8 +191,8 @@ static doublereal c_b14 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -211,7 +211,7 @@ static doublereal c_b14 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBRFS", &i__1);
+	_starpu_xerbla_("DPBRFS", &i__1);
 	return 0;
     }
 
@@ -232,8 +232,8 @@ static doublereal c_b14 = 1.;
 /* Computing MIN */
     i__1 = *n + 1, i__2 = (*kd << 1) + 2;
     nz = min(i__1,i__2);
-    eps = dlamch_("Epsilon");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    safmin = _starpu_dlamch_("Safe minimum");
     safe1 = nz * safmin;
     safe2 = safe1 / eps;
 
@@ -250,8 +250,8 @@ L20:
 
 /*        Compute residual R = B - A * X */
 
-	dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
-	dsbmv_(uplo, n, kd, &c_b12, &ab[ab_offset], ldab, &x[j * x_dim1 + 1], 
+	_starpu_dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
+	_starpu_dsbmv_(uplo, n, kd, &c_b12, &ab[ab_offset], ldab, &x[j * x_dim1 + 1], 
 		&c__1, &c_b14, &work[*n + 1], &c__1);
 
 /*        Compute componentwise relative backward error from formula */
@@ -340,9 +340,9 @@ L20:
 
 /*           Update solution and try again. */
 
-	    dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n + 1]
+	    _starpu_dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n + 1]
 , n, info);
-	    daxpy_(n, &c_b14, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
+	    _starpu_daxpy_(n, &c_b14, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
 		    ;
 	    lstres = berr[j];
 	    ++count;
@@ -385,14 +385,14 @@ L20:
 
 	kase = 0;
 L100:
-	dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
+	_starpu_dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
 		kase, isave);
 	if (kase != 0) {
 	    if (kase == 1) {
 
 /*              Multiply by diag(W)*inv(A'). */
 
-		dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n 
+		_starpu_dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n 
 			+ 1], n, info);
 		i__2 = *n;
 		for (i__ = 1; i__ <= i__2; ++i__) {
@@ -408,7 +408,7 @@ L100:
 		    work[*n + i__] *= work[i__];
 /* L120: */
 		}
-		dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n 
+		_starpu_dpbtrs_(uplo, n, kd, &c__1, &afb[afb_offset], ldafb, &work[*n 
 			+ 1], n, info);
 	    }
 	    goto L100;
@@ -435,4 +435,4 @@ L100:
 
 /*     End of DPBRFS */
 
-} /* dpbrfs_ */
+} /* _starpu_dpbrfs_ */

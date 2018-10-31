@@ -21,7 +21,7 @@ static integer c__2 = 2;
 static doublereal c_b20 = -1.;
 static doublereal c_b22 = 1.;
 
-/* Subroutine */ int dgetri_(integer *n, doublereal *a, integer *lda, integer 
+/* Subroutine */ int _starpu_dgetri_(integer *n, doublereal *a, integer *lda, integer 
 	*ipiv, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -29,22 +29,22 @@ static doublereal c_b22 = 1.;
 
     /* Local variables */
     integer i__, j, jb, nb, jj, jp, nn, iws;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *),
-	     dgemv_(char *, integer *, integer *, doublereal *, doublereal *, 
+	     _starpu_dgemv_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *);
     integer nbmin;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), xerbla_(
+	    doublereal *, integer *), _starpu_xerbla_(
 	    char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer ldwork;
-    extern /* Subroutine */ int dtrtri_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dtrtri_(char *, char *, integer *, doublereal 
 	    *, integer *, integer *);
     integer lwkopt;
     logical lquery;
@@ -130,7 +130,7 @@ static doublereal c_b22 = 1.;
 
     /* Function Body */
     *info = 0;
-    nb = ilaenv_(&c__1, "DGETRI", " ", n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DGETRI", " ", n, &c_n1, &c_n1, &c_n1);
     lwkopt = *n * nb;
     work[1] = (doublereal) lwkopt;
     lquery = *lwork == -1;
@@ -143,7 +143,7 @@ static doublereal c_b22 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGETRI", &i__1);
+	_starpu_xerbla_("DGETRI", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -158,7 +158,7 @@ static doublereal c_b22 = 1.;
 /*     Form inv(U).  If INFO > 0 from DTRTRI, then U is singular, */
 /*     and the inverse is not computed. */
 
-    dtrtri_("Upper", "Non-unit", n, &a[a_offset], lda, info);
+    _starpu_dtrtri_("Upper", "Non-unit", n, &a[a_offset], lda, info);
     if (*info > 0) {
 	return 0;
     }
@@ -172,7 +172,7 @@ static doublereal c_b22 = 1.;
 	if (*lwork < iws) {
 	    nb = *lwork / ldwork;
 /* Computing MAX */
-	    i__1 = 2, i__2 = ilaenv_(&c__2, "DGETRI", " ", n, &c_n1, &c_n1, &
+	    i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DGETRI", " ", n, &c_n1, &c_n1, &
 		    c_n1);
 	    nbmin = max(i__1,i__2);
 	}
@@ -201,7 +201,7 @@ static doublereal c_b22 = 1.;
 
 	    if (j < *n) {
 		i__1 = *n - j;
-		dgemv_("No transpose", n, &i__1, &c_b20, &a[(j + 1) * a_dim1 
+		_starpu_dgemv_("No transpose", n, &i__1, &c_b20, &a[(j + 1) * a_dim1 
 			+ 1], lda, &work[j + 1], &c__1, &c_b22, &a[j * a_dim1 
 			+ 1], &c__1);
 	    }
@@ -236,11 +236,11 @@ static doublereal c_b22 = 1.;
 
 	    if (j + jb <= *n) {
 		i__2 = *n - j - jb + 1;
-		dgemm_("No transpose", "No transpose", n, &jb, &i__2, &c_b20, 
+		_starpu_dgemm_("No transpose", "No transpose", n, &jb, &i__2, &c_b20, 
 			&a[(j + jb) * a_dim1 + 1], lda, &work[j + jb], &
 			ldwork, &c_b22, &a[j * a_dim1 + 1], lda);
 	    }
-	    dtrsm_("Right", "Lower", "No transpose", "Unit", n, &jb, &c_b22, &
+	    _starpu_dtrsm_("Right", "Lower", "No transpose", "Unit", n, &jb, &c_b22, &
 		    work[j], &ldwork, &a[j * a_dim1 + 1], lda);
 /* L50: */
 	}
@@ -251,7 +251,7 @@ static doublereal c_b22 = 1.;
     for (j = *n - 1; j >= 1; --j) {
 	jp = ipiv[j];
 	if (jp != j) {
-	    dswap_(n, &a[j * a_dim1 + 1], &c__1, &a[jp * a_dim1 + 1], &c__1);
+	    _starpu_dswap_(n, &a[j * a_dim1 + 1], &c__1, &a[jp * a_dim1 + 1], &c__1);
 	}
 /* L60: */
     }
@@ -261,4 +261,4 @@ static doublereal c_b22 = 1.;
 
 /*     End of DGETRI */
 
-} /* dgetri_ */
+} /* _starpu_dgetri_ */

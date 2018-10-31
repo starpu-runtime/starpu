@@ -19,7 +19,7 @@ static doublereal c_b10 = -1.;
 static doublereal c_b11 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dsposv_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dstarpu_sposv_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info)
@@ -38,26 +38,26 @@ static integer c__1 = 1;
     integer ptsa;
     doublereal rnrm, xnrm;
     integer ptsx;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iiter;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *), dsymm_(char *, char *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_dsymm_(char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *), dlag2s_(integer *, integer *, doublereal *, 
-	    integer *, real *, integer *, integer *), slag2d_(integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *), _starpu_dlag2s_(integer *, integer *, doublereal *, 
+	    integer *, real *, integer *, integer *), _starpu_slag2d_(integer *, 
 	    integer *, real *, integer *, doublereal *, integer *, integer *),
-	     dlat2s_(char *, integer *, doublereal *, integer *, real *, 
+	     _starpu_dlat2s_(char *, integer *, doublereal *, integer *, real *, 
 	    integer *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
-    extern doublereal dlansy_(char *, char *, integer *, doublereal *, 
+	    _starpu_xerbla_(char *, integer *);
+    extern doublereal _starpu_dlansy_(char *, char *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *, 
-	    integer *, integer *), dpotrs_(char *, integer *, integer 
-	    *, doublereal *, integer *, doublereal *, integer *, integer *), spotrf_(char *, integer *, real *, integer *, integer *), spotrs_(char *, integer *, integer *, real *, integer *, 
+    extern /* Subroutine */ int _starpu_dpotrf_(char *, integer *, doublereal *, 
+	    integer *, integer *), _starpu_dpotrs_(char *, integer *, integer 
+	    *, doublereal *, integer *, doublereal *, integer *, integer *), _starpu_spotrf_(char *, integer *, real *, integer *, integer *), _starpu_spotrs_(char *, integer *, integer *, real *, integer *, 
 	    real *, integer *, integer *);
 
 
@@ -219,7 +219,7 @@ static integer c__1 = 1;
 
 /*     Test the input parameters. */
 
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -234,7 +234,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPOSV", &i__1);
+	_starpu_xerbla_("DSPOSV", &i__1);
 	return 0;
     }
 
@@ -254,8 +254,8 @@ static integer c__1 = 1;
 
 /*     Compute some constants. */
 
-    anrm = dlansy_("I", uplo, n, &a[a_offset], lda, &work[work_offset]);
-    eps = dlamch_("Epsilon");
+    anrm = _starpu_dlansy_("I", uplo, n, &a[a_offset], lda, &work[work_offset]);
+    eps = _starpu_dlamch_("Epsilon");
     cte = anrm * eps * sqrt((doublereal) (*n)) * 1.;
 
 /*     Set the indices PTSA, PTSX for referencing SA and SX in SWORK. */
@@ -266,7 +266,7 @@ static integer c__1 = 1;
 /*     Convert B from double precision to single precision and store the */
 /*     result in SX. */
 
-    dlag2s_(n, nrhs, &b[b_offset], ldb, &swork[ptsx], n, info);
+    _starpu_dlag2s_(n, nrhs, &b[b_offset], ldb, &swork[ptsx], n, info);
 
     if (*info != 0) {
 	*iter = -2;
@@ -276,7 +276,7 @@ static integer c__1 = 1;
 /*     Convert A from double precision to single precision and store the */
 /*     result in SA. */
 
-    dlat2s_(uplo, n, &a[a_offset], lda, &swork[ptsa], n, info);
+    _starpu_dlat2s_(uplo, n, &a[a_offset], lda, &swork[ptsa], n, info);
 
     if (*info != 0) {
 	*iter = -2;
@@ -285,7 +285,7 @@ static integer c__1 = 1;
 
 /*     Compute the Cholesky factorization of SA. */
 
-    spotrf_(uplo, n, &swork[ptsa], n, info);
+    _starpu_spotrf_(uplo, n, &swork[ptsa], n, info);
 
     if (*info != 0) {
 	*iter = -3;
@@ -294,17 +294,17 @@ static integer c__1 = 1;
 
 /*     Solve the system SA*SX = SB. */
 
-    spotrs_(uplo, n, nrhs, &swork[ptsa], n, &swork[ptsx], n, info);
+    _starpu_spotrs_(uplo, n, nrhs, &swork[ptsa], n, &swork[ptsx], n, info);
 
 /*     Convert SX back to double precision */
 
-    slag2d_(n, nrhs, &swork[ptsx], n, &x[x_offset], ldx, info);
+    _starpu_slag2d_(n, nrhs, &swork[ptsx], n, &x[x_offset], ldx, info);
 
 /*     Compute R = B - AX (R is WORK). */
 
-    dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
+    _starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
 
-    dsymm_("Left", uplo, n, nrhs, &c_b10, &a[a_offset], lda, &x[x_offset], 
+    _starpu_dsymm_("Left", uplo, n, nrhs, &c_b10, &a[a_offset], lda, &x[x_offset], 
 	    ldx, &c_b11, &work[work_offset], n);
 
 /*     Check whether the NRHS normwise backward errors satisfy the */
@@ -312,9 +312,9 @@ static integer c__1 = 1;
 
     i__1 = *nrhs;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	xnrm = (d__1 = x[idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
+	xnrm = (d__1 = x[_starpu_idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
 		x_dim1], abs(d__1));
-	rnrm = (d__1 = work[idamax_(n, &work[i__ * work_dim1 + 1], &c__1) + 
+	rnrm = (d__1 = work[_starpu_idamax_(n, &work[i__ * work_dim1 + 1], &c__1) + 
 		i__ * work_dim1], abs(d__1));
 	if (rnrm > xnrm * cte) {
 	    goto L10;
@@ -334,7 +334,7 @@ L10:
 /*        Convert R (in WORK) from double precision to single precision */
 /*        and store the result in SX. */
 
-	dlag2s_(n, nrhs, &work[work_offset], n, &swork[ptsx], n, info);
+	_starpu_dlag2s_(n, nrhs, &work[work_offset], n, &swork[ptsx], n, info);
 
 	if (*info != 0) {
 	    *iter = -2;
@@ -343,24 +343,24 @@ L10:
 
 /*        Solve the system SA*SX = SR. */
 
-	spotrs_(uplo, n, nrhs, &swork[ptsa], n, &swork[ptsx], n, info);
+	_starpu_spotrs_(uplo, n, nrhs, &swork[ptsa], n, &swork[ptsx], n, info);
 
 /*        Convert SX back to double precision and update the current */
 /*        iterate. */
 
-	slag2d_(n, nrhs, &swork[ptsx], n, &work[work_offset], n, info);
+	_starpu_slag2d_(n, nrhs, &swork[ptsx], n, &work[work_offset], n, info);
 
 	i__1 = *nrhs;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    daxpy_(n, &c_b11, &work[i__ * work_dim1 + 1], &c__1, &x[i__ * 
+	    _starpu_daxpy_(n, &c_b11, &work[i__ * work_dim1 + 1], &c__1, &x[i__ * 
 		    x_dim1 + 1], &c__1);
 	}
 
 /*        Compute R = B - AX (R is WORK). */
 
-	dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
+	_starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
 
-	dsymm_("L", uplo, n, nrhs, &c_b10, &a[a_offset], lda, &x[x_offset], 
+	_starpu_dsymm_("L", uplo, n, nrhs, &c_b10, &a[a_offset], lda, &x[x_offset], 
 		ldx, &c_b11, &work[work_offset], n);
 
 /*        Check whether the NRHS normwise backward errors satisfy the */
@@ -368,9 +368,9 @@ L10:
 
 	i__1 = *nrhs;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    xnrm = (d__1 = x[idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
+	    xnrm = (d__1 = x[_starpu_idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
 		    x_dim1], abs(d__1));
-	    rnrm = (d__1 = work[idamax_(n, &work[i__ * work_dim1 + 1], &c__1) 
+	    rnrm = (d__1 = work[_starpu_idamax_(n, &work[i__ * work_dim1 + 1], &c__1) 
 		    + i__ * work_dim1], abs(d__1));
 	    if (rnrm > xnrm * cte) {
 		goto L20;
@@ -402,17 +402,17 @@ L40:
 /*     Single-precision iterative refinement failed to converge to a */
 /*     satisfactory solution, so we resort to double precision. */
 
-    dpotrf_(uplo, n, &a[a_offset], lda, info);
+    _starpu_dpotrf_(uplo, n, &a[a_offset], lda, info);
 
     if (*info != 0) {
 	return 0;
     }
 
-    dlacpy_("All", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dpotrs_(uplo, n, nrhs, &a[a_offset], lda, &x[x_offset], ldx, info);
+    _starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dpotrs_(uplo, n, nrhs, &a[a_offset], lda, &x[x_offset], ldx, info);
 
     return 0;
 
 /*     End of DSPOSV. */
 
-} /* dsposv_ */
+} /* _starpu_dstarpu_sposv_ */

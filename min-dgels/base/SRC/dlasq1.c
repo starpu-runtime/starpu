@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c__2 = 2;
 static integer c__0 = 0;
 
-/* Subroutine */ int dlasq1_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dlasq1_(integer *n, doublereal *d__, doublereal *e, 
 	doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -32,21 +32,21 @@ static integer c__0 = 0;
     /* Local variables */
     integer i__;
     doublereal eps;
-    extern /* Subroutine */ int dlas2_(doublereal *, doublereal *, doublereal 
+    extern /* Subroutine */ int _starpu_dlas2_(doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *);
     doublereal scale;
     integer iinfo;
     doublereal sigmn;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     doublereal sigmx;
-    extern /* Subroutine */ int dlasq2_(integer *, doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlasq2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dlasrt_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dlasrt_(
 	    char *, integer *, doublereal *, integer *);
 
 
@@ -133,7 +133,7 @@ static integer c__0 = 0;
     if (*n < 0) {
 	*info = -2;
 	i__1 = -(*info);
-	xerbla_("DLASQ1", &i__1);
+	_starpu_xerbla_("DLASQ1", &i__1);
 	return 0;
     } else if (*n == 0) {
 	return 0;
@@ -141,7 +141,7 @@ static integer c__0 = 0;
 	d__[1] = abs(d__[1]);
 	return 0;
     } else if (*n == 2) {
-	dlas2_(&d__[1], &e[1], &d__[2], &sigmn, &sigmx);
+	_starpu_dlas2_(&d__[1], &e[1], &d__[2], &sigmn, &sigmx);
 	d__[1] = sigmx;
 	d__[2] = sigmn;
 	return 0;
@@ -163,7 +163,7 @@ static integer c__0 = 0;
 /*     Early return if SIGMX is zero (matrix is already diagonal). */
 
     if (sigmx == 0.) {
-	dlasrt_("D", n, &d__[1], &iinfo);
+	_starpu_dlasrt_("D", n, &d__[1], &iinfo);
 	return 0;
     }
 
@@ -178,15 +178,15 @@ static integer c__0 = 0;
 /*     Copy D and E into WORK (in the Z format) and scale (squaring the */
 /*     input data makes scaling by a power of the radix pointless). */
 
-    eps = dlamch_("Precision");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
     scale = sqrt(eps / safmin);
-    dcopy_(n, &d__[1], &c__1, &work[1], &c__2);
+    _starpu_dcopy_(n, &d__[1], &c__1, &work[1], &c__2);
     i__1 = *n - 1;
-    dcopy_(&i__1, &e[1], &c__1, &work[2], &c__2);
+    _starpu_dcopy_(&i__1, &e[1], &c__1, &work[2], &c__2);
     i__1 = (*n << 1) - 1;
     i__2 = (*n << 1) - 1;
-    dlascl_("G", &c__0, &c__0, &sigmx, &scale, &i__1, &c__1, &work[1], &i__2, 
+    _starpu_dlascl_("G", &c__0, &c__0, &sigmx, &scale, &i__1, &c__1, &work[1], &i__2, 
 	    &iinfo);
 
 /*     Compute the q's and e's. */
@@ -200,7 +200,7 @@ static integer c__0 = 0;
     }
     work[*n * 2] = 0.;
 
-    dlasq2_(n, &work[1], info);
+    _starpu_dlasq2_(n, &work[1], info);
 
     if (*info == 0) {
 	i__1 = *n;
@@ -208,7 +208,7 @@ static integer c__0 = 0;
 	    d__[i__] = sqrt(work[i__]);
 /* L40: */
 	}
-	dlascl_("G", &c__0, &c__0, &scale, &sigmx, n, &c__1, &d__[1], n, &
+	_starpu_dlascl_("G", &c__0, &c__0, &scale, &sigmx, n, &c__1, &d__[1], n, &
 		iinfo);
     }
 
@@ -216,4 +216,4 @@ static integer c__0 = 0;
 
 /*     End of DLASQ1 */
 
-} /* dlasq1_ */
+} /* _starpu_dlasq1_ */

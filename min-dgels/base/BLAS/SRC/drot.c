@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int drot_(integer *n, doublereal *dx, integer *incx, 
+/* Subroutine */ int _starpu_drot_(integer *n, doublereal *dx, integer *incx, 
 	doublereal *dy, integer *incy, doublereal *c__, doublereal *s)
 {
     /* System generated locals */
@@ -83,4 +83,4 @@ L20:
 /* L30: */
     }
     return 0;
-} /* drot_ */
+} /* _starpu_drot_ */

@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__3 = 3;
 static integer c__2 = 2;
 
-/* Subroutine */ int dgeqrf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeqrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -28,13 +28,13 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer i__, k, ib, nb, nx, iws, nbmin, iinfo;
-    extern /* Subroutine */ int dgeqr2_(integer *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, integer *), dlarfb_(char *, 
+    extern /* Subroutine */ int _starpu_dgeqr2_(integer *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, integer *), _starpu_dlarfb_(char *, 
 	     char *, char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, integer *), dlarft_(char *, char *, integer *, integer *, doublereal 
-	    *, integer *, doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    integer *, doublereal *, integer *), _starpu_dlarft_(char *, char *, integer *, integer *, doublereal 
+	    *, integer *, doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer ldwork, lwkopt;
     logical lquery;
@@ -135,7 +135,7 @@ static integer c__2 = 2;
 
     /* Function Body */
     *info = 0;
-    nb = ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
     lwkopt = *n * nb;
     work[1] = (doublereal) lwkopt;
     lquery = *lwork == -1;
@@ -150,7 +150,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEQRF", &i__1);
+	_starpu_xerbla_("DGEQRF", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -172,7 +172,7 @@ static integer c__2 = 2;
 /*        Determine when to cross over from blocked to unblocked code. */
 
 /* Computing MAX */
-	i__1 = 0, i__2 = ilaenv_(&c__3, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+	i__1 = 0, i__2 = _starpu_ilaenv_(&c__3, "DGEQRF", " ", m, n, &c_n1, &c_n1);
 	nx = max(i__1,i__2);
 	if (nx < k) {
 
@@ -187,7 +187,7 @@ static integer c__2 = 2;
 
 		nb = *lwork / ldwork;
 /* Computing MAX */
-		i__1 = 2, i__2 = ilaenv_(&c__2, "DGEQRF", " ", m, n, &c_n1, &
+		i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DGEQRF", " ", m, n, &c_n1, &
 			c_n1);
 		nbmin = max(i__1,i__2);
 	    }
@@ -209,7 +209,7 @@ static integer c__2 = 2;
 /*           A(i:m,i:i+ib-1) */
 
 	    i__3 = *m - i__ + 1;
-	    dgeqr2_(&i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[
+	    _starpu_dgeqr2_(&i__3, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[
 		    1], &iinfo);
 	    if (i__ + ib <= *n) {
 
@@ -217,14 +217,14 @@ static integer c__2 = 2;
 /*              H = H(i) H(i+1) . . . H(i+ib-1) */
 
 		i__3 = *m - i__ + 1;
-		dlarft_("Forward", "Columnwise", &i__3, &ib, &a[i__ + i__ * 
+		_starpu_dlarft_("Forward", "Columnwise", &i__3, &ib, &a[i__ + i__ * 
 			a_dim1], lda, &tau[i__], &work[1], &ldwork);
 
 /*              Apply H' to A(i:m,i+ib:n) from the left */
 
 		i__3 = *m - i__ + 1;
 		i__4 = *n - i__ - ib + 1;
-		dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__3, &
+		_starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__3, &
 			i__4, &ib, &a[i__ + i__ * a_dim1], lda, &work[1], &
 			ldwork, &a[i__ + (i__ + ib) * a_dim1], lda, &work[ib 
 			+ 1], &ldwork);
@@ -240,7 +240,7 @@ static integer c__2 = 2;
     if (i__ <= k) {
 	i__2 = *m - i__ + 1;
 	i__1 = *n - i__ + 1;
-	dgeqr2_(&i__2, &i__1, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1]
+	_starpu_dgeqr2_(&i__2, &i__1, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[1]
 , &iinfo);
     }
 
@@ -249,4 +249,4 @@ static integer c__2 = 2;
 
 /*     End of DGEQRF */
 
-} /* dgeqrf_ */
+} /* _starpu_dgeqrf_ */

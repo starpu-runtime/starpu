@@ -20,7 +20,7 @@ static integer c__1 = 1;
 static doublereal c_b49 = 1.;
 static doublereal c_b72 = -1.;
 
-/* Subroutine */ int dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *
+/* Subroutine */ int _starpu_dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *
 	nru, integer *ncc, doublereal *d__, doublereal *e, doublereal *vt, 
 	integer *ldvt, doublereal *u, integer *ldu, doublereal *c__, integer *
 	ldc, doublereal *work, integer *info)
@@ -48,29 +48,29 @@ static doublereal c_b72 = -1.;
     doublereal cosl;
     integer isub, iter;
     doublereal unfl, sinl, cosr, smin, smax, sinr;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dlas2_(
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dlas2_(
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), dscal_(integer *, doublereal *, doublereal *, 
+	    doublereal *), _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal oldcs;
-    extern /* Subroutine */ int dlasr_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dlasr_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *);
     integer oldll;
     doublereal shift, sigmn, oldsn;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer maxit;
     doublereal sminl, sigmx;
     logical lower;
-    extern /* Subroutine */ int dlasq1_(integer *, doublereal *, doublereal *, 
-	     doublereal *, integer *), dlasv2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasq1_(integer *, doublereal *, doublereal *, 
+	     doublereal *, integer *), _starpu_dlasv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), xerbla_(char *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal sminoa, thresh;
     logical rotate;
@@ -251,8 +251,8 @@ static doublereal c_b72 = -1.;
 
     /* Function Body */
     *info = 0;
-    lower = lsame_(uplo, "L");
-    if (! lsame_(uplo, "U") && ! lower) {
+    lower = _starpu_lsame_(uplo, "L");
+    if (! _starpu_lsame_(uplo, "U") && ! lower) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -271,7 +271,7 @@ static doublereal c_b72 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DBDSQR", &i__1);
+	_starpu_xerbla_("DBDSQR", &i__1);
 	return 0;
     }
     if (*n == 0) {
@@ -288,7 +288,7 @@ static doublereal c_b72 = -1.;
 /*     If no singular vectors desired, use qd algorithm */
 
     if (! rotate) {
-	dlasq1_(n, &d__[1], &e[1], &work[1], info);
+	_starpu_dlasq1_(n, &d__[1], &e[1], &work[1], info);
 	return 0;
     }
 
@@ -299,8 +299,8 @@ static doublereal c_b72 = -1.;
 
 /*     Get machine constants */
 
-    eps = dlamch_("Epsilon");
-    unfl = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    unfl = _starpu_dlamch_("Safe minimum");
 
 /*     If matrix lower bidiagonal, rotate to be upper bidiagonal */
 /*     by applying Givens rotations on the left */
@@ -308,7 +308,7 @@ static doublereal c_b72 = -1.;
     if (lower) {
 	i__1 = *n - 1;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
+	    _starpu_dlartg_(&d__[i__], &e[i__], &cs, &sn, &r__);
 	    d__[i__] = r__;
 	    e[i__] = sn * d__[i__ + 1];
 	    d__[i__ + 1] = cs * d__[i__ + 1];
@@ -320,11 +320,11 @@ static doublereal c_b72 = -1.;
 /*        Update singular vectors if desired */
 
 	if (*nru > 0) {
-	    dlasr_("R", "V", "F", nru, n, &work[1], &work[*n], &u[u_offset], 
+	    _starpu_dlasr_("R", "V", "F", nru, n, &work[1], &work[*n], &u[u_offset], 
 		    ldu);
 	}
 	if (*ncc > 0) {
-	    dlasr_("L", "V", "F", n, ncc, &work[1], &work[*n], &c__[c_offset], 
+	    _starpu_dlasr_("L", "V", "F", n, ncc, &work[1], &work[*n], &c__[c_offset], 
 		     ldc);
 	}
     }
@@ -464,7 +464,7 @@ L90:
 
 /*        2 by 2 block, handle separately */
 
-	dlasv2_(&d__[m - 1], &e[m - 1], &d__[m], &sigmn, &sigmx, &sinr, &cosr, 
+	_starpu_dlasv2_(&d__[m - 1], &e[m - 1], &d__[m], &sigmn, &sigmx, &sinr, &cosr, 
 		 &sinl, &cosl);
 	d__[m - 1] = sigmx;
 	e[m - 1] = 0.;
@@ -473,15 +473,15 @@ L90:
 /*        Compute singular vectors, if desired */
 
 	if (*ncvt > 0) {
-	    drot_(ncvt, &vt[m - 1 + vt_dim1], ldvt, &vt[m + vt_dim1], ldvt, &
+	    _starpu_drot_(ncvt, &vt[m - 1 + vt_dim1], ldvt, &vt[m + vt_dim1], ldvt, &
 		    cosr, &sinr);
 	}
 	if (*nru > 0) {
-	    drot_(nru, &u[(m - 1) * u_dim1 + 1], &c__1, &u[m * u_dim1 + 1], &
+	    _starpu_drot_(nru, &u[(m - 1) * u_dim1 + 1], &c__1, &u[m * u_dim1 + 1], &
 		    c__1, &cosl, &sinl);
 	}
 	if (*ncc > 0) {
-	    drot_(ncc, &c__[m - 1 + c_dim1], ldc, &c__[m + c_dim1], ldc, &
+	    _starpu_drot_(ncc, &c__[m - 1 + c_dim1], ldc, &c__[m + c_dim1], ldc, &
 		    cosl, &sinl);
 	}
 	m += -2;
@@ -589,10 +589,10 @@ L90:
 
 	if (idir == 1) {
 	    sll = (d__1 = d__[ll], abs(d__1));
-	    dlas2_(&d__[m - 1], &e[m - 1], &d__[m], &shift, &r__);
+	    _starpu_dlas2_(&d__[m - 1], &e[m - 1], &d__[m], &shift, &r__);
 	} else {
 	    sll = (d__1 = d__[m], abs(d__1));
-	    dlas2_(&d__[ll], &e[ll], &d__[ll + 1], &shift, &r__);
+	    _starpu_dlas2_(&d__[ll], &e[ll], &d__[ll + 1], &shift, &r__);
 	}
 
 /*        Test if shift negligible, and if so set to zero */
@@ -623,13 +623,13 @@ L90:
 	    i__1 = m - 1;
 	    for (i__ = ll; i__ <= i__1; ++i__) {
 		d__1 = d__[i__] * cs;
-		dlartg_(&d__1, &e[i__], &cs, &sn, &r__);
+		_starpu_dlartg_(&d__1, &e[i__], &cs, &sn, &r__);
 		if (i__ > ll) {
 		    e[i__ - 1] = oldsn * r__;
 		}
 		d__1 = oldcs * r__;
 		d__2 = d__[i__ + 1] * sn;
-		dlartg_(&d__1, &d__2, &oldcs, &oldsn, &d__[i__]);
+		_starpu_dlartg_(&d__1, &d__2, &oldcs, &oldsn, &d__[i__]);
 		work[i__ - ll + 1] = cs;
 		work[i__ - ll + 1 + nm1] = sn;
 		work[i__ - ll + 1 + nm12] = oldcs;
@@ -644,17 +644,17 @@ L90:
 
 	    if (*ncvt > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "F", &i__1, ncvt, &work[1], &work[*n], &vt[
+		_starpu_dlasr_("L", "V", "F", &i__1, ncvt, &work[1], &work[*n], &vt[
 			ll + vt_dim1], ldvt);
 	    }
 	    if (*nru > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("R", "V", "F", nru, &i__1, &work[nm12 + 1], &work[nm13 
+		_starpu_dlasr_("R", "V", "F", nru, &i__1, &work[nm12 + 1], &work[nm13 
 			+ 1], &u[ll * u_dim1 + 1], ldu);
 	    }
 	    if (*ncc > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "F", &i__1, ncc, &work[nm12 + 1], &work[nm13 
+		_starpu_dlasr_("L", "V", "F", &i__1, ncc, &work[nm12 + 1], &work[nm13 
 			+ 1], &c__[ll + c_dim1], ldc);
 	    }
 
@@ -674,13 +674,13 @@ L90:
 	    i__1 = ll + 1;
 	    for (i__ = m; i__ >= i__1; --i__) {
 		d__1 = d__[i__] * cs;
-		dlartg_(&d__1, &e[i__ - 1], &cs, &sn, &r__);
+		_starpu_dlartg_(&d__1, &e[i__ - 1], &cs, &sn, &r__);
 		if (i__ < m) {
 		    e[i__] = oldsn * r__;
 		}
 		d__1 = oldcs * r__;
 		d__2 = d__[i__ - 1] * sn;
-		dlartg_(&d__1, &d__2, &oldcs, &oldsn, &d__[i__]);
+		_starpu_dlartg_(&d__1, &d__2, &oldcs, &oldsn, &d__[i__]);
 		work[i__ - ll] = cs;
 		work[i__ - ll + nm1] = -sn;
 		work[i__ - ll + nm12] = oldcs;
@@ -695,17 +695,17 @@ L90:
 
 	    if (*ncvt > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "B", &i__1, ncvt, &work[nm12 + 1], &work[
+		_starpu_dlasr_("L", "V", "B", &i__1, ncvt, &work[nm12 + 1], &work[
 			nm13 + 1], &vt[ll + vt_dim1], ldvt);
 	    }
 	    if (*nru > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("R", "V", "B", nru, &i__1, &work[1], &work[*n], &u[ll *
+		_starpu_dlasr_("R", "V", "B", nru, &i__1, &work[1], &work[*n], &u[ll *
 			 u_dim1 + 1], ldu);
 	    }
 	    if (*ncc > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "B", &i__1, ncc, &work[1], &work[*n], &c__[
+		_starpu_dlasr_("L", "V", "B", &i__1, ncc, &work[1], &work[*n], &c__[
 			ll + c_dim1], ldc);
 	    }
 
@@ -729,7 +729,7 @@ L90:
 	    g = e[ll];
 	    i__1 = m - 1;
 	    for (i__ = ll; i__ <= i__1; ++i__) {
-		dlartg_(&f, &g, &cosr, &sinr, &r__);
+		_starpu_dlartg_(&f, &g, &cosr, &sinr, &r__);
 		if (i__ > ll) {
 		    e[i__ - 1] = r__;
 		}
@@ -737,7 +737,7 @@ L90:
 		e[i__] = cosr * e[i__] - sinr * d__[i__];
 		g = sinr * d__[i__ + 1];
 		d__[i__ + 1] = cosr * d__[i__ + 1];
-		dlartg_(&f, &g, &cosl, &sinl, &r__);
+		_starpu_dlartg_(&f, &g, &cosl, &sinl, &r__);
 		d__[i__] = r__;
 		f = cosl * e[i__] + sinl * d__[i__ + 1];
 		d__[i__ + 1] = cosl * d__[i__ + 1] - sinl * e[i__];
@@ -757,17 +757,17 @@ L90:
 
 	    if (*ncvt > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "F", &i__1, ncvt, &work[1], &work[*n], &vt[
+		_starpu_dlasr_("L", "V", "F", &i__1, ncvt, &work[1], &work[*n], &vt[
 			ll + vt_dim1], ldvt);
 	    }
 	    if (*nru > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("R", "V", "F", nru, &i__1, &work[nm12 + 1], &work[nm13 
+		_starpu_dlasr_("R", "V", "F", nru, &i__1, &work[nm12 + 1], &work[nm13 
 			+ 1], &u[ll * u_dim1 + 1], ldu);
 	    }
 	    if (*ncc > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "F", &i__1, ncc, &work[nm12 + 1], &work[nm13 
+		_starpu_dlasr_("L", "V", "F", &i__1, ncc, &work[nm12 + 1], &work[nm13 
 			+ 1], &c__[ll + c_dim1], ldc);
 	    }
 
@@ -787,7 +787,7 @@ L90:
 	    g = e[m - 1];
 	    i__1 = ll + 1;
 	    for (i__ = m; i__ >= i__1; --i__) {
-		dlartg_(&f, &g, &cosr, &sinr, &r__);
+		_starpu_dlartg_(&f, &g, &cosr, &sinr, &r__);
 		if (i__ < m) {
 		    e[i__] = r__;
 		}
@@ -795,7 +795,7 @@ L90:
 		e[i__ - 1] = cosr * e[i__ - 1] - sinr * d__[i__];
 		g = sinr * d__[i__ - 1];
 		d__[i__ - 1] = cosr * d__[i__ - 1];
-		dlartg_(&f, &g, &cosl, &sinl, &r__);
+		_starpu_dlartg_(&f, &g, &cosl, &sinl, &r__);
 		d__[i__] = r__;
 		f = cosl * e[i__ - 1] + sinl * d__[i__ - 1];
 		d__[i__ - 1] = cosl * d__[i__ - 1] - sinl * e[i__ - 1];
@@ -821,17 +821,17 @@ L90:
 
 	    if (*ncvt > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "B", &i__1, ncvt, &work[nm12 + 1], &work[
+		_starpu_dlasr_("L", "V", "B", &i__1, ncvt, &work[nm12 + 1], &work[
 			nm13 + 1], &vt[ll + vt_dim1], ldvt);
 	    }
 	    if (*nru > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("R", "V", "B", nru, &i__1, &work[1], &work[*n], &u[ll *
+		_starpu_dlasr_("R", "V", "B", nru, &i__1, &work[1], &work[*n], &u[ll *
 			 u_dim1 + 1], ldu);
 	    }
 	    if (*ncc > 0) {
 		i__1 = m - ll + 1;
-		dlasr_("L", "V", "B", &i__1, ncc, &work[1], &work[*n], &c__[
+		_starpu_dlasr_("L", "V", "B", &i__1, ncc, &work[1], &work[*n], &c__[
 			ll + c_dim1], ldc);
 	    }
 	}
@@ -852,7 +852,7 @@ L160:
 /*           Change sign of singular vectors, if desired */
 
 	    if (*ncvt > 0) {
-		dscal_(ncvt, &c_b72, &vt[i__ + vt_dim1], ldvt);
+		_starpu_dscal_(ncvt, &c_b72, &vt[i__ + vt_dim1], ldvt);
 	    }
 	}
 /* L170: */
@@ -883,15 +883,15 @@ L160:
 	    d__[isub] = d__[*n + 1 - i__];
 	    d__[*n + 1 - i__] = smin;
 	    if (*ncvt > 0) {
-		dswap_(ncvt, &vt[isub + vt_dim1], ldvt, &vt[*n + 1 - i__ + 
+		_starpu_dswap_(ncvt, &vt[isub + vt_dim1], ldvt, &vt[*n + 1 - i__ + 
 			vt_dim1], ldvt);
 	    }
 	    if (*nru > 0) {
-		dswap_(nru, &u[isub * u_dim1 + 1], &c__1, &u[(*n + 1 - i__) * 
+		_starpu_dswap_(nru, &u[isub * u_dim1 + 1], &c__1, &u[(*n + 1 - i__) * 
 			u_dim1 + 1], &c__1);
 	    }
 	    if (*ncc > 0) {
-		dswap_(ncc, &c__[isub + c_dim1], ldc, &c__[*n + 1 - i__ + 
+		_starpu_dswap_(ncc, &c__[isub + c_dim1], ldc, &c__[*n + 1 - i__ + 
 			c_dim1], ldc);
 	    }
 	}
@@ -915,4 +915,4 @@ L220:
 
 /*     End of DBDSQR */
 
-} /* dbdsqr_ */
+} /* _starpu_dbdsqr_ */

@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b8 = 0.;
 static doublereal c_b14 = -1.;
 
-/* Subroutine */ int dsytd2_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsytd2_(char *uplo, integer *n, doublereal *a, integer *
 	lda, doublereal *d__, doublereal *e, doublereal *tau, integer *info)
 {
     /* System generated locals */
@@ -27,21 +27,21 @@ static doublereal c_b14 = -1.;
 
     /* Local variables */
     integer i__;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal taui;
-    extern /* Subroutine */ int dsyr2_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsyr2_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal alpha;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dsymv_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsymv_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *), dlarfg_(integer *, doublereal *, 
-	     doublereal *, integer *, doublereal *), xerbla_(char *, integer *
+	    doublereal *, integer *), _starpu_dlarfg_(integer *, doublereal *, 
+	     doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *
 );
 
 
@@ -179,8 +179,8 @@ static doublereal c_b14 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -189,7 +189,7 @@ static doublereal c_b14 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTD2", &i__1);
+	_starpu_xerbla_("DSYTD2", &i__1);
 	return 0;
     }
 
@@ -208,7 +208,7 @@ static doublereal c_b14 = -1.;
 /*           Generate elementary reflector H(i) = I - tau * v * v' */
 /*           to annihilate A(1:i-1,i+1) */
 
-	    dlarfg_(&i__, &a[i__ + (i__ + 1) * a_dim1], &a[(i__ + 1) * a_dim1 
+	    _starpu_dlarfg_(&i__, &a[i__ + (i__ + 1) * a_dim1], &a[(i__ + 1) * a_dim1 
 		    + 1], &c__1, &taui);
 	    e[i__] = a[i__ + (i__ + 1) * a_dim1];
 
@@ -220,20 +220,20 @@ static doublereal c_b14 = -1.;
 
 /*              Compute  x := tau * A * v  storing x in TAU(1:i) */
 
-		dsymv_(uplo, &i__, &taui, &a[a_offset], lda, &a[(i__ + 1) * 
+		_starpu_dsymv_(uplo, &i__, &taui, &a[a_offset], lda, &a[(i__ + 1) * 
 			a_dim1 + 1], &c__1, &c_b8, &tau[1], &c__1);
 
 /*              Compute  w := x - 1/2 * tau * (x'*v) * v */
 
-		alpha = taui * -.5 * ddot_(&i__, &tau[1], &c__1, &a[(i__ + 1) 
+		alpha = taui * -.5 * _starpu_ddot_(&i__, &tau[1], &c__1, &a[(i__ + 1) 
 			* a_dim1 + 1], &c__1);
-		daxpy_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &tau[
+		_starpu_daxpy_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &tau[
 			1], &c__1);
 
 /*              Apply the transformation as a rank-2 update: */
 /*                 A := A - v * w' - w * v' */
 
-		dsyr2_(uplo, &i__, &c_b14, &a[(i__ + 1) * a_dim1 + 1], &c__1, 
+		_starpu_dsyr2_(uplo, &i__, &c_b14, &a[(i__ + 1) * a_dim1 + 1], &c__1, 
 			&tau[1], &c__1, &a[a_offset], lda);
 
 		a[i__ + (i__ + 1) * a_dim1] = e[i__];
@@ -256,7 +256,7 @@ static doublereal c_b14 = -1.;
 	    i__2 = *n - i__;
 /* Computing MIN */
 	    i__3 = i__ + 2;
-	    dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ i__ *
+	    _starpu_dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ i__ *
 		     a_dim1], &c__1, &taui);
 	    e[i__] = a[i__ + 1 + i__ * a_dim1];
 
@@ -269,24 +269,24 @@ static doublereal c_b14 = -1.;
 /*              Compute  x := tau * A * v  storing y in TAU(i:n-1) */
 
 		i__2 = *n - i__;
-		dsymv_(uplo, &i__2, &taui, &a[i__ + 1 + (i__ + 1) * a_dim1], 
+		_starpu_dsymv_(uplo, &i__2, &taui, &a[i__ + 1 + (i__ + 1) * a_dim1], 
 			lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b8, &tau[
 			i__], &c__1);
 
 /*              Compute  w := x - 1/2 * tau * (x'*v) * v */
 
 		i__2 = *n - i__;
-		alpha = taui * -.5 * ddot_(&i__2, &tau[i__], &c__1, &a[i__ + 
+		alpha = taui * -.5 * _starpu_ddot_(&i__2, &tau[i__], &c__1, &a[i__ + 
 			1 + i__ * a_dim1], &c__1);
 		i__2 = *n - i__;
-		daxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
+		_starpu_daxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
 			i__], &c__1);
 
 /*              Apply the transformation as a rank-2 update: */
 /*                 A := A - v * w' - w * v' */
 
 		i__2 = *n - i__;
-		dsyr2_(uplo, &i__2, &c_b14, &a[i__ + 1 + i__ * a_dim1], &c__1, 
+		_starpu_dsyr2_(uplo, &i__2, &c_b14, &a[i__ + 1 + i__ * a_dim1], &c__1, 
 			 &tau[i__], &c__1, &a[i__ + 1 + (i__ + 1) * a_dim1], 
 			lda);
 
@@ -303,4 +303,4 @@ static doublereal c_b14 = -1.;
 
 /*     End of DSYTD2 */
 
-} /* dsytd2_ */
+} /* _starpu_dsytd2_ */

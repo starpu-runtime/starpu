@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c__0 = 0;
 static doublereal c_b8 = 1.;
 
-/* Subroutine */ int dlasd8_(integer *icompq, integer *k, doublereal *d__, 
+/* Subroutine */ int _starpu_dlasd8_(integer *icompq, integer *k, doublereal *d__, 
 	doublereal *z__, doublereal *vf, doublereal *vl, doublereal *difl, 
 	doublereal *difr, integer *lddifr, doublereal *dsigma, doublereal *
 	work, integer *info)
@@ -35,22 +35,22 @@ static doublereal c_b8 = 1.;
     integer i__, j;
     doublereal dj, rho;
     integer iwk1, iwk2, iwk3;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     integer iwk2i, iwk3i;
     doublereal diflj, difrj, dsigj;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlasd4_(integer *, integer *, doublereal *, 
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlasd4_(integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, integer *), dlascl_(char *, integer *, integer *, 
+	    doublereal *, integer *), _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlaset_(char *, integer *, integer 
+	    integer *, integer *), _starpu_dlaset_(char *, integer *, integer 
 	    *, doublereal *, doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal dsigjp;
 
 
@@ -184,7 +184,7 @@ static doublereal c_b8 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD8", &i__1);
+	_starpu_xerbla_("DLASD8", &i__1);
 	return 0;
     }
 
@@ -219,7 +219,7 @@ static doublereal c_b8 = 1.;
 
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	dsigma[i__] = dlamc3_(&dsigma[i__], &dsigma[i__]) - dsigma[i__];
+	dsigma[i__] = _starpu_dlamc3_(&dsigma[i__], &dsigma[i__]) - dsigma[i__];
 /* L10: */
     }
 
@@ -233,20 +233,20 @@ static doublereal c_b8 = 1.;
 
 /*     Normalize Z. */
 
-    rho = dnrm2_(k, &z__[1], &c__1);
-    dlascl_("G", &c__0, &c__0, &rho, &c_b8, k, &c__1, &z__[1], k, info);
+    rho = _starpu_dnrm2_(k, &z__[1], &c__1);
+    _starpu_dlascl_("G", &c__0, &c__0, &rho, &c_b8, k, &c__1, &z__[1], k, info);
     rho *= rho;
 
 /*     Initialize WORK(IWK3). */
 
-    dlaset_("A", k, &c__1, &c_b8, &c_b8, &work[iwk3], k);
+    _starpu_dlaset_("A", k, &c__1, &c_b8, &c_b8, &work[iwk3], k);
 
 /*     Compute the updated singular values, the arrays DIFL, DIFR, */
 /*     and the updated Z. */
 
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
-	dlasd4_(k, &j, &dsigma[1], &z__[1], &work[iwk1], &rho, &d__[j], &work[
+	_starpu_dlasd4_(k, &j, &dsigma[1], &z__[1], &work[iwk1], &rho, &d__[j], &work[
 		iwk2], info);
 
 /*        If the root finder fails, the computation is terminated. */
@@ -297,30 +297,30 @@ static doublereal c_b8 = 1.;
 	work[j] = -z__[j] / diflj / (dsigma[j] + dj);
 	i__2 = j - 1;
 	for (i__ = 1; i__ <= i__2; ++i__) {
-	    work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigj) - diflj) / (
+	    work[i__] = z__[i__] / (_starpu_dlamc3_(&dsigma[i__], &dsigj) - diflj) / (
 		    dsigma[i__] + dj);
 /* L60: */
 	}
 	i__2 = *k;
 	for (i__ = j + 1; i__ <= i__2; ++i__) {
-	    work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigjp) + difrj) / 
+	    work[i__] = z__[i__] / (_starpu_dlamc3_(&dsigma[i__], &dsigjp) + difrj) / 
 		    (dsigma[i__] + dj);
 /* L70: */
 	}
-	temp = dnrm2_(k, &work[1], &c__1);
-	work[iwk2i + j] = ddot_(k, &work[1], &c__1, &vf[1], &c__1) / temp;
-	work[iwk3i + j] = ddot_(k, &work[1], &c__1, &vl[1], &c__1) / temp;
+	temp = _starpu_dnrm2_(k, &work[1], &c__1);
+	work[iwk2i + j] = _starpu_ddot_(k, &work[1], &c__1, &vf[1], &c__1) / temp;
+	work[iwk3i + j] = _starpu_ddot_(k, &work[1], &c__1, &vl[1], &c__1) / temp;
 	if (*icompq == 1) {
 	    difr[j + (difr_dim1 << 1)] = temp;
 	}
 /* L80: */
     }
 
-    dcopy_(k, &work[iwk2], &c__1, &vf[1], &c__1);
-    dcopy_(k, &work[iwk3], &c__1, &vl[1], &c__1);
+    _starpu_dcopy_(k, &work[iwk2], &c__1, &vf[1], &c__1);
+    _starpu_dcopy_(k, &work[iwk3], &c__1, &vl[1], &c__1);
 
     return 0;
 
 /*     End of DLASD8 */
 
-} /* dlasd8_ */
+} /* _starpu_dlasd8_ */

@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b11 = 1.;
 
-/* Subroutine */ int dlacn2_(integer *n, doublereal *v, doublereal *x, 
+/* Subroutine */ int _starpu_dlacn2_(integer *n, doublereal *v, doublereal *x, 
 	integer *isgn, doublereal *est, integer *kase, integer *isave)
 {
     /* System generated locals */
@@ -32,11 +32,11 @@ static doublereal c_b11 = 1.;
     /* Local variables */
     integer i__;
     doublereal temp;
-    extern doublereal dasum_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
     integer jlast;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal altsgn, estold;
 
 
@@ -156,7 +156,7 @@ L20:
 /*        ... QUIT */
 	goto L150;
     }
-    *est = dasum_(n, &x[1], &c__1);
+    *est = _starpu_dasum_(n, &x[1], &c__1);
 
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -172,7 +172,7 @@ L20:
 /*     FIRST ITERATION.  X HAS BEEN OVERWRITTEN BY TRANSPOSE(A)*X. */
 
 L40:
-    isave[2] = idamax_(n, &x[1], &c__1);
+    isave[2] = _starpu_idamax_(n, &x[1], &c__1);
     isave[3] = 2;
 
 /*     MAIN LOOP - ITERATIONS 2,3,...,ITMAX. */
@@ -192,9 +192,9 @@ L50:
 /*     X HAS BEEN OVERWRITTEN BY A*X. */
 
 L70:
-    dcopy_(n, &x[1], &c__1, &v[1], &c__1);
+    _starpu_dcopy_(n, &x[1], &c__1, &v[1], &c__1);
     estold = *est;
-    *est = dasum_(n, &v[1], &c__1);
+    *est = _starpu_dasum_(n, &v[1], &c__1);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	d__1 = d_sign(&c_b11, &x[i__]);
@@ -227,7 +227,7 @@ L90:
 
 L110:
     jlast = isave[2];
-    isave[2] = idamax_(n, &x[1], &c__1);
+    isave[2] = _starpu_idamax_(n, &x[1], &c__1);
     if (x[jlast] != (d__1 = x[isave[2]], abs(d__1)) && isave[3] < 5) {
 	++isave[3];
 	goto L50;
@@ -252,9 +252,9 @@ L120:
 /*     X HAS BEEN OVERWRITTEN BY A*X. */
 
 L140:
-    temp = dasum_(n, &x[1], &c__1) / (doublereal) (*n * 3) * 2.;
+    temp = _starpu_dasum_(n, &x[1], &c__1) / (doublereal) (*n * 3) * 2.;
     if (temp > *est) {
-	dcopy_(n, &x[1], &c__1, &v[1], &c__1);
+	_starpu_dcopy_(n, &x[1], &c__1, &v[1], &c__1);
 	*est = temp;
     }
 
@@ -264,4 +264,4 @@ L150:
 
 /*     End of DLACN2 */
 
-} /* dlacn2_ */
+} /* _starpu_dlacn2_ */

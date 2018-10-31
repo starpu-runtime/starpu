@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlat2s_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dlat2s_(char *uplo, integer *n, doublereal *a, integer *
 	lda, real *sa, integer *ldsa, integer *info)
 {
     /* System generated locals */
@@ -22,9 +22,9 @@
     /* Local variables */
     integer i__, j;
     doublereal rmax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern doublereal slamch_(char *);
+    extern doublereal _starpu_slamch_(char *);
 
 
 /*  -- LAPACK PROTOTYPE auxiliary routine (version 3.1.2) -- */
@@ -95,8 +95,8 @@
     sa -= sa_offset;
 
     /* Function Body */
-    rmax = slamch_("O");
-    upper = lsame_(uplo, "U");
+    rmax = _starpu_slamch_("O");
+    upper = _starpu_lsame_(uplo, "U");
     if (upper) {
 	i__1 = *n;
 	for (j = 1; j <= i__1; ++j) {
@@ -134,4 +134,4 @@ L50:
 
 /*     End of DLAT2S */
 
-} /* dlat2s_ */
+} /* _starpu_dlat2s_ */

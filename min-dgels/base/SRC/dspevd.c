@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspevd_(char *jobz, char *uplo, integer *n, doublereal *
+/* Subroutine */ int _starpu_dspevd_(char *jobz, char *uplo, integer *n, doublereal *
 	ap, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *iwork, integer *liwork, integer *info)
 {
@@ -32,29 +32,29 @@ static integer c__1 = 1;
     doublereal eps;
     integer inde;
     doublereal anrm, rmin, rmax;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo, lwmin;
     logical wantz;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer iscale;
-    extern /* Subroutine */ int dstedc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dstedc_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern doublereal dlansp_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansp_(char *, char *, integer *, doublereal *, 
 	    doublereal *);
     integer indtau;
-    extern /* Subroutine */ int dsterf_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsterf_(integer *, doublereal *, doublereal *, 
 	     integer *);
     integer indwrk, liwmin;
-    extern /* Subroutine */ int dsptrd_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsptrd_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    dopmtr_(char *, char *, char *, integer *, integer *, doublereal *
+	    _starpu_dopmtr_(char *, char *, char *, integer *, integer *, doublereal *
 , doublereal *, doublereal *, integer *, doublereal *, integer *);
     integer llwork;
     doublereal smlnum;
@@ -189,13 +189,13 @@ static integer c__1 = 1;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
+    wantz = _starpu_lsame_(jobz, "V");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
-    } else if (! (lsame_(uplo, "U") || lsame_(uplo, 
+    } else if (! (_starpu_lsame_(uplo, "U") || _starpu_lsame_(uplo, 
 	    "L"))) {
 	*info = -2;
     } else if (*n < 0) {
@@ -231,7 +231,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPEVD", &i__1);
+	_starpu_xerbla_("DSPEVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -253,8 +253,8 @@ static integer c__1 = 1;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -262,7 +262,7 @@ static integer c__1 = 1;
 
 /*     Scale matrix to allowable range, if necessary. */
 
-    anrm = dlansp_("M", uplo, n, &ap[1], &work[1]);
+    anrm = _starpu_dlansp_("M", uplo, n, &ap[1], &work[1]);
     iscale = 0;
     if (anrm > 0. && anrm < rmin) {
 	iscale = 1;
@@ -273,14 +273,14 @@ static integer c__1 = 1;
     }
     if (iscale == 1) {
 	i__1 = *n * (*n + 1) / 2;
-	dscal_(&i__1, &sigma, &ap[1], &c__1);
+	_starpu_dscal_(&i__1, &sigma, &ap[1], &c__1);
     }
 
 /*     Call DSPTRD to reduce symmetric packed matrix to tridiagonal form. */
 
     inde = 1;
     indtau = inde + *n;
-    dsptrd_(uplo, n, &ap[1], &w[1], &work[inde], &work[indtau], &iinfo);
+    _starpu_dsptrd_(uplo, n, &ap[1], &w[1], &work[inde], &work[indtau], &iinfo);
 
 /*     For eigenvalues only, call DSTERF.  For eigenvectors, first call */
 /*     DSTEDC to generate the eigenvector matrix, WORK(INDWRK), of the */
@@ -288,13 +288,13 @@ static integer c__1 = 1;
 /*     Householder transformations represented in AP. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &work[inde], info);
+	_starpu_dsterf_(n, &w[1], &work[inde], info);
     } else {
 	indwrk = indtau + *n;
 	llwork = *lwork - indwrk + 1;
-	dstedc_("I", n, &w[1], &work[inde], &z__[z_offset], ldz, &work[indwrk]
+	_starpu_dstedc_("I", n, &w[1], &work[inde], &z__[z_offset], ldz, &work[indwrk]
 , &llwork, &iwork[1], liwork, info);
-	dopmtr_("L", uplo, "N", n, n, &ap[1], &work[indtau], &z__[z_offset], 
+	_starpu_dopmtr_("L", uplo, "N", n, n, &ap[1], &work[indtau], &z__[z_offset], 
 		ldz, &work[indwrk], &iinfo);
     }
 
@@ -302,7 +302,7 @@ static integer c__1 = 1;
 
     if (iscale == 1) {
 	d__1 = 1. / sigma;
-	dscal_(n, &d__1, &w[1], &c__1);
+	_starpu_dscal_(n, &d__1, &w[1], &c__1);
     }
 
     work[1] = (doublereal) lwmin;
@@ -311,4 +311,4 @@ static integer c__1 = 1;
 
 /*     End of DSPEVD */
 
-} /* dspevd_ */
+} /* _starpu_dspevd_ */

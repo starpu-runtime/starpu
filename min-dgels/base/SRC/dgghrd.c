@@ -19,7 +19,7 @@ static doublereal c_b10 = 0.;
 static doublereal c_b11 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dgghrd_(char *compq, char *compz, integer *n, integer *
+/* Subroutine */ int _starpu_dgghrd_(char *compq, char *compz, integer *n, integer *
 	ilo, integer *ihi, doublereal *a, integer *lda, doublereal *b, 
 	integer *ldb, doublereal *q, integer *ldq, doublereal *z__, integer *
 	ldz, integer *info)
@@ -33,14 +33,14 @@ static integer c__1 = 1;
     logical ilq, ilz;
     integer jcol;
     doublereal temp;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer jrow;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), xerbla_(char *, integer *);
+	    _starpu_dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), _starpu_xerbla_(char *, integer *);
     integer icompq, icompz;
 
 
@@ -194,13 +194,13 @@ static integer c__1 = 1;
     z__ -= z_offset;
 
     /* Function Body */
-    if (lsame_(compq, "N")) {
+    if (_starpu_lsame_(compq, "N")) {
 	ilq = FALSE_;
 	icompq = 1;
-    } else if (lsame_(compq, "V")) {
+    } else if (_starpu_lsame_(compq, "V")) {
 	ilq = TRUE_;
 	icompq = 2;
-    } else if (lsame_(compq, "I")) {
+    } else if (_starpu_lsame_(compq, "I")) {
 	ilq = TRUE_;
 	icompq = 3;
     } else {
@@ -209,13 +209,13 @@ static integer c__1 = 1;
 
 /*     Decode COMPZ */
 
-    if (lsame_(compz, "N")) {
+    if (_starpu_lsame_(compz, "N")) {
 	ilz = FALSE_;
 	icompz = 1;
-    } else if (lsame_(compz, "V")) {
+    } else if (_starpu_lsame_(compz, "V")) {
 	ilz = TRUE_;
 	icompz = 2;
-    } else if (lsame_(compz, "I")) {
+    } else if (_starpu_lsame_(compz, "I")) {
 	ilz = TRUE_;
 	icompz = 3;
     } else {
@@ -246,17 +246,17 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGHRD", &i__1);
+	_starpu_xerbla_("DGGHRD", &i__1);
 	return 0;
     }
 
 /*     Initialize Q and Z if desired. */
 
     if (icompq == 3) {
-	dlaset_("Full", n, n, &c_b10, &c_b11, &q[q_offset], ldq);
+	_starpu_dlaset_("Full", n, n, &c_b10, &c_b11, &q[q_offset], ldq);
     }
     if (icompz == 3) {
-	dlaset_("Full", n, n, &c_b10, &c_b11, &z__[z_offset], ldz);
+	_starpu_dlaset_("Full", n, n, &c_b10, &c_b11, &z__[z_offset], ldz);
     }
 
 /*     Quick return if possible */
@@ -288,33 +288,33 @@ static integer c__1 = 1;
 /*           Step 1: rotate rows JROW-1, JROW to kill A(JROW,JCOL) */
 
 	    temp = a[jrow - 1 + jcol * a_dim1];
-	    dlartg_(&temp, &a[jrow + jcol * a_dim1], &c__, &s, &a[jrow - 1 + 
+	    _starpu_dlartg_(&temp, &a[jrow + jcol * a_dim1], &c__, &s, &a[jrow - 1 + 
 		    jcol * a_dim1]);
 	    a[jrow + jcol * a_dim1] = 0.;
 	    i__3 = *n - jcol;
-	    drot_(&i__3, &a[jrow - 1 + (jcol + 1) * a_dim1], lda, &a[jrow + (
+	    _starpu_drot_(&i__3, &a[jrow - 1 + (jcol + 1) * a_dim1], lda, &a[jrow + (
 		    jcol + 1) * a_dim1], lda, &c__, &s);
 	    i__3 = *n + 2 - jrow;
-	    drot_(&i__3, &b[jrow - 1 + (jrow - 1) * b_dim1], ldb, &b[jrow + (
+	    _starpu_drot_(&i__3, &b[jrow - 1 + (jrow - 1) * b_dim1], ldb, &b[jrow + (
 		    jrow - 1) * b_dim1], ldb, &c__, &s);
 	    if (ilq) {
-		drot_(n, &q[(jrow - 1) * q_dim1 + 1], &c__1, &q[jrow * q_dim1 
+		_starpu_drot_(n, &q[(jrow - 1) * q_dim1 + 1], &c__1, &q[jrow * q_dim1 
 			+ 1], &c__1, &c__, &s);
 	    }
 
 /*           Step 2: rotate columns JROW, JROW-1 to kill B(JROW,JROW-1) */
 
 	    temp = b[jrow + jrow * b_dim1];
-	    dlartg_(&temp, &b[jrow + (jrow - 1) * b_dim1], &c__, &s, &b[jrow 
+	    _starpu_dlartg_(&temp, &b[jrow + (jrow - 1) * b_dim1], &c__, &s, &b[jrow 
 		    + jrow * b_dim1]);
 	    b[jrow + (jrow - 1) * b_dim1] = 0.;
-	    drot_(ihi, &a[jrow * a_dim1 + 1], &c__1, &a[(jrow - 1) * a_dim1 + 
+	    _starpu_drot_(ihi, &a[jrow * a_dim1 + 1], &c__1, &a[(jrow - 1) * a_dim1 + 
 		    1], &c__1, &c__, &s);
 	    i__3 = jrow - 1;
-	    drot_(&i__3, &b[jrow * b_dim1 + 1], &c__1, &b[(jrow - 1) * b_dim1 
+	    _starpu_drot_(&i__3, &b[jrow * b_dim1 + 1], &c__1, &b[(jrow - 1) * b_dim1 
 		    + 1], &c__1, &c__, &s);
 	    if (ilz) {
-		drot_(n, &z__[jrow * z_dim1 + 1], &c__1, &z__[(jrow - 1) * 
+		_starpu_drot_(n, &z__[jrow * z_dim1 + 1], &c__1, &z__[(jrow - 1) * 
 			z_dim1 + 1], &c__1, &c__, &s);
 	    }
 /* L30: */
@@ -326,4 +326,4 @@ static integer c__1 = 1;
 
 /*     End of DGGHRD */
 
-} /* dgghrd_ */
+} /* _starpu_dgghrd_ */

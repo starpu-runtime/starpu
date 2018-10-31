@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b31 = -1.;
 static doublereal c_b33 = 1.;
 
-/* Subroutine */ int dgglse_(integer *m, integer *n, integer *p, doublereal *
+/* Subroutine */ int _starpu_dgglse_(integer *m, integer *n, integer *p, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb, doublereal *c__, 
 	doublereal *d__, doublereal *x, doublereal *work, integer *lwork, 
 	integer *info)
@@ -30,28 +30,28 @@ static doublereal c_b33 = 1.;
 
     /* Local variables */
     integer nb, mn, nr, nb1, nb2, nb3, nb4, lopt;
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), daxpy_(integer 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_daxpy_(integer 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *)
-	    , dtrmv_(char *, char *, char *, integer *, doublereal *, integer 
-	    *, doublereal *, integer *), dggrqf_(
+	    , _starpu_dtrmv_(char *, char *, char *, integer *, doublereal *, integer 
+	    *, doublereal *, integer *), _starpu_dggrqf_(
 	    integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	     integer *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer lwkmin;
-    extern /* Subroutine */ int dormqr_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormqr_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *), 
-	    dormrq_(char *, char *, integer *, integer *, integer *, 
+	    _starpu_dormrq_(char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
-    extern /* Subroutine */ int dtrtrs_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrtrs_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -208,10 +208,10 @@ static doublereal c_b33 = 1.;
 	    lwkmin = 1;
 	    lwkopt = 1;
 	} else {
-	    nb1 = ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
-	    nb2 = ilaenv_(&c__1, "DGERQF", " ", m, n, &c_n1, &c_n1);
-	    nb3 = ilaenv_(&c__1, "DORMQR", " ", m, n, p, &c_n1);
-	    nb4 = ilaenv_(&c__1, "DORMRQ", " ", m, n, p, &c_n1);
+	    nb1 = _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+	    nb2 = _starpu_ilaenv_(&c__1, "DGERQF", " ", m, n, &c_n1, &c_n1);
+	    nb3 = _starpu_ilaenv_(&c__1, "DORMQR", " ", m, n, p, &c_n1);
+	    nb4 = _starpu_ilaenv_(&c__1, "DORMRQ", " ", m, n, p, &c_n1);
 /* Computing MAX */
 	    i__1 = max(nb1,nb2), i__1 = max(i__1,nb3);
 	    nb = max(i__1,nb4);
@@ -227,7 +227,7 @@ static doublereal c_b33 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGLSE", &i__1);
+	_starpu_xerbla_("DGGLSE", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -249,7 +249,7 @@ static doublereal c_b33 = 1.;
 /*     orthogonal. */
 
     i__1 = *lwork - *p - mn;
-    dggrqf_(p, m, n, &b[b_offset], ldb, &work[1], &a[a_offset], lda, &work[*p 
+    _starpu_dggrqf_(p, m, n, &b[b_offset], ldb, &work[1], &a[a_offset], lda, &work[*p 
 	    + 1], &work[*p + mn + 1], &i__1, info);
     lopt = (integer) work[*p + mn + 1];
 
@@ -258,7 +258,7 @@ static doublereal c_b33 = 1.;
 
     i__1 = max(1,*m);
     i__2 = *lwork - *p - mn;
-    dormqr_("Left", "Transpose", m, &c__1, &mn, &a[a_offset], lda, &work[*p + 
+    _starpu_dormqr_("Left", "Transpose", m, &c__1, &mn, &a[a_offset], lda, &work[*p + 
 	    1], &c__[1], &i__1, &work[*p + mn + 1], &i__2, info);
 /* Computing MAX */
     i__1 = lopt, i__2 = (integer) work[*p + mn + 1];
@@ -267,7 +267,7 @@ static doublereal c_b33 = 1.;
 /*     Solve T12*x2 = d for x2 */
 
     if (*p > 0) {
-	dtrtrs_("Upper", "No transpose", "Non-unit", p, &c__1, &b[(*n - *p + 
+	_starpu_dtrtrs_("Upper", "No transpose", "Non-unit", p, &c__1, &b[(*n - *p + 
 		1) * b_dim1 + 1], ldb, &d__[1], p, info);
 
 	if (*info > 0) {
@@ -277,12 +277,12 @@ static doublereal c_b33 = 1.;
 
 /*        Put the solution in X */
 
-	dcopy_(p, &d__[1], &c__1, &x[*n - *p + 1], &c__1);
+	_starpu_dcopy_(p, &d__[1], &c__1, &x[*n - *p + 1], &c__1);
 
 /*        Update c1 */
 
 	i__1 = *n - *p;
-	dgemv_("No transpose", &i__1, p, &c_b31, &a[(*n - *p + 1) * a_dim1 + 
+	_starpu_dgemv_("No transpose", &i__1, p, &c_b31, &a[(*n - *p + 1) * a_dim1 + 
 		1], lda, &d__[1], &c__1, &c_b33, &c__[1], &c__1);
     }
 
@@ -291,7 +291,7 @@ static doublereal c_b33 = 1.;
     if (*n > *p) {
 	i__1 = *n - *p;
 	i__2 = *n - *p;
-	dtrtrs_("Upper", "No transpose", "Non-unit", &i__1, &c__1, &a[
+	_starpu_dtrtrs_("Upper", "No transpose", "Non-unit", &i__1, &c__1, &a[
 		a_offset], lda, &c__[1], &i__2, info);
 
 	if (*info > 0) {
@@ -302,7 +302,7 @@ static doublereal c_b33 = 1.;
 /*        Put the solutions in X */
 
 	i__1 = *n - *p;
-	dcopy_(&i__1, &c__[1], &c__1, &x[1], &c__1);
+	_starpu_dcopy_(&i__1, &c__[1], &c__1, &x[1], &c__1);
     }
 
 /*     Compute the residual vector: */
@@ -311,7 +311,7 @@ static doublereal c_b33 = 1.;
 	nr = *m + *p - *n;
 	if (nr > 0) {
 	    i__1 = *n - *m;
-	    dgemv_("No transpose", &nr, &i__1, &c_b31, &a[*n - *p + 1 + (*m + 
+	    _starpu_dgemv_("No transpose", &nr, &i__1, &c_b31, &a[*n - *p + 1 + (*m + 
 		    1) * a_dim1], lda, &d__[nr + 1], &c__1, &c_b33, &c__[*n - 
 		    *p + 1], &c__1);
 	}
@@ -319,15 +319,15 @@ static doublereal c_b33 = 1.;
 	nr = *p;
     }
     if (nr > 0) {
-	dtrmv_("Upper", "No transpose", "Non unit", &nr, &a[*n - *p + 1 + (*n 
+	_starpu_dtrmv_("Upper", "No transpose", "Non unit", &nr, &a[*n - *p + 1 + (*n 
 		- *p + 1) * a_dim1], lda, &d__[1], &c__1);
-	daxpy_(&nr, &c_b31, &d__[1], &c__1, &c__[*n - *p + 1], &c__1);
+	_starpu_daxpy_(&nr, &c_b31, &d__[1], &c__1, &c__[*n - *p + 1], &c__1);
     }
 
 /*     Backward transformation x = Q'*x */
 
     i__1 = *lwork - *p - mn;
-    dormrq_("Left", "Transpose", n, &c__1, p, &b[b_offset], ldb, &work[1], &x[
+    _starpu_dormrq_("Left", "Transpose", n, &c__1, p, &b[b_offset], ldb, &work[1], &x[
 	    1], n, &work[*p + mn + 1], &i__1, info);
 /* Computing MAX */
     i__1 = lopt, i__2 = (integer) work[*p + mn + 1];
@@ -337,4 +337,4 @@ static doublereal c_b33 = 1.;
 
 /*     End of DGGLSE */
 
-} /* dgglse_ */
+} /* _starpu_dgglse_ */

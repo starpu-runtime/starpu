@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dtptri_(char *uplo, char *diag, integer *n, doublereal *
+/* Subroutine */ int _starpu_dtptri_(char *uplo, char *diag, integer *n, doublereal *
 	ap, integer *info)
 {
     /* System generated locals */
@@ -26,13 +26,13 @@ static integer c__1 = 1;
     /* Local variables */
     integer j, jc, jj;
     doublereal ajj;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtpmv_(char *, char *, char *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtpmv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer jclast;
     logical nounit;
 
@@ -117,18 +117,18 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    nounit = lsame_(diag, "N");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    nounit = _starpu_lsame_(diag, "N");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTPTRI", &i__1);
+	_starpu_xerbla_("DTPTRI", &i__1);
 	return 0;
     }
 
@@ -176,10 +176,10 @@ static integer c__1 = 1;
 /*           Compute elements 1:j-1 of j-th column. */
 
 	    i__2 = j - 1;
-	    dtpmv_("Upper", "No transpose", diag, &i__2, &ap[1], &ap[jc], &
+	    _starpu_dtpmv_("Upper", "No transpose", diag, &i__2, &ap[1], &ap[jc], &
 		    c__1);
 	    i__2 = j - 1;
-	    dscal_(&i__2, &ajj, &ap[jc], &c__1);
+	    _starpu_dscal_(&i__2, &ajj, &ap[jc], &c__1);
 	    jc += j;
 /* L30: */
 	}
@@ -201,10 +201,10 @@ static integer c__1 = 1;
 /*              Compute elements j+1:n of j-th column. */
 
 		i__1 = *n - j;
-		dtpmv_("Lower", "No transpose", diag, &i__1, &ap[jclast], &ap[
+		_starpu_dtpmv_("Lower", "No transpose", diag, &i__1, &ap[jclast], &ap[
 			jc + 1], &c__1);
 		i__1 = *n - j;
-		dscal_(&i__1, &ajj, &ap[jc + 1], &c__1);
+		_starpu_dscal_(&i__1, &ajj, &ap[jc + 1], &c__1);
 	    }
 	    jclast = jc;
 	    jc = jc - *n + j - 2;
@@ -216,4 +216,4 @@ static integer c__1 = 1;
 
 /*     End of DTPTRI */
 
-} /* dtptri_ */
+} /* _starpu_dtptri_ */

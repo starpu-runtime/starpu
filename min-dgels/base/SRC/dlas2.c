@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlas2_(doublereal *f, doublereal *g, doublereal *h__, 
+/* Subroutine */ int _starpu_dlas2_(doublereal *f, doublereal *g, doublereal *h__, 
 	doublereal *ssmin, doublereal *ssmax)
 {
     /* System generated locals */
@@ -141,4 +141,4 @@
 
 /*     End of DLAS2 */
 
-} /* dlas2_ */
+} /* _starpu_dlas2_ */

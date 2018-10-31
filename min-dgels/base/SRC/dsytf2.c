@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dsytf2_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsytf2_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -33,20 +33,20 @@ static integer c__1 = 1;
     integer kk, kp;
     doublereal wk, wkm1, wkp1;
     integer imax, jmax;
-    extern /* Subroutine */ int dsyr_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsyr_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer kstep;
     logical upper;
     doublereal absakk;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern logical disnan_(doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern logical _starpu_disnan_(doublereal *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal colmax, rowmax;
 
 
@@ -193,8 +193,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -203,7 +203,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTF2", &i__1);
+	_starpu_xerbla_("DSYTF2", &i__1);
 	return 0;
     }
 
@@ -238,13 +238,13 @@ L10:
 
 	if (k > 1) {
 	    i__1 = k - 1;
-	    imax = idamax_(&i__1, &a[k * a_dim1 + 1], &c__1);
+	    imax = _starpu_idamax_(&i__1, &a[k * a_dim1 + 1], &c__1);
 	    colmax = (d__1 = a[imax + k * a_dim1], abs(d__1));
 	} else {
 	    colmax = 0.;
 	}
 
-	if (max(absakk,colmax) == 0. || disnan_(&absakk)) {
+	if (max(absakk,colmax) == 0. || _starpu_disnan_(&absakk)) {
 
 /*           Column K is zero or contains a NaN: set INFO and continue */
 
@@ -264,12 +264,12 @@ L10:
 /*              element in row IMAX, and ROWMAX is its absolute value */
 
 		i__1 = k - imax;
-		jmax = imax + idamax_(&i__1, &a[imax + (imax + 1) * a_dim1], 
+		jmax = imax + _starpu_idamax_(&i__1, &a[imax + (imax + 1) * a_dim1], 
 			lda);
 		rowmax = (d__1 = a[imax + jmax * a_dim1], abs(d__1));
 		if (imax > 1) {
 		    i__1 = imax - 1;
-		    jmax = idamax_(&i__1, &a[imax * a_dim1 + 1], &c__1);
+		    jmax = _starpu_idamax_(&i__1, &a[imax * a_dim1 + 1], &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = a[jmax + imax * a_dim1], 
 			    abs(d__1));
@@ -305,10 +305,10 @@ L10:
 /*              submatrix A(1:k,1:k) */
 
 		i__1 = kp - 1;
-		dswap_(&i__1, &a[kk * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], 
+		_starpu_dswap_(&i__1, &a[kk * a_dim1 + 1], &c__1, &a[kp * a_dim1 + 1], 
 			 &c__1);
 		i__1 = kk - kp - 1;
-		dswap_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + (kp + 
+		_starpu_dswap_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + (kp + 
 			1) * a_dim1], lda);
 		t = a[kk + kk * a_dim1];
 		a[kk + kk * a_dim1] = a[kp + kp * a_dim1];
@@ -337,13 +337,13 @@ L10:
 		r1 = 1. / a[k + k * a_dim1];
 		i__1 = k - 1;
 		d__1 = -r1;
-		dsyr_(uplo, &i__1, &d__1, &a[k * a_dim1 + 1], &c__1, &a[
+		_starpu_dsyr_(uplo, &i__1, &d__1, &a[k * a_dim1 + 1], &c__1, &a[
 			a_offset], lda);
 
 /*              Store U(k) in column k */
 
 		i__1 = k - 1;
-		dscal_(&i__1, &r1, &a[k * a_dim1 + 1], &c__1);
+		_starpu_dscal_(&i__1, &r1, &a[k * a_dim1 + 1], &c__1);
 	    } else {
 
 /*              2-by-2 pivot block D(k): columns k and k-1 now hold */
@@ -428,13 +428,13 @@ L40:
 
 	if (k < *n) {
 	    i__1 = *n - k;
-	    imax = k + idamax_(&i__1, &a[k + 1 + k * a_dim1], &c__1);
+	    imax = k + _starpu_idamax_(&i__1, &a[k + 1 + k * a_dim1], &c__1);
 	    colmax = (d__1 = a[imax + k * a_dim1], abs(d__1));
 	} else {
 	    colmax = 0.;
 	}
 
-	if (max(absakk,colmax) == 0. || disnan_(&absakk)) {
+	if (max(absakk,colmax) == 0. || _starpu_disnan_(&absakk)) {
 
 /*           Column K is zero or contains a NaN: set INFO and continue */
 
@@ -454,11 +454,11 @@ L40:
 /*              element in row IMAX, and ROWMAX is its absolute value */
 
 		i__1 = imax - k;
-		jmax = k - 1 + idamax_(&i__1, &a[imax + k * a_dim1], lda);
+		jmax = k - 1 + _starpu_idamax_(&i__1, &a[imax + k * a_dim1], lda);
 		rowmax = (d__1 = a[imax + jmax * a_dim1], abs(d__1));
 		if (imax < *n) {
 		    i__1 = *n - imax;
-		    jmax = imax + idamax_(&i__1, &a[imax + 1 + imax * a_dim1], 
+		    jmax = imax + _starpu_idamax_(&i__1, &a[imax + 1 + imax * a_dim1], 
 			     &c__1);
 /* Computing MAX */
 		    d__2 = rowmax, d__3 = (d__1 = a[jmax + imax * a_dim1], 
@@ -496,11 +496,11 @@ L40:
 
 		if (kp < *n) {
 		    i__1 = *n - kp;
-		    dswap_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + 1 
+		    _starpu_dswap_(&i__1, &a[kp + 1 + kk * a_dim1], &c__1, &a[kp + 1 
 			    + kp * a_dim1], &c__1);
 		}
 		i__1 = kp - kk - 1;
-		dswap_(&i__1, &a[kk + 1 + kk * a_dim1], &c__1, &a[kp + (kk + 
+		_starpu_dswap_(&i__1, &a[kk + 1 + kk * a_dim1], &c__1, &a[kp + (kk + 
 			1) * a_dim1], lda);
 		t = a[kk + kk * a_dim1];
 		a[kk + kk * a_dim1] = a[kp + kp * a_dim1];
@@ -531,13 +531,13 @@ L40:
 		    d11 = 1. / a[k + k * a_dim1];
 		    i__1 = *n - k;
 		    d__1 = -d11;
-		    dsyr_(uplo, &i__1, &d__1, &a[k + 1 + k * a_dim1], &c__1, &
+		    _starpu_dsyr_(uplo, &i__1, &d__1, &a[k + 1 + k * a_dim1], &c__1, &
 			    a[k + 1 + (k + 1) * a_dim1], lda);
 
 /*                 Store L(k) in column K */
 
 		    i__1 = *n - k;
-		    dscal_(&i__1, &d11, &a[k + 1 + k * a_dim1], &c__1);
+		    _starpu_dscal_(&i__1, &d11, &a[k + 1 + k * a_dim1], &c__1);
 		}
 	    } else {
 
@@ -605,4 +605,4 @@ L70:
 
 /*     End of DSYTF2 */
 
-} /* dsytf2_ */
+} /* _starpu_dsytf2_ */

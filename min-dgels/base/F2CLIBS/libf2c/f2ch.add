@@ -54,7 +54,7 @@ extern integer e_wsle(void);
 extern integer e_wsli(void);
 extern integer e_wsue(void);
 extern int ef1asc_(ftnint *, ftnlen *, ftnint *, ftnlen *);
-extern integer ef1cmc_(ftnint *, ftnlen *, ftnint *, ftnlen *);
+extern integer _starpu_ef1cmc_(ftnint *, ftnlen *, ftnint *, ftnlen *);
 extern double erf(double);
 extern double erf_(float *);
 extern double erfc(double);

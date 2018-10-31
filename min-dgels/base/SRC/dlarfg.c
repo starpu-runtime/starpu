@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarfg_(integer *n, doublereal *alpha, doublereal *x, 
+/* Subroutine */ int _starpu_dlarfg_(integer *n, doublereal *alpha, doublereal *x, 
 	integer *incx, doublereal *tau)
 {
     /* System generated locals */
@@ -26,11 +26,11 @@
     /* Local variables */
     integer j, knt;
     doublereal beta;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal xnorm;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
     doublereal safmin, rsafmn;
 
 
@@ -111,7 +111,7 @@
     }
 
     i__1 = *n - 1;
-    xnorm = dnrm2_(&i__1, &x[1], incx);
+    xnorm = _starpu_dnrm2_(&i__1, &x[1], incx);
 
     if (xnorm == 0.) {
 
@@ -122,9 +122,9 @@
 
 /*        general case */
 
-	d__1 = dlapy2_(alpha, &xnorm);
+	d__1 = _starpu_dlapy2_(alpha, &xnorm);
 	beta = -d_sign(&d__1, alpha);
-	safmin = dlamch_("S") / dlamch_("E");
+	safmin = _starpu_dlamch_("S") / _starpu_dlamch_("E");
 	knt = 0;
 	if (abs(beta) < safmin) {
 
@@ -134,7 +134,7 @@
 L10:
 	    ++knt;
 	    i__1 = *n - 1;
-	    dscal_(&i__1, &rsafmn, &x[1], incx);
+	    _starpu_dscal_(&i__1, &rsafmn, &x[1], incx);
 	    beta *= rsafmn;
 	    *alpha *= rsafmn;
 	    if (abs(beta) < safmin) {
@@ -144,14 +144,14 @@ L10:
 /*           New BETA is at most 1, at least SAFMIN */
 
 	    i__1 = *n - 1;
-	    xnorm = dnrm2_(&i__1, &x[1], incx);
-	    d__1 = dlapy2_(alpha, &xnorm);
+	    xnorm = _starpu_dnrm2_(&i__1, &x[1], incx);
+	    d__1 = _starpu_dlapy2_(alpha, &xnorm);
 	    beta = -d_sign(&d__1, alpha);
 	}
 	*tau = (beta - *alpha) / beta;
 	i__1 = *n - 1;
 	d__1 = 1. / (*alpha - beta);
-	dscal_(&i__1, &d__1, &x[1], incx);
+	_starpu_dscal_(&i__1, &d__1, &x[1], incx);
 
 /*        If ALPHA is subnormal, it may lose relative accuracy */
 
@@ -167,4 +167,4 @@ L10:
 
 /*     End of DLARFG */
 
-} /* dlarfg_ */
+} /* _starpu_dlarfg_ */

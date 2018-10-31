@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspev_(char *jobz, char *uplo, integer *n, doublereal *
+/* Subroutine */ int _starpu_dspev_(char *jobz, char *uplo, integer *n, doublereal *
 	ap, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *info)
 {
@@ -34,26 +34,26 @@ static integer c__1 = 1;
     doublereal anrm;
     integer imax;
     doublereal rmin, rmax;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical wantz;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer iscale;
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern doublereal dlansp_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansp_(char *, char *, integer *, doublereal *, 
 	    doublereal *);
     integer indtau;
-    extern /* Subroutine */ int dsterf_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsterf_(integer *, doublereal *, doublereal *, 
 	     integer *);
     integer indwrk;
-    extern /* Subroutine */ int dopgtr_(char *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *, doublereal *, integer *), dsptrd_(char *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, integer *), dsteqr_(char *, 
+    extern /* Subroutine */ int _starpu_dopgtr_(char *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *, doublereal *, integer *), _starpu_dsptrd_(char *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *), _starpu_dsteqr_(char *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     doublereal smlnum;
@@ -149,12 +149,12 @@ static integer c__1 = 1;
     --work;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
+    wantz = _starpu_lsame_(jobz, "V");
 
     *info = 0;
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
-    } else if (! (lsame_(uplo, "U") || lsame_(uplo, 
+    } else if (! (_starpu_lsame_(uplo, "U") || _starpu_lsame_(uplo, 
 	    "L"))) {
 	*info = -2;
     } else if (*n < 0) {
@@ -165,7 +165,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPEV ", &i__1);
+	_starpu_xerbla_("DSPEV ", &i__1);
 	return 0;
     }
 
@@ -185,8 +185,8 @@ static integer c__1 = 1;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -194,7 +194,7 @@ static integer c__1 = 1;
 
 /*     Scale matrix to allowable range, if necessary. */
 
-    anrm = dlansp_("M", uplo, n, &ap[1], &work[1]);
+    anrm = _starpu_dlansp_("M", uplo, n, &ap[1], &work[1]);
     iscale = 0;
     if (anrm > 0. && anrm < rmin) {
 	iscale = 1;
@@ -205,25 +205,25 @@ static integer c__1 = 1;
     }
     if (iscale == 1) {
 	i__1 = *n * (*n + 1) / 2;
-	dscal_(&i__1, &sigma, &ap[1], &c__1);
+	_starpu_dscal_(&i__1, &sigma, &ap[1], &c__1);
     }
 
 /*     Call DSPTRD to reduce symmetric packed matrix to tridiagonal form. */
 
     inde = 1;
     indtau = inde + *n;
-    dsptrd_(uplo, n, &ap[1], &w[1], &work[inde], &work[indtau], &iinfo);
+    _starpu_dsptrd_(uplo, n, &ap[1], &w[1], &work[inde], &work[indtau], &iinfo);
 
 /*     For eigenvalues only, call DSTERF.  For eigenvectors, first call */
 /*     DOPGTR to generate the orthogonal matrix, then call DSTEQR. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &work[inde], info);
+	_starpu_dsterf_(n, &w[1], &work[inde], info);
     } else {
 	indwrk = indtau + *n;
-	dopgtr_(uplo, n, &ap[1], &work[indtau], &z__[z_offset], ldz, &work[
+	_starpu_dopgtr_(uplo, n, &ap[1], &work[indtau], &z__[z_offset], ldz, &work[
 		indwrk], &iinfo);
-	dsteqr_(jobz, n, &w[1], &work[inde], &z__[z_offset], ldz, &work[
+	_starpu_dsteqr_(jobz, n, &w[1], &work[inde], &z__[z_offset], ldz, &work[
 		indtau], info);
     }
 
@@ -236,11 +236,11 @@ static integer c__1 = 1;
 	    imax = *info - 1;
 	}
 	d__1 = 1. / sigma;
-	dscal_(&imax, &d__1, &w[1], &c__1);
+	_starpu_dscal_(&imax, &d__1, &w[1], &c__1);
     }
 
     return 0;
 
 /*     End of DSPEV */
 
-} /* dspev_ */
+} /* _starpu_dspev_ */

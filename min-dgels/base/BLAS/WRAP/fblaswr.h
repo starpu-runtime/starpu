@@ -1,205 +1,205 @@
 real 
-sdot_(integer* N, 
+_starpu_sdot_(integer* N, 
       real* X, integer* incX, 
       real* Y, integer* incY);
 
 doublereal
-ddot_(integer* N, 
+_starpu_ddot_(integer* N, 
       doublereal* X, integer* incX, 
       doublereal* Y, integer* incY);
 
 void 
-cdotu_(complex* retval,
+_starpu_cdotu_(complex* retval,
        integer* N, 
        complex* X, integer* incX, 
        complex* Y, integer* incY);
 
 void
-cdotc_(complex* retval,
+_starpu_cdotc_(complex* retval,
        integer* N, 
        complex* X, integer* incX, 
        complex* Y, integer* incY);
 
 void
-zdotu_(doublecomplex* retval,
+_starpu_zdotu_(doublecomplex* retval,
        integer* N, 
        doublecomplex* X, integer* incX, 
        doublecomplex* Y, integer* incY);
 
 void
-zdotc_(doublecomplex* retval,
+_starpu_zdotc_(doublecomplex* retval,
        integer* N, 
        doublecomplex* X, integer* incX, 
        doublecomplex* Y, integer* incY);
 
 real 
-snrm2_(integer* N, 
+_starpu_snrm2_(integer* N, 
        real* X, integer* incX);
 
 real
-sasum_(integer* N, 
+_starpu_sasum_(integer* N, 
        real* X, integer* incX);
 
 doublereal
-dnrm2_(integer* N, 
+_starpu_dnrm2_(integer* N, 
        doublereal* X, integer* incX);
 
 doublereal
-dasum_(integer* N, 
+_starpu_dasum_(integer* N, 
        doublereal* X, integer* incX);
 
 real 
-scnrm2_(integer* N, 
+_starpu_scnrm2_(integer* N, 
         complex* X, integer* incX);
 
 real
-scasum_(integer* N, 
+_starpu_scasum_(integer* N, 
         complex* X, integer* incX);
 
 doublereal 
-dznrm2_(integer* N, 
+_starpu_dznrm2_(integer* N, 
         doublecomplex* X, integer* incX);
 
 doublereal
-dzasum_(integer* N, 
+_starpu_dzasum_(integer* N, 
         doublecomplex* X, integer* incX);
 
 integer
-isamax_(integer* N,
+_starpu_isamax_(integer* N,
         real* X, integer* incX);
 
 integer
-idamax_(integer* N,
+_starpu_idamax_(integer* N,
         doublereal* X, integer* incX);
 
 integer
-icamax_(integer* N,
+_starpu_icamax_(integer* N,
         complex* X, integer* incX);
 
 integer
-izamax_(integer* N,
+_starpu_izamax_(integer* N,
         doublecomplex* X, integer* incX);
 
 int
-sswap_(integer* N,
+_starpu_sswap_(integer* N,
        real* X, integer* incX,
        real* Y, integer* incY);
 
 int
-scopy_(integer* N,
+_starpu_scopy_(integer* N,
        real* X, integer* incX,
        real* Y, integer* incY);
 
 int
-saxpy_(integer* N,
+_starpu_saxpy_(integer* N,
        real* alpha,
        real* X, integer* incX,
        real* Y, integer* incY);
 
 int
-dswap_(integer* N,
+_starpu_dswap_(integer* N,
        doublereal* X, integer* incX,
        doublereal* Y, integer* incY);
 
 int
-dcopy_(integer* N,
+_starpu_dcopy_(integer* N,
        doublereal* X, integer* incX,
        doublereal* Y, integer* incY);
 
 int
-daxpy_(integer* N,
+_starpu_daxpy_(integer* N,
        doublereal* alpha,
        doublereal* X, integer* incX,
        doublereal* Y, integer* incY);
 
 int
-cswap_(integer* N,
+_starpu_cswap_(integer* N,
        complex* X, integer* incX,
        complex* Y, integer* incY);
 
 int
-ccopy_(integer* N,
+_starpu_ccopy_(integer* N,
        complex* X, integer* incX,
        complex* Y, integer* incY);
 
 int
-caxpy_(integer* N,
+_starpu_caxpy_(integer* N,
       complex* alpha,
       complex* X, integer* incX,
       complex* Y, integer* incY);
 
 int
-zswap_(integer* N,
+_starpu_zswap_(integer* N,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY);
 
 int
-zcopy_(integer* N,
+_starpu_zcopy_(integer* N,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY);
 
 int
-zaxpy_(integer* N,
+_starpu_zaxpy_(integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY);
 
 int
-srotg_(real* a, real* b, real* c, real* s);
+_starpu_srotg_(real* a, real* b, real* c, real* s);
 
 int
-srot_(integer* N,
+_starpu_srot_(integer* N,
       real* X, integer* incX,
       real* Y, integer* incY,
       real* c, real* s);
 
 int
-crotg_(complex* a, complex* b, complex* c, complex* s);
+_starpu_crotg_(complex* a, complex* b, complex* c, complex* s);
 
 int
-drotg_(doublereal* a, doublereal* b, doublereal* c, doublereal* s);
+_starpu_drotg_(doublereal* a, doublereal* b, doublereal* c, doublereal* s);
 
 int
-drot_(integer* N,
+_starpu_drot_(integer* N,
       doublereal* X, integer* incX,
       doublereal* Y, integer* incY,
       doublereal* c, doublereal* s);
 
 int
-zrotg_(doublecomplex* a, doublecomplex* b, doublecomplex* c, doublecomplex* s);
+_starpu_zrotg_(doublecomplex* a, doublecomplex* b, doublecomplex* c, doublecomplex* s);
 
 int
-sscal_(integer* N,
+_starpu_sscal_(integer* N,
        real* alpha,
        real* X, integer* incX);
 
 int
-dscal_(integer* N,
+_starpu_dscal_(integer* N,
        doublereal* alpha,
        doublereal* X, integer* incX);
 
 int
-cscal_(integer* N,
+_starpu_cscal_(integer* N,
        complex* alpha,
        complex* X, integer* incX);
 
 int
-zscal_(integer* N,
+_starpu_zscal_(integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX);
 
 int
-csscal_(integer* N,
+_starpu_cstarpu_sscal_(integer* N,
         real* alpha,
         complex* X, integer* incX);
 
 int
-zdscal_(integer* N,
+zstarpu_dscal_(integer* N,
         doublereal* alpha,
         doublecomplex* X, integer* incX);
 
 int
-sgemv_(char* trans, integer* M, integer* N,
+_starpu_sgemv_(char* trans, integer* M, integer* N,
        real* alpha,
        real* A, integer* lda,
        real* X, integer* incX,
@@ -207,7 +207,7 @@ sgemv_(char* trans, integer* M, integer* N,
        real* Y, integer* incY);
 
 int
-sgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
+_starpu_sgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
        real *alpha, 
        real *A, integer *lda, 
        real *X, integer *incX, 
@@ -215,37 +215,37 @@ sgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU,
        real *Y, integer *incY);
 
 int 
-strmv_(char* uplo, char *trans, char* diag, integer *N,  
+_starpu_strmv_(char* uplo, char *trans, char* diag, integer *N,  
        real *A, integer *lda, 
        real *X, integer *incX);
 
 int
-stbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_stbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        real* A, integer* lda,
        real* X, integer* incX);
 
 int
-stpmv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_stpmv_(char* uplo, char* trans, char* diag, integer* N, 
        real* Ap, 
        real* X, integer* incX);
 
 int
-strsv_(char* uplo, char* trans, char* diag, integer* N,
+_starpu_strsv_(char* uplo, char* trans, char* diag, integer* N,
        real* A, integer* lda,
        real* X, integer* incX);
 
 int
-stbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_stbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        real* A, integer* lda, 
        real* X, integer* incX);
 
 int
-stpsv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_stpsv_(char* uplo, char* trans, char* diag, integer* N, 
        real* Ap, 
        real* X, integer* incX);
 
 int
-dgemv_(char* trans, integer* M, integer* N,
+_starpu_dgemv_(char* trans, integer* M, integer* N,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* X, integer* incX,
@@ -253,7 +253,7 @@ dgemv_(char* trans, integer* M, integer* N,
        doublereal* Y, integer* incY);
 
 int 
-dgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
+_starpu_dgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
        doublereal *alpha, 
        doublereal *A, integer *lda, 
        doublereal *X, integer *incX, 
@@ -261,37 +261,37 @@ dgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU,
        doublereal *Y, integer *incY);
 
 int 
-dtrmv_(char* uplo, char *trans, char* diag, integer *N,  
+_starpu_dtrmv_(char* uplo, char *trans, char* diag, integer *N,  
        doublereal *A, integer *lda, 
        doublereal *X, integer *incX);
 
 int
-dtbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_dtbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        doublereal* A, integer* lda,
        doublereal* X, integer* incX);
 
 int
-dtpmv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_dtpmv_(char* uplo, char* trans, char* diag, integer* N, 
        doublereal* Ap, 
        doublereal* X, integer* incX);
 
 int
-dtrsv_(char* uplo, char* trans, char* diag, integer* N,
+_starpu_dtrsv_(char* uplo, char* trans, char* diag, integer* N,
        doublereal* A, integer* lda,
        doublereal* X, integer* incX);
 
 int
-dtbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_dtbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        doublereal* A, integer* lda, 
        doublereal* X, integer* incX);
 
 int
-dtpsv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_dtpsv_(char* uplo, char* trans, char* diag, integer* N, 
        doublereal* Ap, 
        doublereal* X, integer* incX);
 
 int
-cgemv_(char* trans, integer* M, integer* N,
+_starpu_cgemv_(char* trans, integer* M, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* X, integer* incX,
@@ -299,7 +299,7 @@ cgemv_(char* trans, integer* M, integer* N,
        complex* Y, integer* incY);
 
 int 
-cgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
+_starpu_cgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
        complex *alpha, 
        complex *A, integer *lda, 
        complex *X, integer *incX, 
@@ -307,37 +307,37 @@ cgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU,
        complex *Y, integer *incY);
 
 int 
-ctrmv_(char* uplo, char *trans, char* diag, integer *N,  
+_starpu_ctrmv_(char* uplo, char *trans, char* diag, integer *N,  
        complex *A, integer *lda, 
        complex *X, integer *incX);
 
 int
-ctbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_ctbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        complex* A, integer* lda,
        complex* X, integer* incX);
 
 int
-ctpmv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_ctpmv_(char* uplo, char* trans, char* diag, integer* N, 
        complex* Ap, 
        complex* X, integer* incX);
 
 int
-ctrsv_(char* uplo, char* trans, char* diag, integer* N,
+_starpu_ctrsv_(char* uplo, char* trans, char* diag, integer* N,
        complex* A, integer* lda,
        complex* X, integer* incX);
 
 int
-ctbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_ctbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        complex* A, integer* lda, 
        complex* X, integer* incX);
 
 int
-ctpsv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_ctpsv_(char* uplo, char* trans, char* diag, integer* N, 
        complex* Ap, 
        complex* X, integer* incX);
 
 int
-zgemv_(char* trans, integer* M, integer* N,
+_starpu_zgemv_(char* trans, integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* X, integer* incX,
@@ -345,7 +345,7 @@ zgemv_(char* trans, integer* M, integer* N,
        doublecomplex* Y, integer* incY);
 
 int 
-zgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
+_starpu_zgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU, 
        doublecomplex *alpha, 
        doublecomplex *A, integer *lda, 
        doublecomplex *X, integer *incX, 
@@ -353,37 +353,37 @@ zgbmv_(char *trans, integer *M, integer *N, integer *KL, integer *KU,
        doublecomplex *Y, integer *incY);
 
 int 
-ztrmv_(char* uplo, char *trans, char* diag, integer *N,  
+_starpu_ztrmv_(char* uplo, char *trans, char* diag, integer *N,  
        doublecomplex *A, integer *lda, 
        doublecomplex *X, integer *incX);
 
 int
-ztbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_ztbmv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        doublecomplex* A, integer* lda,
        doublecomplex* X, integer* incX);
 
  void  
-ztpmv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_ztpmv_(char* uplo, char* trans, char* diag, integer* N, 
       doublecomplex* Ap, 
       doublecomplex* X, integer* incX);
 
 int
-ztrsv_(char* uplo, char* trans, char* diag, integer* N,
+_starpu_ztrsv_(char* uplo, char* trans, char* diag, integer* N,
        doublecomplex* A, integer* lda,
        doublecomplex* X, integer* incX);
 
 int
-ztbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
+_starpu_ztbsv_(char* uplo, char* trans, char* diag, integer* N, integer* K,
        doublecomplex* A, integer* lda, 
        doublecomplex* X, integer* incX);
 
 int
-ztpsv_(char* uplo, char* trans, char* diag, integer* N, 
+_starpu_ztpsv_(char* uplo, char* trans, char* diag, integer* N, 
        doublecomplex* Ap, 
        doublecomplex* X, integer* incX);
 
 int
-ssymv_(char* uplo, integer* N,
+_starpu_ssymv_(char* uplo, integer* N,
        real* alpha,
        real* A, integer* lda,
        real* X, integer* incX,
@@ -391,7 +391,7 @@ ssymv_(char* uplo, integer* N,
        real* Y, integer* incY);
 
 int 
-ssbmv_(char* uplo, integer* N, integer* K,
+_starpu_ssbmv_(char* uplo, integer* N, integer* K,
        real* alpha,
        real* A, integer* lda,
        real* X, integer* incX,
@@ -399,7 +399,7 @@ ssbmv_(char* uplo, integer* N, integer* K,
        real* Y, integer* incY);
 
 int
-sspmv_(char* uplo, integer* N,
+_starpu_sspmv_(char* uplo, integer* N,
        real* alpha,
        real* Ap,
        real* X, integer* incX,
@@ -407,40 +407,40 @@ sspmv_(char* uplo, integer* N,
        real* Y, integer* incY);
 
 int
-sger_(integer* M, integer* N,
+_starpu_sger_(integer* M, integer* N,
       real* alpha,
       real* X, integer* incX,
       real* Y, integer* incY,
       real* A, integer* lda);
 
 int
-ssyr_(char* uplo, integer* N,
+_starpu_ssyr_(char* uplo, integer* N,
       real* alpha,
       real* X, integer* incX,
       real* A, integer* lda);
 
 int
-sspr_(char* uplo, integer* N,
+_starpu_sspr_(char* uplo, integer* N,
       real* alpha,
       real* X, integer* incX,
       real* Ap);
 
 int
-ssyr2_(char* uplo, integer* N,
+_starpu_ssyr2_(char* uplo, integer* N,
        real* alpha,
        real* X, integer* incX,
        real* Y, integer* incY,
        real* A, integer* lda);
 
 int
-sspr2_(char* uplo, integer* N,
+_starpu_sspr2_(char* uplo, integer* N,
        real* alpha, 
        real* X, integer* incX,
        real* Y, integer* incY,
        real* A);
 
 int
-dsymv_(char* uplo, integer* N,
+_starpu_dsymv_(char* uplo, integer* N,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* X, integer* incX,
@@ -448,7 +448,7 @@ dsymv_(char* uplo, integer* N,
        doublereal* Y, integer* incY);
 
 int 
-dsbmv_(char* uplo, integer* N, integer* K,
+_starpu_dsbmv_(char* uplo, integer* N, integer* K,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* X, integer* incX,
@@ -456,7 +456,7 @@ dsbmv_(char* uplo, integer* N, integer* K,
        doublereal* Y, integer* incY);
 
 int
-dspmv_(char* uplo, integer* N,
+_starpu_dspmv_(char* uplo, integer* N,
        doublereal* alpha,
        doublereal* Ap,
        doublereal* X, integer* incX,
@@ -464,40 +464,40 @@ dspmv_(char* uplo, integer* N,
        doublereal* Y, integer* incY);
 
 int
-dger_(integer* M, integer* N,
+_starpu_dger_(integer* M, integer* N,
       doublereal* alpha,
       doublereal* X, integer* incX,
       doublereal* Y, integer* incY,
       doublereal* A, integer* lda);
 
 int
-dsyr_(char* uplo, integer* N,
+_starpu_dsyr_(char* uplo, integer* N,
       doublereal* alpha,
       doublereal* X, integer* incX,
       doublereal* A, integer* lda);
 
 int
-dspr_(char* uplo, integer* N,
+_starpu_dspr_(char* uplo, integer* N,
       doublereal* alpha,
       doublereal* X, integer* incX,
       doublereal* Ap);
 
 int
-dsyr2_(char* uplo, integer* N,
+_starpu_dsyr2_(char* uplo, integer* N,
        doublereal* alpha,
        doublereal* X, integer* incX,
        doublereal* Y, integer* incY,
        doublereal* A, integer* lda);
 
 int
-dspr2_(char* uplo, integer* N,
+_starpu_dspr2_(char* uplo, integer* N,
        doublereal* alpha, 
        doublereal* X, integer* incX,
        doublereal* Y, integer* incY,
        doublereal* A);
 
 int
-chemv_(char* uplo, integer* N,
+_starpu_chemv_(char* uplo, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* X, integer* incX,
@@ -505,7 +505,7 @@ chemv_(char* uplo, integer* N,
        complex* Y, integer* incY);
 
 int
-chbmv_(char* uplo, integer* N, integer* K,
+_starpu_chbmv_(char* uplo, integer* N, integer* K,
        complex* alpha,
        complex* A, integer* lda,
        complex* X, integer* incX,
@@ -513,7 +513,7 @@ chbmv_(char* uplo, integer* N, integer* K,
        complex* Y, integer* incY);
 
 int
-chpmv_(char* uplo, integer* N, 
+_starpu_chpmv_(char* uplo, integer* N, 
        complex* alpha,
        complex* Ap, 
        complex* X, integer* incX,
@@ -521,47 +521,47 @@ chpmv_(char* uplo, integer* N,
        complex* Y, integer* incY);
 
 int
-cgeru_(integer* M, integer* N,
+_starpu_cgeru_(integer* M, integer* N,
        complex* alpha,
        complex* X, integer* incX,
        complex* Y, integer* incY,
        complex* A, integer* lda);
 
 int
-cgerc_(integer* M, integer* N,
+_starpu_cgerc_(integer* M, integer* N,
        complex* alpha,
        complex* X, integer* incX,
        complex* Y, integer* incY,
        complex* A, integer* lda);
 
 int
-cher_(char* uplo, integer* N,
+_starpu_cher_(char* uplo, integer* N,
       real* alpha,
       complex* X, integer* incX,
       complex* A, integer* lda);
 
 int
-chpr_(char* uplo, integer* N,
+_starpu_chpr_(char* uplo, integer* N,
       real* alpha,
       complex* X, integer* incX,
       complex* Ap);
 
 int
-cher2_(char* uplo, integer* N,
+_starpu_cher2_(char* uplo, integer* N,
        complex* alpha,
        complex* X, integer* incX,
        complex* Y, integer* incY,
        complex* A, integer* lda);
 
 int
-chpr2_(char* uplo, integer* N,
+_starpu_chpr2_(char* uplo, integer* N,
        complex* alpha,
        complex* X, integer* incX,
        complex* Y, integer* incY,
        complex* Ap);
 
 int
-zhemv_(char* uplo, integer* N,
+_starpu_zhemv_(char* uplo, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* X, integer* incX,
@@ -569,7 +569,7 @@ zhemv_(char* uplo, integer* N,
        doublecomplex* Y, integer* incY);
 
 int
-zhbmv_(char* uplo, integer* N, integer* K,
+_starpu_zhbmv_(char* uplo, integer* N, integer* K,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* X, integer* incX,
@@ -577,7 +577,7 @@ zhbmv_(char* uplo, integer* N, integer* K,
        doublecomplex* Y, integer* incY);
 
 int
-zhpmv_(char* uplo, integer* N, 
+_starpu_zhpmv_(char* uplo, integer* N, 
        doublecomplex* alpha,
        doublecomplex* Ap, 
        doublecomplex* X, integer* incX,
@@ -585,47 +585,47 @@ zhpmv_(char* uplo, integer* N,
        doublecomplex* Y, integer* incY);
 
 int
-zgeru_(integer* M, integer* N,
+_starpu_zgeru_(integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY,
        doublecomplex* A, integer* lda);
 
 int
-zgerc_(integer* M, integer* N,
+_starpu_zgerc_(integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY,
        doublecomplex* A, integer* lda);
 
 int
-zher_(char* uplo, integer* N,
+_starpu_zher_(char* uplo, integer* N,
       doublereal* alpha,
       doublecomplex* X, integer* incX,
       doublecomplex* A, integer* lda);
 
 int
-zhpr_(char* uplo, integer* N,
+_starpu_zhpr_(char* uplo, integer* N,
       doublereal* alpha,
       doublecomplex* X, integer* incX,
       doublecomplex* Ap);
 
 int
-zher2_(char* uplo, integer* N,
+_starpu_zher2_(char* uplo, integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY,
        doublecomplex* A, integer* lda);
 
 int
-zhpr2_(char* uplo, integer* N,
+_starpu_zhpr2_(char* uplo, integer* N,
        doublecomplex* alpha,
        doublecomplex* X, integer* incX,
        doublecomplex* Y, integer* incY,
        doublecomplex* Ap);
 
 int
-sgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
+_starpu_sgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        real* alpha,
        real* A, integer* lda,
        real* B, integer* ldb,
@@ -633,7 +633,7 @@ sgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        real* C, integer* ldc);
 
 int
-ssymm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_ssymm_(char* side, char* uplo, integer* M, integer* N,
        real* alpha,
        real* A, integer* lda,
        real* B, integer* ldb,
@@ -641,14 +641,14 @@ ssymm_(char* side, char* uplo, integer* M, integer* N,
        real* C, integer* ldc);
 
 int
-ssyrk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_ssyrk_(char* uplo, char* trans, integer* N, integer* K,
        real* alpha,
        real* A, integer* lda,
        real* beta,
        real* C, integer* ldc);
 
 int
-ssyr2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_ssyr2k_(char* uplo, char* trans, integer* N, integer* K,
         real* alpha,
         real* A, integer* lda,
         real* B, integer* ldb,
@@ -656,21 +656,21 @@ ssyr2k_(char* uplo, char* trans, integer* N, integer* K,
         real* C, integer* ldc);
 
 int
-strmm_(char* side, char* uplo, char* trans, char* diag, 
+_starpu_strmm_(char* side, char* uplo, char* trans, char* diag, 
        integer* M, integer* N,
        real* alpha,
        real* A, integer* lda,
        real* B, integer* ldb);
 
 int 
-strsm_(char* side, char* uplo, char* trans, char* diag,
+_starpu_strsm_(char* side, char* uplo, char* trans, char* diag,
        integer* M, integer* N,
        real* alpha,
        real* A, integer* lda,
        real* B, integer* ldb);
 
 int
-dgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
+_starpu_dgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* B, integer* ldb,
@@ -678,7 +678,7 @@ dgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        doublereal* C, integer* ldc);
 
 int
-dsymm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_dsymm_(char* side, char* uplo, integer* M, integer* N,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* B, integer* ldb,
@@ -686,14 +686,14 @@ dsymm_(char* side, char* uplo, integer* M, integer* N,
        doublereal* C, integer* ldc);
 
 int
-dsyrk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_dsyrk_(char* uplo, char* trans, integer* N, integer* K,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* beta,
        doublereal* C, integer* ldc);
 
 int
-dsyr2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_dsyr2k_(char* uplo, char* trans, integer* N, integer* K,
         doublereal* alpha,
         doublereal* A, integer* lda,
         doublereal* B, integer* ldb,
@@ -701,21 +701,21 @@ dsyr2k_(char* uplo, char* trans, integer* N, integer* K,
         doublereal* C, integer* ldc);
 
 int
-dtrmm_(char* side, char* uplo, char* trans, char* diag, 
+_starpu_dtrmm_(char* side, char* uplo, char* trans, char* diag, 
        integer* M, integer* N,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* B, integer* ldb);
 
 int 
-dtrsm_(char* side, char* uplo, char* trans, char* diag,
+_starpu_dtrsm_(char* side, char* uplo, char* trans, char* diag,
        integer* M, integer* N,
        doublereal* alpha,
        doublereal* A, integer* lda,
        doublereal* B, integer* ldb);
 
 int
-cgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
+_starpu_cgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        complex* alpha,
        complex* A, integer* lda,
        complex* B, integer* ldb,
@@ -723,7 +723,7 @@ cgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        complex* C, integer* ldc);
 
 int
-csymm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_csymm_(char* side, char* uplo, integer* M, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* B, integer* ldb,
@@ -731,14 +731,14 @@ csymm_(char* side, char* uplo, integer* M, integer* N,
        complex* C, integer* ldc);
 
 int
-csyrk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_csyrk_(char* uplo, char* trans, integer* N, integer* K,
        complex* alpha,
        complex* A, integer* lda,
        complex* beta,
        complex* C, integer* ldc);
 
 int
-csyr2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_csyr2k_(char* uplo, char* trans, integer* N, integer* K,
         complex* alpha,
         complex* A, integer* lda,
         complex* B, integer* ldb,
@@ -746,21 +746,21 @@ csyr2k_(char* uplo, char* trans, integer* N, integer* K,
         complex* C, integer* ldc);
 
 int
-ctrmm_(char* side, char* uplo, char* trans, char* diag, 
+_starpu_ctrmm_(char* side, char* uplo, char* trans, char* diag, 
        integer* M, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* B, integer* ldb);
 
 int 
-ctrsm_(char* side, char* uplo, char* trans, char* diag,
+_starpu_ctrsm_(char* side, char* uplo, char* trans, char* diag,
        integer* M, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* B, integer* ldb);
 
 int
-zgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
+_starpu_zgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* B, integer* ldb,
@@ -768,7 +768,7 @@ zgemm_(char* transA, char* transB, integer* M, integer* N, integer* K,
        doublecomplex* C, integer* ldc);
 
 int
-zsymm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_zsymm_(char* side, char* uplo, integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* B, integer* ldb,
@@ -776,14 +776,14 @@ zsymm_(char* side, char* uplo, integer* M, integer* N,
        doublecomplex* C, integer* ldc);
 
 int
-zsyrk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_zsyrk_(char* uplo, char* trans, integer* N, integer* K,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* beta,
        doublecomplex* C, integer* ldc);
 
 int
-zsyr2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_zsyr2k_(char* uplo, char* trans, integer* N, integer* K,
         doublecomplex* alpha,
         doublecomplex* A, integer* lda,
         doublecomplex* B, integer* ldb,
@@ -791,21 +791,21 @@ zsyr2k_(char* uplo, char* trans, integer* N, integer* K,
         doublecomplex* C, integer* ldc);
 
 int
-ztrmm_(char* side, char* uplo, char* trans, char* diag, 
+_starpu_ztrmm_(char* side, char* uplo, char* trans, char* diag, 
        integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* B, integer* ldb);
 
 int 
-ztrsm_(char* side, char* uplo, char* trans, char* diag,
+_starpu_ztrsm_(char* side, char* uplo, char* trans, char* diag,
        integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* B, integer* ldb);
 
 int
-chemm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_chemm_(char* side, char* uplo, integer* M, integer* N,
        complex* alpha,
        complex* A, integer* lda,
        complex* B, integer* ldb,
@@ -813,14 +813,14 @@ chemm_(char* side, char* uplo, integer* M, integer* N,
        complex* C, integer* ldc);
 
 int
-cherk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_cherk_(char* uplo, char* trans, integer* N, integer* K,
        real* alpha,
        complex* A, integer* lda,
        real* beta,
        complex* C, integer* ldc);
 
 int
-cher2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_cher2k_(char* uplo, char* trans, integer* N, integer* K,
         complex* alpha,
         complex* A, integer* lda,
         complex* B, integer* ldb,
@@ -828,7 +828,7 @@ cher2k_(char* uplo, char* trans, integer* N, integer* K,
         complex* C, integer* ldc);
 
 int
-zhemm_(char* side, char* uplo, integer* M, integer* N,
+_starpu_zhemm_(char* side, char* uplo, integer* M, integer* N,
        doublecomplex* alpha,
        doublecomplex* A, integer* lda,
        doublecomplex* B, integer* ldb,
@@ -836,14 +836,14 @@ zhemm_(char* side, char* uplo, integer* M, integer* N,
        doublecomplex* C, integer* ldc);
 
 int
-zherk_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_zherk_(char* uplo, char* trans, integer* N, integer* K,
        doublereal* alpha,
        doublecomplex* A, integer* lda,
        doublereal* beta,
        doublecomplex* C, integer* ldc);
 
 int
-zher2k_(char* uplo, char* trans, integer* N, integer* K,
+_starpu_zher2k_(char* uplo, char* trans, integer* N, integer* K,
         doublecomplex* alpha,
         doublecomplex* A, integer* lda,
         doublecomplex* B, integer* ldb,

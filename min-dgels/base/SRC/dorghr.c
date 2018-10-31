@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dorghr_(integer *n, integer *ilo, integer *ihi, 
+/* Subroutine */ int _starpu_dorghr_(integer *n, integer *ilo, integer *ihi, 
 	doublereal *a, integer *lda, doublereal *tau, doublereal *work, 
 	integer *lwork, integer *info)
 {
@@ -27,10 +27,10 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, j, nb, nh, iinfo;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dorgqr_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorgqr_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    integer *);
     integer lwkopt;
@@ -137,14 +137,14 @@ static integer c_n1 = -1;
     }
 
     if (*info == 0) {
-	nb = ilaenv_(&c__1, "DORGQR", " ", &nh, &nh, &nh, &c_n1);
+	nb = _starpu_ilaenv_(&c__1, "DORGQR", " ", &nh, &nh, &nh, &c_n1);
 	lwkopt = max(1,nh) * nb;
 	work[1] = (doublereal) lwkopt;
     }
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORGHR", &i__1);
+	_starpu_xerbla_("DORGHR", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -205,7 +205,7 @@ static integer c_n1 = -1;
 
 /*        Generate Q(ilo+1:ihi,ilo+1:ihi) */
 
-	dorgqr_(&nh, &nh, &nh, &a[*ilo + 1 + (*ilo + 1) * a_dim1], lda, &tau[*
+	_starpu_dorgqr_(&nh, &nh, &nh, &a[*ilo + 1 + (*ilo + 1) * a_dim1], lda, &tau[*
 		ilo], &work[1], lwork, &iinfo);
     }
     work[1] = (doublereal) lwkopt;
@@ -213,4 +213,4 @@ static integer c_n1 = -1;
 
 /*     End of DORGHR */
 
-} /* dorghr_ */
+} /* _starpu_dorghr_ */

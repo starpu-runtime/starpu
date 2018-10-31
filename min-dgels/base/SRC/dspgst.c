@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b9 = -1.;
 static doublereal c_b11 = 1.;
 
-/* Subroutine */ int dspgst_(integer *itype, char *uplo, integer *n, 
+/* Subroutine */ int _starpu_dspgst_(integer *itype, char *uplo, integer *n, 
 	doublereal *ap, doublereal *bp, integer *info)
 {
     /* System generated locals */
@@ -33,20 +33,20 @@ static doublereal c_b11 = 1.;
     doublereal akk;
     integer k1k1;
     doublereal bjj, bkk;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern /* Subroutine */ int dspr2_(char *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *, doublereal *), dscal_(integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *), dspmv_(char *, integer *, 
+    extern /* Subroutine */ int _starpu_dspr2_(char *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *, integer *, doublereal *), _starpu_dscal_(integer *, doublereal *, doublereal *, integer *);
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_dspmv_(char *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dtpmv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtpmv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *), 
-	    dtpsv_(char *, char *, char *, integer *, doublereal *, 
-	    doublereal *, integer *), xerbla_(char *, 
+	    _starpu_dtpsv_(char *, char *, char *, integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
 
 
@@ -127,17 +127,17 @@ static doublereal c_b11 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPGST", &i__1);
+	_starpu_xerbla_("DSPGST", &i__1);
 	return 0;
     }
 
@@ -157,16 +157,16 @@ static doublereal c_b11 = 1.;
 /*              Compute the j-th column of the upper triangle of A */
 
 		bjj = bp[jj];
-		dtpsv_(uplo, "Transpose", "Nonunit", &j, &bp[1], &ap[j1], &
+		_starpu_dtpsv_(uplo, "Transpose", "Nonunit", &j, &bp[1], &ap[j1], &
 			c__1);
 		i__2 = j - 1;
-		dspmv_(uplo, &i__2, &c_b9, &ap[1], &bp[j1], &c__1, &c_b11, &
+		_starpu_dspmv_(uplo, &i__2, &c_b9, &ap[1], &bp[j1], &c__1, &c_b11, &
 			ap[j1], &c__1);
 		i__2 = j - 1;
 		d__1 = 1. / bjj;
-		dscal_(&i__2, &d__1, &ap[j1], &c__1);
+		_starpu_dscal_(&i__2, &d__1, &ap[j1], &c__1);
 		i__2 = j - 1;
-		ap[jj] = (ap[jj] - ddot_(&i__2, &ap[j1], &c__1, &bp[j1], &
+		ap[jj] = (ap[jj] - _starpu_ddot_(&i__2, &ap[j1], &c__1, &bp[j1], &
 			c__1)) / bjj;
 /* L10: */
 	    }
@@ -192,19 +192,19 @@ static doublereal c_b11 = 1.;
 		if (k < *n) {
 		    i__2 = *n - k;
 		    d__1 = 1. / bkk;
-		    dscal_(&i__2, &d__1, &ap[kk + 1], &c__1);
+		    _starpu_dscal_(&i__2, &d__1, &ap[kk + 1], &c__1);
 		    ct = akk * -.5;
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &bp[kk + 1], &c__1, &ap[kk + 1], &c__1)
+		    _starpu_daxpy_(&i__2, &ct, &bp[kk + 1], &c__1, &ap[kk + 1], &c__1)
 			    ;
 		    i__2 = *n - k;
-		    dspr2_(uplo, &i__2, &c_b9, &ap[kk + 1], &c__1, &bp[kk + 1]
+		    _starpu_dspr2_(uplo, &i__2, &c_b9, &ap[kk + 1], &c__1, &bp[kk + 1]
 , &c__1, &ap[k1k1]);
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &bp[kk + 1], &c__1, &ap[kk + 1], &c__1)
+		    _starpu_daxpy_(&i__2, &ct, &bp[kk + 1], &c__1, &ap[kk + 1], &c__1)
 			    ;
 		    i__2 = *n - k;
-		    dtpsv_(uplo, "No transpose", "Non-unit", &i__2, &bp[k1k1], 
+		    _starpu_dtpsv_(uplo, "No transpose", "Non-unit", &i__2, &bp[k1k1], 
 			     &ap[kk + 1], &c__1);
 		}
 		kk = k1k1;
@@ -229,18 +229,18 @@ static doublereal c_b11 = 1.;
 		akk = ap[kk];
 		bkk = bp[kk];
 		i__2 = k - 1;
-		dtpmv_(uplo, "No transpose", "Non-unit", &i__2, &bp[1], &ap[
+		_starpu_dtpmv_(uplo, "No transpose", "Non-unit", &i__2, &bp[1], &ap[
 			k1], &c__1);
 		ct = akk * .5;
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &bp[k1], &c__1, &ap[k1], &c__1);
+		_starpu_daxpy_(&i__2, &ct, &bp[k1], &c__1, &ap[k1], &c__1);
 		i__2 = k - 1;
-		dspr2_(uplo, &i__2, &c_b11, &ap[k1], &c__1, &bp[k1], &c__1, &
+		_starpu_dspr2_(uplo, &i__2, &c_b11, &ap[k1], &c__1, &bp[k1], &c__1, &
 			ap[1]);
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &bp[k1], &c__1, &ap[k1], &c__1);
+		_starpu_daxpy_(&i__2, &ct, &bp[k1], &c__1, &ap[k1], &c__1);
 		i__2 = k - 1;
-		dscal_(&i__2, &bkk, &ap[k1], &c__1);
+		_starpu_dscal_(&i__2, &bkk, &ap[k1], &c__1);
 /* Computing 2nd power */
 		d__1 = bkk;
 		ap[kk] = akk * (d__1 * d__1);
@@ -262,15 +262,15 @@ static doublereal c_b11 = 1.;
 		ajj = ap[jj];
 		bjj = bp[jj];
 		i__2 = *n - j;
-		ap[jj] = ajj * bjj + ddot_(&i__2, &ap[jj + 1], &c__1, &bp[jj 
+		ap[jj] = ajj * bjj + _starpu_ddot_(&i__2, &ap[jj + 1], &c__1, &bp[jj 
 			+ 1], &c__1);
 		i__2 = *n - j;
-		dscal_(&i__2, &bjj, &ap[jj + 1], &c__1);
+		_starpu_dscal_(&i__2, &bjj, &ap[jj + 1], &c__1);
 		i__2 = *n - j;
-		dspmv_(uplo, &i__2, &c_b11, &ap[j1j1], &bp[jj + 1], &c__1, &
+		_starpu_dspmv_(uplo, &i__2, &c_b11, &ap[j1j1], &bp[jj + 1], &c__1, &
 			c_b11, &ap[jj + 1], &c__1);
 		i__2 = *n - j + 1;
-		dtpmv_(uplo, "Transpose", "Non-unit", &i__2, &bp[jj], &ap[jj], 
+		_starpu_dtpmv_(uplo, "Transpose", "Non-unit", &i__2, &bp[jj], &ap[jj], 
 			 &c__1);
 		jj = j1j1;
 /* L40: */
@@ -281,4 +281,4 @@ static doublereal c_b11 = 1.;
 
 /*     End of DSPGST */
 
-} /* dspgst_ */
+} /* _starpu_dspgst_ */

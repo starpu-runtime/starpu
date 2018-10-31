@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n, 
+doublereal _starpu_dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n, 
 	 doublereal *a, integer *lda, doublereal *work)
 {
     /* System generated locals */
@@ -31,9 +31,9 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
     integer i__, j;
     doublereal sum, scale;
     logical udiag;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal value;
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
 
 
@@ -138,13 +138,13 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
     /* Function Body */
     if (min(*m,*n) == 0) {
 	value = 0.;
-    } else if (lsame_(norm, "M")) {
+    } else if (_starpu_lsame_(norm, "M")) {
 
 /*        Find max(abs(A(i,j))). */
 
-	if (lsame_(diag, "U")) {
+	if (_starpu_lsame_(diag, "U")) {
 	    value = 1.;
-	    if (lsame_(uplo, "U")) {
+	    if (_starpu_lsame_(uplo, "U")) {
 		i__1 = *n;
 		for (j = 1; j <= i__1; ++j) {
 /* Computing MIN */
@@ -175,7 +175,7 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 	    }
 	} else {
 	    value = 0.;
-	    if (lsame_(uplo, "U")) {
+	    if (_starpu_lsame_(uplo, "U")) {
 		i__1 = *n;
 		for (j = 1; j <= i__1; ++j) {
 		    i__2 = min(*m,j);
@@ -203,14 +203,14 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 		}
 	    }
 	}
-    } else if (lsame_(norm, "O") || *(unsigned char *)
+    } else if (_starpu_lsame_(norm, "O") || *(unsigned char *)
 	    norm == '1') {
 
 /*        Find norm1(A). */
 
 	value = 0.;
-	udiag = lsame_(diag, "U");
-	if (lsame_(uplo, "U")) {
+	udiag = _starpu_lsame_(diag, "U");
+	if (_starpu_lsame_(uplo, "U")) {
 	    i__1 = *n;
 	    for (j = 1; j <= i__1; ++j) {
 		if (udiag && j <= *m) {
@@ -253,12 +253,12 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 /* L140: */
 	    }
 	}
-    } else if (lsame_(norm, "I")) {
+    } else if (_starpu_lsame_(norm, "I")) {
 
 /*        Find normI(A). */
 
-	if (lsame_(uplo, "U")) {
-	    if (lsame_(diag, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
+	    if (_starpu_lsame_(diag, "U")) {
 		i__1 = *m;
 		for (i__ = 1; i__ <= i__1; ++i__) {
 		    work[i__] = 1.;
@@ -292,7 +292,7 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 		}
 	    }
 	} else {
-	    if (lsame_(diag, "U")) {
+	    if (_starpu_lsame_(diag, "U")) {
 		i__1 = *n;
 		for (i__ = 1; i__ <= i__1; ++i__) {
 		    work[i__] = 1.;
@@ -337,12 +337,12 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 	    value = max(d__1,d__2);
 /* L280: */
 	}
-    } else if (lsame_(norm, "F") || lsame_(norm, "E")) {
+    } else if (_starpu_lsame_(norm, "F") || _starpu_lsame_(norm, "E")) {
 
 /*        Find normF(A). */
 
-	if (lsame_(uplo, "U")) {
-	    if (lsame_(diag, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
+	    if (_starpu_lsame_(diag, "U")) {
 		scale = 1.;
 		sum = (doublereal) min(*m,*n);
 		i__1 = *n;
@@ -350,7 +350,7 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 /* Computing MIN */
 		    i__3 = *m, i__4 = j - 1;
 		    i__2 = min(i__3,i__4);
-		    dlassq_(&i__2, &a[j * a_dim1 + 1], &c__1, &scale, &sum);
+		    _starpu_dlassq_(&i__2, &a[j * a_dim1 + 1], &c__1, &scale, &sum);
 /* L290: */
 		}
 	    } else {
@@ -359,12 +359,12 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 		i__1 = *n;
 		for (j = 1; j <= i__1; ++j) {
 		    i__2 = min(*m,j);
-		    dlassq_(&i__2, &a[j * a_dim1 + 1], &c__1, &scale, &sum);
+		    _starpu_dlassq_(&i__2, &a[j * a_dim1 + 1], &c__1, &scale, &sum);
 /* L300: */
 		}
 	    }
 	} else {
-	    if (lsame_(diag, "U")) {
+	    if (_starpu_lsame_(diag, "U")) {
 		scale = 1.;
 		sum = (doublereal) min(*m,*n);
 		i__1 = *n;
@@ -372,7 +372,7 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 		    i__2 = *m - j;
 /* Computing MIN */
 		    i__3 = *m, i__4 = j + 1;
-		    dlassq_(&i__2, &a[min(i__3, i__4)+ j * a_dim1], &c__1, &
+		    _starpu_dlassq_(&i__2, &a[min(i__3, i__4)+ j * a_dim1], &c__1, &
 			    scale, &sum);
 /* L310: */
 		}
@@ -382,7 +382,7 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 		i__1 = *n;
 		for (j = 1; j <= i__1; ++j) {
 		    i__2 = *m - j + 1;
-		    dlassq_(&i__2, &a[j + j * a_dim1], &c__1, &scale, &sum);
+		    _starpu_dlassq_(&i__2, &a[j + j * a_dim1], &c__1, &scale, &sum);
 /* L320: */
 		}
 	    }
@@ -395,4 +395,4 @@ doublereal dlantr_(char *norm, char *uplo, char *diag, integer *m, integer *n,
 
 /*     End of DLANTR */
 
-} /* dlantr_ */
+} /* _starpu_dlantr_ */

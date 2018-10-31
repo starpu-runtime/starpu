@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dpoequ_(integer *n, doublereal *a, integer *lda, 
+/* Subroutine */ int _starpu_dpoequ_(integer *n, doublereal *a, integer *lda, 
 	doublereal *s, doublereal *scond, doublereal *amax, integer *info)
 {
     /* System generated locals */
@@ -26,7 +26,7 @@
     /* Local variables */
     integer i__;
     doublereal smin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -111,7 +111,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOEQU", &i__1);
+	_starpu_xerbla_("DPOEQU", &i__1);
 	return 0;
     }
 
@@ -171,4 +171,4 @@
 
 /*     End of DPOEQU */
 
-} /* dpoequ_ */
+} /* _starpu_dpoequ_ */

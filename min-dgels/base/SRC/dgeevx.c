@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c__0 = 0;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgeevx_(char *balanc, char *jobvl, char *jobvr, char *
+/* Subroutine */ int _starpu_dgeevx_(char *balanc, char *jobvl, char *jobvr, char *
 	sense, integer *n, doublereal *a, integer *lda, doublereal *wr, 
 	doublereal *wi, doublereal *vl, integer *ldvl, doublereal *vr, 
 	integer *ldvr, integer *ilo, integer *ihi, doublereal *scale, 
@@ -42,46 +42,46 @@ static integer c_n1 = -1;
     char side[1];
     doublereal anrm;
     integer ierr, itau;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer iwrk, nout;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     integer icond;
-    extern logical lsame_(char *, char *);
-    extern doublereal dlapy2_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *), dgebak_(
+    extern logical _starpu_lsame_(char *, char *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *), _starpu_dgebak_(
 	    char *, char *, integer *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *), 
-	    dgebal_(char *, integer *, doublereal *, integer *, integer *, 
+	    _starpu_dgebal_(char *, integer *, doublereal *, integer *, integer *, 
 	    integer *, doublereal *, integer *);
     logical scalea;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal cscale;
-    extern doublereal dlange_(char *, integer *, integer *, doublereal *, 
+    extern doublereal _starpu_dlange_(char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dgehrd_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgehrd_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dlascl_(char *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dlascl_(char *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), xerbla_(char *, integer *);
+	    _starpu_dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), _starpu_xerbla_(char *, integer *);
     logical select[1];
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dorghr_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorghr_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dhseqr_(char *, char *, integer *, integer *, integer 
+	    integer *), _starpu_dhseqr_(char *, char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *, integer *), dtrevc_(char *, char *, logical *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *, integer *), _starpu_dtrevc_(char *, char *, logical *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *, integer *, integer *, doublereal *, integer *), dtrsna_(char *, char *, logical *, integer *, doublereal 
+	    integer *, integer *, integer *, doublereal *, integer *), _starpu_dtrsna_(char *, char *, logical *, integer *, doublereal 
 	    *, integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *, integer *);
@@ -318,18 +318,18 @@ static integer c_n1 = -1;
     /* Function Body */
     *info = 0;
     lquery = *lwork == -1;
-    wantvl = lsame_(jobvl, "V");
-    wantvr = lsame_(jobvr, "V");
-    wntsnn = lsame_(sense, "N");
-    wntsne = lsame_(sense, "E");
-    wntsnv = lsame_(sense, "V");
-    wntsnb = lsame_(sense, "B");
-    if (! (lsame_(balanc, "N") || lsame_(balanc, "S") || lsame_(balanc, "P") 
-	    || lsame_(balanc, "B"))) {
+    wantvl = _starpu_lsame_(jobvl, "V");
+    wantvr = _starpu_lsame_(jobvr, "V");
+    wntsnn = _starpu_lsame_(sense, "N");
+    wntsne = _starpu_lsame_(sense, "E");
+    wntsnv = _starpu_lsame_(sense, "V");
+    wntsnb = _starpu_lsame_(sense, "B");
+    if (! (_starpu_lsame_(balanc, "N") || _starpu_lsame_(balanc, "S") || _starpu_lsame_(balanc, "P") 
+	    || _starpu_lsame_(balanc, "B"))) {
 	*info = -1;
-    } else if (! wantvl && ! lsame_(jobvl, "N")) {
+    } else if (! wantvl && ! _starpu_lsame_(jobvl, "N")) {
 	*info = -2;
-    } else if (! wantvr && ! lsame_(jobvr, "N")) {
+    } else if (! wantvr && ! _starpu_lsame_(jobvr, "N")) {
 	*info = -3;
     } else if (! (wntsnn || wntsne || wntsnb || wntsnv) || (wntsne || wntsnb) 
 	    && ! (wantvl && wantvr)) {
@@ -359,22 +359,22 @@ static integer c_n1 = -1;
 	    minwrk = 1;
 	    maxwrk = 1;
 	} else {
-	    maxwrk = *n + *n * ilaenv_(&c__1, "DGEHRD", " ", n, &c__1, n, &
+	    maxwrk = *n + *n * _starpu_ilaenv_(&c__1, "DGEHRD", " ", n, &c__1, n, &
 		    c__0);
 
 	    if (wantvl) {
-		dhseqr_("S", "V", n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[
+		_starpu_dhseqr_("S", "V", n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[
 			1], &vl[vl_offset], ldvl, &work[1], &c_n1, info);
 	    } else if (wantvr) {
-		dhseqr_("S", "V", n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[
+		_starpu_dhseqr_("S", "V", n, &c__1, n, &a[a_offset], lda, &wr[1], &wi[
 			1], &vr[vr_offset], ldvr, &work[1], &c_n1, info);
 	    } else {
 		if (wntsnn) {
-		    dhseqr_("E", "N", n, &c__1, n, &a[a_offset], lda, &wr[1], 
+		    _starpu_dhseqr_("E", "N", n, &c__1, n, &a[a_offset], lda, &wr[1], 
 			    &wi[1], &vr[vr_offset], ldvr, &work[1], &c_n1, 
 			    info);
 		} else {
-		    dhseqr_("S", "N", n, &c__1, n, &a[a_offset], lda, &wr[1], 
+		    _starpu_dhseqr_("S", "N", n, &c__1, n, &a[a_offset], lda, &wr[1], 
 			    &wi[1], &vr[vr_offset], ldvr, &work[1], &c_n1, 
 			    info);
 		}
@@ -403,7 +403,7 @@ static integer c_n1 = -1;
 		}
 		maxwrk = max(maxwrk,hswork);
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = *n + (*n - 1) * ilaenv_(&c__1, "DORGHR", 
+		i__1 = maxwrk, i__2 = *n + (*n - 1) * _starpu_ilaenv_(&c__1, "DORGHR", 
 			 " ", n, &c__1, n, &c_n1);
 		maxwrk = max(i__1,i__2);
 		if (! wntsnn && ! wntsne) {
@@ -426,7 +426,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEEVX", &i__1);
+	_starpu_xerbla_("DGEEVX", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -440,17 +440,17 @@ static integer c_n1 = -1;
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S");
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
     smlnum = sqrt(smlnum) / eps;
     bignum = 1. / smlnum;
 
 /*     Scale A if max element outside range [SMLNUM,BIGNUM] */
 
     icond = 0;
-    anrm = dlange_("M", n, n, &a[a_offset], lda, dum);
+    anrm = _starpu_dlange_("M", n, n, &a[a_offset], lda, dum);
     scalea = FALSE_;
     if (anrm > 0. && anrm < smlnum) {
 	scalea = TRUE_;
@@ -460,17 +460,17 @@ static integer c_n1 = -1;
 	cscale = bignum;
     }
     if (scalea) {
-	dlascl_("G", &c__0, &c__0, &anrm, &cscale, n, n, &a[a_offset], lda, &
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &cscale, n, n, &a[a_offset], lda, &
 		ierr);
     }
 
 /*     Balance the matrix and compute ABNRM */
 
-    dgebal_(balanc, n, &a[a_offset], lda, ilo, ihi, &scale[1], &ierr);
-    *abnrm = dlange_("1", n, n, &a[a_offset], lda, dum);
+    _starpu_dgebal_(balanc, n, &a[a_offset], lda, ilo, ihi, &scale[1], &ierr);
+    *abnrm = _starpu_dlange_("1", n, n, &a[a_offset], lda, dum);
     if (scalea) {
 	dum[0] = *abnrm;
-	dlascl_("G", &c__0, &c__0, &cscale, &anrm, &c__1, &c__1, dum, &c__1, &
+	_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &c__1, &c__1, dum, &c__1, &
 		ierr);
 	*abnrm = dum[0];
     }
@@ -481,7 +481,7 @@ static integer c_n1 = -1;
     itau = 1;
     iwrk = itau + *n;
     i__1 = *lwork - iwrk + 1;
-    dgehrd_(n, ilo, ihi, &a[a_offset], lda, &work[itau], &work[iwrk], &i__1, &
+    _starpu_dgehrd_(n, ilo, ihi, &a[a_offset], lda, &work[itau], &work[iwrk], &i__1, &
 	    ierr);
 
     if (wantvl) {
@@ -490,14 +490,14 @@ static integer c_n1 = -1;
 /*        Copy Householder vectors to VL */
 
 	*(unsigned char *)side = 'L';
-	dlacpy_("L", n, n, &a[a_offset], lda, &vl[vl_offset], ldvl)
+	_starpu_dlacpy_("L", n, n, &a[a_offset], lda, &vl[vl_offset], ldvl)
 		;
 
 /*        Generate orthogonal matrix in VL */
 /*        (Workspace: need 2*N-1, prefer N+(N-1)*NB) */
 
 	i__1 = *lwork - iwrk + 1;
-	dorghr_(n, ilo, ihi, &vl[vl_offset], ldvl, &work[itau], &work[iwrk], &
+	_starpu_dorghr_(n, ilo, ihi, &vl[vl_offset], ldvl, &work[itau], &work[iwrk], &
 		i__1, &ierr);
 
 /*        Perform QR iteration, accumulating Schur vectors in VL */
@@ -505,7 +505,7 @@ static integer c_n1 = -1;
 
 	iwrk = itau;
 	i__1 = *lwork - iwrk + 1;
-	dhseqr_("S", "V", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vl[
+	_starpu_dhseqr_("S", "V", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vl[
 		vl_offset], ldvl, &work[iwrk], &i__1, info);
 
 	if (wantvr) {
@@ -514,7 +514,7 @@ static integer c_n1 = -1;
 /*           Copy Schur vectors to VR */
 
 	    *(unsigned char *)side = 'B';
-	    dlacpy_("F", n, n, &vl[vl_offset], ldvl, &vr[vr_offset], ldvr);
+	    _starpu_dlacpy_("F", n, n, &vl[vl_offset], ldvl, &vr[vr_offset], ldvr);
 	}
 
     } else if (wantvr) {
@@ -523,14 +523,14 @@ static integer c_n1 = -1;
 /*        Copy Householder vectors to VR */
 
 	*(unsigned char *)side = 'R';
-	dlacpy_("L", n, n, &a[a_offset], lda, &vr[vr_offset], ldvr)
+	_starpu_dlacpy_("L", n, n, &a[a_offset], lda, &vr[vr_offset], ldvr)
 		;
 
 /*        Generate orthogonal matrix in VR */
 /*        (Workspace: need 2*N-1, prefer N+(N-1)*NB) */
 
 	i__1 = *lwork - iwrk + 1;
-	dorghr_(n, ilo, ihi, &vr[vr_offset], ldvr, &work[itau], &work[iwrk], &
+	_starpu_dorghr_(n, ilo, ihi, &vr[vr_offset], ldvr, &work[itau], &work[iwrk], &
 		i__1, &ierr);
 
 /*        Perform QR iteration, accumulating Schur vectors in VR */
@@ -538,7 +538,7 @@ static integer c_n1 = -1;
 
 	iwrk = itau;
 	i__1 = *lwork - iwrk + 1;
-	dhseqr_("S", "V", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vr[
+	_starpu_dhseqr_("S", "V", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vr[
 		vr_offset], ldvr, &work[iwrk], &i__1, info);
 
     } else {
@@ -556,7 +556,7 @@ static integer c_n1 = -1;
 
 	iwrk = itau;
 	i__1 = *lwork - iwrk + 1;
-	dhseqr_(job, "N", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vr[
+	_starpu_dhseqr_(job, "N", n, ilo, ihi, &a[a_offset], lda, &wr[1], &wi[1], &vr[
 		vr_offset], ldvr, &work[iwrk], &i__1, info);
     }
 
@@ -571,7 +571,7 @@ static integer c_n1 = -1;
 /*        Compute left and/or right eigenvectors */
 /*        (Workspace: need 3*N) */
 
-	dtrevc_(side, "B", select, n, &a[a_offset], lda, &vl[vl_offset], ldvl, 
+	_starpu_dtrevc_(side, "B", select, n, &a[a_offset], lda, &vl[vl_offset], ldvl, 
 		 &vr[vr_offset], ldvr, n, &nout, &work[iwrk], &ierr);
     }
 
@@ -579,7 +579,7 @@ static integer c_n1 = -1;
 /*     (Workspace: need N*N+6*N unless SENSE = 'E') */
 
     if (! wntsnn) {
-	dtrsna_(sense, "A", select, n, &a[a_offset], lda, &vl[vl_offset], 
+	_starpu_dtrsna_(sense, "A", select, n, &a[a_offset], lda, &vl[vl_offset], 
 		ldvl, &vr[vr_offset], ldvr, &rconde[1], &rcondv[1], n, &nout, 
 		&work[iwrk], n, &iwork[1], &icond);
     }
@@ -588,7 +588,7 @@ static integer c_n1 = -1;
 
 /*        Undo balancing of left eigenvectors */
 
-	dgebak_(balanc, "L", n, ilo, ihi, &scale[1], n, &vl[vl_offset], ldvl, 
+	_starpu_dgebak_(balanc, "L", n, ilo, ihi, &scale[1], n, &vl[vl_offset], ldvl, 
 		&ierr);
 
 /*        Normalize left eigenvectors and make largest component real */
@@ -596,14 +596,14 @@ static integer c_n1 = -1;
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    if (wi[i__] == 0.) {
-		scl = 1. / dnrm2_(n, &vl[i__ * vl_dim1 + 1], &c__1);
-		dscal_(n, &scl, &vl[i__ * vl_dim1 + 1], &c__1);
+		scl = 1. / _starpu_dnrm2_(n, &vl[i__ * vl_dim1 + 1], &c__1);
+		_starpu_dscal_(n, &scl, &vl[i__ * vl_dim1 + 1], &c__1);
 	    } else if (wi[i__] > 0.) {
-		d__1 = dnrm2_(n, &vl[i__ * vl_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vl[(i__ + 1) * vl_dim1 + 1], &c__1);
-		scl = 1. / dlapy2_(&d__1, &d__2);
-		dscal_(n, &scl, &vl[i__ * vl_dim1 + 1], &c__1);
-		dscal_(n, &scl, &vl[(i__ + 1) * vl_dim1 + 1], &c__1);
+		d__1 = _starpu_dnrm2_(n, &vl[i__ * vl_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vl[(i__ + 1) * vl_dim1 + 1], &c__1);
+		scl = 1. / _starpu_dlapy2_(&d__1, &d__2);
+		_starpu_dscal_(n, &scl, &vl[i__ * vl_dim1 + 1], &c__1);
+		_starpu_dscal_(n, &scl, &vl[(i__ + 1) * vl_dim1 + 1], &c__1);
 		i__2 = *n;
 		for (k = 1; k <= i__2; ++k) {
 /* Computing 2nd power */
@@ -613,10 +613,10 @@ static integer c_n1 = -1;
 		    work[k] = d__1 * d__1 + d__2 * d__2;
 /* L10: */
 		}
-		k = idamax_(n, &work[1], &c__1);
-		dlartg_(&vl[k + i__ * vl_dim1], &vl[k + (i__ + 1) * vl_dim1], 
+		k = _starpu_idamax_(n, &work[1], &c__1);
+		_starpu_dlartg_(&vl[k + i__ * vl_dim1], &vl[k + (i__ + 1) * vl_dim1], 
 			&cs, &sn, &r__);
-		drot_(n, &vl[i__ * vl_dim1 + 1], &c__1, &vl[(i__ + 1) * 
+		_starpu_drot_(n, &vl[i__ * vl_dim1 + 1], &c__1, &vl[(i__ + 1) * 
 			vl_dim1 + 1], &c__1, &cs, &sn);
 		vl[k + (i__ + 1) * vl_dim1] = 0.;
 	    }
@@ -628,7 +628,7 @@ static integer c_n1 = -1;
 
 /*        Undo balancing of right eigenvectors */
 
-	dgebak_(balanc, "R", n, ilo, ihi, &scale[1], n, &vr[vr_offset], ldvr, 
+	_starpu_dgebak_(balanc, "R", n, ilo, ihi, &scale[1], n, &vr[vr_offset], ldvr, 
 		&ierr);
 
 /*        Normalize right eigenvectors and make largest component real */
@@ -636,14 +636,14 @@ static integer c_n1 = -1;
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    if (wi[i__] == 0.) {
-		scl = 1. / dnrm2_(n, &vr[i__ * vr_dim1 + 1], &c__1);
-		dscal_(n, &scl, &vr[i__ * vr_dim1 + 1], &c__1);
+		scl = 1. / _starpu_dnrm2_(n, &vr[i__ * vr_dim1 + 1], &c__1);
+		_starpu_dscal_(n, &scl, &vr[i__ * vr_dim1 + 1], &c__1);
 	    } else if (wi[i__] > 0.) {
-		d__1 = dnrm2_(n, &vr[i__ * vr_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vr[(i__ + 1) * vr_dim1 + 1], &c__1);
-		scl = 1. / dlapy2_(&d__1, &d__2);
-		dscal_(n, &scl, &vr[i__ * vr_dim1 + 1], &c__1);
-		dscal_(n, &scl, &vr[(i__ + 1) * vr_dim1 + 1], &c__1);
+		d__1 = _starpu_dnrm2_(n, &vr[i__ * vr_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vr[(i__ + 1) * vr_dim1 + 1], &c__1);
+		scl = 1. / _starpu_dlapy2_(&d__1, &d__2);
+		_starpu_dscal_(n, &scl, &vr[i__ * vr_dim1 + 1], &c__1);
+		_starpu_dscal_(n, &scl, &vr[(i__ + 1) * vr_dim1 + 1], &c__1);
 		i__2 = *n;
 		for (k = 1; k <= i__2; ++k) {
 /* Computing 2nd power */
@@ -653,10 +653,10 @@ static integer c_n1 = -1;
 		    work[k] = d__1 * d__1 + d__2 * d__2;
 /* L30: */
 		}
-		k = idamax_(n, &work[1], &c__1);
-		dlartg_(&vr[k + i__ * vr_dim1], &vr[k + (i__ + 1) * vr_dim1], 
+		k = _starpu_idamax_(n, &work[1], &c__1);
+		_starpu_dlartg_(&vr[k + i__ * vr_dim1], &vr[k + (i__ + 1) * vr_dim1], 
 			&cs, &sn, &r__);
-		drot_(n, &vr[i__ * vr_dim1 + 1], &c__1, &vr[(i__ + 1) * 
+		_starpu_drot_(n, &vr[i__ * vr_dim1 + 1], &c__1, &vr[(i__ + 1) * 
 			vr_dim1 + 1], &c__1, &cs, &sn);
 		vr[k + (i__ + 1) * vr_dim1] = 0.;
 	    }
@@ -672,25 +672,25 @@ L50:
 /* Computing MAX */
 	i__3 = *n - *info;
 	i__2 = max(i__3,1);
-	dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wr[*info + 
+	_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wr[*info + 
 		1], &i__2, &ierr);
 	i__1 = *n - *info;
 /* Computing MAX */
 	i__3 = *n - *info;
 	i__2 = max(i__3,1);
-	dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[*info + 
+	_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[*info + 
 		1], &i__2, &ierr);
 	if (*info == 0) {
 	    if ((wntsnv || wntsnb) && icond == 0) {
-		dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &rcondv[
+		_starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, n, &c__1, &rcondv[
 			1], n, &ierr);
 	    }
 	} else {
 	    i__1 = *ilo - 1;
-	    dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wr[1], 
+	    _starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wr[1], 
 		    n, &ierr);
 	    i__1 = *ilo - 1;
-	    dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[1], 
+	    _starpu_dlascl_("G", &c__0, &c__0, &cscale, &anrm, &i__1, &c__1, &wi[1], 
 		    n, &ierr);
 	}
     }
@@ -700,4 +700,4 @@ L50:
 
 /*     End of DGEEVX */
 
-} /* dgeevx_ */
+} /* _starpu_dgeevx_ */

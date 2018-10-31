@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dsysvx_(char *fact, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dsysvx_(char *fact, char *uplo, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	integer *ipiv, doublereal *b, integer *ldb, doublereal *x, integer *
 	ldx, doublereal *rcond, doublereal *ferr, doublereal *berr, 
@@ -30,28 +30,28 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer nb;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern doublereal dlansy_(char *, char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlansy_(char *, char *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dsycon_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsycon_(char *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
-	    integer *, integer *), dsyrfs_(char *, integer *, integer 
+	    integer *, integer *), _starpu_dsyrfs_(char *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, integer *), 
-	    dsytrf_(char *, integer *, doublereal *, integer *, integer *, 
+	    _starpu_dsytrf_(char *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
-    extern /* Subroutine */ int dsytrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsytrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -269,11 +269,11 @@ static integer c_n1 = -1;
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
+    nofact = _starpu_lsame_(fact, "N");
     lquery = *lwork == -1;
-    if (! nofact && ! lsame_(fact, "F")) {
+    if (! nofact && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! lsame_(uplo, "U") && ! lsame_(uplo, 
+    } else if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, 
 	    "L")) {
 	*info = -2;
     } else if (*n < 0) {
@@ -301,7 +301,7 @@ static integer c_n1 = -1;
 	i__1 = 1, i__2 = *n * 3;
 	lwkopt = max(i__1,i__2);
 	if (nofact) {
-	    nb = ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DSYTRF", uplo, n, &c_n1, &c_n1, &c_n1);
 /* Computing MAX */
 	    i__1 = lwkopt, i__2 = *n * nb;
 	    lwkopt = max(i__1,i__2);
@@ -311,7 +311,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYSVX", &i__1);
+	_starpu_xerbla_("DSYSVX", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -321,8 +321,8 @@ static integer c_n1 = -1;
 
 /*        Compute the factorization A = U*D*U' or A = L*D*L'. */
 
-	dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
-	dsytrf_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &work[1], lwork, 
+	_starpu_dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
+	_starpu_dsytrf_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &work[1], lwork, 
 		info);
 
 /*        Return if INFO is non-zero. */
@@ -335,29 +335,29 @@ static integer c_n1 = -1;
 
 /*     Compute the norm of the matrix A. */
 
-    anorm = dlansy_("I", uplo, n, &a[a_offset], lda, &work[1]);
+    anorm = _starpu_dlansy_("I", uplo, n, &a[a_offset], lda, &work[1]);
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dsycon_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &anorm, rcond, &work[1], 
+    _starpu_dsycon_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &anorm, rcond, &work[1], 
 	    &iwork[1], info);
 
 /*     Compute the solution vectors X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dsytrs_(uplo, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dsytrs_(uplo, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
 	    info);
 
 /*     Use iterative refinement to improve the computed solutions and */
 /*     compute error bounds and backward error estimates for them. */
 
-    dsyrfs_(uplo, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &ipiv[1], 
+    _starpu_dsyrfs_(uplo, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &ipiv[1], 
 	    &b[b_offset], ldb, &x[x_offset], ldx, &ferr[1], &berr[1], &work[1]
 , &iwork[1], info);
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
 
@@ -367,4 +367,4 @@ static integer c_n1 = -1;
 
 /*     End of DSYSVX */
 
-} /* dsysvx_ */
+} /* _starpu_dsysvx_ */

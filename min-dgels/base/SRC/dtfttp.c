@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dtfttp_(char *transr, char *uplo, integer *n, doublereal 
+/* Subroutine */ int _starpu_dtfttp_(char *transr, char *uplo, integer *n, doublereal 
 	*arf, doublereal *ap, integer *info)
 {
     /* System generated locals */
@@ -22,9 +22,9 @@
     /* Local variables */
     integer i__, j, k, n1, n2, ij, jp, js, nt, lda, ijp;
     logical normaltransr;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical lower;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical nisodd;
 
 
@@ -176,18 +176,18 @@
 /*     Test the input parameters. */
 
     *info = 0;
-    normaltransr = lsame_(transr, "N");
-    lower = lsame_(uplo, "L");
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    normaltransr = _starpu_lsame_(transr, "N");
+    lower = _starpu_lsame_(uplo, "L");
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	*info = -1;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTFTTP", &i__1);
+	_starpu_xerbla_("DTFTTP", &i__1);
 	return 0;
     }
 
@@ -511,4 +511,4 @@
 
 /*     End of DTFTTP */
 
-} /* dtfttp_ */
+} /* _starpu_dtfttp_ */

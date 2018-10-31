@@ -1,4 +1,4 @@
-/* dla_syamv.f -- translated by f2c (version 20061008).
+/* _starpu_dla_syamv.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dla_syamv__(integer *uplo, integer *n, doublereal *alpha,
+/* Subroutine */ int _starpu_dla_syamv__(integer *uplo, integer *n, doublereal *alpha,
 	 doublereal *a, integer *lda, doublereal *x, integer *incx, 
 	doublereal *beta, doublereal *y, integer *incy)
 {
@@ -29,9 +29,9 @@
     logical symb_zero__;
     integer iy, jx, kx, ky, info;
     doublereal temp, safe1;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilauplo_(char *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilauplo_(char *);
 
 
 /*     -- LAPACK routine (version 3.2)                                 -- */
@@ -165,7 +165,7 @@
 
     /* Function Body */
     info = 0;
-    if (*uplo != ilauplo_("U") && *uplo != ilauplo_("L")
+    if (*uplo != _starpu_ilauplo_("U") && *uplo != _starpu_ilauplo_("L")
 	    ) {
 	info = 1;
     } else if (*n < 0) {
@@ -178,7 +178,7 @@
 	info = 10;
     }
     if (info != 0) {
-	xerbla_("DSYMV ", &info);
+	_starpu_xerbla_("DSYMV ", &info);
 	return 0;
     }
 
@@ -204,7 +204,7 @@
 /*     Set SAFE1 essentially to be the underflow threshold times the */
 /*     number of additions in each row. */
 
-    safe1 = dlamch_("Safe minimum");
+    safe1 = _starpu_dlamch_("Safe minimum");
     safe1 = (*n + 1) * safe1;
 
 /*     Form  y := alpha*abs(A)*abs(x) + beta*abs(y). */
@@ -229,7 +229,7 @@
 	    if (*alpha != 0.) {
 		i__2 = *n;
 		for (j = 1; j <= i__2; ++j) {
-		    if (*uplo == ilauplo_("U")) {
+		    if (*uplo == _starpu_ilauplo_("U")) {
 			if (i__ <= j) {
 			    temp = (d__1 = a[i__ + j * a_dim1], abs(d__1));
 			} else {
@@ -267,7 +267,7 @@
 	    if (*alpha != 0.) {
 		i__2 = *n;
 		for (j = 1; j <= i__2; ++j) {
-		    if (*uplo == ilauplo_("U")) {
+		    if (*uplo == _starpu_ilauplo_("U")) {
 			if (i__ <= j) {
 			    temp = (d__1 = a[i__ + j * a_dim1], abs(d__1));
 			} else {
@@ -296,4 +296,4 @@
 
 /*     End of DLA_SYAMV */
 
-} /* dla_syamv__ */
+} /* _starpu_dla_syamv__ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlacpy_(char *uplo, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_dlacpy_(char *uplo, integer *m, integer *n, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb)
 {
     /* System generated locals */
@@ -21,7 +21,7 @@
 
     /* Local variables */
     integer i__, j;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -87,7 +87,7 @@
     b -= b_offset;
 
     /* Function Body */
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 	i__1 = *n;
 	for (j = 1; j <= i__1; ++j) {
 	    i__2 = min(j,*m);
@@ -97,7 +97,7 @@
 	    }
 /* L20: */
 	}
-    } else if (lsame_(uplo, "L")) {
+    } else if (_starpu_lsame_(uplo, "L")) {
 	i__1 = *n;
 	for (j = 1; j <= i__1; ++j) {
 	    i__2 = *m;
@@ -122,4 +122,4 @@
 
 /*     End of DLACPY */
 
-} /* dlacpy_ */
+} /* _starpu_dlacpy_ */

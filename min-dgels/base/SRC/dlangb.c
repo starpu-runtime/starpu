@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku, 
+doublereal _starpu_dlangb_(char *norm, integer *n, integer *kl, integer *ku, 
 	doublereal *ab, integer *ldab, doublereal *work)
 {
     /* System generated locals */
@@ -30,9 +30,9 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
     /* Local variables */
     integer i__, j, k, l;
     doublereal sum, scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal value;
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
 
 
@@ -124,7 +124,7 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
     /* Function Body */
     if (*n == 0) {
 	value = 0.;
-    } else if (lsame_(norm, "M")) {
+    } else if (_starpu_lsame_(norm, "M")) {
 
 /*        Find max(abs(A(i,j))). */
 
@@ -145,7 +145,7 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
 	    }
 /* L20: */
 	}
-    } else if (lsame_(norm, "O") || *(unsigned char *)
+    } else if (_starpu_lsame_(norm, "O") || *(unsigned char *)
 	    norm == '1') {
 
 /*        Find norm1(A). */
@@ -166,7 +166,7 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
 	    value = max(value,sum);
 /* L40: */
 	}
-    } else if (lsame_(norm, "I")) {
+    } else if (_starpu_lsame_(norm, "I")) {
 
 /*        Find normI(A). */
 
@@ -197,7 +197,7 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
 	    value = max(d__1,d__2);
 /* L80: */
 	}
-    } else if (lsame_(norm, "F") || lsame_(norm, "E")) {
+    } else if (_starpu_lsame_(norm, "F") || _starpu_lsame_(norm, "E")) {
 
 /*        Find normF(A). */
 
@@ -212,7 +212,7 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
 /* Computing MIN */
 	    i__2 = *n, i__3 = j + *kl;
 	    i__4 = min(i__2,i__3) - l + 1;
-	    dlassq_(&i__4, &ab[k + j * ab_dim1], &c__1, &scale, &sum);
+	    _starpu_dlassq_(&i__4, &ab[k + j * ab_dim1], &c__1, &scale, &sum);
 /* L90: */
 	}
 	value = scale * sqrt(sum);
@@ -223,4 +223,4 @@ doublereal dlangb_(char *norm, integer *n, integer *kl, integer *ku,
 
 /*     End of DLANGB */
 
-} /* dlangb_ */
+} /* _starpu_dlangb_ */

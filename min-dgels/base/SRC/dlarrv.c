@@ -19,7 +19,7 @@ static doublereal c_b5 = 0.;
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlarrv_(integer *n, doublereal *vl, doublereal *vu, 
+/* Subroutine */ int _starpu_dlarrv_(integer *n, doublereal *vl, doublereal *vu, 
 	doublereal *d__, doublereal *l, doublereal *pivmin, integer *isplit, 
 	integer *m, integer *dol, integer *dou, doublereal *minrgp, 
 	doublereal *rtol1, doublereal *rtol2, doublereal *w, doublereal *werr, 
@@ -49,7 +49,7 @@ static integer c__2 = 2;
     integer wend, iter;
     doublereal bstw;
     integer itmp1;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     integer indld;
     doublereal fudge;
@@ -59,31 +59,31 @@ static integer c__2 = 2;
     doublereal resid;
     logical eskip;
     doublereal right;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer nclus, zfrom;
     doublereal rqtol;
     integer iindc1, iindc2;
-    extern /* Subroutine */ int dlar1v_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlar1v_(integer *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, logical *, 
 	     integer *, doublereal *, doublereal *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *);
     logical stp2ii;
     doublereal lambda;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer ibegin, indeig;
     logical needbs;
     integer indlld;
     doublereal sgndef, mingma;
-    extern /* Subroutine */ int dlarrb_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarrb_(integer *, doublereal *, doublereal *, 
 	     integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, doublereal *, integer *, integer *);
     integer oldien, oldncl, wbegin;
     doublereal spdiam;
     integer negcnt;
-    extern /* Subroutine */ int dlarrf_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarrf_(integer *, doublereal *, doublereal *, 
 	     doublereal *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
@@ -92,7 +92,7 @@ static integer c__2 = 2;
     doublereal savgap;
     integer ndepth;
     doublereal ssigma;
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
     logical usedbs;
     integer iindwk, offset;
@@ -331,8 +331,8 @@ static integer c__2 = 2;
     }
 /*     The width of the part of Z that is used */
     zusedw = zusedu - zusedl + 1;
-    dlaset_("Full", n, &zusedw, &c_b5, &c_b5, &z__[zusedl * z_dim1 + 1], ldz);
-    eps = dlamch_("Precision");
+    _starpu_dlaset_("Full", n, &zusedw, &c_b5, &c_b5, &z__[zusedl * z_dim1 + 1], ldz);
+    eps = _starpu_dlamch_("Precision");
     rqtol = eps * 2.;
 
 /*     Set expert flags for standard code. */
@@ -414,7 +414,7 @@ L15:
 /*        The eigenvalue approximations will be refined when necessary as */
 /*        high relative accuracy is required for the computation of the */
 /*        corresponding eigenvectors. */
-	dcopy_(&im, &w[wbegin], &c__1, &work[wbegin], &c__1);
+	_starpu_dcopy_(&im, &w[wbegin], &c__1, &work[wbegin], &c__1);
 /*        We store in W the eigenvalue approximations w.r.t. the original */
 /*        matrix T. */
 	i__2 = im;
@@ -487,14 +487,14 @@ L40:
 			    j = wbegin + oldfst - 1;
 			}
 		    }
-		    dcopy_(&in, &z__[ibegin + j * z_dim1], &c__1, &d__[ibegin]
+		    _starpu_dcopy_(&in, &z__[ibegin + j * z_dim1], &c__1, &d__[ibegin]
 , &c__1);
 		    i__3 = in - 1;
-		    dcopy_(&i__3, &z__[ibegin + (j + 1) * z_dim1], &c__1, &l[
+		    _starpu_dcopy_(&i__3, &z__[ibegin + (j + 1) * z_dim1], &c__1, &l[
 			    ibegin], &c__1);
 		    sigma = z__[iend + (j + 1) * z_dim1];
 /*                 Set the corresponding entries in Z to zero */
-		    dlaset_("Full", &in, &c__2, &c_b5, &c_b5, &z__[ibegin + j 
+		    _starpu_dlaset_("Full", &in, &c__2, &c_b5, &c_b5, &z__[ibegin + j 
 			    * z_dim1], ldz);
 		}
 /*              Compute DL and DLL of current RRR */
@@ -516,7 +516,7 @@ L40:
 		    offset = indexw[wbegin] - 1;
 /*                 perform limited bisection (if necessary) to get approximate */
 /*                 eigenvalues to the precision needed. */
-		    dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin - 1], &p, 
+		    _starpu_dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin - 1], &p, 
 			     &q, rtol1, rtol2, &offset, &work[wbegin], &wgap[
 			    wbegin], &werr[wbegin], &work[indwrk], &iwork[
 			    iindwk], pivmin, &spdiam, &in, &iinfo);
@@ -627,7 +627,7 @@ L40:
 				p = indexw[wbegin - 1 + newlst];
 			    }
 			    offset = indexw[wbegin] - 1;
-			    dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin 
+			    _starpu_dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin 
 				    - 1], &p, &p, &rqtol, &rqtol, &offset, &
 				    work[wbegin], &wgap[wbegin], &werr[wbegin]
 , &work[indwrk], &iwork[iindwk], pivmin, &
@@ -652,7 +652,7 @@ L40:
 /*                    Note that the new RRR is stored in Z */
 
 /*                    DLARRF needs LWORK = 2*N */
-			dlarrf_(&in, &d__[ibegin], &l[ibegin], &work[indld + 
+			_starpu_dlarrf_(&in, &d__[ibegin], &l[ibegin], &work[indld + 
 				ibegin - 1], &newfst, &newlst, &work[wbegin], 
 				&wgap[wbegin], &werr[wbegin], &spdiam, &lgap, 
 				&rgap, pivmin, &tau, &z__[ibegin + newftt * 
@@ -786,7 +786,7 @@ L120:
 			    itmp1 = iwork[iindr + windex];
 			    offset = indexw[wbegin] - 1;
 			    d__1 = eps * 2.;
-			    dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin 
+			    _starpu_dlarrb_(&in, &d__[ibegin], &work[indlld + ibegin 
 				    - 1], &indeig, &indeig, &c_b5, &d__1, &
 				    offset, &work[wbegin], &wgap[wbegin], &
 				    werr[wbegin], &work[indwrk], &iwork[
@@ -802,7 +802,7 @@ L120:
 			}
 /*                    Given LAMBDA, compute the eigenvector. */
 			L__1 = ! usedbs;
-			dlar1v_(&in, &c__1, &in, &lambda, &d__[ibegin], &l[
+			_starpu_dlar1v_(&in, &c__1, &in, &lambda, &d__[ibegin], &l[
 				ibegin], &work[indld + ibegin - 1], &work[
 				indlld + ibegin - 1], pivmin, &gaptol, &z__[
 				ibegin + windex * z_dim1], &L__1, &negcnt, &
@@ -899,7 +899,7 @@ L120:
 			    if (stp2ii) {
 /*                          improve error angle by second step */
 				L__1 = ! usedbs;
-				dlar1v_(&in, &c__1, &in, &lambda, &d__[ibegin]
+				_starpu_dlar1v_(&in, &c__1, &in, &lambda, &d__[ibegin]
 , &l[ibegin], &work[indld + ibegin - 
 					1], &work[indlld + ibegin - 1], 
 					pivmin, &gaptol, &z__[ibegin + windex 
@@ -935,7 +935,7 @@ L120:
 			    }
 			}
 			i__4 = zto - zfrom + 1;
-			dscal_(&i__4, &nrminv, &z__[zfrom + windex * z_dim1], 
+			_starpu_dscal_(&i__4, &nrminv, &z__[zfrom + windex * z_dim1], 
 				&c__1);
 L125:
 /*                    Update W */
@@ -985,4 +985,4 @@ L170:
 
 /*     End of DLARRV */
 
-} /* dlarrv_ */
+} /* _starpu_dlarrv_ */

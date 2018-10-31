@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b9 = -1.;
 
-/* Subroutine */ int dgbtf2_(integer *m, integer *n, integer *kl, integer *ku, 
+/* Subroutine */ int _starpu_dgbtf2_(integer *m, integer *n, integer *kl, integer *ku, 
 	 doublereal *ab, integer *ldab, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -27,13 +27,13 @@ static doublereal c_b9 = -1.;
 
     /* Local variables */
     integer i__, j, km, jp, ju, kv;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dscal_(integer *, doublereal *, doublereal *, integer 
-	    *), dswap_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *), _starpu_dscal_(integer *, doublereal *, doublereal *, integer 
+	    *), _starpu_dswap_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -158,7 +158,7 @@ static doublereal c_b9 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBTF2", &i__1);
+	_starpu_xerbla_("DGBTF2", &i__1);
 	return 0;
     }
 
@@ -207,7 +207,7 @@ static doublereal c_b9 = -1.;
 	i__2 = *kl, i__3 = *m - j;
 	km = min(i__2,i__3);
 	i__2 = km + 1;
-	jp = idamax_(&i__2, &ab[kv + 1 + j * ab_dim1], &c__1);
+	jp = _starpu_idamax_(&i__2, &ab[kv + 1 + j * ab_dim1], &c__1);
 	ipiv[j] = jp + j - 1;
 	if (ab[kv + jp + j * ab_dim1] != 0.) {
 /* Computing MAX */
@@ -222,7 +222,7 @@ static doublereal c_b9 = -1.;
 		i__2 = ju - j + 1;
 		i__3 = *ldab - 1;
 		i__4 = *ldab - 1;
-		dswap_(&i__2, &ab[kv + jp + j * ab_dim1], &i__3, &ab[kv + 1 + 
+		_starpu_dswap_(&i__2, &ab[kv + jp + j * ab_dim1], &i__3, &ab[kv + 1 + 
 			j * ab_dim1], &i__4);
 	    }
 
@@ -231,7 +231,7 @@ static doublereal c_b9 = -1.;
 /*              Compute multipliers. */
 
 		d__1 = 1. / ab[kv + 1 + j * ab_dim1];
-		dscal_(&km, &d__1, &ab[kv + 2 + j * ab_dim1], &c__1);
+		_starpu_dscal_(&km, &d__1, &ab[kv + 2 + j * ab_dim1], &c__1);
 
 /*              Update trailing submatrix within the band. */
 
@@ -239,7 +239,7 @@ static doublereal c_b9 = -1.;
 		    i__2 = ju - j;
 		    i__3 = *ldab - 1;
 		    i__4 = *ldab - 1;
-		    dger_(&km, &i__2, &c_b9, &ab[kv + 2 + j * ab_dim1], &c__1, 
+		    _starpu_dger_(&km, &i__2, &c_b9, &ab[kv + 2 + j * ab_dim1], &c__1, 
 			     &ab[kv + (j + 1) * ab_dim1], &i__3, &ab[kv + 1 + 
 			    (j + 1) * ab_dim1], &i__4);
 		}
@@ -259,4 +259,4 @@ static doublereal c_b9 = -1.;
 
 /*     End of DGBTF2 */
 
-} /* dgbtf2_ */
+} /* _starpu_dgbtf2_ */

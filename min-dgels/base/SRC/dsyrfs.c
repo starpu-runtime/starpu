@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b12 = -1.;
 static doublereal c_b14 = 1.;
 
-/* Subroutine */ int dsyrfs_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dsyrfs_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *af, integer *ldaf, integer *
 	ipiv, doublereal *b, integer *ldb, doublereal *x, integer *ldx, 
 	doublereal *ferr, doublereal *berr, doublereal *work, integer *iwork, 
@@ -37,22 +37,22 @@ static doublereal c_b14 = 1.;
     doublereal eps;
     integer kase;
     doublereal safe1, safe2;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), daxpy_(integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_daxpy_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     integer count;
     logical upper;
-    extern /* Subroutine */ int dsymv_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsymv_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *), dlacn2_(integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_dlacn2_(integer *, doublereal *, 
 	     doublereal *, integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal lstres;
-    extern /* Subroutine */ int dsytrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsytrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -194,8 +194,8 @@ static doublereal c_b14 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -212,7 +212,7 @@ static doublereal c_b14 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYRFS", &i__1);
+	_starpu_xerbla_("DSYRFS", &i__1);
 	return 0;
     }
 
@@ -231,8 +231,8 @@ static doublereal c_b14 = 1.;
 /*     NZ = maximum number of nonzero elements in each row of A, plus 1 */
 
     nz = *n + 1;
-    eps = dlamch_("Epsilon");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    safmin = _starpu_dlamch_("Safe minimum");
     safe1 = nz * safmin;
     safe2 = safe1 / eps;
 
@@ -249,8 +249,8 @@ L20:
 
 /*        Compute residual R = B - A * X */
 
-	dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
-	dsymv_(uplo, n, &c_b12, &a[a_offset], lda, &x[j * x_dim1 + 1], &c__1, 
+	_starpu_dcopy_(n, &b[j * b_dim1 + 1], &c__1, &work[*n + 1], &c__1);
+	_starpu_dsymv_(uplo, n, &c_b12, &a[a_offset], lda, &x[j * x_dim1 + 1], &c__1, 
 		&c_b14, &work[*n + 1], &c__1);
 
 /*        Compute componentwise relative backward error from formula */
@@ -331,9 +331,9 @@ L20:
 
 /*           Update solution and try again. */
 
-	    dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[*n 
+	    _starpu_dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[*n 
 		    + 1], n, info);
-	    daxpy_(n, &c_b14, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
+	    _starpu_daxpy_(n, &c_b14, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
 		    ;
 	    lstres = berr[j];
 	    ++count;
@@ -376,14 +376,14 @@ L20:
 
 	kase = 0;
 L100:
-	dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
+	_starpu_dlacn2_(n, &work[(*n << 1) + 1], &work[*n + 1], &iwork[1], &ferr[j], &
 		kase, isave);
 	if (kase != 0) {
 	    if (kase == 1) {
 
 /*              Multiply by diag(W)*inv(A'). */
 
-		dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[
+		_starpu_dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[
 			*n + 1], n, info);
 		i__2 = *n;
 		for (i__ = 1; i__ <= i__2; ++i__) {
@@ -399,7 +399,7 @@ L100:
 		    work[*n + i__] = work[i__] * work[*n + i__];
 /* L120: */
 		}
-		dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[
+		_starpu_dsytrs_(uplo, n, &c__1, &af[af_offset], ldaf, &ipiv[1], &work[
 			*n + 1], n, info);
 	    }
 	    goto L100;
@@ -426,4 +426,4 @@ L100:
 
 /*     End of DSYRFS */
 
-} /* dsyrfs_ */
+} /* _starpu_dsyrfs_ */

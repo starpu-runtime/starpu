@@ -21,7 +21,7 @@ static integer c__3 = 3;
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, 
+/* Subroutine */ int _starpu_dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, 
 	integer *n, integer *ktop, integer *kbot, integer *nshfts, doublereal 
 	*sr, doublereal *si, doublereal *h__, integer *ldh, integer *iloz, 
 	integer *ihiz, doublereal *z__, integer *ldz, doublereal *v, integer *
@@ -49,22 +49,22 @@ static integer c__2 = 2;
     integer jtop, jrow, mtop;
     doublereal alpha;
     logical accum;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer ndcol, incol, krcol, nbmps;
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dlaqr1_(
+	    doublereal *, integer *), _starpu_dlaqr1_(
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), dlabad_(doublereal *, 
+	    doublereal *, doublereal *, doublereal *), _starpu_dlabad_(doublereal *, 
 	    doublereal *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlarfg_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *), dlacpy_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlarfg_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *), _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
     doublereal safmax, refsum;
     integer mstart;
@@ -283,10 +283,10 @@ static integer c__2 = 2;
 
 /*     ==== Machine constants for deflation ==== */
 
-    safmin = dlamch_("SAFE MINIMUM");
+    safmin = _starpu_dlamch_("SAFE MINIMUM");
     safmax = 1. / safmin;
-    dlabad_(&safmin, &safmax);
-    ulp = dlamch_("PRECISION");
+    _starpu_dlabad_(&safmin, &safmax);
+    ulp = _starpu_dlamch_("PRECISION");
     smlnum = safmin * ((doublereal) (*n) / ulp);
 
 /*     ==== Use accumulated reflections to update far-from-diagonal */
@@ -320,7 +320,7 @@ static integer c__2 = 2;
 	    incol <= i__1; incol += i__2) {
 	ndcol = incol + kdu;
 	if (accum) {
-	    dlaset_("ALL", &kdu, &kdu, &c_b7, &c_b8, &u[u_offset], ldu);
+	    _starpu_dlaset_("ALL", &kdu, &kdu, &c_b7, &c_b8, &u[u_offset], ldu);
 	}
 
 /*        ==== Near-the-diagonal bulge chase.  The following loop */
@@ -363,17 +363,17 @@ static integer c__2 = 2;
 	    for (m = mtop; m <= i__4; ++m) {
 		k = krcol + (m - 1) * 3;
 		if (k == *ktop - 1) {
-		    dlaqr1_(&c__3, &h__[*ktop + *ktop * h_dim1], ldh, &sr[(m 
+		    _starpu_dlaqr1_(&c__3, &h__[*ktop + *ktop * h_dim1], ldh, &sr[(m 
 			    << 1) - 1], &si[(m << 1) - 1], &sr[m * 2], &si[m *
 			     2], &v[m * v_dim1 + 1]);
 		    alpha = v[m * v_dim1 + 1];
-		    dlarfg_(&c__3, &alpha, &v[m * v_dim1 + 2], &c__1, &v[m * 
+		    _starpu_dlarfg_(&c__3, &alpha, &v[m * v_dim1 + 2], &c__1, &v[m * 
 			    v_dim1 + 1]);
 		} else {
 		    beta = h__[k + 1 + k * h_dim1];
 		    v[m * v_dim1 + 2] = h__[k + 2 + k * h_dim1];
 		    v[m * v_dim1 + 3] = h__[k + 3 + k * h_dim1];
-		    dlarfg_(&c__3, &beta, &v[m * v_dim1 + 2], &c__1, &v[m * 
+		    _starpu_dlarfg_(&c__3, &beta, &v[m * v_dim1 + 2], &c__1, &v[m * 
 			    v_dim1 + 1]);
 
 /*                 ==== A Bulge may collapse because of vigilant */
@@ -398,11 +398,11 @@ static integer c__2 = 2;
 /*                    .    reflector is too large, then abandon it. */
 /*                    .    Otherwise, use the new one. ==== */
 
-			dlaqr1_(&c__3, &h__[k + 1 + (k + 1) * h_dim1], ldh, &
+			_starpu_dlaqr1_(&c__3, &h__[k + 1 + (k + 1) * h_dim1], ldh, &
 				sr[(m << 1) - 1], &si[(m << 1) - 1], &sr[m * 
 				2], &si[m * 2], vt);
 			alpha = vt[0];
-			dlarfg_(&c__3, &alpha, &vt[1], &c__1, vt);
+			_starpu_dlarfg_(&c__3, &alpha, &vt[1], &c__1, vt);
 			refsum = vt[0] * (h__[k + 1 + k * h_dim1] + vt[1] * 
 				h__[k + 2 + k * h_dim1]);
 
@@ -444,16 +444,16 @@ static integer c__2 = 2;
 	    k = krcol + (m22 - 1) * 3;
 	    if (bmp22) {
 		if (k == *ktop - 1) {
-		    dlaqr1_(&c__2, &h__[k + 1 + (k + 1) * h_dim1], ldh, &sr[(
+		    _starpu_dlaqr1_(&c__2, &h__[k + 1 + (k + 1) * h_dim1], ldh, &sr[(
 			    m22 << 1) - 1], &si[(m22 << 1) - 1], &sr[m22 * 2], 
 			     &si[m22 * 2], &v[m22 * v_dim1 + 1]);
 		    beta = v[m22 * v_dim1 + 1];
-		    dlarfg_(&c__2, &beta, &v[m22 * v_dim1 + 2], &c__1, &v[m22 
+		    _starpu_dlarfg_(&c__2, &beta, &v[m22 * v_dim1 + 2], &c__1, &v[m22 
 			    * v_dim1 + 1]);
 		} else {
 		    beta = h__[k + 1 + k * h_dim1];
 		    v[m22 * v_dim1 + 2] = h__[k + 2 + k * h_dim1];
-		    dlarfg_(&c__2, &beta, &v[m22 * v_dim1 + 2], &c__1, &v[m22 
+		    _starpu_dlarfg_(&c__2, &beta, &v[m22 * v_dim1 + 2], &c__1, &v[m22 
 			    * v_dim1 + 1]);
 		    h__[k + 1 + k * h_dim1] = beta;
 		    h__[k + 2 + k * h_dim1] = 0.;
@@ -777,10 +777,10 @@ static integer c__2 = 2;
 /* Computing MIN */
 		    i__5 = *nh, i__7 = jbot - jcol + 1;
 		    jlen = min(i__5,i__7);
-		    dgemm_("C", "N", &nu, &jlen, &nu, &c_b8, &u[k1 + k1 * 
+		    _starpu_dgemm_("C", "N", &nu, &jlen, &nu, &c_b8, &u[k1 + k1 * 
 			    u_dim1], ldu, &h__[incol + k1 + jcol * h_dim1], 
 			    ldh, &c_b7, &wh[wh_offset], ldwh);
-		    dlacpy_("ALL", &nu, &jlen, &wh[wh_offset], ldwh, &h__[
+		    _starpu_dlacpy_("ALL", &nu, &jlen, &wh[wh_offset], ldwh, &h__[
 			    incol + k1 + jcol * h_dim1], ldh);
 /* L160: */
 		}
@@ -794,10 +794,10 @@ static integer c__2 = 2;
 /* Computing MIN */
 		    i__5 = *nv, i__7 = max(*ktop,incol) - jrow;
 		    jlen = min(i__5,i__7);
-		    dgemm_("N", "N", &jlen, &nu, &nu, &c_b8, &h__[jrow + (
+		    _starpu_dgemm_("N", "N", &jlen, &nu, &nu, &c_b8, &h__[jrow + (
 			    incol + k1) * h_dim1], ldh, &u[k1 + k1 * u_dim1], 
 			    ldu, &c_b7, &wv[wv_offset], ldwv);
-		    dlacpy_("ALL", &jlen, &nu, &wv[wv_offset], ldwv, &h__[
+		    _starpu_dlacpy_("ALL", &jlen, &nu, &wv[wv_offset], ldwv, &h__[
 			    jrow + (incol + k1) * h_dim1], ldh);
 /* L170: */
 		}
@@ -812,10 +812,10 @@ static integer c__2 = 2;
 /* Computing MIN */
 			i__5 = *nv, i__7 = *ihiz - jrow + 1;
 			jlen = min(i__5,i__7);
-			dgemm_("N", "N", &jlen, &nu, &nu, &c_b8, &z__[jrow + (
+			_starpu_dgemm_("N", "N", &jlen, &nu, &nu, &c_b8, &z__[jrow + (
 				incol + k1) * z_dim1], ldz, &u[k1 + k1 * 
 				u_dim1], ldu, &c_b7, &wv[wv_offset], ldwv);
-			dlacpy_("ALL", &jlen, &nu, &wv[wv_offset], ldwv, &z__[
+			_starpu_dlacpy_("ALL", &jlen, &nu, &wv[wv_offset], ldwv, &z__[
 				jrow + (incol + k1) * z_dim1], ldz)
 				;
 /* L180: */
@@ -852,45 +852,45 @@ static integer c__2 = 2;
 /*                 ==== Copy bottom of H to top+KZS of scratch ==== */
 /*                  (The first KZS rows get multiplied by zero.) ==== */
 
-		    dlacpy_("ALL", &knz, &jlen, &h__[incol + 1 + j2 + jcol * 
+		    _starpu_dlacpy_("ALL", &knz, &jlen, &h__[incol + 1 + j2 + jcol * 
 			    h_dim1], ldh, &wh[kzs + 1 + wh_dim1], ldwh);
 
 /*                 ==== Multiply by U21' ==== */
 
-		    dlaset_("ALL", &kzs, &jlen, &c_b7, &c_b7, &wh[wh_offset], 
+		    _starpu_dlaset_("ALL", &kzs, &jlen, &c_b7, &c_b7, &wh[wh_offset], 
 			    ldwh);
-		    dtrmm_("L", "U", "C", "N", &knz, &jlen, &c_b8, &u[j2 + 1 
+		    _starpu_dtrmm_("L", "U", "C", "N", &knz, &jlen, &c_b8, &u[j2 + 1 
 			    + (kzs + 1) * u_dim1], ldu, &wh[kzs + 1 + wh_dim1]
 , ldwh);
 
 /*                 ==== Multiply top of H by U11' ==== */
 
-		    dgemm_("C", "N", &i2, &jlen, &j2, &c_b8, &u[u_offset], 
+		    _starpu_dgemm_("C", "N", &i2, &jlen, &j2, &c_b8, &u[u_offset], 
 			    ldu, &h__[incol + 1 + jcol * h_dim1], ldh, &c_b8, 
 			    &wh[wh_offset], ldwh);
 
 /*                 ==== Copy top of H to bottom of WH ==== */
 
-		    dlacpy_("ALL", &j2, &jlen, &h__[incol + 1 + jcol * h_dim1]
+		    _starpu_dlacpy_("ALL", &j2, &jlen, &h__[incol + 1 + jcol * h_dim1]
 , ldh, &wh[i2 + 1 + wh_dim1], ldwh);
 
 /*                 ==== Multiply by U21' ==== */
 
-		    dtrmm_("L", "L", "C", "N", &j2, &jlen, &c_b8, &u[(i2 + 1) 
+		    _starpu_dtrmm_("L", "L", "C", "N", &j2, &jlen, &c_b8, &u[(i2 + 1) 
 			    * u_dim1 + 1], ldu, &wh[i2 + 1 + wh_dim1], ldwh);
 
 /*                 ==== Multiply by U22 ==== */
 
 		    i__5 = i4 - i2;
 		    i__7 = j4 - j2;
-		    dgemm_("C", "N", &i__5, &jlen, &i__7, &c_b8, &u[j2 + 1 + (
+		    _starpu_dgemm_("C", "N", &i__5, &jlen, &i__7, &c_b8, &u[j2 + 1 + (
 			    i2 + 1) * u_dim1], ldu, &h__[incol + 1 + j2 + 
 			    jcol * h_dim1], ldh, &c_b8, &wh[i2 + 1 + wh_dim1], 
 			     ldwh);
 
 /*                 ==== Copy it back ==== */
 
-		    dlacpy_("ALL", &kdu, &jlen, &wh[wh_offset], ldwh, &h__[
+		    _starpu_dlacpy_("ALL", &kdu, &jlen, &wh[wh_offset], ldwh, &h__[
 			    incol + 1 + jcol * h_dim1], ldh);
 /* L190: */
 		}
@@ -908,32 +908,32 @@ static integer c__2 = 2;
 /*                 ==== Copy right of H to scratch (the first KZS */
 /*                 .    columns get multiplied by zero) ==== */
 
-		    dlacpy_("ALL", &jlen, &knz, &h__[jrow + (incol + 1 + j2) *
+		    _starpu_dlacpy_("ALL", &jlen, &knz, &h__[jrow + (incol + 1 + j2) *
 			     h_dim1], ldh, &wv[(kzs + 1) * wv_dim1 + 1], ldwv);
 
 /*                 ==== Multiply by U21 ==== */
 
-		    dlaset_("ALL", &jlen, &kzs, &c_b7, &c_b7, &wv[wv_offset], 
+		    _starpu_dlaset_("ALL", &jlen, &kzs, &c_b7, &c_b7, &wv[wv_offset], 
 			    ldwv);
-		    dtrmm_("R", "U", "N", "N", &jlen, &knz, &c_b8, &u[j2 + 1 
+		    _starpu_dtrmm_("R", "U", "N", "N", &jlen, &knz, &c_b8, &u[j2 + 1 
 			    + (kzs + 1) * u_dim1], ldu, &wv[(kzs + 1) * 
 			    wv_dim1 + 1], ldwv);
 
 /*                 ==== Multiply by U11 ==== */
 
-		    dgemm_("N", "N", &jlen, &i2, &j2, &c_b8, &h__[jrow + (
+		    _starpu_dgemm_("N", "N", &jlen, &i2, &j2, &c_b8, &h__[jrow + (
 			    incol + 1) * h_dim1], ldh, &u[u_offset], ldu, &
 			    c_b8, &wv[wv_offset], ldwv);
 
 /*                 ==== Copy left of H to right of scratch ==== */
 
-		    dlacpy_("ALL", &jlen, &j2, &h__[jrow + (incol + 1) * 
+		    _starpu_dlacpy_("ALL", &jlen, &j2, &h__[jrow + (incol + 1) * 
 			    h_dim1], ldh, &wv[(i2 + 1) * wv_dim1 + 1], ldwv);
 
 /*                 ==== Multiply by U21 ==== */
 
 		    i__5 = i4 - i2;
-		    dtrmm_("R", "L", "N", "N", &jlen, &i__5, &c_b8, &u[(i2 + 
+		    _starpu_dtrmm_("R", "L", "N", "N", &jlen, &i__5, &c_b8, &u[(i2 + 
 			    1) * u_dim1 + 1], ldu, &wv[(i2 + 1) * wv_dim1 + 1]
 , ldwv);
 
@@ -941,14 +941,14 @@ static integer c__2 = 2;
 
 		    i__5 = i4 - i2;
 		    i__7 = j4 - j2;
-		    dgemm_("N", "N", &jlen, &i__5, &i__7, &c_b8, &h__[jrow + (
+		    _starpu_dgemm_("N", "N", &jlen, &i__5, &i__7, &c_b8, &h__[jrow + (
 			    incol + 1 + j2) * h_dim1], ldh, &u[j2 + 1 + (i2 + 
 			    1) * u_dim1], ldu, &c_b8, &wv[(i2 + 1) * wv_dim1 
 			    + 1], ldwv);
 
 /*                 ==== Copy it back ==== */
 
-		    dlacpy_("ALL", &jlen, &kdu, &wv[wv_offset], ldwv, &h__[
+		    _starpu_dlacpy_("ALL", &jlen, &kdu, &wv[wv_offset], ldwv, &h__[
 			    jrow + (incol + 1) * h_dim1], ldh);
 /* L200: */
 		}
@@ -967,34 +967,34 @@ static integer c__2 = 2;
 /*                    ==== Copy right of Z to left of scratch (first */
 /*                    .     KZS columns get multiplied by zero) ==== */
 
-			dlacpy_("ALL", &jlen, &knz, &z__[jrow + (incol + 1 + 
+			_starpu_dlacpy_("ALL", &jlen, &knz, &z__[jrow + (incol + 1 + 
 				j2) * z_dim1], ldz, &wv[(kzs + 1) * wv_dim1 + 
 				1], ldwv);
 
 /*                    ==== Multiply by U12 ==== */
 
-			dlaset_("ALL", &jlen, &kzs, &c_b7, &c_b7, &wv[
+			_starpu_dlaset_("ALL", &jlen, &kzs, &c_b7, &c_b7, &wv[
 				wv_offset], ldwv);
-			dtrmm_("R", "U", "N", "N", &jlen, &knz, &c_b8, &u[j2 
+			_starpu_dtrmm_("R", "U", "N", "N", &jlen, &knz, &c_b8, &u[j2 
 				+ 1 + (kzs + 1) * u_dim1], ldu, &wv[(kzs + 1) 
 				* wv_dim1 + 1], ldwv);
 
 /*                    ==== Multiply by U11 ==== */
 
-			dgemm_("N", "N", &jlen, &i2, &j2, &c_b8, &z__[jrow + (
+			_starpu_dgemm_("N", "N", &jlen, &i2, &j2, &c_b8, &z__[jrow + (
 				incol + 1) * z_dim1], ldz, &u[u_offset], ldu, 
 				&c_b8, &wv[wv_offset], ldwv);
 
 /*                    ==== Copy left of Z to right of scratch ==== */
 
-			dlacpy_("ALL", &jlen, &j2, &z__[jrow + (incol + 1) * 
+			_starpu_dlacpy_("ALL", &jlen, &j2, &z__[jrow + (incol + 1) * 
 				z_dim1], ldz, &wv[(i2 + 1) * wv_dim1 + 1], 
 				ldwv);
 
 /*                    ==== Multiply by U21 ==== */
 
 			i__5 = i4 - i2;
-			dtrmm_("R", "L", "N", "N", &jlen, &i__5, &c_b8, &u[(
+			_starpu_dtrmm_("R", "L", "N", "N", &jlen, &i__5, &c_b8, &u[(
 				i2 + 1) * u_dim1 + 1], ldu, &wv[(i2 + 1) * 
 				wv_dim1 + 1], ldwv);
 
@@ -1002,14 +1002,14 @@ static integer c__2 = 2;
 
 			i__5 = i4 - i2;
 			i__7 = j4 - j2;
-			dgemm_("N", "N", &jlen, &i__5, &i__7, &c_b8, &z__[
+			_starpu_dgemm_("N", "N", &jlen, &i__5, &i__7, &c_b8, &z__[
 				jrow + (incol + 1 + j2) * z_dim1], ldz, &u[j2 
 				+ 1 + (i2 + 1) * u_dim1], ldu, &c_b8, &wv[(i2 
 				+ 1) * wv_dim1 + 1], ldwv);
 
 /*                    ==== Copy the result back to Z ==== */
 
-			dlacpy_("ALL", &jlen, &kdu, &wv[wv_offset], ldwv, &
+			_starpu_dlacpy_("ALL", &jlen, &kdu, &wv[wv_offset], ldwv, &
 				z__[jrow + (incol + 1) * z_dim1], ldz);
 /* L210: */
 		    }
@@ -1022,4 +1022,4 @@ static integer c__2 = 2;
 /*     ==== End of DLAQR5 ==== */
 
     return 0;
-} /* dlaqr5_ */
+} /* _starpu_dlaqr5_ */

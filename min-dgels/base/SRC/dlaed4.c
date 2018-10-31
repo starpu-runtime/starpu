@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaed4_(integer *n, integer *i__, doublereal *d__, 
+/* Subroutine */ int _starpu_dlaed4_(integer *n, integer *i__, doublereal *d__, 
 	doublereal *z__, doublereal *delta, doublereal *rho, doublereal *dlam, 
 	 integer *info)
 {
@@ -38,12 +38,12 @@
     doublereal temp, prew, temp1, dltlb, dltub, midpt;
     integer niter;
     logical swtch;
-    extern /* Subroutine */ int dlaed5_(integer *, doublereal *, doublereal *, 
-	     doublereal *, doublereal *, doublereal *), dlaed6_(integer *, 
+    extern /* Subroutine */ int _starpu_dlaed5_(integer *, doublereal *, doublereal *, 
+	     doublereal *, doublereal *, doublereal *), _starpu_dlaed6_(integer *, 
 	    logical *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, integer *);
     logical swtch3;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical orgati;
     doublereal erretm, rhoinv;
 
@@ -167,13 +167,13 @@
 	return 0;
     }
     if (*n == 2) {
-	dlaed5_(i__, &d__[1], &z__[1], &delta[1], rho, dlam);
+	_starpu_dlaed5_(i__, &d__[1], &z__[1], &delta[1], rho, dlam);
 	return 0;
     }
 
 /*     Compute machine epsilon */
 
-    eps = dlamch_("Epsilon");
+    eps = _starpu_dlamch_("Epsilon");
     rhoinv = 1. / *rho;
 
 /*     The case I = N */
@@ -678,7 +678,7 @@
 		zz[2] = z__[iip1] * z__[iip1];
 	    }
 	    zz[1] = z__[ii] * z__[ii];
-	    dlaed6_(&niter, &orgati, &c__, &delta[iim1], zz, &w, &eta, info);
+	    _starpu_dlaed6_(&niter, &orgati, &c__, &delta[iim1], zz, &w, &eta, info);
 	    if (*info != 0) {
 		goto L250;
 	    }
@@ -859,7 +859,7 @@
 			zz[2] = z__[iip1] * z__[iip1];
 		    }
 		}
-		dlaed6_(&niter, &orgati, &c__, &delta[iim1], zz, &w, &eta, 
+		_starpu_dlaed6_(&niter, &orgati, &c__, &delta[iim1], zz, &w, &eta, 
 			info);
 		if (*info != 0) {
 		    goto L250;
@@ -951,4 +951,4 @@ L250:
 
 /*     End of DLAED4 */
 
-} /* dlaed4_ */
+} /* _starpu_dlaed4_ */

@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b22 = 1.;
 static doublereal c_b23 = 0.;
 
-/* Subroutine */ int dlaed3_(integer *k, integer *n, integer *n1, doublereal *
+/* Subroutine */ int _starpu_dlaed3_(integer *k, integer *n, integer *n1, doublereal *
 	d__, doublereal *q, integer *ldq, doublereal *rho, doublereal *dlamda, 
 	 doublereal *q2, integer *indx, integer *ctot, doublereal *w, 
 	doublereal *s, integer *info)
@@ -34,18 +34,18 @@ static doublereal c_b23 = 0.;
     /* Local variables */
     integer i__, j, n2, n12, ii, n23, iq2;
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *),
-	     dcopy_(integer *, doublereal *, integer *, doublereal *, integer 
-	    *), dlaed4_(integer *, integer *, doublereal *, doublereal *, 
+	     _starpu_dcopy_(integer *, doublereal *, integer *, doublereal *, integer 
+	    *), _starpu_dlaed4_(integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *), xerbla_(char *, integer *);
+	    _starpu_dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -193,7 +193,7 @@ static doublereal c_b23 = 0.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED3", &i__1);
+	_starpu_xerbla_("DLAED3", &i__1);
 	return 0;
     }
 
@@ -222,13 +222,13 @@ static doublereal c_b23 = 0.;
 
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	dlamda[i__] = dlamc3_(&dlamda[i__], &dlamda[i__]) - dlamda[i__];
+	dlamda[i__] = _starpu_dlamc3_(&dlamda[i__], &dlamda[i__]) - dlamda[i__];
 /* L10: */
     }
 
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
-	dlaed4_(k, &j, &dlamda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], 
+	_starpu_dlaed4_(k, &j, &dlamda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], 
 		info);
 
 /*        If the zero finder fails, the computation is terminated. */
@@ -258,12 +258,12 @@ static doublereal c_b23 = 0.;
 
 /*     Compute updated W. */
 
-    dcopy_(k, &w[1], &c__1, &s[1], &c__1);
+    _starpu_dcopy_(k, &w[1], &c__1, &s[1], &c__1);
 
 /*     Initialize W(I) = Q(I,I) */
 
     i__1 = *ldq + 1;
-    dcopy_(k, &q[q_offset], &i__1, &w[1], &c__1);
+    _starpu_dcopy_(k, &q[q_offset], &i__1, &w[1], &c__1);
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
 	i__2 = j - 1;
@@ -294,7 +294,7 @@ static doublereal c_b23 = 0.;
 	    s[i__] = w[i__] / q[i__ + j * q_dim1];
 /* L80: */
 	}
-	temp = dnrm2_(k, &s[1], &c__1);
+	temp = _starpu_dnrm2_(k, &s[1], &c__1);
 	i__2 = *k;
 	for (i__ = 1; i__ <= i__2; ++i__) {
 	    ii = indx[i__];
@@ -312,21 +312,21 @@ L110:
     n12 = ctot[1] + ctot[2];
     n23 = ctot[2] + ctot[3];
 
-    dlacpy_("A", &n23, k, &q[ctot[1] + 1 + q_dim1], ldq, &s[1], &n23);
+    _starpu_dlacpy_("A", &n23, k, &q[ctot[1] + 1 + q_dim1], ldq, &s[1], &n23);
     iq2 = *n1 * n12 + 1;
     if (n23 != 0) {
-	dgemm_("N", "N", &n2, k, &n23, &c_b22, &q2[iq2], &n2, &s[1], &n23, &
+	_starpu_dgemm_("N", "N", &n2, k, &n23, &c_b22, &q2[iq2], &n2, &s[1], &n23, &
 		c_b23, &q[*n1 + 1 + q_dim1], ldq);
     } else {
-	dlaset_("A", &n2, k, &c_b23, &c_b23, &q[*n1 + 1 + q_dim1], ldq);
+	_starpu_dlaset_("A", &n2, k, &c_b23, &c_b23, &q[*n1 + 1 + q_dim1], ldq);
     }
 
-    dlacpy_("A", &n12, k, &q[q_offset], ldq, &s[1], &n12);
+    _starpu_dlacpy_("A", &n12, k, &q[q_offset], ldq, &s[1], &n12);
     if (n12 != 0) {
-	dgemm_("N", "N", n1, k, &n12, &c_b22, &q2[1], n1, &s[1], &n12, &c_b23, 
+	_starpu_dgemm_("N", "N", n1, k, &n12, &c_b22, &q2[1], n1, &s[1], &n12, &c_b23, 
 		 &q[q_offset], ldq);
     } else {
-	dlaset_("A", n1, k, &c_b23, &c_b23, &q[q_dim1 + 1], ldq);
+	_starpu_dlaset_("A", n1, k, &c_b23, &c_b23, &q[q_dim1 + 1], ldq);
     }
 
 
@@ -335,4 +335,4 @@ L120:
 
 /*     End of DLAED3 */
 
-} /* dlaed3_ */
+} /* _starpu_dlaed3_ */

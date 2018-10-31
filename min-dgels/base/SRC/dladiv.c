@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dladiv_(doublereal *a, doublereal *b, doublereal *c__, 
+/* Subroutine */ int _starpu_dladiv_(doublereal *a, doublereal *b, doublereal *c__, 
 	doublereal *d__, doublereal *p, doublereal *q)
 {
     doublereal e, f;
@@ -75,4 +75,4 @@
 
 /*     End of DLADIV */
 
-} /* dladiv_ */
+} /* _starpu_dladiv_ */

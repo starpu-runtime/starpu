@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__3 = 3;
 static integer c__2 = 2;
 
-/* Subroutine */ int dgeqrf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeqrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -29,15 +29,15 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer i__, j, k, ib, nb, nt, nx, iws;
-    extern doublereal sceil_(real *);
+    extern doublereal _starpu_sceil_(real *);
     integer nbmin, iinfo;
-    extern /* Subroutine */ int dgeqr2_(integer *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, integer *), dlarfb_(char *, 
+    extern /* Subroutine */ int _starpu_dgeqr2_(integer *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, integer *), _starpu_dlarfb_(char *, 
 	     char *, char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, integer *), dlarft_(char *, char *, integer *, integer *, doublereal 
-	    *, integer *, doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    integer *, doublereal *, integer *), _starpu_dlarft_(char *, char *, integer *, integer *, doublereal 
+	    *, integer *, doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer lbwork, llwork, lwkopt;
     logical lquery;
@@ -153,13 +153,13 @@ static integer c__2 = 2;
     nx = 0;
     iws = *n;
     k = min(*m,*n);
-    nb = ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
     if (nb > 1 && nb < k) {
 
 /*        Determine when to cross over from blocked to unblocked code. */
 
 /* Computing MAX */
-	i__1 = 0, i__2 = ilaenv_(&c__3, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+	i__1 = 0, i__2 = _starpu_ilaenv_(&c__3, "DGEQRF", " ", m, n, &c_n1, &c_n1);
 	nx = max(i__1,i__2);
     }
 
@@ -174,7 +174,7 @@ static integer c__2 = 2;
 /*     So here 4 x 4 is the last T stored in the workspace */
 
     r__1 = (real) (k - nx) / (real) nb;
-    nt = k - sceil_(&r__1) * nb;
+    nt = k - _starpu_sceil_(&r__1) * nb;
 
 /*     optimal workspace = space for dlarfb + space for normal T's + space for the last T */
 
@@ -186,7 +186,7 @@ static integer c__2 = 2;
     i__1 = max(i__3,i__4), i__2 = max(i__5,i__6);
     llwork = max(i__1,i__2);
     r__1 = (real) llwork / (real) nb;
-    llwork = sceil_(&r__1);
+    llwork = _starpu_sceil_(&r__1);
     if (nt > nb) {
 	lbwork = k - nt;
 
@@ -196,7 +196,7 @@ static integer c__2 = 2;
 	work[1] = (doublereal) (lwkopt + nt * nt);
     } else {
 	r__1 = (real) k / (real) nb;
-	lbwork = sceil_(&r__1) * nb;
+	lbwork = _starpu_sceil_(&r__1) * nb;
 	lwkopt = (lbwork + llwork - nb) * nb;
 	work[1] = (doublereal) lwkopt;
     }
@@ -215,7 +215,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEQRF", &i__1);
+	_starpu_xerbla_("DGEQRF", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -249,7 +249,7 @@ static integer c__2 = 2;
 		    nb = (*lwork - nt * nt) / (lbwork + llwork);
 		}
 /* Computing MAX */
-		i__1 = 2, i__2 = ilaenv_(&c__2, "DGEQRF", " ", m, n, &c_n1, &
+		i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DGEQRF", " ", m, n, &c_n1, &
 			c_n1);
 		nbmin = max(i__1,i__2);
 	    }
@@ -276,7 +276,7 @@ static integer c__2 = 2;
 /*              Apply H' to A(J:M,I:I+IB-1) from the left */
 
 		i__5 = *m - j + 1;
-		dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__5, &
+		_starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__5, &
 			ib, &nb, &a[j + j * a_dim1], lda, &work[j], &lbwork, &
 			a[j + i__ * a_dim1], lda, &work[lbwork * nb + nt * nt 
 			+ 1], &ib);
@@ -287,7 +287,7 @@ static integer c__2 = 2;
 /*           A(I:M,I:I+IB-1) */
 
 	    i__4 = *m - i__ + 1;
-	    dgeqr2_(&i__4, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[
+	    _starpu_dgeqr2_(&i__4, &ib, &a[i__ + i__ * a_dim1], lda, &tau[i__], &work[
 		    lbwork * nb + nt * nt + 1], &iinfo);
 	    if (i__ + ib <= *n) {
 
@@ -295,7 +295,7 @@ static integer c__2 = 2;
 /*              H = H(i) H(i+1) . . . H(i+ib-1) */
 
 		i__4 = *m - i__ + 1;
-		dlarft_("Forward", "Columnwise", &i__4, &ib, &a[i__ + i__ * 
+		_starpu_dlarft_("Forward", "Columnwise", &i__4, &ib, &a[i__ + i__ * 
 			a_dim1], lda, &tau[i__], &work[i__], &lbwork);
 
 	    }
@@ -318,7 +318,7 @@ static integer c__2 = 2;
 		i__4 = *m - j + 1;
 		i__3 = k - i__ + 1;
 		i__5 = k - i__ + 1;
-		dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__4, &
+		_starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__4, &
 			i__3, &nb, &a[j + j * a_dim1], lda, &work[j], &lbwork, 
 			 &a[j + i__ * a_dim1], lda, &work[lbwork * nb + nt * 
 			nt + 1], &i__5);
@@ -326,7 +326,7 @@ static integer c__2 = 2;
 	    }
 	    i__1 = *m - i__ + 1;
 	    i__2 = k - i__ + 1;
-	    dgeqr2_(&i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__], &
+	    _starpu_dgeqr2_(&i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__], &
 		    work[lbwork * nb + nt * nt + 1], &iinfo);
 	} else {
 
@@ -334,7 +334,7 @@ static integer c__2 = 2;
 
 	    i__1 = *m - i__ + 1;
 	    i__2 = *n - i__ + 1;
-	    dgeqr2_(&i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__], &
+	    _starpu_dgeqr2_(&i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &tau[i__], &
 		    work[1], &iinfo);
 	}
     }
@@ -349,12 +349,12 @@ static integer c__2 = 2;
 	if (nt <= nb) {
 	    i__1 = *m - i__ + 1;
 	    i__2 = k - i__ + 1;
-	    dlarft_("Forward", "Columnwise", &i__1, &i__2, &a[i__ + i__ * 
+	    _starpu_dlarft_("Forward", "Columnwise", &i__1, &i__2, &a[i__ + i__ * 
 		    a_dim1], lda, &tau[i__], &work[i__], &lbwork);
 	} else {
 	    i__1 = *m - i__ + 1;
 	    i__2 = k - i__ + 1;
-	    dlarft_("Forward", "Columnwise", &i__1, &i__2, &a[i__ + i__ * 
+	    _starpu_dlarft_("Forward", "Columnwise", &i__1, &i__2, &a[i__ + i__ * 
 		    a_dim1], lda, &tau[i__], &work[lbwork * nb + 1], &nt);
 	}
 
@@ -369,7 +369,7 @@ static integer c__2 = 2;
 	    i__4 = *m - j + 1;
 	    i__3 = *n - *m;
 	    i__5 = *n - *m;
-	    dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__4, &
+	    _starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__4, &
 		    i__3, &ib, &a[j + j * a_dim1], lda, &work[j], &lbwork, &a[
 		    j + (*m + 1) * a_dim1], lda, &work[lbwork * nb + nt * nt 
 		    + 1], &i__5);
@@ -380,7 +380,7 @@ static integer c__2 = 2;
 	    i__1 = *n - *m;
 	    i__4 = k - j + 1;
 	    i__3 = *n - *m;
-	    dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__2, &
+	    _starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__2, &
 		    i__1, &i__4, &a[j + j * a_dim1], lda, &work[j], &lbwork, &
 		    a[j + (*m + 1) * a_dim1], lda, &work[lbwork * nb + nt * 
 		    nt + 1], &i__3);
@@ -389,7 +389,7 @@ static integer c__2 = 2;
 	    i__1 = *n - *m;
 	    i__4 = k - j + 1;
 	    i__3 = *n - *m;
-	    dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__2, &
+	    _starpu_dlarfb_("Left", "Transpose", "Forward", "Columnwise", &i__2, &
 		    i__1, &i__4, &a[j + j * a_dim1], lda, &work[lbwork * nb + 
 		    1], &nt, &a[j + (*m + 1) * a_dim1], lda, &work[lbwork * 
 		    nb + nt * nt + 1], &i__3);
@@ -400,4 +400,4 @@ static integer c__2 = 2;
 
 /*     End of DGEQRF */
 
-} /* dgeqrf_ */
+} /* _starpu_dgeqrf_ */

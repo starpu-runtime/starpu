@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgehd2_(integer *n, integer *ilo, integer *ihi, 
+/* Subroutine */ int _starpu_dgehd2_(integer *n, integer *ilo, integer *ihi, 
 	doublereal *a, integer *lda, doublereal *tau, doublereal *work, 
 	integer *info)
 {
@@ -27,10 +27,10 @@ static integer c__1 = 1;
     /* Local variables */
     integer i__;
     doublereal aii;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfg_(integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+	    doublereal *), _starpu_dlarfg_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -150,7 +150,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEHD2", &i__1);
+	_starpu_xerbla_("DGEHD2", &i__1);
 	return 0;
     }
 
@@ -162,7 +162,7 @@ static integer c__1 = 1;
 	i__2 = *ihi - i__;
 /* Computing MIN */
 	i__3 = i__ + 2;
-	dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ i__ * 
+	_starpu_dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *n)+ i__ * 
 		a_dim1], &c__1, &tau[i__]);
 	aii = a[i__ + 1 + i__ * a_dim1];
 	a[i__ + 1 + i__ * a_dim1] = 1.;
@@ -170,14 +170,14 @@ static integer c__1 = 1;
 /*        Apply H(i) to A(1:ihi,i+1:ihi) from the right */
 
 	i__2 = *ihi - i__;
-	dlarf_("Right", ihi, &i__2, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
+	_starpu_dlarf_("Right", ihi, &i__2, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
 		i__], &a[(i__ + 1) * a_dim1 + 1], lda, &work[1]);
 
 /*        Apply H(i) to A(i+1:ihi,i+1:n) from the left */
 
 	i__2 = *ihi - i__;
 	i__3 = *n - i__;
-	dlarf_("Left", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
+	_starpu_dlarf_("Left", &i__2, &i__3, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
 		i__], &a[i__ + 1 + (i__ + 1) * a_dim1], lda, &work[1]);
 
 	a[i__ + 1 + i__ * a_dim1] = aii;
@@ -188,4 +188,4 @@ static integer c__1 = 1;
 
 /*     End of DGEHD2 */
 
-} /* dgehd2_ */
+} /* _starpu_dgehd2_ */

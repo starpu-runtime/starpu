@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsysvxx_(char *fact, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dsysvxx_(char *fact, char *uplo, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	integer *ipiv, char *equed, doublereal *s, doublereal *b, integer *
 	ldb, doublereal *x, integer *ldx, doublereal *rcond, doublereal *
@@ -30,30 +30,30 @@
     /* Local variables */
     integer j;
     doublereal amax, smin, smax;
-    extern doublereal dla_syrpvgrw__(char *, integer *, integer *, doublereal 
+    extern doublereal _starpu_dla_syrpvgrw__(char *, integer *, integer *, doublereal 
 	    *, integer *, doublereal *, integer *, integer *, doublereal *, 
 	    ftnlen);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal scond;
     logical equil, rcequ;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     integer infequ;
-    extern /* Subroutine */ int dlaqsy_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaqsy_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, char *);
     doublereal smlnum;
-    extern /* Subroutine */ int dsytrf_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsytrf_(char *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dlascl2_(integer *, integer *, doublereal *, doublereal *, 
-	    integer *), dsytrs_(char *, integer *, integer *, doublereal *, 
+	     _starpu_dlascl2_(integer *, integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dsytrs_(char *, integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dsyequb_(char *, integer *, doublereal *, integer *, doublereal *
+	     _starpu_dsyequb_(char *, integer *, doublereal *, integer *, doublereal *
 , doublereal *, doublereal *, doublereal *, integer *), 
-	    dsyrfsx_(char *, char *, integer *, integer *, doublereal *, 
+	    _starpu_dsyrfsx_(char *, char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
@@ -478,15 +478,15 @@
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
-    smlnum = dlamch_("Safe minimum");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
+    smlnum = _starpu_dlamch_("Safe minimum");
     bignum = 1. / smlnum;
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rcequ = FALSE_;
     } else {
-	rcequ = lsame_(equed, "Y");
+	rcequ = _starpu_lsame_(equed, "Y");
     }
 
 /*     Default is failure.  If an input parameter is wrong or */
@@ -497,9 +497,9 @@
 
 /*     Test the input parameters.  PARAMS is not tested until DSYRFSX. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! lsame_(uplo, "U") && ! lsame_(uplo, 
+    } else if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, 
 	    "L")) {
 	*info = -2;
     } else if (*n < 0) {
@@ -510,7 +510,7 @@
 	*info = -6;
     } else if (*ldaf < max(1,*n)) {
 	*info = -8;
-    } else if (lsame_(fact, "F") && ! (rcequ || lsame_(
+    } else if (_starpu_lsame_(fact, "F") && ! (rcequ || _starpu_lsame_(
 	    equed, "N"))) {
 	*info = -9;
     } else {
@@ -546,7 +546,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYSVXX", &i__1);
+	_starpu_xerbla_("DSYSVXX", &i__1);
 	return 0;
     }
 
@@ -554,30 +554,30 @@
 
 /*     Compute row and column scalings to equilibrate the matrix A. */
 
-	dsyequb_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, &work[1], &
+	_starpu_dsyequb_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, &work[1], &
 		infequ);
 	if (infequ == 0) {
 
 /*     Equilibrate the matrix. */
 
-	    dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
-	    rcequ = lsame_(equed, "Y");
+	    _starpu_dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
+	    rcequ = _starpu_lsame_(equed, "Y");
 	}
     }
 
 /*     Scale the right-hand side. */
 
     if (rcequ) {
-	dlascl2_(n, nrhs, &s[1], &b[b_offset], ldb);
+	_starpu_dlascl2_(n, nrhs, &s[1], &b[b_offset], ldb);
     }
 
     if (nofact || equil) {
 
 /*        Compute the LU factorization of A. */
 
-	dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
+	_starpu_dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
 	i__1 = max(1,*n) * 5;
-	dsytrf_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &work[1], &i__1, 
+	_starpu_dsytrf_(uplo, n, &af[af_offset], ldaf, &ipiv[1], &work[1], &i__1, 
 		info);
 
 /*        Return if INFO is non-zero. */
@@ -589,7 +589,7 @@
 /*           leading rank-deficient INFO columns of A. */
 
 	    if (*n > 0) {
-		*rpvgrw = dla_syrpvgrw__(uplo, n, info, &a[a_offset], lda, &
+		*rpvgrw = _starpu_dla_syrpvgrw__(uplo, n, info, &a[a_offset], lda, &
 			af[af_offset], ldaf, &ipiv[1], &work[1], (ftnlen)1);
 	    }
 	    return 0;
@@ -599,20 +599,20 @@
 /*     Compute the reciprocal pivot growth factor RPVGRW. */
 
     if (*n > 0) {
-	*rpvgrw = dla_syrpvgrw__(uplo, n, info, &a[a_offset], lda, &af[
+	*rpvgrw = _starpu_dla_syrpvgrw__(uplo, n, info, &a[a_offset], lda, &af[
 		af_offset], ldaf, &ipiv[1], &work[1], (ftnlen)1);
     }
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dsytrs_(uplo, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dsytrs_(uplo, n, nrhs, &af[af_offset], ldaf, &ipiv[1], &x[x_offset], ldx, 
 	    info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dsyrfsx_(uplo, equed, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &
+    _starpu_dsyrfsx_(uplo, equed, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &
 	    ipiv[1], &s[1], &b[b_offset], ldb, &x[x_offset], ldx, rcond, &
 	    berr[1], n_err_bnds__, &err_bnds_norm__[err_bnds_norm_offset], &
 	    err_bnds_comp__[err_bnds_comp_offset], nparams, &params[1], &work[
@@ -621,11 +621,11 @@
 /*     Scale solutions. */
 
     if (rcequ) {
-	dlascl2_(n, nrhs, &s[1], &x[x_offset], ldx);
+	_starpu_dlascl2_(n, nrhs, &s[1], &x[x_offset], ldx);
     }
 
     return 0;
 
 /*     End of DSYSVXX */
 
-} /* dsysvxx_ */
+} /* _starpu_dsysvxx_ */

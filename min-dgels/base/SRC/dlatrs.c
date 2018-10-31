@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b36 = .5;
 
-/* Subroutine */ int dlatrs_(char *uplo, char *trans, char *diag, char *
+/* Subroutine */ int _starpu_dlatrs_(char *uplo, char *trans, char *diag, char *
 	normin, integer *n, doublereal *a, integer *lda, doublereal *x, 
 	doublereal *scale, doublereal *cnorm, integer *info)
 {
@@ -30,25 +30,25 @@ static doublereal c_b36 = .5;
     integer i__, j;
     doublereal xj, rec, tjj;
     integer jinc;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal xbnd;
     integer imax;
     doublereal tmax, tjjs, xmax, grow, sumj;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal tscal, uscal;
-    extern doublereal dasum_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
     integer jlast;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dtrsv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrsv_(char *, char *, char *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     logical notran;
     integer jfirst;
@@ -240,20 +240,20 @@ static doublereal c_b36 = .5;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    notran = lsame_(trans, "N");
-    nounit = lsame_(diag, "N");
+    upper = _starpu_lsame_(uplo, "U");
+    notran = _starpu_lsame_(trans, "N");
+    nounit = _starpu_lsame_(diag, "N");
 
 /*     Test the input parameters. */
 
-    if (! upper && ! lsame_(uplo, "L")) {
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T") && ! 
-	    lsame_(trans, "C")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T") && ! 
+	    _starpu_lsame_(trans, "C")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
-    } else if (! lsame_(normin, "Y") && ! lsame_(normin, 
+    } else if (! _starpu_lsame_(normin, "Y") && ! _starpu_lsame_(normin, 
 	     "N")) {
 	*info = -4;
     } else if (*n < 0) {
@@ -263,7 +263,7 @@ static doublereal c_b36 = .5;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLATRS", &i__1);
+	_starpu_xerbla_("DLATRS", &i__1);
 	return 0;
     }
 
@@ -275,11 +275,11 @@ static doublereal c_b36 = .5;
 
 /*     Determine machine dependent parameters to control overflow. */
 
-    smlnum = dlamch_("Safe minimum") / dlamch_("Precision");
+    smlnum = _starpu_dlamch_("Safe minimum") / _starpu_dlamch_("Precision");
     bignum = 1. / smlnum;
     *scale = 1.;
 
-    if (lsame_(normin, "N")) {
+    if (_starpu_lsame_(normin, "N")) {
 
 /*        Compute the 1-norm of each column, not including the diagonal. */
 
@@ -290,7 +290,7 @@ static doublereal c_b36 = .5;
 	    i__1 = *n;
 	    for (j = 1; j <= i__1; ++j) {
 		i__2 = j - 1;
-		cnorm[j] = dasum_(&i__2, &a[j * a_dim1 + 1], &c__1);
+		cnorm[j] = _starpu_dasum_(&i__2, &a[j * a_dim1 + 1], &c__1);
 /* L10: */
 	    }
 	} else {
@@ -300,7 +300,7 @@ static doublereal c_b36 = .5;
 	    i__1 = *n - 1;
 	    for (j = 1; j <= i__1; ++j) {
 		i__2 = *n - j;
-		cnorm[j] = dasum_(&i__2, &a[j + 1 + j * a_dim1], &c__1);
+		cnorm[j] = _starpu_dasum_(&i__2, &a[j + 1 + j * a_dim1], &c__1);
 /* L20: */
 	    }
 	    cnorm[*n] = 0.;
@@ -310,19 +310,19 @@ static doublereal c_b36 = .5;
 /*     Scale the column norms by TSCAL if the maximum element in CNORM is */
 /*     greater than BIGNUM. */
 
-    imax = idamax_(n, &cnorm[1], &c__1);
+    imax = _starpu_idamax_(n, &cnorm[1], &c__1);
     tmax = cnorm[imax];
     if (tmax <= bignum) {
 	tscal = 1.;
     } else {
 	tscal = 1. / (smlnum * tmax);
-	dscal_(n, &tscal, &cnorm[1], &c__1);
+	_starpu_dscal_(n, &tscal, &cnorm[1], &c__1);
     }
 
 /*     Compute a bound on the computed solution vector to see if the */
 /*     Level 2 BLAS routine DTRSV can be used. */
 
-    j = idamax_(n, &x[1], &c__1);
+    j = _starpu_idamax_(n, &x[1], &c__1);
     xmax = (d__1 = x[j], abs(d__1));
     xbnd = xmax;
     if (notran) {
@@ -500,7 +500,7 @@ L80:
 /*        Use the Level 2 BLAS solve if the reciprocal of the bound on */
 /*        elements of X is not too small. */
 
-	dtrsv_(uplo, trans, diag, n, &a[a_offset], lda, &x[1], &c__1);
+	_starpu_dtrsv_(uplo, trans, diag, n, &a[a_offset], lda, &x[1], &c__1);
     } else {
 
 /*        Use a Level 1 BLAS solve, scaling intermediate results. */
@@ -511,7 +511,7 @@ L80:
 /*           BIGNUM in absolute value. */
 
 	    *scale = bignum / xmax;
-	    dscal_(n, scale, &x[1], &c__1);
+	    _starpu_dscal_(n, scale, &x[1], &c__1);
 	    xmax = bignum;
 	}
 
@@ -545,7 +545,7 @@ L80:
 /*                          Scale x by 1/b(j). */
 
 			    rec = 1. / xj;
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
@@ -569,7 +569,7 @@ L80:
 
 			    rec /= cnorm[j];
 			}
-			dscal_(n, &rec, &x[1], &c__1);
+			_starpu_dscal_(n, &rec, &x[1], &c__1);
 			*scale *= rec;
 			xmax *= rec;
 		    }
@@ -602,14 +602,14 @@ L100:
 /*                    Scale x by 1/(2*abs(x(j))). */
 
 			rec *= .5;
-			dscal_(n, &rec, &x[1], &c__1);
+			_starpu_dscal_(n, &rec, &x[1], &c__1);
 			*scale *= rec;
 		    }
 		} else if (xj * cnorm[j] > bignum - xmax) {
 
 /*                 Scale x by 1/2. */
 
-		    dscal_(n, &c_b36, &x[1], &c__1);
+		    _starpu_dscal_(n, &c_b36, &x[1], &c__1);
 		    *scale *= .5;
 		}
 
@@ -621,10 +621,10 @@ L100:
 
 			i__3 = j - 1;
 			d__1 = -x[j] * tscal;
-			daxpy_(&i__3, &d__1, &a[j * a_dim1 + 1], &c__1, &x[1], 
+			_starpu_daxpy_(&i__3, &d__1, &a[j * a_dim1 + 1], &c__1, &x[1], 
 				 &c__1);
 			i__3 = j - 1;
-			i__ = idamax_(&i__3, &x[1], &c__1);
+			i__ = _starpu_idamax_(&i__3, &x[1], &c__1);
 			xmax = (d__1 = x[i__], abs(d__1));
 		    }
 		} else {
@@ -635,10 +635,10 @@ L100:
 
 			i__3 = *n - j;
 			d__1 = -x[j] * tscal;
-			daxpy_(&i__3, &d__1, &a[j + 1 + j * a_dim1], &c__1, &
+			_starpu_daxpy_(&i__3, &d__1, &a[j + 1 + j * a_dim1], &c__1, &
 				x[j + 1], &c__1);
 			i__3 = *n - j;
-			i__ = j + idamax_(&i__3, &x[j + 1], &c__1);
+			i__ = j + _starpu_idamax_(&i__3, &x[j + 1], &c__1);
 			xmax = (d__1 = x[i__], abs(d__1));
 		    }
 		}
@@ -680,7 +680,7 @@ L100:
 			uscal /= tjjs;
 		    }
 		    if (rec < 1.) {
-			dscal_(n, &rec, &x[1], &c__1);
+			_starpu_dscal_(n, &rec, &x[1], &c__1);
 			*scale *= rec;
 			xmax *= rec;
 		    }
@@ -694,11 +694,11 @@ L100:
 
 		    if (upper) {
 			i__3 = j - 1;
-			sumj = ddot_(&i__3, &a[j * a_dim1 + 1], &c__1, &x[1], 
+			sumj = _starpu_ddot_(&i__3, &a[j * a_dim1 + 1], &c__1, &x[1], 
 				&c__1);
 		    } else if (j < *n) {
 			i__3 = *n - j;
-			sumj = ddot_(&i__3, &a[j + 1 + j * a_dim1], &c__1, &x[
+			sumj = _starpu_ddot_(&i__3, &a[j + 1 + j * a_dim1], &c__1, &x[
 				j + 1], &c__1);
 		    }
 		} else {
@@ -749,7 +749,7 @@ L100:
 /*                             Scale X by 1/abs(x(j)). */
 
 				rec = 1. / xj;
-				dscal_(n, &rec, &x[1], &c__1);
+				_starpu_dscal_(n, &rec, &x[1], &c__1);
 				*scale *= rec;
 				xmax *= rec;
 			    }
@@ -764,7 +764,7 @@ L100:
 /*                          Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM. */
 
 			    rec = tjj * bignum / xj;
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
@@ -805,11 +805,11 @@ L150:
 
     if (tscal != 1.) {
 	d__1 = 1. / tscal;
-	dscal_(n, &d__1, &cnorm[1], &c__1);
+	_starpu_dscal_(n, &d__1, &cnorm[1], &c__1);
     }
 
     return 0;
 
 /*     End of DLATRS */
 
-} /* dlatrs_ */
+} /* _starpu_dlatrs_ */

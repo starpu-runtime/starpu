@@ -18,7 +18,7 @@
 static doublereal c_b3 = -1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaed8_(integer *icompq, integer *k, integer *n, integer 
+/* Subroutine */ int _starpu_dlaed8_(integer *icompq, integer *k, integer *n, integer 
 	*qsiz, doublereal *d__, doublereal *q, integer *ldq, integer *indxq, 
 	doublereal *rho, integer *cutpnt, doublereal *z__, doublereal *dlamda, 
 	 doublereal *q2, integer *ldq2, doublereal *w, integer *perm, integer 
@@ -39,15 +39,15 @@ static integer c__1 = 1;
     integer k2, n1, n2, jp, n1p1;
     doublereal eps, tau, tol;
     integer jlam, imax, jmax;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dscal_(
-	    integer *, doublereal *, doublereal *, integer *), dcopy_(integer 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dscal_(
+	    integer *, doublereal *, doublereal *, integer *), _starpu_dcopy_(integer 
 	    *, doublereal *, integer *, doublereal *, integer *);
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), dlacpy_(char *, integer *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *), xerbla_(char *, integer *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlamrg_(integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), _starpu_dlacpy_(char *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -235,7 +235,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED8", &i__1);
+	_starpu_xerbla_("DLAED8", &i__1);
 	return 0;
     }
 
@@ -250,7 +250,7 @@ static integer c__1 = 1;
     n1p1 = n1 + 1;
 
     if (*rho < 0.) {
-	dscal_(&n2, &c_b3, &z__[n1p1], &c__1);
+	_starpu_dscal_(&n2, &c_b3, &z__[n1p1], &c__1);
     }
 
 /*     Normalize z so that norm(z) = 1 */
@@ -261,7 +261,7 @@ static integer c__1 = 1;
 	indx[j] = j;
 /* L10: */
     }
-    dscal_(n, &t, &z__[1], &c__1);
+    _starpu_dscal_(n, &t, &z__[1], &c__1);
     *rho = (d__1 = *rho * 2., abs(d__1));
 
 /*     Sort the eigenvalues into increasing order */
@@ -279,7 +279,7 @@ static integer c__1 = 1;
     }
     i__ = 1;
     j = *cutpnt + 1;
-    dlamrg_(&n1, &n2, &dlamda[1], &c__1, &c__1, &indx[1]);
+    _starpu_dlamrg_(&n1, &n2, &dlamda[1], &c__1, &c__1, &indx[1]);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	d__[i__] = dlamda[indx[i__]];
@@ -289,9 +289,9 @@ static integer c__1 = 1;
 
 /*     Calculate the allowable deflation tolerence */
 
-    imax = idamax_(n, &z__[1], &c__1);
-    jmax = idamax_(n, &d__[1], &c__1);
-    eps = dlamch_("Epsilon");
+    imax = _starpu_idamax_(n, &z__[1], &c__1);
+    jmax = _starpu_idamax_(n, &d__[1], &c__1);
+    eps = _starpu_dlamch_("Epsilon");
     tol = eps * 8. * (d__1 = d__[jmax], abs(d__1));
 
 /*     If the rank-1 modifier is small enough, no more needs to be done */
@@ -310,11 +310,11 @@ static integer c__1 = 1;
 	    i__1 = *n;
 	    for (j = 1; j <= i__1; ++j) {
 		perm[j] = indxq[indx[j]];
-		dcopy_(qsiz, &q[perm[j] * q_dim1 + 1], &c__1, &q2[j * q2_dim1 
+		_starpu_dcopy_(qsiz, &q[perm[j] * q_dim1 + 1], &c__1, &q2[j * q2_dim1 
 			+ 1], &c__1);
 /* L60: */
 	    }
-	    dlacpy_("A", qsiz, n, &q2[q2_dim1 + 1], ldq2, &q[q_dim1 + 1], ldq);
+	    _starpu_dlacpy_("A", qsiz, n, &q2[q2_dim1 + 1], ldq2, &q[q_dim1 + 1], ldq);
 	}
 	return 0;
     }
@@ -366,7 +366,7 @@ L80:
 /*        Find sqrt(a**2+b**2) without overflow or */
 /*        destructive underflow. */
 
-	tau = dlapy2_(&c__, &s);
+	tau = _starpu_dlapy2_(&c__, &s);
 	t = d__[j] - d__[jlam];
 	c__ /= tau;
 	s = -s / tau;
@@ -385,7 +385,7 @@ L80:
 	    givnum[(*givptr << 1) + 1] = c__;
 	    givnum[(*givptr << 1) + 2] = s;
 	    if (*icompq == 1) {
-		drot_(qsiz, &q[indxq[indx[jlam]] * q_dim1 + 1], &c__1, &q[
+		_starpu_drot_(qsiz, &q[indxq[indx[jlam]] * q_dim1 + 1], &c__1, &q[
 			indxq[indx[j]] * q_dim1 + 1], &c__1, &c__, &s);
 	    }
 	    t = d__[jlam] * c__ * c__ + d__[j] * s * s;
@@ -446,7 +446,7 @@ L110:
 	    jp = indxp[j];
 	    dlamda[j] = d__[jp];
 	    perm[j] = indxq[indx[jp]];
-	    dcopy_(qsiz, &q[perm[j] * q_dim1 + 1], &c__1, &q2[j * q2_dim1 + 1]
+	    _starpu_dcopy_(qsiz, &q[perm[j] * q_dim1 + 1], &c__1, &q2[j * q2_dim1 + 1]
 , &c__1);
 /* L130: */
 	}
@@ -458,12 +458,12 @@ L110:
     if (*k < *n) {
 	if (*icompq == 0) {
 	    i__1 = *n - *k;
-	    dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
+	    _starpu_dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
 	} else {
 	    i__1 = *n - *k;
-	    dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
+	    _starpu_dcopy_(&i__1, &dlamda[*k + 1], &c__1, &d__[*k + 1], &c__1);
 	    i__1 = *n - *k;
-	    dlacpy_("A", qsiz, &i__1, &q2[(*k + 1) * q2_dim1 + 1], ldq2, &q[(*
+	    _starpu_dlacpy_("A", qsiz, &i__1, &q2[(*k + 1) * q2_dim1 + 1], ldq2, &q[(*
 		    k + 1) * q_dim1 + 1], ldq);
 	}
     }
@@ -472,4 +472,4 @@ L110:
 
 /*     End of DLAED8 */
 
-} /* dlaed8_ */
+} /* _starpu_dlaed8_ */

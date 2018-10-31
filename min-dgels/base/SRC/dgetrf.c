@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b16 = 1.;
 static doublereal c_b19 = -1.;
 
-/* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgetrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -28,18 +28,18 @@ static doublereal c_b19 = -1.;
 
     /* Local variables */
     integer i__, j, jb, nb;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer iinfo;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dgetf2_(
+	    doublereal *, integer *), _starpu_dgetf2_(
 	    integer *, integer *, doublereal *, integer *, integer *, integer 
-	    *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaswp_(integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *, integer *);
 
 
@@ -128,7 +128,7 @@ static doublereal c_b19 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGETRF", &i__1);
+	_starpu_xerbla_("DGETRF", &i__1);
 	return 0;
     }
 
@@ -140,12 +140,12 @@ static doublereal c_b19 = -1.;
 
 /*     Determine the block size for this environment. */
 
-    nb = ilaenv_(&c__1, "DGETRF", " ", m, n, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DGETRF", " ", m, n, &c_n1, &c_n1);
     if (nb <= 1 || nb >= min(*m,*n)) {
 
 /*        Use unblocked code. */
 
-	dgetf2_(m, n, &a[a_offset], lda, &ipiv[1], info);
+	_starpu_dgetf2_(m, n, &a[a_offset], lda, &ipiv[1], info);
     } else {
 
 /*        Use blocked code. */
@@ -161,7 +161,7 @@ static doublereal c_b19 = -1.;
 /*           singularity. */
 
 	    i__3 = *m - j + 1;
-	    dgetf2_(&i__3, &jb, &a[j + j * a_dim1], lda, &ipiv[j], &iinfo);
+	    _starpu_dgetf2_(&i__3, &jb, &a[j + j * a_dim1], lda, &ipiv[j], &iinfo);
 
 /*           Adjust INFO and the pivot indices. */
 
@@ -180,7 +180,7 @@ static doublereal c_b19 = -1.;
 
 	    i__3 = j - 1;
 	    i__4 = j + jb - 1;
-	    dlaswp_(&i__3, &a[a_offset], lda, &j, &i__4, &ipiv[1], &c__1);
+	    _starpu_dlaswp_(&i__3, &a[a_offset], lda, &j, &i__4, &ipiv[1], &c__1);
 
 	    if (j + jb <= *n) {
 
@@ -188,13 +188,13 @@ static doublereal c_b19 = -1.;
 
 		i__3 = *n - j - jb + 1;
 		i__4 = j + jb - 1;
-		dlaswp_(&i__3, &a[(j + jb) * a_dim1 + 1], lda, &j, &i__4, &
+		_starpu_dlaswp_(&i__3, &a[(j + jb) * a_dim1 + 1], lda, &j, &i__4, &
 			ipiv[1], &c__1);
 
 /*              Compute block row of U. */
 
 		i__3 = *n - j - jb + 1;
-		dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &i__3, &
+		_starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", &jb, &i__3, &
 			c_b16, &a[j + j * a_dim1], lda, &a[j + (j + jb) * 
 			a_dim1], lda);
 		if (j + jb <= *m) {
@@ -203,7 +203,7 @@ static doublereal c_b19 = -1.;
 
 		    i__3 = *m - j - jb + 1;
 		    i__4 = *n - j - jb + 1;
-		    dgemm_("No transpose", "No transpose", &i__3, &i__4, &jb, 
+		    _starpu_dgemm_("No transpose", "No transpose", &i__3, &i__4, &jb, 
 			    &c_b19, &a[j + jb + j * a_dim1], lda, &a[j + (j + 
 			    jb) * a_dim1], lda, &c_b16, &a[j + jb + (j + jb) *
 			     a_dim1], lda);
@@ -216,4 +216,4 @@ static doublereal c_b19 = -1.;
 
 /*     End of DGETRF */
 
-} /* dgetrf_ */
+} /* _starpu_dgetrf_ */

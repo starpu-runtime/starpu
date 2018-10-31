@@ -22,7 +22,7 @@ static doublereal c_b23 = 1.;
 static doublereal c_b24 = 0.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaed0_(integer *icompq, integer *qsiz, integer *n, 
+/* Subroutine */ int _starpu_dlaed0_(integer *icompq, integer *qsiz, integer *n, 
 	doublereal *d__, doublereal *e, doublereal *q, integer *ldq, 
 	doublereal *qstore, integer *ldqs, doublereal *work, integer *iwork, 
 	integer *info)
@@ -39,31 +39,31 @@ static integer c__1 = 1;
     integer i__, j, k, iq, lgn, msd2, smm1, spm1, spm2;
     doublereal temp;
     integer curr;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer iperm;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer indxq, iwrem;
-    extern /* Subroutine */ int dlaed1_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaed1_(integer *, doublereal *, doublereal *, 
 	     integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *);
     integer iqptr;
-    extern /* Subroutine */ int dlaed7_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaed7_(integer *, integer *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *, integer *, integer *, doublereal 
 	    *, doublereal *, integer *, integer *);
     integer tlvls;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
     integer igivcl;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer igivnm, submat, curprb, subpbs, igivpt;
-    extern /* Subroutine */ int dsteqr_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsteqr_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *);
     integer curlvl, matsiz, iprmpt, smlsiz;
 
@@ -208,7 +208,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAED0", &i__1);
+	_starpu_xerbla_("DLAED0", &i__1);
 	return 0;
     }
 
@@ -218,7 +218,7 @@ static integer c__1 = 1;
 	return 0;
     }
 
-    smlsiz = ilaenv_(&c__9, "DLAED0", " ", &c__0, &c__0, &c__0, &c__0);
+    smlsiz = _starpu_ilaenv_(&c__9, "DLAED0", " ", &c__0, &c__0, &c__0, &c__0);
 
 /*     Determine the size and placement of the submatrices, and save in */
 /*     the leading elements of IWORK. */
@@ -307,19 +307,19 @@ L10:
 	    matsiz = iwork[i__ + 1] - iwork[i__];
 	}
 	if (*icompq == 2) {
-	    dsteqr_("I", &matsiz, &d__[submat], &e[submat], &q[submat + 
+	    _starpu_dsteqr_("I", &matsiz, &d__[submat], &e[submat], &q[submat + 
 		    submat * q_dim1], ldq, &work[1], info);
 	    if (*info != 0) {
 		goto L130;
 	    }
 	} else {
-	    dsteqr_("I", &matsiz, &d__[submat], &e[submat], &work[iq - 1 + 
+	    _starpu_dsteqr_("I", &matsiz, &d__[submat], &e[submat], &work[iq - 1 + 
 		    iwork[iqptr + curr]], &matsiz, &work[1], info);
 	    if (*info != 0) {
 		goto L130;
 	    }
 	    if (*icompq == 1) {
-		dgemm_("N", "N", qsiz, &matsiz, &matsiz, &c_b23, &q[submat * 
+		_starpu_dgemm_("N", "N", qsiz, &matsiz, &matsiz, &c_b23, &q[submat * 
 			q_dim1 + 1], ldq, &work[iq - 1 + iwork[iqptr + curr]], 
 			 &matsiz, &c_b24, &qstore[submat * qstore_dim1 + 1], 
 			ldqs);
@@ -371,11 +371,11 @@ L80:
 /*     tridiagonal form) are desired. */
 
 	    if (*icompq == 2) {
-		dlaed1_(&matsiz, &d__[submat], &q[submat + submat * q_dim1], 
+		_starpu_dlaed1_(&matsiz, &d__[submat], &q[submat + submat * q_dim1], 
 			ldq, &iwork[indxq + submat], &e[submat + msd2 - 1], &
 			msd2, &work[1], &iwork[subpbs + 1], info);
 	    } else {
-		dlaed7_(icompq, &matsiz, qsiz, &tlvls, &curlvl, &curprb, &d__[
+		_starpu_dlaed7_(icompq, &matsiz, qsiz, &tlvls, &curlvl, &curprb, &d__[
 			submat], &qstore[submat * qstore_dim1 + 1], ldqs, &
 			iwork[indxq + submat], &e[submat + msd2 - 1], &msd2, &
 			work[iq], &iwork[iqptr], &iwork[iprmpt], &iwork[iperm]
@@ -403,21 +403,21 @@ L80:
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    j = iwork[indxq + i__];
 	    work[i__] = d__[j];
-	    dcopy_(qsiz, &qstore[j * qstore_dim1 + 1], &c__1, &q[i__ * q_dim1 
+	    _starpu_dcopy_(qsiz, &qstore[j * qstore_dim1 + 1], &c__1, &q[i__ * q_dim1 
 		    + 1], &c__1);
 /* L100: */
 	}
-	dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
+	_starpu_dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
     } else if (*icompq == 2) {
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    j = iwork[indxq + i__];
 	    work[i__] = d__[j];
-	    dcopy_(n, &q[j * q_dim1 + 1], &c__1, &work[*n * i__ + 1], &c__1);
+	    _starpu_dcopy_(n, &q[j * q_dim1 + 1], &c__1, &work[*n * i__ + 1], &c__1);
 /* L110: */
 	}
-	dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
-	dlacpy_("A", n, n, &work[*n + 1], n, &q[q_offset], ldq);
+	_starpu_dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
+	_starpu_dlacpy_("A", n, n, &work[*n + 1], n, &q[q_offset], ldq);
     } else {
 	i__1 = *n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
@@ -425,7 +425,7 @@ L80:
 	    work[i__] = d__[j];
 /* L120: */
 	}
-	dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
+	_starpu_dcopy_(n, &work[1], &c__1, &d__[1], &c__1);
     }
     goto L140;
 
@@ -437,4 +437,4 @@ L140:
 
 /*     End of DLAED0 */
 
-} /* dlaed0_ */
+} /* _starpu_dlaed0_ */

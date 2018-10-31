@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__3 = 3;
 static integer c__2 = 2;
 
-/* Subroutine */ int dtzrzf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dtzrzf_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -28,14 +28,14 @@ static integer c__2 = 2;
 
     /* Local variables */
     integer i__, m1, ib, nb, ki, kk, mu, nx, iws, nbmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dlarzb_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dlarzb_(
 	    char *, char *, char *, char *, integer *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlarzt_(char *, char *, integer *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *), dlatrz_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarzt_(char *, char *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *), _starpu_dlatrz_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     integer ldwork, lwkopt;
     logical lquery;
@@ -176,7 +176,7 @@ static integer c__2 = 2;
 
 /*           Determine the block size. */
 
-	    nb = ilaenv_(&c__1, "DGERQF", " ", m, n, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DGERQF", " ", m, n, &c_n1, &c_n1);
 	    lwkopt = *m * nb;
 	}
 	work[1] = (doublereal) lwkopt;
@@ -188,7 +188,7 @@ static integer c__2 = 2;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTZRZF", &i__1);
+	_starpu_xerbla_("DTZRZF", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -215,7 +215,7 @@ static integer c__2 = 2;
 /*        Determine when to cross over from blocked to unblocked code. */
 
 /* Computing MAX */
-	i__1 = 0, i__2 = ilaenv_(&c__3, "DGERQF", " ", m, n, &c_n1, &c_n1);
+	i__1 = 0, i__2 = _starpu_ilaenv_(&c__3, "DGERQF", " ", m, n, &c_n1, &c_n1);
 	nx = max(i__1,i__2);
 	if (nx < *m) {
 
@@ -230,7 +230,7 @@ static integer c__2 = 2;
 
 		nb = *lwork / ldwork;
 /* Computing MAX */
-		i__1 = 2, i__2 = ilaenv_(&c__2, "DGERQF", " ", m, n, &c_n1, &
+		i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DGERQF", " ", m, n, &c_n1, &
 			c_n1);
 		nbmin = max(i__1,i__2);
 	    }
@@ -263,7 +263,7 @@ static integer c__2 = 2;
 
 	    i__3 = *n - i__ + 1;
 	    i__4 = *n - *m;
-	    dlatrz_(&ib, &i__3, &i__4, &a[i__ + i__ * a_dim1], lda, &tau[i__], 
+	    _starpu_dlatrz_(&ib, &i__3, &i__4, &a[i__ + i__ * a_dim1], lda, &tau[i__], 
 		     &work[1]);
 	    if (i__ > 1) {
 
@@ -271,7 +271,7 @@ static integer c__2 = 2;
 /*              H = H(i+ib-1) . . . H(i+1) H(i) */
 
 		i__3 = *n - *m;
-		dlarzt_("Backward", "Rowwise", &i__3, &ib, &a[i__ + m1 * 
+		_starpu_dlarzt_("Backward", "Rowwise", &i__3, &ib, &a[i__ + m1 * 
 			a_dim1], lda, &tau[i__], &work[1], &ldwork);
 
 /*              Apply H to A(1:i-1,i:n) from the right */
@@ -279,7 +279,7 @@ static integer c__2 = 2;
 		i__3 = i__ - 1;
 		i__4 = *n - i__ + 1;
 		i__5 = *n - *m;
-		dlarzb_("Right", "No transpose", "Backward", "Rowwise", &i__3, 
+		_starpu_dlarzb_("Right", "No transpose", "Backward", "Rowwise", &i__3, 
 			 &i__4, &ib, &i__5, &a[i__ + m1 * a_dim1], lda, &work[
 			1], &ldwork, &a[i__ * a_dim1 + 1], lda, &work[ib + 1], 
 			 &ldwork)
@@ -296,7 +296,7 @@ static integer c__2 = 2;
 
     if (mu > 0) {
 	i__2 = *n - *m;
-	dlatrz_(&mu, n, &i__2, &a[a_offset], lda, &tau[1], &work[1]);
+	_starpu_dlatrz_(&mu, n, &i__2, &a[a_offset], lda, &tau[1], &work[1]);
     }
 
     work[1] = (doublereal) lwkopt;
@@ -305,4 +305,4 @@ static integer c__2 = 2;
 
 /*     End of DTZRZF */
 
-} /* dtzrzf_ */
+} /* _starpu_dtzrzf_ */

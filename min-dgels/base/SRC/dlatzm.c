@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b5 = 1.;
 
-/* Subroutine */ int dlatzm_(char *side, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_dlatzm_(char *side, integer *m, integer *n, doublereal *
 	v, integer *incv, doublereal *tau, doublereal *c1, doublereal *c2, 
 	integer *ldc, doublereal *work)
 {
@@ -27,14 +27,14 @@ static doublereal c_b5 = 1.;
     doublereal d__1;
 
     /* Local variables */
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), daxpy_(integer 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_daxpy_(integer 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *)
 	    ;
 
@@ -148,41 +148,41 @@ static doublereal c_b5 = 1.;
 	return 0;
     }
 
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 
 /*        w := C1 + v' * C2 */
 
-	dcopy_(n, &c1[c1_offset], ldc, &work[1], &c__1);
+	_starpu_dcopy_(n, &c1[c1_offset], ldc, &work[1], &c__1);
 	i__1 = *m - 1;
-	dgemv_("Transpose", &i__1, n, &c_b5, &c2[c2_offset], ldc, &v[1], incv, 
+	_starpu_dgemv_("Transpose", &i__1, n, &c_b5, &c2[c2_offset], ldc, &v[1], incv, 
 		 &c_b5, &work[1], &c__1);
 
 /*        [ C1 ] := [ C1 ] - tau* [ 1 ] * w' */
 /*        [ C2 ]    [ C2 ]        [ v ] */
 
 	d__1 = -(*tau);
-	daxpy_(n, &d__1, &work[1], &c__1, &c1[c1_offset], ldc);
+	_starpu_daxpy_(n, &d__1, &work[1], &c__1, &c1[c1_offset], ldc);
 	i__1 = *m - 1;
 	d__1 = -(*tau);
-	dger_(&i__1, n, &d__1, &v[1], incv, &work[1], &c__1, &c2[c2_offset], 
+	_starpu_dger_(&i__1, n, &d__1, &v[1], incv, &work[1], &c__1, &c2[c2_offset], 
 		ldc);
 
-    } else if (lsame_(side, "R")) {
+    } else if (_starpu_lsame_(side, "R")) {
 
 /*        w := C1 + C2 * v */
 
-	dcopy_(m, &c1[c1_offset], &c__1, &work[1], &c__1);
+	_starpu_dcopy_(m, &c1[c1_offset], &c__1, &work[1], &c__1);
 	i__1 = *n - 1;
-	dgemv_("No transpose", m, &i__1, &c_b5, &c2[c2_offset], ldc, &v[1], 
+	_starpu_dgemv_("No transpose", m, &i__1, &c_b5, &c2[c2_offset], ldc, &v[1], 
 		incv, &c_b5, &work[1], &c__1);
 
 /*        [ C1, C2 ] := [ C1, C2 ] - tau* w * [ 1 , v'] */
 
 	d__1 = -(*tau);
-	daxpy_(m, &d__1, &work[1], &c__1, &c1[c1_offset], &c__1);
+	_starpu_daxpy_(m, &d__1, &work[1], &c__1, &c1[c1_offset], &c__1);
 	i__1 = *n - 1;
 	d__1 = -(*tau);
-	dger_(m, &i__1, &d__1, &work[1], &c__1, &v[1], incv, &c2[c2_offset], 
+	_starpu_dger_(m, &i__1, &d__1, &work[1], &c__1, &v[1], incv, &c2[c2_offset], 
 		ldc);
     }
 
@@ -190,4 +190,4 @@ static doublereal c_b5 = 1.;
 
 /*     End of DLATZM */
 
-} /* dlatzm_ */
+} /* _starpu_dlatzm_ */

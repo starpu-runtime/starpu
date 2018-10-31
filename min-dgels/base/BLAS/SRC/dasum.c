@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dasum_(integer *n, doublereal *dx, integer *incx)
+doublereal _starpu_dasum_(integer *n, doublereal *dx, integer *incx)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -98,4 +98,4 @@ L40:
 L60:
     ret_val = dtemp;
     return ret_val;
-} /* dasum_ */
+} /* _starpu_dasum_ */

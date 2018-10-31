@@ -1,4 +1,4 @@
-/* xerbla_array.f -- translated by f2c (version 20061008).
+/* _starpu_xerbla_array.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int xerbla_array__(char *srname_array__, integer *
+/* Subroutine */ int _starpu_xerbla_array__(char *srname_array__, integer *
 	srname_len__, integer *info, ftnlen srname_array_len)
 {
     /* System generated locals */
@@ -25,7 +25,7 @@
 
     /* Local variables */
     integer i__;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     char srname[32];
 
 
@@ -97,6 +97,6 @@
 	*(unsigned char *)&srname[i__ - 1] = *(unsigned char *)&
 		srname_array__[i__];
     }
-    xerbla_(srname, info);
+    _starpu_xerbla_(srname, info);
     return 0;
-} /* xerbla_array__ */
+} /* _starpu_xerbla_array__ */

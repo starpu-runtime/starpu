@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-logical lsame_(char *ca, char *cb)
+logical _starpu_lsame_(char *ca, char *cb)
 {
     /* System generated locals */
     logical ret_val;
@@ -114,4 +114,4 @@ logical lsame_(char *ca, char *cb)
 /*     End of LSAME */
 
     return ret_val;
-} /* lsame_ */
+} /* _starpu_lsame_ */

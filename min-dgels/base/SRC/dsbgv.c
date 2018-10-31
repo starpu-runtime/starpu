@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsbgv_(char *jobz, char *uplo, integer *n, integer *ka, 
+/* Subroutine */ int _starpu_dsbgv_(char *jobz, char *uplo, integer *n, integer *ka, 
 	integer *kb, doublereal *ab, integer *ldab, doublereal *bb, integer *
 	ldbb, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *info)
@@ -24,19 +24,19 @@
     /* Local variables */
     integer inde;
     char vect[1];
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical upper, wantz;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpbstf_(
-	    char *, integer *, integer *, doublereal *, integer *, integer *), dsbtrd_(char *, char *, integer *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpbstf_(
+	    char *, integer *, integer *, doublereal *, integer *, integer *), _starpu_dsbtrd_(char *, char *, integer *, integer *, doublereal 
 	    *, integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	     doublereal *, integer *), dsbgst_(char *, char *, 
+	     doublereal *, integer *), _starpu_dsbgst_(char *, char *, 
 	     integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dsterf_(integer *, doublereal *, 
+	    integer *), _starpu_dsterf_(integer *, doublereal *, 
 	    doublereal *, integer *);
     integer indwrk;
-    extern /* Subroutine */ int dsteqr_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsteqr_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *);
 
 
@@ -160,13 +160,13 @@
     --work;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    upper = lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    upper = _starpu_lsame_(uplo, "U");
 
     *info = 0;
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -183,7 +183,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSBGV ", &i__1);
+	_starpu_xerbla_("DSBGV ", &i__1);
 	return 0;
     }
 
@@ -195,7 +195,7 @@
 
 /*     Form a split Cholesky factorization of B. */
 
-    dpbstf_(uplo, n, kb, &bb[bb_offset], ldbb, info);
+    _starpu_dpbstf_(uplo, n, kb, &bb[bb_offset], ldbb, info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -205,7 +205,7 @@
 
     inde = 1;
     indwrk = inde + *n;
-    dsbgst_(jobz, uplo, n, ka, kb, &ab[ab_offset], ldab, &bb[bb_offset], ldbb, 
+    _starpu_dsbgst_(jobz, uplo, n, ka, kb, &ab[ab_offset], ldab, &bb[bb_offset], ldbb, 
 	     &z__[z_offset], ldz, &work[indwrk], &iinfo)
 	    ;
 
@@ -216,19 +216,19 @@
     } else {
 	*(unsigned char *)vect = 'N';
     }
-    dsbtrd_(vect, uplo, n, ka, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
+    _starpu_dsbtrd_(vect, uplo, n, ka, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
 	    z_offset], ldz, &work[indwrk], &iinfo);
 
 /*     For eigenvalues only, call DSTERF.  For eigenvectors, call SSTEQR. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &work[inde], info);
+	_starpu_dsterf_(n, &w[1], &work[inde], info);
     } else {
-	dsteqr_(jobz, n, &w[1], &work[inde], &z__[z_offset], ldz, &work[
+	_starpu_dsteqr_(jobz, n, &w[1], &work[inde], &z__[z_offset], ldz, &work[
 		indwrk], info);
     }
     return 0;
 
 /*     End of DSBGV */
 
-} /* dsbgv_ */
+} /* _starpu_dsbgv_ */

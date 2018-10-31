@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b8 = -1.;
 
-/* Subroutine */ int dgetf2_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgetf2_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -27,16 +27,16 @@ static doublereal c_b8 = -1.;
 
     /* Local variables */
     integer i__, j, jp;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dscal_(integer *, doublereal *, doublereal *, integer 
+	    integer *), _starpu_dscal_(integer *, doublereal *, doublereal *, integer 
 	    *);
     doublereal sfmin;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -124,7 +124,7 @@ static doublereal c_b8 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGETF2", &i__1);
+	_starpu_xerbla_("DGETF2", &i__1);
 	return 0;
     }
 
@@ -136,7 +136,7 @@ static doublereal c_b8 = -1.;
 
 /*     Compute machine safe minimum */
 
-    sfmin = dlamch_("S");
+    sfmin = _starpu_dlamch_("S");
 
     i__1 = min(*m,*n);
     for (j = 1; j <= i__1; ++j) {
@@ -144,14 +144,14 @@ static doublereal c_b8 = -1.;
 /*        Find pivot and test for singularity. */
 
 	i__2 = *m - j + 1;
-	jp = j - 1 + idamax_(&i__2, &a[j + j * a_dim1], &c__1);
+	jp = j - 1 + _starpu_idamax_(&i__2, &a[j + j * a_dim1], &c__1);
 	ipiv[j] = jp;
 	if (a[jp + j * a_dim1] != 0.) {
 
 /*           Apply the interchange to columns 1:N. */
 
 	    if (jp != j) {
-		dswap_(n, &a[j + a_dim1], lda, &a[jp + a_dim1], lda);
+		_starpu_dswap_(n, &a[j + a_dim1], lda, &a[jp + a_dim1], lda);
 	    }
 
 /*           Compute elements J+1:M of J-th column. */
@@ -160,7 +160,7 @@ static doublereal c_b8 = -1.;
 		if ((d__1 = a[j + j * a_dim1], abs(d__1)) >= sfmin) {
 		    i__2 = *m - j;
 		    d__1 = 1. / a[j + j * a_dim1];
-		    dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
+		    _starpu_dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
 		} else {
 		    i__2 = *m - j;
 		    for (i__ = 1; i__ <= i__2; ++i__) {
@@ -181,7 +181,7 @@ static doublereal c_b8 = -1.;
 
 	    i__2 = *m - j;
 	    i__3 = *n - j;
-	    dger_(&i__2, &i__3, &c_b8, &a[j + 1 + j * a_dim1], &c__1, &a[j + (
+	    _starpu_dger_(&i__2, &i__3, &c_b8, &a[j + 1 + j * a_dim1], &c__1, &a[j + (
 		    j + 1) * a_dim1], lda, &a[j + 1 + (j + 1) * a_dim1], lda);
 	}
 /* L10: */
@@ -190,4 +190,4 @@ static doublereal c_b8 = -1.;
 
 /*     End of DGETF2 */
 
-} /* dgetf2_ */
+} /* _starpu_dgetf2_ */

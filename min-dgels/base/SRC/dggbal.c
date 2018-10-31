@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b35 = 10.;
 static doublereal c_b71 = .5;
 
-/* Subroutine */ int dggbal_(char *job, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dggbal_(char *job, integer *n, doublereal *a, integer *
 	lda, doublereal *b, integer *ldb, integer *ilo, integer *ihi, 
 	doublereal *lscale, doublereal *rscale, doublereal *work, integer *
 	info)
@@ -45,23 +45,23 @@ static doublereal c_b71 = .5;
     doublereal beta, coef;
     integer irab, lrab;
     doublereal basl, cmax;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal coef2, coef5, gamma, alpha;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal sfmin, sfmax;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer iflow;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     integer kount;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal pgamma;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer lsfmin, lsfmax;
 
 
@@ -190,8 +190,8 @@ static doublereal c_b71 = .5;
 
     /* Function Body */
     *info = 0;
-    if (! lsame_(job, "N") && ! lsame_(job, "P") && ! lsame_(job, "S") 
-	    && ! lsame_(job, "B")) {
+    if (! _starpu_lsame_(job, "N") && ! _starpu_lsame_(job, "P") && ! _starpu_lsame_(job, "S") 
+	    && ! _starpu_lsame_(job, "B")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -202,7 +202,7 @@ static doublereal c_b71 = .5;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGBAL", &i__1);
+	_starpu_xerbla_("DGGBAL", &i__1);
 	return 0;
     }
 
@@ -222,7 +222,7 @@ static doublereal c_b71 = .5;
 	return 0;
     }
 
-    if (lsame_(job, "N")) {
+    if (_starpu_lsame_(job, "N")) {
 	*ilo = 1;
 	*ihi = *n;
 	i__1 = *n;
@@ -236,7 +236,7 @@ static doublereal c_b71 = .5;
 
     k = 1;
     l = *n;
-    if (lsame_(job, "S")) {
+    if (_starpu_lsame_(job, "S")) {
 	goto L190;
     }
 
@@ -333,9 +333,9 @@ L160:
 	goto L170;
     }
     i__1 = *n - k + 1;
-    dswap_(&i__1, &a[i__ + k * a_dim1], lda, &a[m + k * a_dim1], lda);
+    _starpu_dswap_(&i__1, &a[i__ + k * a_dim1], lda, &a[m + k * a_dim1], lda);
     i__1 = *n - k + 1;
-    dswap_(&i__1, &b[i__ + k * b_dim1], ldb, &b[m + k * b_dim1], ldb);
+    _starpu_dswap_(&i__1, &b[i__ + k * b_dim1], ldb, &b[m + k * b_dim1], ldb);
 
 /*     Permute columns M and J */
 
@@ -344,8 +344,8 @@ L170:
     if (j == m) {
 	goto L180;
     }
-    dswap_(&l, &a[j * a_dim1 + 1], &c__1, &a[m * a_dim1 + 1], &c__1);
-    dswap_(&l, &b[j * b_dim1 + 1], &c__1, &b[m * b_dim1 + 1], &c__1);
+    _starpu_dswap_(&l, &a[j * a_dim1 + 1], &c__1, &a[m * a_dim1 + 1], &c__1);
+    _starpu_dswap_(&l, &b[j * b_dim1 + 1], &c__1, &b[m * b_dim1 + 1], &c__1);
 
 L180:
     switch (iflow) {
@@ -357,7 +357,7 @@ L190:
     *ilo = k;
     *ihi = l;
 
-    if (lsame_(job, "P")) {
+    if (_starpu_lsame_(job, "P")) {
 	i__1 = *ihi;
 	for (i__ = *ilo; i__ <= i__1; ++i__) {
 	    lscale[i__] = 1.;
@@ -427,8 +427,8 @@ L220:
 
 L250:
 
-    gamma = ddot_(&nr, &work[*ilo + (*n << 2)], &c__1, &work[*ilo + (*n << 2)]
-, &c__1) + ddot_(&nr, &work[*ilo + *n * 5], &c__1, &work[*ilo + *
+    gamma = _starpu_ddot_(&nr, &work[*ilo + (*n << 2)], &c__1, &work[*ilo + (*n << 2)]
+, &c__1) + _starpu_ddot_(&nr, &work[*ilo + *n * 5], &c__1, &work[*ilo + *
 	    n * 5], &c__1);
 
     ew = 0.;
@@ -457,12 +457,12 @@ L250:
     t = coef5 * (ewc - ew * 3.);
     tc = coef5 * (ew - ewc * 3.);
 
-    dscal_(&nr, &beta, &work[*ilo], &c__1);
-    dscal_(&nr, &beta, &work[*ilo + *n], &c__1);
+    _starpu_dscal_(&nr, &beta, &work[*ilo], &c__1);
+    _starpu_dscal_(&nr, &beta, &work[*ilo + *n], &c__1);
 
-    daxpy_(&nr, &coef, &work[*ilo + (*n << 2)], &c__1, &work[*ilo + *n], &
+    _starpu_daxpy_(&nr, &coef, &work[*ilo + (*n << 2)], &c__1, &work[*ilo + *n], &
 	    c__1);
-    daxpy_(&nr, &coef, &work[*ilo + *n * 5], &c__1, &work[*ilo], &c__1);
+    _starpu_daxpy_(&nr, &coef, &work[*ilo + *n * 5], &c__1, &work[*ilo], &c__1);
 
     i__1 = *ihi;
     for (i__ = *ilo; i__ <= i__1; ++i__) {
@@ -521,8 +521,8 @@ L320:
 /* L330: */
     }
 
-    sum = ddot_(&nr, &work[*ilo + *n], &c__1, &work[*ilo + (*n << 1)], &c__1) 
-	    + ddot_(&nr, &work[*ilo], &c__1, &work[*ilo + *n * 3], &c__1);
+    sum = _starpu_ddot_(&nr, &work[*ilo + *n], &c__1, &work[*ilo + (*n << 1)], &c__1) 
+	    + _starpu_ddot_(&nr, &work[*ilo], &c__1, &work[*ilo + *n * 3], &c__1);
     alpha = gamma / sum;
 
 /*     Determine correction to current iteration */
@@ -547,10 +547,10 @@ L320:
     }
 
     d__1 = -alpha;
-    daxpy_(&nr, &d__1, &work[*ilo + (*n << 1)], &c__1, &work[*ilo + (*n << 2)]
+    _starpu_daxpy_(&nr, &d__1, &work[*ilo + (*n << 1)], &c__1, &work[*ilo + (*n << 2)]
 , &c__1);
     d__1 = -alpha;
-    daxpy_(&nr, &d__1, &work[*ilo + *n * 3], &c__1, &work[*ilo + *n * 5], &
+    _starpu_daxpy_(&nr, &d__1, &work[*ilo + *n * 3], &c__1, &work[*ilo + *n * 5], &
 	    c__1);
 
     pgamma = gamma;
@@ -562,17 +562,17 @@ L320:
 /*     End generalized conjugate gradient iteration */
 
 L350:
-    sfmin = dlamch_("S");
+    sfmin = _starpu_dlamch_("S");
     sfmax = 1. / sfmin;
     lsfmin = (integer) (d_lg10(&sfmin) / basl + 1.);
     lsfmax = (integer) (d_lg10(&sfmax) / basl);
     i__1 = *ihi;
     for (i__ = *ilo; i__ <= i__1; ++i__) {
 	i__2 = *n - *ilo + 1;
-	irab = idamax_(&i__2, &a[i__ + *ilo * a_dim1], lda);
+	irab = _starpu_idamax_(&i__2, &a[i__ + *ilo * a_dim1], lda);
 	rab = (d__1 = a[i__ + (irab + *ilo - 1) * a_dim1], abs(d__1));
 	i__2 = *n - *ilo + 1;
-	irab = idamax_(&i__2, &b[i__ + *ilo * b_dim1], ldb);
+	irab = _starpu_idamax_(&i__2, &b[i__ + *ilo * b_dim1], ldb);
 /* Computing MAX */
 	d__2 = rab, d__3 = (d__1 = b[i__ + (irab + *ilo - 1) * b_dim1], abs(
 		d__1));
@@ -584,9 +584,9 @@ L350:
 	i__2 = max(ir,lsfmin), i__2 = min(i__2,lsfmax), i__3 = lsfmax - lrab;
 	ir = min(i__2,i__3);
 	lscale[i__] = pow_di(&c_b35, &ir);
-	icab = idamax_(ihi, &a[i__ * a_dim1 + 1], &c__1);
+	icab = _starpu_idamax_(ihi, &a[i__ * a_dim1 + 1], &c__1);
 	cab = (d__1 = a[icab + i__ * a_dim1], abs(d__1));
-	icab = idamax_(ihi, &b[i__ * b_dim1 + 1], &c__1);
+	icab = _starpu_idamax_(ihi, &b[i__ * b_dim1 + 1], &c__1);
 /* Computing MAX */
 	d__2 = cab, d__3 = (d__1 = b[icab + i__ * b_dim1], abs(d__1));
 	cab = max(d__2,d__3);
@@ -605,9 +605,9 @@ L350:
     i__1 = *ihi;
     for (i__ = *ilo; i__ <= i__1; ++i__) {
 	i__2 = *n - *ilo + 1;
-	dscal_(&i__2, &lscale[i__], &a[i__ + *ilo * a_dim1], lda);
+	_starpu_dscal_(&i__2, &lscale[i__], &a[i__ + *ilo * a_dim1], lda);
 	i__2 = *n - *ilo + 1;
-	dscal_(&i__2, &lscale[i__], &b[i__ + *ilo * b_dim1], ldb);
+	_starpu_dscal_(&i__2, &lscale[i__], &b[i__ + *ilo * b_dim1], ldb);
 /* L370: */
     }
 
@@ -615,8 +615,8 @@ L350:
 
     i__1 = *ihi;
     for (j = *ilo; j <= i__1; ++j) {
-	dscal_(ihi, &rscale[j], &a[j * a_dim1 + 1], &c__1);
-	dscal_(ihi, &rscale[j], &b[j * b_dim1 + 1], &c__1);
+	_starpu_dscal_(ihi, &rscale[j], &a[j * a_dim1 + 1], &c__1);
+	_starpu_dscal_(ihi, &rscale[j], &b[j * b_dim1 + 1], &c__1);
 /* L380: */
     }
 
@@ -624,4 +624,4 @@ L350:
 
 /*     End of DGGBAL */
 
-} /* dggbal_ */
+} /* _starpu_dggbal_ */

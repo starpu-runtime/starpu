@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer idamax_(integer *n, doublereal *dx, integer *incx)
+integer _starpu_idamax_(integer *n, doublereal *dx, integer *incx)
 {
     /* System generated locals */
     integer ret_val, i__1;
@@ -90,4 +90,4 @@ L30:
 	;
     }
     return ret_val;
-} /* idamax_ */
+} /* _starpu_idamax_ */

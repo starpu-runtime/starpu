@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgttrs_(char *trans, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dgttrs_(char *trans, integer *n, integer *nrhs, 
 	doublereal *dl, doublereal *d__, doublereal *du, doublereal *du2, 
 	integer *ipiv, doublereal *b, integer *ldb, integer *info)
 {
@@ -27,10 +27,10 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer j, jb, nb;
-    extern /* Subroutine */ int dgtts2_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgtts2_(integer *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	     doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer itrans;
     logical notran;
@@ -138,7 +138,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGTTRS", &i__1);
+	_starpu_xerbla_("DGTTRS", &i__1);
 	return 0;
     }
 
@@ -162,13 +162,13 @@ static integer c_n1 = -1;
 	nb = 1;
     } else {
 /* Computing MAX */
-	i__1 = 1, i__2 = ilaenv_(&c__1, "DGTTRS", trans, n, nrhs, &c_n1, &
+	i__1 = 1, i__2 = _starpu_ilaenv_(&c__1, "DGTTRS", trans, n, nrhs, &c_n1, &
 		c_n1);
 	nb = max(i__1,i__2);
     }
 
     if (nb >= *nrhs) {
-	dgtts2_(&itrans, n, nrhs, &dl[1], &d__[1], &du[1], &du2[1], &ipiv[1], 
+	_starpu_dgtts2_(&itrans, n, nrhs, &dl[1], &d__[1], &du[1], &du2[1], &ipiv[1], 
 		&b[b_offset], ldb);
     } else {
 	i__1 = *nrhs;
@@ -177,7 +177,7 @@ static integer c_n1 = -1;
 /* Computing MIN */
 	    i__3 = *nrhs - j + 1;
 	    jb = min(i__3,nb);
-	    dgtts2_(&itrans, n, &jb, &dl[1], &d__[1], &du[1], &du2[1], &ipiv[
+	    _starpu_dgtts2_(&itrans, n, &jb, &dl[1], &d__[1], &du[1], &du2[1], &ipiv[
 		    1], &b[j * b_dim1 + 1], ldb);
 /* L10: */
 	}
@@ -186,4 +186,4 @@ static integer c_n1 = -1;
 /*     End of DGTTRS */
 
     return 0;
-} /* dgttrs_ */
+} /* _starpu_dgttrs_ */

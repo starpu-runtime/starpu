@@ -20,7 +20,7 @@ static integer c__1 = 1;
 static integer c__16 = 16;
 static integer c__0 = 0;
 
-/* Subroutine */ int dlasy2_(logical *ltranl, logical *ltranr, integer *isgn, 
+/* Subroutine */ int _starpu_dlasy2_(logical *ltranl, logical *ltranr, integer *isgn, 
 	integer *n1, integer *n2, doublereal *tl, integer *ldtl, doublereal *
 	tr, integer *ldtr, doublereal *b, integer *ldb, doublereal *scale, 
 	doublereal *x, integer *ldx, doublereal *xnorm, integer *info)
@@ -50,12 +50,12 @@ static integer c__0 = 0;
     doublereal xmax;
     integer ipsv, jpsv;
     logical bswap;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     logical xswap;
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal smlnum;
 
 
@@ -188,8 +188,8 @@ static integer c__0 = 0;
 
 /*     Set constants to control overflow */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     sgn = (doublereal) (*isgn);
 
     k = *n1 + *n1 + *n2 - 2;
@@ -279,7 +279,7 @@ L40:
 /*     Solve 2 by 2 system using complete pivoting. */
 /*     Set pivots less than SMIN to SMIN. */
 
-    ipiv = idamax_(&c__4, tmp, &c__1);
+    ipiv = _starpu_idamax_(&c__4, tmp, &c__1);
     u11 = tmp[ipiv - 1];
     if (abs(u11) <= smin) {
 	*info = 1;
@@ -356,7 +356,7 @@ L50:
     d__1 = eps * smin;
     smin = max(d__1,smlnum);
     btmp[0] = 0.;
-    dcopy_(&c__16, btmp, &c__0, t16, &c__1);
+    _starpu_dcopy_(&c__16, btmp, &c__0, t16, &c__1);
     t16[0] = tl[tl_dim1 + 1] + sgn * tr[tr_dim1 + 1];
     t16[5] = tl[(tl_dim1 << 1) + 2] + sgn * tr[tr_dim1 + 1];
     t16[10] = tl[tl_dim1 + 1] + sgn * tr[(tr_dim1 << 1) + 2];
@@ -404,13 +404,13 @@ L50:
 /* L70: */
 	}
 	if (ipsv != i__) {
-	    dswap_(&c__4, &t16[ipsv - 1], &c__4, &t16[i__ - 1], &c__4);
+	    _starpu_dswap_(&c__4, &t16[ipsv - 1], &c__4, &t16[i__ - 1], &c__4);
 	    temp = btmp[i__ - 1];
 	    btmp[i__ - 1] = btmp[ipsv - 1];
 	    btmp[ipsv - 1] = temp;
 	}
 	if (jpsv != i__) {
-	    dswap_(&c__4, &t16[(jpsv << 2) - 4], &c__1, &t16[(i__ << 2) - 4], 
+	    _starpu_dswap_(&c__4, &t16[(jpsv << 2) - 4], &c__1, &t16[(i__ << 2) - 4], 
 		    &c__1);
 	}
 	jpiv[i__ - 1] = jpsv;
@@ -475,4 +475,4 @@ L50:
 
 /*     End of DLASY2 */
 
-} /* dlasy2_ */
+} /* _starpu_dlasy2_ */

@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static doublereal c_b33 = 0.;
 static integer c__0 = 0;
 
-/* Subroutine */ int dgels_(char *trans, integer *m, integer *n, integer *
+/* Subroutine */ int _starpu_dgels_(char *trans, integer *m, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
 	doublereal *work, integer *lwork, integer *info)
 {
@@ -33,33 +33,33 @@ static integer c__0 = 0;
     integer brow;
     logical tpsd;
     integer iascl, ibscl;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer wsize;
     doublereal rwork[1];
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *);
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dgelqf_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgelqf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *), 
-	    dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    _starpu_dlascl_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dgeqrf_(integer *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *), dlaset_(char *, 
+	     _starpu_dgeqrf_(integer *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, integer *, integer *), _starpu_dlaset_(char *, 
 	     integer *, integer *, doublereal *, doublereal *, doublereal *, 
-	    integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer scllen;
     doublereal bignum;
-    extern /* Subroutine */ int dormlq_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormlq_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *), 
-	    dormqr_(char *, char *, integer *, integer *, integer *, 
+	    _starpu_dormqr_(char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, integer *);
     doublereal smlnum;
     logical lquery;
-    extern /* Subroutine */ int dtrtrs_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrtrs_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
 
@@ -205,7 +205,7 @@ static integer c__0 = 0;
     *info = 0;
     mn = min(*m,*n);
     lquery = *lwork == -1;
-    if (! (lsame_(trans, "N") || lsame_(trans, "T"))) {
+    if (! (_starpu_lsame_(trans, "N") || _starpu_lsame_(trans, "T"))) {
 	*info = -1;
     } else if (*m < 0) {
 	*info = -2;
@@ -234,33 +234,33 @@ static integer c__0 = 0;
     if (*info == 0 || *info == -10) {
 
 	tpsd = TRUE_;
-	if (lsame_(trans, "N")) {
+	if (_starpu_lsame_(trans, "N")) {
 	    tpsd = FALSE_;
 	}
 
 	if (*m >= *n) {
-	    nb = ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, n, &c_n1, &c_n1);
 	    if (tpsd) {
 /* Computing MAX */
-		i__1 = nb, i__2 = ilaenv_(&c__1, "DORMQR", "LN", m, nrhs, n, &
+		i__1 = nb, i__2 = _starpu_ilaenv_(&c__1, "DORMQR", "LN", m, nrhs, n, &
 			c_n1);
 		nb = max(i__1,i__2);
 	    } else {
 /* Computing MAX */
-		i__1 = nb, i__2 = ilaenv_(&c__1, "DORMQR", "LT", m, nrhs, n, &
+		i__1 = nb, i__2 = _starpu_ilaenv_(&c__1, "DORMQR", "LT", m, nrhs, n, &
 			c_n1);
 		nb = max(i__1,i__2);
 	    }
 	} else {
-	    nb = ilaenv_(&c__1, "DGELQF", " ", m, n, &c_n1, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &c_n1, &c_n1);
 	    if (tpsd) {
 /* Computing MAX */
-		i__1 = nb, i__2 = ilaenv_(&c__1, "DORMLQ", "LT", n, nrhs, m, &
+		i__1 = nb, i__2 = _starpu_ilaenv_(&c__1, "DORMLQ", "LT", n, nrhs, m, &
 			c_n1);
 		nb = max(i__1,i__2);
 	    } else {
 /* Computing MAX */
-		i__1 = nb, i__2 = ilaenv_(&c__1, "DORMLQ", "LN", n, nrhs, m, &
+		i__1 = nb, i__2 = _starpu_ilaenv_(&c__1, "DORMLQ", "LN", n, nrhs, m, &
 			c_n1);
 		nb = max(i__1,i__2);
 	    }
@@ -275,7 +275,7 @@ static integer c__0 = 0;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGELS ", &i__1);
+	_starpu_xerbla_("DGELS ", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -287,32 +287,32 @@ static integer c__0 = 0;
     i__1 = min(*m,*n);
     if (min(i__1,*nrhs) == 0) {
 	i__1 = max(*m,*n);
-	dlaset_("Full", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb);
+	_starpu_dlaset_("Full", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb);
 	return 0;
     }
 
 /*     Get machine parameters */
 
-    smlnum = dlamch_("S") / dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / _starpu_dlamch_("P");
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
 /*     Scale A, B if max element outside range [SMLNUM,BIGNUM] */
 
-    anrm = dlange_("M", m, n, &a[a_offset], lda, rwork);
+    anrm = _starpu_dlange_("M", m, n, &a[a_offset], lda, rwork);
     iascl = 0;
     if (anrm > 0. && anrm < smlnum) {
 
 /*        Scale matrix norm up to SMLNUM */
 
-	dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, 
 		info);
 	iascl = 1;
     } else if (anrm > bignum) {
 
 /*        Scale matrix norm down to BIGNUM */
 
-	dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, 
 		info);
 	iascl = 2;
     } else if (anrm == 0.) {
@@ -320,7 +320,7 @@ static integer c__0 = 0;
 /*        Matrix all zero. Return zero solution. */
 
 	i__1 = max(*m,*n);
-	dlaset_("F", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb);
+	_starpu_dlaset_("F", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb);
 	goto L50;
     }
 
@@ -328,20 +328,20 @@ static integer c__0 = 0;
     if (tpsd) {
 	brow = *n;
     }
-    bnrm = dlange_("M", &brow, nrhs, &b[b_offset], ldb, rwork);
+    bnrm = _starpu_dlange_("M", &brow, nrhs, &b[b_offset], ldb, rwork);
     ibscl = 0;
     if (bnrm > 0. && bnrm < smlnum) {
 
 /*        Scale matrix norm up to SMLNUM */
 
-	dlascl_("G", &c__0, &c__0, &bnrm, &smlnum, &brow, nrhs, &b[b_offset], 
+	_starpu_dlascl_("G", &c__0, &c__0, &bnrm, &smlnum, &brow, nrhs, &b[b_offset], 
 		ldb, info);
 	ibscl = 1;
     } else if (bnrm > bignum) {
 
 /*        Scale matrix norm down to BIGNUM */
 
-	dlascl_("G", &c__0, &c__0, &bnrm, &bignum, &brow, nrhs, &b[b_offset], 
+	_starpu_dlascl_("G", &c__0, &c__0, &bnrm, &bignum, &brow, nrhs, &b[b_offset], 
 		ldb, info);
 	ibscl = 2;
     }
@@ -351,7 +351,7 @@ static integer c__0 = 0;
 /*        compute QR factorization of A */
 
 	i__1 = *lwork - mn;
-	dgeqrf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info)
+	_starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info)
 		;
 
 /*        workspace at least N, optimally N*NB */
@@ -363,14 +363,14 @@ static integer c__0 = 0;
 /*           B(1:M,1:NRHS) := Q' * B(1:M,1:NRHS) */
 
 	    i__1 = *lwork - mn;
-	    dormqr_("Left", "Transpose", m, nrhs, n, &a[a_offset], lda, &work[
+	    _starpu_dormqr_("Left", "Transpose", m, nrhs, n, &a[a_offset], lda, &work[
 		    1], &b[b_offset], ldb, &work[mn + 1], &i__1, info);
 
 /*           workspace at least NRHS, optimally NRHS*NB */
 
 /*           B(1:N,1:NRHS) := inv(R) * B(1:N,1:NRHS) */
 
-	    dtrtrs_("Upper", "No transpose", "Non-unit", n, nrhs, &a[a_offset]
+	    _starpu_dtrtrs_("Upper", "No transpose", "Non-unit", n, nrhs, &a[a_offset]
 , lda, &b[b_offset], ldb, info);
 
 	    if (*info > 0) {
@@ -385,7 +385,7 @@ static integer c__0 = 0;
 
 /*           B(1:N,1:NRHS) := inv(R') * B(1:N,1:NRHS) */
 
-	    dtrtrs_("Upper", "Transpose", "Non-unit", n, nrhs, &a[a_offset], 
+	    _starpu_dtrtrs_("Upper", "Transpose", "Non-unit", n, nrhs, &a[a_offset], 
 		    lda, &b[b_offset], ldb, info);
 
 	    if (*info > 0) {
@@ -407,7 +407,7 @@ static integer c__0 = 0;
 /*           B(1:M,1:NRHS) := Q(1:N,:) * B(1:N,1:NRHS) */
 
 	    i__1 = *lwork - mn;
-	    dormqr_("Left", "No transpose", m, nrhs, n, &a[a_offset], lda, &
+	    _starpu_dormqr_("Left", "No transpose", m, nrhs, n, &a[a_offset], lda, &
 		    work[1], &b[b_offset], ldb, &work[mn + 1], &i__1, info);
 
 /*           workspace at least NRHS, optimally NRHS*NB */
@@ -421,7 +421,7 @@ static integer c__0 = 0;
 /*        Compute LQ factorization of A */
 
 	i__1 = *lwork - mn;
-	dgelqf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info)
+	_starpu_dgelqf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info)
 		;
 
 /*        workspace at least M, optimally M*NB. */
@@ -432,7 +432,7 @@ static integer c__0 = 0;
 
 /*           B(1:M,1:NRHS) := inv(L) * B(1:M,1:NRHS) */
 
-	    dtrtrs_("Lower", "No transpose", "Non-unit", m, nrhs, &a[a_offset]
+	    _starpu_dtrtrs_("Lower", "No transpose", "Non-unit", m, nrhs, &a[a_offset]
 , lda, &b[b_offset], ldb, info);
 
 	    if (*info > 0) {
@@ -454,7 +454,7 @@ static integer c__0 = 0;
 /*           B(1:N,1:NRHS) := Q(1:N,:)' * B(1:M,1:NRHS) */
 
 	    i__1 = *lwork - mn;
-	    dormlq_("Left", "Transpose", n, nrhs, m, &a[a_offset], lda, &work[
+	    _starpu_dormlq_("Left", "Transpose", n, nrhs, m, &a[a_offset], lda, &work[
 		    1], &b[b_offset], ldb, &work[mn + 1], &i__1, info);
 
 /*           workspace at least NRHS, optimally NRHS*NB */
@@ -468,14 +468,14 @@ static integer c__0 = 0;
 /*           B(1:N,1:NRHS) := Q * B(1:N,1:NRHS) */
 
 	    i__1 = *lwork - mn;
-	    dormlq_("Left", "No transpose", n, nrhs, m, &a[a_offset], lda, &
+	    _starpu_dormlq_("Left", "No transpose", n, nrhs, m, &a[a_offset], lda, &
 		    work[1], &b[b_offset], ldb, &work[mn + 1], &i__1, info);
 
 /*           workspace at least NRHS, optimally NRHS*NB */
 
 /*           B(1:M,1:NRHS) := inv(L') * B(1:M,1:NRHS) */
 
-	    dtrtrs_("Lower", "Transpose", "Non-unit", m, nrhs, &a[a_offset], 
+	    _starpu_dtrtrs_("Lower", "Transpose", "Non-unit", m, nrhs, &a[a_offset], 
 		    lda, &b[b_offset], ldb, info);
 
 	    if (*info > 0) {
@@ -491,17 +491,17 @@ static integer c__0 = 0;
 /*     Undo scaling */
 
     if (iascl == 1) {
-	dlascl_("G", &c__0, &c__0, &anrm, &smlnum, &scllen, nrhs, &b[b_offset]
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &smlnum, &scllen, nrhs, &b[b_offset]
 , ldb, info);
     } else if (iascl == 2) {
-	dlascl_("G", &c__0, &c__0, &anrm, &bignum, &scllen, nrhs, &b[b_offset]
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &bignum, &scllen, nrhs, &b[b_offset]
 , ldb, info);
     }
     if (ibscl == 1) {
-	dlascl_("G", &c__0, &c__0, &smlnum, &bnrm, &scllen, nrhs, &b[b_offset]
+	_starpu_dlascl_("G", &c__0, &c__0, &smlnum, &bnrm, &scllen, nrhs, &b[b_offset]
 , ldb, info);
     } else if (ibscl == 2) {
-	dlascl_("G", &c__0, &c__0, &bignum, &bnrm, &scllen, nrhs, &b[b_offset]
+	_starpu_dlascl_("G", &c__0, &c__0, &bignum, &bnrm, &scllen, nrhs, &b[b_offset]
 , ldb, info);
     }
 
@@ -512,4 +512,4 @@ L50:
 
 /*     End of DGELS */
 
-} /* dgels_ */
+} /* _starpu_dgels_ */

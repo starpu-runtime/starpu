@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b5 = 1.;
 
-/* Subroutine */ int dlaic1_(integer *job, integer *j, doublereal *x, 
+/* Subroutine */ int _starpu_dlaic1_(integer *job, integer *j, doublereal *x, 
 	doublereal *sest, doublereal *w, doublereal *gamma, doublereal *
 	sestpr, doublereal *s, doublereal *c__)
 {
@@ -30,10 +30,10 @@ static doublereal c_b5 = 1.;
 
     /* Local variables */
     doublereal b, t, s1, s2, eps, tmp;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal sine, test, zeta1, zeta2, alpha, norma;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal absgam, absalp, cosine, absest;
 
 
@@ -123,8 +123,8 @@ static doublereal c_b5 = 1.;
     --x;
 
     /* Function Body */
-    eps = dlamch_("Epsilon");
-    alpha = ddot_(j, &x[1], &c__1, &w[1], &c__1);
+    eps = _starpu_dlamch_("Epsilon");
+    alpha = _starpu_ddot_(j, &x[1], &c__1, &w[1], &c__1);
 
     absalp = abs(alpha);
     absgam = abs(*gamma);
@@ -323,4 +323,4 @@ static doublereal c_b5 = 1.;
 
 /*     End of DLAIC1 */
 
-} /* dlaic1_ */
+} /* _starpu_dlaic1_ */

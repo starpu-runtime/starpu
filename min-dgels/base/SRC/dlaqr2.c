@@ -21,7 +21,7 @@ static doublereal c_b12 = 0.;
 static doublereal c_b13 = 1.;
 static logical c_true = TRUE_;
 
-/* Subroutine */ int dlaqr2_(logical *wantt, logical *wantz, integer *n, 
+/* Subroutine */ int _starpu_dlaqr2_(logical *wantt, logical *wantz, integer *n, 
 	integer *ktop, integer *kbot, integer *nw, doublereal *h__, integer *
 	ldh, integer *iloz, integer *ihiz, doublereal *z__, integer *ldz, 
 	integer *ns, integer *nd, doublereal *sr, doublereal *si, doublereal *
@@ -46,35 +46,35 @@ static logical c_true = TRUE_;
     integer lwk1, lwk2;
     doublereal beta;
     integer kend, kcol, info, ifst, ilst, ltop, krow;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dgemm_(char *, char *, integer *, integer *
+	    doublereal *), _starpu_dgemm_(char *, char *, integer *, integer *
 , integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     logical bulge;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer infqr, kwtop;
-    extern /* Subroutine */ int dlanv2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlanv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *), dlabad_(
+	    doublereal *, doublereal *, doublereal *, doublereal *), _starpu_dlabad_(
 	    doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dgehrd_(integer *, integer *, integer *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dgehrd_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dlarfg_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *), dlahqr_(logical *, logical *, integer *, 
+	    integer *), _starpu_dlarfg_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *), _starpu_dlahqr_(logical *, logical *, integer *, 
 	     integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
-	    integer *), dlacpy_(char *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dlacpy_(char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
     doublereal safmax;
-    extern /* Subroutine */ int dtrexc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dtrexc_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *, 
-	    doublereal *, integer *), dormhr_(char *, char *, integer 
+	    doublereal *, integer *), _starpu_dormhr_(char *, char *, integer 
 	    *, integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
@@ -278,14 +278,14 @@ static logical c_true = TRUE_;
 /*        ==== Workspace query call to DGEHRD ==== */
 
 	i__1 = jw - 1;
-	dgehrd_(&jw, &c__1, &i__1, &t[t_offset], ldt, &work[1], &work[1], &
+	_starpu_dgehrd_(&jw, &c__1, &i__1, &t[t_offset], ldt, &work[1], &work[1], &
 		c_n1, &info);
 	lwk1 = (integer) work[1];
 
 /*        ==== Workspace query call to DORMHR ==== */
 
 	i__1 = jw - 1;
-	dormhr_("R", "N", &jw, &jw, &c__1, &i__1, &t[t_offset], ldt, &work[1], 
+	_starpu_dormhr_("R", "N", &jw, &jw, &c__1, &i__1, &t[t_offset], ldt, &work[1], 
 		 &v[v_offset], ldv, &work[1], &c_n1, &info);
 	lwk2 = (integer) work[1];
 
@@ -316,10 +316,10 @@ static logical c_true = TRUE_;
 
 /*     ==== Machine constants ==== */
 
-    safmin = dlamch_("SAFE MINIMUM");
+    safmin = _starpu_dlamch_("SAFE MINIMUM");
     safmax = 1. / safmin;
-    dlabad_(&safmin, &safmax);
-    ulp = dlamch_("PRECISION");
+    _starpu_dlabad_(&safmin, &safmax);
+    ulp = _starpu_dlamch_("PRECISION");
     smlnum = safmin * ((doublereal) (*n) / ulp);
 
 /*     ==== Setup deflation window ==== */
@@ -362,16 +362,16 @@ static logical c_true = TRUE_;
 /*     .    the deflation window that converged using INFQR */
 /*     .    here and there to keep track.) ==== */
 
-    dlacpy_("U", &jw, &jw, &h__[kwtop + kwtop * h_dim1], ldh, &t[t_offset], 
+    _starpu_dlacpy_("U", &jw, &jw, &h__[kwtop + kwtop * h_dim1], ldh, &t[t_offset], 
 	    ldt);
     i__1 = jw - 1;
     i__2 = *ldh + 1;
     i__3 = *ldt + 1;
-    dcopy_(&i__1, &h__[kwtop + 1 + kwtop * h_dim1], &i__2, &t[t_dim1 + 2], &
+    _starpu_dcopy_(&i__1, &h__[kwtop + 1 + kwtop * h_dim1], &i__2, &t[t_dim1 + 2], &
 	    i__3);
 
-    dlaset_("A", &jw, &jw, &c_b12, &c_b13, &v[v_offset], ldv);
-    dlahqr_(&c_true, &c_true, &jw, &c__1, &jw, &t[t_offset], ldt, &sr[kwtop], 
+    _starpu_dlaset_("A", &jw, &jw, &c_b12, &c_b13, &v[v_offset], ldv);
+    _starpu_dlahqr_(&c_true, &c_true, &jw, &c__1, &jw, &t[t_offset], ldt, &sr[kwtop], 
 	    &si[kwtop], &c__1, &jw, &v[v_offset], ldv, &infqr);
 
 /*     ==== DTREXC needs a clean margin near the diagonal ==== */
@@ -422,7 +422,7 @@ L20:
 /*              .    (DTREXC can not fail in this case.) ==== */
 
 		ifst = *ns;
-		dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
+		_starpu_dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
 			 &ilst, &work[1], &info);
 		++ilst;
 	    }
@@ -453,7 +453,7 @@ L20:
 /*              .    ILST in case of a rare exchange failure. ==== */
 
 		ifst = *ns;
-		dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
+		_starpu_dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
 			 &ilst, &work[1], &info);
 		ilst += 2;
 	    }
@@ -519,7 +519,7 @@ L40:
 		sorted = FALSE_;
 		ifst = i__;
 		ilst = k;
-		dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
+		_starpu_dtrexc_("V", &jw, &t[t_offset], ldt, &v[v_offset], ldv, &ifst, 
 			 &ilst, &work[1], &info);
 		if (info == 0) {
 		    i__ = ilst;
@@ -559,7 +559,7 @@ L60:
 	    cc = t[i__ + (i__ - 1) * t_dim1];
 	    bb = t[i__ - 1 + i__ * t_dim1];
 	    dd = t[i__ + i__ * t_dim1];
-	    dlanv2_(&aa, &bb, &cc, &dd, &sr[kwtop + i__ - 2], &si[kwtop + i__ 
+	    _starpu_dlanv2_(&aa, &bb, &cc, &dd, &sr[kwtop + i__ - 2], &si[kwtop + i__ 
 		    - 2], &sr[kwtop + i__ - 1], &si[kwtop + i__ - 1], &cs, &
 		    sn);
 	    i__ += -2;
@@ -572,24 +572,24 @@ L60:
 
 /*           ==== Reflect spike back into lower triangle ==== */
 
-	    dcopy_(ns, &v[v_offset], ldv, &work[1], &c__1);
+	    _starpu_dcopy_(ns, &v[v_offset], ldv, &work[1], &c__1);
 	    beta = work[1];
-	    dlarfg_(ns, &beta, &work[2], &c__1, &tau);
+	    _starpu_dlarfg_(ns, &beta, &work[2], &c__1, &tau);
 	    work[1] = 1.;
 
 	    i__1 = jw - 2;
 	    i__2 = jw - 2;
-	    dlaset_("L", &i__1, &i__2, &c_b12, &c_b12, &t[t_dim1 + 3], ldt);
+	    _starpu_dlaset_("L", &i__1, &i__2, &c_b12, &c_b12, &t[t_dim1 + 3], ldt);
 
-	    dlarf_("L", ns, &jw, &work[1], &c__1, &tau, &t[t_offset], ldt, &
+	    _starpu_dlarf_("L", ns, &jw, &work[1], &c__1, &tau, &t[t_offset], ldt, &
 		    work[jw + 1]);
-	    dlarf_("R", ns, ns, &work[1], &c__1, &tau, &t[t_offset], ldt, &
+	    _starpu_dlarf_("R", ns, ns, &work[1], &c__1, &tau, &t[t_offset], ldt, &
 		    work[jw + 1]);
-	    dlarf_("R", &jw, ns, &work[1], &c__1, &tau, &v[v_offset], ldv, &
+	    _starpu_dlarf_("R", &jw, ns, &work[1], &c__1, &tau, &v[v_offset], ldv, &
 		    work[jw + 1]);
 
 	    i__1 = *lwork - jw;
-	    dgehrd_(&jw, &c__1, ns, &t[t_offset], ldt, &work[1], &work[jw + 1]
+	    _starpu_dgehrd_(&jw, &c__1, ns, &t[t_offset], ldt, &work[1], &work[jw + 1]
 , &i__1, &info);
 	}
 
@@ -598,12 +598,12 @@ L60:
 	if (kwtop > 1) {
 	    h__[kwtop + (kwtop - 1) * h_dim1] = s * v[v_dim1 + 1];
 	}
-	dlacpy_("U", &jw, &jw, &t[t_offset], ldt, &h__[kwtop + kwtop * h_dim1]
+	_starpu_dlacpy_("U", &jw, &jw, &t[t_offset], ldt, &h__[kwtop + kwtop * h_dim1]
 , ldh);
 	i__1 = jw - 1;
 	i__2 = *ldt + 1;
 	i__3 = *ldh + 1;
-	dcopy_(&i__1, &t[t_dim1 + 2], &i__2, &h__[kwtop + 1 + kwtop * h_dim1], 
+	_starpu_dcopy_(&i__1, &t[t_dim1 + 2], &i__2, &h__[kwtop + 1 + kwtop * h_dim1], 
 		 &i__3);
 
 /*        ==== Accumulate orthogonal matrix in order update */
@@ -611,7 +611,7 @@ L60:
 
 	if (*ns > 1 && s != 0.) {
 	    i__1 = *lwork - jw;
-	    dormhr_("R", "N", &jw, ns, &c__1, ns, &t[t_offset], ldt, &work[1], 
+	    _starpu_dormhr_("R", "N", &jw, ns, &c__1, ns, &t[t_offset], ldt, &work[1], 
 		     &v[v_offset], ldv, &work[jw + 1], &i__1, &info);
 	}
 
@@ -629,10 +629,10 @@ L60:
 /* Computing MIN */
 	    i__3 = *nv, i__4 = kwtop - krow;
 	    kln = min(i__3,i__4);
-	    dgemm_("N", "N", &kln, &jw, &jw, &c_b13, &h__[krow + kwtop * 
+	    _starpu_dgemm_("N", "N", &kln, &jw, &jw, &c_b13, &h__[krow + kwtop * 
 		    h_dim1], ldh, &v[v_offset], ldv, &c_b12, &wv[wv_offset], 
 		    ldwv);
-	    dlacpy_("A", &kln, &jw, &wv[wv_offset], ldwv, &h__[krow + kwtop * 
+	    _starpu_dlacpy_("A", &kln, &jw, &wv[wv_offset], ldwv, &h__[krow + kwtop * 
 		    h_dim1], ldh);
 /* L70: */
 	}
@@ -647,10 +647,10 @@ L60:
 /* Computing MIN */
 		i__3 = *nh, i__4 = *n - kcol + 1;
 		kln = min(i__3,i__4);
-		dgemm_("C", "N", &jw, &kln, &jw, &c_b13, &v[v_offset], ldv, &
+		_starpu_dgemm_("C", "N", &jw, &kln, &jw, &c_b13, &v[v_offset], ldv, &
 			h__[kwtop + kcol * h_dim1], ldh, &c_b12, &t[t_offset], 
 			 ldt);
-		dlacpy_("A", &jw, &kln, &t[t_offset], ldt, &h__[kwtop + kcol *
+		_starpu_dlacpy_("A", &jw, &kln, &t[t_offset], ldt, &h__[kwtop + kcol *
 			 h_dim1], ldh);
 /* L80: */
 	    }
@@ -666,10 +666,10 @@ L60:
 /* Computing MIN */
 		i__3 = *nv, i__4 = *ihiz - krow + 1;
 		kln = min(i__3,i__4);
-		dgemm_("N", "N", &kln, &jw, &jw, &c_b13, &z__[krow + kwtop * 
+		_starpu_dgemm_("N", "N", &kln, &jw, &jw, &c_b13, &z__[krow + kwtop * 
 			z_dim1], ldz, &v[v_offset], ldv, &c_b12, &wv[
 			wv_offset], ldwv);
-		dlacpy_("A", &kln, &jw, &wv[wv_offset], ldwv, &z__[krow + 
+		_starpu_dlacpy_("A", &kln, &jw, &wv[wv_offset], ldwv, &z__[krow + 
 			kwtop * z_dim1], ldz);
 /* L90: */
 	    }
@@ -695,4 +695,4 @@ L60:
 /*     ==== End of DLAQR2 ==== */
 
     return 0;
-} /* dlaqr2_ */
+} /* _starpu_dlaqr2_ */

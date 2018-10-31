@@ -22,7 +22,7 @@ static integer c__2 = 2;
 static doublereal c_b21 = -1.;
 static doublereal c_b22 = 1.;
 
-/* Subroutine */ int dgebrd_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgebrd_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *d__, doublereal *e, doublereal *tauq, doublereal *
 	taup, doublereal *work, integer *lwork, integer *info)
 {
@@ -32,17 +32,17 @@ static doublereal c_b22 = 1.;
     /* Local variables */
     integer i__, j, nb, nx;
     doublereal ws;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer nbmin, iinfo, minmn;
-    extern /* Subroutine */ int dgebd2_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgebd2_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	     doublereal *, integer *), dlabrd_(integer *, integer *, integer *
+	     doublereal *, integer *), _starpu_dlabrd_(integer *, integer *, integer *
 , doublereal *, integer *, doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *, integer *, doublereal *, integer *)
-	    , xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    , _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer ldwrkx, ldwrky, lwkopt;
     logical lquery;
@@ -206,7 +206,7 @@ static doublereal c_b22 = 1.;
     /* Function Body */
     *info = 0;
 /* Computing MAX */
-    i__1 = 1, i__2 = ilaenv_(&c__1, "DGEBRD", " ", m, n, &c_n1, &c_n1);
+    i__1 = 1, i__2 = _starpu_ilaenv_(&c__1, "DGEBRD", " ", m, n, &c_n1, &c_n1);
     nb = max(i__1,i__2);
     lwkopt = (*m + *n) * nb;
     work[1] = (doublereal) lwkopt;
@@ -226,7 +226,7 @@ static doublereal c_b22 = 1.;
     }
     if (*info < 0) {
 	i__1 = -(*info);
-	xerbla_("DGEBRD", &i__1);
+	_starpu_xerbla_("DGEBRD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -249,7 +249,7 @@ static doublereal c_b22 = 1.;
 /*        Set the crossover point NX. */
 
 /* Computing MAX */
-	i__1 = nb, i__2 = ilaenv_(&c__3, "DGEBRD", " ", m, n, &c_n1, &c_n1);
+	i__1 = nb, i__2 = _starpu_ilaenv_(&c__3, "DGEBRD", " ", m, n, &c_n1, &c_n1);
 	nx = max(i__1,i__2);
 
 /*        Determine when to switch from blocked to unblocked code. */
@@ -261,7 +261,7 @@ static doublereal c_b22 = 1.;
 /*              Not enough work space for the optimal NB, consider using */
 /*              a smaller block size. */
 
-		nbmin = ilaenv_(&c__2, "DGEBRD", " ", m, n, &c_n1, &c_n1);
+		nbmin = _starpu_ilaenv_(&c__2, "DGEBRD", " ", m, n, &c_n1, &c_n1);
 		if (*lwork >= (*m + *n) * nbmin) {
 		    nb = *lwork / (*m + *n);
 		} else {
@@ -284,7 +284,7 @@ static doublereal c_b22 = 1.;
 
 	i__3 = *m - i__ + 1;
 	i__4 = *n - i__ + 1;
-	dlabrd_(&i__3, &i__4, &nb, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[
+	_starpu_dlabrd_(&i__3, &i__4, &nb, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[
 		i__], &tauq[i__], &taup[i__], &work[1], &ldwrkx, &work[ldwrkx 
 		* nb + 1], &ldwrky);
 
@@ -293,12 +293,12 @@ static doublereal c_b22 = 1.;
 
 	i__3 = *m - i__ - nb + 1;
 	i__4 = *n - i__ - nb + 1;
-	dgemm_("No transpose", "Transpose", &i__3, &i__4, &nb, &c_b21, &a[i__ 
+	_starpu_dgemm_("No transpose", "Transpose", &i__3, &i__4, &nb, &c_b21, &a[i__ 
 		+ nb + i__ * a_dim1], lda, &work[ldwrkx * nb + nb + 1], &
 		ldwrky, &c_b22, &a[i__ + nb + (i__ + nb) * a_dim1], lda);
 	i__3 = *m - i__ - nb + 1;
 	i__4 = *n - i__ - nb + 1;
-	dgemm_("No transpose", "No transpose", &i__3, &i__4, &nb, &c_b21, &
+	_starpu_dgemm_("No transpose", "No transpose", &i__3, &i__4, &nb, &c_b21, &
 		work[nb + 1], &ldwrkx, &a[i__ + (i__ + nb) * a_dim1], lda, &
 		c_b22, &a[i__ + nb + (i__ + nb) * a_dim1], lda);
 
@@ -326,11 +326,11 @@ static doublereal c_b22 = 1.;
 
     i__2 = *m - i__ + 1;
     i__1 = *n - i__ + 1;
-    dgebd2_(&i__2, &i__1, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[i__], &
+    _starpu_dgebd2_(&i__2, &i__1, &a[i__ + i__ * a_dim1], lda, &d__[i__], &e[i__], &
 	    tauq[i__], &taup[i__], &work[1], &iinfo);
     work[1] = ws;
     return 0;
 
 /*     End of DGEBRD */
 
-} /* dgebrd_ */
+} /* _starpu_dgebrd_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasrt_(char *id, integer *n, doublereal *d__, integer *
+/* Subroutine */ int _starpu_dlasrt_(char *id, integer *n, doublereal *d__, integer *
 	info)
 {
     /* System generated locals */
@@ -25,11 +25,11 @@
     integer dir;
     doublereal tmp;
     integer endd;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer stack[64]	/* was [2][32] */;
     doublereal dmnmx;
     integer start;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer stkpnt;
 
 
@@ -93,9 +93,9 @@
     /* Function Body */
     *info = 0;
     dir = -1;
-    if (lsame_(id, "D")) {
+    if (_starpu_lsame_(id, "D")) {
 	dir = 0;
-    } else if (lsame_(id, "I")) {
+    } else if (_starpu_lsame_(id, "I")) {
 	dir = 1;
     }
     if (dir == -1) {
@@ -105,7 +105,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASRT", &i__1);
+	_starpu_xerbla_("DLASRT", &i__1);
 	return 0;
     }
 
@@ -283,4 +283,4 @@ L110:
 
 /*     End of DLASRT */
 
-} /* dlasrt_ */
+} /* _starpu_dlasrt_ */

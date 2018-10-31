@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer izamax_(integer *n, doublecomplex *zx, integer *incx)
+integer _starpu_izamax_(integer *n, doublecomplex *zx, integer *incx)
 {
     /* System generated locals */
     integer ret_val, i__1;
@@ -21,7 +21,7 @@ integer izamax_(integer *n, doublecomplex *zx, integer *incx)
     /* Local variables */
     integer i__, ix;
     doublereal smax;
-    extern doublereal dcabs1_(doublecomplex *);
+    extern doublereal _starpu_dcabs1_(doublecomplex *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -60,15 +60,15 @@ integer izamax_(integer *n, doublecomplex *zx, integer *incx)
 /*        code for increment not equal to 1 */
 
     ix = 1;
-    smax = dcabs1_(&zx[1]);
+    smax = _starpu_dcabs1_(&zx[1]);
     ix += *incx;
     i__1 = *n;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	if (dcabs1_(&zx[ix]) <= smax) {
+	if (_starpu_dcabs1_(&zx[ix]) <= smax) {
 	    goto L5;
 	}
 	ret_val = i__;
-	smax = dcabs1_(&zx[ix]);
+	smax = _starpu_dcabs1_(&zx[ix]);
 L5:
 	ix += *incx;
 /* L10: */
@@ -78,16 +78,16 @@ L5:
 /*        code for increment equal to 1 */
 
 L20:
-    smax = dcabs1_(&zx[1]);
+    smax = _starpu_dcabs1_(&zx[1]);
     i__1 = *n;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	if (dcabs1_(&zx[i__]) <= smax) {
+	if (_starpu_dcabs1_(&zx[i__]) <= smax) {
 	    goto L30;
 	}
 	ret_val = i__;
-	smax = dcabs1_(&zx[i__]);
+	smax = _starpu_dcabs1_(&zx[i__]);
 L30:
 	;
     }
     return ret_val;
-} /* izamax_ */
+} /* _starpu_izamax_ */

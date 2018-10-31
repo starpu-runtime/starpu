@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dggqrf_(integer *n, integer *m, integer *p, doublereal *
+/* Subroutine */ int _starpu_dggqrf_(integer *n, integer *m, integer *p, doublereal *
 	a, integer *lda, doublereal *taua, doublereal *b, integer *ldb, 
 	doublereal *taub, doublereal *work, integer *lwork, integer *info)
 {
@@ -27,13 +27,13 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer nb, nb1, nb2, nb3, lopt;
-    extern /* Subroutine */ int dgeqrf_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgeqrf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *), 
-	    dgerqf_(integer *, integer *, doublereal *, integer *, doublereal 
-	    *, doublereal *, integer *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    _starpu_dgerqf_(integer *, integer *, doublereal *, integer *, doublereal 
+	    *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dormqr_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormqr_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
     integer lwkopt;
@@ -203,9 +203,9 @@ static integer c_n1 = -1;
 
     /* Function Body */
     *info = 0;
-    nb1 = ilaenv_(&c__1, "DGEQRF", " ", n, m, &c_n1, &c_n1);
-    nb2 = ilaenv_(&c__1, "DGERQF", " ", n, p, &c_n1, &c_n1);
-    nb3 = ilaenv_(&c__1, "DORMQR", " ", n, m, p, &c_n1);
+    nb1 = _starpu_ilaenv_(&c__1, "DGEQRF", " ", n, m, &c_n1, &c_n1);
+    nb2 = _starpu_ilaenv_(&c__1, "DGERQF", " ", n, p, &c_n1, &c_n1);
+    nb3 = _starpu_ilaenv_(&c__1, "DORMQR", " ", n, m, p, &c_n1);
 /* Computing MAX */
     i__1 = max(nb1,nb2);
     nb = max(i__1,nb3);
@@ -233,7 +233,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGGQRF", &i__1);
+	_starpu_xerbla_("DGGQRF", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -241,13 +241,13 @@ static integer c_n1 = -1;
 
 /*     QR factorization of N-by-M matrix A: A = Q*R */
 
-    dgeqrf_(n, m, &a[a_offset], lda, &taua[1], &work[1], lwork, info);
+    _starpu_dgeqrf_(n, m, &a[a_offset], lda, &taua[1], &work[1], lwork, info);
     lopt = (integer) work[1];
 
 /*     Update B := Q'*B. */
 
     i__1 = min(*n,*m);
-    dormqr_("Left", "Transpose", n, p, &i__1, &a[a_offset], lda, &taua[1], &b[
+    _starpu_dormqr_("Left", "Transpose", n, p, &i__1, &a[a_offset], lda, &taua[1], &b[
 	    b_offset], ldb, &work[1], lwork, info);
 /* Computing MAX */
     i__1 = lopt, i__2 = (integer) work[1];
@@ -255,7 +255,7 @@ static integer c_n1 = -1;
 
 /*     RQ factorization of N-by-P matrix B: B = T*Z. */
 
-    dgerqf_(n, p, &b[b_offset], ldb, &taub[1], &work[1], lwork, info);
+    _starpu_dgerqf_(n, p, &b[b_offset], ldb, &taub[1], &work[1], lwork, info);
 /* Computing MAX */
     i__1 = lopt, i__2 = (integer) work[1];
     work[1] = (doublereal) max(i__1,i__2);
@@ -264,4 +264,4 @@ static integer c_n1 = -1;
 
 /*     End of DGGQRF */
 
-} /* dggqrf_ */
+} /* _starpu_dggqrf_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgerq2_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgerq2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -22,10 +22,10 @@
     /* Local variables */
     integer i__, k;
     doublereal aii;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfp_(integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+	    doublereal *), _starpu_dlarfp_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -122,7 +122,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGERQ2", &i__1);
+	_starpu_xerbla_("DGERQ2", &i__1);
 	return 0;
     }
 
@@ -134,7 +134,7 @@
 /*        A(m-k+i,1:n-k+i-1) */
 
 	i__1 = *n - k + i__;
-	dlarfp_(&i__1, &a[*m - k + i__ + (*n - k + i__) * a_dim1], &a[*m - k 
+	_starpu_dlarfp_(&i__1, &a[*m - k + i__ + (*n - k + i__) * a_dim1], &a[*m - k 
 		+ i__ + a_dim1], lda, &tau[i__]);
 
 /*        Apply H(i) to A(1:m-k+i-1,1:n-k+i) from the right */
@@ -143,7 +143,7 @@
 	a[*m - k + i__ + (*n - k + i__) * a_dim1] = 1.;
 	i__1 = *m - k + i__ - 1;
 	i__2 = *n - k + i__;
-	dlarf_("Right", &i__1, &i__2, &a[*m - k + i__ + a_dim1], lda, &tau[
+	_starpu_dlarf_("Right", &i__1, &i__2, &a[*m - k + i__ + a_dim1], lda, &tau[
 		i__], &a[a_offset], lda, &work[1]);
 	a[*m - k + i__ + (*n - k + i__) * a_dim1] = aii;
 /* L10: */
@@ -152,4 +152,4 @@
 
 /*     End of DGERQ2 */
 
-} /* dgerq2_ */
+} /* _starpu_dgerq2_ */

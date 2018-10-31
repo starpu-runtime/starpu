@@ -21,7 +21,7 @@ static integer c__12 = 12;
 static integer c__2 = 2;
 static integer c__49 = 49;
 
-/* Subroutine */ int dhseqr_(char *job, char *compz, integer *n, integer *ilo, 
+/* Subroutine */ int _starpu_dhseqr_(char *job, char *compz, integer *n, integer *ilo, 
 	 integer *ihi, doublereal *h__, integer *ldh, doublereal *wr, 
 	doublereal *wi, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *info)
@@ -39,23 +39,23 @@ static integer c__49 = 49;
     integer i__;
     doublereal hl[2401]	/* was [49][49] */;
     integer kbot, nmin;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical initz;
     doublereal workl[49];
     logical wantt, wantz;
-    extern /* Subroutine */ int dlaqr0_(logical *, logical *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaqr0_(logical *, logical *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *, integer *), dlahqr_(logical *, logical *, 
+	    doublereal *, integer *, integer *), _starpu_dlahqr_(logical *, logical *, 
 	     integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlacpy_(char *, integer *, integer *, 
+	    integer *, integer *), _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    _starpu_dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical lquery;
 
 
@@ -321,16 +321,16 @@ static integer c__49 = 49;
     --work;
 
     /* Function Body */
-    wantt = lsame_(job, "S");
-    initz = lsame_(compz, "I");
-    wantz = initz || lsame_(compz, "V");
+    wantt = _starpu_lsame_(job, "S");
+    initz = _starpu_lsame_(compz, "I");
+    wantz = initz || _starpu_lsame_(compz, "V");
     work[1] = (doublereal) max(1,*n);
     lquery = *lwork == -1;
 
     *info = 0;
-    if (! lsame_(job, "E") && ! wantt) {
+    if (! _starpu_lsame_(job, "E") && ! wantt) {
 	*info = -1;
-    } else if (! lsame_(compz, "N") && ! wantz) {
+    } else if (! _starpu_lsame_(compz, "N") && ! wantz) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -351,7 +351,7 @@ static integer c__49 = 49;
 /*        ==== Quick return in case of invalid argument. ==== */
 
 	i__1 = -(*info);
-	xerbla_("DHSEQR", &i__1);
+	_starpu_xerbla_("DHSEQR", &i__1);
 	return 0;
 
     } else if (*n == 0) {
@@ -364,7 +364,7 @@ static integer c__49 = 49;
 
 /*        ==== Quick return in case of a workspace query ==== */
 
-	dlaqr0_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], &wi[
+	_starpu_dlaqr0_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], &wi[
 		1], ilo, ihi, &z__[z_offset], ldz, &work[1], lwork, info);
 /*        ==== Ensure reported workspace size is backward-compatible with */
 /*        .    previous LAPACK versions. ==== */
@@ -393,7 +393,7 @@ static integer c__49 = 49;
 /*        ==== Initialize Z, if requested ==== */
 
 	if (initz) {
-	    dlaset_("A", n, n, &c_b11, &c_b12, &z__[z_offset], ldz)
+	    _starpu_dlaset_("A", n, n, &c_b11, &c_b12, &z__[z_offset], ldz)
 		    ;
 	}
 
@@ -411,20 +411,20 @@ static integer c__49 = 49;
 	i__2[0] = 1, a__1[0] = job;
 	i__2[1] = 1, a__1[1] = compz;
 	s_cat(ch__1, a__1, i__2, &c__2, (ftnlen)2);
-	nmin = ilaenv_(&c__12, "DHSEQR", ch__1, n, ilo, ihi, lwork);
+	nmin = _starpu_ilaenv_(&c__12, "DHSEQR", ch__1, n, ilo, ihi, lwork);
 	nmin = max(11,nmin);
 
 /*        ==== DLAQR0 for big matrices; DLAHQR for small ones ==== */
 
 	if (*n > nmin) {
-	    dlaqr0_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], 
+	    _starpu_dlaqr0_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], 
 		    &wi[1], ilo, ihi, &z__[z_offset], ldz, &work[1], lwork, 
 		    info);
 	} else {
 
 /*           ==== Small matrix ==== */
 
-	    dlahqr_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], 
+	    _starpu_dlahqr_(&wantt, &wantz, n, ilo, ihi, &h__[h_offset], ldh, &wr[1], 
 		    &wi[1], ilo, ihi, &z__[z_offset], ldz, info);
 
 	    if (*info > 0) {
@@ -439,7 +439,7 @@ static integer c__49 = 49;
 /*                 ==== Larger matrices have enough subdiagonal scratch */
 /*                 .    space to call DLAQR0 directly. ==== */
 
-		    dlaqr0_(&wantt, &wantz, n, ilo, &kbot, &h__[h_offset], 
+		    _starpu_dlaqr0_(&wantt, &wantz, n, ilo, &kbot, &h__[h_offset], 
 			    ldh, &wr[1], &wi[1], ilo, ihi, &z__[z_offset], 
 			    ldz, &work[1], lwork, info);
 
@@ -450,16 +450,16 @@ static integer c__49 = 49;
 /*                 .    tiny matrices must be copied into a larger */
 /*                 .    array before calling DLAQR0. ==== */
 
-		    dlacpy_("A", n, n, &h__[h_offset], ldh, hl, &c__49);
+		    _starpu_dlacpy_("A", n, n, &h__[h_offset], ldh, hl, &c__49);
 		    hl[*n + 1 + *n * 49 - 50] = 0.;
 		    i__1 = 49 - *n;
-		    dlaset_("A", &c__49, &i__1, &c_b11, &c_b11, &hl[(*n + 1) *
+		    _starpu_dlaset_("A", &c__49, &i__1, &c_b11, &c_b11, &hl[(*n + 1) *
 			     49 - 49], &c__49);
-		    dlaqr0_(&wantt, &wantz, &c__49, ilo, &kbot, hl, &c__49, &
+		    _starpu_dlaqr0_(&wantt, &wantz, &c__49, ilo, &kbot, hl, &c__49, &
 			    wr[1], &wi[1], ilo, ihi, &z__[z_offset], ldz, 
 			    workl, &c__49, info);
 		    if (wantt || *info != 0) {
-			dlacpy_("A", n, n, hl, &c__49, &h__[h_offset], ldh);
+			_starpu_dlacpy_("A", n, n, hl, &c__49, &h__[h_offset], ldh);
 		    }
 		}
 	    }
@@ -470,7 +470,7 @@ static integer c__49 = 49;
 	if ((wantt || *info != 0) && *n > 2) {
 	    i__1 = *n - 2;
 	    i__3 = *n - 2;
-	    dlaset_("L", &i__1, &i__3, &c_b11, &c_b11, &h__[h_dim1 + 3], ldh);
+	    _starpu_dlaset_("L", &i__1, &i__3, &c_b11, &c_b11, &h__[h_dim1 + 3], ldh);
 	}
 
 /*        ==== Ensure reported workspace size is backward-compatible with */
@@ -484,4 +484,4 @@ static integer c__49 = 49;
 /*     ==== End of DHSEQR ==== */
 
     return 0;
-} /* dhseqr_ */
+} /* _starpu_dhseqr_ */

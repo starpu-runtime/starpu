@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dspsvx_(char *fact, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dspsvx_(char *fact, char *uplo, integer *n, integer *
 	nrhs, doublereal *ap, doublereal *afp, integer *ipiv, doublereal *b, 
 	integer *ldb, doublereal *x, integer *ldx, doublereal *rcond, 
 	doublereal *ferr, doublereal *berr, doublereal *work, integer *iwork, 
@@ -27,24 +27,24 @@ static integer c__1 = 1;
     integer b_dim1, b_offset, x_dim1, x_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal anorm;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
-    extern doublereal dlansp_(char *, char *, integer *, doublereal *, 
+	    _starpu_xerbla_(char *, integer *);
+    extern doublereal _starpu_dlansp_(char *, char *, integer *, doublereal *, 
 	    doublereal *);
-    extern /* Subroutine */ int dspcon_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dspcon_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    integer *), dsprfs_(char *, integer *, integer *, 
+	    integer *), _starpu_dsprfs_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *, integer *), dsptrf_(char *, integer *, 
-	    doublereal *, integer *, integer *), dsptrs_(char *, 
+	     integer *, integer *), _starpu_dsptrf_(char *, integer *, 
+	    doublereal *, integer *, integer *), _starpu_dsptrs_(char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *);
 
@@ -259,10 +259,10 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    if (! nofact && ! lsame_(fact, "F")) {
+    nofact = _starpu_lsame_(fact, "N");
+    if (! nofact && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! lsame_(uplo, "U") && ! lsame_(uplo, 
+    } else if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, 
 	    "L")) {
 	*info = -2;
     } else if (*n < 0) {
@@ -276,7 +276,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPSVX", &i__1);
+	_starpu_xerbla_("DSPSVX", &i__1);
 	return 0;
     }
 
@@ -285,8 +285,8 @@ static integer c__1 = 1;
 /*        Compute the factorization A = U*D*U' or A = L*D*L'. */
 
 	i__1 = *n * (*n + 1) / 2;
-	dcopy_(&i__1, &ap[1], &c__1, &afp[1], &c__1);
-	dsptrf_(uplo, n, &afp[1], &ipiv[1], info);
+	_starpu_dcopy_(&i__1, &ap[1], &c__1, &afp[1], &c__1);
+	_starpu_dsptrf_(uplo, n, &afp[1], &ipiv[1], info);
 
 /*        Return if INFO is non-zero. */
 
@@ -298,27 +298,27 @@ static integer c__1 = 1;
 
 /*     Compute the norm of the matrix A. */
 
-    anorm = dlansp_("I", uplo, n, &ap[1], &work[1]);
+    anorm = _starpu_dlansp_("I", uplo, n, &ap[1], &work[1]);
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dspcon_(uplo, n, &afp[1], &ipiv[1], &anorm, rcond, &work[1], &iwork[1], 
+    _starpu_dspcon_(uplo, n, &afp[1], &ipiv[1], &anorm, rcond, &work[1], &iwork[1], 
 	    info);
 
 /*     Compute the solution vectors X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dsptrs_(uplo, n, nrhs, &afp[1], &ipiv[1], &x[x_offset], ldx, info);
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dsptrs_(uplo, n, nrhs, &afp[1], &ipiv[1], &x[x_offset], ldx, info);
 
 /*     Use iterative refinement to improve the computed solutions and */
 /*     compute error bounds and backward error estimates for them. */
 
-    dsprfs_(uplo, n, nrhs, &ap[1], &afp[1], &ipiv[1], &b[b_offset], ldb, &x[
+    _starpu_dsprfs_(uplo, n, nrhs, &ap[1], &afp[1], &ipiv[1], &b[b_offset], ldb, &x[
 	    x_offset], ldx, &ferr[1], &berr[1], &work[1], &iwork[1], info);
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
 
@@ -326,4 +326,4 @@ static integer c__1 = 1;
 
 /*     End of DSPSVX */
 
-} /* dspsvx_ */
+} /* _starpu_dspsvx_ */

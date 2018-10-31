@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dorgr2_(integer *m, integer *n, integer *k, doublereal *
+/* Subroutine */ int _starpu_dorgr2_(integer *m, integer *n, integer *k, doublereal *
 	a, integer *lda, doublereal *tau, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -22,9 +22,9 @@
 
     /* Local variables */
     integer i__, j, l, ii;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dlarf_(char *, integer *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dlarf_(char *, integer *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -114,7 +114,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORGR2", &i__1);
+	_starpu_xerbla_("DORGR2", &i__1);
 	return 0;
     }
 
@@ -151,11 +151,11 @@
 	a[ii + (*n - *m + ii) * a_dim1] = 1.;
 	i__2 = ii - 1;
 	i__3 = *n - *m + ii;
-	dlarf_("Right", &i__2, &i__3, &a[ii + a_dim1], lda, &tau[i__], &a[
+	_starpu_dlarf_("Right", &i__2, &i__3, &a[ii + a_dim1], lda, &tau[i__], &a[
 		a_offset], lda, &work[1]);
 	i__2 = *n - *m + ii - 1;
 	d__1 = -tau[i__];
-	dscal_(&i__2, &d__1, &a[ii + a_dim1], lda);
+	_starpu_dscal_(&i__2, &d__1, &a[ii + a_dim1], lda);
 	a[ii + (*n - *m + ii) * a_dim1] = 1. - tau[i__];
 
 /*        Set A(m-k+i,n-k+i+1:n) to zero */
@@ -171,4 +171,4 @@
 
 /*     End of DORGR2 */
 
-} /* dorgr2_ */
+} /* _starpu_dorgr2_ */

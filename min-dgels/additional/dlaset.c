@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaset_(char *uplo, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_dlaset_(char *uplo, integer *m, integer *n, doublereal *
 	alpha, doublereal *beta, doublereal *a, integer *lda)
 {
     /* System generated locals */
@@ -21,7 +21,7 @@
 
     /* Local variables */
     integer i__, j;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -90,7 +90,7 @@
     a -= a_offset;
 
     /* Function Body */
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Set the strictly upper triangular or trapezoidal part of the */
 /*        array to ALPHA. */
@@ -107,7 +107,7 @@
 /* L20: */
 	}
 
-    } else if (lsame_(uplo, "L")) {
+    } else if (_starpu_lsame_(uplo, "L")) {
 
 /*        Set the strictly lower triangular or trapezoidal part of the */
 /*        array to ALPHA. */
@@ -149,4 +149,4 @@
 
 /*     End of DLASET */
 
-} /* dlaset_ */
+} /* _starpu_dlaset_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dznrm2_(integer *n, doublecomplex *x, integer *incx)
+doublereal _starpu_dznrm2_(integer *n, doublecomplex *x, integer *incx)
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
@@ -105,4 +105,4 @@ doublereal dznrm2_(integer *n, doublecomplex *x, integer *incx)
 
 /*     End of DZNRM2. */
 
-} /* dznrm2_ */
+} /* _starpu_dznrm2_ */

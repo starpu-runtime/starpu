@@ -1,4 +1,4 @@
-/* dla_gbrcond.f -- translated by f2c (version 20061008).
+/* _starpu_dla_gbrcond.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku, 
+doublereal _starpu_dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku, 
 	doublereal *ab, integer *ldab, doublereal *afb, integer *ldafb, 
 	integer *ipiv, integer *cmode, doublereal *c__, integer *info, 
 	doublereal *work, integer *iwork, ftnlen trans_len)
@@ -30,11 +30,11 @@ doublereal dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku,
     integer i__, j, kd, ke;
     doublereal tmp;
     integer kase;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
-	    integer *), dgbtrs_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
+	    integer *), _starpu_dgbtrs_(char *, integer *, integer *, integer 
 	    *, integer *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     doublereal ainvnm;
@@ -160,8 +160,8 @@ doublereal dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku,
     ret_val = 0.;
 
     *info = 0;
-    notrans = lsame_(trans, "N");
-    if (! notrans && ! lsame_(trans, "T") && ! lsame_(
+    notrans = _starpu_lsame_(trans, "N");
+    if (! notrans && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(
 	    trans, "C")) {
 	*info = -1;
     } else if (*n < 0) {
@@ -177,7 +177,7 @@ doublereal dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku,
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLA_GBRCOND", &i__1);
+	_starpu_xerbla_("DLA_GBRCOND", &i__1);
 	return ret_val;
     }
     if (*n == 0) {
@@ -270,7 +270,7 @@ doublereal dla_gbrcond__(char *trans, integer *n, integer *kl, integer *ku,
     ainvnm = 0.;
     kase = 0;
 L10:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == 2) {
 
@@ -281,10 +281,10 @@ L10:
 		work[i__] *= work[(*n << 1) + i__];
 	    }
 	    if (notrans) {
-		dgbtrs_("No transpose", n, kl, ku, &c__1, &afb[afb_offset], 
+		_starpu_dgbtrs_("No transpose", n, kl, ku, &c__1, &afb[afb_offset], 
 			ldafb, &ipiv[1], &work[1], n, info);
 	    } else {
-		dgbtrs_("Transpose", n, kl, ku, &c__1, &afb[afb_offset], 
+		_starpu_dgbtrs_("Transpose", n, kl, ku, &c__1, &afb[afb_offset], 
 			ldafb, &ipiv[1], &work[1], n, info);
 	    }
 
@@ -317,10 +317,10 @@ L10:
 		}
 	    }
 	    if (notrans) {
-		dgbtrs_("Transpose", n, kl, ku, &c__1, &afb[afb_offset], 
+		_starpu_dgbtrs_("Transpose", n, kl, ku, &c__1, &afb[afb_offset], 
 			ldafb, &ipiv[1], &work[1], n, info);
 	    } else {
-		dgbtrs_("No transpose", n, kl, ku, &c__1, &afb[afb_offset], 
+		_starpu_dgbtrs_("No transpose", n, kl, ku, &c__1, &afb[afb_offset], 
 			ldafb, &ipiv[1], &work[1], n, info);
 	    }
 
@@ -342,4 +342,4 @@ L10:
 
     return ret_val;
 
-} /* dla_gbrcond__ */
+} /* _starpu_dla_gbrcond__ */

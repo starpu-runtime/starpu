@@ -1,4 +1,4 @@
-/* dla_porcond.f -- translated by f2c (version 20061008).
+/* _starpu_dla_porcond.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda, 
+doublereal _starpu_dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda, 
 	doublereal *af, integer *ldaf, integer *cmode, doublereal *c__, 
 	integer *info, doublereal *work, integer *iwork, ftnlen uplo_len)
 {
@@ -30,13 +30,13 @@ doublereal dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda,
     logical up;
     doublereal tmp;
     integer kase;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dpotrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dpotrs_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
 
 
@@ -144,7 +144,7 @@ doublereal dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda,
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLA_PORCOND", &i__1);
+	_starpu_xerbla_("DLA_PORCOND", &i__1);
 	return ret_val;
     }
     if (*n == 0) {
@@ -152,7 +152,7 @@ doublereal dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda,
 	return ret_val;
     }
     up = FALSE_;
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 	up = TRUE_;
     }
 
@@ -234,7 +234,7 @@ doublereal dla_porcond__(char *uplo, integer *n, doublereal *a, integer *lda,
     ainvnm = 0.;
     kase = 0;
 L10:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == 2) {
 
@@ -245,10 +245,10 @@ L10:
 		work[i__] *= work[(*n << 1) + i__];
 	    }
 	    if (up) {
-		dpotrs_("Upper", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
+		_starpu_dpotrs_("Upper", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
 			info);
 	    } else {
-		dpotrs_("Lower", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
+		_starpu_dpotrs_("Lower", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
 			info);
 	    }
 
@@ -281,10 +281,10 @@ L10:
 		}
 	    }
 	    if (up) {
-		dpotrs_("Upper", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
+		_starpu_dpotrs_("Upper", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
 			info);
 	    } else {
-		dpotrs_("Lower", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
+		_starpu_dpotrs_("Lower", n, &c__1, &af[af_offset], ldaf, &work[1], n, 
 			info);
 	    }
 
@@ -306,4 +306,4 @@ L10:
 
     return ret_val;
 
-} /* dla_porcond__ */
+} /* _starpu_dla_porcond__ */

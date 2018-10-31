@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b8 = 1.;
 
-/* Subroutine */ int dtzrqf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dtzrqf_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, integer *info)
 {
     /* System generated locals */
@@ -27,15 +27,15 @@ static doublereal c_b8 = 1.;
 
     /* Local variables */
     integer i__, k, m1;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dgemv_(char *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dgemv_(char *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *), dcopy_(integer *, doublereal *, 
-	    integer *, doublereal *, integer *), daxpy_(integer *, doublereal 
-	    *, doublereal *, integer *, doublereal *, integer *), dlarfp_(
+	    doublereal *, integer *), _starpu_dcopy_(integer *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_daxpy_(integer *, doublereal 
+	    *, doublereal *, integer *, doublereal *, integer *), _starpu_dlarfp_(
 	    integer *, doublereal *, doublereal *, integer *, doublereal *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -149,7 +149,7 @@ static doublereal c_b8 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTZRQF", &i__1);
+	_starpu_xerbla_("DTZRQF", &i__1);
 	return 0;
     }
 
@@ -174,7 +174,7 @@ static doublereal c_b8 = 1.;
 /*           First set up the reflection. */
 
 	    i__1 = *n - *m + 1;
-	    dlarfp_(&i__1, &a[k + k * a_dim1], &a[k + m1 * a_dim1], lda, &tau[
+	    _starpu_dlarfp_(&i__1, &a[k + k * a_dim1], &a[k + m1 * a_dim1], lda, &tau[
 		    k]);
 
 	    if (tau[k] != 0. && k > 1) {
@@ -187,13 +187,13 @@ static doublereal c_b8 = 1.;
 /*              ( k - 1 ) rows of the last ( n - m ) columns of A. */
 
 		i__1 = k - 1;
-		dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &tau[1], &c__1);
+		_starpu_dcopy_(&i__1, &a[k * a_dim1 + 1], &c__1, &tau[1], &c__1);
 
 /*              Form   w = a( k ) + B*z( k )  in TAU. */
 
 		i__1 = k - 1;
 		i__2 = *n - *m;
-		dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[m1 * a_dim1 + 
+		_starpu_dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[m1 * a_dim1 + 
 			1], lda, &a[k + m1 * a_dim1], lda, &c_b8, &tau[1], &
 			c__1);
 
@@ -202,12 +202,12 @@ static doublereal c_b8 = 1.;
 
 		i__1 = k - 1;
 		d__1 = -tau[k];
-		daxpy_(&i__1, &d__1, &tau[1], &c__1, &a[k * a_dim1 + 1], &
+		_starpu_daxpy_(&i__1, &d__1, &tau[1], &c__1, &a[k * a_dim1 + 1], &
 			c__1);
 		i__1 = k - 1;
 		i__2 = *n - *m;
 		d__1 = -tau[k];
-		dger_(&i__1, &i__2, &d__1, &tau[1], &c__1, &a[k + m1 * a_dim1]
+		_starpu_dger_(&i__1, &i__2, &d__1, &tau[1], &c__1, &a[k + m1 * a_dim1]
 , lda, &a[m1 * a_dim1 + 1], lda);
 	    }
 /* L20: */
@@ -218,4 +218,4 @@ static doublereal c_b8 = 1.;
 
 /*     End of DTZRQF */
 
-} /* dtzrqf_ */
+} /* _starpu_dtzrqf_ */

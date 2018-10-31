@@ -19,7 +19,7 @@ static doublereal c_b8 = 0.;
 static doublereal c_b9 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dgbbrd_(char *vect, integer *m, integer *n, integer *ncc, 
+/* Subroutine */ int _starpu_dgbbrd_(char *vect, integer *m, integer *n, integer *ncc, 
 	 integer *kl, integer *ku, doublereal *ab, integer *ldab, doublereal *
 	d__, doublereal *e, doublereal *q, integer *ldq, doublereal *pt, 
 	integer *ldpt, doublereal *c__, integer *ldc, doublereal *work, 
@@ -35,18 +35,18 @@ static integer c__1 = 1;
     integer kk, ml, mn, nr, mu;
     doublereal rs;
     integer kb1, ml0, mu0, klm, kun, nrt, klu1, inca;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical wantb, wantc;
     integer minmn;
     logical wantq;
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *), 
-	    dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), xerbla_(char *, integer *), dlargv_(
+	    _starpu_dlartg_(doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), _starpu_xerbla_(char *, integer *), _starpu_dlargv_(
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlartv_(integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_dlartv_(integer *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *);
     logical wantpt;
@@ -178,13 +178,13 @@ static integer c__1 = 1;
     --work;
 
     /* Function Body */
-    wantb = lsame_(vect, "B");
-    wantq = lsame_(vect, "Q") || wantb;
-    wantpt = lsame_(vect, "P") || wantb;
+    wantb = _starpu_lsame_(vect, "B");
+    wantq = _starpu_lsame_(vect, "Q") || wantb;
+    wantpt = _starpu_lsame_(vect, "P") || wantb;
     wantc = *ncc > 0;
     klu1 = *kl + *ku + 1;
     *info = 0;
-    if (! wantq && ! wantpt && ! lsame_(vect, "N")) {
+    if (! wantq && ! wantpt && ! _starpu_lsame_(vect, "N")) {
 	*info = -1;
     } else if (*m < 0) {
 	*info = -2;
@@ -207,17 +207,17 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBBRD", &i__1);
+	_starpu_xerbla_("DGBBRD", &i__1);
 	return 0;
     }
 
 /*     Initialize Q and P' to the unit matrix, if needed */
 
     if (wantq) {
-	dlaset_("Full", m, m, &c_b8, &c_b9, &q[q_offset], ldq);
+	_starpu_dlaset_("Full", m, m, &c_b8, &c_b9, &q[q_offset], ldq);
     }
     if (wantpt) {
-	dlaset_("Full", n, n, &c_b8, &c_b9, &pt[pt_offset], ldpt);
+	_starpu_dlaset_("Full", n, n, &c_b8, &c_b9, &pt[pt_offset], ldpt);
     }
 
 /*     Quick return if possible. */
@@ -278,7 +278,7 @@ static integer c__1 = 1;
 /*              which have been created below the band */
 
 		if (nr > 0) {
-		    dlargv_(&nr, &ab[klu1 + (j1 - klm - 1) * ab_dim1], &inca, 
+		    _starpu_dlargv_(&nr, &ab[klu1 + (j1 - klm - 1) * ab_dim1], &inca, 
 			    &work[j1], &kb1, &work[mn + j1], &kb1);
 		}
 
@@ -292,7 +292,7 @@ static integer c__1 = 1;
 			nrt = nr;
 		    }
 		    if (nrt > 0) {
-			dlartv_(&nrt, &ab[klu1 - l + (j1 - klm + l - 1) * 
+			_starpu_dlartv_(&nrt, &ab[klu1 - l + (j1 - klm + l - 1) * 
 				ab_dim1], &inca, &ab[klu1 - l + 1 + (j1 - klm 
 				+ l - 1) * ab_dim1], &inca, &work[mn + j1], &
 				work[j1], &kb1);
@@ -306,7 +306,7 @@ static integer c__1 = 1;
 /*                    generate plane rotation to annihilate a(i+ml-1,i) */
 /*                    within the band, and apply rotation from the left */
 
-			dlartg_(&ab[*ku + ml - 1 + i__ * ab_dim1], &ab[*ku + 
+			_starpu_dlartg_(&ab[*ku + ml - 1 + i__ * ab_dim1], &ab[*ku + 
 				ml + i__ * ab_dim1], &work[mn + i__ + ml - 1], 
 				 &work[i__ + ml - 1], &ra);
 			ab[*ku + ml - 1 + i__ * ab_dim1] = ra;
@@ -316,7 +316,7 @@ static integer c__1 = 1;
 			    i__3 = min(i__4,i__5);
 			    i__6 = *ldab - 1;
 			    i__7 = *ldab - 1;
-			    drot_(&i__3, &ab[*ku + ml - 2 + (i__ + 1) * 
+			    _starpu_drot_(&i__3, &ab[*ku + ml - 2 + (i__ + 1) * 
 				    ab_dim1], &i__6, &ab[*ku + ml - 1 + (i__ 
 				    + 1) * ab_dim1], &i__7, &work[mn + i__ + 
 				    ml - 1], &work[i__ + ml - 1]);
@@ -334,7 +334,7 @@ static integer c__1 = 1;
 		    i__4 = kb1;
 		    for (j = j1; i__4 < 0 ? j >= i__3 : j <= i__3; j += i__4) 
 			    {
-			drot_(m, &q[(j - 1) * q_dim1 + 1], &c__1, &q[j * 
+			_starpu_drot_(m, &q[(j - 1) * q_dim1 + 1], &c__1, &q[j * 
 				q_dim1 + 1], &c__1, &work[mn + j], &work[j]);
 /* L20: */
 		    }
@@ -348,7 +348,7 @@ static integer c__1 = 1;
 		    i__3 = kb1;
 		    for (j = j1; i__3 < 0 ? j >= i__4 : j <= i__4; j += i__3) 
 			    {
-			drot_(ncc, &c__[j - 1 + c_dim1], ldc, &c__[j + c_dim1]
+			_starpu_drot_(ncc, &c__[j - 1 + c_dim1], ldc, &c__[j + c_dim1]
 , ldc, &work[mn + j], &work[j]);
 /* L30: */
 		    }
@@ -379,7 +379,7 @@ static integer c__1 = 1;
 /*              which have been generated above the band */
 
 		if (nr > 0) {
-		    dlargv_(&nr, &ab[(j1 + kun - 1) * ab_dim1 + 1], &inca, &
+		    _starpu_dlargv_(&nr, &ab[(j1 + kun - 1) * ab_dim1 + 1], &inca, &
 			    work[j1 + kun], &kb1, &work[mn + j1 + kun], &kb1);
 		}
 
@@ -393,7 +393,7 @@ static integer c__1 = 1;
 			nrt = nr;
 		    }
 		    if (nrt > 0) {
-			dlartv_(&nrt, &ab[l + 1 + (j1 + kun - 1) * ab_dim1], &
+			_starpu_dlartv_(&nrt, &ab[l + 1 + (j1 + kun - 1) * ab_dim1], &
 				inca, &ab[l + (j1 + kun) * ab_dim1], &inca, &
 				work[mn + j1 + kun], &work[j1 + kun], &kb1);
 		    }
@@ -406,7 +406,7 @@ static integer c__1 = 1;
 /*                    generate plane rotation to annihilate a(i,i+mu-1) */
 /*                    within the band, and apply rotation from the right */
 
-			dlartg_(&ab[*ku - mu + 3 + (i__ + mu - 2) * ab_dim1], 
+			_starpu_dlartg_(&ab[*ku - mu + 3 + (i__ + mu - 2) * ab_dim1], 
 				&ab[*ku - mu + 2 + (i__ + mu - 1) * ab_dim1], 
 				&work[mn + i__ + mu - 1], &work[i__ + mu - 1], 
 				 &ra);
@@ -414,7 +414,7 @@ static integer c__1 = 1;
 /* Computing MIN */
 			i__3 = *kl + mu - 2, i__5 = *m - i__;
 			i__4 = min(i__3,i__5);
-			drot_(&i__4, &ab[*ku - mu + 4 + (i__ + mu - 2) * 
+			_starpu_drot_(&i__4, &ab[*ku - mu + 4 + (i__ + mu - 2) * 
 				ab_dim1], &c__1, &ab[*ku - mu + 3 + (i__ + mu 
 				- 1) * ab_dim1], &c__1, &work[mn + i__ + mu - 
 				1], &work[i__ + mu - 1]);
@@ -431,7 +431,7 @@ static integer c__1 = 1;
 		    i__3 = kb1;
 		    for (j = j1; i__3 < 0 ? j >= i__4 : j <= i__4; j += i__3) 
 			    {
-			drot_(n, &pt[j + kun - 1 + pt_dim1], ldpt, &pt[j + 
+			_starpu_drot_(n, &pt[j + kun - 1 + pt_dim1], ldpt, &pt[j + 
 				kun + pt_dim1], ldpt, &work[mn + j + kun], &
 				work[j + kun]);
 /* L60: */
@@ -483,7 +483,7 @@ static integer c__1 = 1;
 	i__2 = *m - 1;
 	i__1 = min(i__2,*n);
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    dlartg_(&ab[i__ * ab_dim1 + 1], &ab[i__ * ab_dim1 + 2], &rc, &rs, 
+	    _starpu_dlartg_(&ab[i__ * ab_dim1 + 1], &ab[i__ * ab_dim1 + 2], &rc, &rs, 
 		    &ra);
 	    d__[i__] = ra;
 	    if (i__ < *n) {
@@ -492,11 +492,11 @@ static integer c__1 = 1;
 			;
 	    }
 	    if (wantq) {
-		drot_(m, &q[i__ * q_dim1 + 1], &c__1, &q[(i__ + 1) * q_dim1 + 
+		_starpu_drot_(m, &q[i__ * q_dim1 + 1], &c__1, &q[(i__ + 1) * q_dim1 + 
 			1], &c__1, &rc, &rs);
 	    }
 	    if (wantc) {
-		drot_(ncc, &c__[i__ + c_dim1], ldc, &c__[i__ + 1 + c_dim1], 
+		_starpu_drot_(ncc, &c__[i__ + c_dim1], ldc, &c__[i__ + 1 + c_dim1], 
 			ldc, &rc, &rs);
 	    }
 /* L100: */
@@ -516,14 +516,14 @@ static integer c__1 = 1;
 
 	    rb = ab[*ku + (*m + 1) * ab_dim1];
 	    for (i__ = *m; i__ >= 1; --i__) {
-		dlartg_(&ab[*ku + 1 + i__ * ab_dim1], &rb, &rc, &rs, &ra);
+		_starpu_dlartg_(&ab[*ku + 1 + i__ * ab_dim1], &rb, &rc, &rs, &ra);
 		d__[i__] = ra;
 		if (i__ > 1) {
 		    rb = -rs * ab[*ku + i__ * ab_dim1];
 		    e[i__ - 1] = rc * ab[*ku + i__ * ab_dim1];
 		}
 		if (wantpt) {
-		    drot_(n, &pt[i__ + pt_dim1], ldpt, &pt[*m + 1 + pt_dim1], 
+		    _starpu_drot_(n, &pt[i__ + pt_dim1], ldpt, &pt[*m + 1 + pt_dim1], 
 			    ldpt, &rc, &rs);
 		}
 /* L110: */
@@ -563,4 +563,4 @@ static integer c__1 = 1;
 
 /*     End of DGBBRD */
 
-} /* dgbbrd_ */
+} /* _starpu_dgbbrd_ */

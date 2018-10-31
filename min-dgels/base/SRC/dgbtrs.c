@@ -19,7 +19,7 @@ static doublereal c_b7 = -1.;
 static integer c__1 = 1;
 static doublereal c_b23 = 1.;
 
-/* Subroutine */ int dgbtrs_(char *trans, integer *n, integer *kl, integer *
+/* Subroutine */ int _starpu_dgbtrs_(char *trans, integer *n, integer *kl, integer *
 	ku, integer *nrhs, doublereal *ab, integer *ldab, integer *ipiv, 
 	doublereal *b, integer *ldb, integer *info)
 {
@@ -28,18 +28,18 @@ static doublereal c_b23 = 1.;
 
     /* Local variables */
     integer i__, j, l, kd, lm;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dswap_(integer *, 
-	    doublereal *, integer *, doublereal *, integer *), dtbsv_(char *, 
+	    doublereal *, doublereal *, integer *), _starpu_dswap_(integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dtbsv_(char *, 
 	    char *, char *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical lnoti;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical notran;
 
 
@@ -134,8 +134,8 @@ static doublereal c_b23 = 1.;
 
     /* Function Body */
     *info = 0;
-    notran = lsame_(trans, "N");
-    if (! notran && ! lsame_(trans, "T") && ! lsame_(
+    notran = _starpu_lsame_(trans, "N");
+    if (! notran && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(
 	    trans, "C")) {
 	*info = -1;
     } else if (*n < 0) {
@@ -153,7 +153,7 @@ static doublereal c_b23 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGBTRS", &i__1);
+	_starpu_xerbla_("DGBTRS", &i__1);
 	return 0;
     }
 
@@ -185,9 +185,9 @@ static doublereal c_b23 = 1.;
 		lm = min(i__2,i__3);
 		l = ipiv[j];
 		if (l != j) {
-		    dswap_(nrhs, &b[l + b_dim1], ldb, &b[j + b_dim1], ldb);
+		    _starpu_dswap_(nrhs, &b[l + b_dim1], ldb, &b[j + b_dim1], ldb);
 		}
-		dger_(&lm, nrhs, &c_b7, &ab[kd + 1 + j * ab_dim1], &c__1, &b[
+		_starpu_dger_(&lm, nrhs, &c_b7, &ab[kd + 1 + j * ab_dim1], &c__1, &b[
 			j + b_dim1], ldb, &b[j + 1 + b_dim1], ldb);
 /* L10: */
 	    }
@@ -199,7 +199,7 @@ static doublereal c_b23 = 1.;
 /*           Solve U*X = B, overwriting B with X. */
 
 	    i__2 = *kl + *ku;
-	    dtbsv_("Upper", "No transpose", "Non-unit", n, &i__2, &ab[
+	    _starpu_dtbsv_("Upper", "No transpose", "Non-unit", n, &i__2, &ab[
 		    ab_offset], ldab, &b[i__ * b_dim1 + 1], &c__1);
 /* L20: */
 	}
@@ -214,7 +214,7 @@ static doublereal c_b23 = 1.;
 /*           Solve U'*X = B, overwriting B with X. */
 
 	    i__2 = *kl + *ku;
-	    dtbsv_("Upper", "Transpose", "Non-unit", n, &i__2, &ab[ab_offset], 
+	    _starpu_dtbsv_("Upper", "Transpose", "Non-unit", n, &i__2, &ab[ab_offset], 
 		     ldab, &b[i__ * b_dim1 + 1], &c__1);
 /* L30: */
 	}
@@ -226,12 +226,12 @@ static doublereal c_b23 = 1.;
 /* Computing MIN */
 		i__1 = *kl, i__2 = *n - j;
 		lm = min(i__1,i__2);
-		dgemv_("Transpose", &lm, nrhs, &c_b7, &b[j + 1 + b_dim1], ldb, 
+		_starpu_dgemv_("Transpose", &lm, nrhs, &c_b7, &b[j + 1 + b_dim1], ldb, 
 			 &ab[kd + 1 + j * ab_dim1], &c__1, &c_b23, &b[j + 
 			b_dim1], ldb);
 		l = ipiv[j];
 		if (l != j) {
-		    dswap_(nrhs, &b[l + b_dim1], ldb, &b[j + b_dim1], ldb);
+		    _starpu_dswap_(nrhs, &b[l + b_dim1], ldb, &b[j + b_dim1], ldb);
 		}
 /* L40: */
 	    }
@@ -241,4 +241,4 @@ static doublereal c_b23 = 1.;
 
 /*     End of DGBTRS */
 
-} /* dgbtrs_ */
+} /* _starpu_dgbtrs_ */

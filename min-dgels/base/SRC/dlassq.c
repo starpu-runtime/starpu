@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlassq_(integer *n, doublereal *x, integer *incx, 
+/* Subroutine */ int _starpu_dlassq_(integer *n, doublereal *x, integer *incx, 
 	doublereal *scale, doublereal *sumsq)
 {
     /* System generated locals */
@@ -113,4 +113,4 @@
 
 /*     End of DLASSQ */
 
-} /* dlassq_ */
+} /* _starpu_dlassq_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
+integer _starpu_dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
 	sigma, doublereal *pivmin, integer *r__)
 {
     /* System generated locals */
@@ -26,7 +26,7 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
     doublereal tmp;
     integer neg1, neg2;
     doublereal bsav, gamma, dplus;
-    extern logical disnan_(doublereal *);
+    extern logical _starpu_disnan_(doublereal *);
     integer negcnt;
     logical sawnan;
     doublereal dminus;
@@ -135,7 +135,7 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
 	    t = tmp * lld[j] - *sigma;
 /* L21: */
 	}
-	sawnan = disnan_(&t);
+	sawnan = _starpu_disnan_(&t);
 /*     Run a slower version of the above loop if a NaN is detected. */
 /*     A NaN should occur only with a zero pivot after an infinite */
 /*     pivot.  In that case, substituting 1 for T/DPLUS is the */
@@ -152,7 +152,7 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
 		    ++neg1;
 		}
 		tmp = t / dplus;
-		if (disnan_(&tmp)) {
+		if (_starpu_disnan_(&tmp)) {
 		    tmp = 1.;
 		}
 		t = tmp * lld[j] - *sigma;
@@ -181,7 +181,7 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
 	    p = tmp * d__[j] - *sigma;
 /* L23: */
 	}
-	sawnan = disnan_(&p);
+	sawnan = _starpu_disnan_(&p);
 /*     As above, run a slower version that substitutes 1 for Inf/Inf. */
 
 	if (sawnan) {
@@ -196,7 +196,7 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
 		    ++neg2;
 		}
 		tmp = p / dminus;
-		if (disnan_(&tmp)) {
+		if (_starpu_disnan_(&tmp)) {
 		    tmp = 1.;
 		}
 		p = tmp * d__[j] - *sigma;
@@ -215,4 +215,4 @@ integer dlaneg_(integer *n, doublereal *d__, doublereal *lld, doublereal *
     }
     ret_val = negcnt;
     return ret_val;
-} /* dlaneg_ */
+} /* _starpu_dlaneg_ */

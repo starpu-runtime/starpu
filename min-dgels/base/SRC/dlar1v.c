@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlar1v_(integer *n, integer *b1, integer *bn, doublereal 
+/* Subroutine */ int _starpu_dlar1v_(integer *n, integer *b1, integer *bn, doublereal 
 	*lambda, doublereal *d__, doublereal *l, doublereal *ld, doublereal *
 	lld, doublereal *pivmin, doublereal *gaptol, doublereal *z__, logical 
 	*wantnc, integer *negcnt, doublereal *ztz, doublereal *mingma, 
@@ -34,8 +34,8 @@
     doublereal eps, tmp;
     integer neg1, neg2, indp, inds;
     doublereal dplus;
-    extern doublereal dlamch_(char *);
-    extern logical disnan_(doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern logical _starpu_disnan_(doublereal *);
     integer indlpl, indumn;
     doublereal dminus;
     logical sawnan1, sawnan2;
@@ -184,7 +184,7 @@
     --d__;
 
     /* Function Body */
-    eps = dlamch_("Precision");
+    eps = _starpu_dlamch_("Precision");
     if (*r__ == 0) {
 	r1 = *b1;
 	r2 = *bn;
@@ -221,7 +221,7 @@
 	s = work[inds + i__] - *lambda;
 /* L50: */
     }
-    sawnan1 = disnan_(&s);
+    sawnan1 = _starpu_disnan_(&s);
     if (sawnan1) {
 	goto L60;
     }
@@ -233,7 +233,7 @@
 	s = work[inds + i__] - *lambda;
 /* L51: */
     }
-    sawnan1 = disnan_(&s);
+    sawnan1 = _starpu_disnan_(&s);
 
 L60:
     if (sawnan1) {
@@ -291,7 +291,7 @@ L60:
 /* L80: */
     }
     tmp = work[indp + r1 - 1];
-    sawnan2 = disnan_(&tmp);
+    sawnan2 = _starpu_disnan_(&tmp);
     if (sawnan2) {
 /*        Runs a slower version of the above loop if a NaN is detected */
 	neg2 = 0;
@@ -438,4 +438,4 @@ L280:
 
 /*     End of DLAR1V */
 
-} /* dlar1v_ */
+} /* _starpu_dlar1v_ */

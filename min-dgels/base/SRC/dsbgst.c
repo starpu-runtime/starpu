@@ -20,7 +20,7 @@ static doublereal c_b9 = 1.;
 static integer c__1 = 1;
 static doublereal c_b20 = -1.;
 
-/* Subroutine */ int dsbgst_(char *vect, char *uplo, integer *n, integer *ka, 
+/* Subroutine */ int _starpu_dsbgst_(char *vect, char *uplo, integer *n, integer *ka, 
 	integer *kb, doublereal *ab, integer *ldab, doublereal *bb, integer *
 	ldbb, doublereal *x, integer *ldx, doublereal *work, integer *info)
 {
@@ -39,22 +39,22 @@ static doublereal c_b20 = -1.;
     integer j1t, j2t;
     doublereal bii;
     integer kbt, nrt, inca;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), drot_(integer *, doublereal *, integer *, doublereal *
-, integer *, doublereal *, doublereal *), dscal_(integer *, 
+	    integer *), _starpu_drot_(integer *, doublereal *, integer *, doublereal *
+, integer *, doublereal *, doublereal *), _starpu_dscal_(integer *, 
 	    doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper, wantx;
-    extern /* Subroutine */ int dlar2v_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlar2v_(integer *, doublereal *, doublereal *, 
 	     doublereal *, integer *, doublereal *, doublereal *, integer *), 
-	    dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *), dlartg_(doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *), xerbla_(
-	    char *, integer *), dlargv_(integer *, doublereal *, 
+	    _starpu_dlaset_(char *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, integer *), _starpu_dlartg_(doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *), _starpu_xerbla_(
+	    char *, integer *), _starpu_dlargv_(integer *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *);
     logical update;
-    extern /* Subroutine */ int dlartv_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlartv_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *);
 
 
@@ -166,14 +166,14 @@ static doublereal c_b20 = -1.;
     --work;
 
     /* Function Body */
-    wantx = lsame_(vect, "V");
-    upper = lsame_(uplo, "U");
+    wantx = _starpu_lsame_(vect, "V");
+    upper = _starpu_lsame_(uplo, "U");
     ka1 = *ka + 1;
     kb1 = *kb + 1;
     *info = 0;
-    if (! wantx && ! lsame_(vect, "N")) {
+    if (! wantx && ! _starpu_lsame_(vect, "N")) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -190,7 +190,7 @@ static doublereal c_b20 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSBGST", &i__1);
+	_starpu_xerbla_("DSBGST", &i__1);
 	return 0;
     }
 
@@ -205,7 +205,7 @@ static doublereal c_b20 = -1.;
 /*     Initialize X to the unit matrix, if needed */
 
     if (wantx) {
-	dlaset_("Full", n, n, &c_b8, &c_b9, &x[x_offset], ldx);
+	_starpu_dlaset_("Full", n, n, &c_b8, &c_b9, &x[x_offset], ldx);
     }
 
 /*     Set M to the splitting point m. It must be the same value as is */
@@ -367,10 +367,10 @@ L10:
 
 		i__3 = *n - m;
 		d__1 = 1. / bii;
-		dscal_(&i__3, &d__1, &x[m + 1 + i__ * x_dim1], &c__1);
+		_starpu_dscal_(&i__3, &d__1, &x[m + 1 + i__ * x_dim1], &c__1);
 		if (kbt > 0) {
 		    i__3 = *n - m;
-		    dger_(&i__3, &kbt, &c_b20, &x[m + 1 + i__ * x_dim1], &
+		    _starpu_dger_(&i__3, &kbt, &c_b20, &x[m + 1 + i__ * x_dim1], &
 			    c__1, &bb[kb1 - kbt + i__ * bb_dim1], &c__1, &x[m 
 			    + 1 + (i__ - kbt) * x_dim1], ldx);
 		}
@@ -396,7 +396,7 @@ L10:
 
 /*                 generate rotation to annihilate a(i,i-k+ka+1) */
 
-		    dlartg_(&ab[k + 1 + (i__ - k + *ka) * ab_dim1], &ra1, &
+		    _starpu_dlartg_(&ab[k + 1 + (i__ - k + *ka) * ab_dim1], &ra1, &
 			    work[*n + i__ - k + *ka - m], &work[i__ - k + *ka 
 			    - m], &ra);
 
@@ -443,7 +443,7 @@ L10:
 /*           have been created outside the band */
 
 	    if (nrt > 0) {
-		dlargv_(&nrt, &ab[j2t * ab_dim1 + 1], &inca, &work[j2t - m], &
+		_starpu_dlargv_(&nrt, &ab[j2t * ab_dim1 + 1], &inca, &work[j2t - m], &
 			ka1, &work[*n + j2t - m], &ka1);
 	    }
 	    if (nr > 0) {
@@ -452,7 +452,7 @@ L10:
 
 		i__4 = *ka - 1;
 		for (l = 1; l <= i__4; ++l) {
-		    dlartv_(&nr, &ab[ka1 - l + j2 * ab_dim1], &inca, &ab[*ka 
+		    _starpu_dlartv_(&nr, &ab[ka1 - l + j2 * ab_dim1], &inca, &ab[*ka 
 			    - l + (j2 + 1) * ab_dim1], &inca, &work[*n + j2 - 
 			    m], &work[j2 - m], &ka1);
 /* L100: */
@@ -461,7 +461,7 @@ L10:
 /*              apply rotations in 1st set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[ka1 + j2 * ab_dim1], &ab[ka1 + (j2 + 1) * 
+		_starpu_dlar2v_(&nr, &ab[ka1 + j2 * ab_dim1], &ab[ka1 + (j2 + 1) * 
 			ab_dim1], &ab[*ka + (j2 + 1) * ab_dim1], &inca, &work[
 			*n + j2 - m], &work[j2 - m], &ka1);
 
@@ -473,7 +473,7 @@ L10:
 	    for (l = *ka - 1; l >= i__4; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
+		    _starpu_dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    ab[l + 1 + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    work[*n + j2 - m], &work[j2 - m], &ka1);
 		}
@@ -488,7 +488,7 @@ L10:
 		i__2 = ka1;
 		for (j = j2; i__2 < 0 ? j >= i__4 : j <= i__4; j += i__2) {
 		    i__1 = *n - m;
-		    drot_(&i__1, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
+		    _starpu_drot_(&i__1, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
 			    + 1) * x_dim1], &c__1, &work[*n + j - m], &work[j 
 			    - m]);
 /* L120: */
@@ -523,7 +523,7 @@ L10:
 	    for (l = *kb - k; l >= 1; --l) {
 		nrt = (*n - j2 + *ka + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + (j2 - l + 1) * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nrt, &ab[l + (j2 - l + 1) * ab_dim1], &inca, &ab[
 			    l + 1 + (j2 - l + 1) * ab_dim1], &inca, &work[*n 
 			    + j2 - *ka], &work[j2 - *ka], &ka1);
 		}
@@ -569,14 +569,14 @@ L10:
 /*              generate rotations in 2nd set to annihilate elements */
 /*              which have been created outside the band */
 
-		dlargv_(&nr, &ab[j2 * ab_dim1 + 1], &inca, &work[j2], &ka1, &
+		_starpu_dlargv_(&nr, &ab[j2 * ab_dim1 + 1], &inca, &work[j2], &ka1, &
 			work[*n + j2], &ka1);
 
 /*              apply rotations in 2nd set from the right */
 
 		i__3 = *ka - 1;
 		for (l = 1; l <= i__3; ++l) {
-		    dlartv_(&nr, &ab[ka1 - l + j2 * ab_dim1], &inca, &ab[*ka 
+		    _starpu_dlartv_(&nr, &ab[ka1 - l + j2 * ab_dim1], &inca, &ab[*ka 
 			    - l + (j2 + 1) * ab_dim1], &inca, &work[*n + j2], 
 			    &work[j2], &ka1);
 /* L180: */
@@ -585,7 +585,7 @@ L10:
 /*              apply rotations in 2nd set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[ka1 + j2 * ab_dim1], &ab[ka1 + (j2 + 1) * 
+		_starpu_dlar2v_(&nr, &ab[ka1 + j2 * ab_dim1], &ab[ka1 + (j2 + 1) * 
 			ab_dim1], &ab[*ka + (j2 + 1) * ab_dim1], &inca, &work[
 			*n + j2], &work[j2], &ka1);
 
@@ -597,7 +597,7 @@ L10:
 	    for (l = *ka - 1; l >= i__3; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
+		    _starpu_dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    ab[l + 1 + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    work[*n + j2], &work[j2], &ka1);
 		}
@@ -612,7 +612,7 @@ L10:
 		i__2 = ka1;
 		for (j = j2; i__2 < 0 ? j >= i__3 : j <= i__3; j += i__2) {
 		    i__4 = *n - m;
-		    drot_(&i__4, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
+		    _starpu_drot_(&i__4, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
 			    + 1) * x_dim1], &c__1, &work[*n + j], &work[j]);
 /* L200: */
 		}
@@ -631,7 +631,7 @@ L10:
 	    for (l = *kb - k; l >= 1; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
+		    _starpu_dlartv_(&nrt, &ab[l + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    ab[l + 1 + (j2 + ka1 - l) * ab_dim1], &inca, &
 			    work[*n + j2 - m], &work[j2 - m], &ka1);
 		}
@@ -711,11 +711,11 @@ L10:
 
 		i__4 = *n - m;
 		d__1 = 1. / bii;
-		dscal_(&i__4, &d__1, &x[m + 1 + i__ * x_dim1], &c__1);
+		_starpu_dscal_(&i__4, &d__1, &x[m + 1 + i__ * x_dim1], &c__1);
 		if (kbt > 0) {
 		    i__4 = *n - m;
 		    i__3 = *ldbb - 1;
-		    dger_(&i__4, &kbt, &c_b20, &x[m + 1 + i__ * x_dim1], &
+		    _starpu_dger_(&i__4, &kbt, &c_b20, &x[m + 1 + i__ * x_dim1], &
 			    c__1, &bb[kbt + 1 + (i__ - kbt) * bb_dim1], &i__3, 
 			     &x[m + 1 + (i__ - kbt) * x_dim1], ldx);
 		}
@@ -741,7 +741,7 @@ L10:
 
 /*                 generate rotation to annihilate a(i-k+ka+1,i) */
 
-		    dlartg_(&ab[ka1 - k + i__ * ab_dim1], &ra1, &work[*n + 
+		    _starpu_dlartg_(&ab[ka1 - k + i__ * ab_dim1], &ra1, &work[*n + 
 			    i__ - k + *ka - m], &work[i__ - k + *ka - m], &ra)
 			    ;
 
@@ -788,7 +788,7 @@ L10:
 /*           have been created outside the band */
 
 	    if (nrt > 0) {
-		dlargv_(&nrt, &ab[ka1 + (j2t - *ka) * ab_dim1], &inca, &work[
+		_starpu_dlargv_(&nrt, &ab[ka1 + (j2t - *ka) * ab_dim1], &inca, &work[
 			j2t - m], &ka1, &work[*n + j2t - m], &ka1);
 	    }
 	    if (nr > 0) {
@@ -797,7 +797,7 @@ L10:
 
 		i__1 = *ka - 1;
 		for (l = 1; l <= i__1; ++l) {
-		    dlartv_(&nr, &ab[l + 1 + (j2 - l) * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nr, &ab[l + 1 + (j2 - l) * ab_dim1], &inca, &ab[
 			    l + 2 + (j2 - l) * ab_dim1], &inca, &work[*n + j2 
 			    - m], &work[j2 - m], &ka1);
 /* L330: */
@@ -806,7 +806,7 @@ L10:
 /*              apply rotations in 1st set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[j2 * ab_dim1 + 1], &ab[(j2 + 1) * ab_dim1 + 
+		_starpu_dlar2v_(&nr, &ab[j2 * ab_dim1 + 1], &ab[(j2 + 1) * ab_dim1 + 
 			1], &ab[j2 * ab_dim1 + 2], &inca, &work[*n + j2 - m], 
 			&work[j2 - m], &ka1);
 
@@ -818,7 +818,7 @@ L10:
 	    for (l = *ka - 1; l >= i__1; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
 			    ka1 - l + (j2 + 1) * ab_dim1], &inca, &work[*n + 
 			    j2 - m], &work[j2 - m], &ka1);
 		}
@@ -833,7 +833,7 @@ L10:
 		i__3 = ka1;
 		for (j = j2; i__3 < 0 ? j >= i__1 : j <= i__1; j += i__3) {
 		    i__2 = *n - m;
-		    drot_(&i__2, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
+		    _starpu_drot_(&i__2, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
 			    + 1) * x_dim1], &c__1, &work[*n + j - m], &work[j 
 			    - m]);
 /* L350: */
@@ -868,7 +868,7 @@ L10:
 	    for (l = *kb - k; l >= 1; --l) {
 		nrt = (*n - j2 + *ka + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + (j2 - *ka) * ab_dim1], &
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + (j2 - *ka) * ab_dim1], &
 			    inca, &ab[ka1 - l + (j2 - *ka + 1) * ab_dim1], &
 			    inca, &work[*n + j2 - *ka], &work[j2 - *ka], &ka1)
 			    ;
@@ -915,14 +915,14 @@ L10:
 /*              generate rotations in 2nd set to annihilate elements */
 /*              which have been created outside the band */
 
-		dlargv_(&nr, &ab[ka1 + (j2 - *ka) * ab_dim1], &inca, &work[j2]
+		_starpu_dlargv_(&nr, &ab[ka1 + (j2 - *ka) * ab_dim1], &inca, &work[j2]
 , &ka1, &work[*n + j2], &ka1);
 
 /*              apply rotations in 2nd set from the left */
 
 		i__4 = *ka - 1;
 		for (l = 1; l <= i__4; ++l) {
-		    dlartv_(&nr, &ab[l + 1 + (j2 - l) * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nr, &ab[l + 1 + (j2 - l) * ab_dim1], &inca, &ab[
 			    l + 2 + (j2 - l) * ab_dim1], &inca, &work[*n + j2]
 , &work[j2], &ka1);
 /* L410: */
@@ -931,7 +931,7 @@ L10:
 /*              apply rotations in 2nd set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[j2 * ab_dim1 + 1], &ab[(j2 + 1) * ab_dim1 + 
+		_starpu_dlar2v_(&nr, &ab[j2 * ab_dim1 + 1], &ab[(j2 + 1) * ab_dim1 + 
 			1], &ab[j2 * ab_dim1 + 2], &inca, &work[*n + j2], &
 			work[j2], &ka1);
 
@@ -943,7 +943,7 @@ L10:
 	    for (l = *ka - 1; l >= i__4; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
 			    ka1 - l + (j2 + 1) * ab_dim1], &inca, &work[*n + 
 			    j2], &work[j2], &ka1);
 		}
@@ -958,7 +958,7 @@ L10:
 		i__3 = ka1;
 		for (j = j2; i__3 < 0 ? j >= i__4 : j <= i__4; j += i__3) {
 		    i__1 = *n - m;
-		    drot_(&i__1, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
+		    _starpu_drot_(&i__1, &x[m + 1 + j * x_dim1], &c__1, &x[m + 1 + (j 
 			    + 1) * x_dim1], &c__1, &work[*n + j], &work[j]);
 /* L430: */
 		}
@@ -977,7 +977,7 @@ L10:
 	    for (l = *kb - k; l >= 1; --l) {
 		nrt = (*n - j2 + l) / ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + j2 * ab_dim1], &inca, &ab[
 			    ka1 - l + (j2 + 1) * ab_dim1], &inca, &work[*n + 
 			    j2 - m], &work[j2 - m], &ka1);
 		}
@@ -1113,10 +1113,10 @@ L490:
 /*              post-multiply X by inv(S(i)) */
 
 		d__1 = 1. / bii;
-		dscal_(&nx, &d__1, &x[i__ * x_dim1 + 1], &c__1);
+		_starpu_dscal_(&nx, &d__1, &x[i__ * x_dim1 + 1], &c__1);
 		if (kbt > 0) {
 		    i__3 = *ldbb - 1;
-		    dger_(&nx, &kbt, &c_b20, &x[i__ * x_dim1 + 1], &c__1, &bb[
+		    _starpu_dger_(&nx, &kbt, &c_b20, &x[i__ * x_dim1 + 1], &c__1, &bb[
 			    *kb + (i__ + 1) * bb_dim1], &i__3, &x[(i__ + 1) * 
 			    x_dim1 + 1], ldx);
 		}
@@ -1141,7 +1141,7 @@ L490:
 
 /*                 generate rotation to annihilate a(i+k-ka-1,i) */
 
-		    dlartg_(&ab[k + 1 + i__ * ab_dim1], &ra1, &work[*n + i__ 
+		    _starpu_dlartg_(&ab[k + 1 + i__ * ab_dim1], &ra1, &work[*n + i__ 
 			    + k - *ka], &work[i__ + k - *ka], &ra);
 
 /*                 create nonzero element a(i+k-ka-1,i+k) outside the */
@@ -1186,7 +1186,7 @@ L490:
 /*           have been created outside the band */
 
 	    if (nrt > 0) {
-		dlargv_(&nrt, &ab[(j1 + *ka) * ab_dim1 + 1], &inca, &work[j1], 
+		_starpu_dlargv_(&nrt, &ab[(j1 + *ka) * ab_dim1 + 1], &inca, &work[j1], 
 			 &ka1, &work[*n + j1], &ka1);
 	    }
 	    if (nr > 0) {
@@ -1195,7 +1195,7 @@ L490:
 
 		i__1 = *ka - 1;
 		for (l = 1; l <= i__1; ++l) {
-		    dlartv_(&nr, &ab[ka1 - l + (j1 + l) * ab_dim1], &inca, &
+		    _starpu_dlartv_(&nr, &ab[ka1 - l + (j1 + l) * ab_dim1], &inca, &
 			    ab[*ka - l + (j1 + l) * ab_dim1], &inca, &work[*n 
 			    + j1], &work[j1], &ka1);
 /* L580: */
@@ -1204,7 +1204,7 @@ L490:
 /*              apply rotations in 1st set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[ka1 + j1 * ab_dim1], &ab[ka1 + (j1 - 1) * 
+		_starpu_dlar2v_(&nr, &ab[ka1 + j1 * ab_dim1], &ab[ka1 + (j1 - 1) * 
 			ab_dim1], &ab[*ka + j1 * ab_dim1], &inca, &work[*n + 
 			j1], &work[j1], &ka1);
 
@@ -1217,7 +1217,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
+		    _starpu_dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
 			    j1t - 1) * ab_dim1], &inca, &work[*n + j1t], &
 			    work[j1t], &ka1);
 		}
@@ -1231,7 +1231,7 @@ L490:
 		i__1 = j2;
 		i__4 = ka1;
 		for (j = j1; i__4 < 0 ? j >= i__1 : j <= i__1; j += i__4) {
-		    drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
+		    _starpu_drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
 			    + 1], &c__1, &work[*n + j], &work[j]);
 /* L600: */
 		}
@@ -1267,7 +1267,7 @@ L490:
 		nrt = (j2 + *ka + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + (j1t + *ka) * ab_dim1], &inca, &ab[
+		    _starpu_dlartv_(&nrt, &ab[l + (j1t + *ka) * ab_dim1], &inca, &ab[
 			    l + 1 + (j1t + *ka - 1) * ab_dim1], &inca, &work[*
 			    n + m - *kb + j1t + *ka], &work[m - *kb + j1t + *
 			    ka], &ka1);
@@ -1314,14 +1314,14 @@ L490:
 /*              generate rotations in 2nd set to annihilate elements */
 /*              which have been created outside the band */
 
-		dlargv_(&nr, &ab[(j1 + *ka) * ab_dim1 + 1], &inca, &work[m - *
+		_starpu_dlargv_(&nr, &ab[(j1 + *ka) * ab_dim1 + 1], &inca, &work[m - *
 			kb + j1], &ka1, &work[*n + m - *kb + j1], &ka1);
 
 /*              apply rotations in 2nd set from the left */
 
 		i__3 = *ka - 1;
 		for (l = 1; l <= i__3; ++l) {
-		    dlartv_(&nr, &ab[ka1 - l + (j1 + l) * ab_dim1], &inca, &
+		    _starpu_dlartv_(&nr, &ab[ka1 - l + (j1 + l) * ab_dim1], &inca, &
 			    ab[*ka - l + (j1 + l) * ab_dim1], &inca, &work[*n 
 			    + m - *kb + j1], &work[m - *kb + j1], &ka1);
 /* L660: */
@@ -1330,7 +1330,7 @@ L490:
 /*              apply rotations in 2nd set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[ka1 + j1 * ab_dim1], &ab[ka1 + (j1 - 1) * 
+		_starpu_dlar2v_(&nr, &ab[ka1 + j1 * ab_dim1], &ab[ka1 + (j1 - 1) * 
 			ab_dim1], &ab[*ka + j1 * ab_dim1], &inca, &work[*n + 
 			m - *kb + j1], &work[m - *kb + j1], &ka1);
 
@@ -1343,7 +1343,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
+		    _starpu_dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
 			    j1t - 1) * ab_dim1], &inca, &work[*n + m - *kb + 
 			    j1t], &work[m - *kb + j1t], &ka1);
 		}
@@ -1357,7 +1357,7 @@ L490:
 		i__3 = j2;
 		i__4 = ka1;
 		for (j = j1; i__4 < 0 ? j >= i__3 : j <= i__3; j += i__4) {
-		    drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
+		    _starpu_drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
 			    + 1], &c__1, &work[*n + m - *kb + j], &work[m - *
 			    kb + j]);
 /* L680: */
@@ -1378,7 +1378,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
+		    _starpu_dlartv_(&nrt, &ab[l + j1t * ab_dim1], &inca, &ab[l + 1 + (
 			    j1t - 1) * ab_dim1], &inca, &work[*n + j1t], &
 			    work[j1t], &ka1);
 		}
@@ -1459,9 +1459,9 @@ L490:
 /*              post-multiply X by inv(S(i)) */
 
 		d__1 = 1. / bii;
-		dscal_(&nx, &d__1, &x[i__ * x_dim1 + 1], &c__1);
+		_starpu_dscal_(&nx, &d__1, &x[i__ * x_dim1 + 1], &c__1);
 		if (kbt > 0) {
-		    dger_(&nx, &kbt, &c_b20, &x[i__ * x_dim1 + 1], &c__1, &bb[
+		    _starpu_dger_(&nx, &kbt, &c_b20, &x[i__ * x_dim1 + 1], &c__1, &bb[
 			    i__ * bb_dim1 + 2], &c__1, &x[(i__ + 1) * x_dim1 
 			    + 1], ldx);
 		}
@@ -1486,7 +1486,7 @@ L490:
 
 /*                 generate rotation to annihilate a(i,i+k-ka-1) */
 
-		    dlartg_(&ab[ka1 - k + (i__ + k - *ka) * ab_dim1], &ra1, &
+		    _starpu_dlartg_(&ab[ka1 - k + (i__ + k - *ka) * ab_dim1], &ra1, &
 			    work[*n + i__ + k - *ka], &work[i__ + k - *ka], &
 			    ra);
 
@@ -1533,7 +1533,7 @@ L490:
 /*           have been created outside the band */
 
 	    if (nrt > 0) {
-		dlargv_(&nrt, &ab[ka1 + j1 * ab_dim1], &inca, &work[j1], &ka1, 
+		_starpu_dlargv_(&nrt, &ab[ka1 + j1 * ab_dim1], &inca, &work[j1], &ka1, 
 			 &work[*n + j1], &ka1);
 	    }
 	    if (nr > 0) {
@@ -1542,7 +1542,7 @@ L490:
 
 		i__1 = *ka - 1;
 		for (l = 1; l <= i__1; ++l) {
-		    dlartv_(&nr, &ab[l + 1 + j1 * ab_dim1], &inca, &ab[l + 2 
+		    _starpu_dlartv_(&nr, &ab[l + 1 + j1 * ab_dim1], &inca, &ab[l + 2 
 			    + (j1 - 1) * ab_dim1], &inca, &work[*n + j1], &
 			    work[j1], &ka1);
 /* L810: */
@@ -1551,7 +1551,7 @@ L490:
 /*              apply rotations in 1st set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[j1 * ab_dim1 + 1], &ab[(j1 - 1) * ab_dim1 + 
+		_starpu_dlar2v_(&nr, &ab[j1 * ab_dim1 + 1], &ab[(j1 - 1) * ab_dim1 + 
 			1], &ab[(j1 - 1) * ab_dim1 + 2], &inca, &work[*n + j1]
 , &work[j1], &ka1);
 
@@ -1564,7 +1564,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
 , &inca, &ab[ka1 - l + (j1t - ka1 + l) * ab_dim1], 
 			     &inca, &work[*n + j1t], &work[j1t], &ka1);
 		}
@@ -1578,7 +1578,7 @@ L490:
 		i__1 = j2;
 		i__3 = ka1;
 		for (j = j1; i__3 < 0 ? j >= i__1 : j <= i__1; j += i__3) {
-		    drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
+		    _starpu_drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
 			    + 1], &c__1, &work[*n + j], &work[j]);
 /* L830: */
 		}
@@ -1614,7 +1614,7 @@ L490:
 		nrt = (j2 + *ka + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t + l - 1) * ab_dim1], 
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t + l - 1) * ab_dim1], 
 			    &inca, &ab[ka1 - l + (j1t + l - 1) * ab_dim1], &
 			    inca, &work[*n + m - *kb + j1t + *ka], &work[m - *
 			    kb + j1t + *ka], &ka1);
@@ -1661,14 +1661,14 @@ L490:
 /*              generate rotations in 2nd set to annihilate elements */
 /*              which have been created outside the band */
 
-		dlargv_(&nr, &ab[ka1 + j1 * ab_dim1], &inca, &work[m - *kb + 
+		_starpu_dlargv_(&nr, &ab[ka1 + j1 * ab_dim1], &inca, &work[m - *kb + 
 			j1], &ka1, &work[*n + m - *kb + j1], &ka1);
 
 /*              apply rotations in 2nd set from the right */
 
 		i__4 = *ka - 1;
 		for (l = 1; l <= i__4; ++l) {
-		    dlartv_(&nr, &ab[l + 1 + j1 * ab_dim1], &inca, &ab[l + 2 
+		    _starpu_dlartv_(&nr, &ab[l + 1 + j1 * ab_dim1], &inca, &ab[l + 2 
 			    + (j1 - 1) * ab_dim1], &inca, &work[*n + m - *kb 
 			    + j1], &work[m - *kb + j1], &ka1);
 /* L890: */
@@ -1677,7 +1677,7 @@ L490:
 /*              apply rotations in 2nd set from both sides to diagonal */
 /*              blocks */
 
-		dlar2v_(&nr, &ab[j1 * ab_dim1 + 1], &ab[(j1 - 1) * ab_dim1 + 
+		_starpu_dlar2v_(&nr, &ab[j1 * ab_dim1 + 1], &ab[(j1 - 1) * ab_dim1 + 
 			1], &ab[(j1 - 1) * ab_dim1 + 2], &inca, &work[*n + m 
 			- *kb + j1], &work[m - *kb + j1], &ka1);
 
@@ -1690,7 +1690,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
 , &inca, &ab[ka1 - l + (j1t - ka1 + l) * ab_dim1], 
 			     &inca, &work[*n + m - *kb + j1t], &work[m - *kb 
 			    + j1t], &ka1);
@@ -1705,7 +1705,7 @@ L490:
 		i__4 = j2;
 		i__3 = ka1;
 		for (j = j1; i__3 < 0 ? j >= i__4 : j <= i__4; j += i__3) {
-		    drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
+		    _starpu_drot_(&nx, &x[j * x_dim1 + 1], &c__1, &x[(j - 1) * x_dim1 
 			    + 1], &c__1, &work[*n + m - *kb + j], &work[m - *
 			    kb + j]);
 /* L910: */
@@ -1726,7 +1726,7 @@ L490:
 		nrt = (j2 + l - 1) / ka1;
 		j1t = j2 - (nrt - 1) * ka1;
 		if (nrt > 0) {
-		    dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
+		    _starpu_dlartv_(&nrt, &ab[ka1 - l + 1 + (j1t - ka1 + l) * ab_dim1]
 , &inca, &ab[ka1 - l + (j1t - ka1 + l) * ab_dim1], 
 			     &inca, &work[*n + j1t], &work[j1t], &ka1);
 		}
@@ -1752,4 +1752,4 @@ L490:
 
 /*     End of DSBGST */
 
-} /* dsbgst_ */
+} /* _starpu_dsbgst_ */

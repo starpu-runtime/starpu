@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasd4_(integer *n, integer *i__, doublereal *d__, 
+/* Subroutine */ int _starpu_dlasd4_(integer *n, integer *i__, doublereal *d__, 
 	doublereal *z__, doublereal *delta, doublereal *rho, doublereal *
 	sigma, doublereal *work, integer *info)
 {
@@ -40,13 +40,13 @@
     doublereal dtisq;
     logical swtch;
     doublereal dtnsq;
-    extern /* Subroutine */ int dlaed6_(integer *, logical *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlaed6_(integer *, logical *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *)
-	    , dlasd5_(integer *, doublereal *, doublereal *, doublereal *, 
+	    , _starpu_dlasd5_(integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
     doublereal delsq2, dtnsq1;
     logical swtch3;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical orgati;
     doublereal erretm, dtipsq, rhoinv;
 
@@ -177,13 +177,13 @@
 	return 0;
     }
     if (*n == 2) {
-	dlasd5_(i__, &d__[1], &z__[1], &delta[1], rho, sigma, &work[1]);
+	_starpu_dlasd5_(i__, &d__[1], &z__[1], &delta[1], rho, sigma, &work[1]);
 	return 0;
     }
 
 /*     Compute machine epsilon */
 
-    eps = dlamch_("Epsilon");
+    eps = _starpu_dlamch_("Epsilon");
     rhoinv = 1. / *rho;
 
 /*     The case I = N */
@@ -710,7 +710,7 @@
 	    dd[0] = dtiim;
 	    dd[1] = delta[ii] * work[ii];
 	    dd[2] = dtiip;
-	    dlaed6_(&niter, &orgati, &c__, dd, zz, &w, &eta, info);
+	    _starpu_dlaed6_(&niter, &orgati, &c__, dd, zz, &w, &eta, info);
 	    if (*info != 0) {
 		goto L240;
 	    }
@@ -906,7 +906,7 @@
 		dd[0] = dtiim;
 		dd[1] = delta[ii] * work[ii];
 		dd[2] = dtiip;
-		dlaed6_(&niter, &orgati, &c__, dd, zz, &w, &eta, info);
+		_starpu_dlaed6_(&niter, &orgati, &c__, dd, zz, &w, &eta, info);
 		if (*info != 0) {
 		    goto L240;
 		}
@@ -1007,4 +1007,4 @@ L240:
 
 /*     End of DLASD4 */
 
-} /* dlasd4_ */
+} /* _starpu_dlasd4_ */
