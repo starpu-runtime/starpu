@@ -1018,6 +1018,18 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
 
+	int i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		struct _starpu_sched_ctx *psched_ctx = _starpu_get_sched_ctx_struct(i);
+		if (psched_ctx->inheritor == sched_ctx_id)
+		{
+			_starpu_sched_ctx_lock_write(i);
+			psched_ctx->inheritor = inheritor_sched_ctx_id;
+			_starpu_sched_ctx_unlock_write(i);
+		}
+	}
+
 	int *workerids;
 	unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
 	int backup_workerids[nworkers_ctx];
