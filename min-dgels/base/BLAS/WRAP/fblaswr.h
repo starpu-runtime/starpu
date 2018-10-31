@@ -189,12 +189,12 @@ _starpu_zscal_(integer* N,
        doublecomplex* X, integer* incX);
 
 int
-_starpu_cstarpu_sscal_(integer* N,
+_starpu_csscal_(integer* N,
         real* alpha,
         complex* X, integer* incX);
 
 int
-zstarpu_dscal_(integer* N,
+_starpu_zdscal_(integer* N,
         doublereal* alpha,
         doublecomplex* X, integer* incX);
 

@@ -26,8 +26,8 @@
 #define _starpu_dscal_ f2c_dscal
 #define _starpu_cscal_ f2c_cscal
 #define _starpu_zscal_ f2c_zscal
-#define _starpu_cstarpu_sscal_ f2c_csscal
-#define zstarpu_dscal_ f2c_zdscal
+#define _starpu_csscal_ f2c_csscal
+#define _starpu_zdscal_ f2c_zdscal
 #define _starpu_scopy_ f2c_scopy
 #define _starpu_dcopy_ f2c_dcopy
 #define _starpu_ccopy_ f2c_ccopy

@@ -19,7 +19,7 @@ static doublereal c_b10 = -1.;
 static doublereal c_b11 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int _starpu_dstarpu_sgesv_(integer *n, integer *nrhs, doublereal *a, 
+/* Subroutine */ int _starpu__starpu_dsgesv_(integer *n, integer *nrhs, doublereal *a, 
 	integer *lda, integer *ipiv, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info)
@@ -413,4 +413,4 @@ L40:
 
 /*     End of DSGESV. */
 
-} /* _starpu_dstarpu_sgesv_ */
+} /* _starpu__starpu_dsgesv_ */

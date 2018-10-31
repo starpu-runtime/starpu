@@ -52,7 +52,7 @@ static doublereal c_b11 = 1.;
 	    , doublereal *, doublereal *, doublereal *);
     doublereal ymin;
     integer y_prec_state__;
-    extern /* Subroutine */ int blas_starpu_dsymv_x__(integer *, integer *, 
+    extern /* Subroutine */ int _starpu_blas_dsymv_x__(integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *);
     integer uplo2;
@@ -419,7 +419,7 @@ static doublereal c_b11 = 1.;
 		_starpu_dsymv_(uplo, n, &c_b9, &a[a_offset], lda, &y[j * y_dim1 + 1], 
 			&c__1, &c_b11, &res[1], &c__1);
 	    } else if (y_prec_state__ == 1) {
-		blas_starpu_dsymv_x__(&uplo2, n, &c_b9, &a[a_offset], lda, &y[j * 
+		_starpu_blas_dsymv_x__(&uplo2, n, &c_b9, &a[a_offset], lda, &y[j * 
 			y_dim1 + 1], &c__1, &c_b11, &res[1], &c__1, 
 			prec_type__);
 	    } else {
