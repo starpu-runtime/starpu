@@ -152,8 +152,8 @@ int main(void)
 	starpu_task_wait_for_all();
 
 	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
-	starpu_sched_ctx_delete(sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
+	starpu_sched_ctx_delete(sched_ctx2);
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
 	printf("tasks executed on ctx1: %d\n", ctx1_tasks_executed);
 	printf("tasks executed on ctx2: %d\n", ctx2_tasks_executed);
