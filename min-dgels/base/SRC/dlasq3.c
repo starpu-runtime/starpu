@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasq3_(integer *i0, integer *n0, doublereal *z__, 
+/* Subroutine */ int _starpu_dlasq3_(integer *i0, integer *n0, doublereal *z__, 
 	integer *pp, doublereal *dmin__, doublereal *sigma, doublereal *desig, 
 	 doublereal *qmax, integer *nfail, integer *iter, integer *ndiv, 
 	logical *ieee, integer *ttype, doublereal *dmin1, doublereal *dmin2, 
@@ -33,17 +33,17 @@
     doublereal eps, tol;
     integer n0in, ipn4;
     doublereal tol2, temp;
-    extern /* Subroutine */ int dlasq4_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasq4_(integer *, integer *, doublereal *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
-	     doublereal *), dlasq5_(integer *, integer *, doublereal *, 
+	     doublereal *), _starpu_dlasq5_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	     doublereal *, doublereal *, doublereal *, logical *), dlasq6_(
+	     doublereal *, doublereal *, doublereal *, logical *), _starpu_dlasq6_(
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
-    extern doublereal dlamch_(char *);
-    extern logical disnan_(doublereal *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern logical _starpu_disnan_(doublereal *);
 
 
 /*  -- LAPACK routine (version 3.2)                                    -- */
@@ -136,7 +136,7 @@
 
     /* Function Body */
     n0in = *n0;
-    eps = dlamch_("Precision");
+    eps = _starpu_dlamch_("Precision");
     tol = eps * 100.;
 /* Computing 2nd power */
     d__1 = tol;
@@ -254,14 +254,14 @@ L50:
 
 /*     Choose a shift. */
 
-    dlasq4_(i0, n0, &z__[1], pp, &n0in, dmin__, dmin1, dmin2, dn, dn1, dn2, 
+    _starpu_dlasq4_(i0, n0, &z__[1], pp, &n0in, dmin__, dmin1, dmin2, dn, dn1, dn2, 
 	    tau, ttype, g);
 
 /*     Call dqds until DMIN > 0. */
 
 L70:
 
-    dlasq5_(i0, n0, &z__[1], pp, tau, dmin__, dmin1, dmin2, dn, dn1, dn2, 
+    _starpu_dlasq5_(i0, n0, &z__[1], pp, tau, dmin__, dmin1, dmin2, dn, dn1, dn2, 
 	    ieee);
 
     *ndiv += *n0 - *i0 + 2;
@@ -307,7 +307,7 @@ L70:
 	    *ttype += -12;
 	}
 	goto L70;
-    } else if (disnan_(dmin__)) {
+    } else if (_starpu_disnan_(dmin__)) {
 
 /*        NaN. */
 
@@ -327,7 +327,7 @@ L70:
 /*     Risk of underflow. */
 
 L80:
-    dlasq6_(i0, n0, &z__[1], pp, dmin__, dmin1, dmin2, dn, dn1, dn2);
+    _starpu_dlasq6_(i0, n0, &z__[1], pp, dmin__, dmin1, dmin2, dn, dn1, dn2);
     *ndiv += *n0 - *i0 + 2;
     ++(*iter);
     *tau = 0.;
@@ -347,4 +347,4 @@ L90:
 
 /*     End of DLASQ3 */
 
-} /* dlasq3_ */
+} /* _starpu_dlasq3_ */

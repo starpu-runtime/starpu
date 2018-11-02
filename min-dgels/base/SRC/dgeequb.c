@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgeequb_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeequb_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *r__, doublereal *c__, doublereal *rowcnd, doublereal 
 	*colcnd, doublereal *amax, integer *info)
 {
@@ -27,8 +27,8 @@
     /* Local variables */
     integer i__, j;
     doublereal radix, rcmin, rcmax;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum, logrdx, smlnum;
 
 
@@ -147,7 +147,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEEQUB", &i__1);
+	_starpu_xerbla_("DGEEQUB", &i__1);
 	return 0;
     }
 
@@ -162,9 +162,9 @@
 
 /*     Get machine constants.  Assume SMLNUM is a power of the radix. */
 
-    smlnum = dlamch_("S");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
-    radix = dlamch_("B");
+    radix = _starpu_dlamch_("B");
     logrdx = log(radix);
 
 /*     Compute row scale factors. */
@@ -321,4 +321,4 @@
 
 /*     End of DGEEQUB */
 
-} /* dgeequb_ */
+} /* _starpu_dgeequb_ */

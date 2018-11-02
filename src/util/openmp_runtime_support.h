@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2015,2017                           CNRS
- * Copyright (C) 2014-2017                                Inria
- * Copyright (C) 2015-2016                                Université de Bordeaux
+ * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014-2018                                Inria
+ * Copyright (C) 2015,2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -266,6 +266,16 @@ LIST_TYPE(starpu_omp_task,
 	int stack_vg_id;
 
 	size_t stacksize;
+
+   /*
+    * taskloop attribute
+    * */
+   int is_loop;
+   unsigned long long nb_iterations;
+   unsigned long long grainsize;
+   unsigned long long chunk;
+   unsigned long long begin_i;
+   unsigned long long end_i;
 )
 
 LIST_TYPE(starpu_omp_thread,

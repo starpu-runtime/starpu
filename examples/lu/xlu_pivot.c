@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015,2017-2018                           Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
+ * Copyright (C) 2009-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2011,2013                                Inria
+ * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -129,7 +129,7 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->cl = &cl12;
 	task->color = 0x8080ff;
 
-	task->cl_arg = (void *)(task->tag_id);
+	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
@@ -177,7 +177,7 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 		task->priority = STARPU_MAX_PRIO;
 	}
 
-	task->cl_arg = (void *)(task->tag_id);
+	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* enforce dependencies ... */
 	starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
@@ -199,7 +199,7 @@ static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->cl = &cl22;
 	task->color = 0x00ff00;
 
-	task->cl_arg = (void *)(task->tag_id);
+	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, i); /* produced by TAG21(k, i) */

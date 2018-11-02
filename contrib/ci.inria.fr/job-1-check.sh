@@ -60,13 +60,15 @@ fi
 
 export CC=gcc
 
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc"
 day=$(date +%u)
 if test $day -le 5
 then
-    ../configure --enable-quick-check --enable-verbose --enable-mpi-check --disable-build-doc $STARPU_CONFIGURE_OPTIONS
+    CONFIGURE_CHECK="--enable-quick-check"
 else
-    ../configure --enable-long-check --enable-verbose --enable-mpi-check --disable-build-doc $STARPU_CONFIGURE_OPTIONS
+    CONFIGURE_CHECK="--enable-long-check"
 fi
+../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS
 
 make
 #make check

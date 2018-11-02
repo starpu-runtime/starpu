@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b11 = -1.;
 static doublereal c_b13 = 0.;
 
-/* Subroutine */ int dsptri_(char *uplo, integer *n, doublereal *ap, integer *
+/* Subroutine */ int _starpu_dsptri_(char *uplo, integer *n, doublereal *ap, integer *
 	ipiv, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -32,19 +32,19 @@ static doublereal c_b13 = 0.;
     doublereal t, ak;
     integer kc, kp, kx, kpc, npp;
     doublereal akp1;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal temp, akkp1;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dswap_(integer *, doublereal *, integer 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dswap_(integer *, doublereal *, integer 
 	    *, doublereal *, integer *);
     integer kstep;
-    extern /* Subroutine */ int dspmv_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dspmv_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
 	     integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer kcnext;
 
 
@@ -123,15 +123,15 @@ static doublereal c_b13 = 0.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSPTRI", &i__1);
+	_starpu_xerbla_("DSPTRI", &i__1);
 	return 0;
     }
 
@@ -201,12 +201,12 @@ L30:
 
 	    if (k > 1) {
 		i__1 = k - 1;
-		dcopy_(&i__1, &ap[kc], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kc], &c__1, &work[1], &c__1);
 		i__1 = k - 1;
-		dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
 			ap[kc], &c__1);
 		i__1 = k - 1;
-		ap[kc + k - 1] -= ddot_(&i__1, &work[1], &c__1, &ap[kc], &
+		ap[kc + k - 1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kc], &
 			c__1);
 	    }
 	    kstep = 1;
@@ -229,23 +229,23 @@ L30:
 
 	    if (k > 1) {
 		i__1 = k - 1;
-		dcopy_(&i__1, &ap[kc], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kc], &c__1, &work[1], &c__1);
 		i__1 = k - 1;
-		dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
 			ap[kc], &c__1);
 		i__1 = k - 1;
-		ap[kc + k - 1] -= ddot_(&i__1, &work[1], &c__1, &ap[kc], &
+		ap[kc + k - 1] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kc], &
 			c__1);
 		i__1 = k - 1;
-		ap[kcnext + k - 1] -= ddot_(&i__1, &ap[kc], &c__1, &ap[kcnext]
+		ap[kcnext + k - 1] -= _starpu_ddot_(&i__1, &ap[kc], &c__1, &ap[kcnext]
 , &c__1);
 		i__1 = k - 1;
-		dcopy_(&i__1, &ap[kcnext], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kcnext], &c__1, &work[1], &c__1);
 		i__1 = k - 1;
-		dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[1], &work[1], &c__1, &c_b13, &
 			ap[kcnext], &c__1);
 		i__1 = k - 1;
-		ap[kcnext + k] -= ddot_(&i__1, &work[1], &c__1, &ap[kcnext], &
+		ap[kcnext + k] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kcnext], &
 			c__1);
 	    }
 	    kstep = 2;
@@ -260,7 +260,7 @@ L30:
 
 	    kpc = (kp - 1) * kp / 2 + 1;
 	    i__1 = kp - 1;
-	    dswap_(&i__1, &ap[kc], &c__1, &ap[kpc], &c__1);
+	    _starpu_dswap_(&i__1, &ap[kc], &c__1, &ap[kpc], &c__1);
 	    kx = kpc + kp - 1;
 	    i__1 = k - 1;
 	    for (j = kp + 1; j <= i__1; ++j) {
@@ -317,12 +317,12 @@ L60:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dcopy_(&i__1, &ap[kc + 1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kc + 1], &c__1, &work[1], &c__1);
 		i__1 = *n - k;
-		dspmv_(uplo, &i__1, &c_b11, &ap[kc + *n - k + 1], &work[1], &
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[kc + *n - k + 1], &work[1], &
 			c__1, &c_b13, &ap[kc + 1], &c__1);
 		i__1 = *n - k;
-		ap[kc] -= ddot_(&i__1, &work[1], &c__1, &ap[kc + 1], &c__1);
+		ap[kc] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kc + 1], &c__1);
 	    }
 	    kstep = 1;
 	} else {
@@ -344,22 +344,22 @@ L60:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dcopy_(&i__1, &ap[kc + 1], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kc + 1], &c__1, &work[1], &c__1);
 		i__1 = *n - k;
-		dspmv_(uplo, &i__1, &c_b11, &ap[kc + (*n - k + 1)], &work[1], 
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[kc + (*n - k + 1)], &work[1], 
 			&c__1, &c_b13, &ap[kc + 1], &c__1);
 		i__1 = *n - k;
-		ap[kc] -= ddot_(&i__1, &work[1], &c__1, &ap[kc + 1], &c__1);
+		ap[kc] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kc + 1], &c__1);
 		i__1 = *n - k;
-		ap[kcnext + 1] -= ddot_(&i__1, &ap[kc + 1], &c__1, &ap[kcnext 
+		ap[kcnext + 1] -= _starpu_ddot_(&i__1, &ap[kc + 1], &c__1, &ap[kcnext 
 			+ 2], &c__1);
 		i__1 = *n - k;
-		dcopy_(&i__1, &ap[kcnext + 2], &c__1, &work[1], &c__1);
+		_starpu_dcopy_(&i__1, &ap[kcnext + 2], &c__1, &work[1], &c__1);
 		i__1 = *n - k;
-		dspmv_(uplo, &i__1, &c_b11, &ap[kc + (*n - k + 1)], &work[1], 
+		_starpu_dspmv_(uplo, &i__1, &c_b11, &ap[kc + (*n - k + 1)], &work[1], 
 			&c__1, &c_b13, &ap[kcnext + 2], &c__1);
 		i__1 = *n - k;
-		ap[kcnext] -= ddot_(&i__1, &work[1], &c__1, &ap[kcnext + 2], &
+		ap[kcnext] -= _starpu_ddot_(&i__1, &work[1], &c__1, &ap[kcnext + 2], &
 			c__1);
 	    }
 	    kstep = 2;
@@ -375,7 +375,7 @@ L60:
 	    kpc = npp - (*n - kp + 1) * (*n - kp + 2) / 2 + 1;
 	    if (kp < *n) {
 		i__1 = *n - kp;
-		dswap_(&i__1, &ap[kc + kp - k + 1], &c__1, &ap[kpc + 1], &
+		_starpu_dswap_(&i__1, &ap[kc + kp - k + 1], &c__1, &ap[kpc + 1], &
 			c__1);
 	    }
 	    kx = kc + kp - k;
@@ -408,4 +408,4 @@ L80:
 
 /*     End of DSPTRI */
 
-} /* dsptri_ */
+} /* _starpu_dsptri_ */

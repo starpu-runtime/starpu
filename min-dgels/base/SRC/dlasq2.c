@@ -22,7 +22,7 @@ static integer c__3 = 3;
 static integer c__4 = 4;
 static integer c__11 = 11;
 
-/* Subroutine */ int dlasq2_(integer *n, doublereal *z__, integer *info)
+/* Subroutine */ int _starpu_dlasq2_(integer *n, doublereal *z__, integer *info)
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
@@ -51,19 +51,19 @@ static integer c__11 = 11;
     integer nfail;
     doublereal desig, trace, sigma;
     integer iinfo, ttype;
-    extern /* Subroutine */ int dlasq3_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasq3_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     integer *, integer *, integer *, logical *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal deemin;
     integer iwhila, iwhilb;
     doublereal oldemn, safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasrt_(char *, integer *, doublereal *, 
 	    integer *);
 
 
@@ -156,8 +156,8 @@ static integer c__11 = 11;
 
     /* Function Body */
     *info = 0;
-    eps = dlamch_("Precision");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
     tol = eps * 100.;
 /* Computing 2nd power */
     d__1 = tol;
@@ -165,7 +165,7 @@ static integer c__11 = 11;
 
     if (*n < 0) {
 	*info = -1;
-	xerbla_("DLASQ2", &c__1);
+	_starpu_xerbla_("DLASQ2", &c__1);
 	return 0;
     } else if (*n == 0) {
 	return 0;
@@ -175,7 +175,7 @@ static integer c__11 = 11;
 
 	if (z__[1] < 0.) {
 	    *info = -201;
-	    xerbla_("DLASQ2", &c__2);
+	    _starpu_xerbla_("DLASQ2", &c__2);
 	}
 	return 0;
     } else if (*n == 2) {
@@ -184,7 +184,7 @@ static integer c__11 = 11;
 
 	if (z__[2] < 0. || z__[3] < 0.) {
 	    *info = -2;
-	    xerbla_("DLASQ2", &c__2);
+	    _starpu_xerbla_("DLASQ2", &c__2);
 	    return 0;
 	} else if (z__[3] > z__[1]) {
 	    d__ = z__[3];
@@ -222,11 +222,11 @@ static integer c__11 = 11;
     for (k = 1; k <= i__1; k += 2) {
 	if (z__[k] < 0.) {
 	    *info = -(k + 200);
-	    xerbla_("DLASQ2", &c__2);
+	    _starpu_xerbla_("DLASQ2", &c__2);
 	    return 0;
 	} else if (z__[k + 1] < 0.) {
 	    *info = -(k + 201);
-	    xerbla_("DLASQ2", &c__2);
+	    _starpu_xerbla_("DLASQ2", &c__2);
 	    return 0;
 	}
 	d__ += z__[k];
@@ -244,7 +244,7 @@ static integer c__11 = 11;
     }
     if (z__[(*n << 1) - 1] < 0.) {
 	*info = -((*n << 1) + 199);
-	xerbla_("DLASQ2", &c__2);
+	_starpu_xerbla_("DLASQ2", &c__2);
 	return 0;
     }
     d__ += z__[(*n << 1) - 1];
@@ -261,7 +261,7 @@ static integer c__11 = 11;
 	    z__[k] = z__[(k << 1) - 1];
 /* L20: */
 	}
-	dlasrt_("D", n, &z__[1], &iinfo);
+	_starpu_dlasrt_("D", n, &z__[1], &iinfo);
 	z__[(*n << 1) - 1] = d__;
 	return 0;
     }
@@ -277,7 +277,7 @@ static integer c__11 = 11;
 
 /*     Check whether the machine is IEEE conformable. */
 
-    ieee = ilaenv_(&c__10, "DLASQ2", "N", &c__1, &c__2, &c__3, &c__4) == 1 && ilaenv_(&c__11, "DLASQ2", "N", &c__1, &c__2, 
+    ieee = _starpu_ilaenv_(&c__10, "DLASQ2", "N", &c__1, &c__2, &c__3, &c__4) == 1 && _starpu_ilaenv_(&c__11, "DLASQ2", "N", &c__1, &c__2, 
 	     &c__3, &c__4) == 1;
 
 /*     Rearrange data for locality: Z=(q1,qq1,e1,ee1,q2,qq2,e2,ee2,...). */
@@ -504,7 +504,7 @@ L100:
 
 /*           While submatrix unfinished take a good dqds step. */
 
-	    dlasq3_(&i0, &n0, &z__[1], &pp, &dmin__, &sigma, &desig, &qmax, &
+	    _starpu_dlasq3_(&i0, &n0, &z__[1], &pp, &dmin__, &sigma, &desig, &qmax, &
 		    nfail, &iter, &ndiv, &ieee, &ttype, &dmin1, &dmin2, &dn, &
 		    dn1, &dn2, &g, &tau);
 
@@ -578,7 +578,7 @@ L170:
 
 /*     Sort and compute sum of eigenvalues. */
 
-    dlasrt_("D", n, &z__[1], &iinfo);
+    _starpu_dlasrt_("D", n, &z__[1], &iinfo);
 
     e = 0.;
     for (k = *n; k >= 1; --k) {
@@ -599,4 +599,4 @@ L170:
 
 /*     End of DLASQ2 */
 
-} /* dlasq2_ */
+} /* _starpu_dlasq2_ */

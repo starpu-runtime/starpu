@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dpbtrs_(char *uplo, integer *n, integer *kd, integer *
+/* Subroutine */ int _starpu_dpbtrs_(char *uplo, integer *n, integer *kd, integer *
 	nrhs, doublereal *ab, integer *ldab, doublereal *b, integer *ldb, 
 	integer *info)
 {
@@ -26,11 +26,11 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer j;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtbsv_(char *, char *, char *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtbsv_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -113,8 +113,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -129,7 +129,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBTRS", &i__1);
+	_starpu_xerbla_("DPBTRS", &i__1);
 	return 0;
     }
 
@@ -148,12 +148,12 @@ static integer c__1 = 1;
 
 /*           Solve U'*X = B, overwriting B with X. */
 
-	    dtbsv_("Upper", "Transpose", "Non-unit", n, kd, &ab[ab_offset], 
+	    _starpu_dtbsv_("Upper", "Transpose", "Non-unit", n, kd, &ab[ab_offset], 
 		    ldab, &b[j * b_dim1 + 1], &c__1);
 
 /*           Solve U*X = B, overwriting B with X. */
 
-	    dtbsv_("Upper", "No transpose", "Non-unit", n, kd, &ab[ab_offset], 
+	    _starpu_dtbsv_("Upper", "No transpose", "Non-unit", n, kd, &ab[ab_offset], 
 		     ldab, &b[j * b_dim1 + 1], &c__1);
 /* L10: */
 	}
@@ -166,12 +166,12 @@ static integer c__1 = 1;
 
 /*           Solve L*X = B, overwriting B with X. */
 
-	    dtbsv_("Lower", "No transpose", "Non-unit", n, kd, &ab[ab_offset], 
+	    _starpu_dtbsv_("Lower", "No transpose", "Non-unit", n, kd, &ab[ab_offset], 
 		     ldab, &b[j * b_dim1 + 1], &c__1);
 
 /*           Solve L'*X = B, overwriting B with X. */
 
-	    dtbsv_("Lower", "Transpose", "Non-unit", n, kd, &ab[ab_offset], 
+	    _starpu_dtbsv_("Lower", "Transpose", "Non-unit", n, kd, &ab[ab_offset], 
 		    ldab, &b[j * b_dim1 + 1], &c__1);
 /* L20: */
 	}
@@ -181,4 +181,4 @@ static integer c__1 = 1;
 
 /*     End of DPBTRS */
 
-} /* dpbtrs_ */
+} /* _starpu_dpbtrs_ */

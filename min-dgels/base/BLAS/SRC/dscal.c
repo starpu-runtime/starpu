@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dscal_(integer *n, doublereal *da, doublereal *dx, 
+/* Subroutine */ int _starpu_dscal_(integer *n, doublereal *da, doublereal *dx, 
 	integer *incx)
 {
     /* System generated locals */
@@ -93,4 +93,4 @@ L40:
 /* L50: */
     }
     return 0;
-} /* dscal_ */
+} /* _starpu_dscal_ */

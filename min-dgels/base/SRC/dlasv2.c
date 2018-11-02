@@ -18,7 +18,7 @@
 static doublereal c_b3 = 2.;
 static doublereal c_b4 = 1.;
 
-/* Subroutine */ int dlasv2_(doublereal *f, doublereal *g, doublereal *h__, 
+/* Subroutine */ int _starpu_dlasv2_(doublereal *f, doublereal *g, doublereal *h__, 
 	doublereal *ssmin, doublereal *ssmax, doublereal *snr, doublereal *
 	csr, doublereal *snl, doublereal *csl)
 {
@@ -35,7 +35,7 @@ static doublereal c_b4 = 1.;
     doublereal temp;
     logical swap;
     doublereal tsign;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical gasmal;
 
 
@@ -161,7 +161,7 @@ static doublereal c_b4 = 1.;
 	gasmal = TRUE_;
 	if (ga > fa) {
 	    pmax = 2;
-	    if (fa / ga < dlamch_("EPS")) {
+	    if (fa / ga < _starpu_dlamch_("EPS")) {
 
 /*              Case of very large GA */
 
@@ -271,4 +271,4 @@ static doublereal c_b4 = 1.;
 
 /*     End of DLASV2 */
 
-} /* dlasv2_ */
+} /* _starpu_dlasv2_ */

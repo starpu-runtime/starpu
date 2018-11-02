@@ -19,7 +19,7 @@ static doublereal c_b7 = 1.;
 static doublereal c_b8 = 0.;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlalsa_(integer *icompq, integer *smlsiz, integer *n, 
+/* Subroutine */ int _starpu_dlalsa_(integer *icompq, integer *smlsiz, integer *n, 
 	integer *nrhs, doublereal *b, integer *ldb, doublereal *bx, integer *
 	ldbx, doublereal *u, integer *ldu, doublereal *vt, integer *k, 
 	doublereal *difl, doublereal *difr, doublereal *z__, doublereal *
@@ -40,18 +40,18 @@ static integer c__2 = 2;
     /* Local variables */
     integer i__, j, i1, ic, lf, nd, ll, nl, nr, im1, nlf, nrf, lvl, ndb1, 
 	    nlp1, lvl2, nrp1, nlvl, sqre;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer inode, ndiml, ndimr;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlals0_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dlals0_(integer *, integer *, integer *, 
 	     integer *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *, integer *, integer *, doublereal 
 	    *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *), dlasdt_(integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *);
+	     integer *), _starpu_dlasdt_(integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -272,7 +272,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLALSA", &i__1);
+	_starpu_xerbla_("DLALSA", &i__1);
 	return 0;
     }
 
@@ -282,7 +282,7 @@ static integer c__2 = 2;
     ndiml = inode + *n;
     ndimr = ndiml + *n;
 
-    dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
+    _starpu_dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
 	    smlsiz);
 
 /*     The following code applies back the left singular vector factors. */
@@ -313,9 +313,9 @@ static integer c__2 = 2;
 	nr = iwork[ndimr + i1];
 	nlf = ic - nl;
 	nrf = ic + 1;
-	dgemm_("T", "N", &nl, nrhs, &nl, &c_b7, &u[nlf + u_dim1], ldu, &b[nlf 
+	_starpu_dgemm_("T", "N", &nl, nrhs, &nl, &c_b7, &u[nlf + u_dim1], ldu, &b[nlf 
 		+ b_dim1], ldb, &c_b8, &bx[nlf + bx_dim1], ldbx);
-	dgemm_("T", "N", &nr, nrhs, &nr, &c_b7, &u[nrf + u_dim1], ldu, &b[nrf 
+	_starpu_dgemm_("T", "N", &nr, nrhs, &nr, &c_b7, &u[nrf + u_dim1], ldu, &b[nrf 
 		+ b_dim1], ldb, &c_b8, &bx[nrf + bx_dim1], ldbx);
 /* L10: */
     }
@@ -326,7 +326,7 @@ static integer c__2 = 2;
     i__1 = nd;
     for (i__ = 1; i__ <= i__1; ++i__) {
 	ic = iwork[inode + i__ - 1];
-	dcopy_(nrhs, &b[ic + b_dim1], ldb, &bx[ic + bx_dim1], ldbx);
+	_starpu_dcopy_(nrhs, &b[ic + b_dim1], ldb, &bx[ic + bx_dim1], ldbx);
 /* L20: */
     }
 
@@ -359,7 +359,7 @@ static integer c__2 = 2;
 	    nlf = ic - nl;
 	    nrf = ic + 1;
 	    --j;
-	    dlals0_(icompq, &nl, &nr, &sqre, nrhs, &bx[nlf + bx_dim1], ldbx, &
+	    _starpu_dlals0_(icompq, &nl, &nr, &sqre, nrhs, &bx[nlf + bx_dim1], ldbx, &
 		    b[nlf + b_dim1], ldb, &perm[nlf + lvl * perm_dim1], &
 		    givptr[j], &givcol[nlf + lvl2 * givcol_dim1], ldgcol, &
 		    givnum[nlf + lvl2 * givnum_dim1], ldu, &poles[nlf + lvl2 *
@@ -409,7 +409,7 @@ L50:
 		sqre = 1;
 	    }
 	    ++j;
-	    dlals0_(icompq, &nl, &nr, &sqre, nrhs, &b[nlf + b_dim1], ldb, &bx[
+	    _starpu_dlals0_(icompq, &nl, &nr, &sqre, nrhs, &b[nlf + b_dim1], ldb, &bx[
 		    nlf + bx_dim1], ldbx, &perm[nlf + lvl * perm_dim1], &
 		    givptr[j], &givcol[nlf + lvl2 * givcol_dim1], ldgcol, &
 		    givnum[nlf + lvl2 * givnum_dim1], ldu, &poles[nlf + lvl2 *
@@ -440,9 +440,9 @@ L50:
 	}
 	nlf = ic - nl;
 	nrf = ic + 1;
-	dgemm_("T", "N", &nlp1, nrhs, &nlp1, &c_b7, &vt[nlf + vt_dim1], ldu, &
+	_starpu_dgemm_("T", "N", &nlp1, nrhs, &nlp1, &c_b7, &vt[nlf + vt_dim1], ldu, &
 		b[nlf + b_dim1], ldb, &c_b8, &bx[nlf + bx_dim1], ldbx);
-	dgemm_("T", "N", &nrp1, nrhs, &nrp1, &c_b7, &vt[nrf + vt_dim1], ldu, &
+	_starpu_dgemm_("T", "N", &nrp1, nrhs, &nrp1, &c_b7, &vt[nrf + vt_dim1], ldu, &
 		b[nrf + b_dim1], ldb, &c_b8, &bx[nrf + bx_dim1], ldbx);
 /* L80: */
     }
@@ -453,4 +453,4 @@ L90:
 
 /*     End of DLALSA */
 
-} /* dlalsa_ */
+} /* _starpu_dlalsa_ */

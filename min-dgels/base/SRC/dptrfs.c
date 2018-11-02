@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b11 = 1.;
 
-/* Subroutine */ int dptrfs_(integer *n, integer *nrhs, doublereal *d__, 
+/* Subroutine */ int _starpu_dptrfs_(integer *n, integer *nrhs, doublereal *d__, 
 	doublereal *e, doublereal *df, doublereal *ef, doublereal *b, integer 
 	*ldb, doublereal *x, integer *ldx, doublereal *ferr, doublereal *berr, 
 	 doublereal *work, integer *info)
@@ -32,15 +32,15 @@ static doublereal c_b11 = 1.;
     doublereal s, bi, cx, dx, ex;
     integer ix, nz;
     doublereal eps, safe1, safe2;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     integer count;
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal lstres;
-    extern /* Subroutine */ int dpttrs_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dpttrs_(integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, integer *);
 
 
@@ -166,7 +166,7 @@ static doublereal c_b11 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPTRFS", &i__1);
+	_starpu_xerbla_("DPTRFS", &i__1);
 	return 0;
     }
 
@@ -185,8 +185,8 @@ static doublereal c_b11 = 1.;
 /*     NZ = maximum number of nonzero elements in each row of A, plus 1 */
 
     nz = 4;
-    eps = dlamch_("Epsilon");
-    safmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    safmin = _starpu_dlamch_("Safe minimum");
     safe1 = nz * safmin;
     safe2 = safe1 / eps;
 
@@ -269,8 +269,8 @@ L20:
 
 /*           Update solution and try again. */
 
-	    dpttrs_(n, &c__1, &df[1], &ef[1], &work[*n + 1], n, info);
-	    daxpy_(n, &c_b11, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
+	    _starpu_dpttrs_(n, &c__1, &df[1], &ef[1], &work[*n + 1], n, info);
+	    _starpu_daxpy_(n, &c_b11, &work[*n + 1], &c__1, &x[j * x_dim1 + 1], &c__1)
 		    ;
 	    lstres = berr[j];
 	    ++count;
@@ -306,7 +306,7 @@ L20:
 	    }
 /* L50: */
 	}
-	ix = idamax_(n, &work[1], &c__1);
+	ix = _starpu_idamax_(n, &work[1], &c__1);
 	ferr[j] = work[ix];
 
 /*        Estimate the norm of inv(A). */
@@ -338,7 +338,7 @@ L20:
 
 /*        Compute norm(inv(A)) = max(x(i)), 1<=i<=n. */
 
-	ix = idamax_(n, &work[1], &c__1);
+	ix = _starpu_idamax_(n, &work[1], &c__1);
 	ferr[j] *= (d__1 = work[ix], abs(d__1));
 
 /*        Normalize error. */
@@ -362,4 +362,4 @@ L20:
 
 /*     End of DPTRFS */
 
-} /* dptrfs_ */
+} /* _starpu_dptrfs_ */

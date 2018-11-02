@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaqr1_(integer *n, doublereal *h__, integer *ldh, 
+/* Subroutine */ int _starpu_dlaqr1_(integer *n, doublereal *h__, integer *ldh, 
 	doublereal *sr1, doublereal *si1, doublereal *sr2, doublereal *si2, 
 	doublereal *v)
 {
@@ -124,4 +124,4 @@
 	}
     }
     return 0;
-} /* dlaqr1_ */
+} /* _starpu_dlaqr1_ */

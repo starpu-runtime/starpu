@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2011-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2011-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2014                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t d
 	struct handle_tag_entry *ret;
 
 	_starpu_spin_lock(&registered_tag_handles_lock);
-	HASH_FIND_INT(registered_tag_handles, &data_tag, ret);
+	HASH_FIND(hh, registered_tag_handles, &data_tag, sizeof(ret->data_tag), ret);
 	_starpu_spin_unlock(&registered_tag_handles_lock);
 
 	if (ret)
@@ -95,7 +95,12 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t
 	entry->data_tag = data_tag;
 
 	_starpu_spin_lock(&registered_tag_handles_lock);
-	HASH_ADD_INT(registered_tag_handles, data_tag, entry);
+#ifndef STARPU_NO_ASSERT
+	struct handle_tag_entry *old;
+	HASH_FIND(hh, registered_tag_handles, &data_tag, sizeof(entry->data_tag), old);
+	STARPU_ASSERT_MSG(!old, "tag %"PRIi64" being registered for data %p, but is already used by data %p!\n", data_tag, handle, old?old->handle:NULL);
+#endif
+	HASH_ADD(hh, registered_tag_handles, data_tag, sizeof(entry->data_tag), entry);
 	_starpu_spin_unlock(&registered_tag_handles_lock);
 }
 
@@ -110,7 +115,7 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 		struct handle_tag_entry *tag_entry;
 
 		_starpu_spin_lock(&registered_tag_handles_lock);
-		HASH_FIND_INT(registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->node_tag.data_tag), tag_entry);
+		HASH_FIND(hh, registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->node_tag.data_tag), sizeof(tag_entry->data_tag), tag_entry);
 		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %"PRIi64"d isn't in the hashmap !", handle, data_tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);

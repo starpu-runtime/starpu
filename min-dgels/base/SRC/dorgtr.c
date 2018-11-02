@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dorgtr_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dorgtr_(char *uplo, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *lwork, integer *info)
 {
     /* System generated locals */
@@ -26,15 +26,15 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, j, nb;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dorgql_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorgql_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *), dorgqr_(integer *, integer *, integer *, doublereal *, 
+	    integer *), _starpu_dorgqr_(integer *, integer *, integer *, doublereal *, 
 	     integer *, doublereal *, doublereal *, integer *, integer *);
     integer lwkopt;
     logical lquery;
@@ -127,8 +127,8 @@ static integer c_n1 = -1;
     /* Function Body */
     *info = 0;
     lquery = *lwork == -1;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -147,12 +147,12 @@ static integer c_n1 = -1;
 	    i__1 = *n - 1;
 	    i__2 = *n - 1;
 	    i__3 = *n - 1;
-	    nb = ilaenv_(&c__1, "DORGQL", " ", &i__1, &i__2, &i__3, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DORGQL", " ", &i__1, &i__2, &i__3, &c_n1);
 	} else {
 	    i__1 = *n - 1;
 	    i__2 = *n - 1;
 	    i__3 = *n - 1;
-	    nb = ilaenv_(&c__1, "DORGQR", " ", &i__1, &i__2, &i__3, &c_n1);
+	    nb = _starpu_ilaenv_(&c__1, "DORGQR", " ", &i__1, &i__2, &i__3, &c_n1);
 	}
 /* Computing MAX */
 	i__1 = 1, i__2 = *n - 1;
@@ -162,7 +162,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORGTR", &i__1);
+	_starpu_xerbla_("DORGTR", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -205,7 +205,7 @@ static integer c_n1 = -1;
 	i__1 = *n - 1;
 	i__2 = *n - 1;
 	i__3 = *n - 1;
-	dorgql_(&i__1, &i__2, &i__3, &a[a_offset], lda, &tau[1], &work[1], 
+	_starpu_dorgql_(&i__1, &i__2, &i__3, &a[a_offset], lda, &tau[1], &work[1], 
 		lwork, &iinfo);
 
     } else {
@@ -238,7 +238,7 @@ static integer c_n1 = -1;
 	    i__1 = *n - 1;
 	    i__2 = *n - 1;
 	    i__3 = *n - 1;
-	    dorgqr_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[1], 
+	    _starpu_dorgqr_(&i__1, &i__2, &i__3, &a[(a_dim1 << 1) + 2], lda, &tau[1], 
 		    &work[1], lwork, &iinfo);
 	}
     }
@@ -247,4 +247,4 @@ static integer c_n1 = -1;
 
 /*     End of DORGTR */
 
-} /* dorgtr_ */
+} /* _starpu_dorgtr_ */

@@ -19,7 +19,7 @@ static doublereal c_b10 = -1.;
 static doublereal c_b11 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dsgesv_(integer *n, integer *nrhs, doublereal *a, 
+/* Subroutine */ int _starpu__starpu_dsgesv_(integer *n, integer *nrhs, doublereal *a, 
 	integer *lda, integer *ipiv, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *work, real *swork, integer *iter, 
 	integer *info)
@@ -38,25 +38,25 @@ static integer c__1 = 1;
     integer ptsa;
     doublereal rnrm, xnrm;
     integer ptsx;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     integer iiter;
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *), dlag2s_(integer *, integer *, 
-	     doublereal *, integer *, real *, integer *, integer *), slag2d_(
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *), _starpu_dlag2s_(integer *, integer *, 
+	     doublereal *, integer *, real *, integer *, integer *), _starpu_slag2d_(
 	    integer *, integer *, real *, integer *, doublereal *, integer *, 
 	    integer *);
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dgetrf_(integer *, integer *, 
-	    doublereal *, integer *, integer *, integer *), dgetrs_(char *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dgetrf_(integer *, integer *, 
+	    doublereal *, integer *, integer *, integer *), _starpu_dgetrs_(char *, 
 	    integer *, integer *, doublereal *, integer *, integer *, 
-	    doublereal *, integer *, integer *), sgetrf_(integer *, 
-	    integer *, real *, integer *, integer *, integer *), sgetrs_(char 
+	    doublereal *, integer *, integer *), _starpu_sgetrf_(integer *, 
+	    integer *, real *, integer *, integer *, integer *), _starpu_sgetrs_(char 
 	    *, integer *, integer *, real *, integer *, integer *, real *, 
 	    integer *, integer *);
 
@@ -228,7 +228,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSGESV", &i__1);
+	_starpu_xerbla_("DSGESV", &i__1);
 	return 0;
     }
 
@@ -248,8 +248,8 @@ static integer c__1 = 1;
 
 /*     Compute some constants. */
 
-    anrm = dlange_("I", n, n, &a[a_offset], lda, &work[work_offset]);
-    eps = dlamch_("Epsilon");
+    anrm = _starpu_dlange_("I", n, n, &a[a_offset], lda, &work[work_offset]);
+    eps = _starpu_dlamch_("Epsilon");
     cte = anrm * eps * sqrt((doublereal) (*n)) * 1.;
 
 /*     Set the indices PTSA, PTSX for referencing SA and SX in SWORK. */
@@ -260,7 +260,7 @@ static integer c__1 = 1;
 /*     Convert B from double precision to single precision and store the */
 /*     result in SX. */
 
-    dlag2s_(n, nrhs, &b[b_offset], ldb, &swork[ptsx], n, info);
+    _starpu_dlag2s_(n, nrhs, &b[b_offset], ldb, &swork[ptsx], n, info);
 
     if (*info != 0) {
 	*iter = -2;
@@ -270,7 +270,7 @@ static integer c__1 = 1;
 /*     Convert A from double precision to single precision and store the */
 /*     result in SA. */
 
-    dlag2s_(n, n, &a[a_offset], lda, &swork[ptsa], n, info);
+    _starpu_dlag2s_(n, n, &a[a_offset], lda, &swork[ptsa], n, info);
 
     if (*info != 0) {
 	*iter = -2;
@@ -279,7 +279,7 @@ static integer c__1 = 1;
 
 /*     Compute the LU factorization of SA. */
 
-    sgetrf_(n, n, &swork[ptsa], n, &ipiv[1], info);
+    _starpu_sgetrf_(n, n, &swork[ptsa], n, &ipiv[1], info);
 
     if (*info != 0) {
 	*iter = -3;
@@ -288,18 +288,18 @@ static integer c__1 = 1;
 
 /*     Solve the system SA*SX = SB. */
 
-    sgetrs_("No transpose", n, nrhs, &swork[ptsa], n, &ipiv[1], &swork[ptsx], 
+    _starpu_sgetrs_("No transpose", n, nrhs, &swork[ptsa], n, &ipiv[1], &swork[ptsx], 
 	    n, info);
 
 /*     Convert SX back to double precision */
 
-    slag2d_(n, nrhs, &swork[ptsx], n, &x[x_offset], ldx, info);
+    _starpu_slag2d_(n, nrhs, &swork[ptsx], n, &x[x_offset], ldx, info);
 
 /*     Compute R = B - AX (R is WORK). */
 
-    dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
+    _starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
 
-    dgemm_("No Transpose", "No Transpose", n, nrhs, n, &c_b10, &a[a_offset], 
+    _starpu_dgemm_("No Transpose", "No Transpose", n, nrhs, n, &c_b10, &a[a_offset], 
 	    lda, &x[x_offset], ldx, &c_b11, &work[work_offset], n);
 
 /*     Check whether the NRHS normwise backward errors satisfy the */
@@ -307,9 +307,9 @@ static integer c__1 = 1;
 
     i__1 = *nrhs;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	xnrm = (d__1 = x[idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
+	xnrm = (d__1 = x[_starpu_idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
 		x_dim1], abs(d__1));
-	rnrm = (d__1 = work[idamax_(n, &work[i__ * work_dim1 + 1], &c__1) + 
+	rnrm = (d__1 = work[_starpu_idamax_(n, &work[i__ * work_dim1 + 1], &c__1) + 
 		i__ * work_dim1], abs(d__1));
 	if (rnrm > xnrm * cte) {
 	    goto L10;
@@ -329,7 +329,7 @@ L10:
 /*        Convert R (in WORK) from double precision to single precision */
 /*        and store the result in SX. */
 
-	dlag2s_(n, nrhs, &work[work_offset], n, &swork[ptsx], n, info);
+	_starpu_dlag2s_(n, nrhs, &work[work_offset], n, &swork[ptsx], n, info);
 
 	if (*info != 0) {
 	    *iter = -2;
@@ -338,25 +338,25 @@ L10:
 
 /*        Solve the system SA*SX = SR. */
 
-	sgetrs_("No transpose", n, nrhs, &swork[ptsa], n, &ipiv[1], &swork[
+	_starpu_sgetrs_("No transpose", n, nrhs, &swork[ptsa], n, &ipiv[1], &swork[
 		ptsx], n, info);
 
 /*        Convert SX back to double precision and update the current */
 /*        iterate. */
 
-	slag2d_(n, nrhs, &swork[ptsx], n, &work[work_offset], n, info);
+	_starpu_slag2d_(n, nrhs, &swork[ptsx], n, &work[work_offset], n, info);
 
 	i__1 = *nrhs;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    daxpy_(n, &c_b11, &work[i__ * work_dim1 + 1], &c__1, &x[i__ * 
+	    _starpu_daxpy_(n, &c_b11, &work[i__ * work_dim1 + 1], &c__1, &x[i__ * 
 		    x_dim1 + 1], &c__1);
 	}
 
 /*        Compute R = B - AX (R is WORK). */
 
-	dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
+	_starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &work[work_offset], n);
 
-	dgemm_("No Transpose", "No Transpose", n, nrhs, n, &c_b10, &a[
+	_starpu_dgemm_("No Transpose", "No Transpose", n, nrhs, n, &c_b10, &a[
 		a_offset], lda, &x[x_offset], ldx, &c_b11, &work[work_offset], 
 		 n);
 
@@ -365,9 +365,9 @@ L10:
 
 	i__1 = *nrhs;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    xnrm = (d__1 = x[idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
+	    xnrm = (d__1 = x[_starpu_idamax_(n, &x[i__ * x_dim1 + 1], &c__1) + i__ * 
 		    x_dim1], abs(d__1));
-	    rnrm = (d__1 = work[idamax_(n, &work[i__ * work_dim1 + 1], &c__1) 
+	    rnrm = (d__1 = work[_starpu_idamax_(n, &work[i__ * work_dim1 + 1], &c__1) 
 		    + i__ * work_dim1], abs(d__1));
 	    if (rnrm > xnrm * cte) {
 		goto L20;
@@ -399,18 +399,18 @@ L40:
 /*     Single-precision iterative refinement failed to converge to a */
 /*     satisfactory solution, so we resort to double precision. */
 
-    dgetrf_(n, n, &a[a_offset], lda, &ipiv[1], info);
+    _starpu_dgetrf_(n, n, &a[a_offset], lda, &ipiv[1], info);
 
     if (*info != 0) {
 	return 0;
     }
 
-    dlacpy_("All", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dgetrs_("No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &x[x_offset]
+    _starpu_dlacpy_("All", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dgetrs_("No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &x[x_offset]
 , ldx, info);
 
     return 0;
 
 /*     End of DSGESV. */
 
-} /* dsgesv_ */
+} /* _starpu__starpu_dsgesv_ */

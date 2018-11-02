@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaed5_(integer *i__, doublereal *d__, doublereal *z__, 
+/* Subroutine */ int _starpu_dlaed5_(integer *i__, doublereal *d__, doublereal *z__, 
 	doublereal *delta, doublereal *rho, doublereal *dlam)
 {
     /* System generated locals */
@@ -145,4 +145,4 @@
 
 /*     End OF DLAED5 */
 
-} /* dlaed5_ */
+} /* _starpu_dlaed5_ */

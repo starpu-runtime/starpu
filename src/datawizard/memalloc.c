@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013,2016-2017                      Inria
+ * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -803,6 +804,9 @@ restart:
 			continue;
 		if (is_prefetch == 1 && !mc->wontuse)
 			/* Do not evict something that we might reuse, just for a prefetch */
+			/* FIXME: but perhaps we won't have any task using it in
+                         * the close future, we should perhaps rather check
+                         * mc->replicate->refcnt? */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -1350,7 +1354,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle);
+       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
@@ -1378,7 +1382,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle);
+               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)

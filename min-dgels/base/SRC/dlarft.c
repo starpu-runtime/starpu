@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b8 = 0.;
 
-/* Subroutine */ int dlarft_(char *direct, char *storev, integer *n, integer *
+/* Subroutine */ int _starpu_dlarft_(char *direct, char *storev, integer *n, integer *
 	k, doublereal *v, integer *ldv, doublereal *tau, doublereal *t, 
 	integer *ldt)
 {
@@ -29,12 +29,12 @@ static doublereal c_b8 = 0.;
     /* Local variables */
     integer i__, j, prevlastv;
     doublereal vii;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     integer lastv;
-    extern /* Subroutine */ int dtrmv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrmv_(char *, char *, char *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
 
 
@@ -163,7 +163,7 @@ static doublereal c_b8 = 0.;
 	return 0;
     }
 
-    if (lsame_(direct, "F")) {
+    if (_starpu_lsame_(direct, "F")) {
 	prevlastv = *n;
 	i__1 = *k;
 	for (i__ = 1; i__ <= i__1; ++i__) {
@@ -183,7 +183,7 @@ static doublereal c_b8 = 0.;
 
 		vii = v[i__ + i__ * v_dim1];
 		v[i__ + i__ * v_dim1] = 1.;
-		if (lsame_(storev, "C")) {
+		if (_starpu_lsame_(storev, "C")) {
 /*                 Skip any trailing zeros. */
 		    i__2 = i__ + 1;
 		    for (lastv = *n; lastv >= i__2; --lastv) {
@@ -198,7 +198,7 @@ static doublereal c_b8 = 0.;
 		    i__2 = j - i__ + 1;
 		    i__3 = i__ - 1;
 		    d__1 = -tau[i__];
-		    dgemv_("Transpose", &i__2, &i__3, &d__1, &v[i__ + v_dim1], 
+		    _starpu_dgemv_("Transpose", &i__2, &i__3, &d__1, &v[i__ + v_dim1], 
 			     ldv, &v[i__ + i__ * v_dim1], &c__1, &c_b8, &t[
 			    i__ * t_dim1 + 1], &c__1);
 		} else {
@@ -216,7 +216,7 @@ static doublereal c_b8 = 0.;
 		    i__2 = i__ - 1;
 		    i__3 = j - i__ + 1;
 		    d__1 = -tau[i__];
-		    dgemv_("No transpose", &i__2, &i__3, &d__1, &v[i__ * 
+		    _starpu_dgemv_("No transpose", &i__2, &i__3, &d__1, &v[i__ * 
 			    v_dim1 + 1], ldv, &v[i__ + i__ * v_dim1], ldv, &
 			    c_b8, &t[i__ * t_dim1 + 1], &c__1);
 		}
@@ -225,7 +225,7 @@ static doublereal c_b8 = 0.;
 /*              T(1:i-1,i) := T(1:i-1,1:i-1) * T(1:i-1,i) */
 
 		i__2 = i__ - 1;
-		dtrmv_("Upper", "No transpose", "Non-unit", &i__2, &t[
+		_starpu_dtrmv_("Upper", "No transpose", "Non-unit", &i__2, &t[
 			t_offset], ldt, &t[i__ * t_dim1 + 1], &c__1);
 		t[i__ + i__ * t_dim1] = tau[i__];
 		if (i__ > 1) {
@@ -253,7 +253,7 @@ static doublereal c_b8 = 0.;
 /*              general case */
 
 		if (i__ < *k) {
-		    if (lsame_(storev, "C")) {
+		    if (_starpu_lsame_(storev, "C")) {
 			vii = v[*n - *k + i__ + i__ * v_dim1];
 			v[*n - *k + i__ + i__ * v_dim1] = 1.;
 /*                    Skip any leading zeros. */
@@ -271,7 +271,7 @@ static doublereal c_b8 = 0.;
 			i__1 = *n - *k + i__ - j + 1;
 			i__2 = *k - i__;
 			d__1 = -tau[i__];
-			dgemv_("Transpose", &i__1, &i__2, &d__1, &v[j + (i__ 
+			_starpu_dgemv_("Transpose", &i__1, &i__2, &d__1, &v[j + (i__ 
 				+ 1) * v_dim1], ldv, &v[j + i__ * v_dim1], &
 				c__1, &c_b8, &t[i__ + 1 + i__ * t_dim1], &
 				c__1);
@@ -294,7 +294,7 @@ static doublereal c_b8 = 0.;
 			i__1 = *k - i__;
 			i__2 = *n - *k + i__ - j + 1;
 			d__1 = -tau[i__];
-			dgemv_("No transpose", &i__1, &i__2, &d__1, &v[i__ + 
+			_starpu_dgemv_("No transpose", &i__1, &i__2, &d__1, &v[i__ + 
 				1 + j * v_dim1], ldv, &v[i__ + j * v_dim1], 
 				ldv, &c_b8, &t[i__ + 1 + i__ * t_dim1], &c__1);
 			v[i__ + (*n - *k + i__) * v_dim1] = vii;
@@ -303,7 +303,7 @@ static doublereal c_b8 = 0.;
 /*                 T(i+1:k,i) := T(i+1:k,i+1:k) * T(i+1:k,i) */
 
 		    i__1 = *k - i__;
-		    dtrmv_("Lower", "No transpose", "Non-unit", &i__1, &t[i__ 
+		    _starpu_dtrmv_("Lower", "No transpose", "Non-unit", &i__1, &t[i__ 
 			    + 1 + (i__ + 1) * t_dim1], ldt, &t[i__ + 1 + i__ *
 			     t_dim1], &c__1)
 			    ;
@@ -322,4 +322,4 @@ static doublereal c_b8 = 0.;
 
 /*     End of DLARFT */
 
-} /* dlarft_ */
+} /* _starpu_dlarft_ */

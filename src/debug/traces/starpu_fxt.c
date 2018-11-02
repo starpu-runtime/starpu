@@ -1,10 +1,11 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2012-2018                                CNRS
- * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
  * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2013                                     Joris Pablo
+ * Copyright (C) 2017,2018                                Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -2427,30 +2428,45 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
 	unsigned memnode = ev->param[0];
-	unsigned size = ev->param[1];
-	unsigned long handle = ev->param[2];
+       unsigned size = ev->param[2];
+       unsigned long handle = ev->param[3];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, size, memnode, options);
 }
 
+static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+       unsigned memnode = ev->param[0];
+       unsigned dest = ev->param[1];
+       if(strcmp(eventstr, "rc")==0){
+               //If it is a Request Create, use dest normally
+       }else{
+               dest = memnode;
+       }
+       unsigned size = ev->param[2];
+       unsigned long handle = ev->param[3];
+       unsigned prefe = ev->param[4];
+
+       memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, prefe, size, dest, options);
+}
+
 static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
 	unsigned memnode = ev->param[0];
-	unsigned long handle = ev->param[1];
-	unsigned info = ev->param[2];
+       unsigned long handle = ev->param[2];
+       unsigned info = ev->param[3];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, info, 0, memnode, options);
 }
 
 static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
 	unsigned memnode = ev->param[0];
-	unsigned long handle = ev->param[1];
+       unsigned long handle = ev->param[2];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
 }
 
 static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
 	unsigned memnode = ev->param[0];
-	unsigned long handle = ev->param[1];
+       unsigned long handle = ev->param[2];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
 }
@@ -2547,6 +2563,9 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 
+       unsigned task = ev->param[0];
+       char *prefix = options->file_prefix;
+       
 	curq_size++;
 
 	_starpu_fxt_component_update_ntasks(nsubmitted, curq_size);
@@ -2558,8 +2577,14 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
 		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
+
+               char paje_value[STARPU_POTI_STR_LEN];
+               snprintf(paje_value, sizeof(paje_value), "%u", task);
+               snprintf(container, sizeof(container), "%sp", options->file_prefix);
+               poti_NewEvent(get_event_time_stamp(ev, options), container, "pu", paje_value);
 #else
 		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "pu", prefix, task);
 #endif
 	}
 
@@ -2567,9 +2592,14 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
 }
 
+
 static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
+
+       unsigned task = ev->param[0];
+       char *prefix = options->file_prefix;
+       
 
 	curq_size--;
 	nsubmitted--;
@@ -2582,9 +2612,15 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
 		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
 	poti_SetVariable(current_timestamp, container, "nsubmitted", (double)nsubmitted);
+
+               char paje_value[STARPU_POTI_STR_LEN];
+               snprintf(paje_value, sizeof(paje_value), "%u", task);
+               snprintf(container, sizeof(container), "%sp", options->file_prefix);
+               poti_NewEvent(get_event_time_stamp(ev, options), container, "po", paje_value);
 #else
 		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
 		fprintf(out_paje_file, "13	%.9f	%ssched	nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
+               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "po", prefix, task);
 #endif
 	}
 
@@ -2593,6 +2629,7 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 	}
+
 }
 
 static void handle_component_new(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -3603,7 +3640,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				if (options->memory_states)
 					handle_data_state(&ev, options, "SS");
 				break;
-
+                       case _STARPU_FUT_DATA_REQUEST_CREATED:
+                               if (!options->no_bus && options->memory_states)
+                               {
+                                       handle_memnode_event_start_4(&ev, options, "rc");
+                               }
+                               break;
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
 				     handle_data_copy();
@@ -3665,14 +3707,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				if (!options->no_bus)
 				{
 					handle_push_memnode_event(&ev, options, "A");
-					handle_memnode_event_start_3(&ev, options, "Al");
+                                       handle_memnode_event_start_4(&ev, options, "Al");
 				}
 				break;
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
 				{
 					handle_push_memnode_event(&ev, options, "Ar");
-					handle_memnode_event_start_3(&ev, options, "Alr");
+                                       handle_memnode_event_start_4(&ev, options, "Alr");
 				}
 				break;
 			case _STARPU_FUT_END_ALLOC:

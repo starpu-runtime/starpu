@@ -1,4 +1,4 @@
-/* dla_lin_berr.f -- translated by f2c (version 20061008).
+/* _starpu_dla_lin_berr.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dla_lin_berr__(integer *n, integer *nz, integer *nrhs, 
+/* Subroutine */ int _starpu_dla_lin_berr__(integer *n, integer *nz, integer *nrhs, 
 	doublereal *res, doublereal *ayb, doublereal *berr)
 {
     /* System generated locals */
@@ -23,7 +23,7 @@
     /* Local variables */
     integer i__, j;
     doublereal tmp, safe1;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
 
 
 /*     -- LAPACK routine (version 3.2.1)                                 -- */
@@ -71,7 +71,7 @@
 /*     AYB    (input) DOUBLE PRECISION array, dimension (N, NRHS) */
 /*     The denominator in the relative backward error formula above, i.e., */
 /*     the matrix abs(op(A_s))*abs(Y) + abs(B_s). The matrices A, Y, and B */
-/*     are from iterative refinement (see dla_gerfsx_extended.f). */
+/*     are from iterative refinement (see _starpu_dla_gerfsx_extended.f). */
 
 /*     RES    (output) DOUBLE PRECISION array, dimension (NRHS) */
 /*     The componentwise relative backward error from the formula above. */
@@ -100,7 +100,7 @@
     res -= res_offset;
 
     /* Function Body */
-    safe1 = dlamch_("Safe minimum");
+    safe1 = _starpu_dlamch_("Safe minimum");
     safe1 = (*nz + 1) * safe1;
     i__1 = *nrhs;
     for (j = 1; j <= i__1; ++j) {
@@ -121,4 +121,4 @@
 	}
     }
     return 0;
-} /* dla_lin_berr__ */
+} /* _starpu_dla_lin_berr__ */

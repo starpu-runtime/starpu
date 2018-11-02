@@ -1,8 +1,9 @@
 % StarPU --- Runtime system for heterogeneous multicore architectures.
 %
-% Copyright (C) 2013,2015-2016,2018                      Inria
-% Copyright (C) 2013-2017                                CNRS
+% Copyright (C) 2013-2016,2018                           Inria
+% Copyright (C) 2013-2018                                CNRS
 % Copyright (C) 2014,2018                                Université de Bordeaux
+% Copyright (C) 2013                                     Simon Archipoff
 %
 % StarPU is free software; you can redistribute it and/or modify
 % it under the terms of the GNU Lesser General Public License as published by
@@ -116,10 +117,10 @@ Documentation License”.
 \hypertarget{SchedulingContextHypervisor}{}
 \input{SchedulingContextHypervisor}
 
-\chapter{Modularized Scheduler}
-\label{ModularizedScheduler}
-\hypertarget{ModularizedScheduler}{}
-\input{ModularizedScheduler}
+\chapter{How To Define a New Scheduling Policy}
+\label{HowToDefineANewSchedulingPolicy}
+\hypertarget{HowToDefineANewSchedulingPolicy}{}
+\input{HowToDefineANewSchedulingPolicy}
 
 \chapter{Debugging Tools}
 \label{DebuggingTools}
@@ -158,7 +159,7 @@ Documentation License”.
 \hypertarget{FFTSupport}{}
 \input{FFTSupport}
 
-\chapter{MIC/SCC Support}
+\chapter{MIC Xeon Phi / SCC Support}
 \label{MICSCCSupport}
 \hypertarget{MICSCCSupport}{}
 \input{MICSCCSupport}
@@ -183,7 +184,7 @@ Documentation License”.
 \hypertarget{SimGridSupport}{}
 \input{SimGridSupport}
 
-\chapter{OpenMP Runtime Support}
+\chapter{The StarPU OpenMP Runtime Support (SORS)}
 \label{OpenMPRuntimeSupport}
 \hypertarget{OpenMPRuntimeSupport}{}
 \input{OpenMPRuntimeSupport}
@@ -192,6 +193,11 @@ Documentation License”.
 \label{ClusteringAMachine}
 \hypertarget{ClusteringAMachine}{}
 \input{ClusteringAMachine}
+
+\chapter{Interoperability Support}
+\label{InteropSupport}
+\hypertarget{InteropSupport}{}
+\input{InteroperabilitySupport}
 
 \part{StarPU Reference API}
 
@@ -207,6 +213,9 @@ Documentation License”.
 
 \chapter{Module Index}
 \input{modules}
+
+\chapter{Deprecated List}
+\input{deprecated}
 
 \chapter{Module Documentation a.k.a StarPU's API}
 \label{ModuleDocumentation}
@@ -253,6 +262,7 @@ Documentation License”.
 \input{group__API__SC__Hypervisor}
 \input{group__API__Modularized__Scheduler}
 \input{group__API__Clustering__Machine}
+\input{group__API__Interop__Support}
 
 \chapter{File Index}
 \input{files}
@@ -278,15 +288,19 @@ Documentation License”.
 \input{starpu__fxt_8h}
 \input{starpu__hash_8h}
 \input{starpu__mic_8h}
+\input{starpu__mod_8f90}
+\input{starpu__mpi_8h}
 \input{starpu__opencl_8h}
 \input{starpu__openmp_8h}
 \input{starpu__perfmodel_8h}
 \input{starpu__profiling_8h}
 \input{starpu__rand_8h}
 \input{starpu__scc_8h}
+\input{starpu__sched__component_8h}
 \input{starpu__sched__ctx_8h}
 \input{starpu__sched__ctx__hypervisor_8h}
 \input{starpu__scheduler_8h}
+\input{starpu__simgrid__wrap_8h}
 \input{starpu__sink_8h}
 \input{starpu__stdlib_8h}
 \input{starpu__task_8h}
@@ -299,13 +313,13 @@ Documentation License”.
 \input{starpu__tree_8h}
 \input{starpu__util_8h}
 \input{starpu__worker_8h}
-\input{starpu__mpi_8h}
 \input{starpufft_8h}
 \input{sc__hypervisor_8h}
 \input{sc__hypervisor__config_8h}
 \input{sc__hypervisor__lp_8h}
 \input{sc__hypervisor__monitoring_8h}
 \input{sc__hypervisor__policy_8h}
+\input{starpurm_8h}
 
 \chapter{Deprecated List}
 \label{deprecated}
@@ -319,7 +333,7 @@ Documentation License”.
 \hypertarget{FullSourceCodeVectorScal}{}
 \input{FullSourceCodeVectorScal}
 
-\chapter{GNU Free Documentation License}
+\chapter{The GNU Free Documentation License}
 \label{GNUFreeDocumentationLicense}
 \hypertarget{GNUFreeDocumentationLicense}{}
 \input{GNUFreeDocumentationLicense}

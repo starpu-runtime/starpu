@@ -20,7 +20,7 @@ static doublereal c_b14 = 1.;
 static integer c__1 = 1;
 static doublereal c_b43 = -1.;
 
-/* Subroutine */ int dtgsja_(char *jobu, char *jobv, char *jobq, integer *m, 
+/* Subroutine */ int _starpu_dtgsja_(char *jobu, char *jobv, char *jobq, integer *m, 
 	integer *p, integer *n, integer *k, integer *l, doublereal *a, 
 	integer *lda, doublereal *b, integer *ldb, doublereal *tola, 
 	doublereal *tolb, doublereal *alpha, doublereal *beta, doublereal *u, 
@@ -35,27 +35,27 @@ static doublereal c_b43 = -1.;
     /* Local variables */
     integer i__, j;
     doublereal a1, a2, a3, b1, b2, b3, csq, csu, csv, snq, rwk, snu, snv;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
     doublereal gamma;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical initq, initu, initv, wantq, upper;
     doublereal error, ssmin;
     logical wantu, wantv;
-    extern /* Subroutine */ int dlags2_(logical *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlags2_(logical *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *), dlapll_(integer *, doublereal *, 
+	    doublereal *, doublereal *), _starpu_dlapll_(integer *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *);
     integer kcycle;
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), dlaset_(char *, 
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), _starpu_dlaset_(char *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
-	    integer *), xerbla_(char *, integer *);
+	    integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -342,22 +342,22 @@ static doublereal c_b43 = -1.;
     --work;
 
     /* Function Body */
-    initu = lsame_(jobu, "I");
-    wantu = initu || lsame_(jobu, "U");
+    initu = _starpu_lsame_(jobu, "I");
+    wantu = initu || _starpu_lsame_(jobu, "U");
 
-    initv = lsame_(jobv, "I");
-    wantv = initv || lsame_(jobv, "V");
+    initv = _starpu_lsame_(jobv, "I");
+    wantv = initv || _starpu_lsame_(jobv, "V");
 
-    initq = lsame_(jobq, "I");
-    wantq = initq || lsame_(jobq, "Q");
+    initq = _starpu_lsame_(jobq, "I");
+    wantq = initq || _starpu_lsame_(jobq, "Q");
 
     *info = 0;
-    if (! (initu || wantu || lsame_(jobu, "N"))) {
+    if (! (initu || wantu || _starpu_lsame_(jobu, "N"))) {
 	*info = -1;
-    } else if (! (initv || wantv || lsame_(jobv, "N"))) 
+    } else if (! (initv || wantv || _starpu_lsame_(jobv, "N"))) 
 	    {
 	*info = -2;
-    } else if (! (initq || wantq || lsame_(jobq, "N"))) 
+    } else if (! (initq || wantq || _starpu_lsame_(jobq, "N"))) 
 	    {
 	*info = -3;
     } else if (*m < 0) {
@@ -379,20 +379,20 @@ static doublereal c_b43 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGSJA", &i__1);
+	_starpu_xerbla_("DTGSJA", &i__1);
 	return 0;
     }
 
 /*     Initialize U, V and Q, if necessary */
 
     if (initu) {
-	dlaset_("Full", m, m, &c_b13, &c_b14, &u[u_offset], ldu);
+	_starpu_dlaset_("Full", m, m, &c_b13, &c_b14, &u[u_offset], ldu);
     }
     if (initv) {
-	dlaset_("Full", p, p, &c_b13, &c_b14, &v[v_offset], ldv);
+	_starpu_dlaset_("Full", p, p, &c_b13, &c_b14, &v[v_offset], ldv);
     }
     if (initq) {
-	dlaset_("Full", n, n, &c_b13, &c_b14, &q[q_offset], ldq);
+	_starpu_dlaset_("Full", n, n, &c_b13, &c_b14, &q[q_offset], ldq);
     }
 
 /*     Loop until convergence */
@@ -432,19 +432,19 @@ static doublereal c_b43 = -1.;
 		    b2 = b[j + (*n - *l + i__) * b_dim1];
 		}
 
-		dlags2_(&upper, &a1, &a2, &a3, &b1, &b2, &b3, &csu, &snu, &
+		_starpu_dlags2_(&upper, &a1, &a2, &a3, &b1, &b2, &b3, &csu, &snu, &
 			csv, &snv, &csq, &snq);
 
 /*              Update (K+I)-th and (K+J)-th rows of matrix A: U'*A */
 
 		if (*k + j <= *m) {
-		    drot_(l, &a[*k + j + (*n - *l + 1) * a_dim1], lda, &a[*k 
+		    _starpu_drot_(l, &a[*k + j + (*n - *l + 1) * a_dim1], lda, &a[*k 
 			    + i__ + (*n - *l + 1) * a_dim1], lda, &csu, &snu);
 		}
 
 /*              Update I-th and J-th rows of matrix B: V'*B */
 
-		drot_(l, &b[j + (*n - *l + 1) * b_dim1], ldb, &b[i__ + (*n - *
+		_starpu_drot_(l, &b[j + (*n - *l + 1) * b_dim1], ldb, &b[i__ + (*n - *
 			l + 1) * b_dim1], ldb, &csv, &snv);
 
 /*              Update (N-L+I)-th and (N-L+J)-th columns of matrices */
@@ -453,10 +453,10 @@ static doublereal c_b43 = -1.;
 /* Computing MIN */
 		i__4 = *k + *l;
 		i__3 = min(i__4,*m);
-		drot_(&i__3, &a[(*n - *l + j) * a_dim1 + 1], &c__1, &a[(*n - *
+		_starpu_drot_(&i__3, &a[(*n - *l + j) * a_dim1 + 1], &c__1, &a[(*n - *
 			l + i__) * a_dim1 + 1], &c__1, &csq, &snq);
 
-		drot_(l, &b[(*n - *l + j) * b_dim1 + 1], &c__1, &b[(*n - *l + 
+		_starpu_drot_(l, &b[(*n - *l + j) * b_dim1 + 1], &c__1, &b[(*n - *l + 
 			i__) * b_dim1 + 1], &c__1, &csq, &snq);
 
 		if (upper) {
@@ -474,17 +474,17 @@ static doublereal c_b43 = -1.;
 /*              Update orthogonal matrices U, V, Q, if desired. */
 
 		if (wantu && *k + j <= *m) {
-		    drot_(m, &u[(*k + j) * u_dim1 + 1], &c__1, &u[(*k + i__) *
+		    _starpu_drot_(m, &u[(*k + j) * u_dim1 + 1], &c__1, &u[(*k + i__) *
 			     u_dim1 + 1], &c__1, &csu, &snu);
 		}
 
 		if (wantv) {
-		    drot_(p, &v[j * v_dim1 + 1], &c__1, &v[i__ * v_dim1 + 1], 
+		    _starpu_drot_(p, &v[j * v_dim1 + 1], &c__1, &v[i__ * v_dim1 + 1], 
 			    &c__1, &csv, &snv);
 		}
 
 		if (wantq) {
-		    drot_(n, &q[(*n - *l + j) * q_dim1 + 1], &c__1, &q[(*n - *
+		    _starpu_drot_(n, &q[(*n - *l + j) * q_dim1 + 1], &c__1, &q[(*n - *
 			    l + i__) * q_dim1 + 1], &c__1, &csq, &snq);
 		}
 
@@ -507,13 +507,13 @@ static doublereal c_b43 = -1.;
 	    i__1 = min(i__2,i__3);
 	    for (i__ = 1; i__ <= i__1; ++i__) {
 		i__2 = *l - i__ + 1;
-		dcopy_(&i__2, &a[*k + i__ + (*n - *l + i__) * a_dim1], lda, &
+		_starpu_dcopy_(&i__2, &a[*k + i__ + (*n - *l + i__) * a_dim1], lda, &
 			work[1], &c__1);
 		i__2 = *l - i__ + 1;
-		dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &work[*
+		_starpu_dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &work[*
 			l + 1], &c__1);
 		i__2 = *l - i__ + 1;
-		dlapll_(&i__2, &work[1], &c__1, &work[*l + 1], &c__1, &ssmin);
+		_starpu_dlapll_(&i__2, &work[1], &c__1, &work[*l + 1], &c__1, &ssmin);
 		error = max(error,ssmin);
 /* L30: */
 	    }
@@ -561,27 +561,27 @@ L50:
 
 	    if (gamma < 0.) {
 		i__2 = *l - i__ + 1;
-		dscal_(&i__2, &c_b43, &b[i__ + (*n - *l + i__) * b_dim1], ldb)
+		_starpu_dscal_(&i__2, &c_b43, &b[i__ + (*n - *l + i__) * b_dim1], ldb)
 			;
 		if (wantv) {
-		    dscal_(p, &c_b43, &v[i__ * v_dim1 + 1], &c__1);
+		    _starpu_dscal_(p, &c_b43, &v[i__ * v_dim1 + 1], &c__1);
 		}
 	    }
 
 	    d__1 = abs(gamma);
-	    dlartg_(&d__1, &c_b14, &beta[*k + i__], &alpha[*k + i__], &rwk);
+	    _starpu_dlartg_(&d__1, &c_b14, &beta[*k + i__], &alpha[*k + i__], &rwk);
 
 	    if (alpha[*k + i__] >= beta[*k + i__]) {
 		i__2 = *l - i__ + 1;
 		d__1 = 1. / alpha[*k + i__];
-		dscal_(&i__2, &d__1, &a[*k + i__ + (*n - *l + i__) * a_dim1], 
+		_starpu_dscal_(&i__2, &d__1, &a[*k + i__ + (*n - *l + i__) * a_dim1], 
 			lda);
 	    } else {
 		i__2 = *l - i__ + 1;
 		d__1 = 1. / beta[*k + i__];
-		dscal_(&i__2, &d__1, &b[i__ + (*n - *l + i__) * b_dim1], ldb);
+		_starpu_dscal_(&i__2, &d__1, &b[i__ + (*n - *l + i__) * b_dim1], ldb);
 		i__2 = *l - i__ + 1;
-		dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &a[*k 
+		_starpu_dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &a[*k 
 			+ i__ + (*n - *l + i__) * a_dim1], lda);
 	    }
 
@@ -590,7 +590,7 @@ L50:
 	    alpha[*k + i__] = 0.;
 	    beta[*k + i__] = 1.;
 	    i__2 = *l - i__ + 1;
-	    dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &a[*k + 
+	    _starpu_dcopy_(&i__2, &b[i__ + (*n - *l + i__) * b_dim1], ldb, &a[*k + 
 		    i__ + (*n - *l + i__) * a_dim1], lda);
 
 	}
@@ -622,4 +622,4 @@ L100:
 
 /*     End of DTGSJA */
 
-} /* dtgsja_ */
+} /* _starpu_dtgsja_ */

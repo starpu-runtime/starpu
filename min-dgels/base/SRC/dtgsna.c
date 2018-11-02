@@ -22,7 +22,7 @@ static integer c__2 = 2;
 static logical c_false = FALSE_;
 static integer c__3 = 3;
 
-/* Subroutine */ int dtgsna_(char *job, char *howmny, logical *select, 
+/* Subroutine */ int _starpu_dtgsna_(char *job, char *howmny, logical *select, 
 	integer *n, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
 	doublereal *vl, integer *ldvl, doublereal *vr, integer *ldvr, 
 	doublereal *s, doublereal *dif, integer *mm, integer *m, doublereal *
@@ -41,7 +41,7 @@ static integer c__3 = 3;
     doublereal c1, c2;
     integer n1, n2, ks, iz;
     doublereal eps, beta, cond;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     logical pair;
     integer ierr;
@@ -50,32 +50,32 @@ static integer c__3 = 3;
     doublereal lnrm;
     integer ilst;
     doublereal rnrm;
-    extern /* Subroutine */ int dlag2_(doublereal *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlag2_(doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *);
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal root1, root2, scale;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     doublereal uhavi, uhbvi, tmpii;
     integer lwmin;
     logical wants;
     doublereal tmpir, tmpri, dummy[1], tmprr;
-    extern doublereal dlapy2_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *);
     doublereal dummy1[1];
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal alphai, alphar;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dtgexc_(logical *, logical *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dtgexc_(logical *, logical *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
 	    integer *, doublereal *, integer *, integer *);
     logical wantbh, wantdf, somcon;
     doublereal alprqt;
-    extern /* Subroutine */ int dtgsyl_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dtgsyl_(char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
@@ -391,18 +391,18 @@ static integer c__3 = 3;
     --iwork;
 
     /* Function Body */
-    wantbh = lsame_(job, "B");
-    wants = lsame_(job, "E") || wantbh;
-    wantdf = lsame_(job, "V") || wantbh;
+    wantbh = _starpu_lsame_(job, "B");
+    wants = _starpu_lsame_(job, "E") || wantbh;
+    wantdf = _starpu_lsame_(job, "V") || wantbh;
 
-    somcon = lsame_(howmny, "S");
+    somcon = _starpu_lsame_(howmny, "S");
 
     *info = 0;
     lquery = *lwork == -1;
 
     if (! wants && ! wantdf) {
 	*info = -1;
-    } else if (! lsame_(howmny, "A") && ! somcon) {
+    } else if (! _starpu_lsame_(howmny, "A") && ! somcon) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -4;
@@ -452,7 +452,7 @@ static integer c__3 = 3;
 
 	if (*n == 0) {
 	    lwmin = 1;
-	} else if (lsame_(job, "V") || lsame_(job, 
+	} else if (_starpu_lsame_(job, "V") || _starpu_lsame_(job, 
 		"B")) {
 	    lwmin = (*n << 1) * (*n + 2) + 16;
 	} else {
@@ -469,7 +469,7 @@ static integer c__3 = 3;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGSNA", &i__1);
+	_starpu_xerbla_("DTGSNA", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -483,8 +483,8 @@ static integer c__3 = 3;
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     ks = 0;
     pair = FALSE_;
 
@@ -528,43 +528,43 @@ static integer c__3 = 3;
 
 /*              Complex eigenvalue pair. */
 
-		d__1 = dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1);
-		rnrm = dlapy2_(&d__1, &d__2);
-		d__1 = dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
-		d__2 = dnrm2_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1);
-		lnrm = dlapy2_(&d__1, &d__2);
-		dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[ks * vr_dim1 
+		d__1 = _starpu_dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vr[(ks + 1) * vr_dim1 + 1], &c__1);
+		rnrm = _starpu_dlapy2_(&d__1, &d__2);
+		d__1 = _starpu_dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
+		d__2 = _starpu_dnrm2_(n, &vl[(ks + 1) * vl_dim1 + 1], &c__1);
+		lnrm = _starpu_dlapy2_(&d__1, &d__2);
+		_starpu_dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[ks * vr_dim1 
 			+ 1], &c__1, &c_b21, &work[1], &c__1);
-		tmprr = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
+		tmprr = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
 			c__1);
-		tmpri = ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
+		tmpri = _starpu_ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
 			 &c__1);
-		dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[(ks + 1) * 
+		_starpu_dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[(ks + 1) * 
 			vr_dim1 + 1], &c__1, &c_b21, &work[1], &c__1);
-		tmpii = ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
+		tmpii = _starpu_ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
 			 &c__1);
-		tmpir = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
+		tmpir = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
 			c__1);
 		uhav = tmprr + tmpii;
 		uhavi = tmpir - tmpri;
-		dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[ks * vr_dim1 
+		_starpu_dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[ks * vr_dim1 
 			+ 1], &c__1, &c_b21, &work[1], &c__1);
-		tmprr = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
+		tmprr = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
 			c__1);
-		tmpri = ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
+		tmpri = _starpu_ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
 			 &c__1);
-		dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[(ks + 1) * 
+		_starpu_dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[(ks + 1) * 
 			vr_dim1 + 1], &c__1, &c_b21, &work[1], &c__1);
-		tmpii = ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
+		tmpii = _starpu_ddot_(n, &work[1], &c__1, &vl[(ks + 1) * vl_dim1 + 1], 
 			 &c__1);
-		tmpir = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
+		tmpir = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &
 			c__1);
 		uhbv = tmprr + tmpii;
 		uhbvi = tmpir - tmpri;
-		uhav = dlapy2_(&uhav, &uhavi);
-		uhbv = dlapy2_(&uhbv, &uhbvi);
-		cond = dlapy2_(&uhav, &uhbv);
+		uhav = _starpu_dlapy2_(&uhav, &uhavi);
+		uhbv = _starpu_dlapy2_(&uhbv, &uhbvi);
+		cond = _starpu_dlapy2_(&uhav, &uhbv);
 		s[ks] = cond / (rnrm * lnrm);
 		s[ks + 1] = s[ks];
 
@@ -572,17 +572,17 @@ static integer c__3 = 3;
 
 /*              Real eigenvalue. */
 
-		rnrm = dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
-		lnrm = dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
-		dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[ks * vr_dim1 
+		rnrm = _starpu_dnrm2_(n, &vr[ks * vr_dim1 + 1], &c__1);
+		lnrm = _starpu_dnrm2_(n, &vl[ks * vl_dim1 + 1], &c__1);
+		_starpu_dgemv_("N", n, n, &c_b19, &a[a_offset], lda, &vr[ks * vr_dim1 
 			+ 1], &c__1, &c_b21, &work[1], &c__1);
-		uhav = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &c__1)
+		uhav = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &c__1)
 			;
-		dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[ks * vr_dim1 
+		_starpu_dgemv_("N", n, n, &c_b19, &b[b_offset], ldb, &vr[ks * vr_dim1 
 			+ 1], &c__1, &c_b21, &work[1], &c__1);
-		uhbv = ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &c__1)
+		uhbv = _starpu_ddot_(n, &work[1], &c__1, &vl[ks * vl_dim1 + 1], &c__1)
 			;
-		cond = dlapy2_(&uhav, &uhbv);
+		cond = _starpu_dlapy2_(&uhav, &uhbv);
 		if (cond == 0.) {
 		    s[ks] = -1.;
 		} else {
@@ -593,7 +593,7 @@ static integer c__3 = 3;
 
 	if (wantdf) {
 	    if (*n == 1) {
-		dif[ks] = dlapy2_(&a[a_dim1 + 1], &b[b_dim1 + 1]);
+		dif[ks] = _starpu_dlapy2_(&a[a_dim1 + 1], &b[b_dim1 + 1]);
 		goto L20;
 	    }
 
@@ -613,7 +613,7 @@ static integer c__3 = 3;
 		work[7] = b[k + (k + 1) * b_dim1];
 		work[8] = b[k + 1 + (k + 1) * b_dim1];
 		d__1 = smlnum * eps;
-		dlag2_(&work[1], &c__2, &work[5], &c__2, &d__1, &beta, dummy1, 
+		_starpu_dlag2_(&work[1], &c__2, &work[5], &c__2, &d__1, &beta, dummy1, 
 			 &alphar, dummy, &alphai);
 		alprqt = 1.;
 		c1 = (alphar * alphar + alphai * alphai + beta * beta) * 2.;
@@ -629,13 +629,13 @@ static integer c__3 = 3;
 /*           Copy the matrix (A, B) to the array WORK and swap the */
 /*           diagonal block beginning at A(k,k) to the (1,1) position. */
 
-	    dlacpy_("Full", n, n, &a[a_offset], lda, &work[1], n);
-	    dlacpy_("Full", n, n, &b[b_offset], ldb, &work[*n * *n + 1], n);
+	    _starpu_dlacpy_("Full", n, n, &a[a_offset], lda, &work[1], n);
+	    _starpu_dlacpy_("Full", n, n, &b[b_offset], ldb, &work[*n * *n + 1], n);
 	    ifst = k;
 	    ilst = 1;
 
 	    i__2 = *lwork - (*n << 1) * *n;
-	    dtgexc_(&c_false, &c_false, n, &work[1], n, &work[*n * *n + 1], n, 
+	    _starpu_dtgexc_(&c_false, &c_false, n, &work[1], n, &work[*n * *n + 1], n, 
 		     dummy, &c__1, dummy1, &c__1, &ifst, &ilst, &work[(*n * *
 		    n << 1) + 1], &i__2, &ierr);
 
@@ -663,7 +663,7 @@ static integer c__3 = 3;
 		    i__ = *n * *n + 1;
 		    iz = (*n << 1) * *n + 1;
 		    i__2 = *lwork - (*n << 1) * *n;
-		    dtgsyl_("N", &c__3, &n2, &n1, &work[*n * n1 + n1 + 1], n, 
+		    _starpu_dtgsyl_("N", &c__3, &n2, &n1, &work[*n * n1 + n1 + 1], n, 
 			    &work[1], n, &work[n1 + 1], n, &work[*n * n1 + n1 
 			    + i__], n, &work[i__], n, &work[n1 + i__], n, &
 			    scale, &dif[ks], &work[iz + 1], &i__2, &iwork[1], 
@@ -692,4 +692,4 @@ L20:
 
 /*     End of DTGSNA */
 
-} /* dtgsna_ */
+} /* _starpu_dtgsna_ */

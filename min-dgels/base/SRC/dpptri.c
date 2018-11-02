@@ -18,7 +18,7 @@
 static doublereal c_b8 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dpptri_(char *uplo, integer *n, doublereal *ap, integer *
+/* Subroutine */ int _starpu_dpptri_(char *uplo, integer *n, doublereal *ap, integer *
 	info)
 {
     /* System generated locals */
@@ -28,16 +28,16 @@ static integer c__1 = 1;
     integer j, jc, jj;
     doublereal ajj;
     integer jjn;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern /* Subroutine */ int dspr_(char *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), dscal_(integer *, 
+    extern /* Subroutine */ int _starpu_dspr_(char *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_dscal_(integer *, 
 	    doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtpmv_(char *, char *, char *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtpmv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dtptri_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dtptri_(
 	    char *, char *, integer *, doublereal *, integer *);
 
 
@@ -103,15 +103,15 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPPTRI", &i__1);
+	_starpu_xerbla_("DPPTRI", &i__1);
 	return 0;
     }
 
@@ -123,7 +123,7 @@ static integer c__1 = 1;
 
 /*     Invert the triangular Cholesky factor U or L. */
 
-    dtptri_(uplo, "Non-unit", n, &ap[1], info);
+    _starpu_dtptri_(uplo, "Non-unit", n, &ap[1], info);
     if (*info > 0) {
 	return 0;
     }
@@ -139,10 +139,10 @@ static integer c__1 = 1;
 	    jj += j;
 	    if (j > 1) {
 		i__2 = j - 1;
-		dspr_("Upper", &i__2, &c_b8, &ap[jc], &c__1, &ap[1]);
+		_starpu_dspr_("Upper", &i__2, &c_b8, &ap[jc], &c__1, &ap[1]);
 	    }
 	    ajj = ap[jj];
-	    dscal_(&j, &ajj, &ap[jc], &c__1);
+	    _starpu_dscal_(&j, &ajj, &ap[jc], &c__1);
 /* L10: */
 	}
 
@@ -155,10 +155,10 @@ static integer c__1 = 1;
 	for (j = 1; j <= i__1; ++j) {
 	    jjn = jj + *n - j + 1;
 	    i__2 = *n - j + 1;
-	    ap[jj] = ddot_(&i__2, &ap[jj], &c__1, &ap[jj], &c__1);
+	    ap[jj] = _starpu_ddot_(&i__2, &ap[jj], &c__1, &ap[jj], &c__1);
 	    if (j < *n) {
 		i__2 = *n - j;
-		dtpmv_("Lower", "Transpose", "Non-unit", &i__2, &ap[jjn], &ap[
+		_starpu_dtpmv_("Lower", "Transpose", "Non-unit", &i__2, &ap[jjn], &ap[
 			jj + 1], &c__1);
 	    }
 	    jj = jjn;
@@ -170,4 +170,4 @@ static integer c__1 = 1;
 
 /*     End of DPPTRI */
 
-} /* dpptri_ */
+} /* _starpu_dpptri_ */

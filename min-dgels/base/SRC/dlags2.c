@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlags2_(logical *upper, doublereal *a1, doublereal *a2, 
+/* Subroutine */ int _starpu_dlags2_(logical *upper, doublereal *a1, doublereal *a2, 
 	doublereal *a3, doublereal *b1, doublereal *b2, doublereal *b3, 
 	doublereal *csu, doublereal *snu, doublereal *csv, doublereal *snv, 
 	doublereal *csq, doublereal *snq)
@@ -25,9 +25,9 @@
     doublereal a, b, c__, d__, r__, s1, s2, ua11, ua12, ua21, ua22, vb11, 
 	    vb12, vb21, vb22, csl, csr, snl, snr, aua11, aua12, aua21, aua22, 
 	    avb11, avb12, avb21, avb22, ua11r, ua22r, vb11r, vb22r;
-    extern /* Subroutine */ int dlasv2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), dlartg_(doublereal *, 
+	    doublereal *, doublereal *, doublereal *), _starpu_dlartg_(doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *);
 
 
@@ -125,7 +125,7 @@
 /*         ( CSL -SNL )*( A B )*(  CSR  SNR ) = ( R 0 ) */
 /*         ( SNL  CSL ) ( 0 D ) ( -SNR  CSR )   ( 0 T ) */
 
-	dlasv2_(&a, &b, &d__, &s1, &s2, &snr, &csr, &snl, &csl);
+	_starpu_dlasv2_(&a, &b, &d__, &s1, &s2, &snr, &csr, &snl, &csl);
 
 	if (abs(csl) >= abs(snl) || abs(csr) >= abs(snr)) {
 
@@ -147,14 +147,14 @@
 		if (aua12 / (abs(ua11r) + abs(ua12)) <= avb12 / (abs(vb11r) + 
 			abs(vb12))) {
 		    d__1 = -ua11r;
-		    dlartg_(&d__1, &ua12, csq, snq, &r__);
+		    _starpu_dlartg_(&d__1, &ua12, csq, snq, &r__);
 		} else {
 		    d__1 = -vb11r;
-		    dlartg_(&d__1, &vb12, csq, snq, &r__);
+		    _starpu_dlartg_(&d__1, &vb12, csq, snq, &r__);
 		}
 	    } else {
 		d__1 = -vb11r;
-		dlartg_(&d__1, &vb12, csq, snq, &r__);
+		_starpu_dlartg_(&d__1, &vb12, csq, snq, &r__);
 	    }
 
 	    *csu = csl;
@@ -182,14 +182,14 @@
 		if (aua22 / (abs(ua21) + abs(ua22)) <= avb22 / (abs(vb21) + 
 			abs(vb22))) {
 		    d__1 = -ua21;
-		    dlartg_(&d__1, &ua22, csq, snq, &r__);
+		    _starpu_dlartg_(&d__1, &ua22, csq, snq, &r__);
 		} else {
 		    d__1 = -vb21;
-		    dlartg_(&d__1, &vb22, csq, snq, &r__);
+		    _starpu_dlartg_(&d__1, &vb22, csq, snq, &r__);
 		}
 	    } else {
 		d__1 = -vb21;
-		dlartg_(&d__1, &vb22, csq, snq, &r__);
+		_starpu_dlartg_(&d__1, &vb22, csq, snq, &r__);
 	    }
 
 	    *csu = snl;
@@ -215,7 +215,7 @@
 /*         ( CSL -SNL )*( A 0 )*(  CSR  SNR ) = ( R 0 ) */
 /*         ( SNL  CSL ) ( C D ) ( -SNR  CSR )   ( 0 T ) */
 
-	dlasv2_(&a, &c__, &d__, &s1, &s2, &snr, &csr, &snl, &csl);
+	_starpu_dlasv2_(&a, &c__, &d__, &s1, &s2, &snr, &csr, &snl, &csl);
 
 	if (abs(csr) >= abs(snr) || abs(csl) >= abs(snl)) {
 
@@ -236,12 +236,12 @@
 	    if (abs(ua21) + abs(ua22r) != 0.) {
 		if (aua21 / (abs(ua21) + abs(ua22r)) <= avb21 / (abs(vb21) + 
 			abs(vb22r))) {
-		    dlartg_(&ua22r, &ua21, csq, snq, &r__);
+		    _starpu_dlartg_(&ua22r, &ua21, csq, snq, &r__);
 		} else {
-		    dlartg_(&vb22r, &vb21, csq, snq, &r__);
+		    _starpu_dlartg_(&vb22r, &vb21, csq, snq, &r__);
 		}
 	    } else {
-		dlartg_(&vb22r, &vb21, csq, snq, &r__);
+		_starpu_dlartg_(&vb22r, &vb21, csq, snq, &r__);
 	    }
 
 	    *csu = csr;
@@ -268,12 +268,12 @@
 	    if (abs(ua11) + abs(ua12) != 0.) {
 		if (aua11 / (abs(ua11) + abs(ua12)) <= avb11 / (abs(vb11) + 
 			abs(vb12))) {
-		    dlartg_(&ua12, &ua11, csq, snq, &r__);
+		    _starpu_dlartg_(&ua12, &ua11, csq, snq, &r__);
 		} else {
-		    dlartg_(&vb12, &vb11, csq, snq, &r__);
+		    _starpu_dlartg_(&vb12, &vb11, csq, snq, &r__);
 		}
 	    } else {
-		dlartg_(&vb12, &vb11, csq, snq, &r__);
+		_starpu_dlartg_(&vb12, &vb11, csq, snq, &r__);
 	    }
 
 	    *csu = snr;
@@ -289,4 +289,4 @@
 
 /*     End of DLAGS2 */
 
-} /* dlags2_ */
+} /* _starpu_dlags2_ */

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2018                                Inria
+ * Copyright (C) 2017                                     Arthur Chevalier
  * Copyright (C) 2012-2018                                CNRS
  * Copyright (C) 2012-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
@@ -1011,10 +1012,24 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	_starpu_sched_ctx_lock_write(sched_ctx_id);
+
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
+	_starpu_sched_ctx_lock_write(inheritor_sched_ctx_id);
 
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
+
+	int i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		struct _starpu_sched_ctx *psched_ctx = _starpu_get_sched_ctx_struct(i);
+		if (psched_ctx->inheritor == sched_ctx_id)
+		{
+			_starpu_sched_ctx_lock_write(i);
+			psched_ctx->inheritor = inheritor_sched_ctx_id;
+			_starpu_sched_ctx_unlock_write(i);
+		}
+	}
 
 	int *workerids;
 	unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
@@ -1052,6 +1067,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		notify_workers_about_changing_ctx_done(nworkers_ctx, backup_workerids);
 		occupied_sms -= sched_ctx->nsms;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
@@ -1060,6 +1076,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		notify_workers_about_changing_ctx_done(nworkers_ctx, backup_workerids);
 		occupied_sms -= sched_ctx->nsms;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 	}
 	/* workerids is malloc-ed in starpu_sched_ctx_get_workers_list, don't forget to free it when
 	   you don't use it anymore */
@@ -1107,9 +1124,13 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 /* ctx_mutex must be held when calling this function */
 static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 {
-	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
+	struct starpu_task_list list;
+	starpu_task_list_move(&list, &sched_ctx->empty_ctx_tasks);
+
+	_starpu_sched_ctx_unlock_write(sched_ctx->id);
+	while(!starpu_task_list_empty(&list))
 	{
-		struct starpu_task *old_task = starpu_task_list_pop_back(&sched_ctx->empty_ctx_tasks);
+		struct starpu_task *old_task = starpu_task_list_pop_back(&list);
 		if(old_task == &stop_submission_task)
 			break;
 
@@ -1123,6 +1144,7 @@ static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 		if (ret == -EAGAIN)
 			break;
 	}
+	_starpu_sched_ctx_lock_write(sched_ctx->id);
 }
 
 unsigned _starpu_can_push_task(struct _starpu_sched_ctx *sched_ctx, struct starpu_task *task)
@@ -2258,6 +2280,10 @@ void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double ready_f
 
 void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned sched_ctx, unsigned with_repush)
 {
+	/* Restore state just like out of dependency layers */
+	STARPU_ASSERT(task->status == STARPU_TASK_READY);
+	task->status = STARPU_TASK_BLOCKED;
+
 	/* TODO: make something cleaner which differentiates between calls
 	   from push or pop (have mutex or not) and from another worker or not */
 	task->sched_ctx = sched_ctx;

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013-2017                      Université de Bordeaux
- * Copyright (C) 2010-2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2008-2011,2013-2018                      Université de Bordeaux
  * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -121,12 +121,15 @@ LIST_TYPE(_starpu_data_requester,
 	struct _starpu_job *j;
 	unsigned buffer_index;
 
+	int prio;
+
 	/* if this is more complicated ... (eg. application request) 
 	 * NB: this callback is not called with the lock taken !
 	 */
 	void (*ready_data_callback)(void *argcb);
 	void *argcb;
 )
+PRIO_LIST_TYPE(_starpu_data_requester, prio)
 
 void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);

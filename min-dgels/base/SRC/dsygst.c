@@ -22,7 +22,7 @@ static doublereal c_b16 = -.5;
 static doublereal c_b19 = -1.;
 static doublereal c_b52 = .5;
 
-/* Subroutine */ int dsygst_(integer *itype, char *uplo, integer *n, 
+/* Subroutine */ int _starpu_dsygst_(integer *itype, char *uplo, integer *n, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
 	info)
 {
@@ -31,23 +31,23 @@ static doublereal c_b52 = .5;
 
     /* Local variables */
     integer k, kb, nb;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dsymm_(
+	    doublereal *, integer *), _starpu_dsymm_(
 	    char *, char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *);
     logical upper;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dsygs2_(
+	    doublereal *, integer *), _starpu_dsygs2_(
 	    integer *, char *, integer *, doublereal *, integer *, doublereal 
-	    *, integer *, integer *), dsyr2k_(char *, char *, integer 
+	    *, integer *, integer *), _starpu_dsyr2k_(char *, char *, integer 
 	    *, integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, doublereal *, integer *)
-	    , xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    , _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
 
@@ -142,10 +142,10 @@ static doublereal c_b52 = .5;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -156,7 +156,7 @@ static doublereal c_b52 = .5;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYGST", &i__1);
+	_starpu_xerbla_("DSYGST", &i__1);
 	return 0;
     }
 
@@ -168,13 +168,13 @@ static doublereal c_b52 = .5;
 
 /*     Determine the block size for this environment. */
 
-    nb = ilaenv_(&c__1, "DSYGST", uplo, n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DSYGST", uplo, n, &c_n1, &c_n1, &c_n1);
 
     if (nb <= 1 || nb >= *n) {
 
 /*        Use unblocked code */
 
-	dsygs2_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
+	_starpu_dsygs2_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
     } else {
 
 /*        Use blocked code */
@@ -193,28 +193,28 @@ static doublereal c_b52 = .5;
 
 /*                 Update the upper triangle of A(k:n,k:n) */
 
-		    dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
+		    _starpu_dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
 			    k * b_dim1], ldb, info);
 		    if (k + kb <= *n) {
 			i__3 = *n - k - kb + 1;
-			dtrsm_("Left", uplo, "Transpose", "Non-unit", &kb, &
+			_starpu_dtrsm_("Left", uplo, "Transpose", "Non-unit", &kb, &
 				i__3, &c_b14, &b[k + k * b_dim1], ldb, &a[k + 
 				(k + kb) * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsymm_("Left", uplo, &kb, &i__3, &c_b16, &a[k + k * 
+			_starpu_dsymm_("Left", uplo, &kb, &i__3, &c_b16, &a[k + k * 
 				a_dim1], lda, &b[k + (k + kb) * b_dim1], ldb, 
 				&c_b14, &a[k + (k + kb) * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsyr2k_(uplo, "Transpose", &i__3, &kb, &c_b19, &a[k + 
+			_starpu_dsyr2k_(uplo, "Transpose", &i__3, &kb, &c_b19, &a[k + 
 				(k + kb) * a_dim1], lda, &b[k + (k + kb) * 
 				b_dim1], ldb, &c_b14, &a[k + kb + (k + kb) * 
 				a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsymm_("Left", uplo, &kb, &i__3, &c_b16, &a[k + k * 
+			_starpu_dsymm_("Left", uplo, &kb, &i__3, &c_b16, &a[k + k * 
 				a_dim1], lda, &b[k + (k + kb) * b_dim1], ldb, 
 				&c_b14, &a[k + (k + kb) * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dtrsm_("Right", uplo, "No transpose", "Non-unit", &kb, 
+			_starpu_dtrsm_("Right", uplo, "No transpose", "Non-unit", &kb, 
 				 &i__3, &c_b14, &b[k + kb + (k + kb) * b_dim1]
 , ldb, &a[k + (k + kb) * a_dim1], lda);
 		    }
@@ -233,28 +233,28 @@ static doublereal c_b52 = .5;
 
 /*                 Update the lower triangle of A(k:n,k:n) */
 
-		    dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
+		    _starpu_dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
 			    k * b_dim1], ldb, info);
 		    if (k + kb <= *n) {
 			i__3 = *n - k - kb + 1;
-			dtrsm_("Right", uplo, "Transpose", "Non-unit", &i__3, 
+			_starpu_dtrsm_("Right", uplo, "Transpose", "Non-unit", &i__3, 
 				&kb, &c_b14, &b[k + k * b_dim1], ldb, &a[k + 
 				kb + k * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsymm_("Right", uplo, &i__3, &kb, &c_b16, &a[k + k * 
+			_starpu_dsymm_("Right", uplo, &i__3, &kb, &c_b16, &a[k + k * 
 				a_dim1], lda, &b[k + kb + k * b_dim1], ldb, &
 				c_b14, &a[k + kb + k * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsyr2k_(uplo, "No transpose", &i__3, &kb, &c_b19, &a[
+			_starpu_dsyr2k_(uplo, "No transpose", &i__3, &kb, &c_b19, &a[
 				k + kb + k * a_dim1], lda, &b[k + kb + k * 
 				b_dim1], ldb, &c_b14, &a[k + kb + (k + kb) * 
 				a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dsymm_("Right", uplo, &i__3, &kb, &c_b16, &a[k + k * 
+			_starpu_dsymm_("Right", uplo, &i__3, &kb, &c_b16, &a[k + k * 
 				a_dim1], lda, &b[k + kb + k * b_dim1], ldb, &
 				c_b14, &a[k + kb + k * a_dim1], lda);
 			i__3 = *n - k - kb + 1;
-			dtrsm_("Left", uplo, "No transpose", "Non-unit", &
+			_starpu_dtrsm_("Left", uplo, "No transpose", "Non-unit", &
 				i__3, &kb, &c_b14, &b[k + kb + (k + kb) * 
 				b_dim1], ldb, &a[k + kb + k * a_dim1], lda);
 		    }
@@ -276,27 +276,27 @@ static doublereal c_b52 = .5;
 /*                 Update the upper triangle of A(1:k+kb-1,1:k+kb-1) */
 
 		    i__3 = k - 1;
-		    dtrmm_("Left", uplo, "No transpose", "Non-unit", &i__3, &
+		    _starpu_dtrmm_("Left", uplo, "No transpose", "Non-unit", &i__3, &
 			    kb, &c_b14, &b[b_offset], ldb, &a[k * a_dim1 + 1], 
 			     lda)
 			    ;
 		    i__3 = k - 1;
-		    dsymm_("Right", uplo, &i__3, &kb, &c_b52, &a[k + k * 
+		    _starpu_dsymm_("Right", uplo, &i__3, &kb, &c_b52, &a[k + k * 
 			    a_dim1], lda, &b[k * b_dim1 + 1], ldb, &c_b14, &a[
 			    k * a_dim1 + 1], lda);
 		    i__3 = k - 1;
-		    dsyr2k_(uplo, "No transpose", &i__3, &kb, &c_b14, &a[k * 
+		    _starpu_dsyr2k_(uplo, "No transpose", &i__3, &kb, &c_b14, &a[k * 
 			    a_dim1 + 1], lda, &b[k * b_dim1 + 1], ldb, &c_b14, 
 			     &a[a_offset], lda);
 		    i__3 = k - 1;
-		    dsymm_("Right", uplo, &i__3, &kb, &c_b52, &a[k + k * 
+		    _starpu_dsymm_("Right", uplo, &i__3, &kb, &c_b52, &a[k + k * 
 			    a_dim1], lda, &b[k * b_dim1 + 1], ldb, &c_b14, &a[
 			    k * a_dim1 + 1], lda);
 		    i__3 = k - 1;
-		    dtrmm_("Right", uplo, "Transpose", "Non-unit", &i__3, &kb, 
+		    _starpu_dtrmm_("Right", uplo, "Transpose", "Non-unit", &i__3, &kb, 
 			     &c_b14, &b[k + k * b_dim1], ldb, &a[k * a_dim1 + 
 			    1], lda);
-		    dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
+		    _starpu_dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
 			    k * b_dim1], ldb, info);
 /* L30: */
 		}
@@ -314,26 +314,26 @@ static doublereal c_b52 = .5;
 /*                 Update the lower triangle of A(1:k+kb-1,1:k+kb-1) */
 
 		    i__3 = k - 1;
-		    dtrmm_("Right", uplo, "No transpose", "Non-unit", &kb, &
+		    _starpu_dtrmm_("Right", uplo, "No transpose", "Non-unit", &kb, &
 			    i__3, &c_b14, &b[b_offset], ldb, &a[k + a_dim1], 
 			    lda);
 		    i__3 = k - 1;
-		    dsymm_("Left", uplo, &kb, &i__3, &c_b52, &a[k + k * 
+		    _starpu_dsymm_("Left", uplo, &kb, &i__3, &c_b52, &a[k + k * 
 			    a_dim1], lda, &b[k + b_dim1], ldb, &c_b14, &a[k + 
 			    a_dim1], lda);
 		    i__3 = k - 1;
-		    dsyr2k_(uplo, "Transpose", &i__3, &kb, &c_b14, &a[k + 
+		    _starpu_dsyr2k_(uplo, "Transpose", &i__3, &kb, &c_b14, &a[k + 
 			    a_dim1], lda, &b[k + b_dim1], ldb, &c_b14, &a[
 			    a_offset], lda);
 		    i__3 = k - 1;
-		    dsymm_("Left", uplo, &kb, &i__3, &c_b52, &a[k + k * 
+		    _starpu_dsymm_("Left", uplo, &kb, &i__3, &c_b52, &a[k + k * 
 			    a_dim1], lda, &b[k + b_dim1], ldb, &c_b14, &a[k + 
 			    a_dim1], lda);
 		    i__3 = k - 1;
-		    dtrmm_("Left", uplo, "Transpose", "Non-unit", &kb, &i__3, 
+		    _starpu_dtrmm_("Left", uplo, "Transpose", "Non-unit", &kb, &i__3, 
 			    &c_b14, &b[k + k * b_dim1], ldb, &a[k + a_dim1], 
 			    lda);
-		    dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
+		    _starpu_dsygs2_(itype, uplo, &kb, &a[k + k * a_dim1], lda, &b[k + 
 			    k * b_dim1], ldb, info);
 /* L40: */
 		}
@@ -344,4 +344,4 @@ static doublereal c_b52 = .5;
 
 /*     End of DSYGST */
 
-} /* dsygst_ */
+} /* _starpu_dsygst_ */

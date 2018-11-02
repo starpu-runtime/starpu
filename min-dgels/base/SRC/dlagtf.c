@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlagtf_(integer *n, doublereal *a, doublereal *lambda, 
+/* Subroutine */ int _starpu_dlagtf_(integer *n, doublereal *a, doublereal *lambda, 
 	doublereal *b, doublereal *c__, doublereal *tol, doublereal *d__, 
 	integer *in, integer *info)
 {
@@ -24,8 +24,8 @@
     /* Local variables */
     integer k;
     doublereal tl, eps, piv1, piv2, temp, mult, scale1, scale2;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -144,7 +144,7 @@
     if (*n < 0) {
 	*info = -1;
 	i__1 = -(*info);
-	xerbla_("DLAGTF", &i__1);
+	_starpu_xerbla_("DLAGTF", &i__1);
 	return 0;
     }
 
@@ -161,7 +161,7 @@
 	return 0;
     }
 
-    eps = dlamch_("Epsilon");
+    eps = _starpu_dlamch_("Epsilon");
 
     tl = max(*tol,eps);
     scale1 = abs(a[1]) + abs(b[1]);
@@ -221,4 +221,4 @@
 
 /*     End of DLAGTF */
 
-} /* dlagtf_ */
+} /* _starpu_dlagtf_ */

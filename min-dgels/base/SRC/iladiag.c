@@ -13,13 +13,13 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer iladiag_(char *diag)
+integer _starpu_iladiag_(char *diag)
 {
     /* System generated locals */
     integer ret_val;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -51,9 +51,9 @@ integer iladiag_(char *diag)
 /*     .. External Functions .. */
 /*     .. */
 /*     .. Executable Statements .. */
-    if (lsame_(diag, "N")) {
+    if (_starpu_lsame_(diag, "N")) {
 	ret_val = 131;
-    } else if (lsame_(diag, "U")) {
+    } else if (_starpu_lsame_(diag, "U")) {
 	ret_val = 132;
     } else {
 	ret_val = -1;
@@ -62,4 +62,4 @@ integer iladiag_(char *diag)
 
 /*     End of ILADIAG */
 
-} /* iladiag_ */
+} /* _starpu_iladiag_ */

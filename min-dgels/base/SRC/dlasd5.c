@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasd5_(integer *i__, doublereal *d__, doublereal *z__, 
+/* Subroutine */ int _starpu_dlasd5_(integer *i__, doublereal *d__, doublereal *z__, 
 	doublereal *delta, doublereal *rho, doublereal *dsigma, doublereal *
 	work)
 {
@@ -186,4 +186,4 @@
 
 /*     End of DLASD5 */
 
-} /* dlasd5_ */
+} /* _starpu_dlasd5_ */

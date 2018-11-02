@@ -21,7 +21,7 @@ static doublereal c_b11 = 1.;
 static doublereal c_b13 = 0.;
 static integer c__0 = 0;
 
-/* Subroutine */ int dlals0_(integer *icompq, integer *nl, integer *nr, 
+/* Subroutine */ int _starpu_dlals0_(integer *icompq, integer *nl, integer *nr, 
 	integer *sqre, integer *nrhs, doublereal *b, integer *ldb, doublereal 
 	*bx, integer *ldbx, integer *perm, integer *givptr, integer *givcol, 
 	integer *ldgcol, doublereal *givnum, integer *ldgnum, doublereal *
@@ -39,22 +39,22 @@ static integer c__0 = 0;
     doublereal dj;
     integer nlp1;
     doublereal temp;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *);
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal diflj, difrj, dsigj;
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dcopy_(integer *, 
+	    doublereal *, doublereal *, integer *), _starpu_dcopy_(integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern doublereal _starpu_dlamc3_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlacpy_(char *, integer *, integer 
+	    integer *, integer *), _starpu_dlacpy_(char *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal dsigjp;
 
 
@@ -281,7 +281,7 @@ static integer c__0 = 0;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLALS0", &i__1);
+	_starpu_xerbla_("DLALS0", &i__1);
 	return 0;
     }
 
@@ -296,7 +296,7 @@ static integer c__0 = 0;
 
 	i__1 = *givptr;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    drot_(nrhs, &b[givcol[i__ + (givcol_dim1 << 1)] + b_dim1], ldb, &
+	    _starpu_drot_(nrhs, &b[givcol[i__ + (givcol_dim1 << 1)] + b_dim1], ldb, &
 		    b[givcol[i__ + givcol_dim1] + b_dim1], ldb, &givnum[i__ + 
 		    (givnum_dim1 << 1)], &givnum[i__ + givnum_dim1]);
 /* L10: */
@@ -304,10 +304,10 @@ static integer c__0 = 0;
 
 /*        Step (2L): permute rows of B. */
 
-	dcopy_(nrhs, &b[nlp1 + b_dim1], ldb, &bx[bx_dim1 + 1], ldbx);
+	_starpu_dcopy_(nrhs, &b[nlp1 + b_dim1], ldb, &bx[bx_dim1 + 1], ldbx);
 	i__1 = n;
 	for (i__ = 2; i__ <= i__1; ++i__) {
-	    dcopy_(nrhs, &b[perm[i__] + b_dim1], ldb, &bx[i__ + bx_dim1], 
+	    _starpu_dcopy_(nrhs, &b[perm[i__] + b_dim1], ldb, &bx[i__ + bx_dim1], 
 		    ldbx);
 /* L20: */
 	}
@@ -316,9 +316,9 @@ static integer c__0 = 0;
 /*        matrix to BX. */
 
 	if (*k == 1) {
-	    dcopy_(nrhs, &bx[bx_offset], ldbx, &b[b_offset], ldb);
+	    _starpu_dcopy_(nrhs, &bx[bx_offset], ldbx, &b[b_offset], ldb);
 	    if (z__[1] < 0.) {
-		dscal_(nrhs, &c_b5, &b[b_offset], ldb);
+		_starpu_dscal_(nrhs, &c_b5, &b[b_offset], ldb);
 	    }
 	} else {
 	    i__1 = *k;
@@ -343,7 +343,7 @@ static integer c__0 = 0;
 			work[i__] = 0.;
 		    } else {
 			work[i__] = poles[i__ + (poles_dim1 << 1)] * z__[i__] 
-				/ (dlamc3_(&poles[i__ + (poles_dim1 << 1)], &
+				/ (_starpu_dlamc3_(&poles[i__ + (poles_dim1 << 1)], &
 				dsigj) - diflj) / (poles[i__ + (poles_dim1 << 
 				1)] + dj);
 		    }
@@ -356,17 +356,17 @@ static integer c__0 = 0;
 			work[i__] = 0.;
 		    } else {
 			work[i__] = poles[i__ + (poles_dim1 << 1)] * z__[i__] 
-				/ (dlamc3_(&poles[i__ + (poles_dim1 << 1)], &
+				/ (_starpu_dlamc3_(&poles[i__ + (poles_dim1 << 1)], &
 				dsigjp) + difrj) / (poles[i__ + (poles_dim1 <<
 				 1)] + dj);
 		    }
 /* L40: */
 		}
 		work[1] = -1.;
-		temp = dnrm2_(k, &work[1], &c__1);
-		dgemv_("T", k, nrhs, &c_b11, &bx[bx_offset], ldbx, &work[1], &
+		temp = _starpu_dnrm2_(k, &work[1], &c__1);
+		_starpu_dgemv_("T", k, nrhs, &c_b11, &bx[bx_offset], ldbx, &work[1], &
 			c__1, &c_b13, &b[j + b_dim1], ldb);
-		dlascl_("G", &c__0, &c__0, &temp, &c_b11, &c__1, nrhs, &b[j + 
+		_starpu_dlascl_("G", &c__0, &c__0, &temp, &c_b11, &c__1, nrhs, &b[j + 
 			b_dim1], ldb, info);
 /* L50: */
 	    }
@@ -376,7 +376,7 @@ static integer c__0 = 0;
 
 	if (*k < max(m,n)) {
 	    i__1 = n - *k;
-	    dlacpy_("A", &i__1, nrhs, &bx[*k + 1 + bx_dim1], ldbx, &b[*k + 1 
+	    _starpu_dlacpy_("A", &i__1, nrhs, &bx[*k + 1 + bx_dim1], ldbx, &b[*k + 1 
 		    + b_dim1], ldb);
 	}
     } else {
@@ -387,7 +387,7 @@ static integer c__0 = 0;
 /*        to B. */
 
 	if (*k == 1) {
-	    dcopy_(nrhs, &b[b_offset], ldb, &bx[bx_offset], ldbx);
+	    _starpu_dcopy_(nrhs, &b[b_offset], ldb, &bx[bx_offset], ldbx);
 	} else {
 	    i__1 = *k;
 	    for (j = 1; j <= i__1; ++j) {
@@ -404,7 +404,7 @@ static integer c__0 = 0;
 			work[i__] = 0.;
 		    } else {
 			d__1 = -poles[i__ + 1 + (poles_dim1 << 1)];
-			work[i__] = z__[j] / (dlamc3_(&dsigj, &d__1) - difr[
+			work[i__] = z__[j] / (_starpu_dlamc3_(&dsigj, &d__1) - difr[
 				i__ + difr_dim1]) / (dsigj + poles[i__ + 
 				poles_dim1]) / difr[i__ + (difr_dim1 << 1)];
 		    }
@@ -416,13 +416,13 @@ static integer c__0 = 0;
 			work[i__] = 0.;
 		    } else {
 			d__1 = -poles[i__ + (poles_dim1 << 1)];
-			work[i__] = z__[j] / (dlamc3_(&dsigj, &d__1) - difl[
+			work[i__] = z__[j] / (_starpu_dlamc3_(&dsigj, &d__1) - difl[
 				i__]) / (dsigj + poles[i__ + poles_dim1]) / 
 				difr[i__ + (difr_dim1 << 1)];
 		    }
 /* L70: */
 		}
-		dgemv_("T", k, nrhs, &c_b11, &b[b_offset], ldb, &work[1], &
+		_starpu_dgemv_("T", k, nrhs, &c_b11, &b[b_offset], ldb, &work[1], &
 			c__1, &c_b13, &bx[j + bx_dim1], ldbx);
 /* L80: */
 	    }
@@ -432,25 +432,25 @@ static integer c__0 = 0;
 /*        related to the right null space of the subproblem. */
 
 	if (*sqre == 1) {
-	    dcopy_(nrhs, &b[m + b_dim1], ldb, &bx[m + bx_dim1], ldbx);
-	    drot_(nrhs, &bx[bx_dim1 + 1], ldbx, &bx[m + bx_dim1], ldbx, c__, 
+	    _starpu_dcopy_(nrhs, &b[m + b_dim1], ldb, &bx[m + bx_dim1], ldbx);
+	    _starpu_drot_(nrhs, &bx[bx_dim1 + 1], ldbx, &bx[m + bx_dim1], ldbx, c__, 
 		    s);
 	}
 	if (*k < max(m,n)) {
 	    i__1 = n - *k;
-	    dlacpy_("A", &i__1, nrhs, &b[*k + 1 + b_dim1], ldb, &bx[*k + 1 + 
+	    _starpu_dlacpy_("A", &i__1, nrhs, &b[*k + 1 + b_dim1], ldb, &bx[*k + 1 + 
 		    bx_dim1], ldbx);
 	}
 
 /*        Step (3R): permute rows of B. */
 
-	dcopy_(nrhs, &bx[bx_dim1 + 1], ldbx, &b[nlp1 + b_dim1], ldb);
+	_starpu_dcopy_(nrhs, &bx[bx_dim1 + 1], ldbx, &b[nlp1 + b_dim1], ldb);
 	if (*sqre == 1) {
-	    dcopy_(nrhs, &bx[m + bx_dim1], ldbx, &b[m + b_dim1], ldb);
+	    _starpu_dcopy_(nrhs, &bx[m + bx_dim1], ldbx, &b[m + b_dim1], ldb);
 	}
 	i__1 = n;
 	for (i__ = 2; i__ <= i__1; ++i__) {
-	    dcopy_(nrhs, &bx[i__ + bx_dim1], ldbx, &b[perm[i__] + b_dim1], 
+	    _starpu_dcopy_(nrhs, &bx[i__ + bx_dim1], ldbx, &b[perm[i__] + b_dim1], 
 		    ldb);
 /* L90: */
 	}
@@ -459,7 +459,7 @@ static integer c__0 = 0;
 
 	for (i__ = *givptr; i__ >= 1; --i__) {
 	    d__1 = -givnum[i__ + givnum_dim1];
-	    drot_(nrhs, &b[givcol[i__ + (givcol_dim1 << 1)] + b_dim1], ldb, &
+	    _starpu_drot_(nrhs, &b[givcol[i__ + (givcol_dim1 << 1)] + b_dim1], ldb, &
 		    b[givcol[i__ + givcol_dim1] + b_dim1], ldb, &givnum[i__ + 
 		    (givnum_dim1 << 1)], &d__1);
 /* L100: */
@@ -470,4 +470,4 @@ static integer c__0 = 0;
 
 /*     End of DLALS0 */
 
-} /* dlals0_ */
+} /* _starpu_dlals0_ */

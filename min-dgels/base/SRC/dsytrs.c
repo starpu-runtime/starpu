@@ -19,7 +19,7 @@ static doublereal c_b7 = -1.;
 static integer c__1 = 1;
 static doublereal c_b19 = 1.;
 
-/* Subroutine */ int dsytrs_(char *uplo, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dsytrs_(char *uplo, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
 	ldb, integer *info)
 {
@@ -32,20 +32,20 @@ static doublereal c_b19 = 1.;
     doublereal ak, bk;
     integer kp;
     doublereal akm1, bkm1;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dger_(integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     doublereal akm1k;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal denom;
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dswap_(integer *, 
+	    doublereal *, doublereal *, integer *), _starpu_dswap_(integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -127,8 +127,8 @@ static doublereal c_b19 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -141,7 +141,7 @@ static doublereal c_b19 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYTRS", &i__1);
+	_starpu_xerbla_("DSYTRS", &i__1);
 	return 0;
     }
 
@@ -177,20 +177,20 @@ L10:
 
 	    kp = ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 
 /*           Multiply by inv(U(K)), where U(K) is the transformation */
 /*           stored in column K of A. */
 
 	    i__1 = k - 1;
-	    dger_(&i__1, nrhs, &c_b7, &a[k * a_dim1 + 1], &c__1, &b[k + 
+	    _starpu_dger_(&i__1, nrhs, &c_b7, &a[k * a_dim1 + 1], &c__1, &b[k + 
 		    b_dim1], ldb, &b[b_dim1 + 1], ldb);
 
 /*           Multiply by the inverse of the diagonal block. */
 
 	    d__1 = 1. / a[k + k * a_dim1];
-	    dscal_(nrhs, &d__1, &b[k + b_dim1], ldb);
+	    _starpu_dscal_(nrhs, &d__1, &b[k + b_dim1], ldb);
 	    --k;
 	} else {
 
@@ -200,17 +200,17 @@ L10:
 
 	    kp = -ipiv[k];
 	    if (kp != k - 1) {
-		dswap_(nrhs, &b[k - 1 + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k - 1 + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 
 /*           Multiply by inv(U(K)), where U(K) is the transformation */
 /*           stored in columns K-1 and K of A. */
 
 	    i__1 = k - 2;
-	    dger_(&i__1, nrhs, &c_b7, &a[k * a_dim1 + 1], &c__1, &b[k + 
+	    _starpu_dger_(&i__1, nrhs, &c_b7, &a[k * a_dim1 + 1], &c__1, &b[k + 
 		    b_dim1], ldb, &b[b_dim1 + 1], ldb);
 	    i__1 = k - 2;
-	    dger_(&i__1, nrhs, &c_b7, &a[(k - 1) * a_dim1 + 1], &c__1, &b[k - 
+	    _starpu_dger_(&i__1, nrhs, &c_b7, &a[(k - 1) * a_dim1 + 1], &c__1, &b[k - 
 		    1 + b_dim1], ldb, &b[b_dim1 + 1], ldb);
 
 /*           Multiply by the inverse of the diagonal block. */
@@ -255,14 +255,14 @@ L40:
 /*           stored in column K of A. */
 
 	    i__1 = k - 1;
-	    dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[k * 
+	    _starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[k * 
 		    a_dim1 + 1], &c__1, &c_b19, &b[k + b_dim1], ldb);
 
 /*           Interchange rows K and IPIV(K). */
 
 	    kp = ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 	    ++k;
 	} else {
@@ -273,10 +273,10 @@ L40:
 /*           stored in columns K and K+1 of A. */
 
 	    i__1 = k - 1;
-	    dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[k * 
+	    _starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[k * 
 		    a_dim1 + 1], &c__1, &c_b19, &b[k + b_dim1], ldb);
 	    i__1 = k - 1;
-	    dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[(k 
+	    _starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[b_offset], ldb, &a[(k 
 		    + 1) * a_dim1 + 1], &c__1, &c_b19, &b[k + 1 + b_dim1], 
 		    ldb);
 
@@ -284,7 +284,7 @@ L40:
 
 	    kp = -ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 	    k += 2;
 	}
@@ -319,7 +319,7 @@ L60:
 
 	    kp = ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 
 /*           Multiply by inv(L(K)), where L(K) is the transformation */
@@ -327,14 +327,14 @@ L60:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dger_(&i__1, nrhs, &c_b7, &a[k + 1 + k * a_dim1], &c__1, &b[k 
+		_starpu_dger_(&i__1, nrhs, &c_b7, &a[k + 1 + k * a_dim1], &c__1, &b[k 
 			+ b_dim1], ldb, &b[k + 1 + b_dim1], ldb);
 	    }
 
 /*           Multiply by the inverse of the diagonal block. */
 
 	    d__1 = 1. / a[k + k * a_dim1];
-	    dscal_(nrhs, &d__1, &b[k + b_dim1], ldb);
+	    _starpu_dscal_(nrhs, &d__1, &b[k + b_dim1], ldb);
 	    ++k;
 	} else {
 
@@ -344,7 +344,7 @@ L60:
 
 	    kp = -ipiv[k];
 	    if (kp != k + 1) {
-		dswap_(nrhs, &b[k + 1 + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + 1 + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 
 /*           Multiply by inv(L(K)), where L(K) is the transformation */
@@ -352,10 +352,10 @@ L60:
 
 	    if (k < *n - 1) {
 		i__1 = *n - k - 1;
-		dger_(&i__1, nrhs, &c_b7, &a[k + 2 + k * a_dim1], &c__1, &b[k 
+		_starpu_dger_(&i__1, nrhs, &c_b7, &a[k + 2 + k * a_dim1], &c__1, &b[k 
 			+ b_dim1], ldb, &b[k + 2 + b_dim1], ldb);
 		i__1 = *n - k - 1;
-		dger_(&i__1, nrhs, &c_b7, &a[k + 2 + (k + 1) * a_dim1], &c__1, 
+		_starpu_dger_(&i__1, nrhs, &c_b7, &a[k + 2 + (k + 1) * a_dim1], &c__1, 
 			 &b[k + 1 + b_dim1], ldb, &b[k + 2 + b_dim1], ldb);
 	    }
 
@@ -402,7 +402,7 @@ L90:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
+		_starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
 			ldb, &a[k + 1 + k * a_dim1], &c__1, &c_b19, &b[k + 
 			b_dim1], ldb);
 	    }
@@ -411,7 +411,7 @@ L90:
 
 	    kp = ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 	    --k;
 	} else {
@@ -423,11 +423,11 @@ L90:
 
 	    if (k < *n) {
 		i__1 = *n - k;
-		dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
+		_starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
 			ldb, &a[k + 1 + k * a_dim1], &c__1, &c_b19, &b[k + 
 			b_dim1], ldb);
 		i__1 = *n - k;
-		dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
+		_starpu_dgemv_("Transpose", &i__1, nrhs, &c_b7, &b[k + 1 + b_dim1], 
 			ldb, &a[k + 1 + (k - 1) * a_dim1], &c__1, &c_b19, &b[
 			k - 1 + b_dim1], ldb);
 	    }
@@ -436,7 +436,7 @@ L90:
 
 	    kp = -ipiv[k];
 	    if (kp != k) {
-		dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
+		_starpu_dswap_(nrhs, &b[k + b_dim1], ldb, &b[kp + b_dim1], ldb);
 	    }
 	    k += -2;
 	}
@@ -450,4 +450,4 @@ L100:
 
 /*     End of DSYTRS */
 
-} /* dsytrs_ */
+} /* _starpu_dsytrs_ */

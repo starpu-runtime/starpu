@@ -14,7 +14,7 @@
 #include "blaswrap.h"
 #include "string.h"
 
-logical lsamen_(integer *n, char *ca, char *cb)
+logical _starpu_lsamen_(integer *n, char *ca, char *cb)
 {
     /* System generated locals */
     integer i__1;
@@ -25,7 +25,7 @@ logical lsamen_(integer *n, char *ca, char *cb)
 
     /* Local variables */
     integer i__;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
     ftnlen ca_len, cb_len;
 
@@ -82,7 +82,7 @@ logical lsamen_(integer *n, char *ca, char *cb)
 
 /*        Test if the characters are equal using LSAME. */
 
-	if (! lsame_(ca + (i__ - 1), cb + (i__ - 1))) {
+	if (! _starpu_lsame_(ca + (i__ - 1), cb + (i__ - 1))) {
 	    goto L20;
 	}
 
@@ -95,4 +95,4 @@ L20:
 
 /*     End of LSAMEN */
 
-} /* lsamen_ */
+} /* _starpu_lsamen_ */

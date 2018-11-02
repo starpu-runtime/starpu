@@ -20,7 +20,7 @@ static integer c_n1 = -1;
 static integer c__2 = 2;
 static integer c__65 = 65;
 
-/* Subroutine */ int dormlq_(char *side, char *trans, integer *m, integer *n, 
+/* Subroutine */ int _starpu_dormlq_(char *side, char *trans, integer *m, integer *n, 
 	integer *k, doublereal *a, integer *lda, doublereal *tau, doublereal *
 	c__, integer *ldc, doublereal *work, integer *lwork, integer *info)
 {
@@ -38,16 +38,16 @@ static integer c__65 = 65;
     doublereal t[4160]	/* was [65][64] */;
     integer i1, i2, i3, ib, ic, jc, nb, mi, ni, nq, nw, iws;
     logical left;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nbmin, iinfo;
-    extern /* Subroutine */ int dorml2_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorml2_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *), dlarfb_(char 
+	    integer *, doublereal *, integer *), _starpu_dlarfb_(char 
 	    *, char *, char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, integer *), dlarft_(char *, char *, integer *, integer *, doublereal 
-	    *, integer *, doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+	    integer *, doublereal *, integer *), _starpu_dlarft_(char *, char *, integer *, integer *, doublereal 
+	    *, integer *, doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     logical notran;
     integer ldwork;
@@ -177,8 +177,8 @@ static integer c__65 = 65;
 
     /* Function Body */
     *info = 0;
-    left = lsame_(side, "L");
-    notran = lsame_(trans, "N");
+    left = _starpu_lsame_(side, "L");
+    notran = _starpu_lsame_(trans, "N");
     lquery = *lwork == -1;
 
 /*     NQ is the order of Q and NW is the minimum dimension of WORK */
@@ -190,9 +190,9 @@ static integer c__65 = 65;
 	nq = *n;
 	nw = *m;
     }
-    if (! left && ! lsame_(side, "R")) {
+    if (! left && ! _starpu_lsame_(side, "R")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T")) {
 	*info = -2;
     } else if (*m < 0) {
 	*info = -3;
@@ -218,7 +218,7 @@ static integer c__65 = 65;
 	i__3[0] = 1, a__1[0] = side;
 	i__3[1] = 1, a__1[1] = trans;
 	s_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
-	i__1 = 64, i__2 = ilaenv_(&c__1, "DORMLQ", ch__1, m, n, k, &c_n1);
+	i__1 = 64, i__2 = _starpu_ilaenv_(&c__1, "DORMLQ", ch__1, m, n, k, &c_n1);
 	nb = min(i__1,i__2);
 	lwkopt = max(1,nw) * nb;
 	work[1] = (doublereal) lwkopt;
@@ -226,7 +226,7 @@ static integer c__65 = 65;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORMLQ", &i__1);
+	_starpu_xerbla_("DORMLQ", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -250,7 +250,7 @@ static integer c__65 = 65;
 	    i__3[0] = 1, a__1[0] = side;
 	    i__3[1] = 1, a__1[1] = trans;
 	    s_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
-	    i__1 = 2, i__2 = ilaenv_(&c__2, "DORMLQ", ch__1, m, n, k, &c_n1);
+	    i__1 = 2, i__2 = _starpu_ilaenv_(&c__2, "DORMLQ", ch__1, m, n, k, &c_n1);
 	    nbmin = max(i__1,i__2);
 	}
     } else {
@@ -261,7 +261,7 @@ static integer c__65 = 65;
 
 /*        Use unblocked code */
 
-	dorml2_(side, trans, m, n, k, &a[a_offset], lda, &tau[1], &c__[
+	_starpu_dorml2_(side, trans, m, n, k, &a[a_offset], lda, &tau[1], &c__[
 		c_offset], ldc, &work[1], &iinfo);
     } else {
 
@@ -302,7 +302,7 @@ static integer c__65 = 65;
 /*           H = H(i) H(i+1) . . . H(i+ib-1) */
 
 	    i__4 = nq - i__ + 1;
-	    dlarft_("Forward", "Rowwise", &i__4, &ib, &a[i__ + i__ * a_dim1], 
+	    _starpu_dlarft_("Forward", "Rowwise", &i__4, &ib, &a[i__ + i__ * a_dim1], 
 		    lda, &tau[i__], t, &c__65);
 	    if (left) {
 
@@ -320,7 +320,7 @@ static integer c__65 = 65;
 
 /*           Apply H or H' */
 
-	    dlarfb_(side, transt, "Forward", "Rowwise", &mi, &ni, &ib, &a[i__ 
+	    _starpu_dlarfb_(side, transt, "Forward", "Rowwise", &mi, &ni, &ib, &a[i__ 
 		    + i__ * a_dim1], lda, t, &c__65, &c__[ic + jc * c_dim1], 
 		    ldc, &work[1], &ldwork);
 /* L10: */
@@ -331,4 +331,4 @@ static integer c__65 = 65;
 
 /*     End of DORMLQ */
 
-} /* dormlq_ */
+} /* _starpu_dormlq_ */

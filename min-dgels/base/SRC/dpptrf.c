@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static doublereal c_b16 = -1.;
 
-/* Subroutine */ int dpptrf_(char *uplo, integer *n, doublereal *ap, integer *
+/* Subroutine */ int _starpu_dpptrf_(char *uplo, integer *n, doublereal *ap, integer *
 	info)
 {
     /* System generated locals */
@@ -31,16 +31,16 @@ static doublereal c_b16 = -1.;
     /* Local variables */
     integer j, jc, jj;
     doublereal ajj;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern /* Subroutine */ int dspr_(char *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), dscal_(integer *, 
+    extern /* Subroutine */ int _starpu_dspr_(char *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_dscal_(integer *, 
 	    doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int dtpsv_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dtpsv_(char *, char *, char *, integer *, 
 	    doublereal *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -130,15 +130,15 @@ static doublereal c_b16 = -1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPPTRF", &i__1);
+	_starpu_xerbla_("DPPTRF", &i__1);
 	return 0;
     }
 
@@ -162,14 +162,14 @@ static doublereal c_b16 = -1.;
 
 	    if (j > 1) {
 		i__2 = j - 1;
-		dtpsv_("Upper", "Transpose", "Non-unit", &i__2, &ap[1], &ap[
+		_starpu_dtpsv_("Upper", "Transpose", "Non-unit", &i__2, &ap[1], &ap[
 			jc], &c__1);
 	    }
 
 /*           Compute U(J,J) and test for non-positive-definiteness. */
 
 	    i__2 = j - 1;
-	    ajj = ap[jj] - ddot_(&i__2, &ap[jc], &c__1, &ap[jc], &c__1);
+	    ajj = ap[jj] - _starpu_ddot_(&i__2, &ap[jc], &c__1, &ap[jc], &c__1);
 	    if (ajj <= 0.) {
 		ap[jj] = ajj;
 		goto L30;
@@ -201,9 +201,9 @@ static doublereal c_b16 = -1.;
 	    if (j < *n) {
 		i__2 = *n - j;
 		d__1 = 1. / ajj;
-		dscal_(&i__2, &d__1, &ap[jj + 1], &c__1);
+		_starpu_dscal_(&i__2, &d__1, &ap[jj + 1], &c__1);
 		i__2 = *n - j;
-		dspr_("Lower", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n 
+		_starpu_dspr_("Lower", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n 
 			- j + 1]);
 		jj = jj + *n - j + 1;
 	    }
@@ -220,4 +220,4 @@ L40:
 
 /*     End of DPPTRF */
 
-} /* dpptrf_ */
+} /* _starpu_dpptrf_ */

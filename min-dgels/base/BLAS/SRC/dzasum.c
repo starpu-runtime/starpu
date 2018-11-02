@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dzasum_(integer *n, doublecomplex *zx, integer *incx)
+doublereal _starpu_dzasum_(integer *n, doublecomplex *zx, integer *incx)
 {
     /* System generated locals */
     integer i__1;
@@ -22,7 +22,7 @@ doublereal dzasum_(integer *n, doublecomplex *zx, integer *incx)
     /* Local variables */
     integer i__, ix;
     doublereal stemp;
-    extern doublereal dcabs1_(doublecomplex *);
+    extern doublereal _starpu_dcabs1_(doublecomplex *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -60,7 +60,7 @@ doublereal dzasum_(integer *n, doublecomplex *zx, integer *incx)
     ix = 1;
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	stemp += dcabs1_(&zx[ix]);
+	stemp += _starpu_dcabs1_(&zx[ix]);
 	ix += *incx;
 /* L10: */
     }
@@ -72,9 +72,9 @@ doublereal dzasum_(integer *n, doublecomplex *zx, integer *incx)
 L20:
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	stemp += dcabs1_(&zx[i__]);
+	stemp += _starpu_dcabs1_(&zx[i__]);
 /* L30: */
     }
     ret_val = stemp;
     return ret_val;
-} /* dzasum_ */
+} /* _starpu_dzasum_ */

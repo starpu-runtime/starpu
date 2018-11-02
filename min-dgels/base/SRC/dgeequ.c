@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgeequ_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeequ_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *r__, doublereal *c__, doublereal *rowcnd, doublereal 
 	*colcnd, doublereal *amax, integer *info)
 {
@@ -24,8 +24,8 @@
     /* Local variables */
     integer i__, j;
     doublereal rcmin, rcmax;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum, smlnum;
 
 
@@ -132,7 +132,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEEQU", &i__1);
+	_starpu_xerbla_("DGEEQU", &i__1);
 	return 0;
     }
 
@@ -147,7 +147,7 @@
 
 /*     Get machine constants. */
 
-    smlnum = dlamch_("S");
+    smlnum = _starpu_dlamch_("S");
     bignum = 1. / smlnum;
 
 /*     Compute row scale factors. */
@@ -293,4 +293,4 @@
 
 /*     End of DGEEQU */
 
-} /* dgeequ_ */
+} /* _starpu_dgeequ_ */

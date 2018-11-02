@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dgtts2_(integer *itrans, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dgtts2_(integer *itrans, integer *n, integer *nrhs, 
 	doublereal *dl, doublereal *d__, doublereal *du, doublereal *du2, 
 	integer *ipiv, doublereal *b, integer *ldb)
 {
@@ -258,4 +258,4 @@ L70:
 /*     End of DGTTS2 */
 
     return 0;
-} /* dgtts2_ */
+} /* _starpu_dgtts2_ */

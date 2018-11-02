@@ -19,7 +19,7 @@ static doublereal c_b6 = -1.;
 static integer c__1 = 1;
 static doublereal c_b27 = 1.;
 
-/* Subroutine */ int dsygs2_(integer *itype, char *uplo, integer *n, 
+/* Subroutine */ int _starpu_dsygs2_(integer *itype, char *uplo, integer *n, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
 	info)
 {
@@ -30,18 +30,18 @@ static doublereal c_b27 = 1.;
     /* Local variables */
     integer k;
     doublereal ct, akk, bkk;
-    extern /* Subroutine */ int dsyr2_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dsyr2_(char *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int dtrmv_(char *, char *, char *, integer *, 
-	    doublereal *, integer *, doublereal *, integer *), dtrsv_(char *, char *, char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dtrmv_(char *, char *, char *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dtrsv_(char *, char *, char *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -135,10 +135,10 @@ static doublereal c_b27 = 1.;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
+    upper = _starpu_lsame_(uplo, "U");
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -149,7 +149,7 @@ static doublereal c_b27 = 1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYGS2", &i__1);
+	_starpu_xerbla_("DSYGS2", &i__1);
 	return 0;
     }
 
@@ -172,20 +172,20 @@ static doublereal c_b27 = 1.;
 		if (k < *n) {
 		    i__2 = *n - k;
 		    d__1 = 1. / bkk;
-		    dscal_(&i__2, &d__1, &a[k + (k + 1) * a_dim1], lda);
+		    _starpu_dscal_(&i__2, &d__1, &a[k + (k + 1) * a_dim1], lda);
 		    ct = akk * -.5;
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &b[k + (k + 1) * b_dim1], ldb, &a[k + (
+		    _starpu_daxpy_(&i__2, &ct, &b[k + (k + 1) * b_dim1], ldb, &a[k + (
 			    k + 1) * a_dim1], lda);
 		    i__2 = *n - k;
-		    dsyr2_(uplo, &i__2, &c_b6, &a[k + (k + 1) * a_dim1], lda, 
+		    _starpu_dsyr2_(uplo, &i__2, &c_b6, &a[k + (k + 1) * a_dim1], lda, 
 			    &b[k + (k + 1) * b_dim1], ldb, &a[k + 1 + (k + 1) 
 			    * a_dim1], lda);
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &b[k + (k + 1) * b_dim1], ldb, &a[k + (
+		    _starpu_daxpy_(&i__2, &ct, &b[k + (k + 1) * b_dim1], ldb, &a[k + (
 			    k + 1) * a_dim1], lda);
 		    i__2 = *n - k;
-		    dtrsv_(uplo, "Transpose", "Non-unit", &i__2, &b[k + 1 + (
+		    _starpu_dtrsv_(uplo, "Transpose", "Non-unit", &i__2, &b[k + 1 + (
 			    k + 1) * b_dim1], ldb, &a[k + (k + 1) * a_dim1], 
 			    lda);
 		}
@@ -209,20 +209,20 @@ static doublereal c_b27 = 1.;
 		if (k < *n) {
 		    i__2 = *n - k;
 		    d__1 = 1. / bkk;
-		    dscal_(&i__2, &d__1, &a[k + 1 + k * a_dim1], &c__1);
+		    _starpu_dscal_(&i__2, &d__1, &a[k + 1 + k * a_dim1], &c__1);
 		    ct = akk * -.5;
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &b[k + 1 + k * b_dim1], &c__1, &a[k + 
+		    _starpu_daxpy_(&i__2, &ct, &b[k + 1 + k * b_dim1], &c__1, &a[k + 
 			    1 + k * a_dim1], &c__1);
 		    i__2 = *n - k;
-		    dsyr2_(uplo, &i__2, &c_b6, &a[k + 1 + k * a_dim1], &c__1, 
+		    _starpu_dsyr2_(uplo, &i__2, &c_b6, &a[k + 1 + k * a_dim1], &c__1, 
 			    &b[k + 1 + k * b_dim1], &c__1, &a[k + 1 + (k + 1) 
 			    * a_dim1], lda);
 		    i__2 = *n - k;
-		    daxpy_(&i__2, &ct, &b[k + 1 + k * b_dim1], &c__1, &a[k + 
+		    _starpu_daxpy_(&i__2, &ct, &b[k + 1 + k * b_dim1], &c__1, &a[k + 
 			    1 + k * a_dim1], &c__1);
 		    i__2 = *n - k;
-		    dtrsv_(uplo, "No transpose", "Non-unit", &i__2, &b[k + 1 
+		    _starpu_dtrsv_(uplo, "No transpose", "Non-unit", &i__2, &b[k + 1 
 			    + (k + 1) * b_dim1], ldb, &a[k + 1 + k * a_dim1], 
 			    &c__1);
 		}
@@ -242,20 +242,20 @@ static doublereal c_b27 = 1.;
 		akk = a[k + k * a_dim1];
 		bkk = b[k + k * b_dim1];
 		i__2 = k - 1;
-		dtrmv_(uplo, "No transpose", "Non-unit", &i__2, &b[b_offset], 
+		_starpu_dtrmv_(uplo, "No transpose", "Non-unit", &i__2, &b[b_offset], 
 			ldb, &a[k * a_dim1 + 1], &c__1);
 		ct = akk * .5;
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &b[k * b_dim1 + 1], &c__1, &a[k * a_dim1 + 
+		_starpu_daxpy_(&i__2, &ct, &b[k * b_dim1 + 1], &c__1, &a[k * a_dim1 + 
 			1], &c__1);
 		i__2 = k - 1;
-		dsyr2_(uplo, &i__2, &c_b27, &a[k * a_dim1 + 1], &c__1, &b[k * 
+		_starpu_dsyr2_(uplo, &i__2, &c_b27, &a[k * a_dim1 + 1], &c__1, &b[k * 
 			b_dim1 + 1], &c__1, &a[a_offset], lda);
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &b[k * b_dim1 + 1], &c__1, &a[k * a_dim1 + 
+		_starpu_daxpy_(&i__2, &ct, &b[k * b_dim1 + 1], &c__1, &a[k * a_dim1 + 
 			1], &c__1);
 		i__2 = k - 1;
-		dscal_(&i__2, &bkk, &a[k * a_dim1 + 1], &c__1);
+		_starpu_dscal_(&i__2, &bkk, &a[k * a_dim1 + 1], &c__1);
 /* Computing 2nd power */
 		d__1 = bkk;
 		a[k + k * a_dim1] = akk * (d__1 * d__1);
@@ -273,18 +273,18 @@ static doublereal c_b27 = 1.;
 		akk = a[k + k * a_dim1];
 		bkk = b[k + k * b_dim1];
 		i__2 = k - 1;
-		dtrmv_(uplo, "Transpose", "Non-unit", &i__2, &b[b_offset], 
+		_starpu_dtrmv_(uplo, "Transpose", "Non-unit", &i__2, &b[b_offset], 
 			ldb, &a[k + a_dim1], lda);
 		ct = akk * .5;
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &b[k + b_dim1], ldb, &a[k + a_dim1], lda);
+		_starpu_daxpy_(&i__2, &ct, &b[k + b_dim1], ldb, &a[k + a_dim1], lda);
 		i__2 = k - 1;
-		dsyr2_(uplo, &i__2, &c_b27, &a[k + a_dim1], lda, &b[k + 
+		_starpu_dsyr2_(uplo, &i__2, &c_b27, &a[k + a_dim1], lda, &b[k + 
 			b_dim1], ldb, &a[a_offset], lda);
 		i__2 = k - 1;
-		daxpy_(&i__2, &ct, &b[k + b_dim1], ldb, &a[k + a_dim1], lda);
+		_starpu_daxpy_(&i__2, &ct, &b[k + b_dim1], ldb, &a[k + a_dim1], lda);
 		i__2 = k - 1;
-		dscal_(&i__2, &bkk, &a[k + a_dim1], lda);
+		_starpu_dscal_(&i__2, &bkk, &a[k + a_dim1], lda);
 /* Computing 2nd power */
 		d__1 = bkk;
 		a[k + k * a_dim1] = akk * (d__1 * d__1);
@@ -296,4 +296,4 @@ static doublereal c_b27 = 1.;
 
 /*     End of DSYGS2 */
 
-} /* dsygs2_ */
+} /* _starpu_dsygs2_ */

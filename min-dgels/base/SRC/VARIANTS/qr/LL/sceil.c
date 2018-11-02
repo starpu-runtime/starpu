@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal sceil_(real *a)
+doublereal _starpu_sceil_(real *a)
 {
     /* System generated locals */
     real ret_val;
@@ -41,4 +41,4 @@ doublereal sceil_(real *a)
     }
     return ret_val;
 
-} /* sceil_ */
+} /* _starpu_sceil_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int drotm_(integer *n, doublereal *dx, integer *incx, 
+/* Subroutine */ int _starpu_drotm_(integer *n, doublereal *dx, integer *incx, 
 	doublereal *dy, integer *incy, doublereal *dparam)
 {
     /* Initialized data */
@@ -212,4 +212,4 @@ L120:
     }
 L140:
     return 0;
-} /* drotm_ */
+} /* _starpu_drotm_ */

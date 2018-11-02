@@ -20,7 +20,7 @@ static doublereal c_b7 = 1.;
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dlasd6_(integer *icompq, integer *nl, integer *nr, 
+/* Subroutine */ int _starpu_dlasd6_(integer *icompq, integer *nl, integer *nr, 
 	integer *sqre, doublereal *d__, doublereal *vf, doublereal *vl, 
 	doublereal *alpha, doublereal *beta, integer *idxq, integer *perm, 
 	integer *givptr, integer *givcol, integer *ldgcol, doublereal *givnum, 
@@ -35,21 +35,21 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer i__, m, n, n1, n2, iw, idx, idxc, idxp, ivfw, ivlw;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlasd7_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dlasd7_(integer *, integer *, integer *, 
 	     integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, doublereal 
-	    *, integer *, doublereal *, doublereal *, integer *), dlasd8_(
+	    *, integer *, doublereal *, doublereal *, integer *), _starpu_dlasd8_(
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
-	     doublereal *, integer *), dlascl_(char *, integer *, integer *, 
+	     doublereal *, integer *), _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *), dlamrg_(integer *, integer *, 
+	    integer *, integer *), _starpu_dlamrg_(integer *, integer *, 
 	    doublereal *, integer *, integer *, integer *);
     integer isigma;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal orgnrm;
 
 
@@ -296,7 +296,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASD6", &i__1);
+	_starpu_xerbla_("DLASD6", &i__1);
 	return 0;
     }
 
@@ -326,13 +326,13 @@ static integer c_n1 = -1;
 	}
 /* L10: */
     }
-    dlascl_("G", &c__0, &c__0, &orgnrm, &c_b7, &n, &c__1, &d__[1], &n, info);
+    _starpu_dlascl_("G", &c__0, &c__0, &orgnrm, &c_b7, &n, &c__1, &d__[1], &n, info);
     *alpha /= orgnrm;
     *beta /= orgnrm;
 
 /*     Sort and Deflate singular values. */
 
-    dlasd7_(icompq, nl, nr, sqre, k, &d__[1], &z__[1], &work[iw], &vf[1], &
+    _starpu_dlasd7_(icompq, nl, nr, sqre, k, &d__[1], &z__[1], &work[iw], &vf[1], &
 	    work[ivfw], &vl[1], &work[ivlw], alpha, beta, &work[isigma], &
 	    iwork[idx], &iwork[idxp], &idxq[1], &perm[1], givptr, &givcol[
 	    givcol_offset], ldgcol, &givnum[givnum_offset], ldgnum, c__, s, 
@@ -340,28 +340,28 @@ static integer c_n1 = -1;
 
 /*     Solve Secular Equation, compute DIFL, DIFR, and update VF, VL. */
 
-    dlasd8_(icompq, k, &d__[1], &z__[1], &vf[1], &vl[1], &difl[1], &difr[1], 
+    _starpu_dlasd8_(icompq, k, &d__[1], &z__[1], &vf[1], &vl[1], &difl[1], &difr[1], 
 	    ldgnum, &work[isigma], &work[iw], info);
 
 /*     Save the poles if ICOMPQ = 1. */
 
     if (*icompq == 1) {
-	dcopy_(k, &d__[1], &c__1, &poles[poles_dim1 + 1], &c__1);
-	dcopy_(k, &work[isigma], &c__1, &poles[(poles_dim1 << 1) + 1], &c__1);
+	_starpu_dcopy_(k, &d__[1], &c__1, &poles[poles_dim1 + 1], &c__1);
+	_starpu_dcopy_(k, &work[isigma], &c__1, &poles[(poles_dim1 << 1) + 1], &c__1);
     }
 
 /*     Unscale. */
 
-    dlascl_("G", &c__0, &c__0, &c_b7, &orgnrm, &n, &c__1, &d__[1], &n, info);
+    _starpu_dlascl_("G", &c__0, &c__0, &c_b7, &orgnrm, &n, &c__1, &d__[1], &n, info);
 
 /*     Prepare the IDXQ sorting permutation. */
 
     n1 = *k;
     n2 = n - *k;
-    dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &idxq[1]);
+    _starpu_dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &idxq[1]);
 
     return 0;
 
 /*     End of DLASD6 */
 
-} /* dlasd6_ */
+} /* _starpu_dlasd6_ */

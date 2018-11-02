@@ -19,7 +19,7 @@ static integer c__0 = 0;
 static integer c__1 = 1;
 static doublereal c_b32 = 1.;
 
-/* Subroutine */ int dsterf_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dsterf_(integer *n, doublereal *d__, doublereal *e, 
 	integer *info)
 {
     /* System generated locals */
@@ -38,19 +38,19 @@ static doublereal c_b32 = 1.;
     integer lsv;
     doublereal eps2, oldc;
     integer lend, jtot;
-    extern /* Subroutine */ int dlae2_(doublereal *, doublereal *, doublereal 
+    extern /* Subroutine */ int _starpu_dlae2_(doublereal *, doublereal *, doublereal 
 	    *, doublereal *, doublereal *);
     doublereal gamma, alpha, sigma, anorm;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
     integer iscale;
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     doublereal oldgam, safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal safmax;
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *, 
+    extern doublereal _starpu_dlanst_(char *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlasrt_(char *, integer *, doublereal *, 
 	    integer *);
     integer lendsv;
     doublereal ssfmin;
@@ -123,7 +123,7 @@ static doublereal c_b32 = 1.;
     if (*n < 0) {
 	*info = -1;
 	i__1 = -(*info);
-	xerbla_("DSTERF", &i__1);
+	_starpu_xerbla_("DSTERF", &i__1);
 	return 0;
     }
     if (*n <= 1) {
@@ -132,11 +132,11 @@ static doublereal c_b32 = 1.;
 
 /*     Determine the unit roundoff for this environment. */
 
-    eps = dlamch_("E");
+    eps = _starpu_dlamch_("E");
 /* Computing 2nd power */
     d__1 = eps;
     eps2 = d__1 * d__1;
-    safmin = dlamch_("S");
+    safmin = _starpu_dlamch_("S");
     safmax = 1. / safmin;
     ssfmax = sqrt(safmax) / 3.;
     ssfmin = sqrt(safmin) / eps2;
@@ -184,23 +184,23 @@ L30:
 /*     Scale submatrix in rows and columns L to LEND */
 
     i__1 = lend - l + 1;
-    anorm = dlanst_("I", &i__1, &d__[l], &e[l]);
+    anorm = _starpu_dlanst_("I", &i__1, &d__[l], &e[l]);
     iscale = 0;
     if (anorm > ssfmax) {
 	iscale = 1;
 	i__1 = lend - l + 1;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n, 
 		info);
 	i__1 = lend - l;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n, 
 		info);
     } else if (anorm < ssfmin) {
 	iscale = 2;
 	i__1 = lend - l + 1;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n, 
 		info);
 	i__1 = lend - l;
-	dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n, 
 		info);
     }
 
@@ -252,7 +252,7 @@ L70:
 
 	if (m == l + 1) {
 	    rte = sqrt(e[l]);
-	    dlae2_(&d__[l], &rte, &d__[l + 1], &rt1, &rt2);
+	    _starpu_dlae2_(&d__[l], &rte, &d__[l + 1], &rt1, &rt2);
 	    d__[l] = rt1;
 	    d__[l + 1] = rt2;
 	    e[l] = 0.;
@@ -272,7 +272,7 @@ L70:
 
 	rte = sqrt(e[l]);
 	sigma = (d__[l + 1] - p) / (rte * 2.);
-	r__ = dlapy2_(&sigma, &c_b32);
+	r__ = _starpu_dlapy2_(&sigma, &c_b32);
 	sigma = p - rte / (sigma + d_sign(&r__, &sigma));
 
 	c__ = 1.;
@@ -350,7 +350,7 @@ L120:
 
 	if (m == l - 1) {
 	    rte = sqrt(e[l - 1]);
-	    dlae2_(&d__[l], &rte, &d__[l - 1], &rt1, &rt2);
+	    _starpu_dlae2_(&d__[l], &rte, &d__[l - 1], &rt1, &rt2);
 	    d__[l] = rt1;
 	    d__[l - 1] = rt2;
 	    e[l - 1] = 0.;
@@ -370,7 +370,7 @@ L120:
 
 	rte = sqrt(e[l - 1]);
 	sigma = (d__[l - 1] - p) / (rte * 2.);
-	r__ = dlapy2_(&sigma, &c_b32);
+	r__ = _starpu_dlapy2_(&sigma, &c_b32);
 	sigma = p - rte / (sigma + d_sign(&r__, &sigma));
 
 	c__ = 1.;
@@ -424,12 +424,12 @@ L140:
 L150:
     if (iscale == 1) {
 	i__1 = lendsv - lsv + 1;
-	dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv], 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv], 
 		n, info);
     }
     if (iscale == 2) {
 	i__1 = lendsv - lsv + 1;
-	dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv], 
+	_starpu_dlascl_("G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv], 
 		n, info);
     }
 
@@ -451,11 +451,11 @@ L150:
 /*     Sort eigenvalues in increasing order. */
 
 L170:
-    dlasrt_("I", n, &d__[1], info);
+    _starpu_dlasrt_("I", n, &d__[1], info);
 
 L180:
     return 0;
 
 /*     End of DSTERF */
 
-} /* dsterf_ */
+} /* _starpu_dsterf_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaqsp_(char *uplo, integer *n, doublereal *ap, 
+/* Subroutine */ int _starpu_dlaqsp_(char *uplo, integer *n, doublereal *ap, 
 	doublereal *s, doublereal *scond, doublereal *amax, char *equed)
 {
     /* System generated locals */
@@ -22,9 +22,9 @@
     /* Local variables */
     integer i__, j, jc;
     doublereal cj, large;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal small;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -114,7 +114,7 @@
 
 /*     Initialize LARGE and SMALL. */
 
-    small = dlamch_("Safe minimum") / dlamch_("Precision");
+    small = _starpu_dlamch_("Safe minimum") / _starpu_dlamch_("Precision");
     large = 1. / small;
 
     if (*scond >= .1 && *amax >= small && *amax <= large) {
@@ -126,7 +126,7 @@
 
 /*        Replace A by diag(S) * A * diag(S). */
 
-	if (lsame_(uplo, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
 
 /*           Upper triangle of A is stored. */
 
@@ -166,4 +166,4 @@
 
 /*     End of DLAQSP */
 
-} /* dlaqsp_ */
+} /* _starpu_dlaqsp_ */

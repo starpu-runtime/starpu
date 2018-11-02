@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dsyequb_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dsyequb_(char *uplo, integer *n, doublereal *a, integer *
 	lda, doublereal *s, doublereal *scond, doublereal *amax, doublereal *
 	work, integer *info)
 {
@@ -36,12 +36,12 @@ static integer c__1 = 1;
     doublereal avg, std, tol, base;
     integer iter;
     doublereal smin, smax, scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal sumsq;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
     doublereal smlnum;
 
@@ -134,7 +134,7 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    if (! (lsame_(uplo, "U") || lsame_(uplo, "L"))) {
+    if (! (_starpu_lsame_(uplo, "U") || _starpu_lsame_(uplo, "L"))) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -143,10 +143,10 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYEQUB", &i__1);
+	_starpu_xerbla_("DSYEQUB", &i__1);
 	return 0;
     }
-    up = lsame_(uplo, "U");
+    up = _starpu_lsame_(uplo, "U");
     *amax = 0.;
 
 /*     Quick return if possible. */
@@ -257,7 +257,7 @@ static integer c__1 = 1;
 	for (i__ = (*n << 1) + 1; i__ <= i__1; ++i__) {
 	    work[i__] = s[i__ - (*n << 1)] * work[i__ - (*n << 1)] - avg;
 	}
-	dlassq_(n, &work[(*n << 1) + 1], &c__1, &scale, &sumsq);
+	_starpu_dlassq_(n, &work[(*n << 1) + 1], &c__1, &scale, &sumsq);
 	std = scale * sqrt(sumsq / *n);
 	if (std < tol * avg) {
 	    goto L999;
@@ -309,12 +309,12 @@ static integer c__1 = 1;
 	}
     }
 L999:
-    smlnum = dlamch_("SAFEMIN");
+    smlnum = _starpu_dlamch_("SAFEMIN");
     bignum = 1. / smlnum;
     smin = bignum;
     smax = 0.;
     t = 1. / sqrt(avg);
-    base = dlamch_("B");
+    base = _starpu_dlamch_("B");
     u = 1. / log(base);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -330,4 +330,4 @@ L999:
     *scond = max(smin,smlnum) / min(smax,bignum);
 
     return 0;
-} /* dsyequb_ */
+} /* _starpu_dsyequb_ */

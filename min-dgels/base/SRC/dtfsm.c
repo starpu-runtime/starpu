@@ -18,7 +18,7 @@
 static doublereal c_b23 = -1.;
 static doublereal c_b27 = 1.;
 
-/* Subroutine */ int dtfsm_(char *transr, char *side, char *uplo, char *trans, 
+/* Subroutine */ int _starpu_dtfsm_(char *transr, char *side, char *uplo, char *trans, 
 	 char *diag, integer *m, integer *n, doublereal *alpha, doublereal *a, 
 	 doublereal *b, integer *ldb)
 {
@@ -28,15 +28,15 @@ static doublereal c_b27 = 1.;
     /* Local variables */
     integer i__, j, k, m1, m2, n1, n2, info;
     logical normaltransr;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
     logical lside;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical lower;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), xerbla_(
+	    doublereal *, integer *), _starpu_xerbla_(
 	    char *, integer *);
     logical misodd, nisodd, notrans;
 
@@ -273,19 +273,19 @@ static doublereal c_b27 = 1.;
 
     /* Function Body */
     info = 0;
-    normaltransr = lsame_(transr, "N");
-    lside = lsame_(side, "L");
-    lower = lsame_(uplo, "L");
-    notrans = lsame_(trans, "N");
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    normaltransr = _starpu_lsame_(transr, "N");
+    lside = _starpu_lsame_(side, "L");
+    lower = _starpu_lsame_(uplo, "L");
+    notrans = _starpu_lsame_(trans, "N");
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	info = -1;
-    } else if (! lside && ! lsame_(side, "R")) {
+    } else if (! lside && ! _starpu_lsame_(side, "R")) {
 	info = -2;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	info = -3;
-    } else if (! notrans && ! lsame_(trans, "T")) {
+    } else if (! notrans && ! _starpu_lsame_(trans, "T")) {
 	info = -4;
-    } else if (! lsame_(diag, "N") && ! lsame_(diag, 
+    } else if (! _starpu_lsame_(diag, "N") && ! _starpu_lsame_(diag, 
 	    "U")) {
 	info = -5;
     } else if (*m < 0) {
@@ -297,7 +297,7 @@ static doublereal c_b27 = 1.;
     }
     if (info != 0) {
 	i__1 = -info;
-	xerbla_("DTFSM ", &i__1);
+	_starpu_xerbla_("DTFSM ", &i__1);
 	return 0;
     }
 
@@ -363,14 +363,14 @@ static doublereal c_b27 = 1.;
 /*                    TRANS = 'N' */
 
 			if (*m == 1) {
-			    dtrsm_("L", "L", "N", diag, &m1, n, alpha, a, m, &
+			    _starpu_dtrsm_("L", "L", "N", diag, &m1, n, alpha, a, m, &
 				    b[b_offset], ldb);
 			} else {
-			    dtrsm_("L", "L", "N", diag, &m1, n, alpha, a, m, &
+			    _starpu_dtrsm_("L", "L", "N", diag, &m1, n, alpha, a, m, &
 				    b[b_offset], ldb);
-			    dgemm_("N", "N", &m2, n, &m1, &c_b23, &a[m1], m, &
+			    _starpu_dgemm_("N", "N", &m2, n, &m1, &c_b23, &a[m1], m, &
 				    b[b_offset], ldb, alpha, &b[m1], ldb);
-			    dtrsm_("L", "U", "T", diag, &m2, n, &c_b27, &a[*m]
+			    _starpu_dtrsm_("L", "U", "T", diag, &m2, n, &c_b27, &a[*m]
 , m, &b[m1], ldb);
 			}
 
@@ -380,14 +380,14 @@ static doublereal c_b27 = 1.;
 /*                    TRANS = 'T' */
 
 			if (*m == 1) {
-			    dtrsm_("L", "L", "T", diag, &m1, n, alpha, a, m, &
+			    _starpu_dtrsm_("L", "L", "T", diag, &m1, n, alpha, a, m, &
 				    b[b_offset], ldb);
 			} else {
-			    dtrsm_("L", "U", "N", diag, &m2, n, alpha, &a[*m], 
+			    _starpu_dtrsm_("L", "U", "N", diag, &m2, n, alpha, &a[*m], 
 				     m, &b[m1], ldb);
-			    dgemm_("T", "N", &m1, n, &m2, &c_b23, &a[m1], m, &
+			    _starpu_dgemm_("T", "N", &m1, n, &m2, &c_b23, &a[m1], m, &
 				    b[m1], ldb, alpha, &b[b_offset], ldb);
-			    dtrsm_("L", "L", "T", diag, &m1, n, &c_b27, a, m, 
+			    _starpu_dtrsm_("L", "L", "T", diag, &m1, n, &c_b27, a, m, 
 				    &b[b_offset], ldb);
 			}
 
@@ -402,11 +402,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is odd, TRANSR = 'N', UPLO = 'U', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("L", "L", "N", diag, &m1, n, alpha, &a[m2], m, 
+			_starpu_dtrsm_("L", "L", "N", diag, &m1, n, alpha, &a[m2], m, 
 				&b[b_offset], ldb);
-			dgemm_("T", "N", &m2, n, &m1, &c_b23, a, m, &b[
+			_starpu_dgemm_("T", "N", &m2, n, &m1, &c_b23, a, m, &b[
 				b_offset], ldb, alpha, &b[m1], ldb);
-			dtrsm_("L", "U", "T", diag, &m2, n, &c_b27, &a[m1], m, 
+			_starpu_dtrsm_("L", "U", "T", diag, &m2, n, &c_b27, &a[m1], m, 
 				 &b[m1], ldb);
 
 		    } else {
@@ -414,11 +414,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is odd, TRANSR = 'N', UPLO = 'U', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("L", "U", "N", diag, &m2, n, alpha, &a[m1], m, 
+			_starpu_dtrsm_("L", "U", "N", diag, &m2, n, alpha, &a[m1], m, 
 				&b[m1], ldb);
-			dgemm_("N", "N", &m1, n, &m2, &c_b23, a, m, &b[m1], 
+			_starpu_dgemm_("N", "N", &m1, n, &m2, &c_b23, a, m, &b[m1], 
 				ldb, alpha, &b[b_offset], ldb);
-			dtrsm_("L", "L", "T", diag, &m1, n, &c_b27, &a[m2], m, 
+			_starpu_dtrsm_("L", "L", "T", diag, &m1, n, &c_b27, &a[m2], m, 
 				 &b[b_offset], ldb);
 
 		    }
@@ -439,15 +439,15 @@ static doublereal c_b27 = 1.;
 /*                    TRANS = 'N' */
 
 			if (*m == 1) {
-			    dtrsm_("L", "U", "T", diag, &m1, n, alpha, a, &m1, 
+			    _starpu_dtrsm_("L", "U", "T", diag, &m1, n, alpha, a, &m1, 
 				     &b[b_offset], ldb);
 			} else {
-			    dtrsm_("L", "U", "T", diag, &m1, n, alpha, a, &m1, 
+			    _starpu_dtrsm_("L", "U", "T", diag, &m1, n, alpha, a, &m1, 
 				     &b[b_offset], ldb);
-			    dgemm_("T", "N", &m2, n, &m1, &c_b23, &a[m1 * m1], 
+			    _starpu_dgemm_("T", "N", &m2, n, &m1, &c_b23, &a[m1 * m1], 
 				     &m1, &b[b_offset], ldb, alpha, &b[m1], 
 				    ldb);
-			    dtrsm_("L", "L", "N", diag, &m2, n, &c_b27, &a[1], 
+			    _starpu_dtrsm_("L", "L", "N", diag, &m2, n, &c_b27, &a[1], 
 				     &m1, &b[m1], ldb);
 			}
 
@@ -457,15 +457,15 @@ static doublereal c_b27 = 1.;
 /*                    TRANS = 'T' */
 
 			if (*m == 1) {
-			    dtrsm_("L", "U", "N", diag, &m1, n, alpha, a, &m1, 
+			    _starpu_dtrsm_("L", "U", "N", diag, &m1, n, alpha, a, &m1, 
 				     &b[b_offset], ldb);
 			} else {
-			    dtrsm_("L", "L", "T", diag, &m2, n, alpha, &a[1], 
+			    _starpu_dtrsm_("L", "L", "T", diag, &m2, n, alpha, &a[1], 
 				    &m1, &b[m1], ldb);
-			    dgemm_("N", "N", &m1, n, &m2, &c_b23, &a[m1 * m1], 
+			    _starpu_dgemm_("N", "N", &m1, n, &m2, &c_b23, &a[m1 * m1], 
 				     &m1, &b[m1], ldb, alpha, &b[b_offset], 
 				    ldb);
-			    dtrsm_("L", "U", "N", diag, &m1, n, &c_b27, a, &
+			    _starpu_dtrsm_("L", "U", "N", diag, &m1, n, &c_b27, a, &
 				    m1, &b[b_offset], ldb);
 			}
 
@@ -480,11 +480,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is odd, TRANSR = 'T', UPLO = 'U', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("L", "U", "T", diag, &m1, n, alpha, &a[m2 * m2]
+			_starpu_dtrsm_("L", "U", "T", diag, &m1, n, alpha, &a[m2 * m2]
 , &m2, &b[b_offset], ldb);
-			dgemm_("N", "N", &m2, n, &m1, &c_b23, a, &m2, &b[
+			_starpu_dgemm_("N", "N", &m2, n, &m1, &c_b23, a, &m2, &b[
 				b_offset], ldb, alpha, &b[m1], ldb);
-			dtrsm_("L", "L", "N", diag, &m2, n, &c_b27, &a[m1 * 
+			_starpu_dtrsm_("L", "L", "N", diag, &m2, n, &c_b27, &a[m1 * 
 				m2], &m2, &b[m1], ldb);
 
 		    } else {
@@ -492,11 +492,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is odd, TRANSR = 'T', UPLO = 'U', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("L", "L", "T", diag, &m2, n, alpha, &a[m1 * m2]
+			_starpu_dtrsm_("L", "L", "T", diag, &m2, n, alpha, &a[m1 * m2]
 , &m2, &b[m1], ldb);
-			dgemm_("T", "N", &m1, n, &m2, &c_b23, a, &m2, &b[m1], 
+			_starpu_dgemm_("T", "N", &m1, n, &m2, &c_b23, a, &m2, &b[m1], 
 				ldb, alpha, &b[b_offset], ldb);
-			dtrsm_("L", "U", "N", diag, &m1, n, &c_b27, &a[m2 * 
+			_starpu_dtrsm_("L", "U", "N", diag, &m1, n, &c_b27, &a[m2 * 
 				m2], &m2, &b[b_offset], ldb);
 
 		    }
@@ -523,13 +523,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'N' */
 
 			i__1 = *m + 1;
-			dtrsm_("L", "L", "N", diag, &k, n, alpha, &a[1], &
+			_starpu_dtrsm_("L", "L", "N", diag, &k, n, alpha, &a[1], &
 				i__1, &b[b_offset], ldb);
 			i__1 = *m + 1;
-			dgemm_("N", "N", &k, n, &k, &c_b23, &a[k + 1], &i__1, 
+			_starpu_dgemm_("N", "N", &k, n, &k, &c_b23, &a[k + 1], &i__1, 
 				&b[b_offset], ldb, alpha, &b[k], ldb);
 			i__1 = *m + 1;
-			dtrsm_("L", "U", "T", diag, &k, n, &c_b27, a, &i__1, &
+			_starpu_dtrsm_("L", "U", "T", diag, &k, n, &c_b27, a, &i__1, &
 				b[k], ldb);
 
 		    } else {
@@ -538,13 +538,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'T' */
 
 			i__1 = *m + 1;
-			dtrsm_("L", "U", "N", diag, &k, n, alpha, a, &i__1, &
+			_starpu_dtrsm_("L", "U", "N", diag, &k, n, alpha, a, &i__1, &
 				b[k], ldb);
 			i__1 = *m + 1;
-			dgemm_("T", "N", &k, n, &k, &c_b23, &a[k + 1], &i__1, 
+			_starpu_dgemm_("T", "N", &k, n, &k, &c_b23, &a[k + 1], &i__1, 
 				&b[k], ldb, alpha, &b[b_offset], ldb);
 			i__1 = *m + 1;
-			dtrsm_("L", "L", "T", diag, &k, n, &c_b27, &a[1], &
+			_starpu_dtrsm_("L", "L", "T", diag, &k, n, &c_b27, &a[1], &
 				i__1, &b[b_offset], ldb);
 
 		    }
@@ -559,13 +559,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'N' */
 
 			i__1 = *m + 1;
-			dtrsm_("L", "L", "N", diag, &k, n, alpha, &a[k + 1], &
+			_starpu_dtrsm_("L", "L", "N", diag, &k, n, alpha, &a[k + 1], &
 				i__1, &b[b_offset], ldb);
 			i__1 = *m + 1;
-			dgemm_("T", "N", &k, n, &k, &c_b23, a, &i__1, &b[
+			_starpu_dgemm_("T", "N", &k, n, &k, &c_b23, a, &i__1, &b[
 				b_offset], ldb, alpha, &b[k], ldb);
 			i__1 = *m + 1;
-			dtrsm_("L", "U", "T", diag, &k, n, &c_b27, &a[k], &
+			_starpu_dtrsm_("L", "U", "T", diag, &k, n, &c_b27, &a[k], &
 				i__1, &b[k], ldb);
 
 		    } else {
@@ -573,13 +573,13 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is even, TRANSR = 'N', UPLO = 'U', */
 /*                    and TRANS = 'T' */
 			i__1 = *m + 1;
-			dtrsm_("L", "U", "N", diag, &k, n, alpha, &a[k], &
+			_starpu_dtrsm_("L", "U", "N", diag, &k, n, alpha, &a[k], &
 				i__1, &b[k], ldb);
 			i__1 = *m + 1;
-			dgemm_("N", "N", &k, n, &k, &c_b23, a, &i__1, &b[k], 
+			_starpu_dgemm_("N", "N", &k, n, &k, &c_b23, a, &i__1, &b[k], 
 				ldb, alpha, &b[b_offset], ldb);
 			i__1 = *m + 1;
-			dtrsm_("L", "L", "T", diag, &k, n, &c_b27, &a[k + 1], 
+			_starpu_dtrsm_("L", "L", "T", diag, &k, n, &c_b27, &a[k + 1], 
 				&i__1, &b[b_offset], ldb);
 
 		    }
@@ -599,11 +599,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is even, TRANSR = 'T', UPLO = 'L', */
 /*                    and TRANS = 'N' */
 
-			dtrsm_("L", "U", "T", diag, &k, n, alpha, &a[k], &k, &
+			_starpu_dtrsm_("L", "U", "T", diag, &k, n, alpha, &a[k], &k, &
 				b[b_offset], ldb);
-			dgemm_("T", "N", &k, n, &k, &c_b23, &a[k * (k + 1)], &
+			_starpu_dgemm_("T", "N", &k, n, &k, &c_b23, &a[k * (k + 1)], &
 				k, &b[b_offset], ldb, alpha, &b[k], ldb);
-			dtrsm_("L", "L", "N", diag, &k, n, &c_b27, a, &k, &b[
+			_starpu_dtrsm_("L", "L", "N", diag, &k, n, &c_b27, a, &k, &b[
 				k], ldb);
 
 		    } else {
@@ -611,11 +611,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is even, TRANSR = 'T', UPLO = 'L', */
 /*                    and TRANS = 'T' */
 
-			dtrsm_("L", "L", "T", diag, &k, n, alpha, a, &k, &b[k]
+			_starpu_dtrsm_("L", "L", "T", diag, &k, n, alpha, a, &k, &b[k]
 , ldb);
-			dgemm_("N", "N", &k, n, &k, &c_b23, &a[k * (k + 1)], &
+			_starpu_dgemm_("N", "N", &k, n, &k, &c_b23, &a[k * (k + 1)], &
 				k, &b[k], ldb, alpha, &b[b_offset], ldb);
-			dtrsm_("L", "U", "N", diag, &k, n, &c_b27, &a[k], &k, 
+			_starpu_dtrsm_("L", "U", "N", diag, &k, n, &c_b27, &a[k], &k, 
 				&b[b_offset], ldb);
 
 		    }
@@ -629,11 +629,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is even, TRANSR = 'T', UPLO = 'U', */
 /*                    and TRANS = 'N' */
 
-			dtrsm_("L", "U", "T", diag, &k, n, alpha, &a[k * (k + 
+			_starpu_dtrsm_("L", "U", "T", diag, &k, n, alpha, &a[k * (k + 
 				1)], &k, &b[b_offset], ldb);
-			dgemm_("N", "N", &k, n, &k, &c_b23, a, &k, &b[
+			_starpu_dgemm_("N", "N", &k, n, &k, &c_b23, a, &k, &b[
 				b_offset], ldb, alpha, &b[k], ldb);
-			dtrsm_("L", "L", "N", diag, &k, n, &c_b27, &a[k * k], 
+			_starpu_dtrsm_("L", "L", "N", diag, &k, n, &c_b27, &a[k * k], 
 				&k, &b[k], ldb);
 
 		    } else {
@@ -641,11 +641,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='L', N is even, TRANSR = 'T', UPLO = 'U', */
 /*                    and TRANS = 'T' */
 
-			dtrsm_("L", "L", "T", diag, &k, n, alpha, &a[k * k], &
+			_starpu_dtrsm_("L", "L", "T", diag, &k, n, alpha, &a[k * k], &
 				k, &b[k], ldb);
-			dgemm_("T", "N", &k, n, &k, &c_b23, a, &k, &b[k], ldb, 
+			_starpu_dgemm_("T", "N", &k, n, &k, &c_b23, a, &k, &b[k], ldb, 
 				 alpha, &b[b_offset], ldb);
-			dtrsm_("L", "U", "N", diag, &k, n, &c_b27, &a[k * (k 
+			_starpu_dtrsm_("L", "U", "N", diag, &k, n, &c_b27, &a[k * (k 
 				+ 1)], &k, &b[b_offset], ldb);
 
 		    }
@@ -695,11 +695,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'N', UPLO = 'L', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("R", "U", "T", diag, m, &n2, alpha, &a[*n], n, 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &n2, alpha, &a[*n], n, 
 				&b[n1 * b_dim1], ldb);
-			dgemm_("N", "N", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
+			_starpu_dgemm_("N", "N", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
 				 ldb, &a[n1], n, alpha, b, ldb);
-			dtrsm_("R", "L", "N", diag, m, &n1, &c_b27, a, n, b, 
+			_starpu_dtrsm_("R", "L", "N", diag, m, &n1, &c_b27, a, n, b, 
 				ldb);
 
 		    } else {
@@ -707,11 +707,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'N', UPLO = 'L', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("R", "L", "T", diag, m, &n1, alpha, a, n, b, 
+			_starpu_dtrsm_("R", "L", "T", diag, m, &n1, alpha, a, n, b, 
 				ldb);
-			dgemm_("N", "T", m, &n2, &n1, &c_b23, b, ldb, &a[n1], 
+			_starpu_dgemm_("N", "T", m, &n2, &n1, &c_b23, b, ldb, &a[n1], 
 				n, alpha, &b[n1 * b_dim1], ldb);
-			dtrsm_("R", "U", "N", diag, m, &n2, &c_b27, &a[*n], n, 
+			_starpu_dtrsm_("R", "U", "N", diag, m, &n2, &c_b27, &a[*n], n, 
 				 &b[n1 * b_dim1], ldb);
 
 		    }
@@ -725,11 +725,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'N', UPLO = 'U', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("R", "L", "T", diag, m, &n1, alpha, &a[n2], n, 
+			_starpu_dtrsm_("R", "L", "T", diag, m, &n1, alpha, &a[n2], n, 
 				b, ldb);
-			dgemm_("N", "N", m, &n2, &n1, &c_b23, b, ldb, a, n, 
+			_starpu_dgemm_("N", "N", m, &n2, &n1, &c_b23, b, ldb, a, n, 
 				alpha, &b[n1 * b_dim1], ldb);
-			dtrsm_("R", "U", "N", diag, m, &n2, &c_b27, &a[n1], n, 
+			_starpu_dtrsm_("R", "U", "N", diag, m, &n2, &c_b27, &a[n1], n, 
 				 &b[n1 * b_dim1], ldb);
 
 		    } else {
@@ -737,11 +737,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'N', UPLO = 'U', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("R", "U", "T", diag, m, &n2, alpha, &a[n1], n, 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &n2, alpha, &a[n1], n, 
 				&b[n1 * b_dim1], ldb);
-			dgemm_("N", "T", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
+			_starpu_dgemm_("N", "T", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
 				 ldb, a, n, alpha, b, ldb);
-			dtrsm_("R", "L", "N", diag, m, &n1, &c_b27, &a[n2], n, 
+			_starpu_dtrsm_("R", "L", "N", diag, m, &n1, &c_b27, &a[n2], n, 
 				 b, ldb);
 
 		    }
@@ -761,11 +761,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'T', UPLO = 'L', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("R", "L", "N", diag, m, &n2, alpha, &a[1], &n1, 
+			_starpu_dtrsm_("R", "L", "N", diag, m, &n2, alpha, &a[1], &n1, 
 				 &b[n1 * b_dim1], ldb);
-			dgemm_("N", "T", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
+			_starpu_dgemm_("N", "T", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
 				 ldb, &a[n1 * n1], &n1, alpha, b, ldb);
-			dtrsm_("R", "U", "T", diag, m, &n1, &c_b27, a, &n1, b, 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &n1, &c_b27, a, &n1, b, 
 				 ldb);
 
 		    } else {
@@ -773,11 +773,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'T', UPLO = 'L', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("R", "U", "N", diag, m, &n1, alpha, a, &n1, b, 
+			_starpu_dtrsm_("R", "U", "N", diag, m, &n1, alpha, a, &n1, b, 
 				ldb);
-			dgemm_("N", "N", m, &n2, &n1, &c_b23, b, ldb, &a[n1 * 
+			_starpu_dgemm_("N", "N", m, &n2, &n1, &c_b23, b, ldb, &a[n1 * 
 				n1], &n1, alpha, &b[n1 * b_dim1], ldb);
-			dtrsm_("R", "L", "T", diag, m, &n2, &c_b27, &a[1], &
+			_starpu_dtrsm_("R", "L", "T", diag, m, &n2, &c_b27, &a[1], &
 				n1, &b[n1 * b_dim1], ldb);
 
 		    }
@@ -791,11 +791,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'T', UPLO = 'U', and */
 /*                    TRANS = 'N' */
 
-			dtrsm_("R", "U", "N", diag, m, &n1, alpha, &a[n2 * n2]
+			_starpu_dtrsm_("R", "U", "N", diag, m, &n1, alpha, &a[n2 * n2]
 , &n2, b, ldb);
-			dgemm_("N", "T", m, &n2, &n1, &c_b23, b, ldb, a, &n2, 
+			_starpu_dgemm_("N", "T", m, &n2, &n1, &c_b23, b, ldb, a, &n2, 
 				alpha, &b[n1 * b_dim1], ldb);
-			dtrsm_("R", "L", "T", diag, m, &n2, &c_b27, &a[n1 * 
+			_starpu_dtrsm_("R", "L", "T", diag, m, &n2, &c_b27, &a[n1 * 
 				n2], &n2, &b[n1 * b_dim1], ldb);
 
 		    } else {
@@ -803,11 +803,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is odd, TRANSR = 'T', UPLO = 'U', and */
 /*                    TRANS = 'T' */
 
-			dtrsm_("R", "L", "N", diag, m, &n2, alpha, &a[n1 * n2]
+			_starpu_dtrsm_("R", "L", "N", diag, m, &n2, alpha, &a[n1 * n2]
 , &n2, &b[n1 * b_dim1], ldb);
-			dgemm_("N", "N", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
+			_starpu_dgemm_("N", "N", m, &n1, &n2, &c_b23, &b[n1 * b_dim1], 
 				 ldb, a, &n2, alpha, b, ldb);
-			dtrsm_("R", "U", "T", diag, m, &n1, &c_b27, &a[n2 * 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &n1, &c_b27, &a[n2 * 
 				n2], &n2, b, ldb);
 
 		    }
@@ -834,13 +834,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'N' */
 
 			i__1 = *n + 1;
-			dtrsm_("R", "U", "T", diag, m, &k, alpha, a, &i__1, &
+			_starpu_dtrsm_("R", "U", "T", diag, m, &k, alpha, a, &i__1, &
 				b[k * b_dim1], ldb);
 			i__1 = *n + 1;
-			dgemm_("N", "N", m, &k, &k, &c_b23, &b[k * b_dim1], 
+			_starpu_dgemm_("N", "N", m, &k, &k, &c_b23, &b[k * b_dim1], 
 				ldb, &a[k + 1], &i__1, alpha, b, ldb);
 			i__1 = *n + 1;
-			dtrsm_("R", "L", "N", diag, m, &k, &c_b27, &a[1], &
+			_starpu_dtrsm_("R", "L", "N", diag, m, &k, &c_b27, &a[1], &
 				i__1, b, ldb);
 
 		    } else {
@@ -849,13 +849,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'T' */
 
 			i__1 = *n + 1;
-			dtrsm_("R", "L", "T", diag, m, &k, alpha, &a[1], &
+			_starpu_dtrsm_("R", "L", "T", diag, m, &k, alpha, &a[1], &
 				i__1, b, ldb);
 			i__1 = *n + 1;
-			dgemm_("N", "T", m, &k, &k, &c_b23, b, ldb, &a[k + 1], 
+			_starpu_dgemm_("N", "T", m, &k, &k, &c_b23, b, ldb, &a[k + 1], 
 				 &i__1, alpha, &b[k * b_dim1], ldb);
 			i__1 = *n + 1;
-			dtrsm_("R", "U", "N", diag, m, &k, &c_b27, a, &i__1, &
+			_starpu_dtrsm_("R", "U", "N", diag, m, &k, &c_b27, a, &i__1, &
 				b[k * b_dim1], ldb);
 
 		    }
@@ -870,13 +870,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'N' */
 
 			i__1 = *n + 1;
-			dtrsm_("R", "L", "T", diag, m, &k, alpha, &a[k + 1], &
+			_starpu_dtrsm_("R", "L", "T", diag, m, &k, alpha, &a[k + 1], &
 				i__1, b, ldb);
 			i__1 = *n + 1;
-			dgemm_("N", "N", m, &k, &k, &c_b23, b, ldb, a, &i__1, 
+			_starpu_dgemm_("N", "N", m, &k, &k, &c_b23, b, ldb, a, &i__1, 
 				alpha, &b[k * b_dim1], ldb);
 			i__1 = *n + 1;
-			dtrsm_("R", "U", "N", diag, m, &k, &c_b27, &a[k], &
+			_starpu_dtrsm_("R", "U", "N", diag, m, &k, &c_b27, &a[k], &
 				i__1, &b[k * b_dim1], ldb);
 
 		    } else {
@@ -885,13 +885,13 @@ static doublereal c_b27 = 1.;
 /*                    and TRANS = 'T' */
 
 			i__1 = *n + 1;
-			dtrsm_("R", "U", "T", diag, m, &k, alpha, &a[k], &
+			_starpu_dtrsm_("R", "U", "T", diag, m, &k, alpha, &a[k], &
 				i__1, &b[k * b_dim1], ldb);
 			i__1 = *n + 1;
-			dgemm_("N", "T", m, &k, &k, &c_b23, &b[k * b_dim1], 
+			_starpu_dgemm_("N", "T", m, &k, &k, &c_b23, &b[k * b_dim1], 
 				ldb, a, &i__1, alpha, b, ldb);
 			i__1 = *n + 1;
-			dtrsm_("R", "L", "N", diag, m, &k, &c_b27, &a[k + 1], 
+			_starpu_dtrsm_("R", "L", "N", diag, m, &k, &c_b27, &a[k + 1], 
 				&i__1, b, ldb);
 
 		    }
@@ -911,11 +911,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is even, TRANSR = 'T', UPLO = 'L', */
 /*                    and TRANS = 'N' */
 
-			dtrsm_("R", "L", "N", diag, m, &k, alpha, a, &k, &b[k 
+			_starpu_dtrsm_("R", "L", "N", diag, m, &k, alpha, a, &k, &b[k 
 				* b_dim1], ldb);
-			dgemm_("N", "T", m, &k, &k, &c_b23, &b[k * b_dim1], 
+			_starpu_dgemm_("N", "T", m, &k, &k, &c_b23, &b[k * b_dim1], 
 				ldb, &a[(k + 1) * k], &k, alpha, b, ldb);
-			dtrsm_("R", "U", "T", diag, m, &k, &c_b27, &a[k], &k, 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &k, &c_b27, &a[k], &k, 
 				b, ldb);
 
 		    } else {
@@ -923,11 +923,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is even, TRANSR = 'T', UPLO = 'L', */
 /*                    and TRANS = 'T' */
 
-			dtrsm_("R", "U", "N", diag, m, &k, alpha, &a[k], &k, 
+			_starpu_dtrsm_("R", "U", "N", diag, m, &k, alpha, &a[k], &k, 
 				b, ldb);
-			dgemm_("N", "N", m, &k, &k, &c_b23, b, ldb, &a[(k + 1)
+			_starpu_dgemm_("N", "N", m, &k, &k, &c_b23, b, ldb, &a[(k + 1)
 				 * k], &k, alpha, &b[k * b_dim1], ldb);
-			dtrsm_("R", "L", "T", diag, m, &k, &c_b27, a, &k, &b[
+			_starpu_dtrsm_("R", "L", "T", diag, m, &k, &c_b27, a, &k, &b[
 				k * b_dim1], ldb);
 
 		    }
@@ -941,11 +941,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is even, TRANSR = 'T', UPLO = 'U', */
 /*                    and TRANS = 'N' */
 
-			dtrsm_("R", "U", "N", diag, m, &k, alpha, &a[(k + 1) *
+			_starpu_dtrsm_("R", "U", "N", diag, m, &k, alpha, &a[(k + 1) *
 				 k], &k, b, ldb);
-			dgemm_("N", "T", m, &k, &k, &c_b23, b, ldb, a, &k, 
+			_starpu_dgemm_("N", "T", m, &k, &k, &c_b23, b, ldb, a, &k, 
 				alpha, &b[k * b_dim1], ldb);
-			dtrsm_("R", "L", "T", diag, m, &k, &c_b27, &a[k * k], 
+			_starpu_dtrsm_("R", "L", "T", diag, m, &k, &c_b27, &a[k * k], 
 				&k, &b[k * b_dim1], ldb);
 
 		    } else {
@@ -953,11 +953,11 @@ static doublereal c_b27 = 1.;
 /*                    SIDE  ='R', N is even, TRANSR = 'T', UPLO = 'U', */
 /*                    and TRANS = 'T' */
 
-			dtrsm_("R", "L", "N", diag, m, &k, alpha, &a[k * k], &
+			_starpu_dtrsm_("R", "L", "N", diag, m, &k, alpha, &a[k * k], &
 				k, &b[k * b_dim1], ldb);
-			dgemm_("N", "N", m, &k, &k, &c_b23, &b[k * b_dim1], 
+			_starpu_dgemm_("N", "N", m, &k, &k, &c_b23, &b[k * b_dim1], 
 				ldb, a, &k, alpha, b, ldb);
-			dtrsm_("R", "U", "T", diag, m, &k, &c_b27, &a[(k + 1) 
+			_starpu_dtrsm_("R", "U", "T", diag, m, &k, &c_b27, &a[(k + 1) 
 				* k], &k, b, ldb);
 
 		    }
@@ -973,4 +973,4 @@ static doublereal c_b27 = 1.;
 
 /*     End of DTFSM */
 
-} /* dtfsm_ */
+} /* _starpu_dtfsm_ */

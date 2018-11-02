@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int ilaver_(integer *vers_major__, integer *vers_minor__, 
+/* Subroutine */ int _starpu_ilaver_(integer *vers_major__, integer *vers_minor__, 
 	integer *vers_patch__)
 {
 
@@ -44,4 +44,4 @@
 /*  ===================================================================== */
 
     return 0;
-} /* ilaver_ */
+} /* _starpu_ilaver_ */

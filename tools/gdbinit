@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2018  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017  CNRS
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -74,6 +74,9 @@ define starpu-print-task
     printf "\tname:\t\t\t\t<%s>\n", $task->name
   end
   printf "\tcodelet:\t\t\t<%p>\n", $task->cl
+  if $task->cl
+    printf "\tcodelet name:\t\t\t<%s>\n", $task->cl->name
+  end
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
@@ -526,14 +529,56 @@ define starpu-print-datas-summary
   printf "Number of allocated per-worker replicates: %d\n", $pw_replicate_n_allocated
 end
 
+define starpu-print-replicate
+  set $repl = (struct _starpu_data_replicate*) $arg0
+  printf "Handle %p\n", $repl->handle
+  printf "Interface %p\n", $repl->data_interface
+  printf "Refcnt %u\n", $repl->refcnt
+  printf "Node %u\n", $repl->memory_node
+  if $repl->state == 0
+    printf "Owner\n"
+  end
+  if $repl->state == 1
+    printf "Shared\n"
+  end
+  if $repl->state == 2
+    printf "Invalid\n"
+  end
+  if $repl->relaxed_coherency
+    printf " relaxed_coherency"
+  end
+  if $repl->initialized
+    printf " initialized"
+  end
+  if $repl->allocated
+    printf " allocated"
+  end
+  if $repl->automatically_allocated
+    printf " automatically allocated"
+  end
+  if $repl->requested
+    printf " requested"
+  end
+  printf "\n"
+  printf "MC %p\n", $repl->mc
+end
+
 define starpu-print-request
   set $r = (struct _starpu_data_request *)$arg0
   printf "Request %p\n", $r
   printf "Origin %s\n", $r->origin
   printf "Refcnt %d\n", $r->refcnt
   printf "Handle %p\n", $r->handle
-  printf "src_replicate %p\n", $r->src_replicate
-  printf "dst_replicate %p\n", $r->dst_replicate
+  printf "src_replicate %p", $r->src_replicate
+  if $r->src_replicate
+    printf " (%d)", $r->src_replicate->memory_node
+  end
+  printf "\n"
+  printf "dst_replicate %p", $r->dst_replicate
+  if $r->dst_replicate
+    printf " (%d)", $r->dst_replicate->memory_node
+  end
+  printf "\n"
   printf "handling_node %d\n", $r->handling_node
   if ($r->mode & 1)
     printf "R"
@@ -566,17 +611,35 @@ define starpu-print-request
   end
 end
 
+define starpu-print-requests-treelist
+  set $list = $arg0
+  set $request = $list->_head
+  while $request != 0
+    printf " Request %p: handle %p ", $request, $request->handle
+    starpu-print-mode $request->mode
+    printf "\n"
+    set $request = $request->_next
+  end
+end
+
+define starpu-print-requests-tree
+  if $arg0
+    starpu-print-requests-tree $arg0->children[0]
+    set $stage = (struct _starpu_data_request_prio_list_stage *) $arg0
+    starpu-print-requests-treelist (&($stage->list))
+    starpu-print-requests-tree $arg0->children[1]
+  end
+end
+
+define starpu-print-requests-list
+  starpu-print-requests-tree $arg0.tree.root
+end
+
 define starpu-print-requests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = data_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list data_requests[$node]
     set $node = $node + 1
   end
 end
@@ -586,13 +649,7 @@ define starpu-print-prequests
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
     printf "%u pending requests\n", data_requests_npending[$node]
-    set $request = data_requests_pending[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list data_requests_pending[$node]
     set $node = $node + 1
   end
 end
@@ -619,13 +676,7 @@ define starpu-print-frequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = prefetch_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list prefetch_requests[$node]
     set $node = $node + 1
   end
 end
@@ -634,13 +685,7 @@ define starpu-print-irequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    set $request = idle_requests[$node].list._head
-    while $request != 0
-      printf " Request %p: handle %p ", $request, $request->handle
-      starpu-print-mode $request->mode
-      printf "\n"
-      set $request = $request->_next
-    end
+    starpu-print-requests-list idle_requests[$node]
     set $node = $node + 1
   end
 end
@@ -925,6 +970,7 @@ starpu-print-task-and-successor    prints a StarPU task and its successors
 starpu-print-data                  prints a StarPU data handle
 starpu-print-datas                 prints all StarPU data handles
 starpu-print-datas-summary         prints a summary of data handles
+starpu-print-replicate             prints a StarPU data replicate
 starpu-print-request               prints a StarPU data request
 starpu-print-prequests             prints all pending StarPU data requests
 starpu-print-requests              prints all queued StarPU data requests

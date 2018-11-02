@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2017                                Inria
+# Copyright (C) 2010-2018                                Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
 # Copyright (C) 2010-2017                                CNRS
 #
@@ -201,6 +201,7 @@ myPROGRAMS +=					\
 	openmp/task_01				\
 	openmp/task_02				\
 	openmp/task_03				\
+	openmp/taskloop				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
 	openmp/taskgroup_02			\
@@ -256,6 +257,7 @@ myPROGRAMS +=				\
 	main/pack				\
 	main/get_children_tasks			\
 	main/hwloc_cpuset			\
+	main/task_end_dep			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
@@ -735,6 +737,9 @@ openmp_task_02_SOURCES = 	\
 
 openmp_task_03_SOURCES = 	\
 	openmp/task_03.c
+
+openmp_taskloop_SOURCES = 	\
+	openmp/taskloop.c
 
 openmp_taskwait_01_SOURCES = 	\
 	openmp/taskwait_01.c

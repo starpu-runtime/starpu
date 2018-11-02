@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2014                                Inria
- * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2009-2011,2014-2015,2017-2018                 Université de Bordeaux
+ * Copyright (C) 2013,2014                                Inria
+ * Copyright (C) 2013-2018                                CNRS
+ * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -251,7 +251,7 @@ The actual scheduler
 @name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
 
-\fn int starpu_sched_component_can_push(struct starpu_sched_component * component)
+\fn int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 \ingroup API_Modularized_Scheduler
 default function for the can_push component method, just calls can_push of parents until one of them returns non-zero
 

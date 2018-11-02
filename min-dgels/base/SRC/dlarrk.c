@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarrk_(integer *n, integer *iw, doublereal *gl, 
+/* Subroutine */ int _starpu_dlarrk_(integer *n, integer *iw, doublereal *gl, 
 	doublereal *gu, doublereal *d__, doublereal *e2, doublereal *pivmin, 
 	doublereal *reltol, doublereal *w, doublereal *werr, integer *info)
 {
@@ -29,7 +29,7 @@
     doublereal mid, eps, tmp1, tmp2, left, atoli, right;
     integer itmax;
     doublereal rtoli, tnorm;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer negcnt;
 
 
@@ -121,7 +121,7 @@
     --d__;
 
     /* Function Body */
-    eps = dlamch_("P");
+    eps = _starpu_dlamch_("P");
 /* Computing MAX */
     d__1 = abs(*gl), d__2 = abs(*gu);
     tnorm = max(d__1,d__2);
@@ -190,4 +190,4 @@ L30:
 
 /*     End of DLARRK */
 
-} /* dlarrk_ */
+} /* _starpu_dlarrk_ */

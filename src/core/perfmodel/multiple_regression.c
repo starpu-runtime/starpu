@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011,2016-2017                      CNRS
- * Copyright (C) 2016-2017                                Inria
+ * Copyright (C) 2016,2017                                Inria
+ * Copyright (C) 2018                                     Umeà University
+ * Copyright (C) 2010,2011,2016,2017                      CNRS
  * Copyright (C) 2009-2011,2015-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +25,11 @@ typedef long int integer;
 typedef double doublereal;
 
 #ifdef STARPU_MLR_MODEL
+#ifdef STARPU_BUILT_IN_MIN_DGELS
+int _starpu_dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
+#else
 int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *work, integer *lwork, integer *info);
+#endif
 #endif //STARPU_MLR_MODEL
 
 static unsigned long count_file_lines(FILE *f)
@@ -224,7 +229,11 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 	_STARPU_MALLOC(work, sizeof(double)*lwork);
 
 	/* // Running LAPACK dgels_ */
+#ifdef STARPU_BUILT_IN_MIN_DGELS
+	_starpu_dgels_(&trans, &m, &n, &nrhs, X, &lda, Y, &ldb, work, &lwork, &info);
+#else
 	dgels_(&trans, &m, &n, &nrhs, X, &lda, Y, &ldb, work, &lwork, &info);
+#endif
 
 	/* Check for the full rank */
 	if( info != 0 )

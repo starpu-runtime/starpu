@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlabad_(doublereal *small, doublereal *large)
+/* Subroutine */ int _starpu_dlabad_(doublereal *small, doublereal *large)
 {
     /* Builtin functions */
     double d_lg10(doublereal *), sqrt(doublereal);
@@ -69,4 +69,4 @@
 
 /*     End of DLABAD */
 
-} /* dlabad_ */
+} /* _starpu_dlabad_ */

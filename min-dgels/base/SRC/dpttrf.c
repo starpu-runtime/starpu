@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dpttrf_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dpttrf_(integer *n, doublereal *d__, doublereal *e, 
 	integer *info)
 {
     /* System generated locals */
@@ -22,7 +22,7 @@
     /* Local variables */
     integer i__, i4;
     doublereal ei;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -90,7 +90,7 @@
     if (*n < 0) {
 	*info = -1;
 	i__1 = -(*info);
-	xerbla_("DPTTRF", &i__1);
+	_starpu_xerbla_("DPTTRF", &i__1);
 	return 0;
     }
 
@@ -178,4 +178,4 @@ L30:
 
 /*     End of DPTTRF */
 
-} /* dpttrf_ */
+} /* _starpu_dpttrf_ */

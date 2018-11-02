@@ -13,13 +13,13 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-integer ilatrans_(char *trans)
+integer _starpu_ilatrans_(char *trans)
 {
     /* System generated locals */
     integer ret_val;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -53,11 +53,11 @@ integer ilatrans_(char *trans)
 /*     .. External Functions .. */
 /*     .. */
 /*     .. Executable Statements .. */
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 	ret_val = 111;
-    } else if (lsame_(trans, "T")) {
+    } else if (_starpu_lsame_(trans, "T")) {
 	ret_val = 112;
-    } else if (lsame_(trans, "C")) {
+    } else if (_starpu_lsame_(trans, "C")) {
 	ret_val = 113;
     } else {
 	ret_val = -1;
@@ -66,4 +66,4 @@ integer ilatrans_(char *trans)
 
 /*     End of ILATRANS */
 
-} /* ilatrans_ */
+} /* _starpu_ilatrans_ */

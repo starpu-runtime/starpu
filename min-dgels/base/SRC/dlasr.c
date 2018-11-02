@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasr_(char *side, char *pivot, char *direct, integer *m, 
+/* Subroutine */ int _starpu_dlasr_(char *side, char *pivot, char *direct, integer *m, 
 	 integer *n, doublereal *c__, doublereal *s, doublereal *a, integer *
 	lda)
 {
@@ -23,9 +23,9 @@
     /* Local variables */
     integer i__, j, info;
     doublereal temp;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal ctemp, stemp;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -187,12 +187,12 @@
 
     /* Function Body */
     info = 0;
-    if (! (lsame_(side, "L") || lsame_(side, "R"))) {
+    if (! (_starpu_lsame_(side, "L") || _starpu_lsame_(side, "R"))) {
 	info = 1;
-    } else if (! (lsame_(pivot, "V") || lsame_(pivot, 
-	    "T") || lsame_(pivot, "B"))) {
+    } else if (! (_starpu_lsame_(pivot, "V") || _starpu_lsame_(pivot, 
+	    "T") || _starpu_lsame_(pivot, "B"))) {
 	info = 2;
-    } else if (! (lsame_(direct, "F") || lsame_(direct, 
+    } else if (! (_starpu_lsame_(direct, "F") || _starpu_lsame_(direct, 
 	    "B"))) {
 	info = 3;
     } else if (*m < 0) {
@@ -203,7 +203,7 @@
 	info = 9;
     }
     if (info != 0) {
-	xerbla_("DLASR ", &info);
+	_starpu_xerbla_("DLASR ", &info);
 	return 0;
     }
 
@@ -212,12 +212,12 @@
     if (*m == 0 || *n == 0) {
 	return 0;
     }
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 
 /*        Form  P * A */
 
-	if (lsame_(pivot, "V")) {
-	    if (lsame_(direct, "F")) {
+	if (_starpu_lsame_(pivot, "V")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *m - 1;
 		for (j = 1; j <= i__1; ++j) {
 		    ctemp = c__[j];
@@ -235,7 +235,7 @@
 		    }
 /* L20: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *m - 1; j >= 1; --j) {
 		    ctemp = c__[j];
 		    stemp = s[j];
@@ -253,8 +253,8 @@
 /* L40: */
 		}
 	    }
-	} else if (lsame_(pivot, "T")) {
-	    if (lsame_(direct, "F")) {
+	} else if (_starpu_lsame_(pivot, "T")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *m;
 		for (j = 2; j <= i__1; ++j) {
 		    ctemp = c__[j - 1];
@@ -272,7 +272,7 @@
 		    }
 /* L60: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *m; j >= 2; --j) {
 		    ctemp = c__[j - 1];
 		    stemp = s[j - 1];
@@ -290,8 +290,8 @@
 /* L80: */
 		}
 	    }
-	} else if (lsame_(pivot, "B")) {
-	    if (lsame_(direct, "F")) {
+	} else if (_starpu_lsame_(pivot, "B")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *m - 1;
 		for (j = 1; j <= i__1; ++j) {
 		    ctemp = c__[j];
@@ -309,7 +309,7 @@
 		    }
 /* L100: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *m - 1; j >= 1; --j) {
 		    ctemp = c__[j];
 		    stemp = s[j];
@@ -328,12 +328,12 @@
 		}
 	    }
 	}
-    } else if (lsame_(side, "R")) {
+    } else if (_starpu_lsame_(side, "R")) {
 
 /*        Form A * P' */
 
-	if (lsame_(pivot, "V")) {
-	    if (lsame_(direct, "F")) {
+	if (_starpu_lsame_(pivot, "V")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *n - 1;
 		for (j = 1; j <= i__1; ++j) {
 		    ctemp = c__[j];
@@ -351,7 +351,7 @@
 		    }
 /* L140: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *n - 1; j >= 1; --j) {
 		    ctemp = c__[j];
 		    stemp = s[j];
@@ -369,8 +369,8 @@
 /* L160: */
 		}
 	    }
-	} else if (lsame_(pivot, "T")) {
-	    if (lsame_(direct, "F")) {
+	} else if (_starpu_lsame_(pivot, "T")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *n;
 		for (j = 2; j <= i__1; ++j) {
 		    ctemp = c__[j - 1];
@@ -388,7 +388,7 @@
 		    }
 /* L180: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *n; j >= 2; --j) {
 		    ctemp = c__[j - 1];
 		    stemp = s[j - 1];
@@ -406,8 +406,8 @@
 /* L200: */
 		}
 	    }
-	} else if (lsame_(pivot, "B")) {
-	    if (lsame_(direct, "F")) {
+	} else if (_starpu_lsame_(pivot, "B")) {
+	    if (_starpu_lsame_(direct, "F")) {
 		i__1 = *n - 1;
 		for (j = 1; j <= i__1; ++j) {
 		    ctemp = c__[j];
@@ -425,7 +425,7 @@
 		    }
 /* L220: */
 		}
-	    } else if (lsame_(direct, "B")) {
+	    } else if (_starpu_lsame_(direct, "B")) {
 		for (j = *n - 1; j >= 1; --j) {
 		    ctemp = c__[j];
 		    stemp = s[j];
@@ -450,4 +450,4 @@
 
 /*     End of DLASR */
 
-} /* dlasr_ */
+} /* _starpu_dlasr_ */

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014,2016-2017                      Inria
+ * Copyright (C) 2011-2014,2016,2017                      Inria
+ * Copyright (C) 2017,2018                                Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2012,2014,2017,2018                      CNRS
- * Copyright (C) 2017                                     Universidade Federal do Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -235,6 +235,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
+       poti_DefineEventType("pu", "P", "task push");
+       poti_DefineEventType("po", "P", "task pop");
 	poti_DefineEventType("register", "P", "data registration");
 	poti_DefineEventType("unregister", "P", "data unregistration");
 
@@ -244,6 +246,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEventType("SO", "Mm", "data state owner");
 	poti_DefineEventType("WU", "Mm", "data wont use");
 	poti_DefineEventType("Al", "Mm", "Allocating Start");
+       poti_DefineEventType("rc", "Mm", "Request Created");
 	poti_DefineEventType("AlE", "Mm", "Allocating End");
 	poti_DefineEventType("Alr", "Mm", "Allocating Async Start");
 	poti_DefineEventType("AlrE", "Mm", "Allocating Async End");
@@ -395,6 +398,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 1       MPICt   P       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
+2       pu   P       \"Task Push\"                             \n\
+2       po   P       \"Task Pop\"                              \n\
 2       register     P       \"data registration\"				\n\
 2       unregister     P       \"data unregistration\"				\n\
 2       user_event   P       \"user event type\"				\n\
@@ -412,6 +417,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 2       SO       Mm \"data state owner\"                            \n\
 2       WU       Mm \"data wont use\"                            \n\
 2       Al       Mm    \"Allocating Start\"    \n\
+2       rc       Mm    \"Request Created\"    \n\
 2       AlE      Mm    \"Allocating End\"    \n\
 2       Alr      Mm    \"Allocating Async Start\"    \n\
 2       AlrE     Mm    \"Allocating Async End\"    \n\

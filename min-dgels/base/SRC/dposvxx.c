@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dposvxx_(char *fact, char *uplo, integer *n, integer *
+/* Subroutine */ int _starpu_dposvxx_(char *fact, char *uplo, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *af, integer *ldaf, 
 	char *equed, doublereal *s, doublereal *b, integer *ldb, doublereal *
 	x, integer *ldx, doublereal *rcond, doublereal *rpvgrw, doublereal *
@@ -30,26 +30,26 @@
     /* Local variables */
     integer j;
     doublereal amax, smin, smax;
-    extern doublereal dla_porpvgrw__(char *, integer *, doublereal *, integer 
+    extern doublereal _starpu_dla_porpvgrw__(char *, integer *, doublereal *, integer 
 	    *, doublereal *, integer *, doublereal *, ftnlen);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal scond;
     logical equil, rcequ;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     doublereal bignum;
     integer infequ;
-    extern /* Subroutine */ int dlaqsy_(char *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, char *), dpotrf_(char *, integer *, doublereal *, integer 
+    extern /* Subroutine */ int _starpu_dlaqsy_(char *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, doublereal *, char *), _starpu_dpotrf_(char *, integer *, doublereal *, integer 
 	    *, integer *);
     doublereal smlnum;
-    extern /* Subroutine */ int dpotrs_(char *, integer *, integer *, 
-	    doublereal *, integer *, doublereal *, integer *, integer *), dlascl2_(integer *, integer *, doublereal *, doublereal *
-, integer *), dpoequb_(integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, doublereal *, integer *), dporfsx_(
+    extern /* Subroutine */ int _starpu_dpotrs_(char *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *, integer *), _starpu_dlascl2_(integer *, integer *, doublereal *, doublereal *
+, integer *), _starpu_dpoequb_(integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, integer *), _starpu_dporfsx_(
 	    char *, char *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
@@ -466,15 +466,15 @@
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
-    smlnum = dlamch_("Safe minimum");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
+    smlnum = _starpu_dlamch_("Safe minimum");
     bignum = 1. / smlnum;
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rcequ = FALSE_;
     } else {
-	rcequ = lsame_(equed, "Y");
+	rcequ = _starpu_lsame_(equed, "Y");
     }
 
 /*     Default is failure.  If an input parameter is wrong or */
@@ -485,9 +485,9 @@
 
 /*     Test the input parameters.  PARAMS is not tested until DPORFSX. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! lsame_(uplo, "U") && ! lsame_(uplo, 
+    } else if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, 
 	    "L")) {
 	*info = -2;
     } else if (*n < 0) {
@@ -498,7 +498,7 @@
 	*info = -6;
     } else if (*ldaf < max(1,*n)) {
 	*info = -8;
-    } else if (lsame_(fact, "F") && ! (rcequ || lsame_(
+    } else if (_starpu_lsame_(fact, "F") && ! (rcequ || _starpu_lsame_(
 	    equed, "N"))) {
 	*info = -9;
     } else {
@@ -534,7 +534,7 @@
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOSVXX", &i__1);
+	_starpu_xerbla_("DPOSVXX", &i__1);
 	return 0;
     }
 
@@ -542,28 +542,28 @@
 
 /*     Compute row and column scalings to equilibrate the matrix A. */
 
-	dpoequb_(n, &a[a_offset], lda, &s[1], &scond, &amax, &infequ);
+	_starpu_dpoequb_(n, &a[a_offset], lda, &s[1], &scond, &amax, &infequ);
 	if (infequ == 0) {
 
 /*     Equilibrate the matrix. */
 
-	    dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
-	    rcequ = lsame_(equed, "Y");
+	    _starpu_dlaqsy_(uplo, n, &a[a_offset], lda, &s[1], &scond, &amax, equed);
+	    rcequ = _starpu_lsame_(equed, "Y");
 	}
     }
 
 /*     Scale the right-hand side. */
 
     if (rcequ) {
-	dlascl2_(n, nrhs, &s[1], &b[b_offset], ldb);
+	_starpu_dlascl2_(n, nrhs, &s[1], &b[b_offset], ldb);
     }
 
     if (nofact || equil) {
 
 /*        Compute the LU factorization of A. */
 
-	dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
-	dpotrf_(uplo, n, &af[af_offset], ldaf, info);
+	_starpu_dlacpy_(uplo, n, n, &a[a_offset], lda, &af[af_offset], ldaf);
+	_starpu_dpotrf_(uplo, n, &af[af_offset], ldaf, info);
 
 /*        Return if INFO is non-zero. */
 
@@ -573,7 +573,7 @@
 /*           Compute the reciprocal pivot growth factor of the */
 /*           leading rank-deficient INFO columns of A. */
 
-	    *rpvgrw = dla_porpvgrw__(uplo, info, &a[a_offset], lda, &af[
+	    *rpvgrw = _starpu_dla_porpvgrw__(uplo, info, &a[a_offset], lda, &af[
 		    af_offset], ldaf, &work[1], (ftnlen)1);
 	    return 0;
 	}
@@ -581,18 +581,18 @@
 
 /*     Compute the reciprocal growth factor RPVGRW. */
 
-    *rpvgrw = dla_porpvgrw__(uplo, n, &a[a_offset], lda, &af[af_offset], ldaf,
+    *rpvgrw = _starpu_dla_porpvgrw__(uplo, n, &a[a_offset], lda, &af[af_offset], ldaf,
 	     &work[1], (ftnlen)1);
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dpotrs_(uplo, n, nrhs, &af[af_offset], ldaf, &x[x_offset], ldx, info);
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dpotrs_(uplo, n, nrhs, &af[af_offset], ldaf, &x[x_offset], ldx, info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dporfsx_(uplo, equed, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &
+    _starpu_dporfsx_(uplo, equed, n, nrhs, &a[a_offset], lda, &af[af_offset], ldaf, &
 	    s[1], &b[b_offset], ldb, &x[x_offset], ldx, rcond, &berr[1], 
 	    n_err_bnds__, &err_bnds_norm__[err_bnds_norm_offset], &
 	    err_bnds_comp__[err_bnds_comp_offset], nparams, &params[1], &work[
@@ -601,11 +601,11 @@
 /*     Scale solutions. */
 
     if (rcequ) {
-	dlascl2_(n, nrhs, &s[1], &x[x_offset], ldx);
+	_starpu_dlascl2_(n, nrhs, &s[1], &x[x_offset], ldx);
     }
 
     return 0;
 
 /*     End of DPOSVXX */
 
-} /* dposvxx_ */
+} /* _starpu_dposvxx_ */

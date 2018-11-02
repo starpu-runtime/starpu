@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlarnv_(integer *idist, integer *iseed, integer *n, 
+/* Subroutine */ int _starpu_dlarnv_(integer *idist, integer *iseed, integer *n, 
 	doublereal *x)
 {
     /* System generated locals */
@@ -26,7 +26,7 @@
     integer i__;
     doublereal u[128];
     integer il, iv, il2;
-    extern /* Subroutine */ int dlaruv_(integer *, integer *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlaruv_(integer *, integer *, doublereal *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -106,7 +106,7 @@
 /*        Call DLARUV to generate IL2 numbers from a uniform (0,1) */
 /*        distribution (IL2 <= LV) */
 
-	dlaruv_(&iseed[1], &il2, u);
+	_starpu_dlaruv_(&iseed[1], &il2, u);
 
 	if (*idist == 1) {
 
@@ -143,4 +143,4 @@
 
 /*     End of DLARNV */
 
-} /* dlarnv_ */
+} /* _starpu_dlarnv_ */

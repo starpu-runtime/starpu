@@ -1,4 +1,4 @@
-/* dla_gbrpvgrw.f -- translated by f2c (version 20061008).
+/* _starpu_dla_gbrpvgrw.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dla_gbrpvgrw__(integer *n, integer *kl, integer *ku, integer *
+doublereal _starpu_dla_gbrpvgrw__(integer *n, integer *kl, integer *ku, integer *
 	ncols, doublereal *ab, integer *ldab, doublereal *afb, integer *ldafb)
 {
     /* System generated locals */
@@ -133,4 +133,4 @@ doublereal dla_gbrpvgrw__(integer *n, integer *kl, integer *ku, integer *
     }
     ret_val = rpvgrw;
     return ret_val;
-} /* dla_gbrpvgrw__ */
+} /* _starpu_dla_gbrpvgrw__ */

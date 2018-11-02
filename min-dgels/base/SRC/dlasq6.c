@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlasq6_(integer *i0, integer *n0, doublereal *z__, 
+/* Subroutine */ int _starpu_dlasq6_(integer *i0, integer *n0, doublereal *z__, 
 	integer *pp, doublereal *dmin__, doublereal *dmin1, doublereal *dmin2, 
 	 doublereal *dn, doublereal *dnm1, doublereal *dnm2)
 {
@@ -25,7 +25,7 @@
     doublereal d__;
     integer j4, j4p2;
     doublereal emin, temp;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
 
 
@@ -104,7 +104,7 @@
 	return 0;
     }
 
-    safmin = dlamch_("Safe minimum");
+    safmin = _starpu_dlamch_("Safe minimum");
     j4 = (*i0 << 2) + *pp - 3;
     emin = z__[j4 + 4];
     d__ = z__[j4];
@@ -209,4 +209,4 @@
 
 /*     End of DLASQ6 */
 
-} /* dlasq6_ */
+} /* _starpu_dlasq6_ */

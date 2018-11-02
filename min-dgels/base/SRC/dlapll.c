@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlapll_(integer *n, doublereal *x, integer *incx, 
+/* Subroutine */ int _starpu_dlapll_(integer *n, doublereal *x, integer *incx, 
 	doublereal *y, integer *incy, doublereal *ssmin)
 {
     /* System generated locals */
@@ -21,13 +21,13 @@
 
     /* Local variables */
     doublereal c__, a11, a12, a22, tau;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern /* Subroutine */ int dlas2_(doublereal *, doublereal *, doublereal 
-	    *, doublereal *, doublereal *), daxpy_(integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlas2_(doublereal *, doublereal *, doublereal 
+	    *, doublereal *, doublereal *), _starpu_daxpy_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal ssmax;
-    extern /* Subroutine */ int dlarfg_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlarfg_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *);
 
 
@@ -103,25 +103,25 @@
 
 /*     Compute the QR factorization of the N-by-2 matrix ( X Y ) */
 
-    dlarfg_(n, &x[1], &x[*incx + 1], incx, &tau);
+    _starpu_dlarfg_(n, &x[1], &x[*incx + 1], incx, &tau);
     a11 = x[1];
     x[1] = 1.;
 
-    c__ = -tau * ddot_(n, &x[1], incx, &y[1], incy);
-    daxpy_(n, &c__, &x[1], incx, &y[1], incy);
+    c__ = -tau * _starpu_ddot_(n, &x[1], incx, &y[1], incy);
+    _starpu_daxpy_(n, &c__, &x[1], incx, &y[1], incy);
 
     i__1 = *n - 1;
-    dlarfg_(&i__1, &y[*incy + 1], &y[(*incy << 1) + 1], incy, &tau);
+    _starpu_dlarfg_(&i__1, &y[*incy + 1], &y[(*incy << 1) + 1], incy, &tau);
 
     a12 = y[1];
     a22 = y[*incy + 1];
 
 /*     Compute the SVD of 2-by-2 Upper triangular matrix. */
 
-    dlas2_(&a11, &a12, &a22, ssmin, &ssmax);
+    _starpu_dlas2_(&a11, &a12, &a22, ssmin, &ssmax);
 
     return 0;
 
 /*     End of DLAPLL */
 
-} /* dlapll_ */
+} /* _starpu_dlapll_ */

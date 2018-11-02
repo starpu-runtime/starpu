@@ -18,7 +18,7 @@
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dpttrs_(integer *n, integer *nrhs, doublereal *d__, 
+/* Subroutine */ int _starpu_dpttrs_(integer *n, integer *nrhs, doublereal *d__, 
 	doublereal *e, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
@@ -26,9 +26,9 @@ static integer c_n1 = -1;
 
     /* Local variables */
     integer j, jb, nb;
-    extern /* Subroutine */ int dptts2_(integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dptts2_(integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
 
 
@@ -115,7 +115,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPTTRS", &i__1);
+	_starpu_xerbla_("DPTTRS", &i__1);
 	return 0;
     }
 
@@ -131,12 +131,12 @@ static integer c_n1 = -1;
 	nb = 1;
     } else {
 /* Computing MAX */
-	i__1 = 1, i__2 = ilaenv_(&c__1, "DPTTRS", " ", n, nrhs, &c_n1, &c_n1);
+	i__1 = 1, i__2 = _starpu_ilaenv_(&c__1, "DPTTRS", " ", n, nrhs, &c_n1, &c_n1);
 	nb = max(i__1,i__2);
     }
 
     if (nb >= *nrhs) {
-	dptts2_(n, nrhs, &d__[1], &e[1], &b[b_offset], ldb);
+	_starpu_dptts2_(n, nrhs, &d__[1], &e[1], &b[b_offset], ldb);
     } else {
 	i__1 = *nrhs;
 	i__2 = nb;
@@ -144,7 +144,7 @@ static integer c_n1 = -1;
 /* Computing MIN */
 	    i__3 = *nrhs - j + 1;
 	    jb = min(i__3,nb);
-	    dptts2_(n, &jb, &d__[1], &e[1], &b[j * b_dim1 + 1], ldb);
+	    _starpu_dptts2_(n, &jb, &d__[1], &e[1], &b[j * b_dim1 + 1], ldb);
 /* L10: */
 	}
     }
@@ -153,4 +153,4 @@ static integer c_n1 = -1;
 
 /*     End of DPTTRS */
 
-} /* dpttrs_ */
+} /* _starpu_dpttrs_ */

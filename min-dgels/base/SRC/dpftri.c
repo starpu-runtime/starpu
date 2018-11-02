@@ -17,7 +17,7 @@
 
 static doublereal c_b11 = 1.;
 
-/* Subroutine */ int dpftri_(char *transr, char *uplo, integer *n, doublereal 
+/* Subroutine */ int _starpu_dpftri_(char *transr, char *uplo, integer *n, doublereal 
 	*a, integer *info)
 {
     /* System generated locals */
@@ -26,17 +26,17 @@ static doublereal c_b11 = 1.;
     /* Local variables */
     integer k, n1, n2;
     logical normaltransr;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical lower;
-    extern /* Subroutine */ int dsyrk_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsyrk_(char *, char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *), xerbla_(char *, integer *);
+	     integer *), _starpu_xerbla_(char *, integer *);
     logical nisodd;
-    extern /* Subroutine */ int dlauum_(char *, integer *, doublereal *, 
-	    integer *, integer *), dtftri_(char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dlauum_(char *, integer *, doublereal *, 
+	    integer *, integer *), _starpu_dtftri_(char *, char *, char *, 
 	    integer *, doublereal *, integer *);
 
 
@@ -196,18 +196,18 @@ static doublereal c_b11 = 1.;
 /*     Test the input parameters. */
 
     *info = 0;
-    normaltransr = lsame_(transr, "N");
-    lower = lsame_(uplo, "L");
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    normaltransr = _starpu_lsame_(transr, "N");
+    lower = _starpu_lsame_(uplo, "L");
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	*info = -1;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPFTRI", &i__1);
+	_starpu_xerbla_("DPFTRI", &i__1);
 	return 0;
     }
 
@@ -219,7 +219,7 @@ static doublereal c_b11 = 1.;
 
 /*     Invert the triangular Cholesky factor U or L. */
 
-    dtftri_(transr, uplo, "N", n, a, info);
+    _starpu_dtftri_(transr, uplo, "N", n, a, info);
     if (*info > 0) {
 	return 0;
     }
@@ -261,11 +261,11 @@ static doublereal c_b11 = 1.;
 /*              T1 -> a(0,0), T2 -> a(0,1), S -> a(N1,0) */
 /*              T1 -> a(0), T2 -> a(n), S -> a(N1) */
 
-		dlauum_("L", &n1, a, n, info);
-		dsyrk_("L", "T", &n1, &n2, &c_b11, &a[n1], n, &c_b11, a, n);
-		dtrmm_("L", "U", "N", "N", &n2, &n1, &c_b11, &a[*n], n, &a[n1]
+		_starpu_dlauum_("L", &n1, a, n, info);
+		_starpu_dsyrk_("L", "T", &n1, &n2, &c_b11, &a[n1], n, &c_b11, a, n);
+		_starpu_dtrmm_("L", "U", "N", "N", &n2, &n1, &c_b11, &a[*n], n, &a[n1]
 , n);
-		dlauum_("U", &n2, &a[*n], n, info);
+		_starpu_dlauum_("U", &n2, &a[*n], n, info);
 
 	    } else {
 
@@ -273,10 +273,10 @@ static doublereal c_b11 = 1.;
 /*              T1 -> a(N1+1,0), T2 -> a(N1,0), S -> a(0,0) */
 /*              T1 -> a(N2), T2 -> a(N1), S -> a(0) */
 
-		dlauum_("L", &n1, &a[n2], n, info);
-		dsyrk_("L", "N", &n1, &n2, &c_b11, a, n, &c_b11, &a[n2], n);
-		dtrmm_("R", "U", "T", "N", &n1, &n2, &c_b11, &a[n1], n, a, n);
-		dlauum_("U", &n2, &a[n1], n, info);
+		_starpu_dlauum_("L", &n1, &a[n2], n, info);
+		_starpu_dsyrk_("L", "N", &n1, &n2, &c_b11, a, n, &c_b11, &a[n2], n);
+		_starpu_dtrmm_("R", "U", "T", "N", &n1, &n2, &c_b11, &a[n1], n, a, n);
+		_starpu_dlauum_("U", &n2, &a[n1], n, info);
 
 	    }
 
@@ -289,24 +289,24 @@ static doublereal c_b11 = 1.;
 /*              SRPA for LOWER, TRANSPOSE, and N is odd */
 /*              T1 -> a(0), T2 -> a(1), S -> a(0+N1*N1) */
 
-		dlauum_("U", &n1, a, &n1, info);
-		dsyrk_("U", "N", &n1, &n2, &c_b11, &a[n1 * n1], &n1, &c_b11, 
+		_starpu_dlauum_("U", &n1, a, &n1, info);
+		_starpu_dsyrk_("U", "N", &n1, &n2, &c_b11, &a[n1 * n1], &n1, &c_b11, 
 			a, &n1);
-		dtrmm_("R", "L", "N", "N", &n1, &n2, &c_b11, &a[1], &n1, &a[
+		_starpu_dtrmm_("R", "L", "N", "N", &n1, &n2, &c_b11, &a[1], &n1, &a[
 			n1 * n1], &n1);
-		dlauum_("L", &n2, &a[1], &n1, info);
+		_starpu_dlauum_("L", &n2, &a[1], &n1, info);
 
 	    } else {
 
 /*              SRPA for UPPER, TRANSPOSE, and N is odd */
 /*              T1 -> a(0+N2*N2), T2 -> a(0+N1*N2), S -> a(0) */
 
-		dlauum_("U", &n1, &a[n2 * n2], &n2, info);
-		dsyrk_("U", "T", &n1, &n2, &c_b11, a, &n2, &c_b11, &a[n2 * n2]
+		_starpu_dlauum_("U", &n1, &a[n2 * n2], &n2, info);
+		_starpu_dsyrk_("U", "T", &n1, &n2, &c_b11, a, &n2, &c_b11, &a[n2 * n2]
 , &n2);
-		dtrmm_("L", "L", "T", "N", &n2, &n1, &c_b11, &a[n1 * n2], &n2, 
+		_starpu_dtrmm_("L", "L", "T", "N", &n2, &n1, &c_b11, &a[n1 * n2], &n2, 
 			 a, &n2);
-		dlauum_("L", &n2, &a[n1 * n2], &n2, info);
+		_starpu_dlauum_("L", &n2, &a[n1 * n2], &n2, info);
 
 	    }
 
@@ -327,17 +327,17 @@ static doublereal c_b11 = 1.;
 /*              T1 -> a(1), T2 -> a(0), S -> a(k+1) */
 
 		i__1 = *n + 1;
-		dlauum_("L", &k, &a[1], &i__1, info);
+		_starpu_dlauum_("L", &k, &a[1], &i__1, info);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dsyrk_("L", "T", &k, &k, &c_b11, &a[k + 1], &i__1, &c_b11, &a[
+		_starpu_dsyrk_("L", "T", &k, &k, &c_b11, &a[k + 1], &i__1, &c_b11, &a[
 			1], &i__2);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dtrmm_("L", "U", "N", "N", &k, &k, &c_b11, a, &i__1, &a[k + 1]
+		_starpu_dtrmm_("L", "U", "N", "N", &k, &k, &c_b11, a, &i__1, &a[k + 1]
 , &i__2);
 		i__1 = *n + 1;
-		dlauum_("U", &k, a, &i__1, info);
+		_starpu_dlauum_("U", &k, a, &i__1, info);
 
 	    } else {
 
@@ -346,17 +346,17 @@ static doublereal c_b11 = 1.;
 /*              T1 -> a(k+1), T2 -> a(k), S -> a(0) */
 
 		i__1 = *n + 1;
-		dlauum_("L", &k, &a[k + 1], &i__1, info);
+		_starpu_dlauum_("L", &k, &a[k + 1], &i__1, info);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dsyrk_("L", "N", &k, &k, &c_b11, a, &i__1, &c_b11, &a[k + 1], 
+		_starpu_dsyrk_("L", "N", &k, &k, &c_b11, a, &i__1, &c_b11, &a[k + 1], 
 			&i__2);
 		i__1 = *n + 1;
 		i__2 = *n + 1;
-		dtrmm_("R", "U", "T", "N", &k, &k, &c_b11, &a[k], &i__1, a, &
+		_starpu_dtrmm_("R", "U", "T", "N", &k, &k, &c_b11, &a[k], &i__1, a, &
 			i__2);
 		i__1 = *n + 1;
-		dlauum_("U", &k, &a[k], &i__1, info);
+		_starpu_dlauum_("U", &k, &a[k], &i__1, info);
 
 	    }
 
@@ -370,12 +370,12 @@ static doublereal c_b11 = 1.;
 /*              T1 -> B(0,1), T2 -> B(0,0), S -> B(0,k+1), */
 /*              T1 -> a(0+k), T2 -> a(0+0), S -> a(0+k*(k+1)); lda=k */
 
-		dlauum_("U", &k, &a[k], &k, info);
-		dsyrk_("U", "N", &k, &k, &c_b11, &a[k * (k + 1)], &k, &c_b11, 
+		_starpu_dlauum_("U", &k, &a[k], &k, info);
+		_starpu_dsyrk_("U", "N", &k, &k, &c_b11, &a[k * (k + 1)], &k, &c_b11, 
 			&a[k], &k);
-		dtrmm_("R", "L", "N", "N", &k, &k, &c_b11, a, &k, &a[k * (k + 
+		_starpu_dtrmm_("R", "L", "N", "N", &k, &k, &c_b11, a, &k, &a[k * (k + 
 			1)], &k);
-		dlauum_("L", &k, a, &k, info);
+		_starpu_dlauum_("L", &k, a, &k, info);
 
 	    } else {
 
@@ -383,12 +383,12 @@ static doublereal c_b11 = 1.;
 /*              T1 -> B(0,k+1),     T2 -> B(0,k),   S -> B(0,0), */
 /*              T1 -> a(0+k*(k+1)), T2 -> a(0+k*k), S -> a(0+0)); lda=k */
 
-		dlauum_("U", &k, &a[k * (k + 1)], &k, info);
-		dsyrk_("U", "T", &k, &k, &c_b11, a, &k, &c_b11, &a[k * (k + 1)
+		_starpu_dlauum_("U", &k, &a[k * (k + 1)], &k, info);
+		_starpu_dsyrk_("U", "T", &k, &k, &c_b11, a, &k, &c_b11, &a[k * (k + 1)
 			], &k);
-		dtrmm_("L", "L", "T", "N", &k, &k, &c_b11, &a[k * k], &k, a, &
+		_starpu_dtrmm_("L", "L", "T", "N", &k, &k, &c_b11, &a[k * k], &k, a, &
 			k);
-		dlauum_("L", &k, &a[k * k], &k, info);
+		_starpu_dlauum_("L", &k, &a[k * k], &k, info);
 
 	    }
 
@@ -400,4 +400,4 @@ static doublereal c_b11 = 1.;
 
 /*     End of DPFTRI */
 
-} /* dpftri_ */
+} /* _starpu_dpftri_ */

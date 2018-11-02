@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b13 = 1.;
 static doublereal c_b23 = -1.;
 
-/* Subroutine */ int dlarzb_(char *side, char *trans, char *direct, char *
+/* Subroutine */ int _starpu_dlarzb_(char *side, char *trans, char *direct, char *
 	storev, integer *m, integer *n, integer *k, integer *l, doublereal *v, 
 	 integer *ldv, doublereal *t, integer *ldt, doublereal *c__, integer *
 	ldc, doublereal *work, integer *ldwork)
@@ -30,14 +30,14 @@ static doublereal c_b23 = -1.;
 
     /* Local variables */
     integer i__, j, info;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), xerbla_(
+	    doublereal *, integer *), _starpu_xerbla_(
 	    char *, integer *);
     char transt[1];
 
@@ -167,24 +167,24 @@ static doublereal c_b23 = -1.;
 /*     Check for currently supported options */
 
     info = 0;
-    if (! lsame_(direct, "B")) {
+    if (! _starpu_lsame_(direct, "B")) {
 	info = -3;
-    } else if (! lsame_(storev, "R")) {
+    } else if (! _starpu_lsame_(storev, "R")) {
 	info = -4;
     }
     if (info != 0) {
 	i__1 = -info;
-	xerbla_("DLARZB", &i__1);
+	_starpu_xerbla_("DLARZB", &i__1);
 	return 0;
     }
 
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 	*(unsigned char *)transt = 'T';
     } else {
 	*(unsigned char *)transt = 'N';
     }
 
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 
 /*        Form  H * C  or  H' * C */
 
@@ -192,7 +192,7 @@ static doublereal c_b23 = -1.;
 
 	i__1 = *k;
 	for (j = 1; j <= i__1; ++j) {
-	    dcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
+	    _starpu_dcopy_(n, &c__[j + c_dim1], ldc, &work[j * work_dim1 + 1], &c__1);
 /* L10: */
 	}
 
@@ -200,14 +200,14 @@ static doublereal c_b23 = -1.;
 /*                        C( m-l+1:m, 1:n )' * V( 1:k, 1:l )' */
 
 	if (*l > 0) {
-	    dgemm_("Transpose", "Transpose", n, k, l, &c_b13, &c__[*m - *l + 
+	    _starpu_dgemm_("Transpose", "Transpose", n, k, l, &c_b13, &c__[*m - *l + 
 		    1 + c_dim1], ldc, &v[v_offset], ldv, &c_b13, &work[
 		    work_offset], ldwork);
 	}
 
 /*        W( 1:n, 1:k ) = W( 1:n, 1:k ) * T'  or  W( 1:m, 1:k ) * T */
 
-	dtrmm_("Right", "Lower", transt, "Non-unit", n, k, &c_b13, &t[
+	_starpu_dtrmm_("Right", "Lower", transt, "Non-unit", n, k, &c_b13, &t[
 		t_offset], ldt, &work[work_offset], ldwork);
 
 /*        C( 1:k, 1:n ) = C( 1:k, 1:n ) - W( 1:n, 1:k )' */
@@ -226,12 +226,12 @@ static doublereal c_b23 = -1.;
 /*                            V( 1:k, 1:l )' * W( 1:n, 1:k )' */
 
 	if (*l > 0) {
-	    dgemm_("Transpose", "Transpose", l, n, k, &c_b23, &v[v_offset], 
+	    _starpu_dgemm_("Transpose", "Transpose", l, n, k, &c_b23, &v[v_offset], 
 		    ldv, &work[work_offset], ldwork, &c_b13, &c__[*m - *l + 1 
 		    + c_dim1], ldc);
 	}
 
-    } else if (lsame_(side, "R")) {
+    } else if (_starpu_lsame_(side, "R")) {
 
 /*        Form  C * H  or  C * H' */
 
@@ -239,7 +239,7 @@ static doublereal c_b23 = -1.;
 
 	i__1 = *k;
 	for (j = 1; j <= i__1; ++j) {
-	    dcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &
+	    _starpu_dcopy_(m, &c__[j * c_dim1 + 1], &c__1, &work[j * work_dim1 + 1], &
 		    c__1);
 /* L40: */
 	}
@@ -248,14 +248,14 @@ static doublereal c_b23 = -1.;
 /*                        C( 1:m, n-l+1:n ) * V( 1:k, 1:l )' */
 
 	if (*l > 0) {
-	    dgemm_("No transpose", "Transpose", m, k, l, &c_b13, &c__[(*n - *
+	    _starpu_dgemm_("No transpose", "Transpose", m, k, l, &c_b13, &c__[(*n - *
 		    l + 1) * c_dim1 + 1], ldc, &v[v_offset], ldv, &c_b13, &
 		    work[work_offset], ldwork);
 	}
 
 /*        W( 1:m, 1:k ) = W( 1:m, 1:k ) * T  or  W( 1:m, 1:k ) * T' */
 
-	dtrmm_("Right", "Lower", trans, "Non-unit", m, k, &c_b13, &t[t_offset]
+	_starpu_dtrmm_("Right", "Lower", trans, "Non-unit", m, k, &c_b13, &t[t_offset]
 , ldt, &work[work_offset], ldwork);
 
 /*        C( 1:m, 1:k ) = C( 1:m, 1:k ) - W( 1:m, 1:k ) */
@@ -274,7 +274,7 @@ static doublereal c_b23 = -1.;
 /*                            W( 1:m, 1:k ) * V( 1:k, 1:l ) */
 
 	if (*l > 0) {
-	    dgemm_("No transpose", "No transpose", m, l, k, &c_b23, &work[
+	    _starpu_dgemm_("No transpose", "No transpose", m, l, k, &c_b23, &work[
 		    work_offset], ldwork, &v[v_offset], ldv, &c_b13, &c__[(*n 
 		    - *l + 1) * c_dim1 + 1], ldc);
 	}
@@ -285,4 +285,4 @@ static doublereal c_b23 = -1.;
 
 /*     End of DLARZB */
 
-} /* dlarzb_ */
+} /* _starpu_dlarzb_ */

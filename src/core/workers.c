@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                Inria
+ * Copyright (C) 2010-2018                                Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -525,7 +525,7 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 struct itimerval prof_itimer;
 #endif
 
-static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
 {
 	workerarg->config = pconfig;
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
@@ -1435,7 +1435,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_init(&_starpu_config.workers[worker], &_starpu_config);
 
-	check_entire_platform = starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
+//FIXME: find out if the variable STARPU_CHECK_ENTIRE_PLATFORM is really needed, for now, just set 1 as a default value
+	check_entire_platform = 1;//starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
+
 	_starpu_config.disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_set_key, NULL);
@@ -2225,6 +2227,7 @@ int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum star
 
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
 {
+	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
 	*sched_cond = &_starpu_config.workers[workerid].sched_cond;
 	*sched_mutex = &_starpu_config.workers[workerid].sched_mutex;
 }

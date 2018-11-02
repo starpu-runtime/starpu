@@ -1,0 +1,118 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2018                                     Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page InteroperabilitySupport Interoperability Support
+
+In situations where multiple parallel software elements have to coexist within
+the same application, uncoordinated accesses to computing units may lead such
+parallel software elements to collide and interfere. The purpose of the
+Interoperability routines of StarPU, implemented along the definition of the
+Resource Management APIs of Project H2020 INTERTWinE, is to enable StarPU to
+coexist with other parallel software elements without resulting in computing
+core oversubscription or undersubscription. These routines allow the
+programmer to dynamically control the computing resources allocated to StarPU,
+to add or remove processor cores and/or accelerator devices from the pool of
+resources used by StarPU's workers to execute tasks. They also allow multiple
+libraries and applicative codes using StarPU simultaneously to select distinct
+sets of resources independently. Internally, the Interoperability Support is
+built on top of Scheduling Contexts (see \ref SchedulingContexts).
+
+\section ResourceManagement StarPU Resource Management
+
+The \c starpurm module is a library built on top of the \c starpu library. It
+exposes a series of routines prefixed with \c starpurm_ defining the resource
+management API.
+
+All functions are defined in \ref API_Interop_Support.
+
+\subsection Build Linking a program with the starpurm module
+
+The \c starpurm module must be linked explicitly with the applicative executable
+using it. Example Makefiles in the <c>starpurm/dev/</c> subdirectories show how
+to do so. If the \c pkg-config command is available and the \c PKG_CONFIG_PATH
+environment variable is properly positioned, the proper settings may be obtained
+with the following \c Makefile snippet:
+
+\code{Makefile}
+CFLAGS += $(shell pkg-config --cflags starpurm-1.3)
+LDFLAGS+= $(shell pkg-config --libs-only-L starpurm-1.3)
+LDLIBS += $(shell pkg-config --libs-only-l starpurm-1.3)
+\endcode
+
+
+\subsection InitExit Initialization and Shutdown
+
+The \c starpurm module is initialized with a call to \ref starpurm_initialize
+and must be finalized with a call to \ref starpurm_shutdown. The \c starpurm
+module supports CPU cores as well as devices. An integer ID is assigned to each
+supported device type. The ID assigned to a given device type can be queried
+with the \ref starpurm_get_device_type_id routine, which currently expects one
+of the following strings as argument and returns the corresponding ID:
+<ul>
+<li><c>"cpu"</c></li>
+<li><c>"opencl"</c></li>
+<li><c>"cuda"</c></li>
+<li><c>"mic"</c></li>
+</ul>
+The \c cpu pseudo device type is defined for convenience and designates CPU
+cores. The number of units of each type available for computation can be
+obtained with a call to \ref starpu_get_nb_devices_by_type.
+
+Each CPU core unit available for computation is designated by its rank among the
+StarPU CPU worker threads and by its own CPUSET bit. Each non-CPU device unit
+can be designated both by its rank number in the type, and by the CPUSET bit
+corresponding to its StarPU device worker thread. The CPUSET of a computing unit
+or its associated worker can be obtained from its type ID and rank with \ref
+starpurm_get_device_worker_cpuset, which returns the corresponding HWLOC CPUSET. 
+
+
+\subsection DefCTX Default Context
+
+The \c starpurm module assumes a default, global context, manipulated through a
+series of routines allowing to assign and withdraw computing units from the main
+StarPU context. Assigning CPU cores can be done with \ref
+starpurm_assign_cpu_to_starpu and \ref starpurm_assign_cpu_mask_to_starpu, and
+assigning device units can be done with \ref starpurm_assign_device_to_starpu
+and \ref starpurm_assign_device_mask_to_starpu. Conversely, withdrawing CPU
+cores can be done with \ref starpurm_withdraw_cpu_from_starpu and \ref starpurm_withdraw_cpu_mask_from_starpu,
+and withdrawing device units can be done with
+\ref starpurm_withdraw_device_from_starpu and \ref starpurm_withdraw_device_mask_from_starpu.
+These routine should typically be used to control resource usage for the main
+applicative code.
+
+\subsection TmpCTXS Temporary Contexts
+
+Besides the default, global context, \c starpurm can create temporary contexts
+and launch the computation of kernels confined to these temporary contexts.
+The routine \ref starpurm_spawn_kernel_on_cpus can be used to do so: it
+allocates a temporary context and spawns a kernel within this context. The
+temporary context is subsequently freed upon completion of the kernel. The
+temporary context is set as the default context for the kernel throughout its
+lifespan. This routine should typically be used to control resource usage for a
+parallel kernel handled by an external library built on StarPU. Internally, it
+relies on the use of \ref starpu_sched_ctx_set_context to set the temporary
+context as default context for the parallel kernel, and then restaure the main
+context upon completion. Note: the maximum number of temporary contexts
+allocated concurrently at any time should not exceed
+<c>STARPU_NMAX_SCHED_CTXS-2</c>, otherwise, the call to \ref
+starpurm_spawn_kernel_on_cpus may block until a temporary context becomes
+available. The routine \ref starpurm_spawn_kernel_on_cpus returns upon the
+completion of the parallel kernel. An asynchronous variant is available with the
+routine \ref starpurm_spawn_kernel_on_cpus_callback. This variant returns
+immediately, however it accepts a callback function, which is subsequently
+called to notify the calling code about the completion of the parallel kernel.
+
+*/

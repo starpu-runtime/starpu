@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlascl2_(integer *m, integer *n, doublereal *d__, 
+/* Subroutine */ int _starpu_dlascl2_(integer *m, integer *n, doublereal *d__, 
 	doublereal *x, integer *ldx)
 {
     /* System generated locals */
@@ -87,4 +87,4 @@
 	}
     }
     return 0;
-} /* dlascl2_ */
+} /* _starpu_dlascl2_ */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2011,2012,2016,2017                      Inria
  * Copyright (C) 2011                                     Antoine Lucas
- * Copyright (C) 2011-2012,2016-2017                      Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2018                      CNRS
@@ -263,8 +263,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->home_node = initial_handle->home_node;
 
 		/* initialize the chunk lock */
-		_starpu_data_requester_list_init(&child->req_list);
-		_starpu_data_requester_list_init(&child->reduction_req_list);
+		_starpu_data_requester_prio_list_init(&child->req_list);
+		_starpu_data_requester_prio_list_init(&child->reduction_req_list);
 		child->reduction_tmp_handles = NULL;
 		child->write_invalidation_req = NULL;
 		child->refcnt = 0;
@@ -306,7 +306,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
 		else
 			child->arbiter = NULL;
-		_starpu_data_requester_list_init(&child->arbitered_req_list);
+		_starpu_data_requester_prio_list_init(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -1053,4 +1053,9 @@ _starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	 */
 	if (offset != NULL)
 		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
+}
+
+void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
+{
+	handle->partition_automatic_disabled = 1;
 }

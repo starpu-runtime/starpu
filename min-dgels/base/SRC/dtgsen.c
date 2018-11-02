@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c__2 = 2;
 static doublereal c_b28 = 1.;
 
-/* Subroutine */ int dtgsen_(integer *ijob, logical *wantq, logical *wantz, 
+/* Subroutine */ int _starpu_dtgsen_(integer *ijob, logical *wantq, logical *wantz, 
 	logical *select, integer *n, doublereal *a, integer *lda, doublereal *
 	b, integer *ldb, doublereal *alphar, doublereal *alphai, doublereal *
 	beta, doublereal *q, integer *ldq, doublereal *z__, integer *ldz, 
@@ -43,27 +43,27 @@ static doublereal c_b28 = 1.;
     integer ierr;
     doublereal dsum;
     logical swap;
-    extern /* Subroutine */ int dlag2_(doublereal *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlag2_(doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *);
     integer isave[3];
     logical wantd;
     integer lwmin;
     logical wantp;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
     logical wantd1, wantd2;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal dscale, rdscal;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dtgexc_(logical *, logical *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dtgexc_(logical *, logical *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
-	    integer *, doublereal *, integer *, integer *), dlassq_(integer *, 
+	    integer *, doublereal *, integer *, integer *), _starpu_dlassq_(integer *, 
 	     doublereal *, integer *, doublereal *, doublereal *);
     integer liwmin;
-    extern /* Subroutine */ int dtgsyl_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dtgsyl_(char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
@@ -451,14 +451,14 @@ static doublereal c_b28 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGSEN", &i__1);
+	_starpu_xerbla_("DTGSEN", &i__1);
 	return 0;
     }
 
 /*     Get machine constants */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     ierr = 0;
 
     wantp = *ijob == 1 || *ijob >= 4;
@@ -531,7 +531,7 @@ static doublereal c_b28 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGSEN", &i__1);
+	_starpu_xerbla_("DTGSEN", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -549,8 +549,8 @@ static doublereal c_b28 = 1.;
 	    dsum = 1.;
 	    i__1 = *n;
 	    for (i__ = 1; i__ <= i__1; ++i__) {
-		dlassq_(n, &a[i__ * a_dim1 + 1], &c__1, &dscale, &dsum);
-		dlassq_(n, &b[i__ * b_dim1 + 1], &c__1, &dscale, &dsum);
+		_starpu_dlassq_(n, &a[i__ * a_dim1 + 1], &c__1, &dscale, &dsum);
+		_starpu_dlassq_(n, &b[i__ * b_dim1 + 1], &c__1, &dscale, &dsum);
 /* L20: */
 	    }
 	    dif[1] = dscale * sqrt(dsum);
@@ -587,7 +587,7 @@ static doublereal c_b28 = 1.;
 
 		kk = k;
 		if (k != ks) {
-		    dtgexc_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
+		    _starpu_dtgexc_(wantq, wantz, n, &a[a_offset], lda, &b[b_offset], 
 			    ldb, &q[q_offset], ldq, &z__[z_offset], ldz, &kk, 
 			    &ks, &work[1], lwork, &ierr);
 		}
@@ -624,11 +624,11 @@ static doublereal c_b28 = 1.;
 	n2 = *n - *m;
 	i__ = n1 + 1;
 	ijb = 0;
-	dlacpy_("Full", &n1, &n2, &a[i__ * a_dim1 + 1], lda, &work[1], &n1);
-	dlacpy_("Full", &n1, &n2, &b[i__ * b_dim1 + 1], ldb, &work[n1 * n2 + 
+	_starpu_dlacpy_("Full", &n1, &n2, &a[i__ * a_dim1 + 1], lda, &work[1], &n1);
+	_starpu_dlacpy_("Full", &n1, &n2, &b[i__ * b_dim1 + 1], ldb, &work[n1 * n2 + 
 		1], &n1);
 	i__1 = *lwork - (n1 << 1) * n2;
-	dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + i__ * a_dim1]
+	_starpu_dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + i__ * a_dim1]
 , lda, &work[1], &n1, &b[b_offset], ldb, &b[i__ + i__ * 
 		b_dim1], ldb, &work[n1 * n2 + 1], &n1, &dscale, &dif[1], &
 		work[(n1 * n2 << 1) + 1], &i__1, &iwork[1], &ierr);
@@ -639,7 +639,7 @@ static doublereal c_b28 = 1.;
 	rdscal = 0.;
 	dsum = 1.;
 	i__1 = n1 * n2;
-	dlassq_(&i__1, &work[1], &c__1, &rdscal, &dsum);
+	_starpu_dlassq_(&i__1, &work[1], &c__1, &rdscal, &dsum);
 	*pl = rdscal * sqrt(dsum);
 	if (*pl == 0.) {
 	    *pl = 1.;
@@ -649,7 +649,7 @@ static doublereal c_b28 = 1.;
 	rdscal = 0.;
 	dsum = 1.;
 	i__1 = n1 * n2;
-	dlassq_(&i__1, &work[n1 * n2 + 1], &c__1, &rdscal, &dsum);
+	_starpu_dlassq_(&i__1, &work[n1 * n2 + 1], &c__1, &rdscal, &dsum);
 	*pr = rdscal * sqrt(dsum);
 	if (*pr == 0.) {
 	    *pr = 1.;
@@ -671,7 +671,7 @@ static doublereal c_b28 = 1.;
 /*           Frobenius norm-based Difu-estimate. */
 
 	    i__1 = *lwork - (n1 << 1) * n2;
-	    dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + i__ * 
+	    _starpu_dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + i__ * 
 		    a_dim1], lda, &work[1], &n1, &b[b_offset], ldb, &b[i__ + 
 		    i__ * b_dim1], ldb, &work[n1 * n2 + 1], &n1, &dscale, &
 		    dif[1], &work[(n1 << 1) * n2 + 1], &i__1, &iwork[1], &
@@ -680,7 +680,7 @@ static doublereal c_b28 = 1.;
 /*           Frobenius norm-based Difl-estimate. */
 
 	    i__1 = *lwork - (n1 << 1) * n2;
-	    dtgsyl_("N", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, &a[
+	    _starpu_dtgsyl_("N", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, &a[
 		    a_offset], lda, &work[1], &n2, &b[i__ + i__ * b_dim1], 
 		    ldb, &b[b_offset], ldb, &work[n1 * n2 + 1], &n2, &dscale, 
 		    &dif[2], &work[(n1 << 1) * n2 + 1], &i__1, &iwork[1], &
@@ -703,7 +703,7 @@ static doublereal c_b28 = 1.;
 /*           1-norm-based estimate of Difu. */
 
 L40:
-	    dlacn2_(&mn2, &work[mn2 + 1], &work[1], &iwork[1], &dif[1], &kase, 
+	    _starpu_dlacn2_(&mn2, &work[mn2 + 1], &work[1], &iwork[1], &dif[1], &kase, 
 		     isave);
 	    if (kase != 0) {
 		if (kase == 1) {
@@ -711,7 +711,7 @@ L40:
 /*                 Solve generalized Sylvester equation. */
 
 		    i__1 = *lwork - (n1 << 1) * n2;
-		    dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + 
+		    _starpu_dtgsyl_("N", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + 
 			    i__ * a_dim1], lda, &work[1], &n1, &b[b_offset], 
 			    ldb, &b[i__ + i__ * b_dim1], ldb, &work[n1 * n2 + 
 			    1], &n1, &dscale, &dif[1], &work[(n1 << 1) * n2 + 
@@ -721,7 +721,7 @@ L40:
 /*                 Solve the transposed variant. */
 
 		    i__1 = *lwork - (n1 << 1) * n2;
-		    dtgsyl_("T", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + 
+		    _starpu_dtgsyl_("T", &ijb, &n1, &n2, &a[a_offset], lda, &a[i__ + 
 			    i__ * a_dim1], lda, &work[1], &n1, &b[b_offset], 
 			    ldb, &b[i__ + i__ * b_dim1], ldb, &work[n1 * n2 + 
 			    1], &n1, &dscale, &dif[1], &work[(n1 << 1) * n2 + 
@@ -734,7 +734,7 @@ L40:
 /*           1-norm-based estimate of Difl. */
 
 L50:
-	    dlacn2_(&mn2, &work[mn2 + 1], &work[1], &iwork[1], &dif[2], &kase, 
+	    _starpu_dlacn2_(&mn2, &work[mn2 + 1], &work[1], &iwork[1], &dif[2], &kase, 
 		     isave);
 	    if (kase != 0) {
 		if (kase == 1) {
@@ -742,7 +742,7 @@ L50:
 /*                 Solve generalized Sylvester equation. */
 
 		    i__1 = *lwork - (n1 << 1) * n2;
-		    dtgsyl_("N", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, 
+		    _starpu_dtgsyl_("N", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, 
 			    &a[a_offset], lda, &work[1], &n2, &b[i__ + i__ * 
 			    b_dim1], ldb, &b[b_offset], ldb, &work[n1 * n2 + 
 			    1], &n2, &dscale, &dif[2], &work[(n1 << 1) * n2 + 
@@ -752,7 +752,7 @@ L50:
 /*                 Solve the transposed variant. */
 
 		    i__1 = *lwork - (n1 << 1) * n2;
-		    dtgsyl_("T", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, 
+		    _starpu_dtgsyl_("T", &ijb, &n2, &n1, &a[i__ + i__ * a_dim1], lda, 
 			    &a[a_offset], lda, &work[1], &n2, &b[i__ + i__ * 
 			    b_dim1], ldb, &b[b_offset], ldb, &work[n1 * n2 + 
 			    1], &n2, &dscale, &dif[2], &work[(n1 << 1) * n2 + 
@@ -796,7 +796,7 @@ L60:
 		work[7] = b[k + (k + 1) * b_dim1];
 		work[8] = b[k + 1 + (k + 1) * b_dim1];
 		d__1 = smlnum * eps;
-		dlag2_(&work[1], &c__2, &work[5], &c__2, &d__1, &beta[k], &
+		_starpu_dlag2_(&work[1], &c__2, &work[5], &c__2, &d__1, &beta[k], &
 			beta[k + 1], &alphar[k], &alphar[k + 1], &alphai[k]);
 		alphai[k + 1] = -alphai[k];
 
@@ -833,4 +833,4 @@ L60:
 
 /*     End of DTGSEN */
 
-} /* dtgsen_ */
+} /* _starpu_dtgsen_ */

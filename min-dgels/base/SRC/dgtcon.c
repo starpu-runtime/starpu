@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgtcon_(char *norm, integer *n, doublereal *dl, 
+/* Subroutine */ int _starpu_dgtcon_(char *norm, integer *n, doublereal *dl, 
 	doublereal *d__, doublereal *du, doublereal *du2, integer *ipiv, 
 	doublereal *anorm, doublereal *rcond, doublereal *work, integer *
 	iwork, integer *info)
@@ -27,14 +27,14 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__, kase, kase1;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *, integer *), xerbla_(char *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
+	     integer *, doublereal *, integer *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
     doublereal ainvnm;
     logical onenrm;
-    extern /* Subroutine */ int dgttrs_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgttrs_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, integer *, integer *);
 
@@ -136,8 +136,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    onenrm = *(unsigned char *)norm == '1' || lsame_(norm, "O");
-    if (! onenrm && ! lsame_(norm, "I")) {
+    onenrm = *(unsigned char *)norm == '1' || _starpu_lsame_(norm, "O");
+    if (! onenrm && ! _starpu_lsame_(norm, "I")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -146,7 +146,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGTCON", &i__1);
+	_starpu_xerbla_("DGTCON", &i__1);
 	return 0;
     }
 
@@ -178,19 +178,19 @@ static integer c__1 = 1;
     }
     kase = 0;
 L20:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == kase1) {
 
 /*           Multiply by inv(U)*inv(L). */
 
-	    dgttrs_("No transpose", n, &c__1, &dl[1], &d__[1], &du[1], &du2[1]
+	    _starpu_dgttrs_("No transpose", n, &c__1, &dl[1], &d__[1], &du[1], &du2[1]
 , &ipiv[1], &work[1], n, info);
 	} else {
 
 /*           Multiply by inv(L')*inv(U'). */
 
-	    dgttrs_("Transpose", n, &c__1, &dl[1], &d__[1], &du[1], &du2[1], &
+	    _starpu_dgttrs_("Transpose", n, &c__1, &dl[1], &d__[1], &du[1], &du2[1], &
 		    ipiv[1], &work[1], n, info);
 	}
 	goto L20;
@@ -206,4 +206,4 @@ L20:
 
 /*     End of DGTCON */
 
-} /* dgtcon_ */
+} /* _starpu_dgtcon_ */

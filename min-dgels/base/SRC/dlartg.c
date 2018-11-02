@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlartg_(doublereal *f, doublereal *g, doublereal *cs, 
+/* Subroutine */ int _starpu_dlartg_(doublereal *f, doublereal *g, doublereal *cs, 
 	doublereal *sn, doublereal *r__)
 {
     /* System generated locals */
@@ -28,7 +28,7 @@
     doublereal f1, g1, eps, scale;
     integer count;
     doublereal safmn2, safmx2;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal safmin;
 
 
@@ -98,10 +98,10 @@
 /*     .. Executable Statements .. */
 
 /*     IF( FIRST ) THEN */
-    safmin = dlamch_("S");
-    eps = dlamch_("E");
-    d__1 = dlamch_("B");
-    i__1 = (integer) (log(safmin / eps) / log(dlamch_("B")) / 2.);
+    safmin = _starpu_dlamch_("S");
+    eps = _starpu_dlamch_("E");
+    d__1 = _starpu_dlamch_("B");
+    i__1 = (integer) (log(safmin / eps) / log(_starpu_dlamch_("B")) / 2.);
     safmn2 = pow_di(&d__1, &i__1);
     safmx2 = 1. / safmn2;
 /*        FIRST = .FALSE. */
@@ -187,4 +187,4 @@ L30:
 
 /*     End of DLARTG */
 
-} /* dlartg_ */
+} /* _starpu_dlartg_ */

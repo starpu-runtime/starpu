@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b12 = 1.;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dgetrs_(char *trans, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dgetrs_(char *trans, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
 	ldb, integer *info)
 {
@@ -27,11 +27,11 @@ static integer c_n1 = -1;
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), xerbla_(
-	    char *, integer *), dlaswp_(integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_xerbla_(
+	    char *, integer *), _starpu_dlaswp_(integer *, doublereal *, 
 	    integer *, integer *, integer *, integer *, integer *);
     logical notran;
 
@@ -118,8 +118,8 @@ static integer c_n1 = -1;
 
     /* Function Body */
     *info = 0;
-    notran = lsame_(trans, "N");
-    if (! notran && ! lsame_(trans, "T") && ! lsame_(
+    notran = _starpu_lsame_(trans, "N");
+    if (! notran && ! _starpu_lsame_(trans, "T") && ! _starpu_lsame_(
 	    trans, "C")) {
 	*info = -1;
     } else if (*n < 0) {
@@ -133,7 +133,7 @@ static integer c_n1 = -1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGETRS", &i__1);
+	_starpu_xerbla_("DGETRS", &i__1);
 	return 0;
     }
 
@@ -149,16 +149,16 @@ static integer c_n1 = -1;
 
 /*        Apply row interchanges to the right hand sides. */
 
-	dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c__1);
+	_starpu_dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c__1);
 
 /*        Solve L*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Lower", "No transpose", "Unit", n, nrhs, &c_b12, &a[
+	_starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", n, nrhs, &c_b12, &a[
 		a_offset], lda, &b[b_offset], ldb);
 
 /*        Solve U*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Upper", "No transpose", "Non-unit", n, nrhs, &c_b12, &
+	_starpu_dtrsm_("Left", "Upper", "No transpose", "Non-unit", n, nrhs, &c_b12, &
 		a[a_offset], lda, &b[b_offset], ldb);
     } else {
 
@@ -166,21 +166,21 @@ static integer c_n1 = -1;
 
 /*        Solve U'*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Upper", "Transpose", "Non-unit", n, nrhs, &c_b12, &a[
+	_starpu_dtrsm_("Left", "Upper", "Transpose", "Non-unit", n, nrhs, &c_b12, &a[
 		a_offset], lda, &b[b_offset], ldb);
 
 /*        Solve L'*X = B, overwriting B with X. */
 
-	dtrsm_("Left", "Lower", "Transpose", "Unit", n, nrhs, &c_b12, &a[
+	_starpu_dtrsm_("Left", "Lower", "Transpose", "Unit", n, nrhs, &c_b12, &a[
 		a_offset], lda, &b[b_offset], ldb);
 
 /*        Apply row interchanges to the solution vectors. */
 
-	dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c_n1);
+	_starpu_dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c_n1);
     }
 
     return 0;
 
 /*     End of DGETRS */
 
-} /* dgetrs_ */
+} /* _starpu_dgetrs_ */

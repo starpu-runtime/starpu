@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgecon_(char *norm, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgecon_(char *norm, integer *n, doublereal *a, integer *
 	lda, doublereal *anorm, doublereal *rcond, doublereal *work, integer *
 	iwork, integer *info)
 {
@@ -31,16 +31,16 @@ static integer c__1 = 1;
     doublereal su;
     integer kase, kase1;
     doublereal scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3];
-    extern /* Subroutine */ int drscl_(integer *, doublereal *, doublereal *, 
-	    integer *), dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_drscl_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal ainvnm;
-    extern /* Subroutine */ int dlatrs_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dlatrs_(char *, char *, char *, char *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
     logical onenrm;
@@ -132,8 +132,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    onenrm = *(unsigned char *)norm == '1' || lsame_(norm, "O");
-    if (! onenrm && ! lsame_(norm, "I")) {
+    onenrm = *(unsigned char *)norm == '1' || _starpu_lsame_(norm, "O");
+    if (! onenrm && ! _starpu_lsame_(norm, "I")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -144,7 +144,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGECON", &i__1);
+	_starpu_xerbla_("DGECON", &i__1);
 	return 0;
     }
 
@@ -158,7 +158,7 @@ static integer c__1 = 1;
 	return 0;
     }
 
-    smlnum = dlamch_("Safe minimum");
+    smlnum = _starpu_dlamch_("Safe minimum");
 
 /*     Estimate the norm of inv(A). */
 
@@ -171,29 +171,29 @@ static integer c__1 = 1;
     }
     kase = 0;
 L10:
-    dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
+    _starpu_dlacn2_(n, &work[*n + 1], &work[1], &iwork[1], &ainvnm, &kase, isave);
     if (kase != 0) {
 	if (kase == kase1) {
 
 /*           Multiply by inv(L). */
 
-	    dlatrs_("Lower", "No transpose", "Unit", normin, n, &a[a_offset], 
+	    _starpu_dlatrs_("Lower", "No transpose", "Unit", normin, n, &a[a_offset], 
 		    lda, &work[1], &sl, &work[(*n << 1) + 1], info);
 
 /*           Multiply by inv(U). */
 
-	    dlatrs_("Upper", "No transpose", "Non-unit", normin, n, &a[
+	    _starpu_dlatrs_("Upper", "No transpose", "Non-unit", normin, n, &a[
 		    a_offset], lda, &work[1], &su, &work[*n * 3 + 1], info);
 	} else {
 
 /*           Multiply by inv(U'). */
 
-	    dlatrs_("Upper", "Transpose", "Non-unit", normin, n, &a[a_offset], 
+	    _starpu_dlatrs_("Upper", "Transpose", "Non-unit", normin, n, &a[a_offset], 
 		     lda, &work[1], &su, &work[*n * 3 + 1], info);
 
 /*           Multiply by inv(L'). */
 
-	    dlatrs_("Lower", "Transpose", "Unit", normin, n, &a[a_offset], 
+	    _starpu_dlatrs_("Lower", "Transpose", "Unit", normin, n, &a[a_offset], 
 		    lda, &work[1], &sl, &work[(*n << 1) + 1], info);
 	}
 
@@ -202,12 +202,12 @@ L10:
 	scale = sl * su;
 	*(unsigned char *)normin = 'Y';
 	if (scale != 1.) {
-	    ix = idamax_(n, &work[1], &c__1);
+	    ix = _starpu_idamax_(n, &work[1], &c__1);
 	    if (scale < (d__1 = work[ix], abs(d__1)) * smlnum || scale == 0.) 
 		    {
 		goto L20;
 	    }
-	    drscl_(n, &scale, &work[1], &c__1);
+	    _starpu_drscl_(n, &scale, &work[1], &c__1);
 	}
 	goto L10;
     }
@@ -223,4 +223,4 @@ L20:
 
 /*     End of DGECON */
 
-} /* dgecon_ */
+} /* _starpu_dgecon_ */

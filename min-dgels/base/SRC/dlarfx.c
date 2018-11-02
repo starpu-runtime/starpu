@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlarfx_(char *side, integer *m, integer *n, doublereal *
+/* Subroutine */ int _starpu_dlarfx_(char *side, integer *m, integer *n, doublereal *
 	v, doublereal *tau, doublereal *c__, integer *ldc, doublereal *work)
 {
     /* System generated locals */
@@ -27,10 +27,10 @@ static integer c__1 = 1;
     integer j;
     doublereal t1, t2, t3, t4, t5, t6, t7, t8, t9, v1, v2, v3, v4, v5, v6, v7,
 	     v8, v9, t10, v10, sum;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -113,7 +113,7 @@ static integer c__1 = 1;
     if (*tau == 0.) {
 	return 0;
     }
-    if (lsame_(side, "L")) {
+    if (_starpu_lsame_(side, "L")) {
 
 /*        Form  H * C, where H has order m. */
 
@@ -132,7 +132,7 @@ static integer c__1 = 1;
 
 /*        Code for general M */
 
-	dlarf_(side, m, n, &v[1], &c__1, tau, &c__[c_offset], ldc, &work[1]);
+	_starpu_dlarf_(side, m, n, &v[1], &c__1, tau, &c__[c_offset], ldc, &work[1]);
 	goto L410;
 L10:
 
@@ -436,7 +436,7 @@ L190:
 
 /*        Code for general N */
 
-	dlarf_(side, m, n, &v[1], &c__1, tau, &c__[c_offset], ldc, &work[1]);
+	_starpu_dlarf_(side, m, n, &v[1], &c__1, tau, &c__[c_offset], ldc, &work[1]);
 	goto L410;
 L210:
 
@@ -727,4 +727,4 @@ L410:
 
 /*     End of DLARFX */
 
-} /* dlarfx_ */
+} /* _starpu_dlarfx_ */

@@ -17,7 +17,7 @@
 
 static doublereal c_b4 = 1.;
 
-/* Subroutine */ int dlanv2_(doublereal *a, doublereal *b, doublereal *c__, 
+/* Subroutine */ int _starpu_dlanv2_(doublereal *a, doublereal *b, doublereal *c__, 
 	doublereal *d__, doublereal *rt1r, doublereal *rt1i, doublereal *rt2r, 
 	 doublereal *rt2i, doublereal *cs, doublereal *sn)
 {
@@ -30,7 +30,7 @@ static doublereal c_b4 = 1.;
     /* Local variables */
     doublereal p, z__, aa, bb, cc, dd, cs1, sn1, sab, sac, eps, tau, temp, 
 	    scale, bcmax, bcmis, sigma;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlamch_(char *);
 
 
 /*  -- LAPACK driver routine (version 3.2) -- */
@@ -96,7 +96,7 @@ static doublereal c_b4 = 1.;
 /*     .. */
 /*     .. Executable Statements .. */
 
-    eps = dlamch_("P");
+    eps = _starpu_dlamch_("P");
     if (*c__ == 0.) {
 	*cs = 1.;
 	*sn = 0.;
@@ -147,7 +147,7 @@ static doublereal c_b4 = 1.;
 
 /*           Compute B and the rotation matrix */
 
-	    tau = dlapy2_(c__, &z__);
+	    tau = _starpu_dlapy2_(c__, &z__);
 	    *cs = z__ / tau;
 	    *sn = *c__ / tau;
 	    *b -= *c__;
@@ -158,7 +158,7 @@ static doublereal c_b4 = 1.;
 /*           Make diagonal elements equal. */
 
 	    sigma = *b + *c__;
-	    tau = dlapy2_(&sigma, &temp);
+	    tau = _starpu_dlapy2_(&sigma, &temp);
 	    *cs = sqrt((abs(sigma) / tau + 1.) * .5);
 	    *sn = -(p / (tau * *cs)) * d_sign(&c_b4, &sigma);
 
@@ -232,4 +232,4 @@ L10:
 
 /*     End of DLANV2 */
 
-} /* dlanv2_ */
+} /* _starpu_dlanv2_ */

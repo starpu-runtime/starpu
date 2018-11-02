@@ -17,7 +17,7 @@
 
 static doublereal c_b11 = 1.;
 
-/* Subroutine */ int dsygvd_(integer *itype, char *jobz, char *uplo, integer *
+/* Subroutine */ int _starpu_dsygvd_(integer *itype, char *jobz, char *uplo, integer *
 	n, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
 	doublereal *w, doublereal *work, integer *lwork, integer *iwork, 
 	integer *liwork, integer *info)
@@ -28,23 +28,23 @@ static doublereal c_b11 = 1.;
 
     /* Local variables */
     integer lopt;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtrmm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer lwmin;
     char trans[1];
     integer liopt;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical upper, wantz;
-    extern /* Subroutine */ int xerbla_(char *, integer *), dpotrf_(
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dpotrf_(
 	    char *, integer *, doublereal *, integer *, integer *);
     integer liwmin;
-    extern /* Subroutine */ int dsyevd_(char *, char *, integer *, doublereal 
+    extern /* Subroutine */ int _starpu_dsyevd_(char *, char *, integer *, doublereal 
 	    *, integer *, doublereal *, doublereal *, integer *, integer *, 
-	    integer *, integer *), dsygst_(integer *, char *, 
+	    integer *, integer *), _starpu_dsygst_(integer *, char *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    integer *);
     logical lquery;
@@ -216,8 +216,8 @@ static doublereal c_b11 = 1.;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    upper = lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
@@ -237,9 +237,9 @@ static doublereal c_b11 = 1.;
     liopt = liwmin;
     if (*itype < 1 || *itype > 3) {
 	*info = -1;
-    } else if (! (wantz || lsame_(jobz, "N"))) {
+    } else if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -2;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -262,7 +262,7 @@ static doublereal c_b11 = 1.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSYGVD", &i__1);
+	_starpu_xerbla_("DSYGVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -276,7 +276,7 @@ static doublereal c_b11 = 1.;
 
 /*     Form a Cholesky factorization of B. */
 
-    dpotrf_(uplo, n, &b[b_offset], ldb, info);
+    _starpu_dpotrf_(uplo, n, &b[b_offset], ldb, info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -284,8 +284,8 @@ static doublereal c_b11 = 1.;
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
-    dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
-    dsyevd_(jobz, uplo, n, &a[a_offset], lda, &w[1], &work[1], lwork, &iwork[
+    _starpu_dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info);
+    _starpu_dsyevd_(jobz, uplo, n, &a[a_offset], lda, &w[1], &work[1], lwork, &iwork[
 	    1], liwork, info);
 /* Computing MAX */
     d__1 = (doublereal) lopt;
@@ -309,7 +309,7 @@ static doublereal c_b11 = 1.;
 		*(unsigned char *)trans = 'T';
 	    }
 
-	    dtrsm_("Left", uplo, trans, "Non-unit", n, n, &c_b11, &b[b_offset]
+	    _starpu_dtrsm_("Left", uplo, trans, "Non-unit", n, n, &c_b11, &b[b_offset]
 , ldb, &a[a_offset], lda);
 
 	} else if (*itype == 3) {
@@ -323,7 +323,7 @@ static doublereal c_b11 = 1.;
 		*(unsigned char *)trans = 'N';
 	    }
 
-	    dtrmm_("Left", uplo, trans, "Non-unit", n, n, &c_b11, &b[b_offset]
+	    _starpu_dtrmm_("Left", uplo, trans, "Non-unit", n, n, &c_b11, &b[b_offset]
 , ldb, &a[a_offset], lda);
 	}
     }
@@ -335,4 +335,4 @@ static doublereal c_b11 = 1.;
 
 /*     End of DSYGVD */
 
-} /* dsygvd_ */
+} /* _starpu_dsygvd_ */

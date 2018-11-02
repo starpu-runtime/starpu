@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011,2014-2017                           Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2011,2013-2017                           Inria
+ * Copyright (C) 2010-2015,2017,2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,7 @@ struct _starpu_data_replicate
 	struct _starpu_mem_chunk * mc;
 };
 
-struct _starpu_data_requester_list;
+struct _starpu_data_requester_prio_list;
 
 struct _starpu_jobid_list
 {
@@ -127,7 +127,7 @@ typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 struct _starpu_data_state
 {
 	int magic;
-	struct _starpu_data_requester_list req_list;
+	struct _starpu_data_requester_prio_list req_list;
 	/* the number of requests currently in the scheduling engine (not in
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
@@ -255,7 +255,7 @@ struct _starpu_data_state
 	/* List of requesters that are specific to the pending reduction. This
 	 * list is used when the requests in the req_list list are frozen until
 	 * the end of the reduction. */
-	struct _starpu_data_requester_list reduction_req_list;
+	struct _starpu_data_requester_prio_list reduction_req_list;
 
 	starpu_data_handle_t *reduction_tmp_handles;
 
@@ -280,12 +280,14 @@ struct _starpu_data_state
 
 	struct starpu_arbiter *arbiter;
 	/* This is protected by the arbiter mutex */
-	struct _starpu_data_requester_list arbitered_req_list;
+	struct _starpu_data_requester_prio_list arbitered_req_list;
 
 	/* Data maintained by schedulers themselves */
 	/* Last worker that took this data in locality mode, or -1 if nobody
 	 * took it yet */
 	int last_locality;
+
+	int partition_automatic_disabled;
 
 	/* A generic pointer to data in the user land (could be anything and this
 	 * is not manage by StarPU) */

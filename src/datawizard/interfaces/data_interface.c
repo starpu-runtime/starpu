@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012,2014-2017                      Inria
+ * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
@@ -262,7 +262,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	_starpu_data_requester_list_init(&handle->req_list);
+	_starpu_data_requester_prio_list_init(&handle->req_list);
 	handle->refcnt = 0;
 	handle->unlocking_reqs = 0;
 	handle->busy_count = 0;
@@ -316,7 +316,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->init_cl = NULL;
 
 	handle->reduction_refcnt = 0;
-	_starpu_data_requester_list_init(&handle->reduction_req_list);
+	_starpu_data_requester_prio_list_init(&handle->reduction_req_list);
 	handle->reduction_tmp_handles = NULL;
 	handle->write_invalidation_req = NULL;
 
@@ -339,7 +339,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
 	else
 		handle->arbiter = NULL;
-	_starpu_data_requester_list_init(&handle->arbitered_req_list);
+	_starpu_data_requester_prio_list_init(&handle->arbitered_req_list);
 	handle->last_locality = -1;
 
 	/* that new data is invalid from all nodes perpective except for the
@@ -454,6 +454,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 	handle->mpi_data = NULL;
+	handle->partition_automatic_disabled = 0;
 
 	size_t interfacesize = interface_ops->interface_size;
 
@@ -1112,7 +1113,7 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 	return handle->ops->get_size(handle);
 }
 
-void starpu_data_set_name(starpu_data_handle_t handle, const char *name)
+void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TRACE_DATA_NAME(handle, name);
 }
@@ -1122,7 +1123,7 @@ int starpu_data_get_home_node(starpu_data_handle_t handle)
 	return handle->home_node;
 }
 
-void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[])
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, int dimensions STARPU_ATTRIBUTE_UNUSED, int dims[] STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
 }

@@ -20,7 +20,7 @@ static doublereal c_b5 = 1.;
 static integer c__1 = 1;
 static doublereal c_b16 = 0.;
 
-/* Subroutine */ int dlabrd_(integer *m, integer *n, integer *nb, doublereal *
+/* Subroutine */ int _starpu_dlabrd_(integer *m, integer *n, integer *nb, doublereal *
 	a, integer *lda, doublereal *d__, doublereal *e, doublereal *tauq, 
 	doublereal *taup, doublereal *x, integer *ldx, doublereal *y, integer 
 	*ldy)
@@ -31,10 +31,10 @@ static doublereal c_b16 = 0.;
 
     /* Local variables */
     integer i__;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemv_(char *, integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemv_(char *, integer *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *), dlarfg_(integer *, doublereal *, 
+	    doublereal *, integer *), _starpu_dlarfg_(integer *, doublereal *, 
 	     doublereal *, integer *, doublereal *);
 
 
@@ -211,12 +211,12 @@ static doublereal c_b16 = 0.;
 
 	    i__2 = *m - i__ + 1;
 	    i__3 = i__ - 1;
-	    dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + a_dim1], lda, 
+	    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + a_dim1], lda, 
 		     &y[i__ + y_dim1], ldy, &c_b5, &a[i__ + i__ * a_dim1], &
 		    c__1);
 	    i__2 = *m - i__ + 1;
 	    i__3 = i__ - 1;
-	    dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + x_dim1], ldx, 
+	    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + x_dim1], ldx, 
 		     &a[i__ * a_dim1 + 1], &c__1, &c_b5, &a[i__ + i__ * 
 		    a_dim1], &c__1);
 
@@ -225,7 +225,7 @@ static doublereal c_b16 = 0.;
 	    i__2 = *m - i__ + 1;
 /* Computing MIN */
 	    i__3 = i__ + 1;
-	    dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[min(i__3, *m)+ i__ * 
+	    _starpu_dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[min(i__3, *m)+ i__ * 
 		    a_dim1], &c__1, &tauq[i__]);
 	    d__[i__] = a[i__ + i__ * a_dim1];
 	    if (i__ < *n) {
@@ -235,41 +235,41 @@ static doublereal c_b16 = 0.;
 
 		i__2 = *m - i__ + 1;
 		i__3 = *n - i__;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + (i__ + 1) * 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + (i__ + 1) * 
 			a_dim1], lda, &a[i__ + i__ * a_dim1], &c__1, &c_b16, &
 			y[i__ + 1 + i__ * y_dim1], &c__1);
 		i__2 = *m - i__ + 1;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + a_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + a_dim1], 
 			lda, &a[i__ + i__ * a_dim1], &c__1, &c_b16, &y[i__ * 
 			y_dim1 + 1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + 1 + 
 			y_dim1], ldy, &y[i__ * y_dim1 + 1], &c__1, &c_b5, &y[
 			i__ + 1 + i__ * y_dim1], &c__1);
 		i__2 = *m - i__ + 1;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &x[i__ + x_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &x[i__ + x_dim1], 
 			ldx, &a[i__ + i__ * a_dim1], &c__1, &c_b16, &y[i__ * 
 			y_dim1 + 1], &c__1);
 		i__2 = i__ - 1;
 		i__3 = *n - i__;
-		dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[(i__ + 1) * 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[(i__ + 1) * 
 			a_dim1 + 1], lda, &y[i__ * y_dim1 + 1], &c__1, &c_b5, 
 			&y[i__ + 1 + i__ * y_dim1], &c__1);
 		i__2 = *n - i__;
-		dscal_(&i__2, &tauq[i__], &y[i__ + 1 + i__ * y_dim1], &c__1);
+		_starpu_dscal_(&i__2, &tauq[i__], &y[i__ + 1 + i__ * y_dim1], &c__1);
 
 /*              Update A(i,i+1:n) */
 
 		i__2 = *n - i__;
-		dgemv_("No transpose", &i__2, &i__, &c_b4, &y[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__, &c_b4, &y[i__ + 1 + 
 			y_dim1], ldy, &a[i__ + a_dim1], lda, &c_b5, &a[i__ + (
 			i__ + 1) * a_dim1], lda);
 		i__2 = i__ - 1;
 		i__3 = *n - i__;
-		dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[(i__ + 1) * 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[(i__ + 1) * 
 			a_dim1 + 1], lda, &x[i__ + x_dim1], ldx, &c_b5, &a[
 			i__ + (i__ + 1) * a_dim1], lda);
 
@@ -278,7 +278,7 @@ static doublereal c_b16 = 0.;
 		i__2 = *n - i__;
 /* Computing MIN */
 		i__3 = i__ + 2;
-		dlarfg_(&i__2, &a[i__ + (i__ + 1) * a_dim1], &a[i__ + min(
+		_starpu_dlarfg_(&i__2, &a[i__ + (i__ + 1) * a_dim1], &a[i__ + min(
 			i__3, *n)* a_dim1], lda, &taup[i__]);
 		e[i__] = a[i__ + (i__ + 1) * a_dim1];
 		a[i__ + (i__ + 1) * a_dim1] = 1.;
@@ -287,29 +287,29 @@ static doublereal c_b16 = 0.;
 
 		i__2 = *m - i__;
 		i__3 = *n - i__;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + (i__ 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + (i__ 
 			+ 1) * a_dim1], lda, &a[i__ + (i__ + 1) * a_dim1], 
 			lda, &c_b16, &x[i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = *n - i__;
-		dgemv_("Transpose", &i__2, &i__, &c_b5, &y[i__ + 1 + y_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__, &c_b5, &y[i__ + 1 + y_dim1], 
 			ldy, &a[i__ + (i__ + 1) * a_dim1], lda, &c_b16, &x[
 			i__ * x_dim1 + 1], &c__1);
 		i__2 = *m - i__;
-		dgemv_("No transpose", &i__2, &i__, &c_b4, &a[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__, &c_b4, &a[i__ + 1 + 
 			a_dim1], lda, &x[i__ * x_dim1 + 1], &c__1, &c_b5, &x[
 			i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = i__ - 1;
 		i__3 = *n - i__;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[(i__ + 1) * 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[(i__ + 1) * 
 			a_dim1 + 1], lda, &a[i__ + (i__ + 1) * a_dim1], lda, &
 			c_b16, &x[i__ * x_dim1 + 1], &c__1);
 		i__2 = *m - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + 1 + 
 			x_dim1], ldx, &x[i__ * x_dim1 + 1], &c__1, &c_b5, &x[
 			i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = *m - i__;
-		dscal_(&i__2, &taup[i__], &x[i__ + 1 + i__ * x_dim1], &c__1);
+		_starpu_dscal_(&i__2, &taup[i__], &x[i__ + 1 + i__ * x_dim1], &c__1);
 	    }
 /* L10: */
 	}
@@ -324,12 +324,12 @@ static doublereal c_b16 = 0.;
 
 	    i__2 = *n - i__ + 1;
 	    i__3 = i__ - 1;
-	    dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + y_dim1], ldy, 
+	    _starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + y_dim1], ldy, 
 		     &a[i__ + a_dim1], lda, &c_b5, &a[i__ + i__ * a_dim1], 
 		    lda);
 	    i__2 = i__ - 1;
 	    i__3 = *n - i__ + 1;
-	    dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[i__ * a_dim1 + 1], 
+	    _starpu_dgemv_("Transpose", &i__2, &i__3, &c_b4, &a[i__ * a_dim1 + 1], 
 		    lda, &x[i__ + x_dim1], ldx, &c_b5, &a[i__ + i__ * a_dim1], 
 		     lda);
 
@@ -338,7 +338,7 @@ static doublereal c_b16 = 0.;
 	    i__2 = *n - i__ + 1;
 /* Computing MIN */
 	    i__3 = i__ + 1;
-	    dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* 
+	    _starpu_dlarfg_(&i__2, &a[i__ + i__ * a_dim1], &a[i__ + min(i__3, *n)* 
 		    a_dim1], lda, &taup[i__]);
 	    d__[i__] = a[i__ + i__ * a_dim1];
 	    if (i__ < *m) {
@@ -348,41 +348,41 @@ static doublereal c_b16 = 0.;
 
 		i__2 = *m - i__;
 		i__3 = *n - i__ + 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + i__ *
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + i__ *
 			 a_dim1], lda, &a[i__ + i__ * a_dim1], lda, &c_b16, &
 			x[i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = *n - i__ + 1;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &y[i__ + y_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &y[i__ + y_dim1], 
 			ldy, &a[i__ + i__ * a_dim1], lda, &c_b16, &x[i__ * 
 			x_dim1 + 1], &c__1);
 		i__2 = *m - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + 1 + 
 			a_dim1], lda, &x[i__ * x_dim1 + 1], &c__1, &c_b5, &x[
 			i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = i__ - 1;
 		i__3 = *n - i__ + 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ * a_dim1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b5, &a[i__ * a_dim1 + 
 			1], lda, &a[i__ + i__ * a_dim1], lda, &c_b16, &x[i__ *
 			 x_dim1 + 1], &c__1);
 		i__2 = *m - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &x[i__ + 1 + 
 			x_dim1], ldx, &x[i__ * x_dim1 + 1], &c__1, &c_b5, &x[
 			i__ + 1 + i__ * x_dim1], &c__1);
 		i__2 = *m - i__;
-		dscal_(&i__2, &taup[i__], &x[i__ + 1 + i__ * x_dim1], &c__1);
+		_starpu_dscal_(&i__2, &taup[i__], &x[i__ + 1 + i__ * x_dim1], &c__1);
 
 /*              Update A(i+1:m,i) */
 
 		i__2 = *m - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &a[i__ + 1 + 
 			a_dim1], lda, &y[i__ + y_dim1], ldy, &c_b5, &a[i__ + 
 			1 + i__ * a_dim1], &c__1);
 		i__2 = *m - i__;
-		dgemv_("No transpose", &i__2, &i__, &c_b4, &x[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__, &c_b4, &x[i__ + 1 + 
 			x_dim1], ldx, &a[i__ * a_dim1 + 1], &c__1, &c_b5, &a[
 			i__ + 1 + i__ * a_dim1], &c__1);
 
@@ -391,7 +391,7 @@ static doublereal c_b16 = 0.;
 		i__2 = *m - i__;
 /* Computing MIN */
 		i__3 = i__ + 2;
-		dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *m)+ 
+		_starpu_dlarfg_(&i__2, &a[i__ + 1 + i__ * a_dim1], &a[min(i__3, *m)+ 
 			i__ * a_dim1], &c__1, &tauq[i__]);
 		e[i__] = a[i__ + 1 + i__ * a_dim1];
 		a[i__ + 1 + i__ * a_dim1] = 1.;
@@ -400,29 +400,29 @@ static doublereal c_b16 = 0.;
 
 		i__2 = *m - i__;
 		i__3 = *n - i__;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + (i__ + 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + (i__ + 
 			1) * a_dim1], lda, &a[i__ + 1 + i__ * a_dim1], &c__1, 
 			&c_b16, &y[i__ + 1 + i__ * y_dim1], &c__1);
 		i__2 = *m - i__;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + a_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b5, &a[i__ + 1 + a_dim1], 
 			 lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b16, &y[
 			i__ * y_dim1 + 1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + 1 + 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b4, &y[i__ + 1 + 
 			y_dim1], ldy, &y[i__ * y_dim1 + 1], &c__1, &c_b5, &y[
 			i__ + 1 + i__ * y_dim1], &c__1);
 		i__2 = *m - i__;
-		dgemv_("Transpose", &i__2, &i__, &c_b5, &x[i__ + 1 + x_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__, &c_b5, &x[i__ + 1 + x_dim1], 
 			ldx, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b16, &y[
 			i__ * y_dim1 + 1], &c__1);
 		i__2 = *n - i__;
-		dgemv_("Transpose", &i__, &i__2, &c_b4, &a[(i__ + 1) * a_dim1 
+		_starpu_dgemv_("Transpose", &i__, &i__2, &c_b4, &a[(i__ + 1) * a_dim1 
 			+ 1], lda, &y[i__ * y_dim1 + 1], &c__1, &c_b5, &y[i__ 
 			+ 1 + i__ * y_dim1], &c__1);
 		i__2 = *n - i__;
-		dscal_(&i__2, &tauq[i__], &y[i__ + 1 + i__ * y_dim1], &c__1);
+		_starpu_dscal_(&i__2, &tauq[i__], &y[i__ + 1 + i__ * y_dim1], &c__1);
 	    }
 /* L20: */
 	}
@@ -431,4 +431,4 @@ static doublereal c_b16 = 0.;
 
 /*     End of DLABRD */
 
-} /* dlabrd_ */
+} /* _starpu_dlabrd_ */

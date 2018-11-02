@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaein_(logical *rightv, logical *noinit, integer *n, 
+/* Subroutine */ int _starpu_dlaein_(logical *rightv, logical *noinit, integer *n, 
 	doublereal *h__, integer *ldh, doublereal *wr, doublereal *wi, 
 	doublereal *vr, doublereal *vi, doublereal *b, integer *ldb, 
 	doublereal *work, doublereal *eps3, doublereal *smlnum, doublereal *
@@ -37,18 +37,18 @@ static integer c__1 = 1;
     doublereal w1, ei, ej, xi, xr, rec;
     integer its, ierr;
     doublereal temp, norm, vmax;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     doublereal scale;
-    extern doublereal dasum_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
     char trans[1];
     doublereal vcrit, rootn, vnorm;
-    extern doublereal dlapy2_(doublereal *, doublereal *);
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *);
     doublereal absbii, absbjj;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dladiv_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *), dlatrs_(
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dladiv_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *), _starpu_dlatrs_(
 	    char *, char *, char *, char *, integer *, doublereal *, integer *
 , doublereal *, doublereal *, doublereal *, integer *);
     char normin[1];
@@ -203,9 +203,9 @@ static integer c__1 = 1;
 
 /*           Scale supplied initial vector. */
 
-	    vnorm = dnrm2_(n, &vr[1], &c__1);
+	    vnorm = _starpu_dnrm2_(n, &vr[1], &c__1);
 	    d__1 = *eps3 * rootn / max(vnorm,nrmsml);
-	    dscal_(n, &d__1, &vr[1], &c__1);
+	    _starpu_dscal_(n, &d__1, &vr[1], &c__1);
 	}
 
 	if (*rightv) {
@@ -311,13 +311,13 @@ static integer c__1 = 1;
 /*             or U'*x = scale*v for a left eigenvector, */
 /*           overwriting x on v. */
 
-	    dlatrs_("Upper", trans, "Nonunit", normin, n, &b[b_offset], ldb, &
+	    _starpu_dlatrs_("Upper", trans, "Nonunit", normin, n, &b[b_offset], ldb, &
 		    vr[1], &scale, &work[1], &ierr);
 	    *(unsigned char *)normin = 'Y';
 
 /*           Test for sufficient growth in the norm of v. */
 
-	    vnorm = dasum_(n, &vr[1], &c__1);
+	    vnorm = _starpu_dasum_(n, &vr[1], &c__1);
 	    if (vnorm >= growto * scale) {
 		goto L120;
 	    }
@@ -343,9 +343,9 @@ L120:
 
 /*        Normalize eigenvector. */
 
-	i__ = idamax_(n, &vr[1], &c__1);
+	i__ = _starpu_idamax_(n, &vr[1], &c__1);
 	d__2 = 1. / (d__1 = vr[i__], abs(d__1));
-	dscal_(n, &d__2, &vr[1], &c__1);
+	_starpu_dscal_(n, &d__2, &vr[1], &c__1);
     } else {
 
 /*        Complex eigenvalue. */
@@ -364,12 +364,12 @@ L120:
 
 /*           Scale supplied initial vector. */
 
-	    d__1 = dnrm2_(n, &vr[1], &c__1);
-	    d__2 = dnrm2_(n, &vi[1], &c__1);
-	    norm = dlapy2_(&d__1, &d__2);
+	    d__1 = _starpu_dnrm2_(n, &vr[1], &c__1);
+	    d__2 = _starpu_dnrm2_(n, &vi[1], &c__1);
+	    norm = _starpu_dlapy2_(&d__1, &d__2);
 	    rec = *eps3 * rootn / max(norm,nrmsml);
-	    dscal_(n, &rec, &vr[1], &c__1);
-	    dscal_(n, &rec, &vi[1], &c__1);
+	    _starpu_dscal_(n, &rec, &vr[1], &c__1);
+	    _starpu_dscal_(n, &rec, &vi[1], &c__1);
 	}
 
 	if (*rightv) {
@@ -389,7 +389,7 @@ L120:
 
 	    i__1 = *n - 1;
 	    for (i__ = 1; i__ <= i__1; ++i__) {
-		absbii = dlapy2_(&b[i__ + i__ * b_dim1], &b[i__ + 1 + i__ * 
+		absbii = _starpu_dlapy2_(&b[i__ + i__ * b_dim1], &b[i__ + 1 + i__ * 
 			b_dim1]);
 		ei = h__[i__ + 1 + i__ * h_dim1];
 		if (absbii < abs(ei)) {
@@ -442,8 +442,8 @@ L120:
 
 		i__2 = *n - i__;
 		i__3 = *n - i__;
-		work[i__] = dasum_(&i__2, &b[i__ + (i__ + 1) * b_dim1], ldb) 
-			+ dasum_(&i__3, &b[i__ + 2 + i__ * b_dim1], &c__1);
+		work[i__] = _starpu_dasum_(&i__2, &b[i__ + (i__ + 1) * b_dim1], ldb) 
+			+ _starpu_dasum_(&i__3, &b[i__ + 2 + i__ * b_dim1], &c__1);
 /* L170: */
 	    }
 	    if (b[*n + *n * b_dim1] == 0. && b[*n + 1 + *n * b_dim1] == 0.) {
@@ -471,7 +471,7 @@ L120:
 
 	    for (j = *n; j >= 2; --j) {
 		ej = h__[j + (j - 1) * h_dim1];
-		absbjj = dlapy2_(&b[j + j * b_dim1], &b[j + 1 + j * b_dim1]);
+		absbjj = _starpu_dlapy2_(&b[j + j * b_dim1], &b[j + 1 + j * b_dim1]);
 		if (absbjj < abs(ej)) {
 
 /*                 Interchange columns and eliminate */
@@ -522,7 +522,7 @@ L120:
 
 		i__1 = j - 1;
 		i__2 = j - 1;
-		work[j] = dasum_(&i__1, &b[j * b_dim1 + 1], &c__1) + dasum_(&
+		work[j] = _starpu_dasum_(&i__1, &b[j * b_dim1 + 1], &c__1) + _starpu_dasum_(&
 			i__2, &b[j + 1 + b_dim1], ldb);
 /* L210: */
 	    }
@@ -553,8 +553,8 @@ L120:
 
 		if (work[i__] > vcrit) {
 		    rec = 1. / vmax;
-		    dscal_(n, &rec, &vr[1], &c__1);
-		    dscal_(n, &rec, &vi[1], &c__1);
+		    _starpu_dscal_(n, &rec, &vr[1], &c__1);
+		    _starpu_dscal_(n, &rec, &vi[1], &c__1);
 		    scale *= rec;
 		    vmax = 1.;
 		    vcrit = *bignum;
@@ -589,8 +589,8 @@ L120:
 			w1 = abs(xr) + abs(xi);
 			if (w1 > w * *bignum) {
 			    rec = 1. / w1;
-			    dscal_(n, &rec, &vr[1], &c__1);
-			    dscal_(n, &rec, &vi[1], &c__1);
+			    _starpu_dscal_(n, &rec, &vr[1], &c__1);
+			    _starpu_dscal_(n, &rec, &vi[1], &c__1);
 			    xr = vr[i__];
 			    xi = vi[i__];
 			    scale *= rec;
@@ -600,7 +600,7 @@ L120:
 
 /*                 Divide by diagonal element of B. */
 
-		    dladiv_(&xr, &xi, &b[i__ + i__ * b_dim1], &b[i__ + 1 + 
+		    _starpu_dladiv_(&xr, &xi, &b[i__ + i__ * b_dim1], &b[i__ + 1 + 
 			    i__ * b_dim1], &vr[i__], &vi[i__]);
 /* Computing MAX */
 		    d__3 = (d__1 = vr[i__], abs(d__1)) + (d__2 = vi[i__], abs(
@@ -625,7 +625,7 @@ L120:
 
 /*           Test for sufficient growth in the norm of (VR,VI). */
 
-	    vnorm = dasum_(n, &vr[1], &c__1) + dasum_(n, &vi[1], &c__1);
+	    vnorm = _starpu_dasum_(n, &vr[1], &c__1) + _starpu_dasum_(n, &vi[1], &c__1);
 	    if (vnorm >= growto * scale) {
 		goto L280;
 	    }
@@ -664,9 +664,9 @@ L280:
 /* L290: */
 	}
 	d__1 = 1. / vnorm;
-	dscal_(n, &d__1, &vr[1], &c__1);
+	_starpu_dscal_(n, &d__1, &vr[1], &c__1);
 	d__1 = 1. / vnorm;
-	dscal_(n, &d__1, &vi[1], &c__1);
+	_starpu_dscal_(n, &d__1, &vi[1], &c__1);
 
     }
 
@@ -674,4 +674,4 @@ L280:
 
 /*     End of DLAEIN */
 
-} /* dlaein_ */
+} /* _starpu_dlaein_ */

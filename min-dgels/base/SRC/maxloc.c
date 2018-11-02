@@ -13,7 +13,7 @@
 #include "f2c.h"
 
 /* ********************************************************************************** */
-integer smaxloc_(real *a, integer *dimm)
+integer _starpu_smaxloc_(real *a, integer *dimm)
 {
     /* System generated locals */
     integer ret_val, i__1;
@@ -39,10 +39,10 @@ integer smaxloc_(real *a, integer *dimm)
 /* L10: */
     }
     return ret_val;
-} /* smaxloc_ */
+} /* _starpu_smaxloc_ */
 
 /* ********************************************************************************** */
-integer dmaxloc_(doublereal *a, integer *dimm)
+integer _starpu_dmaxloc_(doublereal *a, integer *dimm)
 {
     /* System generated locals */
     integer ret_val, i__1;
@@ -68,4 +68,4 @@ integer dmaxloc_(doublereal *a, integer *dimm)
 /* L20: */
     }
     return ret_val;
-} /* dmaxloc_ */
+} /* _starpu_dmaxloc_ */

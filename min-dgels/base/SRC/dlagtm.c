@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlagtm_(char *trans, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dlagtm_(char *trans, integer *n, integer *nrhs, 
 	doublereal *alpha, doublereal *dl, doublereal *d__, doublereal *du, 
 	doublereal *x, integer *ldx, doublereal *beta, doublereal *b, integer 
 	*ldb)
@@ -23,7 +23,7 @@
 
     /* Local variables */
     integer i__, j;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -143,7 +143,7 @@
     }
 
     if (*alpha == 1.) {
-	if (lsame_(trans, "N")) {
+	if (_starpu_lsame_(trans, "N")) {
 
 /*           Compute B := B + A*X */
 
@@ -195,7 +195,7 @@
 	    }
 	}
     } else if (*alpha == -1.) {
-	if (lsame_(trans, "N")) {
+	if (_starpu_lsame_(trans, "N")) {
 
 /*           Compute B := B - A*X */
 
@@ -251,4 +251,4 @@
 
 /*     End of DLAGTM */
 
-} /* dlagtm_ */
+} /* _starpu_dlagtm_ */

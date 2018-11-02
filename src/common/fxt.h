@@ -1,8 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2017                                Inria
+ * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
+ * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -232,6 +233,8 @@
 #define _STARPU_FUT_DATA_STATE_INVALID 0x5182
 #define _STARPU_FUT_DATA_STATE_OWNER      0x5183
 #define _STARPU_FUT_DATA_STATE_SHARED     0x5184
+
+#define _STARPU_FUT_DATA_REQUEST_CREATED   0x5185
 
 extern unsigned long _starpu_job_cnt;
 
@@ -651,10 +654,10 @@ do {									\
 	FUT_DO_PROBE2(_STARPU_FUT_END_CALLBACK, job, _starpu_gettid());
 
 #define _STARPU_TRACE_JOB_PUSH(task, prio)	\
-	FUT_DO_PROBE3(_STARPU_FUT_JOB_PUSH, task, prio, _starpu_gettid());
+	FUT_DO_PROBE3(_STARPU_FUT_JOB_PUSH, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
 
 #define _STARPU_TRACE_JOB_POP(task, prio)	\
-	FUT_DO_PROBE3(_STARPU_FUT_JOB_POP, task, prio, _starpu_gettid());
+	FUT_DO_PROBE3(_STARPU_FUT_JOB_POP, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
 
 #define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	\
 	FUT_DO_PROBE2(_STARPU_FUT_UPDATE_TASK_CNT, counter, _starpu_gettid())
@@ -845,14 +848,14 @@ do {										\
 #define _STARPU_TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_END, _starpu_gettid());
 
-#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)               \
-       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle);
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle, is_prefetch)               \
+       FUT_DO_PROBE5(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle, is_prefetch);
 
 #define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            \
        FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid(), handle, r);
 
-#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size, handle)         \
-       FUT_DO_PROBE4(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size, handle);
+#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size, handle, is_prefetch)         \
+       FUT_DO_PROBE5(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size, handle, is_prefetch);
 
 #define _STARPU_TRACE_END_ALLOC_REUSE(memnode, handle, r)              \
        FUT_DO_PROBE4(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid(), handle, r);
@@ -1126,6 +1129,9 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)          \
        FUT_DO_PROBE2(_STARPU_FUT_DATA_STATE_SHARED, handle, node)
 
+#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre)          \
+       FUT_DO_PROBE5(_STARPU_FUT_DATA_REQUEST_CREATED, orig, dest, prio, handle, is_pre)
+
 
 #else // !STARPU_USE_FXT
 
@@ -1191,9 +1197,9 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START()		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END()		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC(memnode, size, handle)       do {(void)(memnode); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode, size, handle, is_prefetch)       do {(void)(memnode); (void)(size); (void)(handle);} while(0)
 #define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            do {(void)(memnode); (void)(handle); (void)(r);} while(0)
-#define _STARPU_TRACE_START_ALLOC_REUSE(a, size, handle)       do {(void)(a); (void)(size); (void)(handle);} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a, size, handle, is_prefetch)       do {(void)(a); (void)(size); (void)(handle);} while(0)
 #define _STARPU_TRACE_END_ALLOC_REUSE(a, handle, r)            do {(void)(a); (void)(handle); (void)(r);} while(0)
 #define _STARPU_TRACE_START_FREE(memnode, size, handle)                do {(void)(memnode); (void)(size); (void)(handle);} while(0)
 #define _STARPU_TRACE_END_FREE(memnode, handle)                        do {(void)(memnode); (void)(handle);} while(0)
@@ -1250,6 +1256,7 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
+#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre);} while(0)
 
 #endif // STARPU_USE_FXT
 

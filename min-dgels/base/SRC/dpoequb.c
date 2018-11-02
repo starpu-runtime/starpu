@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dpoequb_(integer *n, doublereal *a, integer *lda, 
+/* Subroutine */ int _starpu_dpoequb_(integer *n, doublereal *a, integer *lda, 
 	doublereal *s, doublereal *scond, doublereal *amax, integer *info)
 {
     /* System generated locals */
@@ -26,8 +26,8 @@
     /* Local variables */
     integer i__;
     doublereal tmp, base, smin;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*     -- LAPACK routine (version 3.2)                                 -- */
@@ -121,7 +121,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPOEQUB", &i__1);
+	_starpu_xerbla_("DPOEQUB", &i__1);
 	return 0;
     }
 
@@ -132,7 +132,7 @@
 	*amax = 0.;
 	return 0;
     }
-    base = dlamch_("B");
+    base = _starpu_dlamch_("B");
     tmp = -.5 / log(base);
 
 /*     Find the minimum and maximum diagonal elements. */
@@ -185,4 +185,4 @@
 
 /*     End of DPOEQUB */
 
-} /* dpoequb_ */
+} /* _starpu_dpoequb_ */

@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dlaqp2_(integer *m, integer *n, integer *offset, 
+/* Subroutine */ int _starpu_dlaqp2_(integer *m, integer *n, integer *offset, 
 	doublereal *a, integer *lda, integer *jpvt, doublereal *tau, 
 	doublereal *vn1, doublereal *vn2, doublereal *work)
 {
@@ -33,17 +33,17 @@ static integer c__1 = 1;
     doublereal aii;
     integer pvt;
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal temp2, tol3z;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *);
     integer offpi, itemp;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlarfp_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlarfp_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *);
 
 
@@ -146,7 +146,7 @@ static integer c__1 = 1;
 /* Computing MIN */
     i__1 = *m - *offset;
     mn = min(i__1,*n);
-    tol3z = sqrt(dlamch_("Epsilon"));
+    tol3z = sqrt(_starpu_dlamch_("Epsilon"));
 
 /*     Compute factorization. */
 
@@ -158,10 +158,10 @@ static integer c__1 = 1;
 /*        Determine ith pivot column and swap if necessary. */
 
 	i__2 = *n - i__ + 1;
-	pvt = i__ - 1 + idamax_(&i__2, &vn1[i__], &c__1);
+	pvt = i__ - 1 + _starpu_idamax_(&i__2, &vn1[i__], &c__1);
 
 	if (pvt != i__) {
-	    dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
+	    _starpu_dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[i__ * a_dim1 + 1], &
 		    c__1);
 	    itemp = jpvt[pvt];
 	    jpvt[pvt] = jpvt[i__];
@@ -174,10 +174,10 @@ static integer c__1 = 1;
 
 	if (offpi < *m) {
 	    i__2 = *m - offpi + 1;
-	    dlarfp_(&i__2, &a[offpi + i__ * a_dim1], &a[offpi + 1 + i__ * 
+	    _starpu_dlarfp_(&i__2, &a[offpi + i__ * a_dim1], &a[offpi + 1 + i__ * 
 		    a_dim1], &c__1, &tau[i__]);
 	} else {
-	    dlarfp_(&c__1, &a[*m + i__ * a_dim1], &a[*m + i__ * a_dim1], &
+	    _starpu_dlarfp_(&c__1, &a[*m + i__ * a_dim1], &a[*m + i__ * a_dim1], &
 		    c__1, &tau[i__]);
 	}
 
@@ -189,7 +189,7 @@ static integer c__1 = 1;
 	    a[offpi + i__ * a_dim1] = 1.;
 	    i__2 = *m - offpi + 1;
 	    i__3 = *n - i__;
-	    dlarf_("Left", &i__2, &i__3, &a[offpi + i__ * a_dim1], &c__1, &
+	    _starpu_dlarf_("Left", &i__2, &i__3, &a[offpi + i__ * a_dim1], &c__1, &
 		    tau[i__], &a[offpi + (i__ + 1) * a_dim1], lda, &work[1]);
 	    a[offpi + i__ * a_dim1] = aii;
 	}
@@ -213,7 +213,7 @@ static integer c__1 = 1;
 		if (temp2 <= tol3z) {
 		    if (offpi < *m) {
 			i__3 = *m - offpi;
-			vn1[j] = dnrm2_(&i__3, &a[offpi + 1 + j * a_dim1], &
+			vn1[j] = _starpu_dnrm2_(&i__3, &a[offpi + 1 + j * a_dim1], &
 				c__1);
 			vn2[j] = vn1[j];
 		    } else {
@@ -234,4 +234,4 @@ static integer c__1 = 1;
 
 /*     End of DLAQP2 */
 
-} /* dlaqp2_ */
+} /* _starpu_dlaqp2_ */

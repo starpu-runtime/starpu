@@ -20,7 +20,7 @@ static doublereal c_b8 = -1.;
 static doublereal c_b9 = 1.;
 static doublereal c_b16 = 0.;
 
-/* Subroutine */ int dlaqps_(integer *m, integer *n, integer *offset, integer 
+/* Subroutine */ int _starpu_dlaqps_(integer *m, integer *n, integer *offset, integer 
 	*nb, integer *kb, doublereal *a, integer *lda, integer *jpvt, 
 	doublereal *tau, doublereal *vn1, doublereal *vn2, doublereal *auxv, 
 	doublereal *f, integer *ldf)
@@ -38,20 +38,20 @@ static doublereal c_b16 = 0.;
     doublereal akk;
     integer pvt;
     doublereal temp;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
     doublereal temp2, tol3z;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *),
-	     dgemv_(char *, integer *, integer *, doublereal *, doublereal *, 
+	     _starpu_dgemv_(char *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *);
     integer itemp;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dswap_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlarfp_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlarfp_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *);
     integer lsticc, lastrk;
 
@@ -176,7 +176,7 @@ static doublereal c_b16 = 0.;
     lastrk = min(i__1,i__2);
     lsticc = 0;
     k = 0;
-    tol3z = sqrt(dlamch_("Epsilon"));
+    tol3z = sqrt(_starpu_dlamch_("Epsilon"));
 
 /*     Beginning of while loop. */
 
@@ -188,11 +188,11 @@ L10:
 /*        Determine ith pivot column and swap if necessary */
 
 	i__1 = *n - k + 1;
-	pvt = k - 1 + idamax_(&i__1, &vn1[k], &c__1);
+	pvt = k - 1 + _starpu_idamax_(&i__1, &vn1[k], &c__1);
 	if (pvt != k) {
-	    dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[k * a_dim1 + 1], &c__1);
+	    _starpu_dswap_(m, &a[pvt * a_dim1 + 1], &c__1, &a[k * a_dim1 + 1], &c__1);
 	    i__1 = k - 1;
-	    dswap_(&i__1, &f[pvt + f_dim1], ldf, &f[k + f_dim1], ldf);
+	    _starpu_dswap_(&i__1, &f[pvt + f_dim1], ldf, &f[k + f_dim1], ldf);
 	    itemp = jpvt[pvt];
 	    jpvt[pvt] = jpvt[k];
 	    jpvt[k] = itemp;
@@ -206,7 +206,7 @@ L10:
 	if (k > 1) {
 	    i__1 = *m - rk + 1;
 	    i__2 = k - 1;
-	    dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[rk + a_dim1], lda, 
+	    _starpu_dgemv_("No transpose", &i__1, &i__2, &c_b8, &a[rk + a_dim1], lda, 
 		    &f[k + f_dim1], ldf, &c_b9, &a[rk + k * a_dim1], &c__1);
 	}
 
@@ -214,10 +214,10 @@ L10:
 
 	if (rk < *m) {
 	    i__1 = *m - rk + 1;
-	    dlarfp_(&i__1, &a[rk + k * a_dim1], &a[rk + 1 + k * a_dim1], &
+	    _starpu_dlarfp_(&i__1, &a[rk + k * a_dim1], &a[rk + 1 + k * a_dim1], &
 		    c__1, &tau[k]);
 	} else {
-	    dlarfp_(&c__1, &a[rk + k * a_dim1], &a[rk + k * a_dim1], &c__1, &
+	    _starpu_dlarfp_(&c__1, &a[rk + k * a_dim1], &a[rk + k * a_dim1], &c__1, &
 		    tau[k]);
 	}
 
@@ -231,7 +231,7 @@ L10:
 	if (k < *n) {
 	    i__1 = *m - rk + 1;
 	    i__2 = *n - k;
-	    dgemv_("Transpose", &i__1, &i__2, &tau[k], &a[rk + (k + 1) * 
+	    _starpu_dgemv_("Transpose", &i__1, &i__2, &tau[k], &a[rk + (k + 1) * 
 		    a_dim1], lda, &a[rk + k * a_dim1], &c__1, &c_b16, &f[k + 
 		    1 + k * f_dim1], &c__1);
 	}
@@ -252,11 +252,11 @@ L10:
 	    i__1 = *m - rk + 1;
 	    i__2 = k - 1;
 	    d__1 = -tau[k];
-	    dgemv_("Transpose", &i__1, &i__2, &d__1, &a[rk + a_dim1], lda, &a[
+	    _starpu_dgemv_("Transpose", &i__1, &i__2, &d__1, &a[rk + a_dim1], lda, &a[
 		    rk + k * a_dim1], &c__1, &c_b16, &auxv[1], &c__1);
 
 	    i__1 = k - 1;
-	    dgemv_("No transpose", n, &i__1, &c_b9, &f[f_dim1 + 1], ldf, &
+	    _starpu_dgemv_("No transpose", n, &i__1, &c_b9, &f[f_dim1 + 1], ldf, &
 		    auxv[1], &c__1, &c_b9, &f[k * f_dim1 + 1], &c__1);
 	}
 
@@ -265,7 +265,7 @@ L10:
 
 	if (k < *n) {
 	    i__1 = *n - k;
-	    dgemv_("No transpose", &i__1, &k, &c_b8, &f[k + 1 + f_dim1], ldf, 
+	    _starpu_dgemv_("No transpose", &i__1, &k, &c_b8, &f[k + 1 + f_dim1], ldf, 
 		    &a[rk + a_dim1], lda, &c_b9, &a[rk + (k + 1) * a_dim1], 
 		    lda);
 	}
@@ -316,7 +316,7 @@ L10:
     if (*kb < min(i__1,i__2)) {
 	i__1 = *m - rk;
 	i__2 = *n - *kb;
-	dgemm_("No transpose", "Transpose", &i__1, &i__2, kb, &c_b8, &a[rk + 
+	_starpu_dgemm_("No transpose", "Transpose", &i__1, &i__2, kb, &c_b8, &a[rk + 
 		1 + a_dim1], lda, &f[*kb + 1 + f_dim1], ldf, &c_b9, &a[rk + 1 
 		+ (*kb + 1) * a_dim1], lda);
     }
@@ -327,7 +327,7 @@ L40:
     if (lsticc > 0) {
 	itemp = i_dnnt(&vn2[lsticc]);
 	i__1 = *m - rk;
-	vn1[lsticc] = dnrm2_(&i__1, &a[rk + 1 + lsticc * a_dim1], &c__1);
+	vn1[lsticc] = _starpu_dnrm2_(&i__1, &a[rk + 1 + lsticc * a_dim1], &c__1);
 
 /*        NOTE: The computation of VN1( LSTICC ) relies on the fact that */
 /*        SNRM2 does not fail on vectors with norm below the value of */
@@ -342,4 +342,4 @@ L40:
 
 /*     End of DLAQPS */
 
-} /* dlaqps_ */
+} /* _starpu_dlaqps_ */

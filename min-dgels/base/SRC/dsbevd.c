@@ -19,7 +19,7 @@ static doublereal c_b11 = 1.;
 static doublereal c_b18 = 0.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dsbevd_(char *jobz, char *uplo, integer *n, integer *kd, 
+/* Subroutine */ int _starpu_dsbevd_(char *jobz, char *uplo, integer *n, integer *kd, 
 	doublereal *ab, integer *ldab, doublereal *w, doublereal *z__, 
 	integer *ldz, doublereal *work, integer *lwork, integer *iwork, 
 	integer *liwork, integer *info)
@@ -35,32 +35,32 @@ static integer c__1 = 1;
     doublereal eps;
     integer inde;
     doublereal anrm, rmin, rmax;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemm_(char *, char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemm_(char *, char *, integer *, integer *, integer *
 , doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     doublereal sigma;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo, lwmin;
     logical lower, wantz;
     integer indwk2, llwrk2;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer iscale;
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlascl_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
-    extern doublereal dlansb_(char *, char *, integer *, integer *, 
+    extern doublereal _starpu_dlansb_(char *, char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dstedc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dstedc_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    integer *, integer *, integer *), dlacpy_(char *, integer 
+	    integer *, integer *, integer *), _starpu_dlacpy_(char *, integer 
 	    *, integer *, doublereal *, integer *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dsbtrd_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsbtrd_(char *, char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *, doublereal *, integer *), dsterf_(
+	     integer *, doublereal *, integer *), _starpu_dsterf_(
 	    integer *, doublereal *, doublereal *, integer *);
     integer indwrk, liwmin;
     doublereal smlnum;
@@ -205,8 +205,8 @@ static integer c__1 = 1;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    lower = lsame_(uplo, "L");
+    wantz = _starpu_lsame_(jobz, "V");
+    lower = _starpu_lsame_(uplo, "L");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
@@ -224,9 +224,9 @@ static integer c__1 = 1;
 	    lwmin = *n << 1;
 	}
     }
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
-    } else if (! (lower || lsame_(uplo, "U"))) {
+    } else if (! (lower || _starpu_lsame_(uplo, "U"))) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -251,7 +251,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSBEVD", &i__1);
+	_starpu_xerbla_("DSBEVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -273,8 +273,8 @@ static integer c__1 = 1;
 
 /*     Get machine constants. */
 
-    safmin = dlamch_("Safe minimum");
-    eps = dlamch_("Precision");
+    safmin = _starpu_dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Precision");
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -282,7 +282,7 @@ static integer c__1 = 1;
 
 /*     Scale matrix to allowable range, if necessary. */
 
-    anrm = dlansb_("M", uplo, n, kd, &ab[ab_offset], ldab, &work[1]);
+    anrm = _starpu_dlansb_("M", uplo, n, kd, &ab[ab_offset], ldab, &work[1]);
     iscale = 0;
     if (anrm > 0. && anrm < rmin) {
 	iscale = 1;
@@ -293,10 +293,10 @@ static integer c__1 = 1;
     }
     if (iscale == 1) {
 	if (lower) {
-	    dlascl_("B", kd, kd, &c_b11, &sigma, n, n, &ab[ab_offset], ldab, 
+	    _starpu_dlascl_("B", kd, kd, &c_b11, &sigma, n, n, &ab[ab_offset], ldab, 
 		    info);
 	} else {
-	    dlascl_("Q", kd, kd, &c_b11, &sigma, n, n, &ab[ab_offset], ldab, 
+	    _starpu_dlascl_("Q", kd, kd, &c_b11, &sigma, n, n, &ab[ab_offset], ldab, 
 		    info);
 	}
     }
@@ -307,26 +307,26 @@ static integer c__1 = 1;
     indwrk = inde + *n;
     indwk2 = indwrk + *n * *n;
     llwrk2 = *lwork - indwk2 + 1;
-    dsbtrd_(jobz, uplo, n, kd, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
+    _starpu_dsbtrd_(jobz, uplo, n, kd, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
 	    z_offset], ldz, &work[indwrk], &iinfo);
 
 /*     For eigenvalues only, call DSTERF.  For eigenvectors, call SSTEDC. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &work[inde], info);
+	_starpu_dsterf_(n, &w[1], &work[inde], info);
     } else {
-	dstedc_("I", n, &w[1], &work[inde], &work[indwrk], n, &work[indwk2], &
+	_starpu_dstedc_("I", n, &w[1], &work[inde], &work[indwrk], n, &work[indwk2], &
 		llwrk2, &iwork[1], liwork, info);
-	dgemm_("N", "N", n, n, n, &c_b11, &z__[z_offset], ldz, &work[indwrk], 
+	_starpu_dgemm_("N", "N", n, n, n, &c_b11, &z__[z_offset], ldz, &work[indwrk], 
 		n, &c_b18, &work[indwk2], n);
-	dlacpy_("A", n, n, &work[indwk2], n, &z__[z_offset], ldz);
+	_starpu_dlacpy_("A", n, n, &work[indwk2], n, &z__[z_offset], ldz);
     }
 
 /*     If matrix was scaled, then rescale eigenvalues appropriately. */
 
     if (iscale == 1) {
 	d__1 = 1. / sigma;
-	dscal_(n, &d__1, &w[1], &c__1);
+	_starpu_dscal_(n, &d__1, &w[1], &c__1);
     }
 
     work[1] = (doublereal) lwmin;
@@ -335,4 +335,4 @@ static integer c__1 = 1;
 
 /*     End of DSBEVD */
 
-} /* dsbevd_ */
+} /* _starpu_dsbevd_ */

@@ -18,7 +18,7 @@
 static doublereal c_b7 = 1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlauu2_(char *uplo, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dlauu2_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *info)
 {
     /* System generated locals */
@@ -27,16 +27,16 @@ static integer c__1 = 1;
     /* Local variables */
     integer i__;
     doublereal aii;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK auxiliary routine (version 3.2) -- */
@@ -111,8 +111,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -121,7 +121,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAUU2", &i__1);
+	_starpu_xerbla_("DLAUU2", &i__1);
 	return 0;
     }
 
@@ -140,15 +140,15 @@ static integer c__1 = 1;
 	    aii = a[i__ + i__ * a_dim1];
 	    if (i__ < *n) {
 		i__2 = *n - i__ + 1;
-		a[i__ + i__ * a_dim1] = ddot_(&i__2, &a[i__ + i__ * a_dim1], 
+		a[i__ + i__ * a_dim1] = _starpu_ddot_(&i__2, &a[i__ + i__ * a_dim1], 
 			lda, &a[i__ + i__ * a_dim1], lda);
 		i__2 = i__ - 1;
 		i__3 = *n - i__;
-		dgemv_("No transpose", &i__2, &i__3, &c_b7, &a[(i__ + 1) * 
+		_starpu_dgemv_("No transpose", &i__2, &i__3, &c_b7, &a[(i__ + 1) * 
 			a_dim1 + 1], lda, &a[i__ + (i__ + 1) * a_dim1], lda, &
 			aii, &a[i__ * a_dim1 + 1], &c__1);
 	    } else {
-		dscal_(&i__, &aii, &a[i__ * a_dim1 + 1], &c__1);
+		_starpu_dscal_(&i__, &aii, &a[i__ * a_dim1 + 1], &c__1);
 	    }
 /* L10: */
 	}
@@ -162,15 +162,15 @@ static integer c__1 = 1;
 	    aii = a[i__ + i__ * a_dim1];
 	    if (i__ < *n) {
 		i__2 = *n - i__ + 1;
-		a[i__ + i__ * a_dim1] = ddot_(&i__2, &a[i__ + i__ * a_dim1], &
+		a[i__ + i__ * a_dim1] = _starpu_ddot_(&i__2, &a[i__ + i__ * a_dim1], &
 			c__1, &a[i__ + i__ * a_dim1], &c__1);
 		i__2 = *n - i__;
 		i__3 = i__ - 1;
-		dgemv_("Transpose", &i__2, &i__3, &c_b7, &a[i__ + 1 + a_dim1], 
+		_starpu_dgemv_("Transpose", &i__2, &i__3, &c_b7, &a[i__ + 1 + a_dim1], 
 			 lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &aii, &a[i__ 
 			+ a_dim1], lda);
 	    } else {
-		dscal_(&i__, &aii, &a[i__ + a_dim1], lda);
+		_starpu_dscal_(&i__, &aii, &a[i__ + a_dim1], lda);
 	    }
 /* L20: */
 	}
@@ -180,4 +180,4 @@ static integer c__1 = 1;
 
 /*     End of DLAUU2 */
 
-} /* dlauu2_ */
+} /* _starpu_dlauu2_ */

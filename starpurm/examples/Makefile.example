@@ -1,0 +1,31 @@
+# StarPURM --- StarPU Resource Management Layer.
+#
+# Copyright (C) 2017 Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+# Example Makefile showing how to build examples from outside the StarPURM
+# tree.
+
+PRGS=01_init_exit 02_list_units
+
+CFLAGS+=$(shell pkg-config --cflags starpurm-1.3)
+LDFLAGS+=$(shell pkg-config --libs-only-L starpurm-1.3)
+
+LDLIBS += -Wl,--start-group 
+LDLIBS += $(shell pkg-config --libs-only-l starpurm-1.3)
+LDLIBS += -Wl,--end-group 
+
+.phony: all clean
+all: $(PRGS)
+clean:
+	rm -fv $(PRGS)

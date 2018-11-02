@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2009-2011,2014-2016,2018                 Université de Bordeaux
- * Copyright (C) 2011-2012                                Inria
+ * Copyright (C) 2011,2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,8 +152,15 @@ task to.
 \def STARPU_TASK_DEPS_ARRAY
 \ingroup API_Insert_Task
 Used when calling starpu_task_insert(), must
-be followed by a number of tasks, and an array containing these tasks.
+be followed by a number of tasks as int, and an array containing these tasks.
 The function starpu_task_declare_deps_array() will be called with the
+given values.
+
+\def STARPU_TASK_END_DEPS_ARRAY
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must
+be followed by a number of tasks as int, and an array containing these tasks.
+The function starpu_task_declare_end_deps_array() will be called with the
 given values.
 
 \def STARPU_TASK_COLOR
@@ -213,7 +220,7 @@ data, then starpu_codelet_pack_arg_fini().
 Initialize struct starpu_codelet_pack_arg before calling starpu_codelet_pack_arg() and
 starpu_codelet_pack_arg_fini(). This will simply initialize the content of the structure.
 
-\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t ptr_size)
+\fn void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const void *ptr, size_t ptr_size)
 \ingroup API_Insert_Task
 Pack one argument into struct starpu_codelet_pack_arg \p state. That structure
 has to be initialized before with starpu_codelet_pack_arg_init(), and after all

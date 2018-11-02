@@ -20,7 +20,7 @@ static doublereal c_b13 = 1.;
 static integer c__1 = 1;
 static integer c__3 = 3;
 
-/* Subroutine */ int dhgeqz_(char *job, char *compq, char *compz, integer *n, 
+/* Subroutine */ int _starpu_dhgeqz_(char *job, char *compq, char *compz, integer *n, 
 	integer *ilo, integer *ihi, doublereal *h__, integer *ldh, doublereal 
 	*t, integer *ldt, doublereal *alphar, doublereal *alphai, doublereal *
 	beta, doublereal *q, integer *ldq, doublereal *z__, integer *ldz, 
@@ -53,36 +53,36 @@ static integer c__3 = 3;
     logical ilz;
     doublereal ulp, sqr, szi, szr, ad11l, ad12l, ad21l, ad22l, ad32l, wabs, 
 	    atol, btol, temp;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *), dlag2_(
+    extern /* Subroutine */ int _starpu_drot_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *), _starpu_dlag2_(
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
     doublereal temp2, s1inv, scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iiter, ilast, jiter;
     doublereal anorm, bnorm;
     integer maxit;
     doublereal tempi, tempr;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlapy3_(doublereal 
+    extern doublereal _starpu_dlapy2_(doublereal *, doublereal *), _starpu_dlapy3_(doublereal 
 	    *, doublereal *, doublereal *);
-    extern /* Subroutine */ int dlasv2_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlasv2_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
     logical ilazr2;
     doublereal ascale, bscale;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlarfg_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlarfg_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *);
-    extern doublereal dlanhs_(char *, integer *, doublereal *, integer *, 
+    extern doublereal _starpu_dlanhs_(char *, integer *, doublereal *, integer *, 
 	    doublereal *);
-    extern /* Subroutine */ int dlaset_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaset_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *);
     doublereal safmin;
-    extern /* Subroutine */ int dlartg_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlartg_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *);
     doublereal safmax;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal eshift;
     logical ilschr;
     integer icompq, ilastm, ischur;
@@ -329,36 +329,36 @@ static integer c__3 = 3;
     --work;
 
     /* Function Body */
-    if (lsame_(job, "E")) {
+    if (_starpu_lsame_(job, "E")) {
 	ilschr = FALSE_;
 	ischur = 1;
-    } else if (lsame_(job, "S")) {
+    } else if (_starpu_lsame_(job, "S")) {
 	ilschr = TRUE_;
 	ischur = 2;
     } else {
 	ischur = 0;
     }
 
-    if (lsame_(compq, "N")) {
+    if (_starpu_lsame_(compq, "N")) {
 	ilq = FALSE_;
 	icompq = 1;
-    } else if (lsame_(compq, "V")) {
+    } else if (_starpu_lsame_(compq, "V")) {
 	ilq = TRUE_;
 	icompq = 2;
-    } else if (lsame_(compq, "I")) {
+    } else if (_starpu_lsame_(compq, "I")) {
 	ilq = TRUE_;
 	icompq = 3;
     } else {
 	icompq = 0;
     }
 
-    if (lsame_(compz, "N")) {
+    if (_starpu_lsame_(compz, "N")) {
 	ilz = FALSE_;
 	icompz = 1;
-    } else if (lsame_(compz, "V")) {
+    } else if (_starpu_lsame_(compz, "V")) {
 	ilz = TRUE_;
 	icompz = 2;
-    } else if (lsame_(compz, "I")) {
+    } else if (_starpu_lsame_(compz, "I")) {
 	ilz = TRUE_;
 	icompz = 3;
     } else {
@@ -395,7 +395,7 @@ static integer c__3 = 3;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DHGEQZ", &i__1);
+	_starpu_xerbla_("DHGEQZ", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -411,20 +411,20 @@ static integer c__3 = 3;
 /*     Initialize Q and Z */
 
     if (icompq == 3) {
-	dlaset_("Full", n, n, &c_b12, &c_b13, &q[q_offset], ldq);
+	_starpu_dlaset_("Full", n, n, &c_b12, &c_b13, &q[q_offset], ldq);
     }
     if (icompz == 3) {
-	dlaset_("Full", n, n, &c_b12, &c_b13, &z__[z_offset], ldz);
+	_starpu_dlaset_("Full", n, n, &c_b12, &c_b13, &z__[z_offset], ldz);
     }
 
 /*     Machine Constants */
 
     in = *ihi + 1 - *ilo;
-    safmin = dlamch_("S");
+    safmin = _starpu_dlamch_("S");
     safmax = 1. / safmin;
-    ulp = dlamch_("E") * dlamch_("B");
-    anorm = dlanhs_("F", &in, &h__[*ilo + *ilo * h_dim1], ldh, &work[1]);
-    bnorm = dlanhs_("F", &in, &t[*ilo + *ilo * t_dim1], ldt, &work[1]);
+    ulp = _starpu_dlamch_("E") * _starpu_dlamch_("B");
+    anorm = _starpu_dlanhs_("F", &in, &h__[*ilo + *ilo * h_dim1], ldh, &work[1]);
+    bnorm = _starpu_dlanhs_("F", &in, &t[*ilo + *ilo * t_dim1], ldt, &work[1]);
 /* Computing MAX */
     d__1 = safmin, d__2 = ulp * anorm;
     atol = max(d__1,d__2);
@@ -574,18 +574,18 @@ static integer c__3 = 3;
 		    i__3 = ilast - 1;
 		    for (jch = j; jch <= i__3; ++jch) {
 			temp = h__[jch + jch * h_dim1];
-			dlartg_(&temp, &h__[jch + 1 + jch * h_dim1], &c__, &s, 
+			_starpu_dlartg_(&temp, &h__[jch + 1 + jch * h_dim1], &c__, &s, 
 				 &h__[jch + jch * h_dim1]);
 			h__[jch + 1 + jch * h_dim1] = 0.;
 			i__4 = ilastm - jch;
-			drot_(&i__4, &h__[jch + (jch + 1) * h_dim1], ldh, &
+			_starpu_drot_(&i__4, &h__[jch + (jch + 1) * h_dim1], ldh, &
 				h__[jch + 1 + (jch + 1) * h_dim1], ldh, &c__, 
 				&s);
 			i__4 = ilastm - jch;
-			drot_(&i__4, &t[jch + (jch + 1) * t_dim1], ldt, &t[
+			_starpu_drot_(&i__4, &t[jch + (jch + 1) * t_dim1], ldt, &t[
 				jch + 1 + (jch + 1) * t_dim1], ldt, &c__, &s);
 			if (ilq) {
-			    drot_(n, &q[jch * q_dim1 + 1], &c__1, &q[(jch + 1)
+			    _starpu_drot_(n, &q[jch * q_dim1 + 1], &c__1, &q[(jch + 1)
 				     * q_dim1 + 1], &c__1, &c__, &s);
 			}
 			if (ilazr2) {
@@ -613,37 +613,37 @@ static integer c__3 = 3;
 		    i__3 = ilast - 1;
 		    for (jch = j; jch <= i__3; ++jch) {
 			temp = t[jch + (jch + 1) * t_dim1];
-			dlartg_(&temp, &t[jch + 1 + (jch + 1) * t_dim1], &c__, 
+			_starpu_dlartg_(&temp, &t[jch + 1 + (jch + 1) * t_dim1], &c__, 
 				 &s, &t[jch + (jch + 1) * t_dim1]);
 			t[jch + 1 + (jch + 1) * t_dim1] = 0.;
 			if (jch < ilastm - 1) {
 			    i__4 = ilastm - jch - 1;
-			    drot_(&i__4, &t[jch + (jch + 2) * t_dim1], ldt, &
+			    _starpu_drot_(&i__4, &t[jch + (jch + 2) * t_dim1], ldt, &
 				    t[jch + 1 + (jch + 2) * t_dim1], ldt, &
 				    c__, &s);
 			}
 			i__4 = ilastm - jch + 2;
-			drot_(&i__4, &h__[jch + (jch - 1) * h_dim1], ldh, &
+			_starpu_drot_(&i__4, &h__[jch + (jch - 1) * h_dim1], ldh, &
 				h__[jch + 1 + (jch - 1) * h_dim1], ldh, &c__, 
 				&s);
 			if (ilq) {
-			    drot_(n, &q[jch * q_dim1 + 1], &c__1, &q[(jch + 1)
+			    _starpu_drot_(n, &q[jch * q_dim1 + 1], &c__1, &q[(jch + 1)
 				     * q_dim1 + 1], &c__1, &c__, &s);
 			}
 			temp = h__[jch + 1 + jch * h_dim1];
-			dlartg_(&temp, &h__[jch + 1 + (jch - 1) * h_dim1], &
+			_starpu_dlartg_(&temp, &h__[jch + 1 + (jch - 1) * h_dim1], &
 				c__, &s, &h__[jch + 1 + jch * h_dim1]);
 			h__[jch + 1 + (jch - 1) * h_dim1] = 0.;
 			i__4 = jch + 1 - ifrstm;
-			drot_(&i__4, &h__[ifrstm + jch * h_dim1], &c__1, &h__[
+			_starpu_drot_(&i__4, &h__[ifrstm + jch * h_dim1], &c__1, &h__[
 				ifrstm + (jch - 1) * h_dim1], &c__1, &c__, &s)
 				;
 			i__4 = jch - ifrstm;
-			drot_(&i__4, &t[ifrstm + jch * t_dim1], &c__1, &t[
+			_starpu_drot_(&i__4, &t[ifrstm + jch * t_dim1], &c__1, &t[
 				ifrstm + (jch - 1) * t_dim1], &c__1, &c__, &s)
 				;
 			if (ilz) {
-			    drot_(n, &z__[jch * z_dim1 + 1], &c__1, &z__[(jch 
+			    _starpu_drot_(n, &z__[jch * z_dim1 + 1], &c__1, &z__[(jch 
 				    - 1) * z_dim1 + 1], &c__1, &c__, &s);
 			}
 /* L50: */
@@ -673,17 +673,17 @@ static integer c__3 = 3;
 
 L70:
 	temp = h__[ilast + ilast * h_dim1];
-	dlartg_(&temp, &h__[ilast + (ilast - 1) * h_dim1], &c__, &s, &h__[
+	_starpu_dlartg_(&temp, &h__[ilast + (ilast - 1) * h_dim1], &c__, &s, &h__[
 		ilast + ilast * h_dim1]);
 	h__[ilast + (ilast - 1) * h_dim1] = 0.;
 	i__2 = ilast - ifrstm;
-	drot_(&i__2, &h__[ifrstm + ilast * h_dim1], &c__1, &h__[ifrstm + (
+	_starpu_drot_(&i__2, &h__[ifrstm + ilast * h_dim1], &c__1, &h__[ifrstm + (
 		ilast - 1) * h_dim1], &c__1, &c__, &s);
 	i__2 = ilast - ifrstm;
-	drot_(&i__2, &t[ifrstm + ilast * t_dim1], &c__1, &t[ifrstm + (ilast - 
+	_starpu_drot_(&i__2, &t[ifrstm + ilast * t_dim1], &c__1, &t[ifrstm + (ilast - 
 		1) * t_dim1], &c__1, &c__, &s);
 	if (ilz) {
-	    drot_(n, &z__[ilast * z_dim1 + 1], &c__1, &z__[(ilast - 1) * 
+	    _starpu_drot_(n, &z__[ilast * z_dim1 + 1], &c__1, &z__[(ilast - 1) * 
 		    z_dim1 + 1], &c__1, &c__, &s);
 	}
 
@@ -774,7 +774,7 @@ L110:
 /*           returned by DLAG2 is the Wilkinson shift (AEP p.512), */
 
 	    d__1 = safmin * 100.;
-	    dlag2_(&h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &t[ilast - 1 
+	    _starpu_dlag2_(&h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &t[ilast - 1 
 		    + (ilast - 1) * t_dim1], ldt, &d__1, &s1, &s2, &wr, &wr2, 
 		    &wi);
 
@@ -836,7 +836,7 @@ L130:
 	temp = s1 * h__[istart + istart * h_dim1] - wr * t[istart + istart * 
 		t_dim1];
 	temp2 = s1 * h__[istart + 1 + istart * h_dim1];
-	dlartg_(&temp, &temp2, &c__, &s, &tempr);
+	_starpu_dlartg_(&temp, &temp2, &c__, &s, &tempr);
 
 /*        Sweep */
 
@@ -844,7 +844,7 @@ L130:
 	for (j = istart; j <= i__2; ++j) {
 	    if (j > istart) {
 		temp = h__[j + (j - 1) * h_dim1];
-		dlartg_(&temp, &h__[j + 1 + (j - 1) * h_dim1], &c__, &s, &h__[
+		_starpu_dlartg_(&temp, &h__[j + 1 + (j - 1) * h_dim1], &c__, &s, &h__[
 			j + (j - 1) * h_dim1]);
 		h__[j + 1 + (j - 1) * h_dim1] = 0.;
 	    }
@@ -875,7 +875,7 @@ L130:
 	    }
 
 	    temp = t[j + 1 + (j + 1) * t_dim1];
-	    dlartg_(&temp, &t[j + 1 + j * t_dim1], &c__, &s, &t[j + 1 + (j + 
+	    _starpu_dlartg_(&temp, &t[j + 1 + j * t_dim1], &c__, &s, &t[j + 1 + (j + 
 		    1) * t_dim1]);
 	    t[j + 1 + j * t_dim1] = 0.;
 
@@ -933,7 +933,7 @@ L200:
 /*                   B = (         )  with B11 non-negative. */
 /*                       (  0  B22 ) */
 
-	    dlasv2_(&t[ilast - 1 + (ilast - 1) * t_dim1], &t[ilast - 1 + 
+	    _starpu_dlasv2_(&t[ilast - 1 + (ilast - 1) * t_dim1], &t[ilast - 1 + 
 		    ilast * t_dim1], &t[ilast + ilast * t_dim1], &b22, &b11, &
 		    sr, &cr, &sl, &cl);
 
@@ -945,29 +945,29 @@ L200:
 	    }
 
 	    i__2 = ilastm + 1 - ifirst;
-	    drot_(&i__2, &h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &h__[
+	    _starpu_drot_(&i__2, &h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &h__[
 		    ilast + (ilast - 1) * h_dim1], ldh, &cl, &sl);
 	    i__2 = ilast + 1 - ifrstm;
-	    drot_(&i__2, &h__[ifrstm + (ilast - 1) * h_dim1], &c__1, &h__[
+	    _starpu_drot_(&i__2, &h__[ifrstm + (ilast - 1) * h_dim1], &c__1, &h__[
 		    ifrstm + ilast * h_dim1], &c__1, &cr, &sr);
 
 	    if (ilast < ilastm) {
 		i__2 = ilastm - ilast;
-		drot_(&i__2, &t[ilast - 1 + (ilast + 1) * t_dim1], ldt, &t[
+		_starpu_drot_(&i__2, &t[ilast - 1 + (ilast + 1) * t_dim1], ldt, &t[
 			ilast + (ilast + 1) * t_dim1], ldt, &cl, &sl);
 	    }
 	    if (ifrstm < ilast - 1) {
 		i__2 = ifirst - ifrstm;
-		drot_(&i__2, &t[ifrstm + (ilast - 1) * t_dim1], &c__1, &t[
+		_starpu_drot_(&i__2, &t[ifrstm + (ilast - 1) * t_dim1], &c__1, &t[
 			ifrstm + ilast * t_dim1], &c__1, &cr, &sr);
 	    }
 
 	    if (ilq) {
-		drot_(n, &q[(ilast - 1) * q_dim1 + 1], &c__1, &q[ilast * 
+		_starpu_drot_(n, &q[(ilast - 1) * q_dim1 + 1], &c__1, &q[ilast * 
 			q_dim1 + 1], &c__1, &cl, &sl);
 	    }
 	    if (ilz) {
-		drot_(n, &z__[(ilast - 1) * z_dim1 + 1], &c__1, &z__[ilast * 
+		_starpu_drot_(n, &z__[(ilast - 1) * z_dim1 + 1], &c__1, &z__[ilast * 
 			z_dim1 + 1], &c__1, &cr, &sr);
 	    }
 
@@ -1000,7 +1000,7 @@ L200:
 /*           Recompute shift */
 
 	    d__1 = safmin * 100.;
-	    dlag2_(&h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &t[ilast - 1 
+	    _starpu_dlag2_(&h__[ilast - 1 + (ilast - 1) * h_dim1], ldh, &t[ilast - 1 
 		    + (ilast - 1) * t_dim1], ldt, &d__1, &s1, &temp, &wr, &
 		    temp2, &wi);
 
@@ -1034,12 +1034,12 @@ L200:
 
 	    if (abs(c11r) + abs(c11i) + abs(c12) > abs(c21) + abs(c22r) + abs(
 		    c22i)) {
-		t1 = dlapy3_(&c12, &c11r, &c11i);
+		t1 = _starpu_dlapy3_(&c12, &c11r, &c11i);
 		cz = c12 / t1;
 		szr = -c11r / t1;
 		szi = -c11i / t1;
 	    } else {
-		cz = dlapy2_(&c22r, &c22i);
+		cz = _starpu_dlapy2_(&c22r, &c22i);
 		if (cz <= safmin) {
 		    cz = 0.;
 		    szr = 1.;
@@ -1047,7 +1047,7 @@ L200:
 		} else {
 		    tempr = c22r / cz;
 		    tempi = c22i / cz;
-		    t1 = dlapy2_(&cz, &c21);
+		    t1 = _starpu_dlapy2_(&cz, &c21);
 		    cz /= t1;
 		    szr = -c21 * tempr / t1;
 		    szi = c21 * tempi / t1;
@@ -1072,7 +1072,7 @@ L200:
 		a1i = szi * a12;
 		a2r = cz * a21 + szr * a22;
 		a2i = szi * a22;
-		cq = dlapy2_(&a1r, &a1i);
+		cq = _starpu_dlapy2_(&a1r, &a1i);
 		if (cq <= safmin) {
 		    cq = 0.;
 		    sqr = 1.;
@@ -1084,7 +1084,7 @@ L200:
 		    sqi = tempi * a2r - tempr * a2i;
 		}
 	    }
-	    t1 = dlapy3_(&cq, &sqr, &sqi);
+	    t1 = _starpu_dlapy3_(&cq, &sqr, &sqi);
 	    cq /= t1;
 	    sqr /= t1;
 	    sqi /= t1;
@@ -1095,10 +1095,10 @@ L200:
 	    tempi = sqr * szi + sqi * szr;
 	    b1r = cq * cz * b11 + tempr * b22;
 	    b1i = tempi * b22;
-	    b1a = dlapy2_(&b1r, &b1i);
+	    b1a = _starpu_dlapy2_(&b1r, &b1i);
 	    b2r = cq * cz * b22 + tempr * b11;
 	    b2i = -tempi * b11;
-	    b2a = dlapy2_(&b2r, &b2i);
+	    b2a = _starpu_dlapy2_(&b2r, &b2i);
 
 /*           Normalize so beta > 0, and Im( alpha1 ) > 0 */
 
@@ -1171,7 +1171,7 @@ L200:
 
 	    istart = ifirst;
 
-	    dlarfg_(&c__3, v, &v[1], &c__1, &tau);
+	    _starpu_dlarfg_(&c__3, v, &v[1], &c__1, &tau);
 	    v[0] = 1.;
 
 /*           Sweep */
@@ -1188,7 +1188,7 @@ L200:
 		    v[1] = h__[j + 1 + (j - 1) * h_dim1];
 		    v[2] = h__[j + 2 + (j - 1) * h_dim1];
 
-		    dlarfg_(&c__3, &h__[j + (j - 1) * h_dim1], &v[1], &c__1, &
+		    _starpu_dlarfg_(&c__3, &h__[j + (j - 1) * h_dim1], &v[1], &c__1, &
 			    tau);
 		    v[0] = 1.;
 		    h__[j + 1 + (j - 1) * h_dim1] = 0.;
@@ -1365,7 +1365,7 @@ L250:
 
 	    j = ilast - 1;
 	    temp = h__[j + (j - 1) * h_dim1];
-	    dlartg_(&temp, &h__[j + 1 + (j - 1) * h_dim1], &c__, &s, &h__[j + 
+	    _starpu_dlartg_(&temp, &h__[j + 1 + (j - 1) * h_dim1], &c__, &s, &h__[j + 
 		    (j - 1) * h_dim1]);
 	    h__[j + 1 + (j - 1) * h_dim1] = 0.;
 
@@ -1397,7 +1397,7 @@ L250:
 /*           Rotations from the right. */
 
 	    temp = t[j + 1 + (j + 1) * t_dim1];
-	    dlartg_(&temp, &t[j + 1 + j * t_dim1], &c__, &s, &t[j + 1 + (j + 
+	    _starpu_dlartg_(&temp, &t[j + 1 + j * t_dim1], &c__, &s, &t[j + 1 + (j + 
 		    1) * t_dim1]);
 	    t[j + 1 + j * t_dim1] = 0.;
 
@@ -1495,4 +1495,4 @@ L420:
 
 /*     End of DHGEQZ */
 
-} /* dhgeqz_ */
+} /* _starpu_dhgeqz_ */

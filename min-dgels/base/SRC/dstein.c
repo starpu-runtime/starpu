@@ -19,7 +19,7 @@ static integer c__2 = 2;
 static integer c__1 = 1;
 static integer c_n1 = -1;
 
-/* Subroutine */ int dstein_(integer *n, doublereal *d__, doublereal *e, 
+/* Subroutine */ int _starpu_dstein_(integer *n, doublereal *d__, doublereal *e, 
 	integer *m, doublereal *w, integer *iblock, integer *isplit, 
 	doublereal *z__, integer *ldz, doublereal *work, integer *iwork, 
 	integer *ifail, integer *info)
@@ -37,29 +37,29 @@ static integer c_n1 = -1;
     integer its;
     doublereal xjm, ztr, eps1;
     integer jblk, nblk;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     integer jmax;
-    extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dnrm2_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
     integer iseed[4], gpind, iinfo;
-    extern doublereal dasum_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *), daxpy_(integer *, doublereal *, 
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
+	    doublereal *, integer *), _starpu_daxpy_(integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal ortol;
     integer indrv1, indrv2, indrv3, indrv4, indrv5;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int dlagtf_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_dlagtf_(integer *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *, doublereal *, doublereal *, integer *
 , integer *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int xerbla_(char *, integer *), dlagts_(
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *), _starpu_dlagts_(
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *);
     integer nrmchk;
-    extern /* Subroutine */ int dlarnv_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarnv_(integer *, integer *, integer *, 
 	    doublereal *);
     integer blksiz;
     doublereal onenrm, dtpcrt, pertol;
@@ -221,7 +221,7 @@ L30:
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSTEIN", &i__1);
+	_starpu_xerbla_("DSTEIN", &i__1);
 	return 0;
     }
 
@@ -236,7 +236,7 @@ L30:
 
 /*     Get machine constants. */
 
-    eps = dlamch_("Precision");
+    eps = _starpu_dlamch_("Precision");
 
 /*     Initialize seed for random number generator DLARNV. */
 
@@ -329,20 +329,20 @@ L60:
 
 /*           Get random starting vector. */
 
-	    dlarnv_(&c__2, iseed, &blksiz, &work[indrv1 + 1]);
+	    _starpu_dlarnv_(&c__2, iseed, &blksiz, &work[indrv1 + 1]);
 
 /*           Copy the matrix T so it won't be destroyed in factorization. */
 
-	    dcopy_(&blksiz, &d__[b1], &c__1, &work[indrv4 + 1], &c__1);
+	    _starpu_dcopy_(&blksiz, &d__[b1], &c__1, &work[indrv4 + 1], &c__1);
 	    i__3 = blksiz - 1;
-	    dcopy_(&i__3, &e[b1], &c__1, &work[indrv2 + 2], &c__1);
+	    _starpu_dcopy_(&i__3, &e[b1], &c__1, &work[indrv2 + 2], &c__1);
 	    i__3 = blksiz - 1;
-	    dcopy_(&i__3, &e[b1], &c__1, &work[indrv3 + 1], &c__1);
+	    _starpu_dcopy_(&i__3, &e[b1], &c__1, &work[indrv3 + 1], &c__1);
 
 /*           Compute LU factors with partial pivoting  ( PT = LU ) */
 
 	    tol = 0.;
-	    dlagtf_(&blksiz, &work[indrv4 + 1], &xj, &work[indrv2 + 2], &work[
+	    _starpu_dlagtf_(&blksiz, &work[indrv4 + 1], &xj, &work[indrv2 + 2], &work[
 		    indrv3 + 1], &tol, &work[indrv5 + 1], &iwork[1], &iinfo);
 
 /*           Update iteration count. */
@@ -357,13 +357,13 @@ L70:
 
 /* Computing MAX */
 	    d__2 = eps, d__3 = (d__1 = work[indrv4 + blksiz], abs(d__1));
-	    scl = blksiz * onenrm * max(d__2,d__3) / dasum_(&blksiz, &work[
+	    scl = blksiz * onenrm * max(d__2,d__3) / _starpu_dasum_(&blksiz, &work[
 		    indrv1 + 1], &c__1);
-	    dscal_(&blksiz, &scl, &work[indrv1 + 1], &c__1);
+	    _starpu_dscal_(&blksiz, &scl, &work[indrv1 + 1], &c__1);
 
 /*           Solve the system LU = Pb. */
 
-	    dlagts_(&c_n1, &blksiz, &work[indrv4 + 1], &work[indrv2 + 2], &
+	    _starpu_dlagts_(&c_n1, &blksiz, &work[indrv4 + 1], &work[indrv2 + 2], &
 		    work[indrv3 + 1], &work[indrv5 + 1], &iwork[1], &work[
 		    indrv1 + 1], &tol, &iinfo);
 
@@ -379,9 +379,9 @@ L70:
 	    if (gpind != j) {
 		i__3 = j - 1;
 		for (i__ = gpind; i__ <= i__3; ++i__) {
-		    ztr = -ddot_(&blksiz, &work[indrv1 + 1], &c__1, &z__[b1 + 
+		    ztr = -_starpu_ddot_(&blksiz, &work[indrv1 + 1], &c__1, &z__[b1 + 
 			    i__ * z_dim1], &c__1);
-		    daxpy_(&blksiz, &ztr, &z__[b1 + i__ * z_dim1], &c__1, &
+		    _starpu_daxpy_(&blksiz, &ztr, &z__[b1 + i__ * z_dim1], &c__1, &
 			    work[indrv1 + 1], &c__1);
 /* L80: */
 		}
@@ -390,7 +390,7 @@ L70:
 /*           Check the infinity norm of the iterate. */
 
 L90:
-	    jmax = idamax_(&blksiz, &work[indrv1 + 1], &c__1);
+	    jmax = _starpu_idamax_(&blksiz, &work[indrv1 + 1], &c__1);
 	    nrm = (d__1 = work[indrv1 + jmax], abs(d__1));
 
 /*           Continue for additional iterations after norm reaches */
@@ -416,12 +416,12 @@ L100:
 /*           Accept iterate as jth eigenvector. */
 
 L110:
-	    scl = 1. / dnrm2_(&blksiz, &work[indrv1 + 1], &c__1);
-	    jmax = idamax_(&blksiz, &work[indrv1 + 1], &c__1);
+	    scl = 1. / _starpu_dnrm2_(&blksiz, &work[indrv1 + 1], &c__1);
+	    jmax = _starpu_idamax_(&blksiz, &work[indrv1 + 1], &c__1);
 	    if (work[indrv1 + jmax] < 0.) {
 		scl = -scl;
 	    }
-	    dscal_(&blksiz, &scl, &work[indrv1 + 1], &c__1);
+	    _starpu_dscal_(&blksiz, &scl, &work[indrv1 + 1], &c__1);
 L120:
 	    i__3 = *n;
 	    for (i__ = 1; i__ <= i__3; ++i__) {
@@ -449,4 +449,4 @@ L160:
 
 /*     End of DSTEIN */
 
-} /* dstein_ */
+} /* _starpu_dstein_ */

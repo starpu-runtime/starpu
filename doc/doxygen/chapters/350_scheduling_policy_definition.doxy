@@ -17,9 +17,74 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page ModularizedScheduler Modularized Schedulers
+/*! \page HowToDefineANewSchedulingPolicy How To Define A New Scheduling Policy
 
-\section Introduction
+\section Introduction Introduction
+
+presentation of both types of schedulers: the basic and the modular.
+
+Explain why it is easier to define a new scheduler by using the modular approach
+
+\section DefiningANewBasicSchedulingPolicy Defining A New Basic Scheduling Policy
+
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory <c>examples/scheduler/</c>.
+
+The scheduler has to provide methods:
+
+\code{.c}
+static struct starpu_sched_policy dummy_sched_policy =
+{
+    .init_sched = init_dummy_sched,
+    .deinit_sched = deinit_dummy_sched,
+    .add_workers = dummy_sched_add_workers,
+    .remove_workers = dummy_sched_remove_workers,
+    .push_task = push_task_dummy,
+    .pop_task = pop_task_dummy,
+    .policy_name = "dummy",
+    .policy_description = "dummy scheduling strategy"
+};
+\endcode
+
+The idea is that when a task becomes ready for execution, the
+starpu_sched_policy::push_task method is called. When a worker is idle, the
+starpu_sched_policy::pop_task method is called to get a task. It is up to the
+scheduler to implement what is between. A simple eager scheduler is for instance
+to make starpu_sched_policy::push_task push the task to a global list, and make
+starpu_sched_policy::pop_task pop from this list.
+
+The \ref starpu_sched_policy section provides the exact rules that govern the
+methods of the policy.
+
+Make sure to have a look at the \ref API_Scheduling_Policy section, which
+provides a list of the available functions for writing advanced schedulers, such
+as starpu_task_expected_length(), starpu_task_expected_data_transfer_time_for(),
+starpu_task_expected_energy(), etc. Other
+useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
+starpu_transfer_predict(), ...
+
+Usual functions can also be used on tasks, for instance one can do
+
+\code{.c}
+size = 0;
+write = 0;
+if (task->cl)
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    {
+        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
+	size_t datasize = starpu_data_get_size(data);
+        size += datasize;
+	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
+	    write += datasize;
+    }
+\endcode
+
+And various queues can be used in schedulers. A variety of examples of
+schedulers can be read in <c>src/sched_policies</c>, for
+instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
+<c>work_stealing_policy.c</c>
+
+\section DefiningANewModularSchedulingPolicy Defining A New Modular Scheduling Policy
 
 StarPU's Modularized Schedulers are made of individual Scheduling Components
 Modularizedly assembled as a Scheduling Tree. Each Scheduling Component has an
@@ -58,9 +123,6 @@ When a worker wants to pop a task from the Modularized Scheduler, the
 corresponding Worker Component of the Scheduling Tree tries to pull a task from
 its parents, following the hierarchy, and gives it to the worker if it succeded
 to get one.
-
-
-\section UsingModularizedSchedulers Using Modularized Schedulers
 
 \subsection ExistingModularizedSchedulers Existing Modularized Schedulers
 
@@ -143,9 +205,9 @@ to be able to interact with other Scheduling Components.
 	See starpu_sched_component::can_pull for more details
 
 
-\section BuildAModularizedScheduler Building a Modularized Scheduler
+\subsection BuildAModularizedScheduler Building a Modularized Scheduler
 
-\subsection PreImplementedComponents Pre-implemented Components
+\subsubsection PreImplementedComponents Pre-implemented Components
 
 StarPU is currently shipped with the following four Scheduling Components :
 
@@ -169,7 +231,7 @@ StarPU is currently shipped with the following four Scheduling Components :
 	schedule a task. The Best_Implementation Component chooses which
 	implementation of a task should be used on the choosen resource.
 
-\subsection ProgressionAndValidationRules Progression And Validation Rules
+\subsubsection ProgressionAndValidationRules Progression And Validation Rules
 
 Some rules must be followed to ensure the correctness of a Modularized
 Scheduler :
@@ -184,7 +246,7 @@ Scheduler :
 	Scheduler. Resource-Mapping Components are the only ones who can make
 	scheduling choices, and so the only ones who can have several child.
 
-\subsection ImplementAModularizedScheduler Implementing a Modularized Scheduler
+\subsubsection ImplementAModularizedScheduler Implementing a Modularized Scheduler
 
 The following code shows how the Tree-Eager-Prefetching Scheduler
 shown in Section \ref ExampleTreeEagerPrefetchingStrategy is implemented :
@@ -276,9 +338,9 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
 };
 \endcode
 
-\section WriteASchedulingComponent Writing a Scheduling Component
+\subsection WriteASchedulingComponent Writing a Scheduling Component
 
-\subsection GenericSchedulingComponent Generic Scheduling Component
+\subsubsection GenericSchedulingComponent Generic Scheduling Component
 
 Each Scheduling Component is instantiated from a Generic Scheduling Component,
 which implements a generic version of the Interface. The generic implementation
@@ -287,7 +349,7 @@ of Pull, Can_Pull and Can_Push functions are recursive calls to their parents
 not know how much children it will have when it will be instantiated, it does
 not implement the Push function.
 
-\subsection InstantiationRedefineInterface Instantiation : Redefining the Interface
+\subsubsection InstantiationRedefineInterface Instantiation : Redefining the Interface
 
 A Scheduling Component must implement all the functions of the Interface. It is
 so necessary to implement a Push function to instantiate a Scheduling Component.
@@ -300,7 +362,7 @@ to catch the generic recursive calls of these functions. The Pull function of
 a Flow-control Component can, for example, pop a task from the local storage
 queue of the Component, and give it to the calling Component which asks for it.
 
-\subsection DetailedProgressionAndValidationRules Detailed Progression and Validation Rules
+\subsubsection DetailedProgressionAndValidationRules Detailed Progression and Validation Rules
 
 	- A Reservoir is a Scheduling Component which redefines a Push and a Pull
 	function, in order to store tasks into it. A Reservoir delimit Scheduling

@@ -18,7 +18,7 @@
 static doublereal c_b12 = 1.;
 static doublereal c_b13 = 0.;
 
-/* Subroutine */ int dsbgvd_(char *jobz, char *uplo, integer *n, integer *ka, 
+/* Subroutine */ int _starpu_dsbgvd_(char *jobz, char *uplo, integer *n, integer *ka, 
 	integer *kb, doublereal *ab, integer *ldab, doublereal *bb, integer *
 	ldbb, doublereal *w, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *iwork, integer *liwork, integer *info)
@@ -29,24 +29,24 @@ static doublereal c_b13 = 0.;
     /* Local variables */
     integer inde;
     char vect[1];
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo, lwmin;
     logical upper, wantz;
     integer indwk2, llwrk2;
-    extern /* Subroutine */ int dstedc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dstedc_(char *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    integer *, integer *, integer *), dlacpy_(char *, integer 
-	    *, integer *, doublereal *, integer *, doublereal *, integer *), xerbla_(char *, integer *), dpbstf_(char *, 
+	    integer *, integer *, integer *), _starpu_dlacpy_(char *, integer 
+	    *, integer *, doublereal *, integer *, doublereal *, integer *), _starpu_xerbla_(char *, integer *), _starpu_dpbstf_(char *, 
 	    integer *, integer *, doublereal *, integer *, integer *),
-	     dsbtrd_(char *, char *, integer *, integer *, doublereal *, 
+	     _starpu_dsbtrd_(char *, char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *), dsbgst_(char *, char *, 
+	    doublereal *, integer *), _starpu_dsbgst_(char *, char *, 
 	    integer *, integer *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dsterf_(integer *, doublereal *, 
+	    integer *), _starpu_dsterf_(integer *, doublereal *, 
 	    doublereal *, integer *);
     integer indwrk, liwmin;
     logical lquery;
@@ -216,8 +216,8 @@ static doublereal c_b13 = 0.;
     --iwork;
 
     /* Function Body */
-    wantz = lsame_(jobz, "V");
-    upper = lsame_(uplo, "U");
+    wantz = _starpu_lsame_(jobz, "V");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1 || *liwork == -1;
 
     *info = 0;
@@ -234,9 +234,9 @@ static doublereal c_b13 = 0.;
 	lwmin = *n << 1;
     }
 
-    if (! (wantz || lsame_(jobz, "N"))) {
+    if (! (wantz || _starpu_lsame_(jobz, "N"))) {
 	*info = -1;
-    } else if (! (upper || lsame_(uplo, "L"))) {
+    } else if (! (upper || _starpu_lsame_(uplo, "L"))) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -265,7 +265,7 @@ static doublereal c_b13 = 0.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSBGVD", &i__1);
+	_starpu_xerbla_("DSBGVD", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -279,7 +279,7 @@ static doublereal c_b13 = 0.;
 
 /*     Form a split Cholesky factorization of B. */
 
-    dpbstf_(uplo, n, kb, &bb[bb_offset], ldbb, info);
+    _starpu_dpbstf_(uplo, n, kb, &bb[bb_offset], ldbb, info);
     if (*info != 0) {
 	*info = *n + *info;
 	return 0;
@@ -291,7 +291,7 @@ static doublereal c_b13 = 0.;
     indwrk = inde + *n;
     indwk2 = indwrk + *n * *n;
     llwrk2 = *lwork - indwk2 + 1;
-    dsbgst_(jobz, uplo, n, ka, kb, &ab[ab_offset], ldab, &bb[bb_offset], ldbb, 
+    _starpu_dsbgst_(jobz, uplo, n, ka, kb, &ab[ab_offset], ldab, &bb[bb_offset], ldbb, 
 	     &z__[z_offset], ldz, &work[indwrk], &iinfo)
 	    ;
 
@@ -302,19 +302,19 @@ static doublereal c_b13 = 0.;
     } else {
 	*(unsigned char *)vect = 'N';
     }
-    dsbtrd_(vect, uplo, n, ka, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
+    _starpu_dsbtrd_(vect, uplo, n, ka, &ab[ab_offset], ldab, &w[1], &work[inde], &z__[
 	    z_offset], ldz, &work[indwrk], &iinfo);
 
 /*     For eigenvalues only, call DSTERF. For eigenvectors, call SSTEDC. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &work[inde], info);
+	_starpu_dsterf_(n, &w[1], &work[inde], info);
     } else {
-	dstedc_("I", n, &w[1], &work[inde], &work[indwrk], n, &work[indwk2], &
+	_starpu_dstedc_("I", n, &w[1], &work[inde], &work[indwrk], n, &work[indwk2], &
 		llwrk2, &iwork[1], liwork, info);
-	dgemm_("N", "N", n, n, n, &c_b12, &z__[z_offset], ldz, &work[indwrk], 
+	_starpu_dgemm_("N", "N", n, n, n, &c_b12, &z__[z_offset], ldz, &work[indwrk], 
 		n, &c_b13, &work[indwk2], n);
-	dlacpy_("A", n, n, &work[indwk2], n, &z__[z_offset], ldz);
+	_starpu_dlacpy_("A", n, n, &work[indwk2], n, &z__[z_offset], ldz);
     }
 
     work[1] = (doublereal) lwmin;
@@ -324,4 +324,4 @@ static doublereal c_b13 = 0.;
 
 /*     End of DSBGVD */
 
-} /* dsbgvd_ */
+} /* _starpu_dsbgvd_ */

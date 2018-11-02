@@ -21,7 +21,7 @@ static integer c__3 = 3;
 static integer c__2 = 2;
 static integer c__0 = 0;
 
-/* Subroutine */ int dstebz_(char *range, char *order, integer *n, doublereal 
+/* Subroutine */ int _starpu_dstebz_(char *range, char *order, integer *n, doublereal 
 	*vl, doublereal *vu, integer *il, integer *iu, doublereal *abstol, 
 	doublereal *d__, doublereal *e, integer *m, integer *nsplit, 
 	doublereal *w, integer *iblock, integer *isplit, doublereal *work, 
@@ -46,16 +46,16 @@ static integer c__0 = 0;
     integer nwu;
     doublereal tmp1, tmp2;
     integer iend, ioff, iout, itmp1, jdisc;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     doublereal atoli;
     integer iwoff;
     doublereal bnorm;
     integer itmax;
     doublereal wkill, rtoli, tnorm;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer ibegin;
-    extern /* Subroutine */ int dlaebz_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaebz_(integer *, integer *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, doublereal *, integer *, integer *, doublereal *, 
@@ -63,8 +63,8 @@ static integer c__0 = 0;
     integer irange, idiscl;
     doublereal safemn;
     integer idumma[1];
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer idiscu, iorder;
     logical ncnvrg;
@@ -263,11 +263,11 @@ static integer c__0 = 0;
 
 /*     Decode RANGE */
 
-    if (lsame_(range, "A")) {
+    if (_starpu_lsame_(range, "A")) {
 	irange = 1;
-    } else if (lsame_(range, "V")) {
+    } else if (_starpu_lsame_(range, "V")) {
 	irange = 2;
-    } else if (lsame_(range, "I")) {
+    } else if (_starpu_lsame_(range, "I")) {
 	irange = 3;
     } else {
 	irange = 0;
@@ -275,9 +275,9 @@ static integer c__0 = 0;
 
 /*     Decode ORDER */
 
-    if (lsame_(order, "B")) {
+    if (_starpu_lsame_(order, "B")) {
 	iorder = 2;
-    } else if (lsame_(order, "E")) {
+    } else if (_starpu_lsame_(order, "E")) {
 	iorder = 1;
     } else {
 	iorder = 0;
@@ -303,7 +303,7 @@ static integer c__0 = 0;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DSTEBZ", &i__1);
+	_starpu_xerbla_("DSTEBZ", &i__1);
 	return 0;
     }
 
@@ -330,10 +330,10 @@ static integer c__0 = 0;
 /*     NB is the minimum vector length for vector bisection, or 0 */
 /*     if only scalar is to be done. */
 
-    safemn = dlamch_("S");
-    ulp = dlamch_("P");
+    safemn = _starpu_dlamch_("S");
+    ulp = _starpu_dlamch_("P");
     rtoli = ulp * 2.;
-    nb = ilaenv_(&c__1, "DSTEBZ", " ", n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DSTEBZ", " ", n, &c_n1, &c_n1, &c_n1);
     if (nb <= 1) {
 	nb = 0;
     }
@@ -442,7 +442,7 @@ static integer c__0 = 0;
 	iwork[5] = *il - 1;
 	iwork[6] = *iu;
 
-	dlaebz_(&c__3, &itmax, n, &c__2, &c__2, &nb, &atoli, &rtoli, &pivmin, 
+	_starpu_dlaebz_(&c__3, &itmax, n, &c__2, &c__2, &nb, &atoli, &rtoli, &pivmin, 
 		&d__[1], &e[1], &work[1], &iwork[5], &work[*n + 1], &work[*n 
 		+ 5], &iout, &iwork[1], &w[1], &iblock[1], &iinfo);
 
@@ -595,7 +595,7 @@ static integer c__0 = 0;
 
 	    work[*n + 1] = gl;
 	    work[*n + in + 1] = gu;
-	    dlaebz_(&c__1, &c__0, &in, &in, &c__1, &nb, &atoli, &rtoli, &
+	    _starpu_dlaebz_(&c__1, &c__0, &in, &in, &c__1, &nb, &atoli, &rtoli, &
 		    pivmin, &d__[ibegin], &e[ibegin], &work[ibegin], idumma, &
 		    work[*n + 1], &work[*n + (in << 1) + 1], &im, &iwork[1], &
 		    w[*m + 1], &iblock[*m + 1], &iinfo);
@@ -608,7 +608,7 @@ static integer c__0 = 0;
 
 	    itmax = (integer) ((log(gu - gl + pivmin) - log(pivmin)) / log(2.)
 		    ) + 2;
-	    dlaebz_(&c__2, &itmax, &in, &in, &c__1, &nb, &atoli, &rtoli, &
+	    _starpu_dlaebz_(&c__2, &itmax, &in, &in, &c__1, &nb, &atoli, &rtoli, &
 		    pivmin, &d__[ibegin], &e[ibegin], &work[ibegin], idumma, &
 		    work[*n + 1], &work[*n + (in << 1) + 1], &iout, &iwork[1], 
 		     &w[*m + 1], &iblock[*m + 1], &iinfo);
@@ -771,4 +771,4 @@ L70:
 
 /*     End of DSTEBZ */
 
-} /* dstebz_ */
+} /* _starpu_dstebz_ */

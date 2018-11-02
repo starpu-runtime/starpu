@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n, 
+doublereal _starpu_dlansf_(char *norm, char *transr, char *uplo, integer *n, 
 	doublereal *a, doublereal *work)
 {
     /* System generated locals */
@@ -34,10 +34,10 @@ doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n,
     doublereal aa;
     integer lda, ifm, noe, ilu;
     doublereal scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal value;
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_dlassq_(integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *);
 
 
@@ -228,14 +228,14 @@ doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n,
 /*     set ifm = 0 when form='T or 't' and 1 otherwise */
 
     ifm = 1;
-    if (lsame_(transr, "T")) {
+    if (_starpu_lsame_(transr, "T")) {
 	ifm = 0;
     }
 
 /*     set ilu = 0 when uplo='U or 'u' and 1 otherwise */
 
     ilu = 1;
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 	ilu = 0;
     }
 
@@ -255,7 +255,7 @@ doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n,
 	lda = (*n + 1) / 2;
     }
 
-    if (lsame_(norm, "M")) {
+    if (_starpu_lsame_(norm, "M")) {
 
 /*       Find max(abs(A(i,j))). */
 
@@ -316,7 +316,7 @@ doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n,
 		}
 	    }
 	}
-    } else if (lsame_(norm, "I") || lsame_(norm, "O") || *(unsigned char *)norm == '1') {
+    } else if (_starpu_lsame_(norm, "I") || _starpu_lsame_(norm, "O") || *(unsigned char *)norm == '1') {
 
 /*        Find normI(A) ( = norm1(A), since A is symmetric). */
 
@@ -361,7 +361,7 @@ doublereal dlansf_(char *norm, char *transr, char *uplo, integer *n,
 			work[j] += s;
 		    }
 L10:
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		} else {
 /*                 ilu = 1 */
@@ -402,7 +402,7 @@ L10:
 			}
 			work[j] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		}
 	    } else {
@@ -440,7 +440,7 @@ L10:
 			}
 			work[j] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		} else {
 /*                 ilu = 1 */
@@ -477,7 +477,7 @@ L10:
 			}
 			work[j] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		}
 	    }
@@ -546,7 +546,7 @@ L10:
 			}
 			work[j] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		} else {
 /*                 ilu=1 */
@@ -614,7 +614,7 @@ L10:
 			}
 			work[j] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		}
 	    } else {
@@ -691,7 +691,7 @@ L10:
 /*                 A(k-1,k-1) */
 		    s += aa;
 		    work[i__] += s;
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		} else {
 /*                 ilu=1 */
@@ -768,12 +768,12 @@ L10:
 			}
 			work[j - 1] += s;
 		    }
-		    i__ = idamax_(n, work, &c__1);
+		    i__ = _starpu_idamax_(n, work, &c__1);
 		    value = work[i__ - 1];
 		}
 	    }
 	}
-    } else if (lsame_(norm, "F") || lsame_(norm, "E")) {
+    } else if (_starpu_lsame_(norm, "F") || _starpu_lsame_(norm, "E")) {
 
 /*       Find normF(A). */
 
@@ -789,47 +789,47 @@ L10:
 		    i__1 = k - 3;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 2;
-			dlassq_(&i__2, &a[k + j + 1 + j * lda], &c__1, &scale, 
+			_starpu_dlassq_(&i__2, &a[k + j + 1 + j * lda], &c__1, &scale, 
 				 &s);
 /*                    L at A(k,0) */
 		    }
 		    i__1 = k - 1;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k + j - 1;
-			dlassq_(&i__2, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&i__2, &a[j * lda], &c__1, &scale, &s);
 /*                    trap U at A(0,0) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = k - 1;
 		    i__2 = lda + 1;
-		    dlassq_(&i__1, &a[k], &i__2, &scale, &s);
+		    _starpu_dlassq_(&i__1, &a[k], &i__2, &scale, &s);
 /*                 tri L at A(k,0) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[k - 1], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[k - 1], &i__1, &scale, &s);
 /*                 tri U at A(k-1,0) */
 		} else {
 /*                 ilu=1 & A is lower */
 		    i__1 = k - 1;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = *n - j - 1;
-			dlassq_(&i__2, &a[j + 1 + j * lda], &c__1, &scale, &s)
+			_starpu_dlassq_(&i__2, &a[j + 1 + j * lda], &c__1, &scale, &s)
 				;
 /*                    trap L at A(0,0) */
 		    }
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
-			dlassq_(&j, &a[(j + 1) * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[(j + 1) * lda], &c__1, &scale, &s);
 /*                    U at A(0,1) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, a, &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, a, &i__1, &scale, &s);
 /*                 tri L at A(0,0) */
 		    i__1 = k - 1;
 		    i__2 = lda + 1;
-		    dlassq_(&i__1, &a[lda], &i__2, &scale, &s);
+		    _starpu_dlassq_(&i__1, &a[lda], &i__2, &scale, &s);
 /*                 tri U at A(0,1) */
 		}
 	    } else {
@@ -838,18 +838,18 @@ L10:
 /*                 A' is upper */
 		    i__1 = k - 2;
 		    for (j = 1; j <= i__1; ++j) {
-			dlassq_(&j, &a[(k + j) * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[(k + j) * lda], &c__1, &scale, &s);
 /*                    U at A(0,k) */
 		    }
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
-			dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
 /*                    k by k-1 rect. at A(0,0) */
 		    }
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 1;
-			dlassq_(&i__2, &a[j + 1 + (j + k - 1) * lda], &c__1, &
+			_starpu_dlassq_(&i__2, &a[j + 1 + (j + k - 1) * lda], &c__1, &
 				scale, &s);
 /*                    L at A(0,k-1) */
 		    }
@@ -857,38 +857,38 @@ L10:
 /*                 double s for the off diagonal elements */
 		    i__1 = k - 1;
 		    i__2 = lda + 1;
-		    dlassq_(&i__1, &a[k * lda], &i__2, &scale, &s);
+		    _starpu_dlassq_(&i__1, &a[k * lda], &i__2, &scale, &s);
 /*                 tri U at A(0,k) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[(k - 1) * lda], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[(k - 1) * lda], &i__1, &scale, &s);
 /*                 tri L at A(0,k-1) */
 		} else {
 /*                 A' is lower */
 		    i__1 = k - 1;
 		    for (j = 1; j <= i__1; ++j) {
-			dlassq_(&j, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[j * lda], &c__1, &scale, &s);
 /*                    U at A(0,0) */
 		    }
 		    i__1 = *n - 1;
 		    for (j = k; j <= i__1; ++j) {
-			dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
 /*                    k by k-1 rect. at A(0,k) */
 		    }
 		    i__1 = k - 3;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 2;
-			dlassq_(&i__2, &a[j + 2 + j * lda], &c__1, &scale, &s)
+			_starpu_dlassq_(&i__2, &a[j + 2 + j * lda], &c__1, &scale, &s)
 				;
 /*                    L at A(1,0) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, a, &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, a, &i__1, &scale, &s);
 /*                 tri U at A(0,0) */
 		    i__1 = k - 1;
 		    i__2 = lda + 1;
-		    dlassq_(&i__1, &a[1], &i__2, &scale, &s);
+		    _starpu_dlassq_(&i__1, &a[1], &i__2, &scale, &s);
 /*                 tri L at A(1,0) */
 		}
 	    }
@@ -901,45 +901,45 @@ L10:
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 1;
-			dlassq_(&i__2, &a[k + j + 2 + j * lda], &c__1, &scale, 
+			_starpu_dlassq_(&i__2, &a[k + j + 2 + j * lda], &c__1, &scale, 
 				 &s);
 /*                    L at A(k+1,0) */
 		    }
 		    i__1 = k - 1;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k + j;
-			dlassq_(&i__2, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&i__2, &a[j * lda], &c__1, &scale, &s);
 /*                    trap U at A(0,0) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[k + 1], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[k + 1], &i__1, &scale, &s);
 /*                 tri L at A(k+1,0) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[k], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[k], &i__1, &scale, &s);
 /*                 tri U at A(k,0) */
 		} else {
 /*                 ilu=1 & A is lower */
 		    i__1 = k - 1;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = *n - j - 1;
-			dlassq_(&i__2, &a[j + 2 + j * lda], &c__1, &scale, &s)
+			_starpu_dlassq_(&i__2, &a[j + 2 + j * lda], &c__1, &scale, &s)
 				;
 /*                    trap L at A(1,0) */
 		    }
 		    i__1 = k - 1;
 		    for (j = 1; j <= i__1; ++j) {
-			dlassq_(&j, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[j * lda], &c__1, &scale, &s);
 /*                    U at A(0,0) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[1], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[1], &i__1, &scale, &s);
 /*                 tri L at A(1,0) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, a, &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, a, &i__1, &scale, &s);
 /*                 tri U at A(0,0) */
 		}
 	    } else {
@@ -948,55 +948,55 @@ L10:
 /*                 A' is upper */
 		    i__1 = k - 1;
 		    for (j = 1; j <= i__1; ++j) {
-			dlassq_(&j, &a[(k + 1 + j) * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[(k + 1 + j) * lda], &c__1, &scale, &s);
 /*                    U at A(0,k+1) */
 		    }
 		    i__1 = k - 1;
 		    for (j = 0; j <= i__1; ++j) {
-			dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
 /*                    k by k rect. at A(0,0) */
 		    }
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 1;
-			dlassq_(&i__2, &a[j + 1 + (j + k) * lda], &c__1, &
+			_starpu_dlassq_(&i__2, &a[j + 1 + (j + k) * lda], &c__1, &
 				scale, &s);
 /*                    L at A(0,k) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[(k + 1) * lda], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[(k + 1) * lda], &i__1, &scale, &s);
 /*                 tri U at A(0,k+1) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[k * lda], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[k * lda], &i__1, &scale, &s);
 /*                 tri L at A(0,k) */
 		} else {
 /*                 A' is lower */
 		    i__1 = k - 1;
 		    for (j = 1; j <= i__1; ++j) {
-			dlassq_(&j, &a[(j + 1) * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&j, &a[(j + 1) * lda], &c__1, &scale, &s);
 /*                    U at A(0,1) */
 		    }
 		    i__1 = *n;
 		    for (j = k + 1; j <= i__1; ++j) {
-			dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
+			_starpu_dlassq_(&k, &a[j * lda], &c__1, &scale, &s);
 /*                    k by k rect. at A(0,k+1) */
 		    }
 		    i__1 = k - 2;
 		    for (j = 0; j <= i__1; ++j) {
 			i__2 = k - j - 1;
-			dlassq_(&i__2, &a[j + 1 + j * lda], &c__1, &scale, &s)
+			_starpu_dlassq_(&i__2, &a[j + 1 + j * lda], &c__1, &scale, &s)
 				;
 /*                    L at A(0,0) */
 		    }
 		    s += s;
 /*                 double s for the off diagonal elements */
 		    i__1 = lda + 1;
-		    dlassq_(&k, &a[lda], &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, &a[lda], &i__1, &scale, &s);
 /*                 tri L at A(0,1) */
 		    i__1 = lda + 1;
-		    dlassq_(&k, a, &i__1, &scale, &s);
+		    _starpu_dlassq_(&k, a, &i__1, &scale, &s);
 /*                 tri U at A(0,0) */
 		}
 	    }
@@ -1009,4 +1009,4 @@ L10:
 
 /*     End of DLANSF */
 
-} /* dlansf_ */
+} /* _starpu_dlansf_ */

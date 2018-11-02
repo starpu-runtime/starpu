@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dopgtr_(char *uplo, integer *n, doublereal *ap, 
+/* Subroutine */ int _starpu_dopgtr_(char *uplo, integer *n, doublereal *ap, 
 	doublereal *tau, doublereal *q, integer *ldq, doublereal *work, 
 	integer *info)
 {
@@ -22,13 +22,13 @@
 
     /* Local variables */
     integer i__, j, ij;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical upper;
-    extern /* Subroutine */ int dorg2l_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dorg2l_(integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *), 
-	    dorg2r_(integer *, integer *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, integer *);
+	    _starpu_dorg2r_(integer *, integer *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -109,8 +109,8 @@
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -119,7 +119,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DOPGTR", &i__1);
+	_starpu_xerbla_("DOPGTR", &i__1);
 	return 0;
     }
 
@@ -162,7 +162,7 @@
 	i__1 = *n - 1;
 	i__2 = *n - 1;
 	i__3 = *n - 1;
-	dorg2l_(&i__1, &i__2, &i__3, &q[q_offset], ldq, &tau[1], &work[1], &
+	_starpu_dorg2l_(&i__1, &i__2, &i__3, &q[q_offset], ldq, &tau[1], &work[1], &
 		iinfo);
 
     } else {
@@ -199,7 +199,7 @@
 	    i__1 = *n - 1;
 	    i__2 = *n - 1;
 	    i__3 = *n - 1;
-	    dorg2r_(&i__1, &i__2, &i__3, &q[(q_dim1 << 1) + 2], ldq, &tau[1], 
+	    _starpu_dorg2r_(&i__1, &i__2, &i__3, &q[(q_dim1 << 1) + 2], ldq, &tau[1], 
 		    &work[1], &iinfo);
 	}
     }
@@ -207,4 +207,4 @@
 
 /*     End of DOPGTR */
 
-} /* dopgtr_ */
+} /* _starpu_dopgtr_ */

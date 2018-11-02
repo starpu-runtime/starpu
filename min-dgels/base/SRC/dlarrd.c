@@ -21,7 +21,7 @@ static integer c__3 = 3;
 static integer c__2 = 2;
 static integer c__0 = 0;
 
-/* Subroutine */ int dlarrd_(char *range, char *order, integer *n, doublereal 
+/* Subroutine */ int _starpu_dlarrd_(char *range, char *order, integer *n, doublereal 
 	*vl, doublereal *vu, integer *il, integer *iu, doublereal *gers, 
 	doublereal *reltol, doublereal *d__, doublereal *e, doublereal *e2, 
 	doublereal *pivmin, integer *nsplit, integer *isplit, integer *m, 
@@ -48,20 +48,20 @@ static integer c__0 = 0;
     integer nwu;
     doublereal tmp1, tmp2;
     integer iend, jblk, ioff, iout, itmp1, itmp2, jdisc;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     doublereal atoli;
     integer iwoff, itmax;
     doublereal wkill, rtoli, uflow, tnorm;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     integer ibegin;
-    extern /* Subroutine */ int dlaebz_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaebz_(integer *, integer *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    integer *, integer *);
     integer irange, idiscl, idumma[1];
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     integer idiscu;
     logical ncnvrg, toofew;
@@ -294,11 +294,11 @@ static integer c__0 = 0;
 
 /*     Decode RANGE */
 
-    if (lsame_(range, "A")) {
+    if (_starpu_lsame_(range, "A")) {
 	irange = 1;
-    } else if (lsame_(range, "V")) {
+    } else if (_starpu_lsame_(range, "V")) {
 	irange = 2;
-    } else if (lsame_(range, "I")) {
+    } else if (_starpu_lsame_(range, "I")) {
 	irange = 3;
     } else {
 	irange = 0;
@@ -308,7 +308,7 @@ static integer c__0 = 0;
 
     if (irange <= 0) {
 	*info = -1;
-    } else if (! (lsame_(order, "B") || lsame_(order, 
+    } else if (! (_starpu_lsame_(order, "B") || _starpu_lsame_(order, 
 	    "E"))) {
 	*info = -2;
     } else if (*n < 0) {
@@ -340,8 +340,8 @@ static integer c__0 = 0;
 	irange = 1;
     }
 /*     Get machine constants */
-    eps = dlamch_("P");
-    uflow = dlamch_("U");
+    eps = _starpu_dlamch_("P");
+    uflow = _starpu_dlamch_("U");
 /*     Special Case when N=1 */
 /*     Treat case of 1x1 matrix for quick return */
     if (*n == 1) {
@@ -358,7 +358,7 @@ static integer c__0 = 0;
     }
 /*     NB is the minimum vector length for vector bisection, or 0 */
 /*     if only scalar is to be done. */
-    nb = ilaenv_(&c__1, "DSTEBZ", " ", n, &c_n1, &c_n1, &c_n1);
+    nb = _starpu_ilaenv_(&c__1, "DSTEBZ", " ", n, &c_n1, &c_n1, &c_n1);
     if (nb <= 1) {
 	nb = 0;
     }
@@ -413,7 +413,7 @@ static integer c__0 = 0;
 	iwork[5] = *il - 1;
 	iwork[6] = *iu;
 
-	dlaebz_(&c__3, &itmax, n, &c__2, &c__2, &nb, &atoli, &rtoli, pivmin, &
+	_starpu_dlaebz_(&c__3, &itmax, n, &c__2, &c__2, &nb, &atoli, &rtoli, pivmin, &
 		d__[1], &e[1], &e2[1], &iwork[5], &work[*n + 1], &work[*n + 5]
 , &iout, &iwork[1], &w[1], &iblock[1], &iinfo);
 	if (iinfo != 0) {
@@ -572,7 +572,7 @@ static integer c__0 = 0;
 /*           Find negcount of initial interval boundaries GL and GU */
 	    work[*n + 1] = gl;
 	    work[*n + in + 1] = gu;
-	    dlaebz_(&c__1, &c__0, &in, &in, &c__1, &nb, &atoli, &rtoli, 
+	    _starpu_dlaebz_(&c__1, &c__0, &in, &in, &c__1, &nb, &atoli, &rtoli, 
 		    pivmin, &d__[ibegin], &e[ibegin], &e2[ibegin], idumma, &
 		    work[*n + 1], &work[*n + (in << 1) + 1], &im, &iwork[1], &
 		    w[*m + 1], &iblock[*m + 1], &iinfo);
@@ -587,7 +587,7 @@ static integer c__0 = 0;
 /*           Compute Eigenvalues */
 	    itmax = (integer) ((log(gu - gl + *pivmin) - log(*pivmin)) / log(
 		    2.)) + 2;
-	    dlaebz_(&c__2, &itmax, &in, &in, &c__1, &nb, &atoli, &rtoli, 
+	    _starpu_dlaebz_(&c__2, &itmax, &in, &in, &c__1, &nb, &atoli, &rtoli, 
 		    pivmin, &d__[ibegin], &e[ibegin], &e2[ibegin], idumma, &
 		    work[*n + 1], &work[*n + (in << 1) + 1], &iout, &iwork[1], 
 		     &w[*m + 1], &iblock[*m + 1], &iinfo);
@@ -749,7 +749,7 @@ L70:
 /*     If ORDER='B', do nothing the eigenvalues are already sorted by */
 /*        block. */
 /*     If ORDER='E', sort the eigenvalues from smallest to largest */
-    if (lsame_(order, "E") && *nsplit > 1) {
+    if (_starpu_lsame_(order, "E") && *nsplit > 1) {
 	i__1 = *m - 1;
 	for (je = 1; je <= i__1; ++je) {
 	    ie = 0;
@@ -790,4 +790,4 @@ L70:
 
 /*     End of DLARRD */
 
-} /* dlarrd_ */
+} /* _starpu_dlarrd_ */

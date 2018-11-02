@@ -1,52 +1,57 @@
-Simon Archipoff <simon.archipoff@etu.u-bordeaux1.fr>
-Cédric Augonnet <cedric.augonnet@inria.fr>
-Olivier Aumage <olivier.aumage@inria.fr>
-Guillaume Beauchamp <guillaume.beauchamp@inria.fr>
-William Braik <wbraik@gmail.com>
-Berenger Bramas <berenger.bramas@inria.fr>
-Alfredo Buttari <alfredo.buttari@enseeiht.fr>
-Adrien Cassagne <adrien.cassagne@inria.fr>
-Arthur Chevalier <arthur.chevalier@inria.fr>
-Jérôme Clet-Ortega <jerome.clet-ortega@inria.fr>
-Terry Cojean <terry.cojean@inria.fr>
-Nicolas Collin <nicolas.collin@inria.fr>
-Ludovic Courtès <ludovic.courtes@inria.fr>
-Yann Courtois <yann.courtois33@gmail.com>
-Jean-Marie Couteyen <jm.couteyen@gmail.com>
-Alexandre Denis <alexandre.denis@inria.fr>
-Lionel Eyraud-Dubois <lionel.eyraud-dubois@inria.fr>
-Nathalie Furmento <nathalie.furmento@labri.fr>
-Brice Goglin <brice.goglin@inria.fr>
-David Gómez <david_gomez1380@yahoo.com.mx>
-Sylvain Henry <sylvain.henry@inria.fr>
-Andra Hugo <andra.hugo@inria.fr>
-Mehdi Juhoor <mjuhoor@gmail.com>
-Thibaut Lambert <thibaud.lambert@inria.fr>
-Erwan Leria <erwan.leria@etu.u-bordeaux.fr>
-Xavier Lacoste <xavier.lacoste@inria.fr>
-Mathieu Lirzin <mthl@openmailbox.org>
-Benoît Lizé <benoit.lize@gmail.com>
-Benjamin Lorendeau <benjamin.lorendeau@inria.fr>
-Antoine Lucas <antoine.lucas.33@gmail.com>
-Brice Mortier <brice.mortier@etu.u-bordeaux1.fr>
-Stojce Nakov <stojce.nakov@inria.fr>
-Lucas Leandro Nesi <llnesi@inf.ufrgs.br>
-Joris Pablo <joris.pablo@orange.fr>
-Damien Pasqualinotto <dam.pasqualinotto@wanadoo.fr>
-Samuel Pitoiset <samuel.pitoiset@inria.fr>
-Nguyen Quôc-Dinh <nguyen.quocdinh@gmail.com>
-Cyril Roelandt <cyril.roelandt@inria.fr>
-Anthony Roy <theanthony33@gmail.com>
-Chiheb Sakka <chiheb.sakka@inria.fr>
-Corentin Salingue <corentin.salingue@gmail.com>
-Lucas Schnorr <schnorr@inf.ufrgs.br>
-Marc Sergent <marc.sergent@inria.fr>
-Anthony Simonet <anthony.simonet@etu.u-bordeaux.fr>
-Luka Stanisic <luka.stanisic@inria.fr>
-Ludovic Stordeur <ludovic.stordeur@inria.fr>
-Guillaume Sylvand <guillaume.sylvand@airbus.com>
-François Tessier <francois.tessier@inria.fr>
-Samuel Thibault <samuel.thibault@labri.fr>
-Leo Villeveygoux <leo.villeveygoux@inria.fr>
-Pierre-André Wacrenier <wacrenier@labri.fr>
-Vincent Danjean <Vincent.Danjean@ens-lyon.org>
+Archipoff Simon, University of Bordeaux, <simon.archipoff@etu.u-bordeaux1.fr>
+Augonnet Cédric, University of Bordeaux, <cedric.augonnet@inria.fr>
+Aumage Olivier, Inria, <olivier.aumage@inria.fr>
+Beauchamp Guillaume, Inria, <guillaume.beauchamp@inria.fr>
+Braik William, Inria, <wbraik@gmail.com>
+Bramas Berenger, Inria, <berenger.bramas@inria.fr>
+Buttari Alfredo, Enseeiht, <alfredo.buttari@enseeiht.fr>
+Cassagne Adrien, Inria, <adrien.cassagne@inria.fr>
+Chevalier Arthur, Inria, <arthur.chevalier@inria.fr>
+Clet-Ortega Jérôme, Inria, <jerome.clet-ortega@inria.fr>
+Cojean Terry, University of Bordeaux, <terry.cojean@inria.fr>
+Collin Nicolas, Inria, <nicolas.collin@inria.fr>
+Courtès Ludovic, Inria, <ludovic.courtes@inria.fr>
+Courtois Yann, Inria, <yann.courtois33@gmail.com>
+Couteyen Jean-Marie, University of Bordeaux, <jm.couteyen@gmail.com>
+Danjean Vincent, University Grenoble Alpes, <Vincent.Danjean@ens-lyon.org>
+Denis Alexandre, Inria, <alexandre.denis@inria.fr>
+Eyraud-Dubois Lionel, Inria, <lionel.eyraud-dubois@inria.fr>
+Furmento Nathalie, CNRS, <nathalie.furmento@labri.fr>
+Goglin Brice, Inria, <brice.goglin@inria.fr>
+Jauregui David Antonio Gomez, IT Sud-Paris, <david_gomez1380@yahoo.com.mx>
+Henry Sylvain, University of Bordeaux, <sylvain.henry@inria.fr>
+Hugo Andra, University of Bordeaux/Inria, <andra.hugo@inria.fr>
+Juhoor Mehdi, University of Bordeaux, <mjuhoor@gmail.com>
+Juven Alexis, Inria, <alexis.juven@enseirb-matmeca.fr>
+Khorsi Yanis, Inria, <yanis.khorsi@inria.fr>
+Lambert Thibaut, Inria, <thibaud.lambert@inria.fr>
+Leria Erwan, University of Bordeaux, <erwan.leria@etu.u-bordeaux.fr>
+Lacoste Xavier, Inria, <xavier.lacoste@inria.fr>
+Lirzin Mathieu, University of Bordeaux, <mthl@openmailbox.org>
+Lizé Benoît, Airbus, <benoit.lize@gmail.com>
+Lorendeau Benjamin, University of Bordeaux, <benjamin.lorendeau@inria.fr>
+Lucas Antoine, University of Bordeaux, <antoine.lucas.33@gmail.com>
+Myllykoski Mirko, Umeà University, <mirkom@cs.umu.se>
+Mortier Brice, University of Bordeaux, <brice.mortier@etu.u-bordeaux1.fr>
+Nakov Stojce, Inria, <stojce.nakov@inria.fr>
+Namyst Raymond, University of Bordeaux, <raymond.namyst@labri.fr>
+Nesi Lucas Leandro, Federal University of Rio Grande do Sul (UFRGS), <llnesi@inf.ufrgs.br>
+Pablo Joris, Inria, <joris.pablo@orange.fr>
+Pasqualinotto Damien, University of Bordeaux, <dam.pasqualinotto@wanadoo.fr>
+Pitoiset Samuel, Inria, <samuel.pitoiset@inria.fr>
+Quôc-Dinh Nguyen, IT Sud-Paris, <nguyen.quocdinh@gmail.com>
+Roelandt Cyril, Inria, <cyril.roelandt@inria.fr>
+Roy Anthony, University of Bordeaux, <theanthony33@gmail.com>
+Sakka Chiheb, Inria, <chiheb.sakka@inria.fr>
+Salingue Corentin, Inria, <corentin.salingue@inria.fr>
+Schnorr Lucas Mello, Federal University of Rio Grande do Sul (UFRGS), <schnorr@inf.ufrgs.br>
+Sergent Marc, CEA/Inria, <marc.sergent@inria.fr>
+Simonet Anthony, University of Bordeaux, <anthony.simonet@etu.u-bordeaux.fr>
+Stanisic Luka, Inria, <luka.stanisic@inria.fr>
+Stordeur Ludovic, Inria, <ludovic.stordeur@inria.fr>
+Sylvand Guillaume, Airbus, <guillaume.sylvand@airbus.com>
+Tessier François, University of Bordeaux, <francois.tessier@inria.fr>
+Thibault Samuel, University of Bordeaux, <samuel.thibault@ens-lyon.org>
+Villeveygoux Leo, University of Bordeaux, <leo.villeveygoux@inria.fr>
+Wacrenier Pierre-André, University of Bordeaux, <wacrenier@labri.fr>
+

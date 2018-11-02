@@ -22,7 +22,7 @@ static integer c__1 = 1;
 static doublereal c_b36 = 0.;
 static logical c_false = FALSE_;
 
-/* Subroutine */ int dtgevc_(char *side, char *howmny, logical *select, 
+/* Subroutine */ int _starpu_dtgevc_(char *side, char *howmny, logical *select, 
 	integer *n, doublereal *s, integer *lds, doublereal *p, integer *ldp, 
 	doublereal *vl, integer *ldvl, doublereal *vr, integer *ldvr, integer 
 	*mm, integer *m, doublereal *work, integer *info)
@@ -40,15 +40,15 @@ static logical c_false = FALSE_;
     integer ibeg, ieig, iend;
     doublereal dmin__, temp, xmax, sump[4]	/* was [2][2] */, sums[4]	
 	    /* was [2][2] */;
-    extern /* Subroutine */ int dlag2_(doublereal *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlag2_(doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, doublereal *);
     doublereal cim2a, cim2b, cre2a, cre2b, temp2, bdiag[2], acoef, scale;
     logical ilall;
     integer iside;
     doublereal sbeta;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     logical il2by2;
@@ -57,23 +57,23 @@ static logical c_false = FALSE_;
     logical compl;
     doublereal anorm, bnorm;
     logical compr;
-    extern /* Subroutine */ int dlaln2_(logical *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaln2_(logical *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
 , doublereal *, integer *, doublereal *, doublereal *, integer *);
     doublereal temp2i;
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *);
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *);
     doublereal temp2r;
     logical ilabad, ilbbad;
     doublereal acoefa, bcoefa, cimaga, cimagb;
     logical ilback;
     doublereal bcoefi, ascale, bscale, creala, crealb;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal bcoefr, salfar, safmin;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
     doublereal xscale, bignum;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical ilcomp, ilcplx;
     integer ihwmny;
 
@@ -314,15 +314,15 @@ static logical c_false = FALSE_;
     --work;
 
     /* Function Body */
-    if (lsame_(howmny, "A")) {
+    if (_starpu_lsame_(howmny, "A")) {
 	ihwmny = 1;
 	ilall = TRUE_;
 	ilback = FALSE_;
-    } else if (lsame_(howmny, "S")) {
+    } else if (_starpu_lsame_(howmny, "S")) {
 	ihwmny = 2;
 	ilall = FALSE_;
 	ilback = FALSE_;
-    } else if (lsame_(howmny, "B")) {
+    } else if (_starpu_lsame_(howmny, "B")) {
 	ihwmny = 3;
 	ilall = TRUE_;
 	ilback = TRUE_;
@@ -331,15 +331,15 @@ static logical c_false = FALSE_;
 	ilall = TRUE_;
     }
 
-    if (lsame_(side, "R")) {
+    if (_starpu_lsame_(side, "R")) {
 	iside = 1;
 	compl = FALSE_;
 	compr = TRUE_;
-    } else if (lsame_(side, "L")) {
+    } else if (_starpu_lsame_(side, "L")) {
 	iside = 2;
 	compl = TRUE_;
 	compr = FALSE_;
-    } else if (lsame_(side, "B")) {
+    } else if (_starpu_lsame_(side, "B")) {
 	iside = 3;
 	compl = TRUE_;
 	compr = TRUE_;
@@ -361,7 +361,7 @@ static logical c_false = FALSE_;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGEVC", &i__1);
+	_starpu_xerbla_("DTGEVC", &i__1);
 	return 0;
     }
 
@@ -430,7 +430,7 @@ L10:
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTGEVC", &i__1);
+	_starpu_xerbla_("DTGEVC", &i__1);
 	return 0;
     }
 
@@ -443,10 +443,10 @@ L10:
 
 /*     Machine Constants */
 
-    safmin = dlamch_("Safe minimum");
+    safmin = _starpu_dlamch_("Safe minimum");
     big = 1. / safmin;
-    dlabad_(&safmin, &big);
-    ulp = dlamch_("Epsilon") * dlamch_("Base");
+    _starpu_dlabad_(&safmin, &big);
+    ulp = _starpu_dlamch_("Epsilon") * _starpu_dlamch_("Base");
     small = safmin * *n / ulp;
     big = 1. / small;
     bignum = 1. / (safmin * *n);
@@ -625,7 +625,7 @@ L10:
 /*              Complex eigenvalue */
 
 		d__1 = safmin * 100.;
-		dlag2_(&s[je + je * s_dim1], lds, &p[je + je * p_dim1], ldp, &
+		_starpu_dlag2_(&s[je + je * s_dim1], lds, &p[je + je * p_dim1], ldp, &
 			d__1, &acoef, &temp, &bcoefr, &temp2, &bcoefi);
 		bcoefi = -bcoefi;
 		if (bcoefi == 0.) {
@@ -844,7 +844,7 @@ L10:
 /*              Solve  ( a A - b B )  y = SUM(,) */
 /*              with scaling and perturbation of the denominator */
 
-		dlaln2_(&c_true, &na, &nw, &dmin__, &acoef, &s[j + j * s_dim1]
+		_starpu_dlaln2_(&c_true, &na, &nw, &dmin__, &acoef, &s[j + j * s_dim1]
 , lds, bdiag, &bdiag[1], sum, &c__2, &bcoefr, &bcoefi, 
 			 &work[(*n << 1) + j], n, &scale, &temp, &iinfo);
 		if (scale < 1.) {
@@ -873,16 +873,16 @@ L160:
 		i__2 = nw - 1;
 		for (jw = 0; jw <= i__2; ++jw) {
 		    i__3 = *n + 1 - je;
-		    dgemv_("N", n, &i__3, &c_b34, &vl[je * vl_dim1 + 1], ldvl, 
+		    _starpu_dgemv_("N", n, &i__3, &c_b34, &vl[je * vl_dim1 + 1], ldvl, 
 			     &work[(jw + 2) * *n + je], &c__1, &c_b36, &work[(
 			    jw + 4) * *n + 1], &c__1);
 /* L170: */
 		}
-		dlacpy_(" ", n, &nw, &work[(*n << 2) + 1], n, &vl[je * 
+		_starpu_dlacpy_(" ", n, &nw, &work[(*n << 2) + 1], n, &vl[je * 
 			vl_dim1 + 1], ldvl);
 		ibeg = 1;
 	    } else {
-		dlacpy_(" ", n, &nw, &work[(*n << 1) + 1], n, &vl[ieig * 
+		_starpu_dlacpy_(" ", n, &nw, &work[(*n << 1) + 1], n, &vl[ieig * 
 			vl_dim1 + 1], ldvl);
 		ibeg = je;
 	    }
@@ -1076,7 +1076,7 @@ L220:
 /*              Complex eigenvalue */
 
 		d__1 = safmin * 100.;
-		dlag2_(&s[je - 1 + (je - 1) * s_dim1], lds, &p[je - 1 + (je - 
+		_starpu_dlag2_(&s[je - 1 + (je - 1) * s_dim1], lds, &p[je - 1 + (je - 
 			1) * p_dim1], ldp, &d__1, &acoef, &temp, &bcoefr, &
 			temp2, &bcoefi);
 		if (bcoefi == 0.) {
@@ -1199,7 +1199,7 @@ L220:
 
 /*              Compute x(j) (and x(j+1), if 2-by-2 block) */
 
-		dlaln2_(&c_false, &na, &nw, &dmin__, &acoef, &s[j + j * 
+		_starpu_dlaln2_(&c_false, &na, &nw, &dmin__, &acoef, &s[j + j * 
 			s_dim1], lds, bdiag, &bdiag[1], &work[(*n << 1) + j], 
 			n, &bcoefr, &bcoefi, sum, &c__2, &scale, &temp, &
 			iinfo);
@@ -1415,4 +1415,4 @@ L500:
 
 /*     End of DTGEVC */
 
-} /* dtgevc_ */
+} /* _starpu_dtgevc_ */

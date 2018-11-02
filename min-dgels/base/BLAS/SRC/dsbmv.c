@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsbmv_(char *uplo, integer *n, integer *k, doublereal *
+/* Subroutine */ int _starpu_dsbmv_(char *uplo, integer *n, integer *k, doublereal *
 	alpha, doublereal *a, integer *lda, doublereal *x, integer *incx, 
 	doublereal *beta, doublereal *y, integer *incy)
 {
@@ -23,9 +23,9 @@
     /* Local variables */
     integer i__, j, l, ix, iy, jx, jy, kx, ky, info;
     doublereal temp1, temp2;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer kplus1;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -174,7 +174,7 @@
 
     /* Function Body */
     info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	info = 1;
     } else if (*n < 0) {
 	info = 2;
@@ -188,7 +188,7 @@
 	info = 11;
     }
     if (info != 0) {
-	xerbla_("DSBMV ", &info);
+	_starpu_xerbla_("DSBMV ", &info);
 	return 0;
     }
 
@@ -253,7 +253,7 @@
     if (*alpha == 0.) {
 	return 0;
     }
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Form  y  when upper triangle of A is stored. */
 
@@ -361,4 +361,4 @@
 
 /*     End of DSBMV . */
 
-} /* dsbmv_ */
+} /* _starpu_dsbmv_ */

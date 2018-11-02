@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010-2013,2015,2017                      CNRS
- * Copyright (C) 2010,2013-2014,2016                      Université de Bordeaux
+ * Copyright (C) 2010,2013,2014,2016,2018                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,8 +66,7 @@ int main(int argc, char **argv)
 	struct starpu_task *taskF = starpu_task_create();
 	taskF->cl = &dummy_codelet;
 
-	struct starpu_task *tasksABC[3] = {taskA, taskB, taskC};
-	starpu_task_declare_deps_array(taskD, 3, tasksABC);
+	starpu_task_declare_deps(taskD, 3, taskA, taskB, taskC);
 	starpu_task_declare_deps_array(taskE, 1, &taskD);
 	starpu_task_declare_deps_array(taskF, 1, &taskD);
 

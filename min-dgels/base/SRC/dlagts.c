@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlagts_(integer *job, integer *n, doublereal *a, 
+/* Subroutine */ int _starpu_dlagts_(integer *job, integer *n, doublereal *a, 
 	doublereal *b, doublereal *c__, doublereal *d__, integer *in, 
 	doublereal *y, doublereal *tol, integer *info)
 {
@@ -27,8 +27,8 @@
     /* Local variables */
     integer k;
     doublereal ak, eps, temp, pert, absak, sfmin;
-    extern doublereal dlamch_(char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     doublereal bignum;
 
 
@@ -155,7 +155,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLAGTS", &i__1);
+	_starpu_xerbla_("DLAGTS", &i__1);
 	return 0;
     }
 
@@ -163,8 +163,8 @@
 	return 0;
     }
 
-    eps = dlamch_("Epsilon");
-    sfmin = dlamch_("Safe minimum");
+    eps = _starpu_dlamch_("Epsilon");
+    sfmin = _starpu_dlamch_("Safe minimum");
     bignum = 1. / sfmin;
 
     if (*job < 0) {
@@ -348,4 +348,4 @@ L70:
 /*     End of DLAGTS */
 
     return 0;
-} /* dlagts_ */
+} /* _starpu_dlagts_ */

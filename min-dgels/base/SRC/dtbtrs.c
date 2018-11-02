@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dtbtrs_(char *uplo, char *trans, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtbtrs_(char *uplo, char *trans, char *diag, integer *n, 
 	integer *kd, integer *nrhs, doublereal *ab, integer *ldab, doublereal 
 	*b, integer *ldb, integer *info)
 {
@@ -26,11 +26,11 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer j;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dtbsv_(char *, char *, char *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dtbsv_(char *, char *, char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical nounit;
 
 
@@ -133,14 +133,14 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    nounit = lsame_(diag, "N");
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    nounit = _starpu_lsame_(diag, "N");
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
-	    "T") && ! lsame_(trans, "C")) {
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
+	    "T") && ! _starpu_lsame_(trans, "C")) {
 	*info = -2;
-    } else if (! nounit && ! lsame_(diag, "U")) {
+    } else if (! nounit && ! _starpu_lsame_(diag, "U")) {
 	*info = -3;
     } else if (*n < 0) {
 	*info = -4;
@@ -155,7 +155,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTBTRS", &i__1);
+	_starpu_xerbla_("DTBTRS", &i__1);
 	return 0;
     }
 
@@ -192,7 +192,7 @@ static integer c__1 = 1;
 
     i__1 = *nrhs;
     for (j = 1; j <= i__1; ++j) {
-	dtbsv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &b[j * b_dim1 
+	_starpu_dtbsv_(uplo, trans, diag, n, kd, &ab[ab_offset], ldab, &b[j * b_dim1 
 		+ 1], &c__1);
 /* L30: */
     }
@@ -201,4 +201,4 @@ static integer c__1 = 1;
 
 /*     End of DTBTRS */
 
-} /* dtbtrs_ */
+} /* _starpu_dtbtrs_ */

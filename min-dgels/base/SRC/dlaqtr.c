@@ -22,7 +22,7 @@ static doublereal c_b21 = 1.;
 static doublereal c_b25 = 0.;
 static logical c_true = TRUE_;
 
-/* Subroutine */ int dlaqtr_(logical *ltran, logical *lreal, integer *n, 
+/* Subroutine */ int _starpu_dlaqtr_(logical *ltran, logical *lreal, integer *n, 
 	doublereal *t, integer *ldt, doublereal *b, doublereal *w, doublereal 
 	*scale, doublereal *x, doublereal *work, integer *info)
 {
@@ -36,26 +36,26 @@ static logical c_true = TRUE_;
     doublereal v[4]	/* was [2][2] */, z__;
     integer j1, j2, n1, n2;
     doublereal si, xj, sr, rec, eps, tjj, tmp;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
+    extern doublereal _starpu_ddot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
     integer ierr;
     doublereal smin, xmax;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
 	    integer *);
-    extern doublereal dasum_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int daxpy_(integer *, doublereal *, doublereal *, 
+    extern doublereal _starpu_dasum_(integer *, doublereal *, integer *);
+    extern /* Subroutine */ int _starpu_daxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
     integer jnext;
     doublereal sminw, xnorm;
-    extern /* Subroutine */ int dlaln2_(logical *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaln2_(logical *, integer *, integer *, 
 	    doublereal *, doublereal *, doublereal *, integer *, doublereal *, 
 	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
 , doublereal *, integer *, doublereal *, doublereal *, integer *);
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern integer idamax_(integer *, doublereal *, integer *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
     doublereal scaloc;
-    extern /* Subroutine */ int dladiv_(doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dladiv_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *);
     doublereal bignum;
     logical notran;
@@ -191,14 +191,14 @@ static logical c_true = TRUE_;
 
 /*     Set constants to control overflow */
 
-    eps = dlamch_("P");
-    smlnum = dlamch_("S") / eps;
+    eps = _starpu_dlamch_("P");
+    smlnum = _starpu_dlamch_("S") / eps;
     bignum = 1. / smlnum;
 
-    xnorm = dlange_("M", n, n, &t[t_offset], ldt, d__);
+    xnorm = _starpu_dlange_("M", n, n, &t[t_offset], ldt, d__);
     if (! (*lreal)) {
 /* Computing MAX */
-	d__1 = xnorm, d__2 = abs(*w), d__1 = max(d__1,d__2), d__2 = dlange_(
+	d__1 = xnorm, d__2 = abs(*w), d__1 = max(d__1,d__2), d__2 = _starpu_dlange_(
 		"M", n, &c__1, &b[1], n, d__);
 	xnorm = max(d__1,d__2);
     }
@@ -213,7 +213,7 @@ static logical c_true = TRUE_;
     i__1 = *n;
     for (j = 2; j <= i__1; ++j) {
 	i__2 = j - 1;
-	work[j] = dasum_(&i__2, &t[j * t_dim1 + 1], &c__1);
+	work[j] = _starpu_dasum_(&i__2, &t[j * t_dim1 + 1], &c__1);
 /* L10: */
     }
 
@@ -230,13 +230,13 @@ static logical c_true = TRUE_;
     if (! (*lreal)) {
 	n1 = n2;
     }
-    k = idamax_(&n1, &x[1], &c__1);
+    k = _starpu_idamax_(&n1, &x[1], &c__1);
     xmax = (d__1 = x[k], abs(d__1));
     *scale = 1.;
 
     if (xmax > bignum) {
 	*scale = bignum / xmax;
-	dscal_(&n1, scale, &x[1], &c__1);
+	_starpu_dscal_(&n1, scale, &x[1], &c__1);
 	xmax = bignum;
     }
 
@@ -284,7 +284,7 @@ static logical c_true = TRUE_;
 		    if (tjj < 1.) {
 			if (xj > bignum * tjj) {
 			    rec = 1. / xj;
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
@@ -298,17 +298,17 @@ static logical c_true = TRUE_;
 		    if (xj > 1.) {
 			rec = 1. / xj;
 			if (work[j1] > (bignum - xmax) * rec) {
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			}
 		    }
 		    if (j1 > 1) {
 			i__1 = j1 - 1;
 			d__1 = -x[j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 			i__1 = j1 - 1;
-			k = idamax_(&i__1, &x[1], &c__1);
+			k = _starpu_idamax_(&i__1, &x[1], &c__1);
 			xmax = (d__1 = x[k], abs(d__1));
 		    }
 
@@ -321,7 +321,7 @@ static logical c_true = TRUE_;
 
 		    d__[0] = x[j1];
 		    d__[1] = x[j2];
-		    dlaln2_(&c_false, &c__2, &c__1, &smin, &c_b21, &t[j1 + j1 
+		    _starpu_dlaln2_(&c_false, &c__2, &c__1, &smin, &c_b21, &t[j1 + j1 
 			    * t_dim1], ldt, &c_b21, &c_b21, d__, &c__2, &
 			    c_b25, &c_b25, v, &c__2, &scaloc, &xnorm, &ierr);
 		    if (ierr != 0) {
@@ -329,7 +329,7 @@ static logical c_true = TRUE_;
 		    }
 
 		    if (scaloc != 1.) {
-			dscal_(n, &scaloc, &x[1], &c__1);
+			_starpu_dscal_(n, &scaloc, &x[1], &c__1);
 			*scale *= scaloc;
 		    }
 		    x[j1] = v[0];
@@ -346,7 +346,7 @@ static logical c_true = TRUE_;
 /* Computing MAX */
 			d__1 = work[j1], d__2 = work[j2];
 			if (max(d__1,d__2) > (bignum - xmax) * rec) {
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			}
 		    }
@@ -356,14 +356,14 @@ static logical c_true = TRUE_;
 		    if (j1 > 1) {
 			i__1 = j1 - 1;
 			d__1 = -x[j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 			i__1 = j1 - 1;
 			d__1 = -x[j2];
-			daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 			i__1 = j1 - 1;
-			k = idamax_(&i__1, &x[1], &c__1);
+			k = _starpu_idamax_(&i__1, &x[1], &c__1);
 			xmax = (d__1 = x[k], abs(d__1));
 		    }
 
@@ -404,14 +404,14 @@ L30:
 		    if (xmax > 1.) {
 			rec = 1. / xmax;
 			if (work[j1] > (bignum - xj) * rec) {
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
 
 		    i__2 = j1 - 1;
-		    x[j1] -= ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[1], &
+		    x[j1] -= _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[1], &
 			    c__1);
 
 		    xj = (d__1 = x[j1], abs(d__1));
@@ -426,7 +426,7 @@ L30:
 		    if (tjj < 1.) {
 			if (xj > bignum * tjj) {
 			    rec = 1. / xj;
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
@@ -452,20 +452,20 @@ L30:
 /* Computing MAX */
 			d__1 = work[j2], d__2 = work[j1];
 			if (max(d__1,d__2) > (bignum - xj) * rec) {
-			    dscal_(n, &rec, &x[1], &c__1);
+			    _starpu_dscal_(n, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
 
 		    i__2 = j1 - 1;
-		    d__[0] = x[j1] - ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, 
+		    d__[0] = x[j1] - _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, 
 			    &x[1], &c__1);
 		    i__2 = j1 - 1;
-		    d__[1] = x[j2] - ddot_(&i__2, &t[j2 * t_dim1 + 1], &c__1, 
+		    d__[1] = x[j2] - _starpu_ddot_(&i__2, &t[j2 * t_dim1 + 1], &c__1, 
 			    &x[1], &c__1);
 
-		    dlaln2_(&c_true, &c__2, &c__1, &smin, &c_b21, &t[j1 + j1 *
+		    _starpu_dlaln2_(&c_true, &c__2, &c__1, &smin, &c_b21, &t[j1 + j1 *
 			     t_dim1], ldt, &c_b21, &c_b21, d__, &c__2, &c_b25, 
 			     &c_b25, v, &c__2, &scaloc, &xnorm, &ierr);
 		    if (ierr != 0) {
@@ -473,7 +473,7 @@ L30:
 		    }
 
 		    if (scaloc != 1.) {
-			dscal_(n, &scaloc, &x[1], &c__1);
+			_starpu_dscal_(n, &scaloc, &x[1], &c__1);
 			*scale *= scaloc;
 		    }
 		    x[j1] = v[0];
@@ -540,12 +540,12 @@ L40:
 		    if (tjj < 1.) {
 			if (xj > bignum * tjj) {
 			    rec = 1. / xj;
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
-		    dladiv_(&x[j1], &x[*n + j1], &tmp, &z__, &sr, &si);
+		    _starpu_dladiv_(&x[j1], &x[*n + j1], &tmp, &z__, &sr, &si);
 		    x[j1] = sr;
 		    x[*n + j1] = si;
 		    xj = (d__1 = x[j1], abs(d__1)) + (d__2 = x[*n + j1], abs(
@@ -557,7 +557,7 @@ L40:
 		    if (xj > 1.) {
 			rec = 1. / xj;
 			if (work[j1] > (bignum - xmax) * rec) {
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			}
 		    }
@@ -565,11 +565,11 @@ L40:
 		    if (j1 > 1) {
 			i__1 = j1 - 1;
 			d__1 = -x[j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 			i__1 = j1 - 1;
 			d__1 = -x[*n + j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[*
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[*
 				n + 1], &c__1);
 
 			x[1] += b[j1] * x[*n + j1];
@@ -595,7 +595,7 @@ L40:
 		    d__[2] = x[*n + j1];
 		    d__[3] = x[*n + j2];
 		    d__1 = -(*w);
-		    dlaln2_(&c_false, &c__2, &c__2, &sminw, &c_b21, &t[j1 + 
+		    _starpu_dlaln2_(&c_false, &c__2, &c__2, &sminw, &c_b21, &t[j1 + 
 			    j1 * t_dim1], ldt, &c_b21, &c_b21, d__, &c__2, &
 			    c_b25, &d__1, v, &c__2, &scaloc, &xnorm, &ierr);
 		    if (ierr != 0) {
@@ -604,7 +604,7 @@ L40:
 
 		    if (scaloc != 1.) {
 			i__1 = *n << 1;
-			dscal_(&i__1, &scaloc, &x[1], &c__1);
+			_starpu_dscal_(&i__1, &scaloc, &x[1], &c__1);
 			*scale = scaloc * *scale;
 		    }
 		    x[j1] = v[0];
@@ -624,7 +624,7 @@ L40:
 /* Computing MAX */
 			d__1 = work[j1], d__2 = work[j2];
 			if (max(d__1,d__2) > (bignum - xmax) * rec) {
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			}
 		    }
@@ -634,20 +634,20 @@ L40:
 		    if (j1 > 1) {
 			i__1 = j1 - 1;
 			d__1 = -x[j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 			i__1 = j1 - 1;
 			d__1 = -x[j2];
-			daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[1]
+			_starpu_daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[1]
 , &c__1);
 
 			i__1 = j1 - 1;
 			d__1 = -x[*n + j1];
-			daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[*
+			_starpu_daxpy_(&i__1, &d__1, &t[j1 * t_dim1 + 1], &c__1, &x[*
 				n + 1], &c__1);
 			i__1 = j1 - 1;
 			d__1 = -x[*n + j2];
-			daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[*
+			_starpu_daxpy_(&i__1, &d__1, &t[j2 * t_dim1 + 1], &c__1, &x[*
 				n + 1], &c__1);
 
 			x[1] = x[1] + b[j1] * x[*n + j1] + b[j2] * x[*n + j2];
@@ -701,17 +701,17 @@ L70:
 		    if (xmax > 1.) {
 			rec = 1. / xmax;
 			if (work[j1] > (bignum - xj) * rec) {
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
 
 		    i__2 = j1 - 1;
-		    x[j1] -= ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[1], &
+		    x[j1] -= _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[1], &
 			    c__1);
 		    i__2 = j1 - 1;
-		    x[*n + j1] -= ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[
+		    x[*n + j1] -= _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, &x[
 			    *n + 1], &c__1);
 		    if (j1 > 1) {
 			x[j1] -= b[j1] * x[*n + 1];
@@ -739,13 +739,13 @@ L70:
 		    if (tjj < 1.) {
 			if (xj > bignum * tjj) {
 			    rec = 1. / xj;
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
 		    d__1 = -z__;
-		    dladiv_(&x[j1], &x[*n + j1], &tmp, &d__1, &sr, &si);
+		    _starpu_dladiv_(&x[j1], &x[*n + j1], &tmp, &d__1, &sr, &si);
 		    x[j1] = sr;
 		    x[j1 + *n] = si;
 /* Computing MAX */
@@ -770,30 +770,30 @@ L70:
 /* Computing MAX */
 			d__1 = work[j1], d__2 = work[j2];
 			if (max(d__1,d__2) > (bignum - xj) / xmax) {
-			    dscal_(&n2, &rec, &x[1], &c__1);
+			    _starpu_dscal_(&n2, &rec, &x[1], &c__1);
 			    *scale *= rec;
 			    xmax *= rec;
 			}
 		    }
 
 		    i__2 = j1 - 1;
-		    d__[0] = x[j1] - ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, 
+		    d__[0] = x[j1] - _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &c__1, 
 			    &x[1], &c__1);
 		    i__2 = j1 - 1;
-		    d__[1] = x[j2] - ddot_(&i__2, &t[j2 * t_dim1 + 1], &c__1, 
+		    d__[1] = x[j2] - _starpu_ddot_(&i__2, &t[j2 * t_dim1 + 1], &c__1, 
 			    &x[1], &c__1);
 		    i__2 = j1 - 1;
-		    d__[2] = x[*n + j1] - ddot_(&i__2, &t[j1 * t_dim1 + 1], &
+		    d__[2] = x[*n + j1] - _starpu_ddot_(&i__2, &t[j1 * t_dim1 + 1], &
 			    c__1, &x[*n + 1], &c__1);
 		    i__2 = j1 - 1;
-		    d__[3] = x[*n + j2] - ddot_(&i__2, &t[j2 * t_dim1 + 1], &
+		    d__[3] = x[*n + j2] - _starpu_ddot_(&i__2, &t[j2 * t_dim1 + 1], &
 			    c__1, &x[*n + 1], &c__1);
 		    d__[0] -= b[j1] * x[*n + 1];
 		    d__[1] -= b[j2] * x[*n + 1];
 		    d__[2] += b[j1] * x[1];
 		    d__[3] += b[j2] * x[1];
 
-		    dlaln2_(&c_true, &c__2, &c__2, &sminw, &c_b21, &t[j1 + j1 
+		    _starpu_dlaln2_(&c_true, &c__2, &c__2, &sminw, &c_b21, &t[j1 + j1 
 			    * t_dim1], ldt, &c_b21, &c_b21, d__, &c__2, &
 			    c_b25, w, v, &c__2, &scaloc, &xnorm, &ierr);
 		    if (ierr != 0) {
@@ -801,7 +801,7 @@ L70:
 		    }
 
 		    if (scaloc != 1.) {
-			dscal_(&n2, &scaloc, &x[1], &c__1);
+			_starpu_dscal_(&n2, &scaloc, &x[1], &c__1);
 			*scale = scaloc * *scale;
 		    }
 		    x[j1] = v[0];
@@ -829,4 +829,4 @@ L80:
 
 /*     End of DLAQTR */
 
-} /* dlaqtr_ */
+} /* _starpu_dlaqtr_ */

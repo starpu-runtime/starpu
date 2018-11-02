@@ -1,9 +1,9 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017                                Inria
-# Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2009-2018                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017,2018                           CNRS
+# Copyright (C) 2017                                     Erwan Leria
+# Copyright (C) 2010-2015,2017,2018                      CNRS
 # Copyright (C) 2011                                     Télécom-SudParis
 # Copyright (C) 2016                                     Uppsala University
 #
@@ -80,6 +80,7 @@ EXTRA_DIST = 					\
 	sched_ctx/axpy_partition_gpu.h			\
 	sched_ctx/axpy_partition_gpu.cu			\
 	heat/heat.sh					\
+	cholesky/cholesky.sh				\
 	lu/lu.sh
 
 
@@ -229,6 +230,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
+	filters/fplan_notautomatic		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -245,12 +247,15 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
+	sched_ctx/sched_ctx_empty		\
+	sched_ctx/sched_ctx_delete		\
 	sched_ctx/two_cpu_contexts		\
 	sched_ctx/dummy_sched_with_ctx		\
 	worker_collections/worker_tree_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	dependency/task_end_dep			\
+	dependency/task_end_dep_add		\
 	dependency/sequential_consistency
 
 endif
@@ -315,6 +320,12 @@ TESTS += \
 	lu/lu.sh
 
 endif
+
+endif
+
+if STARPU_SIMGRID
+TESTS += \
+	 cholesky/cholesky.sh
 endif
 endif
 

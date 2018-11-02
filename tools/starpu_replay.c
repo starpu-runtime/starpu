@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Erwan Leria
- * Copyright (C) 2017, 2018                               CNRS
+ * Copyright (C) 2018                                     Inria
+ * Copyright (C) 2017,2018                                CNRS
  * Copyright (C) 2016-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -308,12 +309,13 @@ void reset(void)
 
 void fix_wontuse_handle(struct task * wontuseTask)
 {
+	STARPU_ASSERT(wontuseTask);
+
 	if (!wontuseTask->reg_signal)
 		/* Data was already registered when we created this task, so it's already a handle */
 		return;
 
 	struct handle *handle_tmp;
-	STARPU_ASSERT(wontuseTask);
 
 	/* Data was not registered when we created this task, so this is the application pointer, look it up now */
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
@@ -389,7 +391,11 @@ int submit_tasks(void)
 
 
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
-			printf("\rSubmitting task %lu", currentTask->submit_order);
+			if (!(currentTask->submit_order % 1000))
+			{
+				printf("\rSubmitting task %lu", currentTask->submit_order);
+				fflush(stdout);
+			}
 			last_submitorder++;
 		}
 
@@ -830,7 +836,7 @@ eof:
 
 	starpu_task_wait_for_all();
 
-	printf("Simulation ended. Elapsed time: %g µs\n", starpu_timing_now() - start);
+	printf("Simulation ended. Elapsed time: %g ms\n", (starpu_timing_now() - start) / 1000.);
 
 	/* FREE allocated memory */
 

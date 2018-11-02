@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dgeql2_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgeql2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info)
 {
     /* System generated locals */
@@ -26,10 +26,10 @@ static integer c__1 = 1;
     /* Local variables */
     integer i__, k;
     doublereal aii;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *), dlarfp_(integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *), xerbla_(char *, integer *);
+	    doublereal *), _starpu_dlarfp_(integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -126,7 +126,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGEQL2", &i__1);
+	_starpu_xerbla_("DGEQL2", &i__1);
 	return 0;
     }
 
@@ -138,7 +138,7 @@ static integer c__1 = 1;
 /*        A(1:m-k+i-1,n-k+i) */
 
 	i__1 = *m - k + i__;
-	dlarfp_(&i__1, &a[*m - k + i__ + (*n - k + i__) * a_dim1], &a[(*n - k 
+	_starpu_dlarfp_(&i__1, &a[*m - k + i__ + (*n - k + i__) * a_dim1], &a[(*n - k 
 		+ i__) * a_dim1 + 1], &c__1, &tau[i__]);
 
 /*        Apply H(i) to A(1:m-k+i,1:n-k+i-1) from the left */
@@ -147,7 +147,7 @@ static integer c__1 = 1;
 	a[*m - k + i__ + (*n - k + i__) * a_dim1] = 1.;
 	i__1 = *m - k + i__;
 	i__2 = *n - k + i__ - 1;
-	dlarf_("Left", &i__1, &i__2, &a[(*n - k + i__) * a_dim1 + 1], &c__1, &
+	_starpu_dlarf_("Left", &i__1, &i__2, &a[(*n - k + i__) * a_dim1 + 1], &c__1, &
 		tau[i__], &a[a_offset], lda, &work[1]);
 	a[*m - k + i__ + (*n - k + i__) * a_dim1] = aii;
 /* L10: */
@@ -156,4 +156,4 @@ static integer c__1 = 1;
 
 /*     End of DGEQL2 */
 
-} /* dgeql2_ */
+} /* _starpu_dgeql2_ */

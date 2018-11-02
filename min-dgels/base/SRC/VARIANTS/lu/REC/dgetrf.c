@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static doublereal c_b12 = 1.;
 static doublereal c_b15 = -1.;
 
-/* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
+/* Subroutine */ int _starpu_dgetrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
@@ -29,23 +29,23 @@ static doublereal c_b15 = -1.;
     /* Local variables */
     integer i__, j, ipivstart, jpivstart, jp;
     doublereal tmp;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *), dgemm_(char *, char *, integer *, integer *, integer *
+    extern /* Subroutine */ int _starpu_dscal_(integer *, doublereal *, doublereal *, 
+	    integer *), _starpu_dgemm_(char *, char *, integer *, integer *, integer *
 , doublereal *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, doublereal *, integer *);
     integer kcols;
     doublereal sfmin;
     integer nstep;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
+    extern /* Subroutine */ int _starpu_dtrsm_(char *, char *, char *, char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer kahead;
-    extern doublereal dlamch_(char *);
-    extern integer idamax_(integer *, doublereal *, integer *);
-    extern logical disnan_(doublereal *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern doublereal _starpu_dlamch_(char *);
+    extern integer _starpu_idamax_(integer *, doublereal *, integer *);
+    extern logical _starpu_disnan_(doublereal *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     integer npived;
-    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dlaswp_(integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *, integer *);
     integer kstart, ntopiv;
 
@@ -169,7 +169,7 @@ static doublereal c_b15 = -1.;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGETRF", &i__1);
+	_starpu_xerbla_("DGETRF", &i__1);
 	return 0;
     }
 
@@ -181,7 +181,7 @@ static doublereal c_b15 = -1.;
 
 /*     Compute machine safe minimum */
 
-    sfmin = dlamch_("S");
+    sfmin = _starpu_dlamch_("S");
 
     nstep = min(*m,*n);
     i__1 = nstep;
@@ -195,7 +195,7 @@ static doublereal c_b15 = -1.;
 /*        Find pivot. */
 
 	i__2 = *m - j + 1;
-	jp = j - 1 + idamax_(&i__2, &a[j + j * a_dim1], &c__1);
+	jp = j - 1 + _starpu_idamax_(&i__2, &a[j + j * a_dim1], &c__1);
 	ipiv[j] = jp;
 /*        Permute just this column. */
 	if (jp != j) {
@@ -208,21 +208,21 @@ static doublereal c_b15 = -1.;
 	ipivstart = j;
 	jpivstart = j - ntopiv;
 	while(ntopiv < kahead) {
-	    dlaswp_(&ntopiv, &a[jpivstart * a_dim1 + 1], lda, &ipivstart, &j, 
+	    _starpu_dlaswp_(&ntopiv, &a[jpivstart * a_dim1 + 1], lda, &ipivstart, &j, 
 		    &ipiv[1], &c__1);
 	    ipivstart -= ntopiv;
 	    ntopiv <<= 1;
 	    jpivstart -= ntopiv;
 	}
 /*        Permute U block to match L */
-	dlaswp_(&kcols, &a[(j + 1) * a_dim1 + 1], lda, &kstart, &j, &ipiv[1], 
+	_starpu_dlaswp_(&kcols, &a[(j + 1) * a_dim1 + 1], lda, &kstart, &j, &ipiv[1], 
 		&c__1);
 /*        Factor the current column */
-	if (a[j + j * a_dim1] != 0. && ! disnan_(&a[j + j * a_dim1])) {
+	if (a[j + j * a_dim1] != 0. && ! _starpu_disnan_(&a[j + j * a_dim1])) {
 	    if ((d__1 = a[j + j * a_dim1], abs(d__1)) >= sfmin) {
 		i__2 = *m - j;
 		d__1 = 1. / a[j + j * a_dim1];
-		dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
+		_starpu_dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
 	    } else {
 		i__2 = *m - j;
 		for (i__ = 1; i__ <= i__2; ++i__) {
@@ -233,12 +233,12 @@ static doublereal c_b15 = -1.;
 	    *info = j;
 	}
 /*        Solve for U block. */
-	dtrsm_("Left", "Lower", "No transpose", "Unit", &kahead, &kcols, &
+	_starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", &kahead, &kcols, &
 		c_b12, &a[kstart + kstart * a_dim1], lda, &a[kstart + (j + 1) 
 		* a_dim1], lda);
 /*        Schur complement. */
 	i__2 = *m - j;
-	dgemm_("No transpose", "No transpose", &i__2, &kcols, &kahead, &c_b15, 
+	_starpu_dgemm_("No transpose", "No transpose", &i__2, &kcols, &kahead, &c_b15, 
 		 &a[j + 1 + kstart * a_dim1], lda, &a[kstart + (j + 1) * 
 		a_dim1], lda, &c_b12, &a[j + 1 + (j + 1) * a_dim1], lda);
     }
@@ -248,21 +248,21 @@ static doublereal c_b15 = -1.;
     while(j > 0) {
 	ntopiv = j & -j;
 	i__1 = j + 1;
-	dlaswp_(&ntopiv, &a[(j - ntopiv + 1) * a_dim1 + 1], lda, &i__1, &
+	_starpu_dlaswp_(&ntopiv, &a[(j - ntopiv + 1) * a_dim1 + 1], lda, &i__1, &
 		nstep, &ipiv[1], &c__1);
 	j -= ntopiv;
     }
 /*     If short and wide, handle the rest of the columns. */
     if (*m < *n) {
 	i__1 = *n - *m;
-	dlaswp_(&i__1, &a[(*m + kcols + 1) * a_dim1 + 1], lda, &c__1, m, &
+	_starpu_dlaswp_(&i__1, &a[(*m + kcols + 1) * a_dim1 + 1], lda, &c__1, m, &
 		ipiv[1], &c__1);
 	i__1 = *n - *m;
-	dtrsm_("Left", "Lower", "No transpose", "Unit", m, &i__1, &c_b12, &a[
+	_starpu_dtrsm_("Left", "Lower", "No transpose", "Unit", m, &i__1, &c_b12, &a[
 		a_offset], lda, &a[(*m + kcols + 1) * a_dim1 + 1], lda);
     }
     return 0;
 
 /*     End of DGETRF */
 
-} /* dgetrf_ */
+} /* _starpu_dgetrf_ */

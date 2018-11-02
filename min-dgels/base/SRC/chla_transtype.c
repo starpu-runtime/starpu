@@ -1,4 +1,4 @@
-/* chla_transtype.f -- translated by f2c (version 20061008).
+/* _starpu_chla_transtype.f -- translated by f2c (version 20061008).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Character */ VOID chla_transtype__(char *ret_val, ftnlen ret_val_len, 
+/* Character */ VOID _starpu_chla_transtype__(char *ret_val, ftnlen ret_val_len, 
 	integer *trans)
 {
 
@@ -59,4 +59,4 @@
 
 /*     End of CHLA_TRANSTYPE */
 
-} /* chla_transtype__ */
+} /* _starpu_chla_transtype__ */

@@ -17,7 +17,7 @@
 
 static integer c__1 = 1;
 
-/* Subroutine */ int dpbsvx_(char *fact, char *uplo, integer *n, integer *kd, 
+/* Subroutine */ int _starpu_dpbsvx_(char *fact, char *uplo, integer *n, integer *kd, 
 	integer *nrhs, doublereal *ab, integer *ldab, doublereal *afb, 
 	integer *ldafb, char *equed, doublereal *s, doublereal *b, integer *
 	ldb, doublereal *x, integer *ldx, doublereal *rcond, doublereal *ferr, 
@@ -31,32 +31,32 @@ static integer c__1 = 1;
     /* Local variables */
     integer i__, j, j1, j2;
     doublereal amax, smin, smax;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     doublereal scond, anorm;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     logical equil, rcequ, upper;
-    extern doublereal dlamch_(char *), dlansb_(char *, char *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlansb_(char *, char *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dpbcon_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dpbcon_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, doublereal *, 
-	     integer *, integer *), dlaqsb_(char *, integer *, 
+	     integer *, integer *), _starpu_dlaqsb_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, char *);
     logical nofact;
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *), dpbequ_(char *, integer *, 
+	    _starpu_xerbla_(char *, integer *), _starpu_dpbequ_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dpbrfs_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dpbrfs_(char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *, doublereal *, 
 	     integer *, doublereal *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *, integer *), dpbtrf_(char *, 
+	    doublereal *, integer *, integer *), _starpu_dpbtrf_(char *, 
 	    integer *, integer *, doublereal *, integer *, integer *);
     integer infequ;
-    extern /* Subroutine */ int dpbtrs_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dpbtrs_(char *, integer *, integer *, integer 
 	    *, doublereal *, integer *, doublereal *, integer *, integer *);
     doublereal smlnum;
 
@@ -324,23 +324,23 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    nofact = lsame_(fact, "N");
-    equil = lsame_(fact, "E");
-    upper = lsame_(uplo, "U");
+    nofact = _starpu_lsame_(fact, "N");
+    equil = _starpu_lsame_(fact, "E");
+    upper = _starpu_lsame_(uplo, "U");
     if (nofact || equil) {
 	*(unsigned char *)equed = 'N';
 	rcequ = FALSE_;
     } else {
-	rcequ = lsame_(equed, "Y");
-	smlnum = dlamch_("Safe minimum");
+	rcequ = _starpu_lsame_(equed, "Y");
+	smlnum = _starpu_dlamch_("Safe minimum");
 	bignum = 1. / smlnum;
     }
 
 /*     Test the input parameters. */
 
-    if (! nofact && ! equil && ! lsame_(fact, "F")) {
+    if (! nofact && ! equil && ! _starpu_lsame_(fact, "F")) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -3;
@@ -352,7 +352,7 @@ static integer c__1 = 1;
 	*info = -7;
     } else if (*ldafb < *kd + 1) {
 	*info = -9;
-    } else if (lsame_(fact, "F") && ! (rcequ || lsame_(
+    } else if (_starpu_lsame_(fact, "F") && ! (rcequ || _starpu_lsame_(
 	    equed, "N"))) {
 	*info = -10;
     } else {
@@ -388,7 +388,7 @@ static integer c__1 = 1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBSVX", &i__1);
+	_starpu_xerbla_("DPBSVX", &i__1);
 	return 0;
     }
 
@@ -396,15 +396,15 @@ static integer c__1 = 1;
 
 /*        Compute row and column scalings to equilibrate the matrix A. */
 
-	dpbequ_(uplo, n, kd, &ab[ab_offset], ldab, &s[1], &scond, &amax, &
+	_starpu_dpbequ_(uplo, n, kd, &ab[ab_offset], ldab, &s[1], &scond, &amax, &
 		infequ);
 	if (infequ == 0) {
 
 /*           Equilibrate the matrix. */
 
-	    dlaqsb_(uplo, n, kd, &ab[ab_offset], ldab, &s[1], &scond, &amax, 
+	    _starpu_dlaqsb_(uplo, n, kd, &ab[ab_offset], ldab, &s[1], &scond, &amax, 
 		    equed);
-	    rcequ = lsame_(equed, "Y");
+	    rcequ = _starpu_lsame_(equed, "Y");
 	}
     }
 
@@ -433,7 +433,7 @@ static integer c__1 = 1;
 		i__2 = j - *kd;
 		j1 = max(i__2,1);
 		i__2 = j - j1 + 1;
-		dcopy_(&i__2, &ab[*kd + 1 - j + j1 + j * ab_dim1], &c__1, &
+		_starpu_dcopy_(&i__2, &ab[*kd + 1 - j + j1 + j * ab_dim1], &c__1, &
 			afb[*kd + 1 - j + j1 + j * afb_dim1], &c__1);
 /* L40: */
 	    }
@@ -444,13 +444,13 @@ static integer c__1 = 1;
 		i__2 = j + *kd;
 		j2 = min(i__2,*n);
 		i__2 = j2 - j + 1;
-		dcopy_(&i__2, &ab[j * ab_dim1 + 1], &c__1, &afb[j * afb_dim1 
+		_starpu_dcopy_(&i__2, &ab[j * ab_dim1 + 1], &c__1, &afb[j * afb_dim1 
 			+ 1], &c__1);
 /* L50: */
 	    }
 	}
 
-	dpbtrf_(uplo, n, kd, &afb[afb_offset], ldafb, info);
+	_starpu_dpbtrf_(uplo, n, kd, &afb[afb_offset], ldafb, info);
 
 /*        Return if INFO is non-zero. */
 
@@ -462,23 +462,23 @@ static integer c__1 = 1;
 
 /*     Compute the norm of the matrix A. */
 
-    anorm = dlansb_("1", uplo, n, kd, &ab[ab_offset], ldab, &work[1]);
+    anorm = _starpu_dlansb_("1", uplo, n, kd, &ab[ab_offset], ldab, &work[1]);
 
 /*     Compute the reciprocal of the condition number of A. */
 
-    dpbcon_(uplo, n, kd, &afb[afb_offset], ldafb, &anorm, rcond, &work[1], &
+    _starpu_dpbcon_(uplo, n, kd, &afb[afb_offset], ldafb, &anorm, rcond, &work[1], &
 	    iwork[1], info);
 
 /*     Compute the solution matrix X. */
 
-    dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
-    dpbtrs_(uplo, n, kd, nrhs, &afb[afb_offset], ldafb, &x[x_offset], ldx, 
+    _starpu_dlacpy_("Full", n, nrhs, &b[b_offset], ldb, &x[x_offset], ldx);
+    _starpu_dpbtrs_(uplo, n, kd, nrhs, &afb[afb_offset], ldafb, &x[x_offset], ldx, 
 	    info);
 
 /*     Use iterative refinement to improve the computed solution and */
 /*     compute error bounds and backward error estimates for it. */
 
-    dpbrfs_(uplo, n, kd, nrhs, &ab[ab_offset], ldab, &afb[afb_offset], ldafb, 
+    _starpu_dpbrfs_(uplo, n, kd, nrhs, &ab[ab_offset], ldab, &afb[afb_offset], ldafb, 
 	    &b[b_offset], ldb, &x[x_offset], ldx, &ferr[1], &berr[1], &work[1]
 , &iwork[1], info);
 
@@ -504,7 +504,7 @@ static integer c__1 = 1;
 
 /*     Set INFO = N+1 if the matrix is singular to working precision. */
 
-    if (*rcond < dlamch_("Epsilon")) {
+    if (*rcond < _starpu_dlamch_("Epsilon")) {
 	*info = *n + 1;
     }
 
@@ -512,4 +512,4 @@ static integer c__1 = 1;
 
 /*     End of DPBSVX */
 
-} /* dpbsvx_ */
+} /* _starpu_dpbsvx_ */

@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlamrg_(integer *n1, integer *n2, doublereal *a, integer 
+/* Subroutine */ int _starpu_dlamrg_(integer *n1, integer *n2, doublereal *a, integer 
 	*dtrd1, integer *dtrd2, integer *index)
 {
     /* System generated locals */
@@ -128,4 +128,4 @@ L10:
 
 /*     End of DLAMRG */
 
-} /* dlamrg_ */
+} /* _starpu_dlamrg_ */

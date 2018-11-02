@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dsfrk_(char *transr, char *uplo, char *trans, integer *n, 
+/* Subroutine */ int _starpu_dsfrk_(char *transr, char *uplo, char *trans, integer *n, 
 	 integer *k, doublereal *alpha, doublereal *a, integer *lda, 
 	doublereal *beta, doublereal *c__)
 {
@@ -23,15 +23,15 @@
     /* Local variables */
     integer j, n1, n2, nk, info;
     logical normaltransr;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dgemm_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer nrowa;
     logical lower;
-    extern /* Subroutine */ int dsyrk_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dsyrk_(char *, char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
-	     integer *), xerbla_(char *, integer *);
+	     integer *), _starpu_xerbla_(char *, integer *);
     logical nisodd, notrans;
 
 
@@ -161,9 +161,9 @@
 
     /* Function Body */
     info = 0;
-    normaltransr = lsame_(transr, "N");
-    lower = lsame_(uplo, "L");
-    notrans = lsame_(trans, "N");
+    normaltransr = _starpu_lsame_(transr, "N");
+    lower = _starpu_lsame_(uplo, "L");
+    notrans = _starpu_lsame_(trans, "N");
 
     if (notrans) {
 	nrowa = *n;
@@ -171,11 +171,11 @@
 	nrowa = *k;
     }
 
-    if (! normaltransr && ! lsame_(transr, "T")) {
+    if (! normaltransr && ! _starpu_lsame_(transr, "T")) {
 	info = -1;
-    } else if (! lower && ! lsame_(uplo, "U")) {
+    } else if (! lower && ! _starpu_lsame_(uplo, "U")) {
 	info = -2;
-    } else if (! notrans && ! lsame_(trans, "T")) {
+    } else if (! notrans && ! _starpu_lsame_(trans, "T")) {
 	info = -3;
     } else if (*n < 0) {
 	info = -4;
@@ -186,7 +186,7 @@
     }
     if (info != 0) {
 	i__1 = -info;
-	xerbla_("DSFRK ", &i__1);
+	_starpu_xerbla_("DSFRK ", &i__1);
 	return 0;
     }
 
@@ -241,23 +241,23 @@
 
 /*                 N is odd, TRANSR = 'N', UPLO = 'L', and TRANS = 'N' */
 
-		    dsyrk_("L", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[1], n);
-		    dsyrk_("U", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("U", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
 			    beta, &c__[*n + 1], n);
-		    dgemm_("N", "T", &n2, &n1, k, alpha, &a[n1 + 1 + a_dim1], 
+		    _starpu_dgemm_("N", "T", &n2, &n1, k, alpha, &a[n1 + 1 + a_dim1], 
 			    lda, &a[a_dim1 + 1], lda, beta, &c__[n1 + 1], n);
 
 		} else {
 
 /*                 N is odd, TRANSR = 'N', UPLO = 'L', and TRANS = 'T' */
 
-		    dsyrk_("L", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[1], n);
-		    dsyrk_("U", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("U", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[*n + 1], n)
 			    ;
-		    dgemm_("T", "N", &n2, &n1, k, alpha, &a[(n1 + 1) * a_dim1 
+		    _starpu_dgemm_("T", "N", &n2, &n1, k, alpha, &a[(n1 + 1) * a_dim1 
 			    + 1], lda, &a[a_dim1 + 1], lda, beta, &c__[n1 + 1]
 , n);
 
@@ -271,22 +271,22 @@
 
 /*                 N is odd, TRANSR = 'N', UPLO = 'U', and TRANS = 'N' */
 
-		    dsyrk_("L", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[n2 + 1], n);
-		    dsyrk_("U", "N", &n2, k, alpha, &a[n2 + a_dim1], lda, 
+		    _starpu_dsyrk_("U", "N", &n2, k, alpha, &a[n2 + a_dim1], lda, 
 			    beta, &c__[n1 + 1], n);
-		    dgemm_("N", "T", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("N", "T", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[n2 + a_dim1], lda, beta, &c__[1], n);
 
 		} else {
 
 /*                 N is odd, TRANSR = 'N', UPLO = 'U', and TRANS = 'T' */
 
-		    dsyrk_("L", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[n2 + 1], n);
-		    dsyrk_("U", "T", &n2, k, alpha, &a[n2 * a_dim1 + 1], lda, 
+		    _starpu_dsyrk_("U", "T", &n2, k, alpha, &a[n2 * a_dim1 + 1], lda, 
 			    beta, &c__[n1 + 1], n);
-		    dgemm_("T", "N", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("T", "N", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[n2 * a_dim1 + 1], lda, beta, &c__[1], n);
 
 		}
@@ -305,11 +305,11 @@
 
 /*                 N is odd, TRANSR = 'T', UPLO = 'L', and TRANS = 'N' */
 
-		    dsyrk_("U", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[1], &n1);
-		    dsyrk_("L", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("L", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
 			    beta, &c__[2], &n1);
-		    dgemm_("N", "T", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("N", "T", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[n1 + 1 + a_dim1], lda, beta, &c__[n1 * n1 + 1], 
 			     &n1);
 
@@ -317,11 +317,11 @@
 
 /*                 N is odd, TRANSR = 'T', UPLO = 'L', and TRANS = 'T' */
 
-		    dsyrk_("U", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[1], &n1);
-		    dsyrk_("L", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("L", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[2], &n1);
-		    dgemm_("T", "N", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("T", "N", &n1, &n2, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[(n1 + 1) * a_dim1 + 1], lda, beta, &c__[n1 * 
 			    n1 + 1], &n1);
 
@@ -335,22 +335,22 @@
 
 /*                 N is odd, TRANSR = 'T', UPLO = 'U', and TRANS = 'N' */
 
-		    dsyrk_("U", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "N", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[n2 * n2 + 1], &n2);
-		    dsyrk_("L", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("L", "N", &n2, k, alpha, &a[n1 + 1 + a_dim1], lda, 
 			    beta, &c__[n1 * n2 + 1], &n2);
-		    dgemm_("N", "T", &n2, &n1, k, alpha, &a[n1 + 1 + a_dim1], 
+		    _starpu_dgemm_("N", "T", &n2, &n1, k, alpha, &a[n1 + 1 + a_dim1], 
 			    lda, &a[a_dim1 + 1], lda, beta, &c__[1], &n2);
 
 		} else {
 
 /*                 N is odd, TRANSR = 'T', UPLO = 'U', and TRANS = 'T' */
 
-		    dsyrk_("U", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "T", &n1, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[n2 * n2 + 1], &n2);
-		    dsyrk_("L", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("L", "T", &n2, k, alpha, &a[(n1 + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[n1 * n2 + 1], &n2);
-		    dgemm_("T", "N", &n2, &n1, k, alpha, &a[(n1 + 1) * a_dim1 
+		    _starpu_dgemm_("T", "N", &n2, &n1, k, alpha, &a[(n1 + 1) * a_dim1 
 			    + 1], lda, &a[a_dim1 + 1], lda, beta, &c__[1], &
 			    n2);
 
@@ -377,13 +377,13 @@
 /*                 N is even, TRANSR = 'N', UPLO = 'L', and TRANS = 'N' */
 
 		    i__1 = *n + 1;
-		    dsyrk_("L", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[2], &i__1);
 		    i__1 = *n + 1;
-		    dsyrk_("U", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("U", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
 			    beta, &c__[1], &i__1);
 		    i__1 = *n + 1;
-		    dgemm_("N", "T", &nk, &nk, k, alpha, &a[nk + 1 + a_dim1], 
+		    _starpu_dgemm_("N", "T", &nk, &nk, k, alpha, &a[nk + 1 + a_dim1], 
 			    lda, &a[a_dim1 + 1], lda, beta, &c__[nk + 2], &
 			    i__1);
 
@@ -392,13 +392,13 @@
 /*                 N is even, TRANSR = 'N', UPLO = 'L', and TRANS = 'T' */
 
 		    i__1 = *n + 1;
-		    dsyrk_("L", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[2], &i__1);
 		    i__1 = *n + 1;
-		    dsyrk_("U", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("U", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[1], &i__1);
 		    i__1 = *n + 1;
-		    dgemm_("T", "N", &nk, &nk, k, alpha, &a[(nk + 1) * a_dim1 
+		    _starpu_dgemm_("T", "N", &nk, &nk, k, alpha, &a[(nk + 1) * a_dim1 
 			    + 1], lda, &a[a_dim1 + 1], lda, beta, &c__[nk + 2]
 , &i__1);
 
@@ -413,13 +413,13 @@
 /*                 N is even, TRANSR = 'N', UPLO = 'U', and TRANS = 'N' */
 
 		    i__1 = *n + 1;
-		    dsyrk_("L", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk + 2], &i__1);
 		    i__1 = *n + 1;
-		    dsyrk_("U", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("U", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
 			    beta, &c__[nk + 1], &i__1);
 		    i__1 = *n + 1;
-		    dgemm_("N", "T", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("N", "T", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[nk + 1 + a_dim1], lda, beta, &c__[1], &i__1);
 
 		} else {
@@ -427,13 +427,13 @@
 /*                 N is even, TRANSR = 'N', UPLO = 'U', and TRANS = 'T' */
 
 		    i__1 = *n + 1;
-		    dsyrk_("L", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("L", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk + 2], &i__1);
 		    i__1 = *n + 1;
-		    dsyrk_("U", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("U", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[nk + 1], &i__1);
 		    i__1 = *n + 1;
-		    dgemm_("T", "N", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("T", "N", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[(nk + 1) * a_dim1 + 1], lda, beta, &c__[1], &
 			    i__1);
 
@@ -453,11 +453,11 @@
 
 /*                 N is even, TRANSR = 'T', UPLO = 'L', and TRANS = 'N' */
 
-		    dsyrk_("U", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk + 1], &nk);
-		    dsyrk_("L", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("L", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
 			    beta, &c__[1], &nk);
-		    dgemm_("N", "T", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("N", "T", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[nk + 1 + a_dim1], lda, beta, &c__[(nk + 1) * 
 			    nk + 1], &nk);
 
@@ -465,11 +465,11 @@
 
 /*                 N is even, TRANSR = 'T', UPLO = 'L', and TRANS = 'T' */
 
-		    dsyrk_("U", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk + 1], &nk);
-		    dsyrk_("L", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("L", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[1], &nk);
-		    dgemm_("T", "N", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
+		    _starpu_dgemm_("T", "N", &nk, &nk, k, alpha, &a[a_dim1 + 1], lda, 
 			    &a[(nk + 1) * a_dim1 + 1], lda, beta, &c__[(nk + 
 			    1) * nk + 1], &nk);
 
@@ -483,22 +483,22 @@
 
 /*                 N is even, TRANSR = 'T', UPLO = 'U', and TRANS = 'N' */
 
-		    dsyrk_("U", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "N", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk * (nk + 1) + 1], &nk);
-		    dsyrk_("L", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
+		    _starpu_dsyrk_("L", "N", &nk, k, alpha, &a[nk + 1 + a_dim1], lda, 
 			    beta, &c__[nk * nk + 1], &nk);
-		    dgemm_("N", "T", &nk, &nk, k, alpha, &a[nk + 1 + a_dim1], 
+		    _starpu_dgemm_("N", "T", &nk, &nk, k, alpha, &a[nk + 1 + a_dim1], 
 			    lda, &a[a_dim1 + 1], lda, beta, &c__[1], &nk);
 
 		} else {
 
 /*                 N is even, TRANSR = 'T', UPLO = 'U', and TRANS = 'T' */
 
-		    dsyrk_("U", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
+		    _starpu_dsyrk_("U", "T", &nk, k, alpha, &a[a_dim1 + 1], lda, beta, 
 			     &c__[nk * (nk + 1) + 1], &nk);
-		    dsyrk_("L", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
+		    _starpu_dsyrk_("L", "T", &nk, k, alpha, &a[(nk + 1) * a_dim1 + 1], 
 			     lda, beta, &c__[nk * nk + 1], &nk);
-		    dgemm_("T", "N", &nk, &nk, k, alpha, &a[(nk + 1) * a_dim1 
+		    _starpu_dgemm_("T", "N", &nk, &nk, k, alpha, &a[(nk + 1) * a_dim1 
 			    + 1], lda, &a[a_dim1 + 1], lda, beta, &c__[1], &
 			    nk);
 
@@ -514,4 +514,4 @@
 
 /*     End of DSFRK */
 
-} /* dsfrk_ */
+} /* _starpu_dsfrk_ */

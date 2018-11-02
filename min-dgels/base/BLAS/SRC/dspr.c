@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dspr_(char *uplo, integer *n, doublereal *alpha, 
+/* Subroutine */ int _starpu_dspr_(char *uplo, integer *n, doublereal *alpha, 
 	doublereal *x, integer *incx, doublereal *ap)
 {
     /* System generated locals */
@@ -22,8 +22,8 @@
     /* Local variables */
     integer i__, j, k, kk, ix, jx, kx, info;
     doublereal temp;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 /*     .. Scalar Arguments .. */
 /*     .. */
@@ -120,7 +120,7 @@
 
     /* Function Body */
     info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	info = 1;
     } else if (*n < 0) {
 	info = 2;
@@ -128,7 +128,7 @@
 	info = 5;
     }
     if (info != 0) {
-	xerbla_("DSPR  ", &info);
+	_starpu_xerbla_("DSPR  ", &info);
 	return 0;
     }
 
@@ -150,7 +150,7 @@
 /*     are accessed sequentially with one pass through AP. */
 
     kk = 1;
-    if (lsame_(uplo, "U")) {
+    if (_starpu_lsame_(uplo, "U")) {
 
 /*        Form  A  when upper triangle is stored in AP. */
 
@@ -234,4 +234,4 @@
 
 /*     End of DSPR  . */
 
-} /* dspr_ */
+} /* _starpu_dspr_ */

@@ -18,7 +18,7 @@
 static doublereal c_b8 = -1.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dpbtf2_(char *uplo, integer *n, integer *kd, doublereal *
+/* Subroutine */ int _starpu_dpbtf2_(char *uplo, integer *n, integer *kd, doublereal *
 	ab, integer *ldab, integer *info)
 {
     /* System generated locals */
@@ -32,12 +32,12 @@ static integer c__1 = 1;
     integer j, kn;
     doublereal ajj;
     integer kld;
-    extern /* Subroutine */ int dsyr_(char *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *), dscal_(
+    extern /* Subroutine */ int _starpu_dsyr_(char *, integer *, doublereal *, 
+	    doublereal *, integer *, doublereal *, integer *), _starpu_dscal_(
 	    integer *, doublereal *, doublereal *, integer *);
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -146,8 +146,8 @@ static integer c__1 = 1;
 
     /* Function Body */
     *info = 0;
-    upper = lsame_(uplo, "U");
-    if (! upper && ! lsame_(uplo, "L")) {
+    upper = _starpu_lsame_(uplo, "U");
+    if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -1;
     } else if (*n < 0) {
 	*info = -2;
@@ -158,7 +158,7 @@ static integer c__1 = 1;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DPBTF2", &i__1);
+	_starpu_xerbla_("DPBTF2", &i__1);
 	return 0;
     }
 
@@ -196,8 +196,8 @@ static integer c__1 = 1;
 	    kn = min(i__2,i__3);
 	    if (kn > 0) {
 		d__1 = 1. / ajj;
-		dscal_(&kn, &d__1, &ab[*kd + (j + 1) * ab_dim1], &kld);
-		dsyr_("Upper", &kn, &c_b8, &ab[*kd + (j + 1) * ab_dim1], &kld, 
+		_starpu_dscal_(&kn, &d__1, &ab[*kd + (j + 1) * ab_dim1], &kld);
+		_starpu_dsyr_("Upper", &kn, &c_b8, &ab[*kd + (j + 1) * ab_dim1], &kld, 
 			 &ab[*kd + 1 + (j + 1) * ab_dim1], &kld);
 	    }
 /* L10: */
@@ -226,8 +226,8 @@ static integer c__1 = 1;
 	    kn = min(i__2,i__3);
 	    if (kn > 0) {
 		d__1 = 1. / ajj;
-		dscal_(&kn, &d__1, &ab[j * ab_dim1 + 2], &c__1);
-		dsyr_("Lower", &kn, &c_b8, &ab[j * ab_dim1 + 2], &c__1, &ab[(
+		_starpu_dscal_(&kn, &d__1, &ab[j * ab_dim1 + 2], &c__1);
+		_starpu_dsyr_("Lower", &kn, &c_b8, &ab[j * ab_dim1 + 2], &c__1, &ab[(
 			j + 1) * ab_dim1 + 1], &kld);
 	    }
 /* L20: */
@@ -241,4 +241,4 @@ L30:
 
 /*     End of DPBTF2 */
 
-} /* dpbtf2_ */
+} /* _starpu_dpbtf2_ */

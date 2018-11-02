@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaswp_(integer *n, doublereal *a, integer *lda, integer 
+/* Subroutine */ int _starpu_dlaswp_(integer *n, doublereal *a, integer *lda, integer 
 	*k1, integer *k2, integer *ipiv, integer *incx)
 {
     /* System generated locals */
@@ -155,4 +155,4 @@
 
 /*     End of DLASWP */
 
-} /* dlaswp_ */
+} /* _starpu_dlaswp_ */

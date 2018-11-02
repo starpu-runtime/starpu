@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dtbmv_(char *uplo, char *trans, char *diag, integer *n, 
+/* Subroutine */ int _starpu_dtbmv_(char *uplo, char *trans, char *diag, integer *n, 
 	integer *k, doublereal *a, integer *lda, doublereal *x, integer *incx)
 {
     /* System generated locals */
@@ -22,9 +22,9 @@
     /* Local variables */
     integer i__, j, l, ix, jx, kx, info;
     doublereal temp;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer kplus1;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical nounit;
 
 /*     .. Scalar Arguments .. */
@@ -181,12 +181,12 @@
 
     /* Function Body */
     info = 0;
-    if (! lsame_(uplo, "U") && ! lsame_(uplo, "L")) {
+    if (! _starpu_lsame_(uplo, "U") && ! _starpu_lsame_(uplo, "L")) {
 	info = 1;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
-	    "T") && ! lsame_(trans, "C")) {
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
+	    "T") && ! _starpu_lsame_(trans, "C")) {
 	info = 2;
-    } else if (! lsame_(diag, "U") && ! lsame_(diag, 
+    } else if (! _starpu_lsame_(diag, "U") && ! _starpu_lsame_(diag, 
 	    "N")) {
 	info = 3;
     } else if (*n < 0) {
@@ -199,7 +199,7 @@
 	info = 9;
     }
     if (info != 0) {
-	xerbla_("DTBMV ", &info);
+	_starpu_xerbla_("DTBMV ", &info);
 	return 0;
     }
 
@@ -209,7 +209,7 @@
 	return 0;
     }
 
-    nounit = lsame_(diag, "N");
+    nounit = _starpu_lsame_(diag, "N");
 
 /*     Set up the start point in X if the increment is not unity. This */
 /*     will be  ( N - 1 )*INCX   too small for descending loops. */
@@ -223,11 +223,11 @@
 /*     Start the operations. In this version the elements of A are */
 /*     accessed sequentially with one pass through A. */
 
-    if (lsame_(trans, "N")) {
+    if (_starpu_lsame_(trans, "N")) {
 
 /*         Form  x := A*x. */
 
-	if (lsame_(uplo, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
 	    kplus1 = *k + 1;
 	    if (*incx == 1) {
 		i__1 = *n;
@@ -326,7 +326,7 @@
 
 /*        Form  x := A'*x. */
 
-	if (lsame_(uplo, "U")) {
+	if (_starpu_lsame_(uplo, "U")) {
 	    kplus1 = *k + 1;
 	    if (*incx == 1) {
 		for (j = *n; j >= 1; --j) {
@@ -419,4 +419,4 @@
 
 /*     End of DTBMV . */
 
-} /* dtbmv_ */
+} /* _starpu_dtbmv_ */

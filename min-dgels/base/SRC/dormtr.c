@@ -19,7 +19,7 @@ static integer c__1 = 1;
 static integer c_n1 = -1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dormtr_(char *side, char *uplo, char *trans, integer *m, 
+/* Subroutine */ int _starpu_dormtr_(char *side, char *uplo, char *trans, integer *m, 
 	integer *n, doublereal *a, integer *lda, doublereal *tau, doublereal *
 	c__, integer *ldc, doublereal *work, integer *lwork, integer *info)
 {
@@ -34,16 +34,16 @@ static integer c__2 = 2;
     /* Local variables */
     integer i1, i2, nb, mi, ni, nq, nw;
     logical left;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer iinfo;
     logical upper;
-    extern /* Subroutine */ int xerbla_(char *, integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
-    extern /* Subroutine */ int dormql_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormql_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *), 
-	    dormqr_(char *, char *, integer *, integer *, integer *, 
+	    _starpu_dormqr_(char *, char *, integer *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *, integer *, integer *);
     integer lwkopt;
@@ -168,8 +168,8 @@ static integer c__2 = 2;
 
     /* Function Body */
     *info = 0;
-    left = lsame_(side, "L");
-    upper = lsame_(uplo, "U");
+    left = _starpu_lsame_(side, "L");
+    upper = _starpu_lsame_(uplo, "U");
     lquery = *lwork == -1;
 
 /*     NQ is the order of Q and NW is the minimum dimension of WORK */
@@ -181,11 +181,11 @@ static integer c__2 = 2;
 	nq = *n;
 	nw = *m;
     }
-    if (! left && ! lsame_(side, "R")) {
+    if (! left && ! _starpu_lsame_(side, "R")) {
 	*info = -1;
-    } else if (! upper && ! lsame_(uplo, "L")) {
+    } else if (! upper && ! _starpu_lsame_(uplo, "L")) {
 	*info = -2;
-    } else if (! lsame_(trans, "N") && ! lsame_(trans, 
+    } else if (! _starpu_lsame_(trans, "N") && ! _starpu_lsame_(trans, 
 	    "T")) {
 	*info = -3;
     } else if (*m < 0) {
@@ -209,7 +209,7 @@ static integer c__2 = 2;
 		s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
 		i__2 = *m - 1;
 		i__3 = *m - 1;
-		nb = ilaenv_(&c__1, "DORMQL", ch__1, &i__2, n, &i__3, &c_n1);
+		nb = _starpu_ilaenv_(&c__1, "DORMQL", ch__1, &i__2, n, &i__3, &c_n1);
 	    } else {
 /* Writing concatenation */
 		i__1[0] = 1, a__1[0] = side;
@@ -217,7 +217,7 @@ static integer c__2 = 2;
 		s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
 		i__2 = *n - 1;
 		i__3 = *n - 1;
-		nb = ilaenv_(&c__1, "DORMQL", ch__1, m, &i__2, &i__3, &c_n1);
+		nb = _starpu_ilaenv_(&c__1, "DORMQL", ch__1, m, &i__2, &i__3, &c_n1);
 	    }
 	} else {
 	    if (left) {
@@ -227,7 +227,7 @@ static integer c__2 = 2;
 		s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
 		i__2 = *m - 1;
 		i__3 = *m - 1;
-		nb = ilaenv_(&c__1, "DORMQR", ch__1, &i__2, n, &i__3, &c_n1);
+		nb = _starpu_ilaenv_(&c__1, "DORMQR", ch__1, &i__2, n, &i__3, &c_n1);
 	    } else {
 /* Writing concatenation */
 		i__1[0] = 1, a__1[0] = side;
@@ -235,7 +235,7 @@ static integer c__2 = 2;
 		s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
 		i__2 = *n - 1;
 		i__3 = *n - 1;
-		nb = ilaenv_(&c__1, "DORMQR", ch__1, m, &i__2, &i__3, &c_n1);
+		nb = _starpu_ilaenv_(&c__1, "DORMQR", ch__1, m, &i__2, &i__3, &c_n1);
 	    }
 	}
 	lwkopt = max(1,nw) * nb;
@@ -244,7 +244,7 @@ static integer c__2 = 2;
 
     if (*info != 0) {
 	i__2 = -(*info);
-	xerbla_("DORMTR", &i__2);
+	_starpu_xerbla_("DORMTR", &i__2);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -270,7 +270,7 @@ static integer c__2 = 2;
 /*        Q was determined by a call to DSYTRD with UPLO = 'U' */
 
 	i__2 = nq - 1;
-	dormql_(side, trans, &mi, &ni, &i__2, &a[(a_dim1 << 1) + 1], lda, &
+	_starpu_dormql_(side, trans, &mi, &ni, &i__2, &a[(a_dim1 << 1) + 1], lda, &
 		tau[1], &c__[c_offset], ldc, &work[1], lwork, &iinfo);
     } else {
 
@@ -284,7 +284,7 @@ static integer c__2 = 2;
 	    i2 = 2;
 	}
 	i__2 = nq - 1;
-	dormqr_(side, trans, &mi, &ni, &i__2, &a[a_dim1 + 2], lda, &tau[1], &
+	_starpu_dormqr_(side, trans, &mi, &ni, &i__2, &a[a_dim1 + 2], lda, &tau[1], &
 		c__[i1 + i2 * c_dim1], ldc, &work[1], lwork, &iinfo);
     }
     work[1] = (doublereal) lwkopt;
@@ -292,4 +292,4 @@ static integer c__2 = 2;
 
 /*     End of DORMTR */
 
-} /* dormtr_ */
+} /* _starpu_dormtr_ */

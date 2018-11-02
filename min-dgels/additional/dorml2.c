@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dorml2_(char *side, char *trans, integer *m, integer *n, 
+/* Subroutine */ int _starpu_dorml2_(char *side, char *trans, integer *m, integer *n, 
 	integer *k, doublereal *a, integer *lda, doublereal *tau, doublereal *
 	c__, integer *ldc, doublereal *work, integer *info)
 {
@@ -24,11 +24,11 @@
     integer i__, i1, i2, i3, ic, jc, mi, ni, nq;
     doublereal aii;
     logical left;
-    extern /* Subroutine */ int dlarf_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlarf_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
 	    doublereal *);
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int xerbla_(char *, integer *);
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_xerbla_(char *, integer *);
     logical notran;
 
 
@@ -143,8 +143,8 @@
 
     /* Function Body */
     *info = 0;
-    left = lsame_(side, "L");
-    notran = lsame_(trans, "N");
+    left = _starpu_lsame_(side, "L");
+    notran = _starpu_lsame_(trans, "N");
 
 /*     NQ is the order of Q */
 
@@ -153,9 +153,9 @@
     } else {
 	nq = *n;
     }
-    if (! left && ! lsame_(side, "R")) {
+    if (! left && ! _starpu_lsame_(side, "R")) {
 	*info = -1;
-    } else if (! notran && ! lsame_(trans, "T")) {
+    } else if (! notran && ! _starpu_lsame_(trans, "T")) {
 	*info = -2;
     } else if (*m < 0) {
 	*info = -3;
@@ -170,7 +170,7 @@
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DORML2", &i__1);
+	_starpu_xerbla_("DORML2", &i__1);
 	return 0;
     }
 
@@ -219,7 +219,7 @@
 
 	aii = a[i__ + i__ * a_dim1];
 	a[i__ + i__ * a_dim1] = 1.;
-	dlarf_(side, &mi, &ni, &a[i__ + i__ * a_dim1], lda, &tau[i__], &c__[
+	_starpu_dlarf_(side, &mi, &ni, &a[i__ + i__ * a_dim1], lda, &tau[i__], &c__[
 		ic + jc * c_dim1], ldc, &work[1]);
 	a[i__ + i__ * a_dim1] = aii;
 /* L10: */
@@ -228,4 +228,4 @@
 
 /*     End of DORML2 */
 
-} /* dorml2_ */
+} /* _starpu_dorml2_ */

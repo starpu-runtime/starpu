@@ -1,7 +1,10 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2011-2018                                Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2017                                     Guillaume Beauchamp
+# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
+# Copyright (C) 2018                                     Umeà University
 # Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
@@ -52,6 +55,9 @@ AC_SUBST([LIBSTARPUMPI_INTERFACE_AGE])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_CURRENT])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_REVISION])
 AC_SUBST([LIBSTARPUFFT_INTERFACE_AGE])
+AC_SUBST([LIBSTARPURM_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPURM_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPURM_INTERFACE_AGE])
 AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
 AC_SUBST([LIBSOCL_INTERFACE_REVISION])
 AC_SUBST([LIBSOCL_INTERFACE_AGE])
@@ -81,6 +87,8 @@ AC_PROG_F77
 AC_PROG_FC
 AC_PROG_GREP
 AC_PROG_EGREP
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
@@ -243,10 +251,10 @@ if test x$enable_blocking = xno ; then
 fi
 
 if test x$enable_blocking = xyes ; then
-AC_MSG_CHECKING(whether worker callbacks should be enabled)
-AC_ARG_ENABLE(worker-callbacks, [AS_HELP_STRING([--enable-worker-callbacks], [enable worker callbacks])],
+	AC_MSG_CHECKING(whether worker callbacks should be enabled)
+	AC_ARG_ENABLE(worker-callbacks, [AS_HELP_STRING([--enable-worker-callbacks], [enable worker callbacks])],
 				enable_worker_cb=$enableval, enable_worker_cb=no)
-AC_MSG_RESULT($enable_worker_cb)
+	AC_MSG_RESULT($enable_worker_cb)
 else
 	# worker sleep/wake-up callbacks only make sense if blocking drivers are enabled
 	enable_worker_cb=no
@@ -391,7 +399,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
 				   [Enable StarPU MPI pedantic isend])],
 				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)
-if  test x$enable_mpi_pedantic_isend = xyes; then
+if test x$enable_mpi_pedantic_isend = xyes; then
 	AC_DEFINE(STARPU_MPI_PEDANTIC_ISEND, [1], [enable StarPU MPI pedantic isend])
 fi
 
@@ -499,10 +507,6 @@ fi
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
 
-AC_PROG_INSTALL
-AC_PROG_MKDIR_P
-AC_PROG_LN_S
-
 AC_HEADER_STDC
 
 AC_C_RESTRICT
@@ -558,8 +562,7 @@ if test x$enable_simgrid = xno ; then
         ],
         [
             # nothing was specified: look in the path
-	    if test x$mpicc_path = x
-	    then
+	    if test x$mpicc_path = x ; then
 		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$PATH])
 	    else
 		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
@@ -572,8 +575,7 @@ if test x$enable_simgrid = xno ; then
     # We test if MPIEXEC exists
     if test ! -x $mpiexec_path; then
         # if it's not valid, it could be the parameter given to configure.ac was not a full path, let's look for it
-	if test x$mpicc_path = x
-	then
+	if test x$mpicc_path = x ; then
             AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$PATH])
 	else
             AC_PATH_PROG(mpiexec_path_bis, $mpiexec_path, [no], [$(dirname $mpicc_path):$PATH])
@@ -749,8 +751,7 @@ case "$target" in
     				   enable_native_winthreads=$enableval, enable_native_winthreads=no)
     ;;
 esac
-if test x"$enable_native_winthreads" != xyes
-then
+if test x"$enable_native_winthreads" != xyes ; then
     INCLUDE_PTHREAD_H='#include <pthread.h>'
 fi
 
@@ -768,8 +769,7 @@ AC_CHECK_TYPE([struct timespec],
 $INCLUDE_PTHREAD_H
 ])
 
-if test x"$enable_native_winthreads" = xyes
-then
+if test x"$enable_native_winthreads" = xyes ; then
     CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
     AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM([[
@@ -897,8 +897,7 @@ AC_CHECK_FUNCS([pread pwrite])
 AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
                     enable_hdf5=$enableval, enable_hdf5=maybe)
 
-if test "x$enable_hdf5" != xno
-then
+if test "x$enable_hdf5" != xno ; then
 	AC_ARG_WITH(hdf5-include-dir,
 		[AS_HELP_STRING([--with-hdf5-include-dir=<path>],
 		[specify where HDF5 headers are installed])],
@@ -2291,8 +2290,7 @@ if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
 		# We need the room for the virtual CUDA/OpenCL devices
 		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
-		if test $nodes -gt 32
-		then
+		if test $nodes -gt 32 ; then
 			nodes=32
 		fi
 	else
@@ -2499,15 +2497,15 @@ if test "x$enable_starpu_top" != "xno" ; then
 	can_build_starpu_top=no
 	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
 	if test x$QMAKE != xnot-found; then
-		QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
-		QT_VERSION=`$QMAKE --version 2>&1 | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
-		if test $QT_VERSION -ge 5 ; then
+		QMAKE_VERSION=`$QMAKE --version 2>/dev/null | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
+		QT_VERSION=`$QMAKE --version 2>/dev/null | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
+		if test 0$QT_VERSION -ge 5 ; then
 			can_build_starpu_top=yes
-		elif test $QMAKE_VERSION -ge 2 ; then
+		elif test 0$QMAKE_VERSION -ge 2 ; then
 			PKG_CHECK_EXISTS([QtGui QtOpenGL QtSql], [
 				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
 				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
-				if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
+				if test 0$QT_MAJVERSION -gt 4 -o \( 0$QT_MAJVERSION -eq 4 -a 0$QT_MINVERSION -ge 7 \) ; then
 					can_build_starpu_top=yes
 				fi
 			])
@@ -3046,8 +3044,7 @@ fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
     # Should we use MKL ?
-    if test -n "$MKLROOT"
-    then
+    if test -n "$MKLROOT" ; then
         CPPFLAGS="${CPPFLAGS} -I$MKLROOT/include"
 	case $host_vendor in
 	    *1om) mkl_plat=mic ;;
@@ -3151,6 +3148,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 					AC_MSG_RESULT(yes)
 					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
 					AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
+					AC_DEFINE(STARPU_BUILT_IN_MIN_DGELS, [1], [use built-in min_dgels])
 					AC_ARG_VAR([DGELS_LIBS], [linker flags for lapack dgels])
 					install_min_dgels=yes
 				fi
@@ -3264,6 +3262,7 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
       ])
 
 AC_CHECK_FUNCS([hwloc_topology_dup])
+AC_CHECK_FUNCS([hwloc_topology_set_components])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
 LDFLAGS="${SAVED_LDFLAGS}"
@@ -3346,6 +3345,132 @@ m4_ifdef([AM_SILENT_RULES],
   AM_CONDITIONAL([STARPU_HAVE_AM111], [false]))
 
 ##########################################
+# Resource Manager                       #
+##########################################
+
+starpurm_support=no
+starpurm_dlb_support=no
+
+AC_ARG_ENABLE(starpurm, [AS_HELP_STRING([--enable-starpurm], [enable resource management support])],
+                    enable_starpurm=$enableval, enable_starpurm=no)
+if test "x$enable_starpurm" != xno
+then
+	starpurm_support=yes
+
+	# DLB
+	DLB_CFLAGS=""
+	DLB_LIBS=""
+	AC_ARG_ENABLE(dlb, [AS_HELP_STRING([--enable-dlb], [enable DLB support])],
+	                    enable_dlb=$enableval, enable_dlb=no)
+	if test "x$enable_dlb" != xno
+	then
+		AC_ARG_WITH(dlb-include-dir,
+			[AS_HELP_STRING([--with-dlb-include-dir=<path>],
+			[specify where DLB headers are installed])],
+			[dlb_inc_dirs="$withval"], [dlb_inc_dirs=""])
+	
+		dlb_inc_dirs="${dlb_inc_dirs} /usr/include/dlb"
+	
+		dlb_incdir_found=no
+		for dlb_incdir in $dlb_inc_dirs
+		do
+			if test -n "$dlb_incdir"
+			then
+				SAVED_CPPFLAGS="${CPPFLAGS}"
+				CPPFLAGS=-I${dlb_incdir}
+				AC_CHECK_HEADERS([dlb.h])
+				if test "$ac_cv_header_dlb_h" = "yes"
+				then
+					CPPFLAGS="-I$dlb_incdir ${SAVED_CPPFLAGS}"
+					DLB_CFLAGS="-I${dlb_incdir}"
+					dlb_incdir_found=yes
+					break
+				else
+					CPPFLAGS=${SAVED_CPPFLAGS}
+				fi
+				unset ac_cv_header_dlb_h
+			fi
+		done
+	
+		AC_ARG_WITH(dlb-lib-dir,
+			[AS_HELP_STRING([--with-dlb-lib-dir=<path>],
+			[specify where DLB libraries are installed])],
+			[dlb_lib_dirs="$withval"], [dlb_lib_dirs=""])
+	
+		dlb_lib_dirs="${dlb_lib_dirs} /usr/lib/dlb"
+	
+		dlb_libdir_found=no
+		for dlb_libdir in $dlb_lib_dirs
+		do
+			if test -n "$dlb_libdir" 
+			then
+				SAVED_LDFLAGS="${LDFLAGS}"
+				LDFLAGS=-L${dlb_libdir}
+				AC_CHECK_LIB(dlb, [DLB_Init])
+				if test "$ac_cv_lib_dlb_DLB_Init" = "yes"
+				then
+					LDFLAGS="-L${dlb_libdir} ${SAVED_LDFLAGS} ${STARPU_DLB_LDFLAGS}"
+					DLB_LIBS="-L${dlb_libdir} -ldlb"
+					dlb_libdir_found=yes
+					break
+				else
+					LDFLAGS=${SAVED_LDFLAGS}
+				fi
+				unset ac_cv_lib_dlb_DLB_Init
+			fi
+		done
+	
+		SAVED_CPPFLAGS="${CPPFLAGS}"
+		SAVED_CFLAGS="${CFLAGS}"
+		SAVED_LDFLAGS="${LDFLAGS}"
+		CPPFLAGS="$HWLOC_CPPFLAGS -D_GNU_SOURCE $CPPFLAGS"
+		CFLAGS="$HWLOC_CFLAGS $CFLAGS"
+		LIBS="$HWLOC_LIBS $LIBS"
+		# check whether libhwloc has a dedicated glibc-sched.h include for conversion with glibc cpusets
+		AC_CHECK_HEADERS([hwloc/glibc-sched.h])
+		CPPFLAGS="$SAVED_CPPFLAGS"
+		CFLAGS="$SAVED_CFLAGS"
+		LIBS="$SAVED_LIBS"
+	
+		SAVED_CPPFLAGS="${CPPFLAGS}"
+		SAVED_CFLAGS="${CFLAGS}"
+		SAVED_LDFLAGS="${LDFLAGS}"
+		CPPFLAGS="$STARPU_CPPFLAGS $CPPFLAGS"
+		CFLAGS="$STARPU_CFLAGS $CFLAGS"
+		LIBS="$STARPU_LIBS $LIBS"
+		# check if StarPU implements starpu_worker_set_going_to_sleep_callback()
+		AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
+		CPPFLAGS="$SAVED_CPPFLAGS"
+		CFLAGS="$SAVED_CFLAGS"
+		LIBS="$SAVED_LIBS"
+	
+		if test "x$dlb_incdir_found" != "xyes" -o "x$dlb_libdir_found" != "xyes"
+		then
+			enable_dlb=no
+		fi
+	fi
+	
+	AC_MSG_CHECKING(whether DLB support should be enabled)
+	AC_MSG_RESULT($enable_dlb)
+	if test "x$enable_dlb" != "xno"
+	then
+		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
+		starpurm_dlb_support=yes
+	fi
+	AC_SUBST(DLB_CFLAGS)
+	AC_SUBST(DLB_LIBS)
+fi
+AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
+AM_CONDITIONAL(BUILD_STARPURM, [test x$starpurm_support = xyes])
+
+AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
+			[enable build of StarPU Resource Manager examples])],
+			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
+AM_CONDITIONAL(BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
+
+
+
+##########################################
 # Documentation                          #
 ##########################################
 
@@ -3369,8 +3494,7 @@ if test "$enable_build_doc" = "yes" ; then
    fi
 fi
 available_doc="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf"
-then
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
    enable_build_doc="no"
    available_doc="yes"
 fi
@@ -3421,6 +3545,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
+  chmod +x doc/doxygen_dev/doxygen_filter.sh
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
@@ -3443,6 +3568,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
   mkdir -p examples/lu
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
+  mkdir -p examples/cholesky
+  test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
@@ -3464,7 +3591,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/src/config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
@@ -3505,6 +3632,10 @@ AC_OUTPUT([
 	starpufft/starpufft-1.1.pc
 	starpufft/starpufft-1.2.pc
 	starpufft/starpufft-1.3.pc
+	starpurm/Makefile
+	starpurm/src/Makefile
+	starpurm/examples/Makefile
+	starpurm/starpurm-1.3.pc
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -3531,6 +3662,9 @@ AC_OUTPUT([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
+	doc/doxygen_dev/Makefile
+	doc/doxygen_dev/doxygen-config.cfg
+	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
 ])
@@ -3578,6 +3712,7 @@ AC_MSG_NOTICE([
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
+	       Resource Management enable:                    $starpurm_support
 	       GCC plug-in:                                   $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
 	       OpenMP runtime support enabled:                $enable_openmp
@@ -3599,16 +3734,14 @@ To run the tests, you need to install the OCL implementation of ICD
 and set the variable SOCL_OCL_LIB_OPENCL to the location of the libOpenCL.so.])
 fi
 
-if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no"
-then
+if test x"$have_valid_hwloc" = xno -a "$enable_simgrid" = "no" ; then
   AC_MSG_NOTICE([
 WARNING: hwloc was not enabled.  If the target machine is hyperthreaded the
 performance may be impacted a lot.  It is strongly recommended to install
 hwloc])
 fi
 
-if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x"
-then
+if test x"$starpu_windows" = xyes -a "x$STARPU_MS_LIB" = "x" ; then
   AC_MSG_NOTICE([
 WARNING: lib was not found, you will not be able to build StarPU applications
 with Microsoft Visual Studio. Add to your PATH the directories for MSVC, e.g

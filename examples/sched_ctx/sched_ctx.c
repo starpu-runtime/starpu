@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2014,2017-2018                      Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2012-2014,2017,2018                      Inria
+ * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2010-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,8 @@
 int tasks_executed = 0;
 int ctx1_tasks_executed = 0;
 int ctx2_tasks_executed = 0;
+int cpu_tasks_executed = 0;
+int gpu_tasks_executed = 0;
 
 static void sched_ctx_cpu_func(void *descr[], void *arg)
 {
@@ -35,6 +37,7 @@ static void sched_ctx_cpu_func(void *descr[], void *arg)
 	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx1_tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&cpu_tasks_executed,1);
 }
 
 static void sched_ctx2_cpu_func(void *descr[], void *arg)
@@ -43,6 +46,7 @@ static void sched_ctx2_cpu_func(void *descr[], void *arg)
 	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&cpu_tasks_executed,1);
 }
 
 static void sched_ctx2_cuda_func(void *descr[], void *arg)
@@ -51,6 +55,7 @@ static void sched_ctx2_cuda_func(void *descr[], void *arg)
 	(void)arg;
 	(void)STARPU_ATOMIC_ADD(&tasks_executed,1);
 	(void)STARPU_ATOMIC_ADD(&ctx2_tasks_executed,1);
+	(void)STARPU_ATOMIC_ADD(&gpu_tasks_executed,1);
 }
 
 static struct starpu_codelet sched_ctx_codelet1 =
@@ -127,24 +132,7 @@ int main(void)
 	/* tell starpu when you finished submitting tasks to this context
 	   in order to allow moving resources from this context to the inheritor one
 	   when its corresponding tasks finished executing */
-
 	starpu_sched_ctx_finished_submit(sched_ctx1);
-
-	/* task with no cuda impl submitted to a ctx with gpus only */
-	struct starpu_task *task2 = starpu_task_create();
-	task2->cl = &sched_ctx_codelet1;
-	task2->cl_arg = NULL;
-
-	/*submit tasks to context*/
-	ret = starpu_task_submit_to_ctx(task2,sched_ctx2);
-	if (ncuda == 0)
-	{
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	}
-	else
-	{
-		STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");
-	}
 
 	for (i = 0; i < ntasks/2; i++)
 	{
@@ -166,9 +154,11 @@ int main(void)
 	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("tasks executed %d out of %d\n", tasks_executed, ntasks+1);
+	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
 	printf("tasks executed on ctx1: %d\n", ctx1_tasks_executed);
 	printf("tasks executed on ctx2: %d\n", ctx2_tasks_executed);
+	printf("tasks executed on CPU: %d\n", cpu_tasks_executed);
+	printf("tasks executed on GPU: %d\n", gpu_tasks_executed);
 
 enodev:
 	starpu_shutdown();

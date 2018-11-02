@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018                                CNRS
+# Copyright (C) 2018                                     CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -26,5 +26,6 @@ make V=1
 make dist
 cp *gz ..
 cp doc/doxygen/starpu.pdf ..
+cp doc/doxygen_dev/starpu_dev.pdf ..
 make clean
 

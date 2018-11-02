@@ -18,7 +18,7 @@
 static doublereal c_b8 = 0.;
 static integer c__1 = 1;
 
-/* Subroutine */ int dlarzt_(char *direct, char *storev, integer *n, integer *
+/* Subroutine */ int _starpu_dlarzt_(char *direct, char *storev, integer *n, integer *
 	k, doublereal *v, integer *ldv, doublereal *tau, doublereal *t, 
 	integer *ldt)
 {
@@ -28,12 +28,12 @@ static integer c__1 = 1;
 
     /* Local variables */
     integer i__, j, info;
-    extern logical lsame_(char *, char *);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
+    extern logical _starpu_lsame_(char *, char *);
+    extern /* Subroutine */ int _starpu_dgemv_(char *, integer *, integer *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *), dtrmv_(char *, 
+	    doublereal *, doublereal *, integer *), _starpu_dtrmv_(char *, 
 	    char *, char *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), xerbla_(char *, integer *);
+	    integer *), _starpu_xerbla_(char *, integer *);
 
 
 /*  -- LAPACK routine (version 3.2) -- */
@@ -176,14 +176,14 @@ static integer c__1 = 1;
 
     /* Function Body */
     info = 0;
-    if (! lsame_(direct, "B")) {
+    if (! _starpu_lsame_(direct, "B")) {
 	info = -1;
-    } else if (! lsame_(storev, "R")) {
+    } else if (! _starpu_lsame_(storev, "R")) {
 	info = -2;
     }
     if (info != 0) {
 	i__1 = -info;
-	xerbla_("DLARZT", &i__1);
+	_starpu_xerbla_("DLARZT", &i__1);
 	return 0;
     }
 
@@ -207,14 +207,14 @@ static integer c__1 = 1;
 
 		i__1 = *k - i__;
 		d__1 = -tau[i__];
-		dgemv_("No transpose", &i__1, n, &d__1, &v[i__ + 1 + v_dim1], 
+		_starpu_dgemv_("No transpose", &i__1, n, &d__1, &v[i__ + 1 + v_dim1], 
 			ldv, &v[i__ + v_dim1], ldv, &c_b8, &t[i__ + 1 + i__ * 
 			t_dim1], &c__1);
 
 /*              T(i+1:k,i) = T(i+1:k,i+1:k) * T(i+1:k,i) */
 
 		i__1 = *k - i__;
-		dtrmv_("Lower", "No transpose", "Non-unit", &i__1, &t[i__ + 1 
+		_starpu_dtrmv_("Lower", "No transpose", "Non-unit", &i__1, &t[i__ + 1 
 			+ (i__ + 1) * t_dim1], ldt, &t[i__ + 1 + i__ * t_dim1]
 , &c__1);
 	    }
@@ -226,4 +226,4 @@ static integer c__1 = 1;
 
 /*     End of DLARZT */
 
-} /* dlarzt_ */
+} /* _starpu_dlarzt_ */

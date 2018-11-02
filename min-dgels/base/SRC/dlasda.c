@@ -21,7 +21,7 @@ static doublereal c_b12 = 1.;
 static integer c__1 = 1;
 static integer c__2 = 2;
 
-/* Subroutine */ int dlasda_(integer *icompq, integer *smlsiz, integer *n, 
+/* Subroutine */ int _starpu_dlasda_(integer *icompq, integer *smlsiz, integer *n, 
 	integer *sqre, doublereal *d__, doublereal *e, doublereal *u, integer 
 	*ldu, doublereal *vt, integer *k, doublereal *difl, doublereal *difr, 
 	doublereal *z__, doublereal *poles, integer *givptr, integer *givcol, 
@@ -44,23 +44,23 @@ static integer c__2 = 2;
     integer idxq, nlvl;
     doublereal alpha;
     integer inode, ndiml, ndimr, idxqi, itemp;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
+    extern /* Subroutine */ int _starpu_dcopy_(integer *, doublereal *, integer *, 
 	    doublereal *, integer *);
     integer sqrei;
-    extern /* Subroutine */ int dlasd6_(integer *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlasd6_(integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *, 
 	     doublereal *, integer *, integer *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, doublereal *, 
 	     doublereal *, integer *, integer *);
     integer nwork1, nwork2;
-    extern /* Subroutine */ int dlasdq_(char *, integer *, integer *, integer 
+    extern /* Subroutine */ int _starpu_dlasdq_(char *, integer *, integer *, integer 
 	    *, integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *), dlasdt_(integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *), dlaset_(
+	    doublereal *, integer *), _starpu_dlasdt_(integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *), _starpu_dlaset_(
 	    char *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, integer *), xerbla_(char *, integer *);
+	    doublereal *, integer *), _starpu_xerbla_(char *, integer *);
     integer smlszp;
 
 
@@ -288,7 +288,7 @@ static integer c__2 = 2;
     }
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DLASDA", &i__1);
+	_starpu_xerbla_("DLASDA", &i__1);
 	return 0;
     }
 
@@ -298,11 +298,11 @@ static integer c__2 = 2;
 
     if (*n <= *smlsiz) {
 	if (*icompq == 0) {
-	    dlasdq_("U", sqre, n, &c__0, &c__0, &c__0, &d__[1], &e[1], &vt[
+	    _starpu_dlasdq_("U", sqre, n, &c__0, &c__0, &c__0, &d__[1], &e[1], &vt[
 		    vt_offset], ldu, &u[u_offset], ldu, &u[u_offset], ldu, &
 		    work[1], info);
 	} else {
-	    dlasdq_("U", sqre, n, &m, n, &c__0, &d__[1], &e[1], &vt[vt_offset]
+	    _starpu_dlasdq_("U", sqre, n, &m, n, &c__0, &d__[1], &e[1], &vt[vt_offset]
 , ldu, &u[u_offset], ldu, &u[u_offset], ldu, &work[1], 
 		    info);
 	}
@@ -326,7 +326,7 @@ static integer c__2 = 2;
     nwork1 = vl + m;
     nwork2 = nwork1 + smlszp * smlszp;
 
-    dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
+    _starpu_dlasdt_(n, &nlvl, &nd, &iwork[inode], &iwork[ndiml], &iwork[ndimr], 
 	    smlsiz);
 
 /*     for the nodes on bottom level of the tree, solve */
@@ -354,22 +354,22 @@ static integer c__2 = 2;
 	vli = vl + nlf - 1;
 	sqrei = 1;
 	if (*icompq == 0) {
-	    dlaset_("A", &nlp1, &nlp1, &c_b11, &c_b12, &work[nwork1], &smlszp);
-	    dlasdq_("U", &sqrei, &nl, &nlp1, &nru, &ncc, &d__[nlf], &e[nlf], &
+	    _starpu_dlaset_("A", &nlp1, &nlp1, &c_b11, &c_b12, &work[nwork1], &smlszp);
+	    _starpu_dlasdq_("U", &sqrei, &nl, &nlp1, &nru, &ncc, &d__[nlf], &e[nlf], &
 		    work[nwork1], &smlszp, &work[nwork2], &nl, &work[nwork2], 
 		    &nl, &work[nwork2], info);
 	    itemp = nwork1 + nl * smlszp;
-	    dcopy_(&nlp1, &work[nwork1], &c__1, &work[vfi], &c__1);
-	    dcopy_(&nlp1, &work[itemp], &c__1, &work[vli], &c__1);
+	    _starpu_dcopy_(&nlp1, &work[nwork1], &c__1, &work[vfi], &c__1);
+	    _starpu_dcopy_(&nlp1, &work[itemp], &c__1, &work[vli], &c__1);
 	} else {
-	    dlaset_("A", &nl, &nl, &c_b11, &c_b12, &u[nlf + u_dim1], ldu);
-	    dlaset_("A", &nlp1, &nlp1, &c_b11, &c_b12, &vt[nlf + vt_dim1], 
+	    _starpu_dlaset_("A", &nl, &nl, &c_b11, &c_b12, &u[nlf + u_dim1], ldu);
+	    _starpu_dlaset_("A", &nlp1, &nlp1, &c_b11, &c_b12, &vt[nlf + vt_dim1], 
 		    ldu);
-	    dlasdq_("U", &sqrei, &nl, &nlp1, &nl, &ncc, &d__[nlf], &e[nlf], &
+	    _starpu_dlasdq_("U", &sqrei, &nl, &nlp1, &nl, &ncc, &d__[nlf], &e[nlf], &
 		    vt[nlf + vt_dim1], ldu, &u[nlf + u_dim1], ldu, &u[nlf + 
 		    u_dim1], ldu, &work[nwork1], info);
-	    dcopy_(&nlp1, &vt[nlf + vt_dim1], &c__1, &work[vfi], &c__1);
-	    dcopy_(&nlp1, &vt[nlf + nlp1 * vt_dim1], &c__1, &work[vli], &c__1)
+	    _starpu_dcopy_(&nlp1, &vt[nlf + vt_dim1], &c__1, &work[vfi], &c__1);
+	    _starpu_dcopy_(&nlp1, &vt[nlf + nlp1 * vt_dim1], &c__1, &work[vli], &c__1)
 		    ;
 	}
 	if (*info != 0) {
@@ -390,22 +390,22 @@ static integer c__2 = 2;
 	vli += nlp1;
 	nrp1 = nr + sqrei;
 	if (*icompq == 0) {
-	    dlaset_("A", &nrp1, &nrp1, &c_b11, &c_b12, &work[nwork1], &smlszp);
-	    dlasdq_("U", &sqrei, &nr, &nrp1, &nru, &ncc, &d__[nrf], &e[nrf], &
+	    _starpu_dlaset_("A", &nrp1, &nrp1, &c_b11, &c_b12, &work[nwork1], &smlszp);
+	    _starpu_dlasdq_("U", &sqrei, &nr, &nrp1, &nru, &ncc, &d__[nrf], &e[nrf], &
 		    work[nwork1], &smlszp, &work[nwork2], &nr, &work[nwork2], 
 		    &nr, &work[nwork2], info);
 	    itemp = nwork1 + (nrp1 - 1) * smlszp;
-	    dcopy_(&nrp1, &work[nwork1], &c__1, &work[vfi], &c__1);
-	    dcopy_(&nrp1, &work[itemp], &c__1, &work[vli], &c__1);
+	    _starpu_dcopy_(&nrp1, &work[nwork1], &c__1, &work[vfi], &c__1);
+	    _starpu_dcopy_(&nrp1, &work[itemp], &c__1, &work[vli], &c__1);
 	} else {
-	    dlaset_("A", &nr, &nr, &c_b11, &c_b12, &u[nrf + u_dim1], ldu);
-	    dlaset_("A", &nrp1, &nrp1, &c_b11, &c_b12, &vt[nrf + vt_dim1], 
+	    _starpu_dlaset_("A", &nr, &nr, &c_b11, &c_b12, &u[nrf + u_dim1], ldu);
+	    _starpu_dlaset_("A", &nrp1, &nrp1, &c_b11, &c_b12, &vt[nrf + vt_dim1], 
 		    ldu);
-	    dlasdq_("U", &sqrei, &nr, &nrp1, &nr, &ncc, &d__[nrf], &e[nrf], &
+	    _starpu_dlasdq_("U", &sqrei, &nr, &nrp1, &nr, &ncc, &d__[nrf], &e[nrf], &
 		    vt[nrf + vt_dim1], ldu, &u[nrf + u_dim1], ldu, &u[nrf + 
 		    u_dim1], ldu, &work[nwork1], info);
-	    dcopy_(&nrp1, &vt[nrf + vt_dim1], &c__1, &work[vfi], &c__1);
-	    dcopy_(&nrp1, &vt[nrf + nrp1 * vt_dim1], &c__1, &work[vli], &c__1)
+	    _starpu_dcopy_(&nrp1, &vt[nrf + vt_dim1], &c__1, &work[vfi], &c__1);
+	    _starpu_dcopy_(&nrp1, &vt[nrf + nrp1 * vt_dim1], &c__1, &work[vli], &c__1)
 		    ;
 	}
 	if (*info != 0) {
@@ -455,7 +455,7 @@ static integer c__2 = 2;
 	    alpha = d__[ic];
 	    beta = e[ic];
 	    if (*icompq == 0) {
-		dlasd6_(icompq, &nl, &nr, &sqrei, &d__[nlf], &work[vfi], &
+		_starpu_dlasd6_(icompq, &nl, &nr, &sqrei, &d__[nlf], &work[vfi], &
 			work[vli], &alpha, &beta, &iwork[idxqi], &perm[
 			perm_offset], &givptr[1], &givcol[givcol_offset], 
 			ldgcol, &givnum[givnum_offset], ldu, &poles[
@@ -464,7 +464,7 @@ static integer c__2 = 2;
 			 &iwork[iwk], info);
 	    } else {
 		--j;
-		dlasd6_(icompq, &nl, &nr, &sqrei, &d__[nlf], &work[vfi], &
+		_starpu_dlasd6_(icompq, &nl, &nr, &sqrei, &d__[nlf], &work[vfi], &
 			work[vli], &alpha, &beta, &iwork[idxqi], &perm[nlf + 
 			lvl * perm_dim1], &givptr[j], &givcol[nlf + lvl2 * 
 			givcol_dim1], ldgcol, &givnum[nlf + lvl2 * 
@@ -485,4 +485,4 @@ static integer c__2 = 2;
 
 /*     End of DLASDA */
 
-} /* dlasda_ */
+} /* _starpu_dlasda_ */

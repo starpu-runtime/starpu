@@ -655,7 +655,7 @@ int ws_push_task(struct starpu_task *task)
 	starpu_sched_task_break(task);
 	record_data_locality(task, workerid);
 	STARPU_ASSERT_MSG(ws->per_worker[workerid].running, "workerid=%d, ws=%p\n", workerid, ws);
-	_starpu_prio_deque_push_front_task(&ws->per_worker[workerid].queue, task);
+	_starpu_prio_deque_push_back_task(&ws->per_worker[workerid].queue, task);
 	locality_pushed_task(ws, task, workerid, sched_ctx_id);
 
 	starpu_push_task_end(task);

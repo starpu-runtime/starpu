@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-doublereal dzsum1_(integer *n, doublecomplex *cx, integer *incx)
+doublereal _starpu_dzsum1_(integer *n, doublecomplex *cx, integer *incx)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -111,4 +111,4 @@ L20:
 
 /*     End of DZSUM1 */
 
-} /* dzsum1_ */
+} /* _starpu_dzsum1_ */

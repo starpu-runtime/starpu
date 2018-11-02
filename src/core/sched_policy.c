@@ -422,6 +422,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	_STARPU_LOG_IN();
 
 	unsigned can_push = _starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops, task);
+	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED || task->status == STARPU_TASK_BLOCKED_ON_TAG || task->status == STARPU_TASK_BLOCKED_ON_TASK || task->status == STARPU_TASK_BLOCKED_ON_DATA);
 	task->status = STARPU_TASK_READY;
 	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
 	/* if the context does not have any workers save the tasks in a temp list */
@@ -457,6 +458,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
+		task->status = STARPU_TASK_RUNNING;
 		if (task->prologue_callback_pop_func)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 

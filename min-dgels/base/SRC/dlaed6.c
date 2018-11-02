@@ -13,7 +13,7 @@
 #include "f2c.h"
 #include "blaswrap.h"
 
-/* Subroutine */ int dlaed6_(integer *kniter, logical *orgati, doublereal *
+/* Subroutine */ int _starpu_dlaed6_(integer *kniter, logical *orgati, doublereal *
 	rho, doublereal *d__, doublereal *z__, doublereal *finit, doublereal *
 	tau, integer *info)
 {
@@ -33,7 +33,7 @@
     logical scale;
     integer niter;
     doublereal small1, small2, sminv1, sminv2;
-    extern doublereal dlamch_(char *);
+    extern doublereal _starpu_dlamch_(char *);
     doublereal dscale[3], sclfac, zscale[3], erretm, sclinv;
 
 
@@ -198,9 +198,9 @@
 /*     SMINV2, EPS are not SAVEd anymore between one call to the */
 /*     others but recomputed at each call */
 
-    eps = dlamch_("Epsilon");
-    base = dlamch_("Base");
-    i__1 = (integer) (log(dlamch_("SafMin")) / log(base) / 3.);
+    eps = _starpu_dlamch_("Epsilon");
+    base = _starpu_dlamch_("Base");
+    i__1 = (integer) (log(_starpu_dlamch_("SafMin")) / log(base) / 3.);
     small1 = pow_di(&base, &i__1);
     sminv1 = 1. / small1;
     small2 = small1 * small1;
@@ -371,4 +371,4 @@ L60:
 
 /*     End of DLAED6 */
 
-} /* dlaed6_ */
+} /* _starpu_dlaed6_ */

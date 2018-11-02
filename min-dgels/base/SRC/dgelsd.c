@@ -22,7 +22,7 @@ static integer c__0 = 0;
 static integer c__1 = 1;
 static doublereal c_b82 = 0.;
 
-/* Subroutine */ int dgelsd_(integer *m, integer *n, integer *nrhs, 
+/* Subroutine */ int _starpu_dgelsd_(integer *m, integer *n, integer *nrhs, 
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	s, doublereal *rcond, integer *rank, doublereal *work, integer *lwork, 
 	 integer *iwork, integer *info)
@@ -39,36 +39,36 @@ static doublereal c_b82 = 0.;
     integer itau, nlvl, iascl, ibscl;
     doublereal sfmin;
     integer minmn, maxmn, itaup, itauq, mnthr, nwork;
-    extern /* Subroutine */ int dlabad_(doublereal *, doublereal *), dgebrd_(
+    extern /* Subroutine */ int _starpu_dlabad_(doublereal *, doublereal *), _starpu_dgebrd_(
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *, 
 	     integer *);
-    extern doublereal dlamch_(char *), dlange_(char *, integer *, 
+    extern doublereal _starpu_dlamch_(char *), _starpu_dlange_(char *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *);
-    extern /* Subroutine */ int dgelqf_(integer *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dgelqf_(integer *, integer *, doublereal *, 
 	    integer *, doublereal *, doublereal *, integer *, integer *), 
-	    dlalsd_(char *, integer *, integer *, integer *, doublereal *, 
+	    _starpu_dlalsd_(char *, integer *, integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, integer *, integer *), dlascl_(char *, 
+	    doublereal *, integer *, integer *), _starpu_dlascl_(char *, 
 	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    integer *, doublereal *, integer *, integer *), dgeqrf_(
+	    integer *, doublereal *, integer *, integer *), _starpu_dgeqrf_(
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, integer *, integer *), dlacpy_(char *, integer *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *), dlaset_(char *, integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *), xerbla_(char *, 
+	    doublereal *, integer *, integer *), _starpu_dlacpy_(char *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *), _starpu_dlaset_(char *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *), _starpu_xerbla_(char *, 
 	    integer *);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
+    extern integer _starpu_ilaenv_(integer *, char *, char *, integer *, integer *, 
 	    integer *, integer *);
     doublereal bignum;
-    extern /* Subroutine */ int dormbr_(char *, char *, char *, integer *, 
+    extern /* Subroutine */ int _starpu_dormbr_(char *, char *, char *, integer *, 
 	    integer *, integer *, doublereal *, integer *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *);
     integer wlalsd;
-    extern /* Subroutine */ int dormlq_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormlq_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
     integer ldwork;
-    extern /* Subroutine */ int dormqr_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dormqr_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *);
     integer minwrk, maxwrk;
@@ -234,7 +234,7 @@ static doublereal c_b82 = 0.;
     *info = 0;
     minmn = min(*m,*n);
     maxmn = max(*m,*n);
-    mnthr = ilaenv_(&c__6, "DGELSD", " ", m, n, nrhs, &c_n1);
+    mnthr = _starpu_ilaenv_(&c__6, "DGELSD", " ", m, n, nrhs, &c_n1);
     lquery = *lwork == -1;
     if (*m < 0) {
 	*info = -1;
@@ -248,7 +248,7 @@ static doublereal c_b82 = 0.;
 	*info = -7;
     }
 
-    smlsiz = ilaenv_(&c__9, "DGELSD", " ", &c__0, &c__0, &c__0, &c__0);
+    smlsiz = _starpu_ilaenv_(&c__9, "DGELSD", " ", &c__0, &c__0, &c__0, &c__0);
 
 /*     Compute workspace. */
 /*     (Note: Comments in the code beginning "Workspace:" describe the */
@@ -273,11 +273,11 @@ static doublereal c_b82 = 0.;
 
 	    mm = *n;
 /* Computing MAX */
-	    i__1 = maxwrk, i__2 = *n + *n * ilaenv_(&c__1, "DGEQRF", " ", m, 
+	    i__1 = maxwrk, i__2 = *n + *n * _starpu_ilaenv_(&c__1, "DGEQRF", " ", m, 
 		    n, &c_n1, &c_n1);
 	    maxwrk = max(i__1,i__2);
 /* Computing MAX */
-	    i__1 = maxwrk, i__2 = *n + *nrhs * ilaenv_(&c__1, "DORMQR", "LT", 
+	    i__1 = maxwrk, i__2 = *n + *nrhs * _starpu_ilaenv_(&c__1, "DORMQR", "LT", 
 		    m, nrhs, n, &c_n1);
 	    maxwrk = max(i__1,i__2);
 	}
@@ -286,15 +286,15 @@ static doublereal c_b82 = 0.;
 /*           Path 1 - overdetermined or exactly determined. */
 
 /* Computing MAX */
-	    i__1 = maxwrk, i__2 = *n * 3 + (mm + *n) * ilaenv_(&c__1, "DGEBRD"
+	    i__1 = maxwrk, i__2 = *n * 3 + (mm + *n) * _starpu_ilaenv_(&c__1, "DGEBRD"
 , " ", &mm, n, &c_n1, &c_n1);
 	    maxwrk = max(i__1,i__2);
 /* Computing MAX */
-	    i__1 = maxwrk, i__2 = *n * 3 + *nrhs * ilaenv_(&c__1, "DORMBR", 
+	    i__1 = maxwrk, i__2 = *n * 3 + *nrhs * _starpu_ilaenv_(&c__1, "DORMBR", 
 		    "QLT", &mm, nrhs, n, &c_n1);
 	    maxwrk = max(i__1,i__2);
 /* Computing MAX */
-	    i__1 = maxwrk, i__2 = *n * 3 + (*n - 1) * ilaenv_(&c__1, "DORMBR", 
+	    i__1 = maxwrk, i__2 = *n * 3 + (*n - 1) * _starpu_ilaenv_(&c__1, "DORMBR", 
 		     "PLN", n, nrhs, n, &c_n1);
 	    maxwrk = max(i__1,i__2);
 /* Computing 2nd power */
@@ -319,19 +319,19 @@ static doublereal c_b82 = 0.;
 /*              Path 2a - underdetermined, with many more columns */
 /*              than rows. */
 
-		maxwrk = *m + *m * ilaenv_(&c__1, "DGELQF", " ", m, n, &c_n1, 
+		maxwrk = *m + *m * _starpu_ilaenv_(&c__1, "DGELQF", " ", m, n, &c_n1, 
 			&c_n1);
 /* Computing MAX */
 		i__1 = maxwrk, i__2 = *m * *m + (*m << 2) + (*m << 1) * 
-			ilaenv_(&c__1, "DGEBRD", " ", m, m, &c_n1, &c_n1);
+			_starpu_ilaenv_(&c__1, "DGEBRD", " ", m, m, &c_n1, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = *m * *m + (*m << 2) + *nrhs * ilaenv_(&
+		i__1 = maxwrk, i__2 = *m * *m + (*m << 2) + *nrhs * _starpu_ilaenv_(&
 			c__1, "DORMBR", "QLT", m, nrhs, m, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
 		i__1 = maxwrk, i__2 = *m * *m + (*m << 2) + (*m - 1) * 
-			ilaenv_(&c__1, "DORMBR", "PLN", m, nrhs, m, &c_n1);
+			_starpu_ilaenv_(&c__1, "DORMBR", "PLN", m, nrhs, m, &c_n1);
 		maxwrk = max(i__1,i__2);
 		if (*nrhs > 1) {
 /* Computing MAX */
@@ -343,7 +343,7 @@ static doublereal c_b82 = 0.;
 		    maxwrk = max(i__1,i__2);
 		}
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = *m + *nrhs * ilaenv_(&c__1, "DORMLQ", 
+		i__1 = maxwrk, i__2 = *m + *nrhs * _starpu_ilaenv_(&c__1, "DORMLQ", 
 			"LT", n, nrhs, m, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
@@ -361,14 +361,14 @@ static doublereal c_b82 = 0.;
 
 /*              Path 2 - remaining underdetermined cases. */
 
-		maxwrk = *m * 3 + (*n + *m) * ilaenv_(&c__1, "DGEBRD", " ", m, 
+		maxwrk = *m * 3 + (*n + *m) * _starpu_ilaenv_(&c__1, "DGEBRD", " ", m, 
 			 n, &c_n1, &c_n1);
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = *m * 3 + *nrhs * ilaenv_(&c__1, "DORMBR"
+		i__1 = maxwrk, i__2 = *m * 3 + *nrhs * _starpu_ilaenv_(&c__1, "DORMBR"
 , "QLT", m, nrhs, n, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
-		i__1 = maxwrk, i__2 = *m * 3 + *m * ilaenv_(&c__1, "DORMBR", 
+		i__1 = maxwrk, i__2 = *m * 3 + *m * _starpu_ilaenv_(&c__1, "DORMBR", 
 			"PLN", n, nrhs, m, &c_n1);
 		maxwrk = max(i__1,i__2);
 /* Computing MAX */
@@ -389,7 +389,7 @@ static doublereal c_b82 = 0.;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DGELSD", &i__1);
+	_starpu_xerbla_("DGELSD", &i__1);
 	return 0;
     } else if (lquery) {
 	goto L10;
@@ -404,28 +404,28 @@ static doublereal c_b82 = 0.;
 
 /*     Get machine parameters. */
 
-    eps = dlamch_("P");
-    sfmin = dlamch_("S");
+    eps = _starpu_dlamch_("P");
+    sfmin = _starpu_dlamch_("S");
     smlnum = sfmin / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
+    _starpu_dlabad_(&smlnum, &bignum);
 
 /*     Scale A if max entry outside range [SMLNUM,BIGNUM]. */
 
-    anrm = dlange_("M", m, n, &a[a_offset], lda, &work[1]);
+    anrm = _starpu_dlange_("M", m, n, &a[a_offset], lda, &work[1]);
     iascl = 0;
     if (anrm > 0. && anrm < smlnum) {
 
 /*        Scale matrix norm up to SMLNUM. */
 
-	dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &smlnum, m, n, &a[a_offset], lda, 
 		info);
 	iascl = 1;
     } else if (anrm > bignum) {
 
 /*        Scale matrix norm down to BIGNUM. */
 
-	dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &bignum, m, n, &a[a_offset], lda, 
 		info);
 	iascl = 2;
     } else if (anrm == 0.) {
@@ -433,28 +433,28 @@ static doublereal c_b82 = 0.;
 /*        Matrix all zero. Return zero solution. */
 
 	i__1 = max(*m,*n);
-	dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[b_offset], ldb);
-	dlaset_("F", &minmn, &c__1, &c_b82, &c_b82, &s[1], &c__1);
+	_starpu_dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[b_offset], ldb);
+	_starpu_dlaset_("F", &minmn, &c__1, &c_b82, &c_b82, &s[1], &c__1);
 	*rank = 0;
 	goto L10;
     }
 
 /*     Scale B if max entry outside range [SMLNUM,BIGNUM]. */
 
-    bnrm = dlange_("M", m, nrhs, &b[b_offset], ldb, &work[1]);
+    bnrm = _starpu_dlange_("M", m, nrhs, &b[b_offset], ldb, &work[1]);
     ibscl = 0;
     if (bnrm > 0. && bnrm < smlnum) {
 
 /*        Scale matrix norm up to SMLNUM. */
 
-	dlascl_("G", &c__0, &c__0, &bnrm, &smlnum, m, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &bnrm, &smlnum, m, nrhs, &b[b_offset], ldb, 
 		 info);
 	ibscl = 1;
     } else if (bnrm > bignum) {
 
 /*        Scale matrix norm down to BIGNUM. */
 
-	dlascl_("G", &c__0, &c__0, &bnrm, &bignum, m, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &bnrm, &bignum, m, nrhs, &b[b_offset], ldb, 
 		 info);
 	ibscl = 2;
     }
@@ -463,7 +463,7 @@ static doublereal c_b82 = 0.;
 
     if (*m < *n) {
 	i__1 = *n - *m;
-	dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[*m + 1 + b_dim1], ldb);
+	_starpu_dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[*m + 1 + b_dim1], ldb);
     }
 
 /*     Overdetermined case. */
@@ -485,14 +485,14 @@ static doublereal c_b82 = 0.;
 /*           (Workspace: need 2*N, prefer N+N*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &i__1, 
+	    _starpu_dgeqrf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &i__1, 
 		     info);
 
 /*           Multiply B by transpose(Q). */
 /*           (Workspace: need N+NRHS, prefer N+NRHS*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormqr_("L", "T", m, nrhs, n, &a[a_offset], lda, &work[itau], &b[
+	    _starpu_dormqr_("L", "T", m, nrhs, n, &a[a_offset], lda, &work[itau], &b[
 		    b_offset], ldb, &work[nwork], &i__1, info);
 
 /*           Zero out below R. */
@@ -500,7 +500,7 @@ static doublereal c_b82 = 0.;
 	    if (*n > 1) {
 		i__1 = *n - 1;
 		i__2 = *n - 1;
-		dlaset_("L", &i__1, &i__2, &c_b82, &c_b82, &a[a_dim1 + 2], 
+		_starpu_dlaset_("L", &i__1, &i__2, &c_b82, &c_b82, &a[a_dim1 + 2], 
 			lda);
 	    }
 	}
@@ -514,19 +514,19 @@ static doublereal c_b82 = 0.;
 /*        (Workspace: need 3*N+MM, prefer 3*N+(MM+N)*NB) */
 
 	i__1 = *lwork - nwork + 1;
-	dgebrd_(&mm, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
+	_starpu_dgebrd_(&mm, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
 		work[itaup], &work[nwork], &i__1, info);
 
 /*        Multiply B by transpose of left bidiagonalizing vectors of R. */
 /*        (Workspace: need 3*N+NRHS, prefer 3*N+NRHS*NB) */
 
 	i__1 = *lwork - nwork + 1;
-	dormbr_("Q", "L", "T", &mm, nrhs, n, &a[a_offset], lda, &work[itauq], 
+	_starpu_dormbr_("Q", "L", "T", &mm, nrhs, n, &a[a_offset], lda, &work[itauq], 
 		&b[b_offset], ldb, &work[nwork], &i__1, info);
 
 /*        Solve the bidiagonal least squares problem. */
 
-	dlalsd_("U", &smlsiz, n, nrhs, &s[1], &work[ie], &b[b_offset], ldb, 
+	_starpu_dlalsd_("U", &smlsiz, n, nrhs, &s[1], &work[ie], &b[b_offset], ldb, 
 		rcond, rank, &work[nwork], &iwork[1], info);
 	if (*info != 0) {
 	    goto L10;
@@ -535,7 +535,7 @@ static doublereal c_b82 = 0.;
 /*        Multiply B by right bidiagonalizing vectors of R. */
 
 	i__1 = *lwork - nwork + 1;
-	dormbr_("P", "L", "N", n, nrhs, n, &a[a_offset], lda, &work[itaup], &
+	_starpu_dormbr_("P", "L", "N", n, nrhs, n, &a[a_offset], lda, &work[itaup], &
 		b[b_offset], ldb, &work[nwork], &i__1, info);
 
     } else /* if(complicated condition) */ {
@@ -565,16 +565,16 @@ static doublereal c_b82 = 0.;
 /*        (Workspace: need 2*M, prefer M+M*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &i__1, 
+	    _starpu_dgelqf_(m, n, &a[a_offset], lda, &work[itau], &work[nwork], &i__1, 
 		     info);
 	    il = nwork;
 
 /*        Copy L to WORK(IL), zeroing out above its diagonal. */
 
-	    dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwork);
+	    _starpu_dlacpy_("L", m, m, &a[a_offset], lda, &work[il], &ldwork);
 	    i__1 = *m - 1;
 	    i__2 = *m - 1;
-	    dlaset_("U", &i__1, &i__2, &c_b82, &c_b82, &work[il + ldwork], &
+	    _starpu_dlaset_("U", &i__1, &i__2, &c_b82, &c_b82, &work[il + ldwork], &
 		    ldwork);
 	    ie = il + ldwork * *m;
 	    itauq = ie + *m;
@@ -585,19 +585,19 @@ static doublereal c_b82 = 0.;
 /*        (Workspace: need M*M+5*M, prefer M*M+4*M+2*M*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dgebrd_(m, m, &work[il], &ldwork, &s[1], &work[ie], &work[itauq], 
+	    _starpu_dgebrd_(m, m, &work[il], &ldwork, &s[1], &work[ie], &work[itauq], 
 		    &work[itaup], &work[nwork], &i__1, info);
 
 /*        Multiply B by transpose of left bidiagonalizing vectors of L. */
 /*        (Workspace: need M*M+4*M+NRHS, prefer M*M+4*M+NRHS*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormbr_("Q", "L", "T", m, nrhs, m, &work[il], &ldwork, &work[
+	    _starpu_dormbr_("Q", "L", "T", m, nrhs, m, &work[il], &ldwork, &work[
 		    itauq], &b[b_offset], ldb, &work[nwork], &i__1, info);
 
 /*        Solve the bidiagonal least squares problem. */
 
-	    dlalsd_("U", &smlsiz, m, nrhs, &s[1], &work[ie], &b[b_offset], 
+	    _starpu_dlalsd_("U", &smlsiz, m, nrhs, &s[1], &work[ie], &b[b_offset], 
 		    ldb, rcond, rank, &work[nwork], &iwork[1], info);
 	    if (*info != 0) {
 		goto L10;
@@ -606,13 +606,13 @@ static doublereal c_b82 = 0.;
 /*        Multiply B by right bidiagonalizing vectors of L. */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormbr_("P", "L", "N", m, nrhs, m, &work[il], &ldwork, &work[
+	    _starpu_dormbr_("P", "L", "N", m, nrhs, m, &work[il], &ldwork, &work[
 		    itaup], &b[b_offset], ldb, &work[nwork], &i__1, info);
 
 /*        Zero out below first M rows of B. */
 
 	    i__1 = *n - *m;
-	    dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[*m + 1 + b_dim1], 
+	    _starpu_dlaset_("F", &i__1, nrhs, &c_b82, &c_b82, &b[*m + 1 + b_dim1], 
 		    ldb);
 	    nwork = itau + *m;
 
@@ -620,7 +620,7 @@ static doublereal c_b82 = 0.;
 /*        (Workspace: need M+NRHS, prefer M+NRHS*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormlq_("L", "T", n, nrhs, m, &a[a_offset], lda, &work[itau], &b[
+	    _starpu_dormlq_("L", "T", n, nrhs, m, &a[a_offset], lda, &work[itau], &b[
 		    b_offset], ldb, &work[nwork], &i__1, info);
 
 	} else {
@@ -636,19 +636,19 @@ static doublereal c_b82 = 0.;
 /*        (Workspace: need 3*M+N, prefer 3*M+(M+N)*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
+	    _starpu_dgebrd_(m, n, &a[a_offset], lda, &s[1], &work[ie], &work[itauq], &
 		    work[itaup], &work[nwork], &i__1, info);
 
 /*        Multiply B by transpose of left bidiagonalizing vectors. */
 /*        (Workspace: need 3*M+NRHS, prefer 3*M+NRHS*NB) */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormbr_("Q", "L", "T", m, nrhs, n, &a[a_offset], lda, &work[itauq]
+	    _starpu_dormbr_("Q", "L", "T", m, nrhs, n, &a[a_offset], lda, &work[itauq]
 , &b[b_offset], ldb, &work[nwork], &i__1, info);
 
 /*        Solve the bidiagonal least squares problem. */
 
-	    dlalsd_("L", &smlsiz, m, nrhs, &s[1], &work[ie], &b[b_offset], 
+	    _starpu_dlalsd_("L", &smlsiz, m, nrhs, &s[1], &work[ie], &b[b_offset], 
 		    ldb, rcond, rank, &work[nwork], &iwork[1], info);
 	    if (*info != 0) {
 		goto L10;
@@ -657,7 +657,7 @@ static doublereal c_b82 = 0.;
 /*        Multiply B by right bidiagonalizing vectors of A. */
 
 	    i__1 = *lwork - nwork + 1;
-	    dormbr_("P", "L", "N", n, nrhs, m, &a[a_offset], lda, &work[itaup]
+	    _starpu_dormbr_("P", "L", "N", n, nrhs, m, &a[a_offset], lda, &work[itaup]
 , &b[b_offset], ldb, &work[nwork], &i__1, info);
 
 	}
@@ -666,21 +666,21 @@ static doublereal c_b82 = 0.;
 /*     Undo scaling. */
 
     if (iascl == 1) {
-	dlascl_("G", &c__0, &c__0, &anrm, &smlnum, n, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &smlnum, n, nrhs, &b[b_offset], ldb, 
 		 info);
-	dlascl_("G", &c__0, &c__0, &smlnum, &anrm, &minmn, &c__1, &s[1], &
+	_starpu_dlascl_("G", &c__0, &c__0, &smlnum, &anrm, &minmn, &c__1, &s[1], &
 		minmn, info);
     } else if (iascl == 2) {
-	dlascl_("G", &c__0, &c__0, &anrm, &bignum, n, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &anrm, &bignum, n, nrhs, &b[b_offset], ldb, 
 		 info);
-	dlascl_("G", &c__0, &c__0, &bignum, &anrm, &minmn, &c__1, &s[1], &
+	_starpu_dlascl_("G", &c__0, &c__0, &bignum, &anrm, &minmn, &c__1, &s[1], &
 		minmn, info);
     }
     if (ibscl == 1) {
-	dlascl_("G", &c__0, &c__0, &smlnum, &bnrm, n, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &smlnum, &bnrm, n, nrhs, &b[b_offset], ldb, 
 		 info);
     } else if (ibscl == 2) {
-	dlascl_("G", &c__0, &c__0, &bignum, &bnrm, n, nrhs, &b[b_offset], ldb, 
+	_starpu_dlascl_("G", &c__0, &c__0, &bignum, &bnrm, n, nrhs, &b[b_offset], ldb, 
 		 info);
     }
 
@@ -690,4 +690,4 @@ L10:
 
 /*     End of DGELSD */
 
-} /* dgelsd_ */
+} /* _starpu_dgelsd_ */

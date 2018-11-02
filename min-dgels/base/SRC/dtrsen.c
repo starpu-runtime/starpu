@@ -17,7 +17,7 @@
 
 static integer c_n1 = -1;
 
-/* Subroutine */ int dtrsen_(char *job, char *compq, logical *select, integer 
+/* Subroutine */ int _starpu_dtrsen_(char *job, char *compq, logical *select, integer 
 	*n, doublereal *t, integer *ldt, doublereal *q, integer *ldq, 
 	doublereal *wr, doublereal *wi, integer *m, doublereal *s, doublereal 
 	*sep, doublereal *work, integer *lwork, integer *iwork, integer *
@@ -38,24 +38,24 @@ static integer c_n1 = -1;
     integer ierr;
     logical swap;
     doublereal scale;
-    extern logical lsame_(char *, char *);
+    extern logical _starpu_lsame_(char *, char *);
     integer isave[3], lwmin;
     logical wantq, wants;
     doublereal rnorm;
-    extern /* Subroutine */ int dlacn2_(integer *, doublereal *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dlacn2_(integer *, doublereal *, doublereal *, 
 	     integer *, doublereal *, integer *, integer *);
-    extern doublereal dlange_(char *, integer *, integer *, doublereal *, 
+    extern doublereal _starpu_dlange_(char *, integer *, integer *, doublereal *, 
 	    integer *, doublereal *);
-    extern /* Subroutine */ int dlacpy_(char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dlacpy_(char *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *), 
-	    xerbla_(char *, integer *);
+	    _starpu_xerbla_(char *, integer *);
     logical wantbh;
-    extern /* Subroutine */ int dtrexc_(char *, integer *, doublereal *, 
+    extern /* Subroutine */ int _starpu_dtrexc_(char *, integer *, doublereal *, 
 	    integer *, doublereal *, integer *, integer *, integer *, 
 	    doublereal *, integer *);
     integer liwmin;
     logical wantsp, lquery;
-    extern /* Subroutine */ int dtrsyl_(char *, char *, integer *, integer *, 
+    extern /* Subroutine */ int _starpu_dtrsyl_(char *, char *, integer *, integer *, 
 	    integer *, doublereal *, integer *, doublereal *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *);
 
@@ -303,16 +303,16 @@ static integer c_n1 = -1;
     --iwork;
 
     /* Function Body */
-    wantbh = lsame_(job, "B");
-    wants = lsame_(job, "E") || wantbh;
-    wantsp = lsame_(job, "V") || wantbh;
-    wantq = lsame_(compq, "V");
+    wantbh = _starpu_lsame_(job, "B");
+    wants = _starpu_lsame_(job, "E") || wantbh;
+    wantsp = _starpu_lsame_(job, "V") || wantbh;
+    wantq = _starpu_lsame_(compq, "V");
 
     *info = 0;
     lquery = *lwork == -1;
-    if (! lsame_(job, "N") && ! wants && ! wantsp) {
+    if (! _starpu_lsame_(job, "N") && ! wants && ! wantsp) {
 	*info = -1;
-    } else if (! lsame_(compq, "N") && ! wantq) {
+    } else if (! _starpu_lsame_(compq, "N") && ! wantq) {
 	*info = -2;
     } else if (*n < 0) {
 	*info = -4;
@@ -361,10 +361,10 @@ static integer c_n1 = -1;
 	    i__1 = 1, i__2 = nn << 1;
 	    lwmin = max(i__1,i__2);
 	    liwmin = max(1,nn);
-	} else if (lsame_(job, "N")) {
+	} else if (_starpu_lsame_(job, "N")) {
 	    lwmin = max(1,*n);
 	    liwmin = 1;
-	} else if (lsame_(job, "E")) {
+	} else if (_starpu_lsame_(job, "E")) {
 	    lwmin = max(1,nn);
 	    liwmin = 1;
 	}
@@ -383,7 +383,7 @@ static integer c_n1 = -1;
 
     if (*info != 0) {
 	i__1 = -(*info);
-	xerbla_("DTRSEN", &i__1);
+	_starpu_xerbla_("DTRSEN", &i__1);
 	return 0;
     } else if (lquery) {
 	return 0;
@@ -396,7 +396,7 @@ static integer c_n1 = -1;
 	    *s = 1.;
 	}
 	if (wantsp) {
-	    *sep = dlange_("1", n, n, &t[t_offset], ldt, &work[1]);
+	    *sep = _starpu_dlange_("1", n, n, &t[t_offset], ldt, &work[1]);
 	}
 	goto L40;
     }
@@ -425,7 +425,7 @@ static integer c_n1 = -1;
 		ierr = 0;
 		kk = k;
 		if (k != ks) {
-		    dtrexc_(compq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
+		    _starpu_dtrexc_(compq, n, &t[t_offset], ldt, &q[q_offset], ldq, &
 			    kk, &ks, &work[1], &ierr);
 		}
 		if (ierr == 1 || ierr == 2) {
@@ -455,14 +455,14 @@ static integer c_n1 = -1;
 
 /*           T11*R - R*T22 = scale*T12 */
 
-	dlacpy_("F", &n1, &n2, &t[(n1 + 1) * t_dim1 + 1], ldt, &work[1], &n1);
-	dtrsyl_("N", "N", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 1 + (n1 
+	_starpu_dlacpy_("F", &n1, &n2, &t[(n1 + 1) * t_dim1 + 1], ldt, &work[1], &n1);
+	_starpu_dtrsyl_("N", "N", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 1 + (n1 
 		+ 1) * t_dim1], ldt, &work[1], &n1, &scale, &ierr);
 
 /*        Estimate the reciprocal of the condition number of the cluster */
 /*        of eigenvalues. */
 
-	rnorm = dlange_("F", &n1, &n2, &work[1], &n1, &work[1]);
+	rnorm = _starpu_dlange_("F", &n1, &n2, &work[1], &n1, &work[1]);
 	if (rnorm == 0.) {
 	    *s = 1.;
 	} else {
@@ -477,20 +477,20 @@ static integer c_n1 = -1;
 	est = 0.;
 	kase = 0;
 L30:
-	dlacn2_(&nn, &work[nn + 1], &work[1], &iwork[1], &est, &kase, isave);
+	_starpu_dlacn2_(&nn, &work[nn + 1], &work[1], &iwork[1], &est, &kase, isave);
 	if (kase != 0) {
 	    if (kase == 1) {
 
 /*              Solve  T11*R - R*T22 = scale*X. */
 
-		dtrsyl_("N", "N", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 
+		_starpu_dtrsyl_("N", "N", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 
 			1 + (n1 + 1) * t_dim1], ldt, &work[1], &n1, &scale, &
 			ierr);
 	    } else {
 
 /*              Solve  T11'*R - R*T22' = scale*X. */
 
-		dtrsyl_("T", "T", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 
+		_starpu_dtrsyl_("T", "T", &c_n1, &n1, &n2, &t[t_offset], ldt, &t[n1 + 
 			1 + (n1 + 1) * t_dim1], ldt, &work[1], &n1, &scale, &
 			ierr);
 	    }
@@ -527,4 +527,4 @@ L40:
 
 /*     End of DTRSEN */
 
-} /* dtrsen_ */
+} /* _starpu_dtrsen_ */
