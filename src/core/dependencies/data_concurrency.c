@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013,2015,2017                           Inria
- * Copyright (C) 2009-2015,2017-2018                      Université de Bordeaux
+ * Copyright (C) 2013,2015-2017                           Inria
+ * Copyright (C) 2009-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
