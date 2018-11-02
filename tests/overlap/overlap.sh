@@ -1,8 +1,9 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
+# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017-2018                                     Université de Bordeaux
+# Copyright (C) 2017,2018                                Université de Bordeaux
 # Copyright (C) 2017                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
