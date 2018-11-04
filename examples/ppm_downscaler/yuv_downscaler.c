@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2013                                Inria
- * Copyright (C) 2009-2011,2013-2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2015,2017-2018            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -46,11 +46,6 @@ void parse_args(int argc, char **argv)
 	{
 		strncpy(filename_in, argv[1], 1023);
 		strncpy(filename_out, argv[2], 1023);
-	}
-	else
-	{
-		snprintf(filename_in, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
-		snprintf(filename_out, 1024, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
 }
 
