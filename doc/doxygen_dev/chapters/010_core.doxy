@@ -23,37 +23,44 @@ TODO
 \subsection CoreEntitiesOverview Overview
 
 Execution entities:
-- worker: A worker (see \ref CoreEntitiesWorkers, \ref
+- <b>worker</b>: A worker (see \ref CoreEntitiesWorkers, \ref
   CoreEntitiesWorkersAndContexts) entity is a CPU thread created by StarPU to manage
   one computing unit. The computing unit can be a local CPU core, an accelerator
   or GPU device, or --- on the master side when running in master-slave
   distributed mode --- a remote slave computing node. It is responsible for
   querying scheduling policies for tasks to execute.
 
-- sched_context: A scheduling context (see \ref CoreEntitiesContexts, \ref
+- <b>sched_context</b>: A scheduling context (see \ref CoreEntitiesContexts, \ref
   CoreEntitiesWorkersAndContexts) is a logical set of workers governed by an
   instance of a scheduling policy. It defines the computing units to which the
   scheduling policy instance may assign work entities.
 
-- driver: A driver is the set of hardware-dependent routines used by a
+- <b>driver</b>: A driver is the set of hardware-dependent routines used by a
   worker to initialize its associated computing unit, execute work entities on
   it, and finalize the computing unit usage at the end of the session.
 
 Work entities:
-- task: TODO
-- job: TODO
+- <b>task</b>: TODO
+- <b>job</b>: TODO
 
 Data entities:
-- data handle
-- data replicate: TODO
+- <b>data handle</b>: TODO
+- <b>data replicate</b>: TODO
 
 \subsection CoreEntitiesWorkers Workers
 
-TODO
+A <b>worker</b> is a CPU thread created by StarPU. Its role is to manage one computing
+unit. This computing unit can be a local CPU core, in which case, the worker
+thread manages the actual CPU core to which it is assigned; or it can be a
+computing device such as a GPU or an accelerator (or even a remote computing
+node when StarPU is running in distributed master-slave mode.) When a worker
+manages a computing device, the CPU core to which the worker's thread is
+by default exclusively assigned to the device management work and does not
+participate to computation.
 
 \subsubsection CoreEntitiesWorkersStates States
 
-Scheduling operations related state
+<b>Scheduling operations related state</b>
 
 While a worker is conducting a scheduling operations, e.g. the worker is in the
 process of selecting a new task to execute, flag state_sched_op_pending is set
@@ -79,7 +86,7 @@ conflicting operation deferred while the worker was in the
 state_sched_op_pending state is performed in an orderly manner.
 
 
-Scheduling contexts related states
+<b>Scheduling contexts related states</b>
 
 Flag state_changing_ctx_notice is set to !0 when a thread is about to
 add to a scheduling context or remove it from a scheduling context, and is
@@ -95,7 +102,7 @@ worker is currently performing a scheduling operation to tell the targeted
 worker that the initiator thread is waiting for the scheduling operation to
 complete and should be woken up upon completion.
 
-Relaxed synchronization related states
+<b>Relaxed synchronization related states</b>
 
 Any StarPU worker may participate to scheduling operations, and in this process,
 may be forced to observe state information from other workers. 
@@ -120,7 +127,7 @@ resolved after the fact. When the relaxed mode is off, the consistency model
 becomes a mutual exclusion model, where the sched_mutex of the worker must be
 held in order to access or change the worker state.
 
-Parallel tasks related states
+<b>Parallel tasks related states</b>
 
 When a worker is scheduled to participate to the execution of a parallel task,
 it must wait for the whole team of workers participating to the execution of
@@ -189,6 +196,11 @@ governed by the following set of state flags and counters:
 TODO
 
 \subsection CoreEntitiesWorkersAndContexts Workers and Scheduling Contexts
+
+A worker can be assigned to one or more <b>scheduling contexts</b>. It
+exclusively receives tasks submitted to the scheduling context(s) it is
+currently assigned at the time such tasks are scheduled. A worker may add itself
+to or remove itself from a scheduling context.
 
 TODO
 
