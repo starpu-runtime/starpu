@@ -110,7 +110,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/core/workers.h
 
 $(DOX_HTML_DIR): $(DOX_TAG) refman.tex
-       @$(MKDIR_P) $(DOX_HTML_DIR)
+	@$(MKDIR_P) $(DOX_HTML_DIR)
 
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
