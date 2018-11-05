@@ -24,7 +24,7 @@ TODO
 
 Execution entities:
 - worker: A worker (see \ref CoreEntitiesWorkers, \ref
-  CoreEntitiesWorkersAndContexts) entity is a thread created by StarPU to manage
+  CoreEntitiesWorkersAndContexts) entity is a CPU thread created by StarPU to manage
   one computing unit. The computing unit can be a local CPU core, an accelerator
   or GPU device, or --- on the master side when running in master-slave
   distributed mode --- a remote slave computing node. It is responsible for
