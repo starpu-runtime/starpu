@@ -72,8 +72,7 @@ fi
 
 make
 #make check
-(make -k check || true) > ../check_$$ 2>&1
-cat ../check_$$
+(make -k check || true) 2>&1 | tee  ../check_$$
 make showcheck
 
 grep "^FAIL:" ../check_$$ || true
