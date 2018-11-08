@@ -28,6 +28,13 @@ int main(void)
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if (starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == 0)
+	{
+		// Needs at least 1 CPU worker
+		starpu_shutdown();
+		return 77;
+	}
+
 	nprocs = starpu_worker_get_count_by_type(STARPU_ANY_WORKER);
 	starpu_worker_get_ids_by_type(STARPU_ANY_WORKER, procs, nprocs);
 

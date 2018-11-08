@@ -23,37 +23,44 @@ TODO
 \subsection CoreEntitiesOverview Overview
 
 Execution entities:
-- worker: A worker (see \ref CoreEntitiesWorkers, \ref
-  CoreEntitiesWorkersAndContexts) entity is a thread created by StarPU to manage
+- <b>worker</b>: A worker (see \ref CoreEntitiesWorkers, \ref
+  CoreEntitiesWorkersAndContexts) entity is a CPU thread created by StarPU to manage
   one computing unit. The computing unit can be a local CPU core, an accelerator
   or GPU device, or --- on the master side when running in master-slave
   distributed mode --- a remote slave computing node. It is responsible for
   querying scheduling policies for tasks to execute.
 
-- sched_context: A scheduling context (see \ref CoreEntitiesContexts, \ref
+- <b>sched_context</b>: A scheduling context (see \ref CoreEntitiesContexts, \ref
   CoreEntitiesWorkersAndContexts) is a logical set of workers governed by an
   instance of a scheduling policy. It defines the computing units to which the
   scheduling policy instance may assign work entities.
 
-- driver: A driver is the set of hardware-dependent routines used by a
+- <b>driver</b>: A driver is the set of hardware-dependent routines used by a
   worker to initialize its associated computing unit, execute work entities on
   it, and finalize the computing unit usage at the end of the session.
 
 Work entities:
-- task: TODO
-- job: TODO
+- <b>task</b>: TODO
+- <b>job</b>: TODO
 
 Data entities:
-- data handle
-- data replicate: TODO
+- <b>data handle</b>: TODO
+- <b>data replicate</b>: TODO
 
 \subsection CoreEntitiesWorkers Workers
 
-TODO
+A <b>worker</b> is a CPU thread created by StarPU. Its role is to manage one computing
+unit. This computing unit can be a local CPU core, in which case, the worker
+thread manages the actual CPU core to which it is assigned; or it can be a
+computing device such as a GPU or an accelerator (or even a remote computing
+node when StarPU is running in distributed master-slave mode.) When a worker
+manages a computing device, the CPU core to which the worker's thread is
+by default exclusively assigned to the device management work and does not
+participate to computation.
 
 \subsubsection CoreEntitiesWorkersStates States
 
-Scheduling operations related state
+<b>Scheduling operations related state</b>
 
 While a worker is conducting a scheduling operations, e.g. the worker is in the
 process of selecting a new task to execute, flag state_sched_op_pending is set
@@ -78,8 +85,8 @@ _starpu_get_multi_worker_task()). These calls ensure that any pending
 conflicting operation deferred while the worker was in the
 state_sched_op_pending state is performed in an orderly manner.
 
-
-Scheduling contexts related states
+<br>
+<b>Scheduling contexts related states</b>
 
 Flag state_changing_ctx_notice is set to !0 when a thread is about to
 add to a scheduling context or remove it from a scheduling context, and is
@@ -95,7 +102,8 @@ worker is currently performing a scheduling operation to tell the targeted
 worker that the initiator thread is waiting for the scheduling operation to
 complete and should be woken up upon completion.
 
-Relaxed synchronization related states
+<br>
+<b>Relaxed synchronization related states</b>
 
 Any StarPU worker may participate to scheduling operations, and in this process,
 may be forced to observe state information from other workers. 
@@ -120,7 +128,8 @@ resolved after the fact. When the relaxed mode is off, the consistency model
 becomes a mutual exclusion model, where the sched_mutex of the worker must be
 held in order to access or change the worker state.
 
-Parallel tasks related states
+<br>
+<b>Parallel tasks related states</b>
 
 When a worker is scheduled to participate to the execution of a parallel task,
 it must wait for the whole team of workers participating to the execution of
@@ -183,12 +192,87 @@ governed by the following set of state flags and counters:
   worker's sched_mutex.
 
 
+\subsubsection CoreEntitiesWorkersOperations Operations
+
+<b>Entry point</b>
+
+All the operations of a worker are handled in an iterative fashion, either by
+the application code on a thread launched by the application, or automatically
+by StarPU on a device-dependent CPU thread launched by StarPU. Whether a
+worker's operation cycle is managed automatically or
+not is controlled per session by the field \c not_launched_drivers of the \c
+starpu_conf struct, and is decided in \ref _starpu_launch_drivers() function.
+
+When managed automatically, cycles of operations for a worker are handled by the corresponding
+driver specific <code>_starpu_<DRV>_worker()</code> function, where \c DRV is a driver name such as
+cpu (\c _starpu_cpu_worker) or cuda (\c _starpu_cuda_worker), for instance. 
+Otherwise, the application must supply a thread which will repeatedly call \ref
+starpu_driver_run_once() for the corresponding worker.
+
+In both cases, control is then transferred to 
+\ref _starpu_cpu_driver_run_once() (or the corresponding driver specific func).
+The cycle of operations typically includes, at least, the following operations:
+
+- <b>task scheduling</b>
+- <b>parallel task team build-up</b>
+- <b>task input processing</b>
+- <b>data transfer processing</b>
+- <b>task execution</b>
+
+When the worker cycles are handled by StarPU automatically, the iterative
+operation processing ends when the \c running field of \c _starpu_config
+becomes false. This field should not be read directly, instead it should be read
+through the \ref _starpu_machine_is_running() function.
+
+<br>
+<b>Task scheduling</b>
+
+If the worker does not yet have a queued task, it calls
+_starpu_get_worker_task() to try and obtain a task. This may involve scheduling
+operations such as stealing a queued but not yet executed task from another
+worker. The operation may not necessarily succeed if no tasks are ready and/or
+suitable to run on the worker's computing unit.
+
+<br>
+<b>Parallel task team build-up</b>
+
+If the worker has a task ready to run and the corresponding job has a size
+\c >1, then the task is a parallel job and the worker must synchronize with the
+other workers participating to the parallel execution of the job to assign a
+unique rank for each worker. The synchronization is done throught the job's \c
+sync_mutex mutex.
+
+<br>
+<b>Task input processing</b>
+
+Before the task can be executed, its input data must be made available on a
+memory node reachable by the worker's computing unit. To do so, the worker calls
+\ref _starpu_fetch_task_input()
+
+<br>
+<b>Data transfer processing</b>
+
+TODO
+
+<br>
+<b>Task execution</b>
+
+Once the worker has a pending task assigned and the input data for that task are
+available in the memory node reachable by the worker's computing unit, the
+worker calls \ref _starpu_cpu_driver_execute_task() (or the corresponding driver
+specific function) to proceed to the execution of the task.
+
 
 \subsection CoreEntitiesContexts Scheduling Contexts
 
 TODO
 
 \subsection CoreEntitiesWorkersAndContexts Workers and Scheduling Contexts
+
+A worker can be assigned to one or more <b>scheduling contexts</b>. It
+exclusively receives tasks submitted to the scheduling context(s) it is
+currently assigned at the time such tasks are scheduled. A worker may add itself
+to or remove itself from a scheduling context.
 
 TODO
 
