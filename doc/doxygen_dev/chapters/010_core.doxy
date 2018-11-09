@@ -261,7 +261,8 @@ memory node reachable by the worker's computing unit. To do so, the worker calls
 <br>
 <b>Data transfer processing</b>
 
-TODO
+The worker makes pending data transfers (involving memory node(s) that it is
+driving) progress, with a call to \ref __starpu_datawizard_progress(),
 
 <br>
 <b>Task execution</b>
