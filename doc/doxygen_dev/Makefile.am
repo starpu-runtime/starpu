@@ -163,5 +163,3 @@ PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
 	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
 
-showcheck:
-	-cat /dev/null

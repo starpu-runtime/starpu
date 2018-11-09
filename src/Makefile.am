@@ -411,3 +411,5 @@ dist-hook:
 
 showcheck:
 	-cat /dev/null
+showsuite:
+	-cat /dev/null

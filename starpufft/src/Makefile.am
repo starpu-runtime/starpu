@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     Inria
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2009-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -63,3 +63,8 @@ endif
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 endif
+
+showcheck:
+	-cat /dev/null
+showsuite:
+	-cat /dev/null

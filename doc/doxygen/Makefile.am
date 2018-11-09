@@ -332,5 +332,3 @@ PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
 	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
 
-showcheck:
-	-cat /dev/null
