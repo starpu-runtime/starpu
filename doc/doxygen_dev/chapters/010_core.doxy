@@ -40,12 +40,21 @@ Execution entities:
   it, and finalize the computing unit usage at the end of the session.
 
 Work entities:
-- <b>task</b>: TODO
-- <b>job</b>: TODO
+- <b>task</b>: A task is a high level work request submitted to StarPU by the
+  application, or internally by StarPU itself.
+
+- <b>job</b>: A job is a low level view of a work request. It is not exposed to
+  the application. A job structure may be shared among several task structures
+  in the case of a parallel task.
 
 Data entities:
-- <b>data handle</b>: TODO
-- <b>data replicate</b>: TODO
+- <b>data handle</b>: A data handle is a high-level, application opaque object designating a
+  piece of data currently registered to the StarPU data management layer.
+  Internally, it is a \ref _starpu_data_state structure.
+
+- <b>data replicate</b>: A data replicate is a low-level object designating one
+  copy of a piece of data registered to StarPU as a data handle, residing in one
+  memory node managed by StarPU. It is not exposed to the application.
 
 \subsection CoreEntitiesWorkers Workers
 
