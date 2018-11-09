@@ -37,6 +37,13 @@ showcheck:
 	done ; \
 	exit $$RET
 
+showsuite:
+	RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showsuite || RET=1 ; \
+	done ; \
+	exit $$RET
+
 # Generate a GNU-style ChangeLog for inclusion in the tarball.
 # It requires network access and may be slow.
 gen-ChangeLog:

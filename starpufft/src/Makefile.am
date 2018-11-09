@@ -58,3 +58,8 @@ endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
+
+showcheck:
+	-cat /dev/null
+showsuite:
+	-cat /dev/null

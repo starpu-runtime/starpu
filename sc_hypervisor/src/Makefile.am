@@ -39,7 +39,10 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/ispeed_lp_policy.c		\
 	hypervisor_policies/throughput_lp_policy.c
 
-noinst_HEADERS = sc_hypervisor_intern.h		
+noinst_HEADERS = sc_hypervisor_intern.h
 
 showcheck:
+	-cat /dev/null
+
+showsuite:
 	-cat /dev/null
