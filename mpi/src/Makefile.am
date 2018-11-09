@@ -93,3 +93,6 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 
 showcheck:
 	-cat /dev/null
+
+showsuite:
+	-cat /dev/null

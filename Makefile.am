@@ -172,6 +172,13 @@ showcheck:
 	done ; \
 	exit $$RET
 
+showsuite:
+	RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showsuite || RET=1 ; \
+	done ; \
+	exit $$RET
+
 ctags-local:
 	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE
 	sed -i $(top_srcdir)/tags -e '/^[^	]* [^	]*	/d' -e '/^[^	]*$$/d' 

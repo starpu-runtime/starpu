@@ -354,3 +354,5 @@ endif
 
 showcheck:
 	-cat /dev/null
+showsuite:
+	-cat /dev/null
