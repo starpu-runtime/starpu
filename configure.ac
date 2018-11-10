@@ -512,7 +512,7 @@ AC_HEADER_STDC
 AC_C_RESTRICT
 
 # Check if bash is available
-AC_CHECK_PROGS([BASH], [bash])
+AC_CHECK_PROGS([REALBASH], [bash])
 
 # Record git version
 AC_PATH_PROG(gitcommand, git)
