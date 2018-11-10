@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2011-2018                                CNRS
- * Copyright (C) 2010,2014-2017                           Université de Bordeaux
+ * Copyright (C) 2010,2014-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -273,6 +273,8 @@ int main(int argc, char *argv[])
 	if (strstr(test_name, "tasks_size_overhead_scheds.sh"))
 		/* This extensively tests various schedulers, let it run longer */
 		timeout *= 10;
+
+	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
 	sa.sa_flags = 0;
