@@ -297,6 +297,7 @@ exclusively receives tasks submitted to the scheduling context(s) it is
 currently assigned at the time such tasks are scheduled. A worker may add itself
 to or remove itself from a scheduling context.
 
+<br>
 <b>Locking and synchronization rules between workers and scheduling contexts</b>
 
 A thread currently holding a worker sched_mutex must not attempt to acquire a
@@ -321,7 +322,7 @@ context assignment of that worker, possibly blocking until that worker leaves
 incompatible states such as a pending scheduling operation. If the caller of
 \c notify_workers_about_changing_ctx_pending() is itself a worker included in the set
 of workers passed in argument, it does not notify itself, with the assumption
-that the worker is already calling notify_workers_about_changing_ctx_pending()
+that the worker is already calling \c notify_workers_about_changing_ctx_pending()
 from a state compatible with a scheduling context assignment update.
 Once a worker has been notified about a scheduling context change pending, it
 cannot proceed with incompatible operations such as a scheduling operation until
