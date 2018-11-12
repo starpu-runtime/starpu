@@ -275,7 +275,20 @@ specific function) to proceed to the execution of the task.
 
 \subsection CoreEntitiesContexts Scheduling Contexts
 
-TODO
+A scheduling context is a logical set of workers governed by an instance of a
+scheduling policy. Tasks submitted to a given scheduling context are confined to
+the computing units governed by the workers belonging to this scheduling context
+at the time they get scheduled.
+
+A scheduling context is identified by an unsigned integer identifier between \c
+0 and <code>STARPU_NMAX_SCHED_CTXS - 1</code>. The \c STARPU_NMAX_SCHED_CTXS
+identifier value is reserved to indicated an unallocated, invalid or deleted
+scheduling context.
+
+Accesses to the scheduling context structure are governed by a
+multiple-readers/single-writer lock (\c rwlock field). Changes to the structure
+contents, additions or removals of workers, statistics updates, all must be done
+with proper exclusive write access. 
 
 \subsection CoreEntitiesWorkersAndContexts Workers and Scheduling Contexts
 
@@ -284,7 +297,35 @@ exclusively receives tasks submitted to the scheduling context(s) it is
 currently assigned at the time such tasks are scheduled. A worker may add itself
 to or remove itself from a scheduling context.
 
-TODO
+<b>Locking and synchronization rules between workers and scheduling contexts</b>
+
+A thread currently holding a worker sched_mutex must not attempt to acquire a
+scheduling context rwlock, neither for writing nor for reading. Such an attempt
+constitutes a lock inversion and may result in a deadlock. 
+
+A worker currently in a scheduling operation must enter the relaxed state before
+attempting to acquire a scheduling context rwlock, either for reading or for
+writing.
+
+When the set of workers assigned to a scheduling context is about to be
+modified, all the workers in the union between the workers belonging to the
+scheduling context before the change and the workers expected to belong to the
+scheduling context after the change must be notified using the \ref
+notify_workers_about_changing_ctx_pending() function prior to the update. After
+the update, all the workers in that same union must be notified for the update
+completion with a call to \ref notify_workers_about_changing_ctx_done().
+
+The function \ref notify_workers_about_changing_ctx_pending() places every
+worker passed in argument in a state compatible with changing the scheduling
+context assignment of that worker, possibly blocking until that worker leaves
+incompatible states such as a pending scheduling operation. If the caller of
+\c notify_workers_about_changing_ctx_pending() is itself a worker included in the set
+of workers passed in argument, it does not notify itself, with the assumption
+that the worker is already calling notify_workers_about_changing_ctx_pending()
+from a state compatible with a scheduling context assignment update.
+Once a worker has been notified about a scheduling context change pending, it
+cannot proceed with incompatible operations such as a scheduling operation until
+it receives a notification that the context update operation is complete.
 
 */
 
