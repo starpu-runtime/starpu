@@ -248,7 +248,7 @@ suitable to run on the worker's computing unit.
 If the worker has a task ready to run and the corresponding job has a size
 \c >1, then the task is a parallel job and the worker must synchronize with the
 other workers participating to the parallel execution of the job to assign a
-unique rank for each worker. The synchronization is done throught the job's \c
+unique rank for each worker. The synchronization is done through the job's \c
 sync_mutex mutex.
 
 <br>
