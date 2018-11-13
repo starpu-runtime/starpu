@@ -31,3 +31,5 @@ check:
 	echo "No checks are implemented for min-dgels"
 
 showcheck: check
+
+showsuite: check
