@@ -128,8 +128,8 @@ In consequence, no thread must hold more than one worker's sched_mutex at any ti
 Instead, workers implement a relaxed locking scheme based on the state_relax_refcnt
 counter, itself protected by the worker's sched_mutex. When state_relax_refcnt
 > 0, the targeted worker state flags may be observed, otherwise the thread attempting
->the observation must repeatedly wait on the targeted worker's sched_cond
->condition until state_relax_refcnt > 0.
+the observation must repeatedly wait on the targeted worker's sched_cond
+condition until state_relax_refcnt > 0.
 
 The relaxed mode, while on, can actually be seen as a transactional consistency
 model, where concurrent accesses are authorized and potential conflicts are
