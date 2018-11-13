@@ -329,5 +329,21 @@ Once a worker has been notified about a scheduling context change pending, it
 cannot proceed with incompatible operations such as a scheduling operation until
 it receives a notification that the context update operation is complete.
 
+\subsection CoreEntitiesDrivers Drivers
+
+TODO
+
+\subsubsection CoreEntitiesDriversMP Master/Slave Drivers
+
+TODO
+
+\subsection CoreEntitiesTasksJobs Tasks and Jobs
+
+TODO
+
+\subsection CoreEntitiesData Data
+
+TODO
+
 */
 
