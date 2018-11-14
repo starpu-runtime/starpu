@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     Inria
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2010-2018                                CNRS
 # Copyright (C) 2009-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,8 +15,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-
-include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/starpufft/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS)
@@ -63,3 +61,8 @@ endif
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 endif
+
+showcheck:
+	-cat /dev/null
+showsuite:
+	-cat /dev/null

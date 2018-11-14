@@ -18,6 +18,8 @@
 set -e
 set -x
 
+ulimit -c unlimited
+
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 
@@ -73,7 +75,7 @@ fi
 make
 #make check
 (make -k check || true) 2>&1 | tee  ../check_$$
-make showcheck
+make showsuite
 
 grep "^FAIL:" ../check_$$ || true
 
