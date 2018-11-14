@@ -24,8 +24,8 @@ pipeline
 	// Trigger the build
 	triggers
 	{
-		// Poll gforge explicitly every 15mn
-		pollSCM('00-59/15 * * * *')
+		// Poll gforge explicitly every hour
+		pollSCM('00 * * * *')
 	}
 
 	stages
@@ -62,7 +62,7 @@ pipeline
 			{
 				script
 				{
-					labelToSelect = 'unix'
+					labelToSelect = 'bsd'
 					listOfNodeNames = jenkins.model.Jenkins.instance.nodes.collect
 					{
 						node -> node.getLabelString().contains(labelToSelect) ? node.name : null
