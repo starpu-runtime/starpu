@@ -74,8 +74,7 @@ fi
 
 make
 #make check
-#(make -k check || true) 2>&1 | tee  ../check_$$
-(make -k check || true) 2>&1 > ../check_$$
+(make -k check || true) 2>&1 | tee  ../check_$$
 make showsuite
 
 #grep "^FAIL:" ../check_$$ || true
