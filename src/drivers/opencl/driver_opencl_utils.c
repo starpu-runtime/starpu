@@ -68,6 +68,17 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 			ret = EXIT_SUCCESS;
 	}
 
+#ifdef STARPU_DEVEL
+	if (ret == EXIT_FAILURE)
+	{
+		_STARPU_CALLOC(*located_file_name, 1, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1);
+		snprintf(*located_file_name, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1, "%s/%s", STARPU_SRC_DIR, source_file_name);
+		_STARPU_DEBUG("Trying to locate <%s>\n", *located_file_name);
+		if (access(*located_file_name, R_OK) == 0)
+			ret = EXIT_SUCCESS;
+	}
+#endif
+
 	if (ret == EXIT_FAILURE)
 	{
 		_STARPU_CALLOC(*located_file_name, 1, strlen(STARPU_SRC_DIR)+1+strlen(source_file_name)+1);
