@@ -26,6 +26,13 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   fun:hwloc_components_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
    match-leak-kinds: definite
    fun:malloc
    fun:lt__malloc
