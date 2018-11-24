@@ -830,6 +830,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	int nmiccores;
 	nmiccores = starpu_get_env_number("STARPU_NMICTHREADS");
 
+	STARPU_ASSERT_MSG(nmiccores >= -1, "nmiccores can not be negative and different from -1");
 	if (nmiccores == -1)
 	{
 		/* Nothing was specified, so let's use the number of
@@ -903,6 +904,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	if (reqmicdevices == -1)
 		reqmicdevices = nhwmicdevices;
 
+	STARPU_ASSERT_MSG(reqmicdevices >= -1, "nmic can not be negative and different from -1");
 	if (reqmicdevices == -1)
 	{
 		/* Nothing was specified, so let's use the number of
@@ -998,6 +1000,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
+		STARPU_ASSERT_MSG(ncuda >= -1, "ncuda can not be negative and different from -1");
 		if (ncuda == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
@@ -1068,6 +1071,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		int nb_devices;
 		nb_devices = _starpu_opencl_get_device_count();
 
+		STARPU_ASSERT_MSG(nopencl >= -1, "nopencl can not be negative and different from -1");
 		if (nopencl == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
@@ -1139,6 +1143,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 		 * the number of devices */
 		int nb_devices = nb_scc_nodes;
 
+		STARPU_ASSERT_MSG(nscc >= -1, "nscc can not be negative and different from -1");
 		if (nscc == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
@@ -1211,6 +1216,7 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 
 	if (ncpu != 0)
 	{
+		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1");
 		if (ncpu == -1)
 		{
 			unsigned mic_busy_cpus = 0;
