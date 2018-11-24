@@ -57,6 +57,8 @@ New features:
   * Add STARPU_RESERVE_NCPU environment variable and
     starpu_config::reserve_ncpus field to make StarPU use a few cores
     less.
+  * Add STARPU_MAIN_THREAD_BIND environment variable to make StarPU reserve a
+    core for the main thread.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
