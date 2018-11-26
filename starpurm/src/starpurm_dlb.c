@@ -45,6 +45,7 @@
 
 static dlb_handler_t      dlb_handle;
 static cpu_set_t          starpurm_process_mask;
+static hwloc_cpuset_t     starpurm_process_cpuset;
 static struct s_starpurm *_starpurm = NULL;
 static pthread_mutex_t dlb_handle_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -75,10 +76,28 @@ int starpurm_dlb_notify_starpu_worker_mask_going_to_sleep(const hwloc_cpuset_t h
 	pthread_mutex_lock(&dlb_handle_mutex);
 	if (dlb_handle != NULL)
 	{
-		cpu_set_t glibc_workers_cpuset;
-		CPU_ZERO(&glibc_workers_cpuset);
-		_hwloc_cpuset_to_glibc_cpuset(hwloc_workers_cpuset, &glibc_workers_cpuset);
-		DLB_LendCpuMask_sp(dlb_handle, &glibc_workers_cpuset);
+		hwloc_cpuset_t hwloc_to_lend_cpuset = hwloc_bitmap_alloc();
+		hwloc_cpuset_t hwloc_to_return_cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_zero(hwloc_to_lend_cpuset);
+		hwloc_bitmap_zero(hwloc_to_return_cpuset);
+		hwloc_bitmap_and(hwloc_to_lend_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+		hwloc_bitmap_andnot(hwloc_to_return_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+		if (!hwloc_bitmap_iszero(hwloc_to_lend_cpuset))
+		{
+			cpu_set_t glibc_to_lend_cpuset;
+			CPU_ZERO(&glibc_to_lend_cpuset);
+			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_lend_cpuset, &glibc_to_lend_cpuset);
+			DLB_LendCpuMask_sp(dlb_handle, &glibc_to_lend_cpuset);
+		}
+		if (!hwloc_bitmap_iszero(hwloc_to_return_cpuset))
+		{
+			cpu_set_t glibc_to_return_cpuset;
+			CPU_ZERO(&glibc_to_return_cpuset);
+			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_return_cpuset, &glibc_to_return_cpuset);
+			DLB_ReturnCpuMask_sp(dlb_handle, &glibc_to_return_cpuset);
+		}
+		hwloc_bitmap_free(hwloc_to_lend_cpuset);
+		hwloc_bitmap_free(hwloc_to_return_cpuset);
 		status = 1;
 	}
 	pthread_mutex_unlock(&dlb_handle_mutex);
@@ -91,10 +110,28 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 	pthread_mutex_lock(&dlb_handle_mutex);
 	if (dlb_handle != NULL)
 	{
-		cpu_set_t glibc_workers_cpuset;
-		CPU_ZERO(&glibc_workers_cpuset);
-		_hwloc_cpuset_to_glibc_cpuset(hwloc_workers_cpuset, &glibc_workers_cpuset);
-		DLB_ReclaimCpuMask_sp(dlb_handle, &glibc_workers_cpuset);
+		hwloc_cpuset_t hwloc_to_reclaim_cpuset = hwloc_bitmap_alloc();
+		hwloc_cpuset_t hwloc_to_borrow_cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_zero(hwloc_to_reclaim_cpuset);
+		hwloc_bitmap_zero(hwloc_to_borrow_cpuset);
+		hwloc_bitmap_and(hwloc_to_reclaim_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+		hwloc_bitmap_andnot(hwloc_to_borrow_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+		if (!hwloc_bitmap_iszero(hwloc_to_reclaim_cpuset))
+		{
+			cpu_set_t glibc_to_reclaim_cpuset;
+			CPU_ZERO(&glibc_to_reclaim_cpuset);
+			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_reclaim_cpuset, &glibc_to_reclaim_cpuset);
+			DLB_ReclaimCpuMask_sp(dlb_handle, &glibc_to_reclaim_cpuset);
+		}
+		if (!hwloc_bitmap_iszero(hwloc_to_borrow_cpuset))
+		{
+			cpu_set_t glibc_to_borrow_cpuset;
+			CPU_ZERO(&glibc_to_borrow_cpuset);
+			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_borrow_cpuset, &glibc_to_borrow_cpuset);
+			DLB_BorrowCpuMask_sp(dlb_handle, &glibc_to_borrow_cpuset);
+		}
+		hwloc_bitmap_free(hwloc_to_reclaim_cpuset);
+		hwloc_bitmap_free(hwloc_to_borrow_cpuset);
 		status = 1;
 	}
 	pthread_mutex_unlock(&dlb_handle_mutex);
@@ -119,6 +156,7 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 
 	CPU_ZERO(&starpurm_process_mask);
 	_hwloc_cpuset_to_glibc_cpuset(rm->selected_cpuset, &starpurm_process_mask);
+	starpurm_process_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 
 	pthread_mutex_lock(&dlb_handle_mutex);
 	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --mode=async");
@@ -144,9 +182,11 @@ void starpurm_dlb_exit(void)
 
 	/* lend every resources that StarPU may still have */
 	DLB_Lend_sp(dlb_handle_save);
+	DLB_Return_sp(dlb_handle_save);
 
 	pthread_mutex_lock(&dlb_handle_mutex);
 	DLB_Disable_sp(dlb_handle_save);
 	DLB_Finalize_sp(dlb_handle_save);
+	hwloc_bitmap_free(starpurm_process_cpuset);
 	pthread_mutex_unlock(&dlb_handle_mutex);
 }
