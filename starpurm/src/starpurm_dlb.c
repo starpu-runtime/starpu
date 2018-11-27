@@ -157,6 +157,7 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 	CPU_ZERO(&starpurm_process_mask);
 	_hwloc_cpuset_to_glibc_cpuset(rm->selected_cpuset, &starpurm_process_mask);
 	starpurm_process_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
+	hwloc_bitmap_and(starpurm_process_cpuset, starpurm_process_cpuset, rm->initially_owned_cpuset_mask);
 
 	pthread_mutex_lock(&dlb_handle_mutex);
 	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --mode=async");

@@ -94,6 +94,9 @@ struct s_starpurm
 	/* Cpuset of all selected workers (CPU+devices). */
 	hwloc_cpuset_t selected_cpuset;
 
+	/* Cpuset mask of initially owned cpuset or full if not used. */
+	hwloc_cpuset_t initially_owned_cpuset_mask;
+
 	/* maximum value among worker ids */
 	int max_worker_id;
 

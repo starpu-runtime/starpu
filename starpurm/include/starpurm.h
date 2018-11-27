@@ -46,6 +46,7 @@ typedef void *starpurm_block_cond_t;
 typedef int (*starpurm_polling_t)(void *);
 
 /* Resource enforcement */
+void starpurm_initialize_with_cpuset(hwloc_cpuset_t initially_owned_cpuset);
 void starpurm_initialize(void);
 
 void starpurm_shutdown(void);

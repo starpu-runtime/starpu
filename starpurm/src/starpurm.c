@@ -588,7 +588,7 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 }
 
 /* Initialize rm state for StarPU */
-void starpurm_initialize(void)
+void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset)
 {
 	int ret;
 	assert(_starpurm == NULL);
@@ -604,6 +604,8 @@ void starpurm_initialize(void)
 	rm->global_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->global_cpuset);
 	
+	rm->initially_owned_cpuset_mask = hwloc_bitmap_dup(initially_owned_cpuset);
+
 	rm->all_cpu_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_cpu_workers_cpuset);
 	
@@ -820,15 +822,22 @@ void starpurm_initialize(void)
 		rm->starpu_in_pause = 0;
 	}
 
+#ifdef STARPURM_HAVE_DLB
+	starpurm_dlb_init(rm);
+#endif
 	pthread_mutex_lock(&rm->event_list_mutex);
 	rm->event_processing_enabled = 1;
 	pthread_cond_broadcast(&rm->event_processing_cond);
 	pthread_mutex_unlock(&rm->event_list_mutex);
 	_starpurm = rm;
 
-#ifdef STARPURM_HAVE_DLB
-	starpurm_dlb_init(rm);
-#endif
+}
+
+void starpurm_initialize()
+{
+	hwloc_cpuset_t full_cpuset = hwloc_bitmap_alloc_full();
+	starpurm_initialize_with_cpuset(full_cpuset);
+	hwloc_bitmap_free(full_cpuset);
 }
 
 /* Free rm struct for StarPU */
@@ -870,6 +879,7 @@ void starpurm_shutdown(void)
 	hwloc_bitmap_free(rm->all_mic_device_workers_cpuset);
 	hwloc_bitmap_free(rm->all_device_workers_cpuset);
 	hwloc_bitmap_free(rm->selected_cpuset);
+	hwloc_bitmap_free(rm->initially_owned_cpuset_mask);
 
 	int i;
 	for (i=0; i<rm->nunits; i++)
