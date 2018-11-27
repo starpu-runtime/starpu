@@ -3003,23 +3003,27 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
-    PKG_CHECK_MODULES([OPENBLAS],  [openblas],  [
-      PKG_CHECK_MODULES([BLAS_OPENBLAS],  [blas-openblas],  [
-        AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
-        AC_SUBST([STARPU_OPENBLAS], [1])
-        CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
-        LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
-        blas_lib=openblas
-      ], [
-	if test x$blas_lib = xopenblas; then
-	  AC_MSG_ERROR([cannot find blas-openblas lib])
-	fi
-      ])
-    ], [
-      if test x$blas_lib = xopenblas; then
-        AC_MSG_ERROR([cannot find openblas lib])
-      fi
-    ])
+    PKG_CHECK_MODULES([OPENBLAS], [openblas],
+    				  [PKG_CHECK_MODULES([BLAS_OPENBLAS], [blas-openblas],
+				  				      [AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+					          		       AC_SUBST([STARPU_OPENBLAS], [1])
+						          	       CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
+							               LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
+								       blas_lib=openblas
+      								      ],
+								      [ if test x$blas_lib = xopenblas; then
+								      	   STARPU_CHECK_LIB(OPENBLAS, blas-openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find blas-openblas lib]),[-lblas-openblas])
+				  				      	   AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+					          		       	   AC_SUBST([STARPU_OPENBLAS], [1])
+									fi
+				  				      ])
+				  ],
+				  [ if test x$blas_lib = xopenblas; then
+				       STARPU_CHECK_LIB(OPENBLAS, openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find openblas lib]),[-lopenblas])
+				       AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+				       AC_SUBST([STARPU_OPENBLAS], [1])
+      				    fi
+                                  ] )
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
