@@ -3428,7 +3428,11 @@ then
 		CFLAGS="$STARPU_CFLAGS $CFLAGS"
 		LIBS="$STARPU_LIBS $LIBS"
 		# check if StarPU implements starpu_worker_set_going_to_sleep_callback()
-		AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
+		if test x$enable_worker_cb = xyes ; then
+			AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.])
+		fi
+
+		#AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
