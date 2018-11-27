@@ -53,6 +53,7 @@ void starpurm_shutdown(void);
 
 void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset);
 void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset, void(*cb_f)(void *), void *cb_args);
+void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, void(*cb_f)(void *), void *cb_args);
 
 /* Dynamic resource sharing */
 starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd);

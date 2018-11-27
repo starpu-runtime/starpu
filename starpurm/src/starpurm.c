@@ -958,6 +958,37 @@ void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *
 
 }
 
+static void *_starpurm_spawn_kernel_in_default_context_thread(void *_spawn_args)
+{
+	struct s_starpurm__spawn_args *spawn_args = _spawn_args;
+	struct s_starpurm *rm = _starpurm;
+	starpu_sched_ctx_set_context(&rm->sched_ctx_id);
+	spawn_args->f(spawn_args->args);
+	spawn_args->cb_f(spawn_args->cb_args);
+	free(spawn_args);
+	return NULL;
+}
+
+void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, void(*cb_f)(void *), void *cb_args)
+{
+	(void) data;
+	struct s_starpurm__spawn_args *spawn_args = calloc(1, sizeof(*spawn_args));
+	spawn_args->f = f;
+	spawn_args->args = args;
+	spawn_args->cb_f = cb_f;
+	spawn_args->cb_args = cb_args;
+	pthread_attr_t attr;
+	int ret;
+	ret = pthread_attr_init(&attr);
+	assert(ret == 0);
+	ret = pthread_attr_setdetachstate(&attr, 1);
+	assert(ret == 0);
+	pthread_t t;
+	ret = pthread_create(&t, &attr, _starpurm_spawn_kernel_in_default_context_thread, spawn_args);
+	assert(ret == 0);
+
+}
+
 hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank)
 {
 	assert(_starpurm != NULL);
