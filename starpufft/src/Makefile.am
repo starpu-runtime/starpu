@@ -65,6 +65,6 @@ endif
 endif
 
 showcheck:
-       -cat /dev/null
+	-cat /dev/null
 showsuite:
-       -cat /dev/null
+	-cat /dev/null
