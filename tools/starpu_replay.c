@@ -185,7 +185,7 @@ void dumb_kernel(void *buffers[], void *args) {
 	nexecuted_tasks++;
 	if (!(nexecuted_tasks % 1000))
 	{
-		printf("\rExecuting task %lu", nexecuted_tasks);
+		printf("\rExecuted task %lu", nexecuted_tasks);
 		fflush(stdout);
 	}
 }
@@ -421,7 +421,7 @@ int submit_tasks(void)
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
-				printf("\rSubmitting task order %lu", currentTask->submit_order);
+				printf("\rSubmitted task order %lu", currentTask->submit_order);
 				fflush(stdout);
 			}
 			if (currentTask->submit_order != -1)
