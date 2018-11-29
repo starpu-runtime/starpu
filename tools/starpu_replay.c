@@ -135,7 +135,16 @@ static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
 /* the cmp_fn arg for rb_tree_insert() */
 unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_node * right_elm)
 {
-	return ((struct task *) left_elm)->submit_order - ((struct task *) right_elm)->submit_order;
+	int oleft = ((struct task *) left_elm)->submit_order;
+	int oright = ((struct task *) right_elm)->submit_order;
+	if (oleft == -1 && oright == -1)
+	{
+		if (left_elm < right_elm)
+			return -1;
+		else
+			return 1;
+	}
+	return oleft - oright;
 }
 
 /* Settings for the perfmodel */
@@ -342,17 +351,20 @@ int submit_tasks(void)
 
 		if (currentTask->type == NormalTask)
 		{
-			STARPU_ASSERT(currentTask->submit_order >= last_submitorder + 1);
-
-			while (currentTask->submit_order > last_submitorder + 1)
+			if (currentTask->submit_order != -1)
 			{
-				/* Oops, some tasks were not submitted by original application, fake some */
-				struct starpu_task *task = starpu_task_create();
-				int ret;
-				task->cl = NULL;
-				ret = starpu_task_submit(task);
-				STARPU_ASSERT(ret == 0);
-				last_submitorder++;
+				STARPU_ASSERT(currentTask->submit_order >= last_submitorder + 1);
+
+				while (currentTask->submit_order > last_submitorder + 1)
+				{
+					/* Oops, some tasks were not submitted by original application, fake some */
+					struct starpu_task *task = starpu_task_create();
+					int ret;
+					task->cl = NULL;
+					ret = starpu_task_submit(task);
+					STARPU_ASSERT(ret == 0);
+					last_submitorder++;
+				}
 			}
 
 			if (currentTask->ndependson > 0)
@@ -399,7 +411,8 @@ int submit_tasks(void)
 				printf("\rSubmitting task %lu", currentTask->submit_order);
 				fflush(stdout);
 			}
-			last_submitorder++;
+			if (currentTask->submit_order != -1)
+				last_submitorder++;
 		}
 
 		else
@@ -536,13 +549,10 @@ int main(int argc, char **argv)
 			starpu_task_init(&task->task);
 			task->deps = NULL;
 
-			if (submitorder != -1)
-			{
-				task->submit_order = submitorder;
+			task->submit_order = submitorder;
 
-				starpu_rbtree_node_init(&task->node);
-				starpu_rbtree_insert(&tree, &task->node, diff);
-			}
+			starpu_rbtree_node_init(&task->node);
+			starpu_rbtree_insert(&tree, &task->node, diff);
 
 
 			task->jobid = jobid;
