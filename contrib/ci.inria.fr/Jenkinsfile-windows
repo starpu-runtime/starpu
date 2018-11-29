@@ -79,7 +79,7 @@ pipeline
 								{
 									unstash 'tarballgz'
 									unstash 'script-windows-check'
-									sh 'chmod 755 job-1-check-windows.sh && ./job-1-check-windows.sh'
+									sh './job-1-check-windows.sh'
 									deleteDir()
 								}
 							}
