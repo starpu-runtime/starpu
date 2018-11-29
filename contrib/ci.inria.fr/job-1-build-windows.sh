@@ -76,6 +76,7 @@ then
 #    cp ${HWLOC}/bin/*dll ${winball}/bin
     zip -r ${winball}.zip ${winball}
 
+    rm -rf starpu_install
     mv ${winball} starpu_install
 fi
 
