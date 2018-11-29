@@ -319,9 +319,12 @@ void fix_wontuse_handle(struct task * wontuseTask)
 
 	/* Data was not registered when we created this task, so this is the application pointer, look it up now */
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
-	STARPU_ASSERT(handle_tmp);
 
-	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
+	if (handle_tmp)
+		wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
+	else
+		/* This data wasn't actually used, don't care about it */
+		wontuseTask->task.handles[0] = NULL;
 }
 
 /* Function that submits all the tasks (used when the program reaches EOF) */
@@ -406,7 +409,8 @@ int submit_tasks(void)
                          * disabled sequential consistency, so we don't have any
                          * easy way to make this wait for the last task that
                          * wrote to the handle. */
-			starpu_data_wont_use(currentTask->task.handles[0]);
+			if (currentTask->task.handles[0])
+				starpu_data_wont_use(currentTask->task.handles[0]);
 		}
 
 		currentNode = starpu_rbtree_next(currentNode);
