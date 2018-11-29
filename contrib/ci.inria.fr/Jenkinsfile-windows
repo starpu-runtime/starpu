@@ -82,8 +82,8 @@ pipeline
 									unstash 'script-windows-check'
 									unstash 'script-windows-build'
 									bat './job-1-check-windows.bat'
-									if (env.KEEP_WORKING_DIRECTORY != 'true')
-										deleteDir()
+//									if (env.KEEP_WORKING_DIRECTORY != 'true')
+//										deleteDir()
 								}
 							}
 						}
@@ -94,43 +94,43 @@ pipeline
 		}
 	}
 
-//	post
-//	{
-//		// hooks are called in order: always, changed, aborted, failure, success, unstable
-//		changed
-//		{
-//			echo "Build status has changed."
-//			script
-//			{
-//
-//				statusHasChanged = true
-//			}
-//		}
-//		success
-//		{
-//			echo "Build success."
-//			// email when changed to success
-//			script
-//			{
-//				if (statusHasChanged)
-//				{
-//					emailext(body: '${DEFAULT_CONTENT}',
-//						 subject: '${DEFAULT_SUBJECT}',
-//						 replyTo: '$DEFAULT_REPLYTO',
-//						 to: '$DEFAULT_RECIPIENTS',
-//						 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
-//				}
-//			}
-//		}
-//		failure
-//		{
-//			echo "Build failure."
-//			// always email on failure
-//			emailext(body: '${DEFAULT_CONTENT}',
-//				 subject: '${DEFAULT_SUBJECT}',
-//				 replyTo: '$DEFAULT_REPLYTO',
-//				 to: '$DEFAULT_RECIPIENTS',
-//				 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
-//		}
-//	}
+	post
+	{
+		// hooks are called in order: always, changed, aborted, failure, success, unstable
+		changed
+		{
+			echo "Build status has changed."
+			script
+			{
+
+				statusHasChanged = true
+			}
+		}
+		success
+		{
+			echo "Build success."
+			// email when changed to success
+			script
+			{
+				if (statusHasChanged)
+				{
+					emailext(body: '${DEFAULT_CONTENT}',
+						 subject: '${DEFAULT_SUBJECT}',
+						 replyTo: '$DEFAULT_REPLYTO',
+						 to: '$DEFAULT_RECIPIENTS',
+						 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
+				}
+			}
+		}
+		failure
+		{
+			echo "Build failure."
+			// always email on failure
+			emailext(body: '${DEFAULT_CONTENT}',
+				 subject: '${DEFAULT_SUBJECT}',
+				 replyTo: '$DEFAULT_REPLYTO',
+				 to: '$DEFAULT_RECIPIENTS',
+				 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
+		}
+	}
 }
