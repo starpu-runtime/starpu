@@ -850,7 +850,7 @@ eof:
 
 	starpu_task_wait_for_all();
 
-	printf("Simulation ended. Elapsed time: %g ms\n", (starpu_timing_now() - start) / 1000.);
+	printf("Simulation ended. Elapsed simulated time: %g ms\n", (starpu_timing_now() - start) / 1000.);
 
 	/* FREE allocated memory */
 
