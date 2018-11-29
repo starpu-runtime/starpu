@@ -30,32 +30,32 @@ pipeline
 
 	stages
 	{
-//		stage('Tarball')
-//		{
-//			steps
-//			{
-//				node('autotools')
-//				{
-//					checkout scm
-//					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
-//					script
-//					{
-//					       env.tarballgz = sh (script: 'ls *.tar.gz', returnStdout: true).trim()
-//					}
-//					stash includes: "${env.tarballgz}", name: 'tarballgz'
-//					stash includes: "starpu.pdf", name: 'doc'
-//					stash includes: "starpu_dev.pdf", name: 'doc_dev'
-//					// Stash those scripts because they are not in make dist
-//					dir('contrib/ci.inria.fr')
-//					{
-//						stash includes: "job-1-check.sh", name: 'script-unix-check'
-//					}
-//					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf,starpu_dev.pdf", fingerprint: true, onlyIfSuccessful: true
-//					deleteDir()
-//
-//				}
-//			}
-//		}
+		stage('Tarball')
+		{
+			steps
+			{
+				node('autotools')
+				{
+					checkout scm
+					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
+					script
+					{
+					       env.tarballgz = sh (script: 'ls *.tar.gz', returnStdout: true).trim()
+					}
+					stash includes: "${env.tarballgz}", name: 'tarballgz'
+					stash includes: "starpu.pdf", name: 'doc'
+					stash includes: "starpu_dev.pdf", name: 'doc_dev'
+					// Stash those scripts because they are not in make dist
+					dir('contrib/ci.inria.fr')
+					{
+						stash includes: "job-1-check-windows.sh", name: 'script-windows-check'
+					}
+					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf,starpu_dev.pdf", fingerprint: true, onlyIfSuccessful: true
+					deleteDir()
+
+				}
+			}
+		}
 		stage('Check')
 		{
 			steps
@@ -77,10 +77,10 @@ pipeline
 							{
 								dir('check-windows')
 								{
-//									unstash 'tarballgz'
-//									unstash 'script-unix-check'
-									sh 'echo test'
-//									deleteDir()
+									unstash 'tarballgz'
+									unstash 'script-windows-check'
+									sh 'chmod 755 job-1-check-windows.sh && ./job-1-check-windows.sh'
+									deleteDir()
 								}
 							}
 						}
