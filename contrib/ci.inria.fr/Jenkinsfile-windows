@@ -1,9 +1,133 @@
-set PATH=%PATH%;C:\MinGW\msys\1.0\bin;c:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE;c:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin
-sh -c "../../../StarPU/starpu-build.sh"
-set PATH=C:\Windows\SysWOW64;C:\Program Files (x86)\Mozilla Firefox;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\SysWOW64;C:\Program Files\Java\jre7\bin;
-set HWLOC=c:\StarPU\hwloc-win32-build-1.11.0
+#!groovy
+// StarPU --- Runtime system for heterogeneous multicore architectures.
+//
+// Copyright (C) 2018                                CNRS
+//
+// StarPU is free software; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation; either version 2.1 of the License, or (at
+// your option) any later version.
+//
+// StarPU is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//
+// See the GNU Lesser General Public License in COPYING.LGPL for more details.
+//
 
-cd starpu_install
-set STARPU_PATH=%cd%
-cd bin\msvc
-starpu_exec ../../share/doc/starpu/tutorial/hello_world_msvc.c
+def statusHasChanged = false
+
+pipeline
+{
+	agent none
+
+	// Trigger the build
+	triggers
+	{
+		// Poll gforge explicitly every hour
+		pollSCM('00 * * * *')
+	}
+
+	stages
+	{
+//		stage('Tarball')
+//		{
+//			steps
+//			{
+//				node('autotools')
+//				{
+//					checkout scm
+//					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
+//					script
+//					{
+//					       env.tarballgz = sh (script: 'ls *.tar.gz', returnStdout: true).trim()
+//					}
+//					stash includes: "${env.tarballgz}", name: 'tarballgz'
+//					stash includes: "starpu.pdf", name: 'doc'
+//					stash includes: "starpu_dev.pdf", name: 'doc_dev'
+//					// Stash those scripts because they are not in make dist
+//					dir('contrib/ci.inria.fr')
+//					{
+//						stash includes: "job-1-check.sh", name: 'script-unix-check'
+//					}
+//					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf,starpu_dev.pdf", fingerprint: true, onlyIfSuccessful: true
+//					deleteDir()
+//
+//				}
+//			}
+//		}
+		stage('Check')
+		{
+			steps
+			{
+				script
+				{
+					labelToSelect = 'windows'
+					listOfNodeNames = jenkins.model.Jenkins.instance.nodes.collect
+					{
+						node -> node.getLabelString().contains(labelToSelect) ? node.name : null
+					}
+					listOfNodeNames.removeAll(Collections.singleton(null))
+
+					def p = listOfNodeNames.collectEntries
+					{
+						[ (it):
+						{
+							node(it)
+							{
+								dir('check-windows')
+								{
+//									unstash 'tarballgz'
+//									unstash 'script-unix-check'
+									sh 'echo test'
+//									deleteDir()
+								}
+							}
+						}
+					]}
+					parallel p;
+				}
+			}
+		}
+	}
+
+	post
+	{
+		// hooks are called in order: always, changed, aborted, failure, success, unstable
+		changed
+		{
+			echo "Build status has changed."
+			script
+			{
+
+				statusHasChanged = true
+			}
+		}
+		success
+		{
+			echo "Build success."
+			// email when changed to success
+			script
+			{
+				if (statusHasChanged)
+				{
+					emailext(body: '${DEFAULT_CONTENT}',
+						 subject: '${DEFAULT_SUBJECT}',
+						 replyTo: '$DEFAULT_REPLYTO',
+						 to: '$DEFAULT_RECIPIENTS',
+						 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
+				}
+			}
+		}
+		failure
+		{
+			echo "Build failure."
+			// always email on failure
+			emailext(body: '${DEFAULT_CONTENT}',
+				 subject: '${DEFAULT_SUBJECT}',
+				 replyTo: '$DEFAULT_REPLYTO',
+				 to: '$DEFAULT_RECIPIENTS',
+				 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
+		}
+	}
+}
