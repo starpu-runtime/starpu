@@ -82,7 +82,8 @@ pipeline
 									unstash 'script-windows-check'
 									unstash 'script-windows-build'
 									bat './job-1-check-windows.bat'
-									deleteDir()
+									if (env.KEEP_WORKING_DIRECTORY != 'true')
+										deleteDir()
 								}
 							}
 						}
