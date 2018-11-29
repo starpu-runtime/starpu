@@ -25,9 +25,6 @@ if test -z "$tarball" ; then
     exit 2
 fi
 
-mv $tarball ..
-rm -rf *
-mv ../$tarball .
 basename=$(basename $tarball .tar.gz)
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz $tarball
