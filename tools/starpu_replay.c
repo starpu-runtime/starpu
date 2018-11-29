@@ -185,7 +185,7 @@ void dumb_kernel(void *buffers[], void *args) {
 	nexecuted_tasks++;
 	if (!(nexecuted_tasks % 1000))
 	{
-		printf("\rExecuted task %lu", nexecuted_tasks);
+		printf("\rExecuted task %lu...", nexecuted_tasks);
 		fflush(stdout);
 	}
 }
@@ -421,7 +421,7 @@ int submit_tasks(void)
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
-				printf("\rSubmitted task order %lu", currentTask->submit_order);
+				printf("\rSubmitted task order %lu...", currentTask->submit_order);
 				fflush(stdout);
 			}
 			if (currentTask->submit_order != -1)
@@ -442,7 +442,7 @@ int submit_tasks(void)
 		currentNode = starpu_rbtree_next(currentNode);
 
 	}
-	printf("\n");
+	printf(" done.\n");
 
 	return 1;
 }
@@ -524,7 +524,7 @@ int main(int argc, char **argv)
 
 		if (!fgets(s, s_allocated, rec))
 		{
-			printf("\n");
+			printf(" done.\n");
 			int submitted = submit_tasks();
 
 			if (submitted == -1)
@@ -681,7 +681,7 @@ int main(int argc, char **argv)
 			nread_tasks++;
 			if (!(nread_tasks % 1000))
 			{
-				printf("\rRead task %lu", nread_tasks);
+				printf("\rRead task %lu...", nread_tasks);
 				fflush(stdout);
 			}
 
@@ -873,6 +873,7 @@ int main(int argc, char **argv)
 eof:
 
 	starpu_task_wait_for_all();
+	printf(" done.\n");
 
 	printf("Simulation ended. Elapsed simulated time: %g ms\n", (starpu_timing_now() - start) / 1000.);
 
