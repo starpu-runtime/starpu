@@ -84,7 +84,7 @@ pipeline
 									bat './job-1-check-windows.bat'
 									script
 									{
-										env.zip = sh (script: 'ls *zip', returnStdout: true).trim()
+										env.zip = bat (script: 'ls *zip', returnStdout: true).trim()
 									}
 									stash includes: "${env.zip}", name: 'zip'
 									archiveArtifacts artifacts: "${env.zip}", fingerprint: true, onlyIfSuccessful: true
