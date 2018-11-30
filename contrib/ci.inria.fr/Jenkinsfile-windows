@@ -82,12 +82,7 @@ pipeline
 									unstash 'script-windows-check'
 									unstash 'script-windows-build'
 									bat './job-1-check-windows.bat'
-									script
-									{
-										env.zip = bat (script: 'dir /b *zip', returnStdout: true).trim()
-									}
-									stash includes: "${env.zip}", name: 'zip'
-									archiveArtifacts artifacts: "${env.zip}", fingerprint: true, onlyIfSuccessful: true
+									archiveArtifacts artifacts: "*.zip", fingerprint: true, onlyIfSuccessful: true
 //									if (env.KEEP_WORKING_DIRECTORY != 'true')
 //										deleteDir()
 								}
