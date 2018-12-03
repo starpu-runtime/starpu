@@ -38,6 +38,7 @@
 #endif
 
 #include <dlb_sp.h>
+#include <dlb_errors.h>
 
 /*
  * DLB interfacing
@@ -48,6 +49,75 @@ static cpu_set_t          starpurm_process_mask;
 static hwloc_cpuset_t     starpurm_process_cpuset;
 static struct s_starpurm *_starpurm = NULL;
 static pthread_mutex_t dlb_handle_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static const char * _dlb_error_str(int error_code)
+{
+	const char *s = NULL;
+	switch (error_code)
+	{
+		case DLB_NOUPDT:
+		s="DLB_NOUPDT";
+		break;
+		case DLB_NOTED:
+		s="DLB_NOTED";
+		break;
+		case DLB_SUCCESS:
+		s="DLB_SUCCESS";
+		break;
+		case DLB_ERR_UNKNOWN:
+		s="DLB_ERR_UNKNOWN";
+		break;
+		case DLB_ERR_NOINIT:
+		s="DLB_ERR_NOINIT";
+		break;
+		case DLB_ERR_INIT:
+		s="DLB_ERR_INIT";
+		break;
+		case DLB_ERR_DISBLD:
+		s="DLB_ERR_DISBLD";
+		break;
+		case DLB_ERR_NOSHMEM:
+		s="DLB_ERR_NOSHMEM";
+		break;
+		case DLB_ERR_NOPROC:
+		s="DLB_ERR_NOPROC";
+		break;
+		case DLB_ERR_PDIRTY:
+		s="DLB_ERR_PDIRTY";
+		break;
+		case DLB_ERR_PERM:
+		s="DLB_ERR_PERM";
+		break;
+		case DLB_ERR_TIMEOUT:
+		s="DLB_ERR_TIMEOUT";
+		break;
+		case DLB_ERR_NOCBK:
+		s="DLB_ERR_NOCBK";
+		break;
+		case DLB_ERR_NOENT:
+		s="DLB_ERR_NOENT";
+		break;
+		case DLB_ERR_NOCOMP:
+		s="DLB_ERR_NOCOMP";
+		break;
+		case DLB_ERR_REQST:
+		s="DLB_ERR_REQST";
+		break;
+		case DLB_ERR_NOMEM:
+		s="DLB_ERR_NOMEM";
+		break;
+		case DLB_ERR_NOPOL:
+		s="DLB_ERR_NOPOL";
+		break;
+
+		default:
+		s = "<unknown DLB error code>";
+		break;
+	}
+	return s;
+}
+
+#define _dlb_check(s,r) do { if ((r) != DLB_SUCCESS) {fprintf(stderr, "%s:%u, %s - DLB call '%s' %s %d (%s)\n",__FILE__, __LINE__, __func__, (s), (r)>0?"returned warning code":"failed with error code", (r), _dlb_error_str((r))); assert(dlb_ret >= DLB_SUCCESS); }} while (0)
 
 #if 0
 /* unused for now */
