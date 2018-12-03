@@ -44,14 +44,13 @@ pipeline
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
 					stash includes: "starpu.pdf", name: 'doc'
-					stash includes: "starpu_dev.pdf", name: 'doc_dev'
 					// Stash those scripts because they are not in make dist
 					dir('contrib/ci.inria.fr')
 					{
 						stash includes: "job-1-check-windows.bat", name: 'script-windows-check'
 						stash includes: "job-1-build-windows.sh", name: 'script-windows-build'
 					}
-					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf,starpu_dev.pdf", fingerprint: true, onlyIfSuccessful: true
+					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf", fingerprint: true, onlyIfSuccessful: true
 					deleteDir()
 
 				}
