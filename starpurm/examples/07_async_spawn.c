@@ -239,7 +239,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	starpurm_initialize();
+	hwloc_cpuset_t init_cpuset = hwloc_bitmap_alloc();
+	hwloc_bitmap_set_range(init_cpuset, 0, 7);
+	starpurm_initialize_with_cpuset(init_cpuset);
+	hwloc_bitmap_free(init_cpuset);
 	init_rm_infos();
 	if (rm_nb_cpu_units > 1)
 	{
