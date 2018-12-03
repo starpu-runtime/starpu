@@ -186,11 +186,11 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 	if (dlb_handle != NULL)
 	{
 		hwloc_cpuset_t hwloc_to_reclaim_cpuset = hwloc_bitmap_alloc();
-		hwloc_cpuset_t hwloc_to_acquire_cpuset = hwloc_bitmap_alloc();
+		hwloc_cpuset_t hwloc_to_borrow_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_zero(hwloc_to_reclaim_cpuset);
-		hwloc_bitmap_zero(hwloc_to_acquire_cpuset);
+		hwloc_bitmap_zero(hwloc_to_borrow_cpuset);
 		hwloc_bitmap_and(hwloc_to_reclaim_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
-		hwloc_bitmap_andnot(hwloc_to_acquire_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+		hwloc_bitmap_andnot(hwloc_to_borrow_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
 		if (!hwloc_bitmap_iszero(hwloc_to_reclaim_cpuset))
 		{
 			cpu_set_t glibc_to_reclaim_cpuset;
@@ -199,16 +199,16 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 			int dlb_ret = DLB_ReclaimCpuMask_sp(dlb_handle, &glibc_to_reclaim_cpuset);
 			_dlb_check("DLB_ReclaimCpuMask_sp", dlb_ret);
 		}
-		if (!hwloc_bitmap_iszero(hwloc_to_acquire_cpuset))
+		if (!hwloc_bitmap_iszero(hwloc_to_borrow_cpuset))
 		{
-			cpu_set_t glibc_to_acquire_cpuset;
-			CPU_ZERO(&glibc_to_acquire_cpuset);
-			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_acquire_cpuset, &glibc_to_acquire_cpuset);
-			int dlb_ret = DLB_AcquireCpuMask_sp(dlb_handle, &glibc_to_acquire_cpuset);
-			_dlb_check("DLB_AcquireCpuMask_sp", dlb_ret);
+			cpu_set_t glibc_to_borrow_cpuset;
+			CPU_ZERO(&glibc_to_borrow_cpuset);
+			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_borrow_cpuset, &glibc_to_borrow_cpuset);
+			int dlb_ret = DLB_BorrowCpuMask_sp(dlb_handle, &glibc_to_borrow_cpuset);
+			_dlb_check("DLB_BorrowCpuMask_sp", dlb_ret);
 		}
 		hwloc_bitmap_free(hwloc_to_reclaim_cpuset);
-		hwloc_bitmap_free(hwloc_to_acquire_cpuset);
+		hwloc_bitmap_free(hwloc_to_borrow_cpuset);
 		status = 1;
 	}
 	pthread_mutex_unlock(&dlb_handle_mutex);
