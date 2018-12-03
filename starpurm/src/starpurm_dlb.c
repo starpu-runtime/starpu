@@ -43,6 +43,8 @@
 /* TODO: autodetect DLB_CallbackSet_sp prototype extra arg */
 #define DLB_HAVE_CALLBACK_ARG
 
+#define STARPURM_DLB_VERBOSE
+
 /*
  * DLB interfacing
  */
@@ -155,6 +157,17 @@ int starpurm_dlb_notify_starpu_worker_mask_going_to_sleep(const hwloc_cpuset_t h
 		hwloc_bitmap_zero(hwloc_to_return_cpuset);
 		hwloc_bitmap_and(hwloc_to_lend_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
 		hwloc_bitmap_andnot(hwloc_to_return_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+#ifdef STARPURM_DLB_VERBOSE
+		{
+			char * s_to_lend = NULL;
+			char * s_to_return = NULL;
+			hwloc_bitmap_asprintf(&s_to_lend, hwloc_to_lend_cpuset);
+			hwloc_bitmap_asprintf(&s_to_return, hwloc_to_return_cpuset);
+			fprintf(stderr, "%s: to_lend='%s', to_return='%s'\n", __func__, s_to_lend, s_to_return);
+			free(s_to_lend);
+			free(s_to_return);
+		}
+#endif
 		if (!hwloc_bitmap_iszero(hwloc_to_lend_cpuset))
 		{
 			cpu_set_t glibc_to_lend_cpuset;
@@ -191,6 +204,17 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 		hwloc_bitmap_zero(hwloc_to_borrow_cpuset);
 		hwloc_bitmap_and(hwloc_to_reclaim_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
 		hwloc_bitmap_andnot(hwloc_to_borrow_cpuset, hwloc_workers_cpuset, starpurm_process_cpuset);
+#ifdef STARPURM_DLB_VERBOSE
+		{
+			char * s_to_reclaim = NULL;
+			char * s_to_borrow = NULL;
+			hwloc_bitmap_asprintf(&s_to_reclaim, hwloc_to_reclaim_cpuset);
+			hwloc_bitmap_asprintf(&s_to_borrow, hwloc_to_borrow_cpuset);
+			fprintf(stderr, "%s: to_reclaim='%s', to_borrow='%s'\n", __func__, s_to_reclaim, s_to_borrow);
+			free(s_to_reclaim);
+			free(s_to_borrow);
+		}
+#endif
 		if (!hwloc_bitmap_iszero(hwloc_to_reclaim_cpuset))
 		{
 			cpu_set_t glibc_to_reclaim_cpuset;
@@ -218,11 +242,17 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
 static void _dlb_callback_enable_cpu(int cpuid)
 {
+#ifdef STARPURM_DLB_VERBOSE
+	fprintf(stderr, "%s: cpuid=%d\n", __func__, cpuid);
+#endif
 	starpurm_enqueue_event_cpu_unit_available(cpuid);
 }
 
 static void _dlb_callback_disable_cpu(int cpuid)
 {
+#ifdef STARPURM_DLB_VERBOSE
+	fprintf(stderr, "%s: cpuid=%d\n", __func__, cpuid);
+#endif
 	/* nothing */
 }
 #endif
@@ -235,6 +265,17 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 	starpurm_process_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
 	hwloc_bitmap_and(starpurm_process_cpuset, starpurm_process_cpuset, rm->initially_owned_cpuset_mask);
 	_hwloc_cpuset_to_glibc_cpuset(starpurm_process_cpuset, &starpurm_process_mask);
+#ifdef STARPURM_DLB_VERBOSE
+	{
+		char * s_reachable = NULL;
+		char * s_initially_owned = NULL;
+		hwloc_bitmap_asprintf(&s_reachable, rm->selected_cpuset);
+		hwloc_bitmap_asprintf(&s_initially_owned, starpurm_process_cpuset);
+		fprintf(stderr, "%s: StarPU reachable units='%s', StarPU initially owned units='%s'\n", __func__, s_reachable, s_initially_owned);
+		free(s_reachable);
+		free(s_initially_owned);
+	}
+#endif
 
 	pthread_mutex_lock(&dlb_handle_mutex);
 
