@@ -40,6 +40,9 @@
 #include <dlb_sp.h>
 #include <dlb_errors.h>
 
+/* TODO: autodetect DLB_CallbackSet_sp prototype extra arg */
+#define DLB_HAVE_CALLBACK_ARG
+
 /*
  * DLB interfacing
  */
@@ -236,16 +239,17 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 	 * we only register cpu-based callbacks */
 	int dlb_ret;
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
-	assert(DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu) == DLB_SUCCESS);
-	assert(DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu) == DLB_SUCCESS);
+#ifdef DLB_HAVE_CALLBACK_ARG
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu, NULL);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu, NULL);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+#else
 	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu);
 	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
 	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu);
 	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
-	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu);
-	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
-	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu);
-	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+#endif
 #endif
 
 	dlb_ret = DLB_Enable_sp(dlb_handle);
