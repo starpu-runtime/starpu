@@ -233,7 +233,13 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 	_hwloc_cpuset_to_glibc_cpuset(starpurm_process_cpuset, &starpurm_process_mask);
 
 	pthread_mutex_lock(&dlb_handle_mutex);
-	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --mode=async");
+
+	/* TODO: autodetect DLB policy according to DLB version */
+#if 1
+	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--lewi=yes --drom=no --mode=async --verbose=async");
+#else
+	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --drom=no --mode=async --verbose=async");
+#endif
 
 	/* cpu-based callbacks are mutually exclusive with mask-based callbacks,
 	 * we only register cpu-based callbacks */
