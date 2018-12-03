@@ -234,12 +234,22 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 
 	/* cpu-based callbacks are mutually exclusive with mask-based callbacks,
 	 * we only register cpu-based callbacks */
+	int dlb_ret;
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
 	assert(DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu) == DLB_SUCCESS);
 	assert(DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu) == DLB_SUCCESS);
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
+	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu);
+	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
 #endif
 
-	DLB_Enable_sp(dlb_handle);
+	dlb_ret = DLB_Enable_sp(dlb_handle);
+	_dlb_check("DLB_Enable_sp", dlb_ret);
 	pthread_mutex_unlock(&dlb_handle_mutex);
 
 }
