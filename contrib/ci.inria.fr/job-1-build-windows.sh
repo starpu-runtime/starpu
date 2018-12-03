@@ -37,7 +37,7 @@ rm -rf ${basename}/build
 mkdir ${basename}/build
 cd ${basename}/build
 
-export PATH=/c/Builds:/c/MinGW/bin/:/c/MinGW/mingw32/bin/:/c/MinGW/msys/1.0/bin":/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
+export PATH=/c/Builds:/c/MinGW/bin/:/c/MinGW/mingw32/bin/:/c/MinGW/msys/1.0/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
 #export HWLOC=/c/StarPU/hwloc-win32-build-1.11.0
 
 prefix=${PWD}/../../${winball}
@@ -55,16 +55,15 @@ fi
 
 make
 
-touch check_$$
+CHECK=${PWD}/check_$$
+touch ${CHECK}
 
 if test "$1" == "-exec"
 then
-    (make -k check || true) > check_$$ 2>&1
-    cat check_$$
+    (make -k check || true) > ${CHECK} 2>&1
+    cat ${CHECK}
     make showcheck
 fi
-
-CHECK=${PWD}/check_$$
 
 fail=$(grep FAIL ${CHECK} | grep -v XFAIL || true)
 if test -z "$fail"
@@ -73,7 +72,7 @@ then
     cd ../../
     cp /c/MinGW/bin/pthread*dll ${winball}/bin
     cp /c/MinGW/bin/libgcc*dll ${winball}/bin
-#    cp ${HWLOC}/bin/*dll ${winball}/bin
+    #    cp ${HWLOC}/bin/*dll ${winball}/bin
     zip -r ${winball}.zip ${winball}
 
     rm -rf starpu_install
