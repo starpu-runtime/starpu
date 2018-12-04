@@ -252,7 +252,11 @@ static void *event_thread_func(void *_arg)
 	while (1)
 	{
 		struct s_starpurm_event *event = _dequeue_event();
+#ifdef STARPURM_HAVE_DLB
+		if ((event == NULL || event->code == starpurm_event_exit) || need_refresh)
+#else
 		if ((event == NULL || event->code == starpurm_event_exit) && need_refresh)
+#endif
 		{
 			int did_lend_cpuset = 1;
 #ifdef STARPURM_HAVE_DLB
