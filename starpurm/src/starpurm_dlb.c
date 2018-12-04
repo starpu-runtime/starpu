@@ -183,8 +183,15 @@ int starpurm_dlb_notify_starpu_worker_mask_going_to_sleep(const hwloc_cpuset_t h
 			cpu_set_t glibc_to_return_cpuset;
 			CPU_ZERO(&glibc_to_return_cpuset);
 			_hwloc_cpuset_to_glibc_cpuset(hwloc_to_return_cpuset, &glibc_to_return_cpuset);
+			/* Use DLB_Lend for returning borrowed units. DLB_Return seems to require that
+			 * a reclaim has previously been emitted by the unit owning runtime system */
+#if 0
 			int dlb_ret = DLB_ReturnCpuMask_sp(dlb_handle, &glibc_to_return_cpuset);
 			_dlb_check("DLB_ReturnCpuMask_sp", dlb_ret);
+#else
+			int dlb_ret = DLB_LendCpuMask_sp(dlb_handle, &glibc_to_return_cpuset);
+			_dlb_check("DLB_LendCpuMask_sp", dlb_ret);
+#endif
 		}
 		hwloc_bitmap_free(hwloc_to_lend_cpuset);
 		hwloc_bitmap_free(hwloc_to_return_cpuset);
