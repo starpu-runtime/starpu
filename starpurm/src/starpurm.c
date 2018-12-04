@@ -24,6 +24,8 @@
 #include <config.h>
 #include <starpurm_private.h>
 
+#define STARPURM_VERBOSE
+
 /*
  * #define _DEBUG
  */
@@ -77,6 +79,30 @@ enum e_starpurm_event
 	starpurm_event_code_max              = 3
 };
 
+const char *_starpurm_event_to_str(int event_code)
+{
+	const char *s = NULL;
+	switch (event_code)
+	{
+		case starpurm_event_exit:
+			s = "starpurm_event_exit";
+			break;
+		case starpurm_event_worker_going_to_sleep:
+			s = "starpurm_event_worker_going_to_sleep";
+			break;
+		case starpurm_event_worker_waking_up:
+			s = "starpurm_event_worker_waking_up";
+			break;
+		case starpurm_event_unit_available:
+			s = "starpurm_event_unit_available";
+			break;
+		default:
+			s = "<unknown starpurm event>";
+			break;
+	}
+	return s;
+}
+
 struct s_starpurm_event
 {
 	struct s_starpurm_event *next;
@@ -120,13 +146,23 @@ static void _enqueue_event(struct s_starpurm_event *event)
 			pthread_cond_broadcast(&rm->units[i].unit_available_cond);
 		}
 	}
+#ifdef STARPURM_VERBOSE
+	if (event->code != starpurm_event_worker_waking_up)
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 	pthread_cond_broadcast(&rm->event_list_cond);
 #ifdef STARPURM_HAVE_DLB
 	if (event->code == starpurm_event_worker_waking_up)
 	{
 		int unit_id = rm->worker_unit_ids[event->workerid];
 		/* if DLB is in use, wait for the unit to become available from the point of view of DLB, before using it */
+#ifdef STARPURM_VERBOSE
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - waiting\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 		pthread_cond_wait(&rm->units[unit_id].unit_available_cond, &rm->event_list_mutex);
+#ifdef STARPURM_VERBOSE
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - wakeup\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 	}
 #endif
 	pthread_mutex_unlock(&rm->event_list_mutex);
@@ -607,7 +643,6 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 /* Initialize rm state for StarPU */
 void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset)
 {
-	fprintf(stderr, "%s:\n", __func__);
 	int ret;
 	assert(_starpurm == NULL);
 
@@ -717,6 +752,14 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_cpu_workers_cpuset, rm->all_cpu_workers_cpuset, rm->units[unitid].worker_cpuset);;
+#ifdef STARPURM_VERBOSE
+		{
+			char * s_unit = NULL;
+			hwloc_bitmap_asprintf(&s_unit, rm->units[unitid].worker_cpuset);
+			fprintf(stderr, "%s: 'cpu', unitid=%d, cpuset=0x%s, workerid=%d\n", __func__, unitid, s_unit, rm->units[unitid].workerid);
+			free(s_unit);
+		}
+#endif
 		unitid++;
 	}
 
