@@ -283,9 +283,9 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 
 	/* TODO: autodetect DLB policy according to DLB version */
 #if 1
-	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--lewi=yes --drom=no --mode=async --verbose=async");
+	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--lewi=yes --drom=no --mode=async");
 #else
-	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --drom=no --mode=async --verbose=async");
+	dlb_handle = DLB_Init_sp(0, &starpurm_process_mask, "--policy=new --drom=no --mode=async");
 #endif
 
 	/* cpu-based callbacks are mutually exclusive with mask-based callbacks,
