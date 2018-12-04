@@ -254,13 +254,14 @@ static void *event_thread_func(void *_arg)
 		struct s_starpurm_event *event = _dequeue_event();
 		if ((event == NULL || event->code == starpurm_event_exit) && need_refresh)
 		{
+			int did_lend_cpuset = 1;
 #ifdef STARPURM_HAVE_DLB
 			/* notify DLB about changes */
 			if (!hwloc_bitmap_iszero(to_reclaim_cpuset))
 			{
 				starpurm_dlb_notify_starpu_worker_mask_waking_up(to_reclaim_cpuset);
 			}
-			int did_lend_cpuset = 0;
+			did_lend_cpuset = 0;
 			if (!hwloc_bitmap_iszero(to_lend_cpuset))
 			{
 				did_lend_cpuset = starpurm_dlb_notify_starpu_worker_mask_going_to_sleep(to_lend_cpuset);
