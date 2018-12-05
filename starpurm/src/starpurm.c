@@ -1050,6 +1050,16 @@ void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, vo
 
 }
 
+hwloc_cpuset_t starpurm_get_unit_cpuset(int unitid)
+{
+	assert(_starpurm != NULL);
+	assert(_starpurm->state != state_uninitialized);
+	struct s_starpurm *rm = _starpurm;
+
+	assert(unitid >= 0 && unitid < rm->nunits);
+	return hwloc_bitmap_dup(rm->units[unitid].worker_cpuset);
+}
+
 hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank)
 {
 	assert(_starpurm != NULL);
