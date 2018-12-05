@@ -56,6 +56,8 @@ static cpu_set_t          starpurm_process_mask;
 static hwloc_cpuset_t     starpurm_process_cpuset;
 static struct s_starpurm *_starpurm = NULL;
 static pthread_mutex_t dlb_handle_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int glibc_cpuid_to_unitid[CPU_SETSIZE];
+static int *unitid_to_glibc_cpuid = NULL;
 
 static const char * _dlb_error_str(int error_code)
 {
@@ -251,24 +253,72 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
 static void _dlb_callback_enable_cpu(int cpuid)
 {
+	int unitid = glibc_cpuid_to_unitid[cpuid];
 #ifdef STARPURM_DLB_VERBOSE
-	fprintf(stderr, "%s: cpuid=%d\n", __func__, cpuid);
+	fprintf(stderr, "%s: cpuid=%d, unitid=%d\n", __func__, cpuid, unitid);
 #endif
-	starpurm_enqueue_event_cpu_unit_available(cpuid);
+	if (unitid != -1)
+	{
+		starpurm_enqueue_event_cpu_unit_available(unitid);
+	}
 }
 
 static void _dlb_callback_disable_cpu(int cpuid)
 {
+	int unitid = glibc_cpuid_to_unitid[cpuid];
 #ifdef STARPURM_DLB_VERBOSE
-	fprintf(stderr, "%s: cpuid=%d\n", __func__, cpuid);
+	fprintf(stderr, "%s: cpuid=%d, unitid=%d\n", __func__, cpuid, unitid);
 #endif
-	/* nothing */
+	if (unitid != -1)
+	{
+		/* nothing */
+	}
 }
 #endif
 
 void starpurm_dlb_init(struct s_starpurm *rm)
 {
 	_starpurm = rm;
+
+	{
+		int unitid;
+		int cpuid;
+		unitid_to_glibc_cpuid = malloc(rm->nunits * sizeof(*unitid_to_glibc_cpuid));
+		for (cpuid = 0; cpuid<CPU_SETSIZE; cpuid++)
+		{
+			glibc_cpuid_to_unitid[cpuid] = -1;
+		}
+
+		for (unitid = 0; unitid < rm->nunits; unitid++)
+		{
+			hwloc_cpuset_t unit_cpuset = starpurm_get_unit_cpuset(unitid);
+			cpu_set_t unit_mask;
+			CPU_ZERO(&unit_mask);
+			_hwloc_cpuset_to_glibc_cpuset(unit_cpuset, &unit_mask);
+			unitid_to_glibc_cpuid[unitid] = -1;
+			for (cpuid = 0; cpuid<CPU_SETSIZE; cpuid++)
+			{
+				if (CPU_ISSET(cpuid, &unit_mask))
+				{
+					/* assume no overlap on units cpuid */
+					assert(glibc_cpuid_to_unitid[cpuid] == -1);
+
+					unitid_to_glibc_cpuid[unitid] = cpuid;
+					glibc_cpuid_to_unitid[cpuid] = unitid;
+					break;
+				}
+			}
+#ifdef STARPURM_DLB_VERBOSE
+			{
+				char * s_unit = NULL;
+				hwloc_bitmap_asprintf(&s_unit, unit_cpuset);
+				fprintf(stderr, "%s: unitid=%d, cpuid=%d, unit hwloc cpuset=%s\n", __func__, unitid, cpuid, s_unit);
+				free(s_unit);
+			}
+#endif
+			hwloc_bitmap_free(unit_cpuset);
+		}
+	}
 
 	CPU_ZERO(&starpurm_process_mask);
 	starpurm_process_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
@@ -333,5 +383,6 @@ void starpurm_dlb_exit(void)
 	DLB_Disable_sp(dlb_handle_save);
 	DLB_Finalize_sp(dlb_handle_save);
 	hwloc_bitmap_free(starpurm_process_cpuset);
+	free(unitid_to_glibc_cpuid);
 	pthread_mutex_unlock(&dlb_handle_mutex);
 }
