@@ -145,6 +145,7 @@ starpurm_drs_ret_t starpurm_return_all_devices(starpurm_drs_desc_t *spd, int typ
 starpurm_drs_ret_t starpurm_return_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank);
 
 /* cpusets */
+hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank);
 hwloc_cpuset_t starpurm_get_device_worker_cpuset(int type_id, int unit_rank);
 hwloc_cpuset_t starpurm_get_global_cpuset(void);
 hwloc_cpuset_t starpurm_get_selected_cpuset(void);
