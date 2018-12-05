@@ -45,7 +45,7 @@
 /* TODO: autodetect DLB_CallbackSet_sp prototype extra arg */
 #define DLB_HAVE_CALLBACK_ARG
 
-#define STARPURM_DLB_VERBOSE
+#undef STARPURM_DLB_VERBOSE
 
 /*
  * DLB interfacing
