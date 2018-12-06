@@ -42,9 +42,6 @@
 #include <dlb_sp.h>
 #include <dlb_errors.h>
 
-/* TODO: autodetect DLB_CallbackSet_sp prototype extra arg */
-#define DLB_HAVE_CALLBACK_ARG
-
 #undef STARPURM_DLB_VERBOSE
 
 /*
