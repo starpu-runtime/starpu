@@ -42,8 +42,6 @@
 #include <dlb_sp.h>
 #include <dlb_errors.h>
 
-#undef STARPURM_DLB_VERBOSE
-
 /*
  * DLB interfacing
  */
