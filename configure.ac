@@ -3434,6 +3434,8 @@ then
 	if test "x$enable_dlb" != "xno"
 	then
 		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
+		starpurm_dlb_support=yes
+		AX_DLB_CALLBACK_ARG()
 	fi
 	AM_CONDITIONAL(STARPURM_HAVE_DLB, test "x$enable_dlb" != "xno")
 	AC_SUBST(DLB_CFLAGS)
@@ -3569,7 +3571,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/src/config.h starpurm/include/starpurm_config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")

@@ -21,7 +21,7 @@
 #include <hwloc.h>
 #include <starpu.h>
 #include <starpurm.h>
-#include <config.h>
+#include <common/config.h>
 #include <starpurm_private.h>
 
 #undef STARPURM_VERBOSE
