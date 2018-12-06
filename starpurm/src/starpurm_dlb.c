@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <config.h>
+#include <common/config.h>
 
 #include <hwloc.h>
 #ifdef HAVE_HWLOC_GLIBC_SCHED_H
@@ -251,8 +251,15 @@ int starpurm_dlb_notify_starpu_worker_mask_waking_up(const hwloc_cpuset_t hwloc_
 }
 
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
+#ifdef STARPURM_HAVE_DLB_CALLBACK_ARG
+static void _dlb_callback_enable_cpu(int cpuid, void *arg)
+#else
 static void _dlb_callback_enable_cpu(int cpuid)
+#endif
 {
+#ifdef STARPURM_HAVE_DLB_CALLBACK_ARG
+	(void) arg;
+#endif
 	int unitid = glibc_cpuid_to_unitid[cpuid];
 #ifdef STARPURM_DLB_VERBOSE
 	fprintf(stderr, "%s: cpuid=%d, unitid=%d\n", __func__, cpuid, unitid);
@@ -263,8 +270,15 @@ static void _dlb_callback_enable_cpu(int cpuid)
 	}
 }
 
+#ifdef STARPURM_HAVE_DLB_CALLBACK_ARG
+static void _dlb_callback_disable_cpu(int cpuid, void *arg)
+#else
 static void _dlb_callback_disable_cpu(int cpuid)
+#endif
 {
+#ifdef STARPURM_HAVE_DLB_CALLBACK_ARG
+	(void) arg;
+#endif
 	int unitid = glibc_cpuid_to_unitid[cpuid];
 #ifdef STARPURM_DLB_VERBOSE
 	fprintf(stderr, "%s: cpuid=%d, unitid=%d\n", __func__, cpuid, unitid);
@@ -349,7 +363,7 @@ void starpurm_dlb_init(struct s_starpurm *rm)
 	 * we only register cpu-based callbacks */
 	int dlb_ret;
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
-#ifdef DLB_HAVE_CALLBACK_ARG
+#ifdef STARPURM_HAVE_DLB_CALLBACK_ARG
 	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_disable_cpu, (dlb_callback_t)_dlb_callback_disable_cpu, NULL);
 	_dlb_check("DLB_CallbackSet_sp", dlb_ret);
 	dlb_ret = DLB_CallbackSet_sp(dlb_handle, dlb_callback_enable_cpu, (dlb_callback_t)_dlb_callback_enable_cpu, NULL);
