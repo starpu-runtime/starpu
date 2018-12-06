@@ -24,8 +24,6 @@
 #include <common/config.h>
 #include <starpurm_private.h>
 
-#undef STARPURM_VERBOSE
-
 /*
  * #define _DEBUG
  */

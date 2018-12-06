@@ -3341,6 +3341,15 @@ if test "x$enable_starpurm" != xno
 then
 	starpurm_support=yes
 
+	AC_MSG_CHECKING(whether resource management debug messages should be displayed)
+	AC_ARG_ENABLE(starpurm-verbose, [AS_HELP_STRING([--enable-starpurm-verbose],
+		      [display resource management verbose debug messages])],
+		      enable_starpurm_verbose=$enableval, enable_starpurm_verbose=no)
+	AC_MSG_RESULT($enable_starpurm_verbose)
+	if test x$enable_starpurm_verbose = xyes; then
+		AC_DEFINE(STARPURM_VERBOSE, [1], [display resource management verbose debug messages])
+	fi
+
 	# DLB
 	DLB_CFLAGS=""
 	DLB_LIBS=""
@@ -3444,6 +3453,16 @@ then
 	then
 		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
 		starpurm_dlb_support=yes
+
+		AC_MSG_CHECKING(whether DLB resource management debug messages should be displayed)
+		AC_ARG_ENABLE(starpurm-dlb-verbose, [AS_HELP_STRING([--enable-starpurm-dlb-verbose],
+			      [display resource management verbose debug messages])],
+			      enable_starpurm_dlb_verbose=$enableval, enable_starpurm_dlb_verbose=no)
+		AC_MSG_RESULT($enable_starpurm_dlb_verbose)
+		if test x$enable_starpurm_dlb_verbose = xyes; then
+			AC_DEFINE(STARPURM_DLB_VERBOSE, [1], [display DLB resource management verbose debug messages])
+		fi
+
 		AX_DLB_CALLBACK_ARG()
 	fi
 	AC_SUBST(DLB_CFLAGS)
