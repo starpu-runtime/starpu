@@ -338,7 +338,10 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 
 	int ret_val = starpu_sched_component_push_task(NULL, tree->root,task);
 
-	return ret_val;
+	/* Modular schedulers are not supposed to refuse tasks */
+	STARPU_ASSERT(!ret_val);
+
+	return 0;
 }
 
 int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to, struct starpu_task *task)
