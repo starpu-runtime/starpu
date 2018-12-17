@@ -140,6 +140,9 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 		/* Oh, no choice, we don't actually need to decide, just
 		 * use an eager scheduler */
 		decision_component = starpu_sched_component_eager_create(t, NULL);
+                /* But make sure we have a fifo above it, fifos below it would
+                 * possibly refuse tasks out of available room */
+		flags |= STARPU_SCHED_SIMPLE_FIFO_ABOVE;
 	}
 	else
 	{
