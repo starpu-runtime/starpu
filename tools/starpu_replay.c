@@ -413,7 +413,7 @@ int submit_tasks(void)
 
 			if (ret_val != 0)
 			{
-				printf("\nWhile submitting task %lu: return %d\n", currentTask->submit_order, ret_val);
+				printf("\nWhile submitting task %ld: return %d\n", currentTask->submit_order, ret_val);
 				return -1;
 			}
 
@@ -421,7 +421,7 @@ int submit_tasks(void)
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
-				printf("\rSubmitted task order %lu...", currentTask->submit_order);
+				printf("\rSubmitted task order %ld...", currentTask->submit_order);
 				fflush(stdout);
 			}
 			if (currentTask->submit_order != -1)
