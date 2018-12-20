@@ -142,7 +142,11 @@ extern "C"
 #endif
 
 #ifdef __APPLE_CC__
-#  define _starpu_abort() *(volatile int*)NULL = 0
+#  ifdef __clang_analyzer__
+#    define _starpu_abort() exit(42)
+#  else
+#    define _starpu_abort() *(volatile int*)NULL = 0
+#  endif
 #else
 #  define _starpu_abort() abort()
 #endif

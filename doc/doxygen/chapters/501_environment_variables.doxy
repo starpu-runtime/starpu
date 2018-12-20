@@ -228,6 +228,14 @@ set.
 
 </dd>
 
+<dt>STARPU_MAIN_THREAD_BIND</dt>
+<dd>
+\anchor STARPU_MAIN_THREAD_BIND
+\addindex __env__STARPU_MAIN_THREAD_BIND
+When defined, this make StarPU bind the thread that calls starpu_initialize() to
+a reserved CPU, subtracted from the CPU workers.
+</dd>
+
 <dt>STARPU_MAIN_THREAD_CPUID</dt>
 <dd>
 \anchor STARPU_MAIN_THREAD_CPUID
@@ -240,7 +248,9 @@ the given CPU ID.
 <dd>
 \anchor STARPU_MPI_THREAD_CPUID
 \addindex __env__STARPU_MPI_THREAD_CPUID
-When defined, this make StarPU bind its MPI thread to the given CPU ID.
+When defined, this make StarPU bind its MPI thread to the given CPU ID. Setting
+it to -1 (the default value) will use a reserved CPU, subtracted from the CPU
+workers.
 </dd>
 
 <dt>STARPU_WORKERS_CUDAID</dt>

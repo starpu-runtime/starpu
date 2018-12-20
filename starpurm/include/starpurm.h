@@ -46,12 +46,14 @@ typedef void *starpurm_block_cond_t;
 typedef int (*starpurm_polling_t)(void *);
 
 /* Resource enforcement */
+void starpurm_initialize_with_cpuset(hwloc_cpuset_t initially_owned_cpuset);
 void starpurm_initialize(void);
 
 void starpurm_shutdown(void);
 
 void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset);
 void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset, void(*cb_f)(void *), void *cb_args);
+void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, void(*cb_f)(void *), void *cb_args);
 
 /* Dynamic resource sharing */
 starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd);
@@ -143,6 +145,8 @@ starpurm_drs_ret_t starpurm_return_all_devices(starpurm_drs_desc_t *spd, int typ
 starpurm_drs_ret_t starpurm_return_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank);
 
 /* cpusets */
+hwloc_cpuset_t starpurm_get_unit_cpuset(int unitid);
+hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank);
 hwloc_cpuset_t starpurm_get_device_worker_cpuset(int type_id, int unit_rank);
 hwloc_cpuset_t starpurm_get_global_cpuset(void);
 hwloc_cpuset_t starpurm_get_selected_cpuset(void);

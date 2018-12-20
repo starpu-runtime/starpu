@@ -982,6 +982,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (conf->ncpus == -1)
 		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
 	conf->reserve_ncpus = starpu_get_env_number("STARPU_RESERVE_NCPU");
+	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	if (main_thread_bind)
+		conf->reserve_ncpus++;
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
 	conf->nmic = starpu_get_env_number("STARPU_NMIC");
@@ -1078,6 +1081,9 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
 	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus);
+	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	if (main_thread_bind)
+		conf->reserve_ncpus++;
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
@@ -1479,8 +1485,16 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	int main_thread_activity = STARPU_NONACTIVETHREAD;
+	if (main_thread_bind)
+	{
+		main_thread_activity = STARPU_ACTIVETHREAD;
+		if (main_thread_cpuid == -1)
+			main_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	}
 	if (main_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(main_thread_cpuid, STARPU_NONACTIVETHREAD, "main");
+		_starpu_bind_thread_on_cpu(main_thread_cpuid, main_thread_activity, "main");
 
 	_STARPU_DEBUG("Initialisation finished\n");
 

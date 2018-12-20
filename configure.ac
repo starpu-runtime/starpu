@@ -2093,7 +2093,7 @@ AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether FxT traces should be generated)
-AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
+AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[[=<dir>]]], [generate fxt traces])],
 	[
 		if test x$withval != xno; then
 			use_fxt=yes
@@ -3023,23 +3023,27 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
-    PKG_CHECK_MODULES([OPENBLAS],  [openblas],  [
-      PKG_CHECK_MODULES([BLAS_OPENBLAS],  [blas-openblas],  [
-        AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
-        AC_SUBST([STARPU_OPENBLAS], [1])
-        CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
-        LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
-        blas_lib=openblas
-      ], [
-	if test x$blas_lib = xopenblas; then
-	  AC_MSG_ERROR([cannot find blas-openblas lib])
-	fi
-      ])
-    ], [
-      if test x$blas_lib = xopenblas; then
-        AC_MSG_ERROR([cannot find openblas lib])
-      fi
-    ])
+    PKG_CHECK_MODULES([OPENBLAS], [openblas],
+    				  [PKG_CHECK_MODULES([BLAS_OPENBLAS], [blas-openblas],
+				  				      [AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+					          		       AC_SUBST([STARPU_OPENBLAS], [1])
+						          	       CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
+							               LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
+								       blas_lib=openblas
+      								      ],
+								      [ if test x$blas_lib = xopenblas; then
+								      	   STARPU_CHECK_LIB(OPENBLAS, blas-openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find blas-openblas lib]),[-lblas-openblas])
+				  				      	   AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+					          		       	   AC_SUBST([STARPU_OPENBLAS], [1])
+									fi
+				  				      ])
+				  ],
+				  [ if test x$blas_lib = xopenblas; then
+				       STARPU_CHECK_LIB(OPENBLAS, openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find openblas lib]),[-lopenblas])
+				       AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
+				       AC_SUBST([STARPU_OPENBLAS], [1])
+      				    fi
+                                  ] )
 fi
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
@@ -3357,6 +3361,15 @@ if test "x$enable_starpurm" != xno
 then
 	starpurm_support=yes
 
+	AC_MSG_CHECKING(whether resource management debug messages should be displayed)
+	AC_ARG_ENABLE(starpurm-verbose, [AS_HELP_STRING([--enable-starpurm-verbose],
+		      [display resource management verbose debug messages])],
+		      enable_starpurm_verbose=$enableval, enable_starpurm_verbose=no)
+	AC_MSG_RESULT($enable_starpurm_verbose)
+	if test x$enable_starpurm_verbose = xyes; then
+		AC_DEFINE(STARPURM_VERBOSE, [1], [display resource management verbose debug messages])
+	fi
+
 	# DLB
 	DLB_CFLAGS=""
 	DLB_LIBS=""
@@ -3439,7 +3452,11 @@ then
 		CFLAGS="$STARPU_CFLAGS $CFLAGS"
 		LIBS="$STARPU_LIBS $LIBS"
 		# check if StarPU implements starpu_worker_set_going_to_sleep_callback()
-		AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
+		if test x$enable_worker_cb = xyes ; then
+			AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.])
+		fi
+
+		#AC_CHECK_FUNC([starpu_worker_set_going_to_sleep_callback],AC_DEFINE([STARPURM_STARPU_HAVE_WORKER_CALLBACKS], [1], [Define to 1 if StarPU has support for worker callbacks.]))
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
@@ -3456,6 +3473,17 @@ then
 	then
 		AC_DEFINE([STARPURM_HAVE_DLB], [1], [Define to 1 if dlb support is enabled.])
 		starpurm_dlb_support=yes
+
+		AC_MSG_CHECKING(whether DLB resource management debug messages should be displayed)
+		AC_ARG_ENABLE(starpurm-dlb-verbose, [AS_HELP_STRING([--enable-starpurm-dlb-verbose],
+			      [display resource management verbose debug messages])],
+			      enable_starpurm_dlb_verbose=$enableval, enable_starpurm_dlb_verbose=no)
+		AC_MSG_RESULT($enable_starpurm_dlb_verbose)
+		if test x$enable_starpurm_dlb_verbose = xyes; then
+			AC_DEFINE(STARPURM_DLB_VERBOSE, [1], [display DLB resource management verbose debug messages])
+		fi
+
+		AX_DLB_CALLBACK_ARG()
 	fi
 	AC_SUBST(DLB_CFLAGS)
 	AC_SUBST(DLB_LIBS)
@@ -3591,7 +3619,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/src/config.h starpurm/include/starpurm_config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")

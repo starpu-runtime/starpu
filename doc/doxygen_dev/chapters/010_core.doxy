@@ -329,5 +329,66 @@ Once a worker has been notified about a scheduling context change pending, it
 cannot proceed with incompatible operations such as a scheduling operation until
 it receives a notification that the context update operation is complete.
 
+\subsection CoreEntitiesDrivers Drivers
+
+Each driver defines a set of routines depending on some specific hardware. These
+routines include hardware discovery/initialization, task execution, device
+memory management and data transfers.
+
+While most hardware dependent routines are in source files located in the \c
+/src/drivers subdirectory of the StarPU tree, some can be found elsewhere in the
+tree such as \c src/datawizard/malloc.c for memory allocation routines or the
+subdirectories of \c src/datawizard/interfaces/ for data transfer routines.
+
+The driver ABI defined in the \ref _starpu_driver_ops structure includes the
+following operations:
+
+- \c .init: initialize a driver instance for the calling worker 
+  managing a hardware computing unit compatible with
+  this driver.
+
+- \c .run_once: perform a single driver progress cycle for the calling worker
+  (see \ref CoreEntitiesWorkersOperations).
+
+- \c .deinit: deinitialize the driver instance for the calling worker
+
+- \c .run: executes the following sequence automatically: call \c .init,
+  repeatedly call \c .run_once until the function \ref
+  _starpu_machine_is_running() returns false, call \c .deinit.
+
+The source code common to all drivers is shared in
+<code>src/drivers/driver_common/driver_common.[ch]</code>. This file includes
+services such as grabbing a new task to execute on a worker, managing statistics
+accounting on job startup and completion and updating the worker status
+
+\subsubsection CoreEntitiesDriversMP Master/Slave Drivers
+
+A subset of the drivers corresponds to drivers managing computing units in
+master/slave mode, that is, drivers involving a local master instance managing
+one or more remote slave instances on the targeted device(s). This includes
+devices such as discrete manycore accelerators (e.g. Intel's Knight Corners
+board, for instance), or pseudo devices such as a cluster of cpu nodes driver
+through StarPU's MPI master/slave mode. A driver instance on the master side
+is named the \b source, while a driver instances on the slave side is named
+the \b sink.
+
+A significant part of the work realized on the source and sink sides of
+master/slave drivers is identical among all master/slave drivers, due to the
+similarities in the software pattern. Therefore, many routines are shared among
+all these drivers in the \c src/drivers/mp_common subdirectory. In particular, a
+set of default commands to be used between sources and sinks is defined,
+assuming the availability of some communication channel between them (see enum
+\ref _starpu_mp_command)
+
+TODO
+
+\subsection CoreEntitiesTasksJobs Tasks and Jobs
+
+TODO
+
+\subsection CoreEntitiesData Data
+
+TODO
+
 */
 

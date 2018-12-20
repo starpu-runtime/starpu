@@ -21,7 +21,7 @@
 #include <hwloc.h>
 #include <starpu.h>
 #include <starpurm.h>
-#include <config.h>
+#include <common/config.h>
 #include <starpurm_private.h>
 
 /*
@@ -77,6 +77,30 @@ enum e_starpurm_event
 	starpurm_event_code_max              = 3
 };
 
+const char *_starpurm_event_to_str(int event_code)
+{
+	const char *s = NULL;
+	switch (event_code)
+	{
+		case starpurm_event_exit:
+			s = "starpurm_event_exit";
+			break;
+		case starpurm_event_worker_going_to_sleep:
+			s = "starpurm_event_worker_going_to_sleep";
+			break;
+		case starpurm_event_worker_waking_up:
+			s = "starpurm_event_worker_waking_up";
+			break;
+		case starpurm_event_unit_available:
+			s = "starpurm_event_unit_available";
+			break;
+		default:
+			s = "<unknown starpurm event>";
+			break;
+	}
+	return s;
+}
+
 struct s_starpurm_event
 {
 	struct s_starpurm_event *next;
@@ -120,13 +144,23 @@ static void _enqueue_event(struct s_starpurm_event *event)
 			pthread_cond_broadcast(&rm->units[i].unit_available_cond);
 		}
 	}
+#ifdef STARPURM_VERBOSE
+	if (event->code != starpurm_event_worker_waking_up)
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 	pthread_cond_broadcast(&rm->event_list_cond);
 #ifdef STARPURM_HAVE_DLB
 	if (event->code == starpurm_event_worker_waking_up)
 	{
 		int unit_id = rm->worker_unit_ids[event->workerid];
 		/* if DLB is in use, wait for the unit to become available from the point of view of DLB, before using it */
+#ifdef STARPURM_VERBOSE
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - waiting\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 		pthread_cond_wait(&rm->units[unit_id].unit_available_cond, &rm->event_list_mutex);
+#ifdef STARPURM_VERBOSE
+		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - wakeup\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
+#endif
 	}
 #endif
 	pthread_mutex_unlock(&rm->event_list_mutex);
@@ -221,13 +255,16 @@ void starpurm_enqueue_event_cpu_unit_available(int unit_id)
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 	assert(unit_id >= 0);
-	assert(unit_id < rm->nunits_by_type[starpurm_unit_cpu]);
-	unsigned workerid = rm->units[unit_id].workerid;
-	struct s_starpurm_event *event = calloc(1, sizeof(*event));
-	event->code = starpurm_event_unit_available;
-	event->workerid = workerid;
-	_enqueue_event(event);
-}
+	/*
+	 * unit_id may exceed the number of CPU units actually used by StarPU,
+	 * if some CPU cores are not used.
+	 *
+	 * //assert(unit_id < rm->nunits_by_type[starpurm_unit_cpu]);
+	 */
+	unsigned workerid = rm->units[unit_id].workerid; struct
+		s_starpurm_event *event = calloc(1, sizeof(*event));
+	event->code = starpurm_event_unit_available; event->workerid =
+		workerid; _enqueue_event(event); }
 
 static void *event_thread_func(void *_arg)
 {
@@ -249,15 +286,20 @@ static void *event_thread_func(void *_arg)
 	while (1)
 	{
 		struct s_starpurm_event *event = _dequeue_event();
+#ifdef STARPURM_HAVE_DLB
+		if ((event == NULL || event->code == starpurm_event_exit) || need_refresh)
+#else
 		if ((event == NULL || event->code == starpurm_event_exit) && need_refresh)
+#endif
 		{
+			int did_lend_cpuset = 1;
 #ifdef STARPURM_HAVE_DLB
 			/* notify DLB about changes */
 			if (!hwloc_bitmap_iszero(to_reclaim_cpuset))
 			{
 				starpurm_dlb_notify_starpu_worker_mask_waking_up(to_reclaim_cpuset);
 			}
-			int did_lend_cpuset = 0;
+			did_lend_cpuset = 0;
 			if (!hwloc_bitmap_iszero(to_lend_cpuset))
 			{
 				did_lend_cpuset = starpurm_dlb_notify_starpu_worker_mask_going_to_sleep(to_lend_cpuset);
@@ -298,36 +340,45 @@ static void *event_thread_func(void *_arg)
 		{
 			case starpurm_event_worker_going_to_sleep:
 				{
-					int unit_id = rm->worker_unit_ids[event->workerid];
-					hwloc_bitmap_or(to_lend_cpuset, to_lend_cpuset, rm->units[unit_id].worker_cpuset);
-					hwloc_bitmap_andnot(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
+					if (event->workerid < rm->nunits)
+					{
+						int unit_id = rm->worker_unit_ids[event->workerid];
+						hwloc_bitmap_or(to_lend_cpuset, to_lend_cpuset, rm->units[unit_id].worker_cpuset);
+						hwloc_bitmap_andnot(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
+					}
 				}
 				break;
 			case starpurm_event_worker_waking_up:
 				{
-					int unit_id = rm->worker_unit_ids[event->workerid];
-					hwloc_bitmap_andnot(to_lend_cpuset, to_lend_cpuset, rm->units[unit_id].worker_cpuset);
+					if (event->workerid < rm->nunits)
+					{
+						int unit_id = rm->worker_unit_ids[event->workerid];
+						hwloc_bitmap_andnot(to_lend_cpuset, to_lend_cpuset, rm->units[unit_id].worker_cpuset);
 #ifdef STARPURM_HAVE_DLB
-					if (rm->units[unit_id].type == starpurm_unit_cpu && !hwloc_bitmap_intersects(rm->units[unit_id].worker_cpuset, owned_cpuset))
-					{
-						/* Only reclaim the unit from DLB if StarPU does not own it already. */
-						hwloc_bitmap_or(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
-					}
-					else
-					{
-						pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
-					}
+						if (rm->units[unit_id].type == starpurm_unit_cpu && !hwloc_bitmap_intersects(rm->units[unit_id].worker_cpuset, owned_cpuset))
+						{
+							/* Only reclaim the unit from DLB if StarPU does not own it already. */
+							hwloc_bitmap_or(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
+						}
+						else
+						{
+							pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
+						}
 #else
-					hwloc_bitmap_or(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
+						hwloc_bitmap_or(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
 #endif
+					}
 				}
 				break;
 #ifdef STARPURM_HAVE_DLB
 			case starpurm_event_unit_available:
 				{
-					/* a reclaimed unit is now available from DLB, unlock the corresponding worker waking up */
-					int unit_id = rm->worker_unit_ids[event->workerid];
-					pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
+					if (event->workerid < rm->nunits)
+					{
+						/* a reclaimed unit is now available from DLB, unlock the corresponding worker waking up */
+						int unit_id = rm->worker_unit_ids[event->workerid];
+						pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
+					}
 				}
 				break;
 #endif
@@ -588,7 +639,7 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 }
 
 /* Initialize rm state for StarPU */
-void starpurm_initialize(void)
+void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset)
 {
 	int ret;
 	assert(_starpurm == NULL);
@@ -604,6 +655,8 @@ void starpurm_initialize(void)
 	rm->global_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->global_cpuset);
 	
+	rm->initially_owned_cpuset_mask = hwloc_bitmap_dup(initially_owned_cpuset);
+
 	rm->all_cpu_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_cpu_workers_cpuset);
 	
@@ -697,6 +750,14 @@ void starpurm_initialize(void)
 		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_cpu_workers_cpuset, rm->all_cpu_workers_cpuset, rm->units[unitid].worker_cpuset);;
+#ifdef STARPURM_VERBOSE
+		{
+			char * s_unit = NULL;
+			hwloc_bitmap_asprintf(&s_unit, rm->units[unitid].worker_cpuset);
+			fprintf(stderr, "%s: 'cpu', unitid=%d, cpuset=0x%s, workerid=%d\n", __func__, unitid, s_unit, rm->units[unitid].workerid);
+			free(s_unit);
+		}
+#endif
 		unitid++;
 	}
 
@@ -820,15 +881,22 @@ void starpurm_initialize(void)
 		rm->starpu_in_pause = 0;
 	}
 
+#ifdef STARPURM_HAVE_DLB
+	starpurm_dlb_init(rm);
+#endif
 	pthread_mutex_lock(&rm->event_list_mutex);
 	rm->event_processing_enabled = 1;
 	pthread_cond_broadcast(&rm->event_processing_cond);
 	pthread_mutex_unlock(&rm->event_list_mutex);
 	_starpurm = rm;
 
-#ifdef STARPURM_HAVE_DLB
-	starpurm_dlb_init(rm);
-#endif
+}
+
+void starpurm_initialize()
+{
+	hwloc_cpuset_t full_cpuset = hwloc_bitmap_alloc_full();
+	starpurm_initialize_with_cpuset(full_cpuset);
+	hwloc_bitmap_free(full_cpuset);
 }
 
 /* Free rm struct for StarPU */
@@ -870,6 +938,7 @@ void starpurm_shutdown(void)
 	hwloc_bitmap_free(rm->all_mic_device_workers_cpuset);
 	hwloc_bitmap_free(rm->all_device_workers_cpuset);
 	hwloc_bitmap_free(rm->selected_cpuset);
+	hwloc_bitmap_free(rm->initially_owned_cpuset_mask);
 
 	int i;
 	for (i=0; i<rm->nunits; i++)
@@ -946,6 +1015,47 @@ void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *
 	ret = pthread_create(&t, &attr, _starpurm_spawn_kernel_thread, spawn_args);
 	assert(ret == 0);
 
+}
+
+static void *_starpurm_spawn_kernel_in_default_context_thread(void *_spawn_args)
+{
+	struct s_starpurm__spawn_args *spawn_args = _spawn_args;
+	struct s_starpurm *rm = _starpurm;
+	starpu_sched_ctx_set_context(&rm->sched_ctx_id);
+	spawn_args->f(spawn_args->args);
+	spawn_args->cb_f(spawn_args->cb_args);
+	free(spawn_args);
+	return NULL;
+}
+
+void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, void(*cb_f)(void *), void *cb_args)
+{
+	(void) data;
+	struct s_starpurm__spawn_args *spawn_args = calloc(1, sizeof(*spawn_args));
+	spawn_args->f = f;
+	spawn_args->args = args;
+	spawn_args->cb_f = cb_f;
+	spawn_args->cb_args = cb_args;
+	pthread_attr_t attr;
+	int ret;
+	ret = pthread_attr_init(&attr);
+	assert(ret == 0);
+	ret = pthread_attr_setdetachstate(&attr, 1);
+	assert(ret == 0);
+	pthread_t t;
+	ret = pthread_create(&t, &attr, _starpurm_spawn_kernel_in_default_context_thread, spawn_args);
+	assert(ret == 0);
+
+}
+
+hwloc_cpuset_t starpurm_get_unit_cpuset(int unitid)
+{
+	assert(_starpurm != NULL);
+	assert(_starpurm->state != state_uninitialized);
+	struct s_starpurm *rm = _starpurm;
+
+	assert(unitid >= 0 && unitid < rm->nunits);
+	return hwloc_bitmap_dup(rm->units[unitid].worker_cpuset);
 }
 
 hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank)

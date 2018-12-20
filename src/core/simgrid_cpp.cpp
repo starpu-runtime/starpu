@@ -26,7 +26,11 @@
 #else
 #include <msg/msg.h>
 #endif
+#if SIMGRID_VERSION >= 32190
+#include <simgrid/simix.hpp>
+#else
 #include <simgrid/simix.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
@@ -41,7 +45,11 @@ typedef struct
 	void *father_data;
 } thread_data_t;
 
+#if SIMGRID_VERSION >= 32190
+static void _starpu_simgrid_xbt_thread_create_wrapper(void)
+#else
 static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+#endif
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	MSG_process_sleep(0.000001);
@@ -62,12 +70,14 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	simcall_process_set_data(self, NULL);
 	free(t);
 
+#if SIMGRID_VERSION < 32190
 	return 0;
+#endif
 }
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
-#if defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
+#if SIMGRID_VERSION >= 32190 || defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
 #else
@@ -101,7 +111,9 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 -1.0,
 #endif
+#if SIMGRID_VERSION < 32190
 				 0, NULL,
+#endif
 	                         /*props */ NULL
 #if SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559
 				 , 0

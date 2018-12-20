@@ -50,7 +50,7 @@ static int static_workerid;
 
 /* TODO: move to core header while moving starpu_replay_sched to core */
 extern void schedRecInit(const char * filename);
-extern void applySchedRec(struct starpu_task * starpu_task, unsigned long submit_order);
+extern void applySchedRec(struct starpu_task * starpu_task, long submit_order);
 
 /* Enum for normal and "wontuse" tasks */
 enum task_type {NormalTask, WontUseTask};
@@ -102,7 +102,7 @@ static struct task
 	UT_hash_handle hh;
 	jobid_t jobid;
         int iteration;
-	unsigned long submit_order;
+	long submit_order;
 	jobid_t *deps;
 	size_t ndependson;
 	struct starpu_task task;
@@ -135,7 +135,16 @@ static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
 /* the cmp_fn arg for rb_tree_insert() */
 unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_node * right_elm)
 {
-	return ((struct task *) left_elm)->submit_order - ((struct task *) right_elm)->submit_order;
+	long oleft = ((struct task *) left_elm)->submit_order;
+	long oright = ((struct task *) right_elm)->submit_order;
+	if (oleft == -1 && oright == -1)
+	{
+		if (left_elm < right_elm)
+			return -1;
+		else
+			return 1;
+	}
+	return oleft - oright;
 }
 
 /* Settings for the perfmodel */
@@ -154,6 +163,7 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 {
 	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(device != -1);
+	(void) nimpl;
 
 	/* Then, get the pointer to the value of the expected time */
 	double * val = (double *) ((struct task_arg *) (task->cl_arg))->perf+device;
@@ -168,13 +178,24 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 
 /* End of settings */
 
-void dumb_kernel(void) {}
+static unsigned long nexecuted_tasks;
+void dumb_kernel(void *buffers[], void *args) {
+	(void) buffers;
+	(void) args;
+	nexecuted_tasks++;
+	if (!(nexecuted_tasks % 1000))
+	{
+		printf("\rExecuted task %lu...", nexecuted_tasks);
+		fflush(stdout);
+	}
+}
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
 static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
 	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];
+	(void) nimpl;
 	if (!(expected_time == 0 || isnan(expected_time)))
 	{
 		return 1;
@@ -192,13 +213,14 @@ static struct starpu_perfmodel myperfmodel =
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = { (void*) 1 },
+	.cpu_funcs = { dumb_kernel },
 	.cpu_funcs_name = { "dumb_kernel" },
-	.cuda_funcs = { (void*) 1 },
-	.opencl_funcs = { (void*) 1 },
+	.cuda_funcs = { dumb_kernel },
+	.opencl_funcs = { dumb_kernel },
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 	.can_execute = can_execute,
 	.model = &myperfmodel,
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 
@@ -319,9 +341,12 @@ void fix_wontuse_handle(struct task * wontuseTask)
 
 	/* Data was not registered when we created this task, so this is the application pointer, look it up now */
 	HASH_FIND(hh, handles_hash, &wontuseTask->task.handles[0], sizeof(wontuseTask->task.handles[0]), handle_tmp);
-	STARPU_ASSERT(handle_tmp);
 
-	wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
+	if (handle_tmp)
+		wontuseTask->task.handles[0] = handle_tmp->mem_ptr;
+	else
+		/* This data wasn't actually used, don't care about it */
+		wontuseTask->task.handles[0] = NULL;
 }
 
 /* Function that submits all the tasks (used when the program reaches EOF) */
@@ -331,7 +356,7 @@ int submit_tasks(void)
 
 	const struct starpu_rbtree * tmptree = &tree;
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_first(tmptree);
-	unsigned long last_submitorder = 0;
+	long last_submitorder = 0;
 
 	while (currentNode != NULL)
 	{
@@ -339,17 +364,20 @@ int submit_tasks(void)
 
 		if (currentTask->type == NormalTask)
 		{
-			STARPU_ASSERT(currentTask->submit_order >= last_submitorder + 1);
-
-			while (currentTask->submit_order > last_submitorder + 1)
+			if (currentTask->submit_order != -1)
 			{
-				/* Oops, some tasks were not submitted by original application, fake some */
-				struct starpu_task *task = starpu_task_create();
-				int ret;
-				task->cl = NULL;
-				ret = starpu_task_submit(task);
-				STARPU_ASSERT(ret == 0);
-				last_submitorder++;
+				STARPU_ASSERT(currentTask->submit_order >= last_submitorder + 1);
+
+				while (currentTask->submit_order > last_submitorder + 1)
+				{
+					/* Oops, some tasks were not submitted by original application, fake some */
+					struct starpu_task *task = starpu_task_create();
+					int ret;
+					task->cl = NULL;
+					ret = starpu_task_submit(task);
+					STARPU_ASSERT(ret == 0);
+					last_submitorder++;
+				}
 			}
 
 			if (currentTask->ndependson > 0)
@@ -385,7 +413,7 @@ int submit_tasks(void)
 
 			if (ret_val != 0)
 			{
-				printf("\nWhile submitting task %lu: return %d\n", currentTask->submit_order, ret_val);
+				printf("\nWhile submitting task %ld: return %d\n", currentTask->submit_order, ret_val);
 				return -1;
 			}
 
@@ -393,10 +421,11 @@ int submit_tasks(void)
 			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
-				printf("\rSubmitting task %lu", currentTask->submit_order);
+				printf("\rSubmitted task order %ld...", currentTask->submit_order);
 				fflush(stdout);
 			}
-			last_submitorder++;
+			if (currentTask->submit_order != -1)
+				last_submitorder++;
 		}
 
 		else
@@ -406,13 +435,14 @@ int submit_tasks(void)
                          * disabled sequential consistency, so we don't have any
                          * easy way to make this wait for the last task that
                          * wrote to the handle. */
-			starpu_data_wont_use(currentTask->task.handles[0]);
+			if (currentTask->task.handles[0])
+				starpu_data_wont_use(currentTask->task.handles[0]);
 		}
 
 		currentNode = starpu_rbtree_next(currentNode);
 
 	}
-	printf("\n");
+	printf(" done.\n");
 
 	return 1;
 }
@@ -438,6 +468,8 @@ int main(int argc, char **argv)
 	const char *sched_rec = NULL;
 	unsigned i;
 	size_t s_allocated = 128;
+
+	unsigned long nread_tasks = 0;
 
 	_STARPU_MALLOC(s, s_allocated);
 	dependson_size = REPLAY_NMAX_DEPENDENCIES; /* Change the value of REPLAY_NMAX_DEPENCIES to modify the number of dependencies */
@@ -492,6 +524,7 @@ int main(int argc, char **argv)
 
 		if (!fgets(s, s_allocated, rec))
 		{
+			printf(" done.\n");
 			int submitted = submit_tasks();
 
 			if (submitted == -1)
@@ -509,6 +542,7 @@ int main(int argc, char **argv)
 
 			if (!fgets(s + s_allocated-1, s_allocated+1, rec))
 			{
+				printf("\n");
 				int submitted = submit_tasks();
 
 				if (submitted == -1)
@@ -532,13 +566,10 @@ int main(int argc, char **argv)
 			starpu_task_init(&task->task);
 			task->deps = NULL;
 
-			if (submitorder != -1)
-			{
-				task->submit_order = submitorder;
+			task->submit_order = submitorder;
 
-				starpu_rbtree_node_init(&task->node);
-				starpu_rbtree_insert(&tree, &task->node, diff);
-			}
+			starpu_rbtree_node_init(&task->node);
+			starpu_rbtree_insert(&tree, &task->node, diff);
 
 
 			task->jobid = jobid;
@@ -646,6 +677,13 @@ int main(int argc, char **argv)
 
 			/* Add this task to task hash */
 			HASH_ADD(hh, tasks, jobid, sizeof(jobid), task);
+
+			nread_tasks++;
+			if (!(nread_tasks % 1000))
+			{
+				printf("\rRead task %lu...", nread_tasks);
+				fflush(stdout);
+			}
 
 			reset();
 		}
@@ -835,8 +873,9 @@ int main(int argc, char **argv)
 eof:
 
 	starpu_task_wait_for_all();
+	printf(" done.\n");
 
-	printf("Simulation ended. Elapsed time: %g ms\n", (starpu_timing_now() - start) / 1000.);
+	printf("Simulation ended. Elapsed simulated time: %g ms\n", (starpu_timing_now() - start) / 1000.);
 
 	/* FREE allocated memory */
 
