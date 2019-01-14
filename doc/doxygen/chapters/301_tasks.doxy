@@ -428,7 +428,7 @@ be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
 the compiler <c>gcc</c>.
 
-There is several ways of calling the function starpu_codelet_unpack_args().
+StarPU also provides a utility function starpu_codelet_unpack_args() to retrieve the ::STARPU_VALUE arguments passed to the task. There is several ways of calling this function starpu_codelet_unpack_args().
 
 \code{.c}
 void func_cpu(void *descr[], void *_args)

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2018                                Inria
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2009,2011,2013,2014,2017                 Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -235,6 +235,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_bound.h		\
 	$(top_srcdir)/include/starpu_clusters_util.h	\
 	$(top_srcdir)/include/starpu_cublas.h		\
+	$(top_srcdir)/include/starpu_cusparse.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
 	$(top_srcdir)/include/starpu_data_filters.h	\
 	$(top_srcdir)/include/starpu_data.h		\
@@ -272,6 +273,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_worker.h		\
 	$(top_srcdir)/include/fstarpu_mod.f90		\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/mpi/include/starpu_mpi_lb.h	\
 	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
@@ -300,8 +302,8 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
 	$(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
 	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
-	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
-	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item File\\.Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex ;\
 	$(MAKEINDEX) refman.idx ;\
 	$(PDFLATEX) refman.tex ;\

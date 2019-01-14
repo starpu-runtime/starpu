@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -101,7 +101,7 @@ kernels. This will lower the potential for overlapping.
 
 Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
 CUBLAS library. Some libraries like Magma may however change the current stream of CUBLAS v1,
-one then has to call <c>cublasSetKernelStream(starpu_cuda_get_local_stream())</c> at
+one then has to call <c>cublasSetKernelStream(</c>starpu_cuda_get_local_stream()<c>)</c> at
 the beginning of the codelet to make sure that CUBLAS is really using the proper
 stream. When using CUBLAS v2, starpu_cublas_get_local_handle() can be called to queue CUBLAS
 kernels with the proper configuration.
@@ -330,11 +330,11 @@ overrides the hostname of the system.
 By default, StarPU stores separate performance models for each GPU. To avoid
 having to calibrate performance models for each GPU of a homogeneous set of GPU
 devices for instance, the model can be shared by setting
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1</c> ,
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1</c> ,
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MIC=1</c> ,
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1</c> , or
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_SCC=1</c> (depending on your GPU device type).
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA),
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL),
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MIC=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MIC),
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS), or
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_SCC=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_SCC), depending on your GPU device type.
 
 To force continuing calibration,
 use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application

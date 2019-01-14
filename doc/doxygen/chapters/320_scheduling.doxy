@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2016                           Inria
  * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  *
@@ -79,7 +79,7 @@ specified for a codelet, every task built from this codelet will be scheduled
 using an <b>eager</b> fallback policy.
 
 <b>Troubleshooting:</b> Configuring and recompiling StarPU using the
-<c>--enable-verbose</c> configure flag displays some statistics at the end of
+\ref enable-verbose "--enable-verbose" configure option displays some statistics at the end of
 execution about the percentage of tasks which have been scheduled by a DM*
 family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
@@ -238,7 +238,7 @@ to a bag of tasks. When the application is finished with submitting tasks,
 it calls starpu_do_schedule() (or starpu_task_wait_for_all(), which calls
 starpu_do_schedule()), and the starpu_sched_policy::do_schedule method of the
 scheduler is called. This method calls _starpu_graph_compute_depths to compute
-the bottom-up ranks, and then uses these rank to set priorities over tasks.
+the bottom-up ranks, and then uses these ranks to set priorities over tasks.
 
 It then has two priority queues, one for CPUs, and one for GPUs, and uses a dumb
 heuristic based on the duration of the task over CPUs and GPUs to decide between

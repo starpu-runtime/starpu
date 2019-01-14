@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011-2013,2016                           Inria
  * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
  *
@@ -75,7 +75,7 @@ StarPU takes particular care of scheduling tasks efficiently, using
 well-known algorithms from the literature (\ref TaskSchedulingPolicy).
 In addition, it allows scheduling experts, such as compiler or
 computational library developers, to implement custom scheduling
-policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
+policies in a portable fashion (\ref HowToDefineANewSchedulingPolicy).
 
 The remainder of this section describes the main concepts used in StarPU.
 
@@ -281,7 +281,7 @@ The documentation chapters include
 <li> \ref Scheduling
 <li> \ref SchedulingContexts
 <li> \ref SchedulingContextHypervisor
-<li> \ref ModularizedScheduler
+<li> \ref HowToDefineANewSchedulingPolicy
 <li> \ref DebuggingTools
 <li> \ref OnlinePerformanceTools
 <li> \ref OfflinePerformanceTools

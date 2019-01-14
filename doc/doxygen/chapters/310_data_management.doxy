@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -366,8 +366,8 @@ starpu_data_partition_plan() returns the handles for the partition in <c>vert_ha
 
 One can then submit tasks working on the main handle, and tasks working on
 <c>vert_handle</c> handles. Between using the main handle and <c>vert_handle</c>
-handles, StarPU will automatically call starpu_data_partition_submit and
-starpu_data_unpartition_submit.
+handles, StarPU will automatically call starpu_data_partition_submit() and
+starpu_data_unpartition_submit().
 
 All this code is asynchronous, just submitting which tasks, partitioning and
 unpartitioning will be done at runtime.
@@ -445,9 +445,9 @@ And now we can start using vertical slices, etc.
 
 \section DefiningANewDataFilter Defining A New Data Filter
 
-StarPU provides a series of predefined filters in API_Data_Partition, but
+StarPU provides a series of predefined filters in \ref API_Data_Partition, but
 additional filters can be defined by the application. The principle is that the
-filter function just fills the memory location of the i-th subpart of a data.
+filter function just fills the memory location of the <c>i-th</c> subpart of a data.
 Examples are provided in <c>src/datawizard/interfaces/*_filters.c</c>,
 and see \ref starpu_data_filter::filter_func for the details.
 
@@ -765,7 +765,7 @@ the type starpu_data_interface_ops. We only define here the basic
 operations needed to run simple applications. The source code for the
 different functions can be found in the file
 <c>examples/interface/complex_interface.c</c>, the details of the hooks to be
-provided are documented \ref starpu_data_interface_ops .
+provided are documented in \ref starpu_data_interface_ops .
 
 \code{.c}
 static struct starpu_data_interface_ops interface_complex_ops =
@@ -840,12 +840,12 @@ main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the starpu_codelet::specific_nodes flag to
 <c>1</c>, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
 starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node numbers
-where data should be copied to, or <c>STARPU_SPECIFIC_NODE_LOCAL</c> to let
+where data should be copied to, or ::STARPU_SPECIFIC_NODE_LOCAL to let
 StarPU copy it to the memory node where the task will be executed.
 
-<c>STARPU_SPECIFIC_NODE_CPU</c> can also be used to request data to be
+::STARPU_SPECIFIC_NODE_CPU can also be used to request data to be
 put in CPU-accessible memory (and let StarPU choose the NUMA node).
-<c>STARPU_SPECIFIC_NODE_FAST</c> and <c>STARPU_SPECIFIC_NODE_SLOW</c> can als be
+::STARPU_SPECIFIC_NODE_FAST and ::STARPU_SPECIFIC_NODE_SLOW can also be
 used
 
 For instance,

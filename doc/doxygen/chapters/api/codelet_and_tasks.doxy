@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1056,5 +1056,25 @@ submission loop.
 \fn void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg)
 \ingroup API_Codelet_And_Tasks
 Create (and submit) an empty task that unlocks a tag once all its dependencies are fulfilled.
+
+\def STARPU_SPECIFIC_NODE_LOCAL
+\ingroup API_Codelet_And_Tasks
+Value to be set in the field starpu_codelet::nodes to request StarPU to put the data in CPU-accessible memory (and let StarPU choose the NUMA node).
+
+\def STARPU_SPECIFIC_NODE_CPU
+\ingroup API_Codelet_And_Tasks
+todo
+
+\def STARPU_SPECIFIC_NODE_SLOW
+\ingroup API_Codelet_And_Tasks
+todo
+
+\def STARPU_SPECIFIC_NODE_FAST
+\ingroup API_Codelet_And_Tasks
+todo
+
+\fn void starpu_do_schedule(void)
+\ingroup API_Codelet_And_Tasks
+todo
 
 */
