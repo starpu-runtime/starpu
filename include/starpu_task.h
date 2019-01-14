@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -94,6 +94,8 @@ typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 #define STARPU_SPECIFIC_NODE_LOCAL (-1)
 #define STARPU_SPECIFIC_NODE_CPU (-2)
 #define STARPU_SPECIFIC_NODE_SLOW (-3)
+#define STARPU_SPECIFIC_NODE_FAST (-4)
+
 struct starpu_task;
 struct starpu_codelet
 {

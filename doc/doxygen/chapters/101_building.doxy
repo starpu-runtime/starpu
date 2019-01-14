@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2018                           Inria
  * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
  *
@@ -471,8 +471,8 @@ Will show the performance of the cholesky factorization with the attila
 system. It will be interesting to try with different matrix sizes and
 schedulers.
 
-Performance models are available for cholesky_*, lu_*, *gemm, with block sizes
-320, 640, or 960 (plus 1440 for sirocco), and for stencil with block size 128x128x128, 192x192x192, and
+Performance models are available for <c>cholesky_*</c>, <c>lu_*</c>, <c>*gemm</c>, with block sizes
+320, 640, or 960 (plus 1440 for sirocco), and for <c>stencil</c> with block size 128x128x128, 192x192x192, and
 256x256x256.
 
 */

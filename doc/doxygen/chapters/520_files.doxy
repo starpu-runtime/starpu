@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2011-2013,2018                           Inria
  * Copyright (C) 2009-2011,2014                           Université de Bordeaux
  *
@@ -25,6 +25,7 @@
 \file starpu_bound.h
 \file starpu_clusters_util.h
 \file starpu_cublas.h
+\file starpu_cusparse.h
 \file starpu_cuda.h
 \file starpu_data_filters.h
 \file starpu_data.h
@@ -62,6 +63,7 @@
 \file starpu_worker.h
 
 \file starpu_mpi.h
+\file starpu_mpi_lb.h
 
 \file sc_hypervisor_config.h
 \file sc_hypervisor.h
