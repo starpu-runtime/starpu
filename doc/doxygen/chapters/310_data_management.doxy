@@ -18,7 +18,7 @@
 
 /*! \page DataManagement Data Management
 
-TODO: intro qui parle de coherency entre autres
+TODO: intro which mentions consistency among other things
 
 \section DataInterface Data Interface
 
@@ -299,7 +299,7 @@ Partitioning can be applied several times, see
 Wherever the whole piece of data is already available, the partitioning will
 be done in-place, i.e. without allocating new buffers but just using pointers
 inside the existing copy. This is particularly important to be aware of when
-using OpenCL, where the kernel parameters are not pointers, but cl_mem handles. The
+using OpenCL, where the kernel parameters are not pointers, but \c cl_mem handles. The
 kernel thus needs to be also passed the offset within the OpenCL buffer:
 
 \code{.c}

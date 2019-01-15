@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015-2018                      CNRS
+ * Copyright (C) 2010-2013,2015-2019                      CNRS
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2009-2011,2014,2015                      Université de Bordeaux
  *
@@ -618,7 +618,7 @@ that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
 pointer in GPU memory, so that it can be passed as such to the
 kernel call <c>vector_mult_cuda</c>.
 
-\snippet vector_scal_cuda.cu To be included. You should update doxygen if you see this text.
+\snippet vector_scal_cuda.c To be included. You should update doxygen if you see this text.
 
 \subsection DefinitionOfTheOpenCLKernel Definition of the OpenCL Kernel
 

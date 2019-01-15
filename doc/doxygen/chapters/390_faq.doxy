@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2014,2016,2017                 Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -133,7 +133,7 @@ to be the one that runs CUDA computations for that GPU.
 
 To achieve this with StarPU, pass the option
 \ref disable-cuda-memcpy-peer "--disable-cuda-memcpy-peer"
-to <c>./configure</c> (TODO: make it dynamic), OpenGL/GLUT has to be initialized
+to <c>configure</c> (TODO: make it dynamic), OpenGL/GLUT has to be initialized
 first, and the interoperability mode has to
 be enabled by using the field
 starpu_conf::cuda_opengl_interoperability, and the driver loop has to
@@ -213,7 +213,7 @@ latency for better overall performance.
 
 If eating CPU time is a problem (e.g. application running on a desktop),
 pass option \ref enable-blocking-drivers "--enable-blocking-drivers" to
-<c>./configure</c>. This will add some overhead when putting CPU workers to
+<c>configure</c>. This will add some overhead when putting CPU workers to
 sleep or waking them, but avoid eating 100% CPU permanently.
 
 \section PauseResume Interleaving StarPU and non-StarPU code
@@ -267,8 +267,8 @@ running on the GPU, the codelet can run some computation, which thus be run by
 the CPU core instead of driving the GPU.
 
 One can choose to dedicate only one thread for all the CUDA devices by setting
-the STARPU_CUDA_THREAD_PER_DEV environment variable to 1. The application
-however should use STARPU_CUDA_ASYNC on its CUDA codelets (asynchronous
+the \ref STARPU_CUDA_THREAD_PER_DEV environment variable to \c 1. The application
+however should use ::STARPU_CUDA_ASYNC on its CUDA codelets (asynchronous
 execution), otherwise the execution of a synchronous CUDA codelet will
 monopolize the thread, and other CUDA devices will thus starve while it is
 executing.
@@ -276,7 +276,7 @@ executing.
 \section CUDADrivers StarPU does not see my CUDA device
 
 First make sure that CUDA is properly running outside StarPU: build and
-run the following program with -lcudart:
+run the following program with \c -lcudart :
 
 \code{.c}
 #include <stdio.h>
@@ -326,7 +326,7 @@ setup.
 \section OpenCLDrivers StarPU does not see my OpenCL device
 
 First make sure that OpenCL is properly running outside StarPU: build and
-run the following program with -lOpenCL:
+run the following program with \c -lOpenCL :
 
 \code{.c}
 #include <CL/cl.h>
