@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017, 2019                          CNRS
  * Copyright (C) 2014                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ SORS API functions inherit from extended semantics.
 \section Configuration Configuration
 
 The SORS can be compiled into <c>libstarpu</c> through
-the configure option \ref enable-openmp "--enable-openmp".
+the \c configure option \ref enable-openmp "--enable-openmp".
 Conditional compiled source codes may check for the
 availability of the OpenMP Runtime Support by testing whether the C
 preprocessor macro <c>STARPU_OPENMP</c> is defined or not.
@@ -137,7 +137,7 @@ implementations. The SORS supports <c>static</c>, <c>dynamic</c>, and
 <c>guided</c> loop scheduling clauses. The <c>auto</c> scheduling clause
 is implemented as <c>static</c>. The <c>runtime</c> scheduling clause
 honors the scheduling mode selected through the environment variable
-OMP_SCHEDULE or the starpu_omp_set_schedule() function. For loops with
+\c OMP_SCHEDULE or the starpu_omp_set_schedule() function. For loops with
 the <c>ordered</c> clause are also supported. An implicit barrier can be
 enforced or skipped at the end of the worksharing construct, according
 to the value of the <c>nowait</c> parameter.
@@ -317,7 +317,7 @@ void parallel_region_f(void *buffers[], void *args)
 \subsection DataDependencies Data Dependencies
 The SORS implements inter-tasks data dependencies as specified in OpenMP
 4.0. Data dependencies are expressed using regular StarPU data handles
-(starpu_data_handle_t) plugged into the task's <c>attr.cl</c>
+(\ref starpu_data_handle_t) plugged into the task's <c>attr.cl</c>
 codelet. The family of starpu_vector_data_register() -like functions and the
 starpu_data_lookup() function may be used to register a memory area and
 to retrieve the current data handle associated with a pointer
@@ -452,7 +452,7 @@ incur less processing overhead than Nestable Locks.
 \subsection Critical Critical Sections
 
 The SORS implements support for OpenMP critical sections through the
-family of starpu_omp_critical functions. Critical sections may optionally
+family of \ref starpu_omp_critical functions. Critical sections may optionally
 be named. There is a single, common anonymous critical section. Mutual
 exclusion only occur within the scope of single critical section, either
 a named one or the anonymous one.

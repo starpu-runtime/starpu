@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2011,2014,2015                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -23,8 +23,8 @@ both <c>fftw</c> and <c>cufft</c>, the difference being that it takes benefit fr
 and GPUs. It should however be noted that GPUs do not have the same precision as
 CPUs, so the results may different by a negligible amount.
 
-Different precisions are available, namely float, double and long
-double precisions, with the following fftw naming conventions:
+Different precisions are available, namely \c float, \c double and <c>long
+double</c> precisions, with the following \c fftw naming conventions:
 
 <ul>
 <li>

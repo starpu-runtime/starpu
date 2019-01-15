@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013,2014,2016-2018                      CNRS
+ * Copyright (C) 2013,2014,2016-2019                      CNRS
  * Copyright (C) 2013,2014,2017,2018                      Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2013                                     Corentin Salingue
@@ -32,17 +32,17 @@ again for a task, StarPU will automatically fetch it back from the disk.
 
 
 The principle is that one first registers a disk location, seen by StarPU as a
-<c>void*</c>, which can be for instance a Unix path for the stdio, unistd or
-unistd_o_direct backends, or a leveldb database for the leveldb backend, an HDF5
-file path for the HDF5 backend, etc. The disk backend opens this place with the
-plug method.
+<c>void*</c>, which can be for instance a Unix path for the \c stdio, \c unistd or
+\c unistd_o_direct backends, or a leveldb database for the \c leveldb backend, an HDF5
+file path for the \c HDF5 backend, etc. The \c disk backend opens this place with the
+plug() method.
 
 StarPU can then start using it to allocate room and store data there with the
 disk write method, without user intervention.
 
 The user can also use starpu_disk_open() to explicitly open an object within the
-disk, e.g. a file name in the stdio or unistd cases, or a database key in the
-leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
+disk, e.g. a file name in the \c stdio or \c unistd cases, or a database key in the
+\c leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
 data handle. StarPU will then use this file as external source of data, and
 automatically read and write data as appropriate.
 
@@ -54,13 +54,13 @@ To use a disk memory node, you have to register it with this function:
 int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) "/tmp/", 1024*1024*200);
 \endcode
 
-Here, we use the unistd library to realize the read/write operations, i.e.
-fread/fwrite. This structure must have a path where to store files, as well as
+Here, we use the \c unistd library to realize the read/write operations, i.e.
+\c fread/\c fwrite. This structure must have a path where to store files, as well as
 the maximum size the software can afford storing on the disk.
 
 Don't forget to check if the result is correct!
 
-This can also be achieved by just setting environment variables:
+This can also be achieved by just setting environment variables \ref STARPU_DISK_SWAP, \ref STARPU_DISK_SWAP_BACKEND and \ref STARPU_DISK_SWAP_SIZE :
 
 \verbatim
 export STARPU_DISK_SWAP=/tmp
@@ -68,8 +68,8 @@ export STARPU_DISK_SWAP_BACKEND=unistd
 export STARPU_DISK_SWAP_SIZE=200
 \endverbatim
 
-The backend can be set to stdio (some caching is done by libc), unistd (only
-caching in the kernel), unistd_o_direct (no caching), leveldb, or hdf5.
+The backend can be set to \c stdio (some caching is done by \c libc), \c unistd (only
+caching in the kernel), \c unistd_o_direct (no caching), \c leveldb, or \c hdf5.
 
 When that register call is made, StarPU will benchmark the disk. This can
 take some time.
@@ -78,7 +78,7 @@ take some time.
 
 StarPU will then automatically try to evict unused data to this new disk. One
 can also use the standard StarPU memory node API to prefetch data etc., see the
-\ref API_Standard_Memory_Library and the \ref API_Data_Interfaces .
+\ref API_Standard_Memory_Library and the \ref API_Data_Interfaces.
 
 The disk is unregistered during the starpu_shutdown().
 
@@ -87,20 +87,20 @@ The disk is unregistered during the starpu_shutdown().
 StarPU will only be able to achieve Out-Of-Core eviction if it controls memory
 allocation. For instance, if the application does the following:
 
-<code>
+\code{.c}
 p = malloc(1024*1024*sizeof(float));
 fill_with_data(p);
 starpu_matrix_data_register(&h, STARPU_MAIN_RAM, (uintptr_t) p, 1024, 1024, 1024, sizeof(float));
-</code>
+\endcode
 
 StarPU will not be able to release the corresponding memory since it's the
 application which allocated it, and StarPU can not know how, and thus how to
 release it. One thus have to use the following instead:
 
-<code>
+\code{.c}
 starpu_matrix_data_register(&h, -1, NULL, 1024, 1024, 1024, sizeof(float));
 starpu_task_insert(cl_fill_with_data, STARPU_W, h, 0);
-</code>
+\endcode
 
 Which makes StarPU automatically do the allocation when the task running
 cl_fill_with_data gets executed. And then if its needs to, it will be able to
@@ -113,10 +113,10 @@ which data should be evicted to the disk. This algorithm can be hinted
 by telling which data will no be used in the coming future thanks to
 starpu_data_wont_use(), for instance:
 
-<code>
+\code{.c}
 starpu_task_insert(&cl_work, STARPU_RW, h, 0);
 starpu_data_wont_use(h);
-</code>
+\endcode
 
 StarPU will mark the data as "inactive" and tend to evict to the disk that data
 rather than others.

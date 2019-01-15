@@ -48,7 +48,7 @@ synchronize the execution of tasks.
 
 \section ConfigurationImprovePerformance Configuration Which May Improve Performance
 
-The \ref enable-fast "--enable-fast" configuration option disables all
+The \ref enable-fast "--enable-fast" \c configure option disables all
 assertions. This makes StarPU more performant for really small tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
@@ -141,11 +141,11 @@ enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
 number of kernels to execute concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
-Concerning memory allocation, you should really not use cudaMalloc/cudaFree
-within the kernel, since cudaFree introduces a awfully lot of synchronizations
+Concerning memory allocation, you should really not use \c cudaMalloc/ \c cudaFree
+within the kernel, since \c cudaFree introduces a awfully lot of synchronizations
 within CUDA itself. You should instead add a parameter to the codelet with the
-STARPU_SCRATCH mode access. You can then pass to the task a handle registered
-with the desired size but with the NULL pointer, that handle can even be the
+::STARPU_SCRATCH mode access. You can then pass to the task a handle registered
+with the desired size but with the \c NULL pointer, that handle can even be the
 shared between tasks, StarPU will allocate per-task data on the fly before task
 execution, and reuse the allocated data between tasks.
 
@@ -242,7 +242,7 @@ to reserve this amount immediately.
 
 It is possible to reduce the memory footprint of the task and data internal
 structures of StarPU by describing the shape of your machine and/or your
-application at the configure step.
+application at the \c configure step.
 
 To reduce the memory footprint of the data internal structures of StarPU, one
 can set the
@@ -251,12 +251,12 @@ can set the
 \ref enable-maxcudadev "--enable-maxcudadev",
 \ref enable-maxopencldev "--enable-maxopencldev" and
 \ref enable-maxnodes "--enable-maxnodes"
-configure parameters to give StarPU
+\c configure parameters to give StarPU
 the architecture of the machine it will run on, thus tuning the size of the
 structures to the machine.
 
 To reduce the memory footprint of the task internal structures of StarPU, one
-can set the \ref enable-maxbuffers "--enable-maxbuffers" configure parameter to
+can set the \ref enable-maxbuffers "--enable-maxbuffers" \c configure parameter to
 give StarPU the maximum number of buffers that a task can use during an
 execution. For example, in the Cholesky factorization (dense linear algebra
 application), the GEMM task uses up to 3 buffers, so it is possible to set the

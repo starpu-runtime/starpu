@@ -97,7 +97,7 @@ $ ./autogen.sh
 \endverbatim
 
 You then need to configure StarPU. Details about options that are
-useful to give to <c>./configure</c> are given in \ref CompilationConfiguration.
+useful to give to <c>configure</c> are given in \ref CompilationConfiguration.
 
 \verbatim
 $ ./configure
@@ -242,9 +242,9 @@ autodetect the StarPU installation and library dependences (such as
 <c>libhwloc</c>) provided that the <c>PKG_CONFIG_PATH</c> variable is set, and
 is sufficient to build a statically-linked executable. This example has been
 successfully tested with CMake 3.2, though it may work with earlier CMake 3.x
-versions. 
+versions.
 
-\code{CMakeLists.txt}
+\code{File CMakeLists.txt}
 cmake_minimum_required (VERSION 3.2)
 project (hello_starpu)
 
@@ -262,7 +262,7 @@ add_executable(hello_starpu hello_starpu.c)
 \endcode
 
 The following \c CMakeLists.txt implements an alternative, more complex
-strategy, still relying on PkgConfig, but also taking into account additional
+strategy, still relying on Pkg-Config, but also taking into account additional
 flags. While more complete, this approach makes CMake's build types (Debug,
 Release, ...) unavailable because of the direct affectation to variable
 <c>CMAKE_C_FLAGS</c>. If both the full flags support and the build types
@@ -271,7 +271,7 @@ support are needed, the \c CMakeLists.txt below may be altered to work with
 This example has been successfully tested with CMake 3.2, though it may work
 with earlier CMake 3.x versions. 
 
-\code{CMakeLists.txt}
+\code{File CMakeLists.txt}
 cmake_minimum_required (VERSION 3.2)
 project (hello_starpu)
 

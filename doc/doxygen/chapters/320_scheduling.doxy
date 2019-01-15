@@ -79,7 +79,7 @@ specified for a codelet, every task built from this codelet will be scheduled
 using an <b>eager</b> fallback policy.
 
 <b>Troubleshooting:</b> Configuring and recompiling StarPU using the
-\ref enable-verbose "--enable-verbose" configure option displays some statistics at the end of
+\ref enable-verbose "--enable-verbose" \c configure option displays some statistics at the end of
 execution about the percentage of tasks which have been scheduled by a DM*
 family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
@@ -227,7 +227,7 @@ task graph.
 
 Other heuristics can however look at the task graph. Recording the task graph
 is expensive, so it is not available by default, the scheduling heuristic has
-to set _starpu_graph_record to 1 from the initialization function, to make it
+to set \c _starpu_graph_record to \c 1 from the initialization function, to make it
 available. Then the <c>_starpu_graph*</c> functions can be used.
 
 <c>src/sched_policies/graph_test_policy.c</c> is an example of simple greedy

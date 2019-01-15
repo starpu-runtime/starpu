@@ -98,7 +98,7 @@ chapters =	\
 	chapters/code/simgrid.c \
 	chapters/code/vector_scal_c.c \
 	chapters/code/vector_scal_cpu.c \
-	chapters/code/vector_scal_cuda.cu \
+	chapters/code/vector_scal_cuda.c \
 	chapters/code/vector_scal_opencl.c \
 	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/code/disk_copy.c \

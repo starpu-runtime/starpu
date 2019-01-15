@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2015-2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -91,7 +91,7 @@ $ ./configure --with-fxt=$FXTDIR
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
 <c>$FXTDIR/lib/pkgconfig</c> and pass
-\ref with-fxt "--with-fxt" to <c>./configure</c>
+\ref with-fxt "--with-fxt" to <c>configure</c>
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
@@ -100,7 +100,7 @@ starpu_shutdown(). The trace is a binary file whose name has the form
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
-The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can
+The additional \c configure option \ref enable-fxt-lock "--enable-fxt-lock" can
 be used to generate trace events which describes the locks behaviour during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
@@ -154,7 +154,7 @@ ViTE, use the following command:
 $ vite paje.trace
 \endverbatim
 
-Tasks can be assigned a name (instead of the default 'unknown') by
+Tasks can be assigned a name (instead of the default \c unknown) by
 filling the optional starpu_codelet::name, or assigning them a
 performance model. The name can also be set with the field
 starpu_task::name or by using \ref STARPU_NAME when calling
@@ -167,7 +167,7 @@ one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
 \ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
 color by setting the field starpu_codelet::color or the
 starpu_task::color. Colors are expressed with the following format
-0xRRGGBB (e.g 0xFF0000 for red). See
+\c 0xRRGGBB (e.g \c 0xFF0000 for red). See
 <c>basic_examples/task_insert_color</c> for examples on how to assign
 colors.
 

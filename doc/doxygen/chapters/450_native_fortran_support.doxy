@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016,2017                                CNRS
+ * Copyright (C) 2016,2017,2019                           CNRS
  * Copyright (C) 2014,2016                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@ most of its functionalities from Fortran 2008+ codes.
 
 All symbols (functions, constants) are defined in <c>fstarpu_mod.f90</c>.
 Every symbol of the Native Fortran support API is prefixed by
-<c>fstarpu_</c>. 
+<c>fstarpu_</c>.
 
 Note: Mixing uses of <c>fstarpu_</c> and <c>starpu_</c>
 symbols in the same Fortran code has unspecified behaviour.
@@ -50,7 +50,7 @@ The Native Fortran API is enabled and its companion
 <c>fstarpu_mod.f90</c> Fortran module source file is installed
 by default when a Fortran compiler is found, unless the detected Fortran
 compiler is known not to support the requirements for the Native Fortran
-API. The support can be disabled through the configure option \ref
+API. The support can be disabled through the \c configure option \ref
 disable-fortran "--disable-fortran". Conditional compiled source codes
 may check for the availability of the Native Fortran Support by testing
 whether the preprocessor macro <c>STARPU_HAVE_FC</c> is defined or not.
@@ -157,7 +157,7 @@ the runtime engine and frees all internal StarPU data structures.
 \section InsertTask Fortran Flavor of StarPU's Variadic Insert_task
 
 Fortran does not have a construction similar to C variadic functions on which
-<c>starpu_insert_task</c> relies at the time of this writing. However, Fortran's variable
+starpu_insert_task() relies at the time of this writing. However, Fortran's variable
 length arrays of <c>c_ptr</c> elements enable to emulate much of the
 convenience of C's variadic functions. This is the approach retained for
 implementing <c>fstarpu_insert_task</c>.
@@ -228,7 +228,7 @@ submit tasks to StarPU. Then, when StarPU starts a task, another C
 wrapper function calls the FORTRAN routine for the task.
 
 Note that this marshalled FORTRAN support remains available even
-when specifying configure option \ref disable-fortran "--disable-fortran"
+when specifying \c configure option \ref disable-fortran "--disable-fortran"
 (which only disables StarPU's native Fortran layer).
 
 \subsection APIMIX Valid API Mixes and Language Mixes
