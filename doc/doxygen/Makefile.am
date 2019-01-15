@@ -80,6 +80,7 @@ chapters =	\
 	chapters/470_simgrid.doxy		\
 	chapters/480_openmp_runtime_support.doxy		\
 	chapters/490_clustering_a_machine.doxy		\
+	chapters/495_interoperability.doxy		\
 	chapters/501_environment_variables.doxy		\
 	chapters/510_configure_options.doxy		\
 	chapters/520_files.doxy		\
