@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012-2014,2016-2017                      Inria
 # Copyright (C) 2009-2018                                Université de Bordeaux
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,9 @@ New features:
     less.
   * Add STARPU_MAIN_THREAD_BIND environment variable to make StarPU reserve a
     core for the main thread.
+  * New StarPU-RM resource management module to share processor cores and
+    accelerator devices with other parallel runtime systems. Use
+    --enable-starpurm option to activate it.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
