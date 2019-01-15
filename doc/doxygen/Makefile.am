@@ -29,7 +29,7 @@ DOX_TAG = starpu.tag
 
 txtdir   = $(docdir)/manual
 
-EXTRA_DIST = 
+EXTRA_DIST =
 
 if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
@@ -278,6 +278,10 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
+
+doxy:
+	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
+	@$(DOXYGEN) $(DOX_CONFIG)
 
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
