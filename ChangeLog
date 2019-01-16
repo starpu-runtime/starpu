@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012-2014,2016-2017                      Inria
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -133,6 +133,12 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
   * Fix code to allow to submit tasks to empty contexts
+
+StarPU 1.2.7 (git revision xxx)
+==============================================
+
+Small features:
+  * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ==============================================
