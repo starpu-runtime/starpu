@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2015                                CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2012-2017                                Université de Bordeaux
+ * Copyright (C) 2012-2017,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@
  */
 
 #ifdef STARPU_QUICK_CHECK
-#define LOOPS 10
+#define LOOPS 5
 #elif !defined(STARPU_LONG_CHECK)
 #define LOOPS 30
 #else
