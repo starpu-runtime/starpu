@@ -28,7 +28,7 @@ Explain why it is easier to define a new scheduler by using the modular approach
 \section DefiningANewBasicSchedulingPolicy Defining A New Basic Scheduling Policy
 
 A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory <c>examples/scheduler/</c>.
+the StarPU sources in <c>examples/scheduler/dummy_sched.c</c>.
 
 The scheduler has to provide methods:
 
@@ -47,23 +47,32 @@ static struct starpu_sched_policy dummy_sched_policy =
 \endcode
 
 The idea is that when a task becomes ready for execution, the
-starpu_sched_policy::push_task method is called. When a worker is idle, the
-starpu_sched_policy::pop_task method is called to get a task. It is up to the
+starpu_sched_policy::push_task method is called to give the ready task to the
+scheduler. When a worker is idle, the starpu_sched_policy::pop_task method is
+called to get a task from the scheduler. It is up to the
 scheduler to implement what is between. A simple eager scheduler is for instance
 to make starpu_sched_policy::push_task push the task to a global list, and make
-starpu_sched_policy::pop_task pop from this list.
+starpu_sched_policy::pop_task pop from this list. A scheduler can also use
+starpu_push_local_task() to directly push tasks to a per-worker queue, and then
+starpu_does not even need to implement starpu_sched_policy::pop_task.
+If there are no ready tasks within the scheduler, it can just return NULL, and
+the worker will sleep.
 
 The \ref starpu_sched_policy section provides the exact rules that govern the
 methods of the policy.
 
 Make sure to have a look at the \ref API_Scheduling_Policy section, which
-provides a list of the available functions for writing advanced schedulers, such
-as starpu_task_expected_length(), starpu_task_expected_data_transfer_time_for(),
+provides a complete list of the functions available for writing advanced schedulers.
+
+This includes getting an estimation for a task computation completion with
+starpu_task_expected_length(), for the required data transfers with
+starpu_task_expected_data_transfer_time_for(), for the required energy with
 starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
 starpu_transfer_predict(), ...
 
-Usual functions can also be used on tasks, for instance one can do
+Usual functions can be used on tasks, for instance one can use the following to
+get the data size for a task.
 
 \code{.c}
 size = 0;
@@ -79,10 +88,50 @@ if (task->cl)
     }
 \endcode
 
-And various queues can be used in schedulers. A variety of examples of
-schedulers can be read in <c>src/sched_policies</c>, for
+One can enumerate the workers with this iterator:
+
+\code{.c}
+struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+struct starpu_sched_ctx_iterator it;
+
+workers->init_iterator(workers, &it);
+while(workers->has_next(workers, &it))
+{
+	unsigned worker = workers->get_next(workers, &it);
+	...
+}
+\endcode
+
+Task queues can be implemented with the starpu_task_list functions.
+
+To provide synchronization between workers, a per-worker lock exists to protect
+the data structures of a given worker. It is acquired around scheduler methods,
+so that the scheduler does not need any additional mutex to protect its per-worker data.
+
+In case the scheduler wants to access another scheduler's data, it should use
+starpu_worker_lock() and starpu_worker_unlock().
+
+Calling starpu_worker_lock(B) from a worker A will however thus make
+worker A wait for worker B to complete its scheduling method. That may be
+a problem if that method takes a long time, because it is e.g. computing a
+heuristic or waiting for another mutex. In such a case, worker B can call
+starpu_worker_relax_on() and starpu_worker_relax_off() around the section which
+takes a long time (and does not actually need protection), so that worker A can
+e.g. push tasks for worker B, and B will notice them once it gets back from its
+expensive computation.
+
+When the starpu_sched_policy::push_task method has pushed a task for another
+worker, one has to call starpu_wake_worker_relax_light() so that worker wakes up
+and picks it. If the task was pushed on a shared queue, one may want to only
+wake one idle worker. An example doing this is available in
+<c>src/sched_policies/eager_central_policy.c</c>.
+
+A variety of examples of
+advanced schedulers can be read in <c>src/sched_policies</c>, for
 instance <c>random_policy.c</c>, <c>eager_central_policy.c</c>,
-<c>work_stealing_policy.c</c>
+<c>work_stealing_policy.c</c> Code protected by
+<c>if (_starpu_get_nsched_ctxs() > 1)</c> can be ignored, this is for scheduling
+contexts, which is an experimental feature.
 
 \section DefiningANewModularSchedulingPolicy Defining A New Modular Scheduling Policy
 

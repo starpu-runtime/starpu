@@ -61,7 +61,10 @@ For each task not going through the scheduler (because starpu_task::execute_on_a
         Cleanup the scheduling policy, called before any other method.
 \var int (*starpu_sched_policy::push_task)(struct starpu_task *)
         Insert a task into the scheduler, called when the task becomes ready for
-        execution.
+        execution. This must call starpu_push_task_end() once it has effectively
+        pushed the task to a queue (to note the time when this was done in the
+        task), but before releasing mutexes (so that the task hasn't been
+        already taken by a worker).
 \var void (*starpu_sched_policy::push_task_notify)(struct starpu_task *, int workerid, int perf_workerid, unsigned sched_ctx_id)
         Notify the scheduler that a task was pushed on a given worker.
 	This method is called when a task that was explicitly
