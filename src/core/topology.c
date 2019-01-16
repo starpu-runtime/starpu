@@ -560,8 +560,10 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	config->topology.nhwcpus = config->topology.nhwpus = 1;
 #endif
 
-	_starpu_cuda_discover_devices(config);
-	_starpu_opencl_discover_devices(config);
+	if (config->conf.ncuda != 0)
+		_starpu_cuda_discover_devices(config);
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_discover_devices(config);
 #ifdef STARPU_USE_SCC
 	config->topology.nhwscc = _starpu_scc_src_get_device_count();
 #endif
@@ -773,10 +775,12 @@ unsigned
 _starpu_topology_get_nhwcpu (struct _starpu_machine_config *config)
 {
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	_starpu_opencl_init();
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	_starpu_init_cuda();
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -787,10 +791,12 @@ unsigned
 _starpu_topology_get_nhwpu (struct _starpu_machine_config *config)
 {
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	_starpu_opencl_init();
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	_starpu_init_cuda();
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -973,10 +979,12 @@ _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_con
 	topology->nsched_ctxs = 0;
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	_starpu_opencl_init();
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	_starpu_init_cuda();
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -1363,10 +1371,12 @@ _starpu_bind_thread_on_cpu (
 	const struct hwloc_topology_support *support;
 
 #ifdef STARPU_USE_OPENCL
-	_starpu_opencl_init();
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
 #endif
 #ifdef STARPU_USE_CUDA
-	_starpu_init_cuda();
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -1439,10 +1449,12 @@ _starpu_bind_thread_on_cpus (
 	const struct hwloc_topology_support *support;
 
 #ifdef STARPU_USE_OPENC
-	_starpu_opencl_init();
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
 #endif
 #ifdef STARPU_USE_CUDA
-	_starpu_init_cuda();
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
