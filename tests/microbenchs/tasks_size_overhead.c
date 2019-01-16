@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2010-2013,2015-2018                      CNRS
- * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2010-2014,2016,2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,9 +34,15 @@
 #define START 4
 #define STOP 4096
 #ifdef STARPU_QUICK_CHECK
-#define FACTOR 8
+#define FACTOR 64
 #else
 #define FACTOR 2
+#endif
+
+#ifdef STARPU_QUICK_CHECK
+#define CPUSTEP 8
+#else
+#define CPUSTEP 1
 #endif
 
 #ifdef STARPU_QUICK_CHECK
@@ -50,7 +56,7 @@ static unsigned ntasks = 256;
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
 
-static unsigned mincpus = 1, maxcpus, cpustep = 1;
+static unsigned mincpus = 1, maxcpus, cpustep = CPUSTEP;
 static unsigned mintime = START, maxtime = STOP, factortime = FACTOR;
 
 struct starpu_task *tasks;
