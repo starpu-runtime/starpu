@@ -23,41 +23,57 @@ TODO
 \subsection CoreEntitiesOverview Overview
 
 Execution entities:
-- worker: A worker (see \ref CoreEntitiesWorkers, \ref
-  CoreEntitiesWorkersAndContexts) entity is a thread created by StarPU to manage
+- <b>worker</b>: A worker (see \ref CoreEntitiesWorkers, \ref
+  CoreEntitiesWorkersAndContexts) entity is a CPU thread created by StarPU to manage
   one computing unit. The computing unit can be a local CPU core, an accelerator
   or GPU device, or --- on the master side when running in master-slave
   distributed mode --- a remote slave computing node. It is responsible for
   querying scheduling policies for tasks to execute.
 
-- sched_context: A scheduling context (see \ref CoreEntitiesContexts, \ref
+- <b>sched_context</b>: A scheduling context (see \ref CoreEntitiesContexts, \ref
   CoreEntitiesWorkersAndContexts) is a logical set of workers governed by an
   instance of a scheduling policy. It defines the computing units to which the
   scheduling policy instance may assign work entities.
 
-- driver: A driver is the set of hardware-dependent routines used by a
+- <b>driver</b>: A driver is the set of hardware-dependent routines used by a
   worker to initialize its associated computing unit, execute work entities on
   it, and finalize the computing unit usage at the end of the session.
 
 Work entities:
-- task: TODO
-- job: TODO
+- <b>task</b>: A task is a high level work request submitted to StarPU by the
+  application, or internally by StarPU itself.
+
+- <b>job</b>: A job is a low level view of a work request. It is not exposed to
+  the application. A job structure may be shared among several task structures
+  in the case of a parallel task.
 
 Data entities:
-- data handle
-- data replicate: TODO
+- <b>data handle</b>: A data handle is a high-level, application opaque object designating a
+  piece of data currently registered to the StarPU data management layer.
+  Internally, it is a \ref _starpu_data_state structure.
+
+- <b>data replicate</b>: A data replicate is a low-level object designating one
+  copy of a piece of data registered to StarPU as a data handle, residing in one
+  memory node managed by StarPU. It is not exposed to the application.
 
 \subsection CoreEntitiesWorkers Workers
 
-TODO
+A <b>worker</b> is a CPU thread created by StarPU. Its role is to manage one computing
+unit. This computing unit can be a local CPU core, in which case, the worker
+thread manages the actual CPU core to which it is assigned; or it can be a
+computing device such as a GPU or an accelerator (or even a remote computing
+node when StarPU is running in distributed master-slave mode.) When a worker
+manages a computing device, the CPU core to which the worker's thread is
+by default exclusively assigned to the device management work and does not
+participate to computation.
 
 \subsubsection CoreEntitiesWorkersStates States
 
-Scheduling operations related state
+<b>Scheduling operations related state</b>
 
 While a worker is conducting a scheduling operations, e.g. the worker is in the
 process of selecting a new task to execute, flag state_sched_op_pending is set
-to !0, otherwise it is set to 0.
+to \c !0, otherwise it is set to \c 0.
 
 While state_sched_op_pending is !0, the following exhaustive list of operations on that
 workers are restricted in the stated way:
@@ -67,52 +83,53 @@ workers are restricted in the stated way:
 - adding the worker to a parallel task team is not allowed;
 - removing the worker from a parallel task team is not allowed;
 - querying state information about the worker is only allowed while
-  state_relax_refcnt > 0;
+  <code>state_relax_refcnt > 0</code>;
   - in particular, querying whether the worker is blocked on a parallel team entry is only
-  allowed while state_relax_refcnt > 0.
+  allowed while <code>state_relax_refcnt > 0</code>.
 
 Entering and leaving the state_sched_op_pending state is done through calls to
-_starpu_worker_enter_sched_op() and _starpu_worker_leave_sched_op()
-respectively (see these functions in use in functions _starpu_get_worker_task() and
-_starpu_get_multi_worker_task()). These calls ensure that any pending
+\ref _starpu_worker_enter_sched_op() and \ref _starpu_worker_leave_sched_op()
+respectively (see these functions in use in functions \ref _starpu_get_worker_task() and
+\ref _starpu_get_multi_worker_task()). These calls ensure that any pending
 conflicting operation deferred while the worker was in the
 state_sched_op_pending state is performed in an orderly manner.
 
+<br>
+<b>Scheduling contexts related states</b>
 
-Scheduling contexts related states
-
-Flag state_changing_ctx_notice is set to !0 when a thread is about to
-add to a scheduling context or remove it from a scheduling context, and is
-currently waiting for a safe window to do, until the targeted worker is not in a
-scheduling operation or parallel task operation anymore. This flag set to !0 will also
+Flag \c state_changing_ctx_notice is set to \c !0 when a thread is about to
+add the worker to a scheduling context or remove it from a scheduling context, and is
+currently waiting for a safe window to do so, until the targeted worker is not in a
+scheduling operation or parallel task operation anymore. This flag set to \c !0 will also
 prevent the targeted worker to attempt a fresh scheduling operation or parallel
 task operation to avoid starving conditions. However, a scheduling operation
-that was already in process before the notice is allowed to complete.
+that was already in progress before the notice is allowed to complete.
 
-Flag state_changing_ctx_waiting is set to !0 when a scheduling context worker
+Flag \c state_changing_ctx_waiting is set to \c !0 when a scheduling context worker
 addition or removal involving the targeted worker is about to occur and the
 worker is currently performing a scheduling operation to tell the targeted
 worker that the initiator thread is waiting for the scheduling operation to
 complete and should be woken up upon completion.
 
-Relaxed synchronization related states
+<br>
+<b>Relaxed synchronization related states</b>
 
 Any StarPU worker may participate to scheduling operations, and in this process,
 may be forced to observe state information from other workers. 
 A StarPU worker thread may therefore be observed by any thread, even
 other StarPU workers. Since workers may observe each other in any order, it is
-not possible to rely exclusively on the sched_mutex of each worker to protect the
+not possible to rely exclusively on the \c sched_mutex of each worker to protect the
 observation of worker state flags by other workers, because
 worker A observing worker B would involve locking workers in (A B) sequence,
 while worker B observing worker A would involve locking workers in (B A)
 sequence, leading to lock inversion deadlocks.
 
 In consequence, no thread must hold more than one worker's sched_mutex at any time.
-Instead, workers implement a relaxed locking scheme based on the state_relax_refcnt
-counter, itself protected by the worker's sched_mutex. When state_relax_refcnt
-> 0, the targeted worker state flags may be observed, otherwise the thread attempting
->the observation must repeatedly wait on the targeted worker's sched_cond
->condition until state_relax_refcnt > 0.
+Instead, workers implement a relaxed locking scheme based on the \c state_relax_refcnt
+counter, itself protected by the worker's sched_mutex. When <code>state_relax_refcnt
+> 0</code>, the targeted worker state flags may be observed, otherwise the thread attempting
+the observation must repeatedly wait on the targeted worker's \c sched_cond
+condition until <code>state_relax_refcnt > 0</code>.
 
 The relaxed mode, while on, can actually be seen as a transactional consistency
 model, where concurrent accesses are authorized and potential conflicts are
@@ -120,7 +137,8 @@ resolved after the fact. When the relaxed mode is off, the consistency model
 becomes a mutual exclusion model, where the sched_mutex of the worker must be
 held in order to access or change the worker state.
 
-Parallel tasks related states
+<br>
+<b>Parallel tasks related states</b>
 
 When a worker is scheduled to participate to the execution of a parallel task,
 it must wait for the whole team of workers participating to the execution of
@@ -129,66 +147,246 @@ available to run other tasks or perform other operations. Such a waiting
 operation can therefore not start while conflicting operations such as
 scheduling operations and scheduling context resizing involving the worker are
 on-going. Conversely these operations and other may query weather the worker is
-blocked on a parallel task entry with starpu_worker_is_blocked_in_parallel().
+blocked on a parallel task entry with \ref starpu_worker_is_blocked_in_parallel().
 
-The starpu_worker_is_blocked_in_parallel() function is allowed to proceed while
-and only while state_relax_refcnt > 0. Due to the relaxed worker locking scheme,
-the state_blocked_in_parallel flag of the targeted worker may change after it
+The \ref starpu_worker_is_blocked_in_parallel() function is allowed to proceed while
+and only while <code>state_relax_refcnt > 0</code>. Due to the relaxed worker locking scheme,
+the \c state_blocked_in_parallel flag of the targeted worker may change after it
 has been observed by an observer thread. In consequence, flag
-state_blocked_in_parallel_observed of the targeted worker is set to 1 by the
+\c state_blocked_in_parallel_observed of the targeted worker is set to \c 1 by the
 observer immediately after the observation to "taint" the targeted worker. The
-targeted worker will clear the state_blocked_in_parallel_observed flag tainting
+targeted worker will clear the \c state_blocked_in_parallel_observed flag tainting
 and defer the processing of parallel task related requests until a full
 scheduling operation shot completes without the
-state_blocked_in_parallel_observed flag being tainted again. The purpose of this
+\c state_blocked_in_parallel_observed flag being tainted again. The purpose of this
 tainting flag is to prevent parallel task operations to be started immediately
 after the observation of a transient scheduling state.
 
 Worker's management of parallel tasks is
 governed by the following set of state flags and counters:
 
-- state_blocked_in_parallel: set to !0 while the worker is currently blocked on a parallel
+- \c state_blocked_in_parallel: set to \c !0 while the worker is currently blocked on a parallel
   task;
-- state_blocked_in_parallel_observed: set to !0 to taint the worker when a
+
+- \c state_blocked_in_parallel_observed: set to \c !0 to taint the worker when a
   thread has observed the state_blocked_in_parallel flag of this worker while
-  its state_relax_refcnt state counter was >0. Any pending request to add or
+  its \c state_relax_refcnt state counter was \c >0. Any pending request to add or
   remove the worker from a parallel task team will be deferred until a whole
   scheduling operation shot completes without being tainted again.
 
-- state_block_in_parallel_req: set to !0 when a thread is waiting on a request
+- \c state_block_in_parallel_req: set to \c !0 when a thread is waiting on a request
   for the worker to be added to a parallel task team. Must be protected by the
-  worker's sched_mutex.
+  worker's \c sched_mutex.
 
-- state_block_in_parallel_ack: set to !0 by the worker when acknowledging a
+- \c state_block_in_parallel_ack: set to \c !0 by the worker when acknowledging a
   request for being added to a parallel task team. Must be protected by the
-  worker's sched_mutex.
+  worker's \c sched_mutex.
 
 
-- state_unblock_in_parallel_req: set to !0 when a thread is waiting on a request
+- \c state_unblock_in_parallel_req: set to \c !0 when a thread is waiting on a request
   for the worker to be removed from a parallel task team. Must be protected by the
-  worker's sched_mutex.
+  worker's \c sched_mutex.
 
 
-- state_unblock_in_parallel_ack: set to !0 by the worker when acknowledging a
+- \c state_unblock_in_parallel_ack: set to \c !0 by the worker when acknowledging a
   request for being removed from a parallel task team. Must be protected by the
-  worker's sched_mutex.
+  worker's \c sched_mutex.
 
 
-- block_in_parallel_ref_count: counts the number of consecutive pending requests
+- \c block_in_parallel_ref_count: counts the number of consecutive pending requests
   to enter parallel task teams. Only the first of a train of requests for
   entering parallel task teams triggers the transition of the
-  state_block_in_parallel_req flag from 0 to 1. Only the last of a train of
+  \c state_block_in_parallel_req flag from \c 0 to \c 1. Only the last of a train of
   requests to leave a parallel task team triggers the transition of flag
-  state_unblock_in_parallel_req from 0 to 1. Must be protected by the
-  worker's sched_mutex.
+  \c state_unblock_in_parallel_req from \c 0 to \c 1. Must be protected by the
+  worker's \c sched_mutex.
 
+
+\subsubsection CoreEntitiesWorkersOperations Operations
+
+<b>Entry point</b>
+
+All the operations of a worker are handled in an iterative fashion, either by
+the application code on a thread launched by the application, or automatically
+by StarPU on a device-dependent CPU thread launched by StarPU. Whether a
+worker's operation cycle is managed automatically or
+not is controlled per session by the field \c not_launched_drivers of the \c
+starpu_conf struct, and is decided in \ref _starpu_launch_drivers() function.
+
+When managed automatically, cycles of operations for a worker are handled by the corresponding
+driver specific <code>_starpu_<DRV>_worker()</code> function, where \c DRV is a driver name such as
+cpu (\c _starpu_cpu_worker) or cuda (\c _starpu_cuda_worker), for instance. 
+Otherwise, the application must supply a thread which will repeatedly call \ref
+starpu_driver_run_once() for the corresponding worker.
+
+In both cases, control is then transferred to 
+\ref _starpu_cpu_driver_run_once() (or the corresponding driver specific func).
+The cycle of operations typically includes, at least, the following operations:
+
+- <b>task scheduling</b>
+- <b>parallel task team build-up</b>
+- <b>task input processing</b>
+- <b>data transfer processing</b>
+- <b>task execution</b>
+
+When the worker cycles are handled by StarPU automatically, the iterative
+operation processing ends when the \c running field of \c _starpu_config
+becomes false. This field should not be read directly, instead it should be read
+through the \ref _starpu_machine_is_running() function.
+
+<br>
+<b>Task scheduling</b>
+
+If the worker does not yet have a queued task, it calls
+_starpu_get_worker_task() to try and obtain a task. This may involve scheduling
+operations such as stealing a queued but not yet executed task from another
+worker. The operation may not necessarily succeed if no tasks are ready and/or
+suitable to run on the worker's computing unit.
+
+<br>
+<b>Parallel task team build-up</b>
+
+If the worker has a task ready to run and the corresponding job has a size
+\c >1, then the task is a parallel job and the worker must synchronize with the
+other workers participating to the parallel execution of the job to assign a
+unique rank for each worker. The synchronization is done through the job's \c
+sync_mutex mutex.
+
+<br>
+<b>Task input processing</b>
+
+Before the task can be executed, its input data must be made available on a
+memory node reachable by the worker's computing unit. To do so, the worker calls
+\ref _starpu_fetch_task_input()
+
+<br>
+<b>Data transfer processing</b>
+
+The worker makes pending data transfers (involving memory node(s) that it is
+driving) progress, with a call to \ref __starpu_datawizard_progress(),
+
+<br>
+<b>Task execution</b>
+
+Once the worker has a pending task assigned and the input data for that task are
+available in the memory node reachable by the worker's computing unit, the
+worker calls \ref _starpu_cpu_driver_execute_task() (or the corresponding driver
+specific function) to proceed to the execution of the task.
 
 
 \subsection CoreEntitiesContexts Scheduling Contexts
 
-TODO
+A scheduling context is a logical set of workers governed by an instance of a
+scheduling policy. Tasks submitted to a given scheduling context are confined to
+the computing units governed by the workers belonging to this scheduling context
+at the time they get scheduled.
+
+A scheduling context is identified by an unsigned integer identifier between \c
+0 and <code>STARPU_NMAX_SCHED_CTXS - 1</code>. The \c STARPU_NMAX_SCHED_CTXS
+identifier value is reserved to indicated an unallocated, invalid or deleted
+scheduling context.
+
+Accesses to the scheduling context structure are governed by a
+multiple-readers/single-writer lock (\c rwlock field). Changes to the structure
+contents, additions or removals of workers, statistics updates, all must be done
+with proper exclusive write access. 
 
 \subsection CoreEntitiesWorkersAndContexts Workers and Scheduling Contexts
+
+A worker can be assigned to one or more <b>scheduling contexts</b>. It
+exclusively receives tasks submitted to the scheduling context(s) it is
+currently assigned at the time such tasks are scheduled. A worker may add itself
+to or remove itself from a scheduling context.
+
+<br>
+<b>Locking and synchronization rules between workers and scheduling contexts</b>
+
+A thread currently holding a worker sched_mutex must not attempt to acquire a
+scheduling context rwlock, neither for writing nor for reading. Such an attempt
+constitutes a lock inversion and may result in a deadlock. 
+
+A worker currently in a scheduling operation must enter the relaxed state before
+attempting to acquire a scheduling context rwlock, either for reading or for
+writing.
+
+When the set of workers assigned to a scheduling context is about to be
+modified, all the workers in the union between the workers belonging to the
+scheduling context before the change and the workers expected to belong to the
+scheduling context after the change must be notified using the \ref
+notify_workers_about_changing_ctx_pending() function prior to the update. After
+the update, all the workers in that same union must be notified for the update
+completion with a call to \ref notify_workers_about_changing_ctx_done().
+
+The function \ref notify_workers_about_changing_ctx_pending() places every
+worker passed in argument in a state compatible with changing the scheduling
+context assignment of that worker, possibly blocking until that worker leaves
+incompatible states such as a pending scheduling operation. If the caller of
+\c notify_workers_about_changing_ctx_pending() is itself a worker included in the set
+of workers passed in argument, it does not notify itself, with the assumption
+that the worker is already calling \c notify_workers_about_changing_ctx_pending()
+from a state compatible with a scheduling context assignment update.
+Once a worker has been notified about a scheduling context change pending, it
+cannot proceed with incompatible operations such as a scheduling operation until
+it receives a notification that the context update operation is complete.
+
+\subsection CoreEntitiesDrivers Drivers
+
+Each driver defines a set of routines depending on some specific hardware. These
+routines include hardware discovery/initialization, task execution, device
+memory management and data transfers.
+
+While most hardware dependent routines are in source files located in the \c
+/src/drivers subdirectory of the StarPU tree, some can be found elsewhere in the
+tree such as \c src/datawizard/malloc.c for memory allocation routines or the
+subdirectories of \c src/datawizard/interfaces/ for data transfer routines.
+
+The driver ABI defined in the \ref _starpu_driver_ops structure includes the
+following operations:
+
+- \c .init: initialize a driver instance for the calling worker 
+  managing a hardware computing unit compatible with
+  this driver.
+
+- \c .run_once: perform a single driver progress cycle for the calling worker
+  (see \ref CoreEntitiesWorkersOperations).
+
+- \c .deinit: deinitialize the driver instance for the calling worker
+
+- \c .run: executes the following sequence automatically: call \c .init,
+  repeatedly call \c .run_once until the function \ref
+  _starpu_machine_is_running() returns false, call \c .deinit.
+
+The source code common to all drivers is shared in
+<code>src/drivers/driver_common/driver_common.[ch]</code>. This file includes
+services such as grabbing a new task to execute on a worker, managing statistics
+accounting on job startup and completion and updating the worker status
+
+\subsubsection CoreEntitiesDriversMP Master/Slave Drivers
+
+A subset of the drivers corresponds to drivers managing computing units in
+master/slave mode, that is, drivers involving a local master instance managing
+one or more remote slave instances on the targeted device(s). This includes
+devices such as discrete manycore accelerators (e.g. Intel's Knight Corners
+board, for instance), or pseudo devices such as a cluster of cpu nodes driver
+through StarPU's MPI master/slave mode. A driver instance on the master side
+is named the \b source, while a driver instances on the slave side is named
+the \b sink.
+
+A significant part of the work realized on the source and sink sides of
+master/slave drivers is identical among all master/slave drivers, due to the
+similarities in the software pattern. Therefore, many routines are shared among
+all these drivers in the \c src/drivers/mp_common subdirectory. In particular, a
+set of default commands to be used between sources and sinks is defined,
+assuming the availability of some communication channel between them (see enum
+\ref _starpu_mp_command)
+
+TODO
+
+\subsection CoreEntitiesTasksJobs Tasks and Jobs
+
+TODO
+
+\subsection CoreEntitiesData Data
 
 TODO
 
