@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013                                Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@ For each task going through the scheduler, the following methods get called in t
 <ul>
 <li>starpu_sched_policy::submit_hook when the task is submitted</li>
 <li>starpu_sched_policy::push_task when the task becomes ready. The scheduler is here <b>given</b> the task</li>
-<li>starpu_sched_policy::pop_task when the worker is idle. The scheduler here <b>gives</b> back the task to the core</li>
+<li>starpu_sched_policy::pop_task when the worker is idle. The scheduler here <b>gives</b> back the task to the core. It must not access this task any more</li>
 <li>starpu_sched_policy::pre_exec_hook right before the worker actually starts the task computation (after transferring any missing data).</li>
 <li>starpu_sched_policy::post_exec_hook right after the worker actually completes the task computation.</li>
 </ul>
