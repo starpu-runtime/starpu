@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2015-2016                                Université de Bordeaux
+ * Copyright (C) 2015-2016,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -201,6 +201,10 @@ int main(void)
 	int ret2;
 	char s[128];
 	char *ptr;
+
+#ifdef STARPU_HAVE_SETENV
+	setenv("STARPU_CALIBRATE_MINIMUM", "1", 1);
+#endif
 
 	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
 	ptr = _starpu_mkdtemp(s);
