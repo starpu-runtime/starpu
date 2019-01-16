@@ -349,15 +349,18 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	/* make sure someone could execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
 
-	_starpu_worker_relax_on();
-	_starpu_sched_ctx_lock_write(sched_ctx_id);
-	_starpu_worker_relax_off();
-	if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
-		task = NULL;
-	_starpu_sched_ctx_unlock_write(sched_ctx_id);
+	if (_starpu_get_nsched_ctxs() > 1)
+	{
+		_starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		_starpu_worker_relax_off();
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
+			task = NULL;
+		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 
-	if (!task)
-                return 0;
+		if (!task)
+			return 0;
+	}
 
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
@@ -428,15 +431,19 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_for(task, best_workerid);
 
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
-	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
-	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
+
+	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
-		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
+		if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
+		{
+			_starpu_worker_relax_on();
+			_starpu_sched_ctx_lock_write(sched_ctx_id);
+			_starpu_worker_relax_off();
+			starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+			_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		}
 	}
 
 	int ret = 0;

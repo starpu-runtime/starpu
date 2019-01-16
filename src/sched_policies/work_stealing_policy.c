@@ -543,17 +543,20 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			locality_popped_task(ws, task, workerid, sched_ctx_id);
 	}
 
-	if (task)
+	if(task)
 	{
 		/* there was a local task */
 		ws->per_worker[workerid].busy = 1;
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
-			task = NULL;
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		if (_starpu_get_nsched_ctxs() > 1)
+		{
+			_starpu_worker_relax_on();
+			_starpu_sched_ctx_lock_write(sched_ctx_id);
+			_starpu_worker_relax_off();
+			starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
+			if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+				task = NULL;
+			_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		}
 		return task;
 	}
 
@@ -605,7 +608,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 #endif
 
-	if (task)
+	if (task &&_starpu_get_nsched_ctxs() > 1)
 	{
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);

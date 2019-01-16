@@ -620,7 +620,7 @@ done:		;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 
-	if(task)
+	if(task &&_starpu_get_nsched_ctxs() > 1)
 	{
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
