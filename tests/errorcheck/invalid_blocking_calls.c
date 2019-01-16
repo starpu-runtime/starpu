@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2016,2019                 Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 
 	if (RUNNING_ON_VALGRIND)
 		return STARPU_TEST_SKIPPED;
+
+	disable_coredump();
 
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
