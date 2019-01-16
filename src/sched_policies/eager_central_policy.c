@@ -188,7 +188,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	if(chosen_task)
+	if(chosen_task &&_starpu_get_nsched_ctxs() > 1)
 	{
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
