@@ -2250,7 +2250,7 @@ struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(st
 	struct _starpu_sched_ctx_list_iterator list_it;
 	struct _starpu_sched_ctx *ret = NULL;
 
-	_starpu_worker_lock(worker->workerid);
+	starpu_worker_lock(worker->workerid);
 	_starpu_sched_ctx_list_iterator_init(worker->sched_ctx_list, &list_it);
 	while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 	{
@@ -2262,7 +2262,7 @@ struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(st
 			break;
 		}
 	}
-	_starpu_worker_unlock(worker->workerid);
+	starpu_worker_unlock(worker->workerid);
 	return ret;
 }
 
@@ -2338,9 +2338,9 @@ void starpu_sched_ctx_list_task_counters_increment(unsigned sched_ctx_id, int wo
 	/* FIXME: why do we push events only when the worker belongs to more than one ctx? */
 	if (worker->nsched_ctxs > 1)
 	{
-		_starpu_worker_lock(workerid);
+		starpu_worker_lock(workerid);
 		_starpu_sched_ctx_list_push_event(worker->sched_ctx_list, sched_ctx_id);
-		_starpu_worker_unlock(workerid);
+		starpu_worker_unlock(workerid);
 	}
 }
 
@@ -2413,9 +2413,9 @@ void starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(struct starpu_
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock(workerid);
+				starpu_worker_lock(workerid);
 				starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-				_starpu_worker_unlock(workerid);
+				starpu_worker_unlock(workerid);
 			}
 		}
 	}
@@ -2435,9 +2435,9 @@ void starpu_sched_ctx_list_task_counters_decrement_all(struct starpu_task *task,
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock(workerid);
+				starpu_worker_lock(workerid);
 				starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-				_starpu_worker_unlock(workerid);
+				starpu_worker_unlock(workerid);
 			}
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
@@ -2458,9 +2458,9 @@ void starpu_sched_ctx_list_task_counters_reset_all(struct starpu_task *task, uns
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 			if (worker->nsched_ctxs > 1)
 			{
-				_starpu_worker_lock(workerid);
+				starpu_worker_lock(workerid);
 				starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
-				_starpu_worker_unlock(workerid);
+				starpu_worker_unlock(workerid);
 			}
 		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
