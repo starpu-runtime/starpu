@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -551,13 +551,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		_starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
 			task = NULL;
-		}
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		return task;
 	}
@@ -615,15 +610,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		_starpu_worker_relax_off();
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			return NULL;
-		}
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		if (!task)
+			return NULL;
 	}
 	ws->per_worker[workerid].busy = !!task;
 	return task;

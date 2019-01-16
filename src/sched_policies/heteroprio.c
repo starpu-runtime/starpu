@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2015-2018                                Université de Bordeaux
+ * Copyright (C) 2015-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -625,14 +625,8 @@ done:		;
 		_starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		_starpu_worker_relax_off();
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			return NULL;
-		}
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
 
