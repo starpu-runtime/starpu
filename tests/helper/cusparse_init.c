@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2013-2014,2016-2017            Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2014,2016-2017,2019       Université de Bordeaux
  * Copyright (C) 2010-2013,2015                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,15 +55,15 @@ int main(int argc, char **argv)
 	shutdown_timing = end - start;
 
 	FPRINTF(stderr, "Total:\n");
-	FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000));
-	FPRINTF(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000));
+	FPRINTF(stderr, "\tinit: %2.2f ms\n", init_timing/(1000));
+	FPRINTF(stderr, "\tshutdown: %2.2f ms\n", shutdown_timing/(1000));
 
 	if (ngpus != 0)
 	{
 		FPRINTF(stderr, "per-GPU (#gpu = %u):\n", ngpus);
 
-		FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000*ngpus));
-		FPRINTF(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000*ngpus));
+		FPRINTF(stderr, "\tinit: %2.2f ms\n", init_timing/(1000*ngpus));
+		FPRINTF(stderr, "\tshutdown: %2.2f ms\n", shutdown_timing/(1000*ngpus));
 	}
 
 	starpu_shutdown();
