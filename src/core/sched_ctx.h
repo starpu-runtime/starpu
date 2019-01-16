@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2012-2014,2017                           CNRS
- * Copyright (C) 2011-2013,2015-2017                      Université de Bordeaux
+ * Copyright (C) 2011-2013,2015-2017,2019                 Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -299,6 +299,18 @@ static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
 	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
 	STARPU_HG_ENABLE_CHECKING(sched_ctx->lock_write_owner);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
+}
+
+static inline unsigned _starpu_sched_ctx_worker_is_master_for_child_ctx(unsigned sched_ctx_id, unsigned workerid, struct starpu_task *task)
+{
+	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+	if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+		starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
+		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+		return 1;
+	}
+	return 0;
 }
 
 /* Go through the list of deferred ctx changes of the current worker and apply

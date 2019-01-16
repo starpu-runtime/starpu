@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Simon Archipoff
@@ -345,23 +345,20 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 				    double predicted, double predicted_transfer,
 				    int prio, unsigned sched_ctx_id)
 {
-	_starpu_worker_relax_on();
-	_starpu_sched_ctx_lock_write(sched_ctx_id);
-	_starpu_worker_relax_off();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone could execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(best_workerid, sched_ctx_id);
 
-        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-        {
-                starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-                return 0;
-        }
-
+	_starpu_worker_relax_on();
+	_starpu_sched_ctx_lock_write(sched_ctx_id);
+	_starpu_worker_relax_off();
+	if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
+		task = NULL;
 	_starpu_sched_ctx_unlock_write(sched_ctx_id);
+
+	if (!task)
+                return 0;
+
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
 	double now = starpu_timing_now();
