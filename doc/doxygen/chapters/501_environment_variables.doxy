@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2017                           Inria
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1031,6 +1031,15 @@ accesses (see \ref ConcurrentDataAccess).
 \addindex __env__STARPU_IDLE_FILE
 If the environment variable STARPU_IDLE_FILE is defined, a file named after its contents will be created at the end of the execution.
 The file will contain the sum of the idle times of all the workers.
+</dd>
+
+<dt>STARPU_HWLOC_INPUT</dt>
+<dd>
+\anchor STARPU_HWLOC_INPUT
+\addindex __env__STARPU_HWLOC_INPUT
+If the environment variable STARPU_HWLOC_INPUT is defined to the path of an XML file, hwloc will be made to use it as input instead of detecting the current platform topology, which can save significant initialization time.
+
+To produce this XML file, use <c>lstopo file.xml</c>
 </dd>
 
 </dl>
