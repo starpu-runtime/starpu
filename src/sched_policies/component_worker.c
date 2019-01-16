@@ -760,13 +760,13 @@ void _starpu_sched_component_lock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_worker_lock(i);
+		starpu_worker_lock(i);
 }
 void _starpu_sched_component_unlock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_worker_unlock(i);
+		starpu_worker_unlock(i);
 }
 
 void _starpu_sched_component_workers_destroy(void)

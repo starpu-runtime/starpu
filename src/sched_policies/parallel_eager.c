@@ -358,11 +358,11 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	for (i = 1; i < worker_size; i++)
 	{
 		int local_worker = combined_workerid[i];
-		_starpu_worker_lock(local_worker);
+		starpu_worker_lock(local_worker);
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 		starpu_wake_worker_locked(local_worker);
 #endif
-		_starpu_worker_unlock(local_worker);
+		starpu_worker_unlock(local_worker);
 	}
 
 ret:

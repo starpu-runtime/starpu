@@ -592,7 +592,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				   && hp->workers_heteroprio[victim].tasks_queue.ntasks)
 				{
 					/* ensure the worker is not currently prefetching its data */
-					_starpu_worker_lock(victim);
+					starpu_worker_lock(victim);
 
 					if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 					   && hp->workers_heteroprio[victim].tasks_queue.ntasks)
@@ -603,10 +603,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
-						_starpu_worker_unlock(victim);
+						starpu_worker_unlock(victim);
 						goto done;
 					}
-					_starpu_worker_unlock(victim);
+					starpu_worker_unlock(victim);
 				}
 			}
 		}

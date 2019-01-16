@@ -92,12 +92,12 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched
 
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
-	_starpu_worker_lock_self();
+	starpu_worker_lock_self();
 	worker_exp_len[workerid] -= model + transfer_model;
 	worker_exp_start[workerid] = now + model;
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
-	_starpu_worker_unlock_self();
+	starpu_worker_unlock_self();
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_end_predicted, int prio, unsigned sched_ctx_id)
@@ -114,7 +114,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (!starpu_worker_is_combined_worker(best_workerid))
 	{
-		_starpu_worker_lock(best_workerid);
+		starpu_worker_lock(best_workerid);
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
@@ -123,7 +123,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
 
 		ntasks[best_workerid]++;
-		_starpu_worker_unlock(best_workerid);
+		starpu_worker_unlock(best_workerid);
 
 		/* We don't want it to interlace its task with a combined
 		 * worker's one */
@@ -164,13 +164,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			/* TODO */
 			alias->predicted_transfer = 0;
 			alias->destroy = 1;
-			_starpu_worker_lock(local_combined_workerid);
+			starpu_worker_lock(local_combined_workerid);
 			worker_exp_len[local_combined_workerid] += alias->predicted;
 			worker_exp_end[local_combined_workerid] = exp_end_predicted;
 			worker_exp_start[local_combined_workerid] = exp_end_predicted - worker_exp_len[local_combined_workerid];
 
 			ntasks[local_combined_workerid]++;
-			_starpu_worker_unlock(local_combined_workerid);
+			starpu_worker_unlock(local_combined_workerid);
 
 			_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
 			ret |= starpu_push_local_task(local_combined_workerid, alias, prio);
@@ -308,12 +308,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		if(!starpu_worker_is_combined_worker(workerid))
 		{
 			/* Sometimes workers didn't take the tasks as early as we expected */
-			_starpu_worker_lock(workerid);
+			starpu_worker_lock(workerid);
 			worker_exp_start[workerid] = STARPU_MAX(worker_exp_start[workerid], now);
 			worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 			if (worker_exp_end[workerid] > max_exp_end)
 				max_exp_end = worker_exp_end[workerid];
-			_starpu_worker_unlock(workerid);
+			starpu_worker_unlock(workerid);
 		}
 	}
 
