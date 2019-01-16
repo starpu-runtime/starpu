@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2015,2017                           Inria
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  * Copyright (C) 2011-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -185,11 +185,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static double compute_expected_end(int workerid, double length)
 {
-	starpu_pthread_mutex_t *sched_mutex;
-	starpu_pthread_cond_t *sched_cond;
-
-	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		double res;
@@ -230,10 +225,6 @@ static double compute_expected_end(int workerid, double length)
 static double compute_ntasks_end(int workerid, unsigned sched_ctx_id)
 {
 	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
-	starpu_pthread_mutex_t *sched_mutex;
-	starpu_pthread_cond_t *sched_cond;
-
-	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
