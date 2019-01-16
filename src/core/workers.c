@@ -2543,7 +2543,7 @@ int starpu_wake_worker_relax_light(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		while (!worker->state_relax_refcnt)
@@ -2553,7 +2553,7 @@ int starpu_wake_worker_relax_light(int workerid)
 			{
 				_starpu_config.workers[workerid].state_keep_awake = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-				_starpu_worker_relax_off();
+				starpu_worker_relax_off();
 				return 1;
 			}
 
@@ -2568,7 +2568,7 @@ int starpu_wake_worker_relax_light(int workerid)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 	}
 	return ret;
 }

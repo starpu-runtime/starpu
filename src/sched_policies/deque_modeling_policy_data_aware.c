@@ -351,9 +351,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
 			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
@@ -437,9 +437,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
 		if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
 		{
-			_starpu_worker_relax_on();
+			starpu_worker_relax_on();
 			_starpu_sched_ctx_lock_write(sched_ctx_id);
-			_starpu_worker_relax_off();
+			starpu_worker_relax_off();
 			starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
 			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
 			_starpu_sched_ctx_unlock_write(sched_ctx_id);

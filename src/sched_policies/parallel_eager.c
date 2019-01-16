@@ -250,9 +250,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
 	{
 		struct starpu_task *task = NULL;
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
@@ -261,9 +261,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 	struct starpu_task *task = NULL;
 	int slave_task = 0;
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	/* check if a slave task is available in the local queue */
 	task = _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
 	if (!task)

@@ -127,9 +127,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 		/* We don't want it to interlace its task with a combined
 		 * worker's one */
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 
 		ret = starpu_push_local_task(best_workerid, task, prio);
 
@@ -149,9 +149,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 		/* All cpu workers must be locked at once */
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 
 		/* This is a combined worker so we create task aliases */
 		int i;

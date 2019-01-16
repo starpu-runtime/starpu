@@ -86,16 +86,16 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_prio_deque *taskq = &data->taskq;
 
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	_starpu_prio_deque_push_back_task(taskq, task);
 
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_increment_all_ctx_locked(task, sched_ctx_id);
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
@@ -179,9 +179,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	}
 #endif
 	/* block until some event happens */
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 
 	chosen_task = _starpu_prio_deque_pop_task_for_worker(taskq, workerid, &skipped);
 
@@ -215,9 +215,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	if(chosen_task &&_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(chosen_task, sched_ctx_id);
 
 		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, chosen_task))
