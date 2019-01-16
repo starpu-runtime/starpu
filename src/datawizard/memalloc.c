@@ -530,7 +530,17 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 			 * to update the status in terms of MSI protocol
 			 * because this memchunk is associated to a replicate
 			 * in "relaxed coherency" mode. */
-			freed = do_free_mem_chunk(mc, node);
+			if (replicate)
+			{
+				/* Reuse for this replicate */
+				reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+				freed = 1;
+			}
+			else
+			{
+				/* Free */
+				freed = do_free_mem_chunk(mc, node);
+			}
 		}
 
 		_starpu_spin_unlock(&handle->header_lock);
