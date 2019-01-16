@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -380,6 +380,10 @@ int main(void)
 	int ret2;
 	char s[128];
 	char *ptr;
+
+#ifdef STARPU_HAVE_SETENV
+	setenv("STARPU_CALIBRATE_MINIMUM", "1", 1);
+#endif
 
 	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
 	ptr = _starpu_mkdtemp(s);
