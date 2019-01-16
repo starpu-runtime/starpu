@@ -177,7 +177,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 #endif
-	/* block until some event happens */
+
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
