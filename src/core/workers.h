@@ -1103,7 +1103,7 @@ static inline void _starpu_worker_lock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		while (!worker->state_relax_refcnt)
@@ -1155,7 +1155,7 @@ static inline void _starpu_worker_unlock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 	}
 }
 

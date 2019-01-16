@@ -160,9 +160,9 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 static void set_priority(void *_data, struct _starpu_graph_node *node)
 {
 	struct _starpu_graph_test_policy_data *data = _data;
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	struct _starpu_job *job = node->job;
 	if (job)
 	{
@@ -178,9 +178,9 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	if (data->descendants)
 		_starpu_graph_compute_descendants();
 	else
@@ -233,9 +233,9 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	if (!data->computed)
 	{
 		/* Priorities are not computed, leave the task in the bag for now */
@@ -340,9 +340,9 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 		return NULL;
 #endif
 
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	if (!data->computed)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
