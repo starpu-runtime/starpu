@@ -56,12 +56,12 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 	const char *name = starpu_task_get_model_name(task);
 	//fprintf(stderr, "it's %s\n", name);
 
-	if (!strcmp(name, "gemm") ||
+	if (name && (!strcmp(name, "gemm") ||
 		!strcmp(name, "dgemm") ||
 		!strcmp(name, "sgemm") ||
 		!strcmp(name, "chol_model_22") ||
 		!strcmp(name, "starpu_dlu_lu_model_22") ||
-		!strcmp(name, "starpu_slu_lu_model_22"))
+		!strcmp(name, "starpu_slu_lu_model_22")))
 	{
 		/* It's a GEMM, try to push to GPUs */
 
