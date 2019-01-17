@@ -140,7 +140,8 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 					{
 						if (idworker == workerid)
 						{
-							if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
+							if ((starpu_cpu_worker_get_count() == 0 ||
+									starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 							 && (starpu_worker_can_execute_task(workerid,task,nimpl)
 							   || starpu_combined_worker_can_execute_task(workerid, task, nimpl)))
 							{
