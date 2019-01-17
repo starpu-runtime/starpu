@@ -114,11 +114,15 @@ starpu_worker_lock() and starpu_worker_unlock().
 Calling starpu_worker_lock(B) from a worker A will however thus make
 worker A wait for worker B to complete its scheduling method. That may be
 a problem if that method takes a long time, because it is e.g. computing a
-heuristic or waiting for another mutex. In such a case, worker B can call
-starpu_worker_relax_on() and starpu_worker_relax_off() around the section which
-takes a long time (and does not actually need protection), so that worker A can
-e.g. push tasks for worker B, and B will notice them once it gets back from its
-expensive computation.
+heuristic or waiting for another mutex, or even cause deadlocks if worker B is
+calling starpu_worker_lock(A) at the same time. In such a case, worker B must
+call starpu_worker_relax_on() and starpu_worker_relax_off() around the section
+which potentially blocks (and does not actually need protection). While a worker
+is in relaxed mode, e.g. between a pair of starpu_worker_relax_on() and
+starpu_worker_relax_off() calls, its state can be altered by other threads: for
+instance, worker A can e.g. push tasks for worker B. In consequence, worker B
+must re-assess its state after starpu_worker_relax_off(B), such as taking
+possible new tasks pushed to its queue into account.
 
 When the starpu_sched_policy::push_task method has pushed a task for another
 worker, one has to call starpu_wake_worker_relax_light() so that worker wakes up
