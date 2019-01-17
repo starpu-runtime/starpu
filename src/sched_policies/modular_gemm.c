@@ -118,25 +118,38 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 		}
 	}
 
+	int workerid;
 	/* It's not a GEMM, or no GPU wanted to take it, find somebody else */
-	int nimpl;
-	for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	    workerid != -1;
+	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
-		for (i = 0; i < n; i++)
+		int nimpl;
+		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			struct starpu_sched_component *child = component->children[i];
-			int workerid;
-			for(workerid = starpu_bitmap_first(child->workers);
-				workerid != -1;
-				workerid = starpu_bitmap_next(child->workers, workerid))
+			if(starpu_worker_can_execute_task(workerid,task,nimpl)
+			   || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
 			{
-				if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
-				 && (starpu_worker_can_execute_task(workerid,task,nimpl)
-				   || starpu_combined_worker_can_execute_task(workerid, task, nimpl)))
+				for (i = 0; i < n; i++)
 				{
-					int ret = starpu_sched_component_push_task(component,child,task);
-					if (!ret)
-						return 0;
+					struct starpu_sched_component *child = component->children[i];
+					int idworker;
+					for(idworker = starpu_bitmap_first(component->children[i]->workers);
+						idworker != -1;
+						idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
+					{
+						if (idworker == workerid)
+						{
+							if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER
+							 && (starpu_worker_can_execute_task(workerid,task,nimpl)
+							   || starpu_combined_worker_can_execute_task(workerid, task, nimpl)))
+							{
+								int ret = starpu_sched_component_push_task(component,child,task);
+								if (!ret)
+									return 0;
+							}
+						}
+					}
 				}
 			}
 		}
