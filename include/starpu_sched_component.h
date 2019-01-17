@@ -3,7 +3,7 @@
  * Copyright (C) 2017                                     Arthur Chevalier
  * Copyright (C) 2013,2014,2017                           Inria
  * Copyright (C) 2014,2015,2017                           CNRS
- * Copyright (C) 2014-2018                                Université de Bordeaux
+ * Copyright (C) 2014-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -127,6 +127,7 @@ void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsi
 
 int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
 int starpu_sched_component_can_pull(struct starpu_sched_component * component);
+int starpu_sched_component_can_pull_all(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
 double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len);

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014-2018                                Université de Bordeaux
+ * Copyright (C) 2014-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,6 +136,7 @@ struct starpu_sched_component * starpu_sched_component_eager_create(struct starp
 	component->data = data;
 	component->push_task = eager_push_task;
 	component->can_push = eager_can_push;
+	component->can_pull = starpu_sched_component_can_pull_all;
 	component->deinit_data = eager_deinit_data;
 
 	return component;

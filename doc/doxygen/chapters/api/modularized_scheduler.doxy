@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2014                                Inria
  * Copyright (C) 2013-2018                                CNRS
- * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2015,2017,2018-2019       Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -258,6 +258,10 @@ default function for the can_push component method, just calls can_push of paren
 \fn int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 \ingroup API_Modularized_Scheduler
 default function for the can_pull component method, just calls can_pull of children until one of them returns non-zero
+
+\fn int starpu_sched_component_can_pull_all(struct starpu_sched_component * component)
+\ingroup API_Modularized_Scheduler
+function for the can_pull component method, calls can_pull of all children
 
 \fn double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
 \ingroup API_Modularized_Scheduler
