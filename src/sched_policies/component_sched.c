@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2014,2017                           Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014-2018                                Université de Bordeaux
+ * Copyright (C) 2014-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -596,6 +596,21 @@ int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 		if (component->children[i]->can_pull(component->children[i]))
 			return 1;
 	}
+	return 0;
+}
+
+
+/* A can_pull call will try to wake up one worker associated to the childs of the
+ * component. It is currenly called by components which holds a queue (like fifo and prio
+ * components) to signify its childs that a task has been pushed on its local queue.
+ */
+int starpu_sched_component_can_pull_all(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component);
+	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
+	unsigned i;
+	for(i = 0; i < component->nchildren; i++)
+		component->children[i]->can_pull(component->children[i]);
 	return 0;
 }
 
