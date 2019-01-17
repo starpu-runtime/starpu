@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2013-2015,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2014,2015,2017                           CNRS
  * Copyright (C) 2013                                     Simon Archipoff
@@ -70,6 +70,12 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	}
 
 	struct starpu_sched_component_prio_data prio_data =
+		{
+			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
+			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
+		};
+
+	struct starpu_sched_component_fifo_data fifo_data =
 		{
 			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
 			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
@@ -214,7 +220,7 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 			}
 			else
 			{
-				fifo_below = starpu_sched_component_fifo_create(t, NULL);
+				fifo_below = starpu_sched_component_fifo_create(t, &fifo_data);
 			}
 			starpu_sched_component_connect(last, fifo_below);
 			last = fifo_below;
