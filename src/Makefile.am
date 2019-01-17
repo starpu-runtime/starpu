@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2012                                     Benjamin Lorendeau
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018                      CNRS
 # Copyright (C) 2013                                     Simon Archipoff
 #
@@ -293,6 +293,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_work_stealing.c				\
 	sched_policies/modular_eager.c				\
 	sched_policies/modular_eager_prefetching.c				\
+	sched_policies/modular_gemm.c				\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
 	sched_policies/modular_random.c				\
