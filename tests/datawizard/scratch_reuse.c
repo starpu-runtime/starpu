@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019									 Mirko Myllykoski
- * Copyright (C) 2019									 Université de Bordeaux
- *
+ * Copyright (C) 2019					  Mirko Myllykoski
+ * Copyright (C) 2019					  Université de Bordeaux
+ * Copyright (C) 2019                                     CNRS
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
@@ -37,7 +37,8 @@ static void kernel(void *buffers[], void *cl_args)
 	STARPU_ASSERT(STARPU_MATRIX_GET_PTR(buffers[0]) != 0);
 }
 
-static struct starpu_codelet codelet = {
+static struct starpu_codelet codelet =
+{
 	.name = "codelet",
 	.cuda_funcs = { kernel },
 	.nbuffers = 1,
@@ -52,7 +53,8 @@ int main(int argc, char *argv[])
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_cuda_worker_get_count() == 0) {
+	if (starpu_cuda_worker_get_count() == 0)
+	{
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -60,7 +62,8 @@ int main(int argc, char *argv[])
 	starpu_data_handle_t handle[ITER];
 
 	int i;
-	for (i = 0; i < ITER; i++) {
+	for (i = 0; i < ITER; i++)
+	{
 		starpu_matrix_data_register(&handle[i], -1, 0, 1024, 1024, 1024, sizeof(float));
 		ret = starpu_task_insert(&codelet, STARPU_SCRATCH, handle[i], 0);
 	}
