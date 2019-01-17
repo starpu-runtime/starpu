@@ -154,8 +154,49 @@ transfers which were needed. The values can also be obtained at runtime
 by using starpu_bus_get_profiling_info(). An example can be read in
 <c>src/profiling/profiling_helpers.c</c>.
 
+\verbatim
+#---------------------
+Data transfer speed for /tmp/sthibault-disk-DJzhAj (node 1):
+0 -> 1: 99 MB/s
+1 -> 0: 99 MB/s
+0 -> 1: 23858 µs
+1 -> 0: 23858 µs
+
+#---------------------
+TEST DISK MEMORY 
+
+#---------------------
+Data transfer stats:
+	Disk 0 -> NUMA 0	0.0000 GB	0.0000 MB/s	(transfers : 0 - avg -nan MB)
+	NUMA 0 -> Disk 0	0.0625 GB	63.6816 MB/s	(transfers : 2 - avg 32.0000 MB)
+Total transfers: 0.0625 GB
+#---------------------
+\endverbatim
+
 Using <c>export STARPU_ENABLE_STATS=1</c> gives information for each memory node
 on data miss/hit and allocation miss/hit.
+
+\verbatim
+#---------------------
+MSI cache stats :
+memory node NUMA 0
+	hit : 32 (66.67 %)
+	miss : 16 (33.33 %)
+memory node Disk 0
+	hit : 0 (0.00 %)
+	miss : 0 (0.00 %)
+#---------------------
+
+#---------------------
+Allocation cache stats:
+memory node NUMA 0
+	total alloc : 16
+	cached alloc: 0 (0.00 %)
+memory node Disk 0
+	total alloc : 8
+	cached alloc: 0 (0.00 %)
+#---------------------
+\endverbatim
 
 \section DiskFunctions Disk functions
 
