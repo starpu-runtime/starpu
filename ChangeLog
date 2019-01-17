@@ -62,6 +62,7 @@ New features:
   * New StarPU-RM resource management module to share processor cores and
     accelerator devices with other parallel runtime systems. Use
     --enable-starpurm option to activate it.
+  * modular-gemm scheduler.
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation

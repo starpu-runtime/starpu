@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -56,6 +56,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
+	&_starpu_sched_modular_gemm_policy,
 	&_starpu_sched_modular_prio_policy,
 	&_starpu_sched_modular_prio_prefetching_policy,
 	&_starpu_sched_modular_random_policy,
