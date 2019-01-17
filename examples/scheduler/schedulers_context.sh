@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012,2014,2015,2017,2018                 CNRS
-# Copyright (C) 2017                                     Université de Bordeaux
+# Copyright (C) 2017,2019                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ then
     exit 77
 fi
 
-SCHEDULERS=`../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio`
+SCHEDULERS=`../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
 
 for sched in $SCHEDULERS
 do
