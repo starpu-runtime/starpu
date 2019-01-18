@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016,2017                                CNRS
-# Copyright (C) 2016,2017                                Université de Bordeaux
+# Copyright (C) 2016,2017,2019                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,6 @@
 #
 source $(dirname $0)/microbench.sh
 
-XFAIL="modular-eager-prefetching modular-prio-prefetching modular-random-prefetching modular-random-prio-prefetching modular-ws modular-heft modular-heft-prio modular-heft2 random peager heteroprio graph_test"
+XFAIL="modular-eager-prefetching modular-prio-prefetching modular-random-prefetching modular-random-prio-prefetching modular-ws modular-heft modular-heft-prio modular-heft2 modular-gemm random peager heteroprio graph_test"
 
 test_scheds parallel_independent_homogeneous_tasks
