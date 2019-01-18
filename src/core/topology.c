@@ -828,7 +828,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
 	char *hwloc_input = starpu_getenv("STARPU_HWLOC_INPUT");
-	if (hwloc_input)
+	if (hwloc_input && hwloc_input[0])
 		hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
 	_starpu_topology_filter(topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
