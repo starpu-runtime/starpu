@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015                           Inria
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -91,8 +91,11 @@ func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
+as well as the use of cudaMemcpyAsync(), etc. for each CUDA operation one needs
+to use a version that takes the a stream parameter.
+
 Unfortunately, some CUDA libraries do not have stream variants of
-kernels. This will lower the potential for overlapping.
+kernels. This will seriously lower the potential for overlapping.
 
 Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
 CUBLAS library. Some libraries like Magma may however change the current stream of CUBLAS v1,
