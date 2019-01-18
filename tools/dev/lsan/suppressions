@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     CNRS
-# Copyright (C) 2016                                     Université de Bordeaux
+# Copyright (C) 2016,2017, 2019                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,4 +15,16 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+# libc
 leak:lt__malloc
+
+# openmpi
+leak:ompi_free_list_grow
+leak:opal_dss_unpack_value
+leak:opal_dss_copy_value
+leak:mca_bml_base_btl_array_reserve
+leak:opal_hash_table_init
+
+# hwloc
+leak:hwloc_topology_load
+leak:hwloc_topology_set_xml
