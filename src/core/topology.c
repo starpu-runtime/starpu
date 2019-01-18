@@ -1199,8 +1199,9 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 {
 #if HWLOC_API_VERSION >= 0x20000
 	hwloc_topology_set_io_types_filter(topology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
+	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM);
 #else
-	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM | HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
 #endif
 #ifdef HAVE_HWLOC_TOPOLOGY_SET_COMPONENTS
 #  ifndef STARPU_USE_CUDA
