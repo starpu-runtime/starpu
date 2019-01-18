@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2012,2016                           Inria
-# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2009-2017,2019                           Université de Bordeaux
 # Copyright (C) 2013                                     Joris Pablo
 # Copyright (C) 2010-2018                                CNRS
 #
@@ -159,8 +159,7 @@ EXTRA_DIST =				\
 	dev/valgrind/valgrind_xml.sh	\
 	dev/valgrind/helgrind.sh	\
 	dev/tsan/starpu.suppr		\
-	dev/lsan/libc.suppr		\
-	dev/lsan/openmpi.suppr		\
+	dev/lsan/suppressions		\
 	perfmodels/README		\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
