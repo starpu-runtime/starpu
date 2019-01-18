@@ -181,3 +181,35 @@
    fun:__libc_csu_init
    fun:(below main)
 }
+
+{
+   ignore GOMP barrier race
+   Helgrind:Race
+   ...
+   fun:gomp_barrier_wait
+   ...
+}
+
+{
+   ignore GOMP barrier race
+   Helgrind:Race
+   ...
+   fun:gomp_barrier_wait_start
+   ...
+}
+
+{
+   ignore GOMP barrier race
+   Helgrind:Race
+   ...
+   fun:gomp_barrier_wait_end
+   ...
+}
+
+{
+   ignore GOMP barrier race
+   Helgrind:Race
+   ...
+   fun:gomp_barrier_wait_final
+   ...
+}
