@@ -57,7 +57,7 @@ unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
 unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
 unusedStructMember:src/core/simgrid.c:225
 unusedStructMember:src/core/simgrid.c:226
-wrongPrintfScanfArgNum:src/core/simgrid.c:1023
+wrongPrintfScanfArgNum:src/core/simgrid.c:1024
 duplicateExpression:src/util/starpu_task_insert.c:52
 
 nullPointerRedundantCheck:src/common/rbtree.c
