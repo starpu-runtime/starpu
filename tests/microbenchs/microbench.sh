@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016,2017                                CNRS
-# Copyright (C) 2016,2017                                Université de Bordeaux
+# Copyright (C) 2016,2017,2019                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@ SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
 test_scheds()
 {
 	TEST=$1
+	shift
 	xfailed=""
 	failed=""
 	pass=""
@@ -43,7 +44,7 @@ test_scheds()
 	for sched in $SCHEDS;
 	do
 	    	set +e
-	    	STARPU_SCHED=$sched $(dirname $0)/$TEST
+		STARPU_SCHED=$sched $(dirname $0)/$TEST "$@"
 		ret=$?
 	    	set -e
 		if test $ret = 0
