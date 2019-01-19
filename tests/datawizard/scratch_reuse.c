@@ -66,6 +66,8 @@ int main(int argc, char *argv[])
 	{
 		starpu_matrix_data_register(&handle[i], -1, 0, 1024, 1024, 1024, sizeof(float));
 		ret = starpu_task_insert(&codelet, STARPU_SCRATCH, handle[i], 0);
+		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	starpu_task_wait_for_all();
