@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013,2015                           CNRS
- * Copyright (C) 2010-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2010-2011,2013-2016,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,8 +27,10 @@
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
+#elif !defined(STARPU_LONG_CHECK)
+static unsigned ntasks = 1000;
 #else
-static unsigned ntasks = 200000;
+static unsigned ntasks = 50000;
 #endif
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
