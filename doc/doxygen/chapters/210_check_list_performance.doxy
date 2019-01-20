@@ -96,7 +96,7 @@ func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
-as well as the use of cudaMemcpyAsync(), etc. for each CUDA operation one needs
+as well as the use of \c cudaMemcpyAsync(), etc. for each CUDA operation one needs
 to use a version that takes the a stream parameter.
 
 Unfortunately, some CUDA libraries do not have stream variants of
