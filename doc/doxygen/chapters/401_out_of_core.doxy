@@ -145,7 +145,7 @@ The scheduling algorithms worth trying are thus <code>dmdar</code> and
 <code>lws</code>, which privilege data locality over priorities. There will be
 work on this area in the coming future.
 
-\section Feedback figures
+\section FeedBackFigures Feedback Figures
 
 Beyond pure performance feedback, some figures are interesting to have a look at.
 
