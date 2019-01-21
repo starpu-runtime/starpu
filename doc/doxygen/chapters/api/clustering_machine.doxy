@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2019                                     CNRS
  * Copyright (C) 2017                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,8 +17,87 @@
 
 /*! \defgroup API_Clustering_Machine Clustering Machine
 
+\def STARPU_CLUSTER_MIN_NB
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_MAX_NB
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_NB
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_POLICY_NAME
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_POLICY_STRUCT
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_KEEP_HOMOGENEOUS
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_PREFERE_MIN
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_CREATE_FUNC
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_CREATE_FUNC_ARG
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_TYPE
+\ingroup API_Clustering_Machine
+TODO
+
 \def STARPU_CLUSTER_AWAKE_WORKERS
 \ingroup API_Clustering_Machine
 TODO
+
+\def STARPU_CLUSTER_PARTITION_ONE
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_NEW
+\ingroup API_Clustering_Machine
+TODO
+
+\def STARPU_CLUSTER_NCORES
+\ingroup API_Clustering_Machine
+TODO
+
+\enum starpu_cluster_types
+\ingroup API_Clustering_Machine
+todo
+\var starpu_cluster_types::STARPU_CLUSTER_OPENMP
+todo
+\var starpu_cluster_types::STARPU_CLUSTER_INTEL_OPENMP_MKL
+todo
+\var starpu_cluster_types::STARPU_CLUSTER_GNU_OPENMP_MKL
+todo
+
+\struct starpu_cluster_machine
+\ingroup API_Clustering_Machine
+todo
+
+\fn struct starpu_cluster_machine* starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...)
+\ingroup API_Clustering_Machine
+todo
+
+\fn int starpu_uncluster_machine(struct starpu_cluster_machine* clusters)
+\ingroup API_Clustering_Machine
+todo
+
+\fn int starpu_cluster_print(struct starpu_cluster_machine* clusters)
+\ingroup API_Clustering_Machine
+todo
+
 
 */

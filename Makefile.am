@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2018                                Inria
 # Copyright (C) 2009-2017                                Université de Bordeaux
 # Copyright (C) 2017                                     Guillaume Beauchamp
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -112,7 +112,7 @@ versinclude_HEADERS = 				\
 	include/starpu_simgrid_wrap.h		\
 	include/starpu_mod.f90			\
 	include/fstarpu_mod.f90			\
-	include/starpu_clusters_util.h
+	include/starpu_clusters.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

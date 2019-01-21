@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2018                                CNRS
+ * Copyright (C) 2015-2019                                CNRS
  * Copyright (C) 2015,2016,2018                           Université de Bordeaux
  * Copyright (C) 2015-2017                                Inria
  *
@@ -21,7 +21,7 @@
 
 #include <util/starpu_clusters_create.h>
 
-starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type)
+starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type)
 {
 	starpu_binding_function prologue_func;
 
@@ -180,7 +180,7 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 		}
 		else if (arg_type == STARPU_CLUSTER_TYPE)
 		{
-			params->type = va_arg(varg_list, starpu_cluster_types);
+			params->type = va_arg(varg_list, enum starpu_cluster_types);
 		}
 		else if (arg_type == STARPU_CLUSTER_AWAKE_WORKERS)
 		{

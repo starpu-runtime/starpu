@@ -23,7 +23,7 @@
 \file starpu.h
 \file starpu_bitmap.h
 \file starpu_bound.h
-\file starpu_clusters_util.h
+\file starpu_clusters.h
 \file starpu_cublas.h
 \file starpu_cusparse.h
 \file starpu_cuda.h
