@@ -233,7 +233,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_bitmap.h		\
 	$(top_srcdir)/include/starpu_bound.h		\
-	$(top_srcdir)/include/starpu_clusters_util.h	\
+	$(top_srcdir)/include/starpu_clusters.h		\
 	$(top_srcdir)/include/starpu_cublas.h		\
 	$(top_srcdir)/include/starpu_cusparse.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\

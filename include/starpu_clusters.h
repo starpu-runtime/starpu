@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2015,2018                                Université de Bordeaux
  * Copyright (C) 2015,2017                                Inria
  *
@@ -30,42 +30,31 @@ extern "C"
 
 #define STARPU_CLUSTER_MIN_NB			(1<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_MAX_NB			(2<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_NB				(3<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_NB			(3<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_POLICY_NAME		(4<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_POLICY_STRUCT	(5<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_KEEP_HOMOGENEOUS	(6<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_POLICY_STRUCT		(5<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_KEEP_HOMOGENEOUS		(6<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_PREFERE_MIN		(7<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_CREATE_FUNC		(8<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_CREATE_FUNC_ARG	(9<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_TYPE				(10<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_AWAKE_WORKERS	(11<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_PARTITION_ONE	(12<<STARPU_MODE_SHIFT)
-#define STARPU_CLUSTER_NEW				(13<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_CREATE_FUNC_ARG		(9<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_TYPE			(10<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_AWAKE_WORKERS		(11<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_PARTITION_ONE		(12<<STARPU_MODE_SHIFT)
+#define STARPU_CLUSTER_NEW			(13<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_NCORES			(14<<STARPU_MODE_SHIFT)
 
 /* These represent the default available functions to enforce cluster
  * use by the sub-runtime */
-typedef enum
+enum starpu_cluster_types
 {
-		STARPU_CLUSTER_OPENMP,
-		STARPU_CLUSTER_INTEL_OPENMP_MKL,
+	STARPU_CLUSTER_OPENMP,
+	STARPU_CLUSTER_INTEL_OPENMP_MKL,
 #ifdef STARPU_MKL
-		STARPU_CLUSTER_GNU_OPENMP_MKL,
+	STARPU_CLUSTER_GNU_OPENMP_MKL,
 #endif
-} starpu_cluster_types;
+};
 
-
-typedef struct _starpu_cluster_group_list starpu_cluster_group_list_t;
-struct _starpu_cluster_parameters;
-typedef struct starpu_cluster_machine
-{
-		unsigned id;
-		hwloc_topology_t topology;
-		unsigned nclusters;
-		unsigned ngroups;
-		starpu_cluster_group_list_t* groups;
-		struct _starpu_cluster_parameters* params;
-}starpu_clusters;
+struct starpu_cluster_machine;
 
 struct starpu_cluster_machine* starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...);
 int starpu_uncluster_machine(struct starpu_cluster_machine* clusters);
