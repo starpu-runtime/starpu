@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017                                Inria
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2010-2015,2017,2018                      CNRS
 # Copyright (C) 2011                                     Télécom-SudParis
@@ -322,10 +322,12 @@ TESTS += \
 endif
 
 if STARPU_SIMGRID
+if !STARPU_QUICK_CHECK
 TESTS += \
 	 cholesky/cholesky.sh
 endif
 
+endif
 endif
 endif
 
