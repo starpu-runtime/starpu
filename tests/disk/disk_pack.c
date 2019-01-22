@@ -79,10 +79,6 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
-#ifdef STARPU_HAVE_UNSETENV
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
-#endif
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
