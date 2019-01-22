@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016                           Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2017,2019                           Université de Bordeaux
  * Copyright (C) 2010-2015                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -137,6 +137,9 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle);
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
 void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
+
+void starpu_data_set_ooc_flag(starpu_data_handle_t handle, unsigned flag);
+unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle);
 
 void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 

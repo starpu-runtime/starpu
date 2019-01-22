@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011                                     Antoine Lucas
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2019                           Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -255,6 +255,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 		child->initialized = initial_handle->initialized;
+		child->ooc = initial_handle->ooc;
 
 		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;

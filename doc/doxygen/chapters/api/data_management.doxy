@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
  * Copyright (C) 2011-2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -205,6 +205,16 @@ This can be for instance the tile coordinates within a big matrix.
 Set the coordinates of the data, to be shown in various profiling tools.
 \p dimensions is the number of subsequent \c int parameters.
 This can be for instance the tile coordinates within a big matrix.
+
+\fn void starpu_data_set_ooc_flag(starpu_data_handle_t handle, unsigned flag)
+\ingroup API_Data_Management
+Set whether this data should be elligible to be evicted to disk storage (1) or
+not (0). The default is 1.
+
+\fn unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle)
+\ingroup API_Data_Management
+Get whether this data was set to be elligible to be evicted to disk storage (1) or
+not (0).
 
 \fn int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup API_Data_Management
