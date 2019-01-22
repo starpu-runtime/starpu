@@ -106,6 +106,10 @@ Which makes StarPU automatically do the allocation when the task running
 cl_fill_with_data gets executed. And then if its needs to, it will be able to
 release it after having pushed the data to the disk.
 
+By default, StarPU will try to push any data handle to the disk. 
+To specify whether a given handle should be pushed to the disk,
+starpu_data_set_ooc_flag() should be used.
+
 \section OOCWontUse Using Wont Use
 
 By default, StarPU uses a Least-Recently-Used (LRU) algorithm to determine

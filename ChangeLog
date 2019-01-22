@@ -144,6 +144,7 @@ StarPU 1.2.7 (git revision xxx)
 
 Small features:
   * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
+  * Add starpu_data_set/get_ooc_flag.
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ==============================================

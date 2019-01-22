@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2013-2017                           Inria
  * Copyright (C) 2010-2015,2017,2018                      CNRS
  *
@@ -199,6 +199,8 @@ struct _starpu_data_state
 	unsigned sequential_consistency;
 	/* Is the data initialized, or a task is already submitted to initialize it */
 	unsigned initialized;
+	/* Can the data be pushed to the disk? */
+	unsigned ooc;
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */

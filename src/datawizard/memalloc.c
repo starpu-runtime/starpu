@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2016,2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2017                                CNRS
  *
@@ -502,6 +502,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node)
+		return 0;
+
+	/* This data cannnot be pushed outside CPU memory */
+	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
 		return 0;
 
 	if (diduse_barrier && !mc->diduse)
