@@ -136,6 +136,11 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	starpu_data_handle_t handles[NDATA];
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	// Ignore environment variables as we want to force the exact number of workers
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NMIC");
+	unsetenv("STARPU_NSCC");
 	struct starpu_conf conf;
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
