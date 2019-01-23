@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2014-2016,2018                 Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -42,7 +42,8 @@ starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
 ::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX, ::STARPU_CL_ARGS, ::STARPU_CL_ARGS_NFREE,
-::STARPU_TASK_DEPS_ARRAY, ::STARPU_TASK_COLOR, ::STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, ::STARPU_TASK_SYNCHRONOUS
+::STARPU_TASK_DEPS_ARRAY, ::STARPU_TASK_COLOR,
+::STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, ::STARPU_TASK_SYNCHRONOUS, ::STARPU_TASK_END_DEP
 followed by the appropriated objects as defined elsewhere.
 </ul>
 
@@ -178,6 +179,11 @@ stating if the task is synchronous or not
 Used when calling starpu_task_insert(), must be followed by an array
 of characters representing the sequential consistency for each buffer
 of the task.
+
+\def STARPU_TASK_END_DEP
+\ingroup API_Insert_Task
+Used when calling starpu_task_insert(), must be followed by an integer
+which will be given to starpu_task_end_dep_add()
 
 \fn void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 \ingroup API_Insert_Task
