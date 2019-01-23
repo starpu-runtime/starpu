@@ -4,7 +4,7 @@
  * Copyright (C) 2011                                     Antoine Lucas
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2013,2015-2018                      CNRS
+ * Copyright (C) 2010-2013,2015-2019                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -780,7 +780,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	starpu_data_invalidate_submit(initial_handle);
 }
 
-void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency)
+void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -836,10 +836,12 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
 					 STARPU_NAME, "unpartition",
 					 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					 STARPU_CALLBACK_WITH_ARG, callback_func, callback_arg,
 					 0);
 	else
 		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
 					 STARPU_NAME, "unpartition",
+					 STARPU_CALLBACK_WITH_ARG, callback_func, callback_arg,
 					 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -849,7 +851,16 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 
 void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
-	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL);
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL);
+}
+
+void starpu_data_unpartition_submit_sequential_consistency_with_callback(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+{
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, callback_func, callback_arg);
 }
 
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency)
@@ -858,7 +869,7 @@ void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t 
 	unsigned char handles_sequential_consistency[nparts+1];
 	handles_sequential_consistency[0] = sequential_consistency;
 	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
-	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency);
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, NULL, NULL);
 }
 
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
