@@ -117,6 +117,9 @@ Small features:
     automatic partitioning of a data handle for which a asynchronous
     plan has previously been submitted
   * Add starpu_task_declare_deps()
+  * New function starpu_data_unpartition_submit_sequential_consistency_with_callback()
+    to specify a callback for the task submitting the unpartitioning
+
 
 Changes:
   * Vastly improve simgrid simulation time.

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2011-2013                                Inria
  *
@@ -196,9 +196,15 @@ Similar to starpu_data_partition_submit() but also allows to
 specify the coherency to be used for the main data \p initial_handle
 through the parameter \p sequential_consistency.
 
+\fn void starpu_data_unpartition_submit_sequential_consistency_with_callback(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+\ingroup API_Data_Partition
+Similar to starpu_data_partition_submit_sequential_consistency() but
+allow to specify a callback function for the unpartitiong task
+
 \fn void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
 \ingroup API_Data_Partition
-Disable the automatic partitioning of the data \p handle for which a asynchronous plan has previously been submitted
+Disable the automatic partitioning of the data \p handle for which a
+asynchronous plan has previously been submitted
 
 \fn void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node)
 \ingroup API_Data_Partition
