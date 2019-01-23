@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -409,7 +409,11 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 int _starpu_push_task(struct _starpu_job *j)
 {
 	if(j->task->prologue_callback_func)
+	{
+		_starpu_set_current_task(j->task);
 		j->task->prologue_callback_func(j->task->prologue_callback_arg);
+		_starpu_set_current_task(NULL);
+	}
 
 	return _starpu_repush_task(j);
 }
@@ -461,7 +465,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		task->status = STARPU_TASK_RUNNING;
 		if (task->prologue_callback_pop_func)
+		{
+			_starpu_set_current_task(task);
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
+			_starpu_set_current_task(NULL);
+		}
 
 		if (task->cl && task->cl->specific_nodes)
 		{
