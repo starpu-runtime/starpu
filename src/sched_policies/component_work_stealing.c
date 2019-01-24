@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2013,2014,2016,2017                      CNRS
- * Copyright (C) 2014-2018                                Université de Bordeaux
+ * Copyright (C) 2014-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -245,7 +245,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	wsd->last_push_child = i;
-	component->can_pull(component);
+	starpu_sched_component_can_pull_all(component);
 	return ret;
 }
 
