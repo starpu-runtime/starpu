@@ -95,7 +95,7 @@ void merge_callback(void *arg)
 
 	FPRINTF(stderr, "Unpartition for handle %p from handles %p %p and %p\n", value_handle, sub_handles[0], sub_handles[1], sub_handles[2]);
 
-	starpu_data_unpartition_submit_sequential_consistency_with_callback(value_handle, PARTS, sub_handles, STARPU_MAIN_RAM, 0, release, task);
+	starpu_data_unpartition_submit_sequential_consistency_cb(value_handle, PARTS, sub_handles, STARPU_MAIN_RAM, 0, release, task);
 }
 
 // Codelets
