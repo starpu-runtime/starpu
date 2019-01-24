@@ -53,7 +53,7 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t initial_handle, int g
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node);
 void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
 
-void starpu_data_unpartition_submit_sequential_consistency_with_callback(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg);
+void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg);
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
 void starpu_data_partition_not_automatic(starpu_data_handle_t handle);

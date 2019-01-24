@@ -854,7 +854,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
 	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL);
 }
 
-void starpu_data_unpartition_submit_sequential_consistency_with_callback(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned i;
 	unsigned char handles_sequential_consistency[nparts+1];
