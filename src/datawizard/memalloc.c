@@ -121,6 +121,7 @@ int _starpu_is_reclaiming(unsigned node)
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static int choose_target(starpu_data_handle_t handle, unsigned node);
+static int can_evict(unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -1023,6 +1024,9 @@ void starpu_memchunk_tidy(unsigned node)
 	starpu_ssize_t available;
 	size_t target, amount;
 
+	if (!can_evict(node))
+		return;
+
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
@@ -1749,6 +1753,35 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		target = -1;
 
 	return target;
+}
+
+/* Whether this memory node can evict data to another node */
+/* We use an accelerator -> CPU RAM -> disk storage hierarchy */
+static int
+can_evict(unsigned node)
+{
+	enum starpu_node_kind kind = starpu_node_get_kind(node);
+
+	if (kind == STARPU_DISK_RAM)
+		/* TODO: disk hierarchy */
+		return 0;
+
+	if (kind != STARPU_CPU_RAM)
+		/* This is an accelerator, we can evict to main RAM */
+		return 1;
+
+	/* This is main RAM */
+	unsigned i;
+	unsigned nnodes = starpu_memory_nodes_get_count();
+	for (i = 0; i < nnodes; i++)
+	{
+		if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
+			/* Can evict it to that disk */
+			return 1;
+	}
+
+	/* No disk to push main RAM to */
+	return 0;
 }
 
 void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
