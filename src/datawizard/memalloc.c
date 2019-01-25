@@ -52,6 +52,7 @@ static struct _starpu_mem_chunk_list mc_list[STARPU_MAXNODES];
 /* This is a shortcut inside the mc_list to the first potentially dirty MC. All
  * MC before this are clean, MC before this only *may* be clean. */
 static struct _starpu_mem_chunk *mc_dirty_head[STARPU_MAXNODES];
+/* TODO: introduce head of data to be evicted */
 /* Number of elements in mc_list, number of elements in the clean part of
  * mc_list plus the non-automatically allocated elements (which are thus always
  * considered as clean) */
@@ -1065,7 +1066,10 @@ void starpu_memchunk_tidy(unsigned node)
 
 			handle = mc->data;
 			STARPU_ASSERT(handle);
-			STARPU_ASSERT(handle->home_node != -1);
+
+			/* This data cannnot be pushed outside CPU memory */
+			if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
+				continue;
 
 			if (_starpu_spin_trylock(&handle->header_lock))
 			{
@@ -1111,49 +1115,65 @@ void starpu_memchunk_tidy(unsigned node)
 				continue;
 			}
 
-			/* This should have been marked as clean already */
-			if (handle->per_node[handle->home_node].state != STARPU_INVALID || mc->relaxed_coherency == 1)
+			if (handle->home_node != -1 &&
+				(handle->per_node[handle->home_node].state != STARPU_INVALID
+				 || mc->relaxed_coherency == 1))
 			{
-				/* it's actually clean */
+				/* It's available in the home node, this should have been marked as clean already */
 				mc->clean = 1;
 				mc_clean_nb[node]++;
+				_starpu_spin_unlock(&handle->header_lock);
+				continue;
 			}
+
+			int target_node;
+			if (handle->home_node == -1)
+				target_node = choose_target(handle, node);
 			else
+				target_node = handle->home_node;
+
+			if (target_node == -1)
 			{
-				/* MC is dirty and nobody working on it, submit writeback */
+				/* Nowhere to put it, can't do much */
+				_starpu_spin_unlock(&handle->header_lock);
+				continue;
+			}
 
-				/* MC will be clean, consider it as such */
-				mc->clean = 1;
-				mc_clean_nb[node]++;
+			STARPU_ASSERT(target_node != node);
 
-				orig_next_mc = next_mc;
-				if (next_mc)
+			/* MC is dirty and nobody working on it, submit writeback */
+
+			/* MC will be clean, consider it as such */
+			mc->clean = 1;
+			mc_clean_nb[node]++;
+
+			orig_next_mc = next_mc;
+			if (next_mc)
+			{
+				STARPU_ASSERT(!next_mc->remove_notify);
+				next_mc->remove_notify = &next_mc;
+			}
+
+			_starpu_spin_unlock(&mc_lock[node]);
+			if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[target_node], STARPU_R, 2, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
+			{
+				/* No request was actually needed??
+				 * Odd, but cope with it.  */
+				handle = NULL;
+			}
+			_starpu_spin_lock(&mc_lock[node]);
+
+			if (orig_next_mc)
+			{
+				if (!next_mc)
+					/* Oops, somebody dropped the next item while we were
+					 * not keeping the mc_lock. Give up for now, and we'll
+					 * see the rest later */
+					;
+				else
 				{
-					STARPU_ASSERT(!next_mc->remove_notify);
-					next_mc->remove_notify = &next_mc;
-				}
-
-				_starpu_spin_unlock(&mc_lock[node]);
-				if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[handle->home_node], STARPU_R, 2, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
-				{
-					/* No request was actually needed??
-					 * Odd, but cope with it.  */
-					handle = NULL;
-				}
-				_starpu_spin_lock(&mc_lock[node]);
-
-				if (orig_next_mc)
-				{
-					if (!next_mc)
-						/* Oops, somebody dropped the next item while we were
-						 * not keeping the mc_lock. Give up for now, and we'll
-						 * see the rest later */
-						;
-					else
-					{
-						STARPU_ASSERT(next_mc->remove_notify == &next_mc);
-						next_mc->remove_notify = NULL;
-					}
+					STARPU_ASSERT(next_mc->remove_notify == &next_mc);
+					next_mc->remove_notify = NULL;
 				}
 			}
 
@@ -1249,7 +1269,7 @@ static void register_mem_chunk(starpu_data_handle_t handle, struct _starpu_data_
 	size_t interface_size = replicate->handle->ops->interface_size;
 
 	/* Put this memchunk in the list of memchunk in use */
-	mc = _starpu_memchunk_init(replicate, interface_size, handle->home_node == -1 || (int) dst_node == handle->home_node, automatically_allocated);
+	mc = _starpu_memchunk_init(replicate, interface_size, (int) dst_node == handle->home_node, automatically_allocated);
 
 	_starpu_spin_lock(&mc_lock[dst_node]);
 	MC_LIST_PUSH_BACK(dst_node, mc);
@@ -1569,10 +1589,14 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	/* Avoid preventing it from being evicted */
 	mc->diduse = 1;
 	mc->wontuse = 1;
-	MC_LIST_ERASE(node, mc);
-	/* Caller will schedule a clean transfer */
-	mc->clean = 1;
-	MC_LIST_PUSH_CLEAN(node, mc);
+	if (mc->data && mc->data->home_node != -1)
+	{
+		MC_LIST_ERASE(node, mc);
+		/* Caller will schedule a clean transfer */
+		mc->clean = 1;
+		MC_LIST_PUSH_CLEAN(node, mc);
+	}
+	/* TODO: else push to head of data to be evicted */
 	_starpu_spin_unlock(&mc_lock[node]);
 }
 
