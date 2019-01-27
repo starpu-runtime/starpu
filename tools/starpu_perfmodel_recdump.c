@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017,2018                                Inria
  * Copyright (C) 2011-2014,2016-2018                      CNRS
- * Copyright (C) 2011,2013,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2011,2013,2014,2017,2019                 Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,7 +126,7 @@ static char* pinput = NULL;
 static void usage()
 {
 	fprintf(stderr, "Dumps perfmodels to a rec file\n\n");
-	fprintf(stderr, "Usage: %s [ output-file ]\n", PROGNAME);
+	fprintf(stderr, "Usage: %s [ input-file ] [ -o output-file ]\n", PROGNAME);
         fprintf(stderr, "\n");
 	fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 	fprintf(stderr, "\n");
