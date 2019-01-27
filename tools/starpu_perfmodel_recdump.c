@@ -134,6 +134,20 @@ static void usage()
         fprintf(stderr, "\n");
 }
 
+static void print_entry(const char *name, const char *archname, FILE *output, struct starpu_perfmodel_history_entry *entry)
+{
+	fprintf(output, "Name: %s\n", name);
+	fprintf(output, "Architecture: %s\n", archname);
+	fprintf(output, "Footprint: %08x\n", entry->footprint);
+	fprintf(output, "Size: %lu\n", (unsigned long) entry->size);
+	if (!isnan(entry->flops))
+		fprintf(output, "Flops: %-15e\n", entry->flops);
+	fprintf(output, "Mean: %-15e\nStddev: %-15e\n",
+		entry->mean, entry->deviation);
+	fprintf(output, "Samples: %u\n", entry->nsample);
+	fprintf(output, "\n");
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int c;
@@ -320,16 +334,7 @@ int main(int argc, char **argv)
 							     struct starpu_perfmodel_history_entry *entry = ptr->entry;
 							     if(entry->footprint == l->footprint)
 							     {
-								     fprintf(output, "Name: %s\n", model->name);
-								     fprintf(output, "Architecture: %s\n", archname);
-								     fprintf(output, "Footprint: %08x\n", l->footprint);
-								     fprintf(output, "Size: %lu\n", (unsigned long) entry->size);
-								     if (!isnan(entry->flops))
-									     fprintf(output, "Flops: %-15e\n", entry->flops);
-								     fprintf(output, "Mean: %-15e\nStddev: %-15e\n",
-									     entry->mean, entry->deviation);
-								     fprintf(output, "Samples: %u\n", entry->nsample);
-								     fprintf(output, "\n");
+								     print_entry(model->name, archname, output, entry);
 								     break;
 							     }
 							     ptr=ptr->next;
@@ -402,18 +407,7 @@ int main(int argc, char **argv)
 							_STARPU_DISP("Symbol %s for comb %d does not have history based model, not dumping\n", symbol,  comb);
 						else while(ptr)
 						     {
-							     struct starpu_perfmodel_history_entry *entry = ptr->entry;
-							     fprintf(output, "Name: %s\n", symbol);
-							     fprintf(output, "Architecture: %s\n", name);
-							     fprintf(output, "Footprint: %08x\n", entry->footprint);
-							     fprintf(output, "Size: %lu\n", (unsigned long) entry->size);
-							     if (!isnan(entry->flops))
-								     fprintf(output, "Flops: %-15e\n", entry->flops);
-							     fprintf(output, "Mean: %-15e\nStddev: %-15e\n",
-								     entry->mean, entry->deviation);
-							     fprintf(output, "Samples: %u\n", entry->nsample);
-							     fprintf(output, "\n");
-
+							     print_entry(symbol, name, output, ptr->entry);
 							     ptr=ptr->next;
 						     }
 					}
