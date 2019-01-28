@@ -1517,18 +1517,24 @@ if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
 	CFLAGS="$CFLAGS -O0"
 	CXXFLAGS="$CXXFLAGS -O0"
+	FFLAGS="$FFLAGS -O0"
+	FCFLAGS="$FCFLAGS -O0"
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
 		if test x$starpu_windows != xyes ; then
 			if test x$enable_fstack_protector_all = xyes ; then
 			   CFLAGS="$CFLAGS -fstack-protector-all"
 			   CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			   FFLAGS="$FFLAGS -fstack-protector-all"
+			   FCFLAGS="$FCFLAGS -fstack-protector-all"
 			fi
 		fi
 	fi
 else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
+	FFLAGS="-O3 $FFLAGS"
+	FCFLAGS="-O3 $FCFLAGS"
 fi
 
 AC_MSG_CHECKING(whether full gdb information should be enabled)
@@ -1538,10 +1544,14 @@ AC_MSG_RESULT($enable_full_gdb_information)
 if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	CFLAGS+=" -gdwarf-2 -g3"
 	CXXFLAGS+=" -gdwarf-2 -g3"
+	FFLAGS+=" -gdwarf-2 -g3"
+	FCFLAGS+=" -gdwarf-2 -g3"
 	LDFLAGS+=" -gdwarf-2 -g3"
 fi
 CFLAGS+=" -g "
 CXXFLAGS+=" -g "
+FFLAGS+=" -g "
+FCFLAGS+=" -g "
 LDFLAGS+=" -g "
 
 if test x$enable_spinlock_check = xyes; then
@@ -1586,6 +1596,8 @@ AM_CONDITIONAL(STARPU_COVERAGE_ENABLED, [test "x$enable_coverage" = "xyes"])
 if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	CXXFLAGS="${CXXFLAGS} --coverage"
+	FFLAGS="${FFLAGS} --coverage"
+	FCFLAGS="${FCFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
 	LIBS="${LIBS} -lgcov"
 fi
