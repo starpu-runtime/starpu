@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2018                                Inria
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2017                                     Guillaume Beauchamp
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2018                                     Umeà University
@@ -1318,9 +1318,12 @@ if test x$enable_cuda = xyes; then
             AC_SUBST(STARPU_CUDA_FORTRAN_LDFLAGS)
         fi
 
-	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
+	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		NVCCFLAGS="${NVCCFLAGS} -m64"
+		case \ $NVCCFLAGS\  in 
+			*\ -m64\ *) ;;
+			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
+		esac
 	fi
 
 	SAVED_CPPFLAGS="${CPPFLAGS}"
