@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2012-2013,2015-2017                      CNRS
- * Copyright (C) 2011-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2016,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,6 +114,8 @@ test_cuda(void)
 		foo[i] = i;
 
 	cures = cudaMemcpy(foo_gpu, foo, size * sizeof(*foo_gpu), cudaMemcpyHostToDevice);
+	if (!cures)
+		cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -150,6 +152,8 @@ test_cuda(void)
 
 	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
+	if (!cures)
+		cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 	{
 		starpu_free_on_node(starpu_worker_get_memory_node(chosen), (uintptr_t) foo_gpu, size * sizeof(*foo_gpu));

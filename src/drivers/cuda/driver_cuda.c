@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012,2014                           Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2019                           Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -1000,7 +1000,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
 
-
+		if (!cures)
+			cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 

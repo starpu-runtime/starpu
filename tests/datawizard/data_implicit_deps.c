@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2010-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2010-2011,2013-2016,2019                 Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -71,7 +71,8 @@ void g_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	unsigned value = 42;
 
 	usleep(100000);
-	cudaMemcpy(val, &value, sizeof(value), cudaMemcpyHostToDevice);
+	cudaMemcpyAsync(val, &value, sizeof(value), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -106,7 +107,8 @@ void h_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned value;
 
-	cudaMemcpy(&value, val, sizeof(value), cudaMemcpyDeviceToHost);
+	cudaMemcpyAsync(&value, val, sizeof(value), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	FPRINTF(stderr, "VAR %u (should be 42)\n", value);
 	STARPU_ASSERT(value == 42);
 }

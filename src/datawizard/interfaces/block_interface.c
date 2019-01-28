@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2009-2016, 2018                                Université de Bordeaux
+ * Copyright (C) 2009-2016,2018-2019                      Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -485,6 +485,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
                         cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
                                              (char *)src_block->ptr, src_block->ldz*elemsize,
                                              nx*ny*elemsize, nz, kind);
+			if (!cures)
+				cures = cudaThreadSynchronize();
                         if (STARPU_UNLIKELY(cures))
                                 STARPU_CUDA_REPORT_ERROR(cures);
                 }
@@ -503,6 +505,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
                                              (char *)src_ptr, src_block->ldy*elemsize,
                                              nx*elemsize, ny, kind);
 
+			if (!cures)
+				cures = cudaThreadSynchronize();
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
 		}
@@ -549,6 +553,8 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
 						(char *)src_block->ptr, src_block->ldz*elemsize,
 						nx*ny*elemsize, nz, kind);
+				if (!cures)
+					cures = cudaThreadSynchronize();
 				if (STARPU_UNLIKELY(cures))
 					STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -605,6 +611,8 @@ no_async_default:
                                      (char *)src_ptr, src_block->ldy*elemsize,
                                      nx*elemsize, ny, kind);
 
+		if (!cures)
+			cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}

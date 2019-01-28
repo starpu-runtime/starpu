@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012                                Inria
  * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2013,2015-2016, 2018                           Université de Bordeaux
+ * Copyright (C) 2013,2015-2016,2018-2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -432,16 +432,18 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 					return -ENOMEM;
 			}
 			status = cudaMemcpy(dst_multiformat->cpu_ptr, src_multiformat->cpu_ptr, size, kind);
+			if (!status)
+				status = cudaThreadSynchronize();
 			if (STARPU_UNLIKELY(status))
-			{
 				STARPU_CUDA_REPORT_ERROR(status);
-			}
 			break;
 		}
 		case cudaMemcpyDeviceToHost:
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			if (!status)
+				status = cudaThreadSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 
@@ -451,6 +453,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			if (!status)
+				status = cudaThreadSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 			break;
@@ -508,6 +512,8 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			if (!status)
+				status = cudaThreadSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 
@@ -576,6 +582,8 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 	status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
 				src_multiformat->cuda_ptr, src_dev,
 				size);
+	if (!status)
+		status = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 

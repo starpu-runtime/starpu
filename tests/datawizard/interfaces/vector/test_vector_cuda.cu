@@ -44,7 +44,7 @@ extern "C" void test_vector_cuda_func(void *buffers[], void *args)
 		return;
 	}
 
-	error = cudaMemcpy(ret, &vector_config.copy_failed, sizeof(int), cudaMemcpyHostToDevice);
+	error = cudaMemcpyAsync(ret, &vector_config.copy_failed, sizeof(int), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		return;
 
@@ -56,7 +56,7 @@ extern "C" void test_vector_cuda_func(void *buffers[], void *args)
 	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
         framework_cuda<<<nblocks,threads_per_block,0,starpu_cuda_get_local_stream()>>>(val, n, ret, factor);
-	error = cudaMemcpy(&vector_config.copy_failed, ret, sizeof(int), cudaMemcpyDeviceToHost);
+	error = cudaMemcpyAsync(&vector_config.copy_failed, ret, sizeof(int), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 	{
 		return;
