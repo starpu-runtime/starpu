@@ -75,6 +75,8 @@ static void initialize_per_worker_handle(void *arg)
 				STARPU_CUDA_REPORT_ERROR(status);
 			}
 			status = cudaMemsetAsync((void *)per_worker[workerid], 0, sizeof(variable), starpu_cuda_get_local_stream());
+			if (!status)
+				status = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			if (status)
 				STARPU_CUDA_REPORT_ERROR(status);
 			break;

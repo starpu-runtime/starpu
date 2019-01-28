@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013,2015-2017                      CNRS
- * Copyright (C) 2011-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2011-2014,2016,2019                      Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -145,6 +145,8 @@ test_cuda(void)
 
 	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
+	if (!cures)
+		cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 

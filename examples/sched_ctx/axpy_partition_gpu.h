@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016                                     Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2016                                     Université de Bordeaux
+ * Copyright (C) 2016,2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -126,6 +126,7 @@ static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int 
 
   cudaMemcpyAsync((void*)block_assignment_d,block_assignment,sizeof(block_assignment),cudaMemcpyHostToDevice, current_stream);
   //cudaMemcpy((void*)block_assignment_d,block_assignment,sizeof(block_assignment),cudaMemcpyHostToDevice);
+  //cudaThreadSynchronize();
 }
 
 

@@ -52,20 +52,20 @@ extern "C" void test_bcsr_cuda_func(void *buffers[], void *args)
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
-	error = cudaMemcpy(ret,
+	error = cudaMemcpyAsync(ret,
 			   &bcsr_config.copy_failed,
 			   sizeof(int),
-			   cudaMemcpyHostToDevice);
+			   cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
         bcsr_cuda<<<nblocks,threads_per_block,2,starpu_cuda_get_local_stream()>>>
 		(val, nnz, ret, factor);
 
-	error = cudaMemcpy(&bcsr_config.copy_failed,
+	error = cudaMemcpyAsync(&bcsr_config.copy_failed,
 			   ret,
 			   sizeof(int),
-			   cudaMemcpyDeviceToHost);
+			   cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
