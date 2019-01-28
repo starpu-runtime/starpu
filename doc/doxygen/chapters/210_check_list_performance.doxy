@@ -96,6 +96,12 @@ to use a version that takes the a stream parameter.
 
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. This will seriously lower the potential for overlapping.
+If some CUDA calls are made without specifying this local stream,
+synchronization needs to be explicited with cudaThreadSynchronize() around these
+calls, to make sure that they get properly synchronized with the calls using
+the local stream. Notably, \c cudaMemcpy() and \c cudaMemset() are actually
+asynchronous and need such explicit synchronization! Use cudaMemcpyAsync() and
+cudaMemsetAsync() instead.
 
 Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
 CUBLAS library. Some libraries like Magma may however change the current stream of CUBLAS v1,
