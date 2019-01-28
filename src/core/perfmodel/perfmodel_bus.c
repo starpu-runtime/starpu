@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016                           Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Corentin Salingue
  *
@@ -188,6 +188,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu, STARPU_NOWORKERID);
@@ -290,6 +291,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&s_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(s_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	/* Initialize CUDA context on the destination */
 	/* We do not need to enable OpenGL interoperability at this point,
@@ -312,6 +314,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&d_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(d_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	unsigned iter;
 	double timing;

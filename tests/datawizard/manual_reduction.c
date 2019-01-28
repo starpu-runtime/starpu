@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2011-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -71,7 +71,9 @@ static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 			{
 				STARPU_CUDA_REPORT_ERROR(status);
 			}
-			cudaMemset((void *)per_worker[workerid], 0, sizeof(variable));
+			status = cudaMemsetAsync((void *)per_worker[workerid], 0, sizeof(variable), starpu_cuda_get_local_stream());
+			if (status)
+				STARPU_CUDA_REPORT_ERROR(status);
 			break;
 		}
 #endif
