@@ -634,9 +634,12 @@ if test x$enable_cuda = xyes; then
             AC_SUBST(STARPU_CUDA_FORTRAN_LDFLAGS)
         fi
 
-	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
+	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		NVCCFLAGS="${NVCCFLAGS} -m64"
+		case \ $NVCCFLAGS\  in 
+			*\ -m64\ *) ;;
+			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
+		esac
 	fi
 
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
