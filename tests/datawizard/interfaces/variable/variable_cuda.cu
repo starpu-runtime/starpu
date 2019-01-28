@@ -42,10 +42,10 @@ extern "C" void test_variable_cuda_func(void *buffers[], void *args)
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
-	error = cudaMemcpy(ret,
+	error = cudaMemcpyAsync(ret,
 			   &variable_config.copy_failed,
 			   sizeof(int),
-			   cudaMemcpyHostToDevice);
+			   cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
@@ -56,10 +56,10 @@ extern "C" void test_variable_cuda_func(void *buffers[], void *args)
 	unsigned nblocks = 1;
 
         variable_cuda<<<nblocks,threads_per_block,0,starpu_cuda_get_local_stream()>>>(val, ret, factor);
-	error = cudaMemcpy(&variable_config.copy_failed,
+	error = cudaMemcpyAsync(&variable_config.copy_failed,
 			   ret,
 			   sizeof(int),
-			   cudaMemcpyDeviceToHost);
+			   cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 

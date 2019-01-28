@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2017                                CNRS
  *
@@ -440,6 +440,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	cures = cudaMemcpy2D((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 		(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 		src_matrix->nx*elemsize, src_matrix->ny, kind);
+	if (!cures)
+		cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 	{
 		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void*)(uintptr_t)is_async);
@@ -485,6 +487,8 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	}
 
 	cures = cudaMemcpy3DPeer(&p);
+	if (!cures)
+		cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
