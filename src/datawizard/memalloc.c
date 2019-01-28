@@ -1139,7 +1139,7 @@ void starpu_memchunk_tidy(unsigned node)
 				continue;
 			}
 
-			STARPU_ASSERT(target_node != node);
+			STARPU_ASSERT(target_node != (int) node);
 
 			/* MC is dirty and nobody working on it, submit writeback */
 
