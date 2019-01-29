@@ -358,7 +358,7 @@ hwloc cpuset associated with the worker \p workerid. The returned cpuset is obta
 from a \c hwloc_bitmap_dup() function call. It must be freed by the caller
 using \c hwloc_bitmap_free().
 
-\fn hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid)
+\fn hwloc_obj_t starpu_-worker_get_hwloc_obj(int workerid)
 \ingroup API_Workers_Properties
 If StarPU was compiled with hwloc support, returns the HWLOC object corresponding to 
 the worker \p workerid.
