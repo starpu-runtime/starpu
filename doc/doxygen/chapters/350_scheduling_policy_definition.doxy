@@ -73,7 +73,7 @@ if (task->cl)
 
 Task queues can be implemented with the starpu_task_list functions.
 
-Access to the hwloc topology is available with starpu_worker_get_hwloc_obj().
+Access to the \c hwloc topology is available with starpu_worker_get_hwloc_obj().
 
 \section DefiningANewBasicSchedulingPolicy Defining A New Basic Scheduling Policy
 
@@ -315,8 +315,7 @@ their task on the same target)
 
 \subsubsection ImplementAModularizedScheduler Implementing a Modularized Scheduler
 
-The following code shows how the Tree-Eager-Prefetching Scheduler
-shown in Section \ref ExampleTreeEagerPrefetchingStrategy can be implemented :
+The following code shows how to implement a Tree-Eager-Prefetching Scheduler.
 
 \code{.c}
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
@@ -504,7 +503,7 @@ queue of the Component, and give it to the calling Component which asks for it.
 
 
 The Tree-Eager-Prefetching Scheduler shown in Section
-\ref ExampleTreeEagerPrefetchingStrategy follows the previous assumptions :
+\ref ImplementAModularizedScheduler follows the previous assumptions :
 
 <pre>
                                   starpu_push_task
