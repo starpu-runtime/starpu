@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -197,6 +197,7 @@ LIST_TYPE(_starpu_worker,
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
+	hwloc_obj_t hwloc_obj;
 #endif
 );
 

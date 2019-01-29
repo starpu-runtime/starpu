@@ -83,7 +83,10 @@ starpu_task_expected_length(), for the required data transfers with
 starpu_task_expected_data_transfer_time_for(), for the required energy with
 starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
-starpu_transfer_predict(), ... One can also directly the presence of a data handle with starpu_data_is_on_node().
+starpu_transfer_predict(), ...
+One can also directly test the presence of a data handle with starpu_data_is_on_node(). Prefetches can be triggered by calling starpu_prefetch_task_input_for(). 
+starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
+STARPU_PREFETCH environment variable.
 
 Usual functions can be used on tasks, for instance one can use the following to
 get the data size for a task.
@@ -143,6 +146,15 @@ worker, one has to call starpu_wake_worker_relax_light() so that worker wakes up
 and picks it. If the task was pushed on a shared queue, one may want to only
 wake one idle worker. An example doing this is available in
 <c>src/sched_policies/eager_central_policy.c</c>.
+
+
+A pointer to one data structure specific to the scheduler can be set with
+starpu_sched_ctx_set_policy_data() and fetched with
+starpu_sched_ctx_get_policy_data(). Per-worker data structures can then be
+store in it by allocating a STARPU_NMAXWORKERS-sized array of structures indexed
+by workers.
+
+Access to the hwloc topology is available with starpu_worker_get_hwloc_obj()
 
 A variety of examples of
 advanced schedulers can be read in <c>src/sched_policies</c>, for
@@ -248,29 +260,38 @@ All modularized schedulers are named following the RE <c>tree-*</c>
 Each Scheduling Component must follow the following pre-defined Interface
 to be able to interact with other Scheduling Components.
 
-	- Push (Caller_Component, Child_Component, Task) \n
+	- push_task (child_component, Task) \n
 	The calling Scheduling Component transfers a task to its
 	Child Component. When the Push function returns, the task no longer
 	belongs to the calling Component. The Modularized Schedulers'
 	model relies on this function to perform prefetching.
 	See starpu_sched_component::push_task for more details
 
-	- Pull (Caller_Component, Parent_Component)  ->  Task \n
+	- pull_task (parent_component, caller_component)  ->  Task \n
 	The calling Scheduling Component requests a task from
 	its Parent Component. When the Pull function ends, the returned
 	task belongs to the calling Component.
 	See starpu_sched_component::pull_task for more details
 
-	- Can_Push (Caller_Component, Parent_Component) \n
+	- can_push (caller_component, parent_component) \n
 	The calling Scheduling Component notifies its Parent Component that
 	it is ready to accept new tasks.
 	See starpu_sched_component::can_push for more details
 
-	- Can_Pull (Caller_Component, Child_Component) \n
+	- can_pull (caller_component, child_component) \n
 	The calling Scheduling Component notifies its Child Component
 	that it is ready to give new tasks.
 	See starpu_sched_component::can_pull for more details
 
+The components also provide the following useful methods:
+
+        - starpu_sched_component::estimated_load provides an estimated load of
+        the component
+        - starpu_sched_component::estimated_end provides an estimated date of
+        availability of workers behind the component, after processing tasks in
+        the component and below.
+        This is computed only if the estimated field of the tasks have been set
+        before passing it to the component.
 
 \subsection BuildAModularizedScheduler Building a Modularized Scheduler
 
