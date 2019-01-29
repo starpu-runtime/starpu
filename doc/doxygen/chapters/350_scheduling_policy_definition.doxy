@@ -151,10 +151,10 @@ wake one idle worker. An example doing this is available in
 A pointer to one data structure specific to the scheduler can be set with
 starpu_sched_ctx_set_policy_data() and fetched with
 starpu_sched_ctx_get_policy_data(). Per-worker data structures can then be
-store in it by allocating a STARPU_NMAXWORKERS-sized array of structures indexed
+store in it by allocating a \ref STARPU_NMAXWORKERS -sized array of structures indexed
 by workers.
 
-Access to the hwloc topology is available with starpu_worker_get_hwloc_obj()
+Access to the hwloc topology is available with starpu_worker_get_hwloc_obj().
 
 A variety of examples of
 advanced schedulers can be read in <c>src/sched_policies</c>, for
