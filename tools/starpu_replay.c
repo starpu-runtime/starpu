@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2018                                     Inria
- * Copyright (C) 2017,2018                                CNRS
+ * Copyright (C) 2017,2018,2019                           CNRS
  * Copyright (C) 2016-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -884,7 +884,7 @@ eof:
 
 	/* End of FREE */
 
-	struct handle * handle,* handletmp;
+	struct handle *handle=NULL, *handletmp=NULL;
 	HASH_ITER(hh, handles_hash, handle, handletmp)
 	{
 		starpu_data_unregister(handle->mem_ptr);
@@ -892,7 +892,7 @@ eof:
 		free(handle);
         }
 
-	struct perfmodel * model_s, * modeltmp;
+	struct perfmodel *model_s=NULL, *modeltmp=NULL;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
 	{
 		starpu_perfmodel_unload_model(&model_s->perfmodel);
@@ -901,7 +901,7 @@ eof:
 		free(model_s);
         }
 
-	struct task * task, *tasktmp;
+	struct task *task=NULL, *tasktmp=NULL;
 	HASH_ITER(hh, tasks, task, tasktmp)
 	{
 		free(task->task.cl_arg);

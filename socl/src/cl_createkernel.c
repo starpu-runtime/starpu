@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2014,2016,2017                      CNRS
+ * Copyright (C) 2012,2014,2016,2017,2019                 CNRS
  * Copyright (C) 2010-2013,2018                           Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -24,7 +24,7 @@ static void soclCreateKernel_task(void *data)
 
 	int range = starpu_worker_get_range();
 	cl_int err;
-	
+
 	if (k->program->cl_programs[range] == NULL)
 	{
 		k->errcodes[range] = CL_SUCCESS;
@@ -54,7 +54,7 @@ static void soclCreateKernel_task(void *data)
 			ERROR_STOP("Unable to get kernel argument count. Aborting.\n");
 		}
 		k->num_args = num_args;
-		DEBUG_MSG("Kernel has %d arguments\n", num_args);
+		DEBUG_MSG("Kernel has %u arguments\n", num_args);
 
 		k->arg_size = (size_t*)malloc(sizeof(size_t) * num_args);
 		k->arg_value = (void**)malloc(sizeof(void*) * num_args);
@@ -142,7 +142,7 @@ soclCreateKernel(cl_program    program,
 			*errcode_ret = CL_OUT_OF_HOST_MEMORY;
 		return NULL;
 	}
-   
+
 	gc_entity_store(&k->program, program);
 	k->kernel_name = strdup(kernel_name);
 
@@ -165,7 +165,7 @@ soclCreateKernel(cl_program    program,
 	static int id = 0;
 	k->id = id++;
 #endif
-   
+
 	k->cl_kernels = (cl_kernel*)malloc(socl_device_count * sizeof(cl_kernel));
 	k->errcodes = (cl_int*)malloc(socl_device_count * sizeof(cl_int));
 

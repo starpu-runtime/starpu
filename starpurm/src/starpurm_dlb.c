@@ -121,7 +121,7 @@ static const char * _dlb_error_str(int error_code)
 	return s;
 }
 
-#define _dlb_check(s,r) do { if ((r) != DLB_SUCCESS) {fprintf(stderr, "%s:%u, %s - DLB call '%s' %s %d (%s)\n",__FILE__, __LINE__, __func__, (s), (r)>0?"returned warning code":"failed with error code", (r), _dlb_error_str((r))); assert(dlb_ret >= DLB_SUCCESS); }} while (0)
+#define _dlb_check(s,r) do { if ((r) != DLB_SUCCESS) {fprintf(stderr, "%s:%d, %s - DLB call '%s' %s %d (%s)\n",__FILE__, __LINE__, __func__, (s), (r)>0?"returned warning code":"failed with error code", (r), _dlb_error_str((r))); assert(dlb_ret >= DLB_SUCCESS); }} while (0)
 
 #if 0
 /* unused for now */
