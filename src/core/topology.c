@@ -2878,6 +2878,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 		if (workerarg->bindid == -1)
 		{
 			workerarg->hwloc_cpu_set = hwloc_bitmap_alloc();
+			workerarg->hwloc_obj = NULL;
 		}
 		else
 		{
@@ -2893,6 +2894,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 
 			/* Clear the cpu set and set the cpu */
 			workerarg->hwloc_cpu_set = hwloc_bitmap_dup(worker_obj->cpuset);
+			workerarg->hwloc_obj = worker_obj;
 		}
 #endif
 		if (workerarg->bindid != -1)

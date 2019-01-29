@@ -186,7 +186,7 @@ The actual scheduler
 	 allocate and initialize component field with defaults values :
 	.pop_task make recursive call on father
 	.estimated_load compute relative speedup and tasks in sub tree
-	.estimated_end return the average of recursive call on children
+	.estimated_end return the minimum of recursive call on children
 	.add_child is starpu_sched_component_add_child
 	.remove_child is starpu_sched_component_remove_child
 	.notify_change_workers does nothing
@@ -296,7 +296,7 @@ todo
 \ingroup API_Modularized_Scheduler
 	 Return a struct starpu_sched_component with a fifo. A stable sort is performed according to tasks priorities.
 	 A push_task call on this component does not perform recursive calls, underlying components will have to call pop_task to get it.
-	 starpu_sched_component::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers. Do not take into account tasks that are currently executed.
+	 starpu_sched_component::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers.
 
 \fn int starpu_sched_component_is_fifo(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler

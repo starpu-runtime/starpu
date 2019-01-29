@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -618,7 +618,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->state_unblock_in_parallel_ack = 0;
 	workerarg->block_in_parallel_ref_count = 0;
 
-	/* cpu_set/hwloc_cpu_set initialized in topology.c */
+	/* cpu_set/hwloc_cpu_set/hwloc_obj initialized in topology.c */
 }
 
 static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
@@ -2529,6 +2529,11 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
+}
+hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	return worker->hwloc_obj;
 }
 #endif
 

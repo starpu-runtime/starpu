@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2017                                Inria
  * Copyright (C) 2010-2015,2017                           CNRS
- * Copyright (C) 2009-2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2009-2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -175,6 +175,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
 
 #ifdef STARPU_HAVE_HWLOC
 hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);
+hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid);
 #endif
 
 #ifdef __cplusplus
