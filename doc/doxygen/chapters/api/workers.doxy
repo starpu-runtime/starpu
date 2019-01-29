@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2011,2014,2016-2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -140,6 +140,30 @@ Structure needed to iterate on the collection
     The index of the current worker in the collection, needed when
     iterating on the collection.
 
+\fn unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
+\ingroup API_Workers_Properties
+todo
+
+\fn unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx)
+\ingroup API_Workers_Properties
+todo
+
+\fn int starpu_worker_get_stream_workerids(unsigned devid, int *workerids, enum starpu_worker_archtype type)
+\ingroup API_Workers_Properties
+todo
+
+\fn unsigned starpu_worker_is_blocked_in_parallel(int workerid)
+\ingroup API_Workers_Properties
+todo
+
+\fn unsigned starpu_worker_is_slave_somewhere(int workerid)
+\ingroup API_Workers_Properties
+todo
+
+\fn unsigned starpu_worker_is_combined_worker(int id)
+\ingroup API_Workers_Properties
+todo
+
 \fn unsigned starpu_worker_get_count(void)
 \ingroup API_Workers_Properties
 Return the number of workers (i.e. processing units executing StarPU
@@ -182,10 +206,10 @@ Return the number of OpenCL devices controlled by StarPU. The returned value sho
 \fn int starpu_worker_get_id(void)
 \ingroup API_Workers_Properties
 Return the identifier of the current worker, i.e the one associated to
-the calling thread. The returned value is either -1 if the current
+the calling thread. The returned value is either \c -1 if the current
 context is not a StarPU worker (i.e. when called from the application
-outside a task or a callback), or an integer between 0 and
-starpu_worker_get_count() - 1.
+outside a task or a callback), or an integer between \c 0 and
+starpu_worker_get_count() - \c 1.
 
 \fn unsigned starpu_worker_get_id_check(void)
 \ingroup API_Workers_Properties
@@ -214,7 +238,7 @@ specified \p type. If there is no such worker, -1 is returned.
 \ingroup API_Workers_Properties
 Return the identifier of the worker that has the specified \p type
 and device id \p devid (which may not be the n-th, if some
-devices are skipped for instance). If there is no such worker, -1 is
+devices are skipped for instance). If there is no such worker, \c -1 is
 returned.
 
 \fn int starpu_worker_get_devid(int id)
@@ -228,11 +252,19 @@ identifier of a CPU worker is the logical identifier of the core on
 which the worker was bound; this identifier is either provided by the
 OS or by the library <c>hwloc</c> in case it is available.
 
+\fn int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int num)
+\ingroup API_Workers_Properties
+todo
+
+\fn int starpu_worker_get_bindid(int workerid)
+\ingroup API_Workers_Properties
+todo
+
 \fn enum starpu_worker_archtype starpu_worker_get_type(int id)
 \ingroup API_Workers_Properties
 Return the type of processing unit associated to the worker \p id. The
 worker identifier is a value returned by the function
-starpu_worker_get_id()). The returned value indicates the architecture
+starpu_worker_get_id()). The return value indicates the architecture
 of the worker: ::STARPU_CPU_WORKER for a CPU core,
 ::STARPU_CUDA_WORKER for a CUDA device, and ::STARPU_OPENCL_WORKER for
 a OpenCL device. The value returned for an invalid identifier is
@@ -291,18 +323,18 @@ worker state, even though it is performing a scheduling operation.
 Must be called by a worker before performing a potentially blocking
 call such as acquiring a mutex other than its own sched_mutex. This
 function increases \c state_relax_refcnt from the current worker. No
-more than <c>UINT_MAX-1</c> nested relax_on calls should performed on
-the same worker. This function is automatically called by \ref
-starpu_worker_lock to relax the caller worker state while attempting
-to lock the targer worker.
+more than <c>UINT_MAX-1</c> nested starpu_worker_relax_on() calls should performed on
+the same worker. This function is automatically called by 
+starpu_worker_lock() to relax the caller worker state while attempting
+to lock the target worker.
 
 \fn void starpu_worker_relax_off(void)
 \ingroup API_Workers_Properties
 Must be called after a potentially blocking call is complete, to
-restore the relax state in place before the corresponding relax_on.
-Decreases \c state_relax_refcnt. Calls to \ref starpu_worker_relax_on
-and \c starpu_worker_relax_off must be well parenthesized. This
-function is automatically called by \ref starpu_worker_unlock after the
+restore the relax state in place before the corresponding starpu_worker_relax_on().
+Decreases \c state_relax_refcnt. Calls to starpu_worker_relax_on()
+and starpu_worker_relax_off() must be properly paired. This
+function is automatically called by starpu_worker_unlock() after the
 target worker has been unlocked.
 
 \fn int starpu_worker_get_relax_state(void)
@@ -313,22 +345,22 @@ otherwise.
 \fn void starpu_worker_lock(int workerid)
 \ingroup API_Workers_Properties
 Acquire the sched mutex of \p workerid. If the caller is a worker,
-distinct from \p workerid, the caller worker automatically enter relax
+distinct from \p workerid, the caller worker automatically enters a relax
 state while acquiring the target worker lock.
 
 \fn int starpu_worker_trylock(int workerid)
 \ingroup API_Workers_Properties
 Attempt to acquire the sched mutex of \p workerid. Returns \c 0 if
 successful, \c !0 if \p workerid sched mutex is held or the
-corresponding worker is not in relaxed stated.
+corresponding worker is not in a relax state.
 If the caller is a worker, distinct from \p workerid, the caller
-worker automatically enter relax state if successfully acquiring the target
+worker automatically enters relax state if successfully acquiring the target
 worker lock.
 
 \fn void starpu_worker_unlock(int workerid)
 \ingroup API_Workers_Properties
 Release the previously acquired sched mutex of \p workerid. Restore
-the relaxed state of the caller worker if needed.
+the relax state of the caller worker if needed.
 
 \fn void starpu_worker_lock_self(void)
 \ingroup API_Workers_Properties
@@ -340,28 +372,22 @@ Release the current worker sched mutex.
 
 \fn int starpu_wake_worker_relax(int workerid)
 \ingroup API_Workers_Properties
-Wake up \p workerid while temporarily entering the current worker relaxed state
-if needed during the waiting process. Returns 1 if \p workerid has been woken
-up or its state_keep_awake flag has been set to 1, and 0 otherwise (if \p
+Wake up \p workerid while temporarily entering the current worker relax state
+if needed during the waiting process. Return 1 if \p workerid has been woken
+up or its state_keep_awake flag has been set to \c 1, and \c 0 otherwise (if \p
 workerid was not in the STATE_SLEEPING or in the STATE_SCHEDULING).
 
 \fn int starpu_wake_worker_relax_light(int workerid)
 \ingroup API_Workers_Properties
 This is a light version of starpu_wake_worker_relax() which, when possible,
-speculatively sets keep_awake on the target worker without waiting that worker
-to enter the relaxed state.
+speculatively set keep_awake on the target worker without waiting for the worker
+to enter the relax state.
 
-\fn hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
+\fn void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 \ingroup API_Workers_Properties
-If StarPU was compiled with hwloc support, returns a duplicate of the
-hwloc cpuset associated with the worker \p workerid. The returned cpuset is obtained
-from a \c hwloc_bitmap_dup() function call. It must be freed by the caller
-using \c hwloc_bitmap_free().
-
-\fn hwloc_obj_t starpu_-worker_get_hwloc_obj(int workerid)
-\ingroup API_Workers_Properties
-If StarPU was compiled with hwloc support, returns the HWLOC object corresponding to 
-the worker \p workerid.
+If StarPU was compiled with blocking drivers support and worker callbacks support
+enabled, allow to specify an external resource manager callback to be notified
+about workers waking-up.
 
 \fn void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid))
 \ingroup API_Workers_Properties
@@ -369,10 +395,16 @@ If StarPU was compiled with blocking drivers support and worker callbacks suppor
 enabled, allow to specify an external resource manager callback to be notified
 about workers going to sleep.
 
-\fn void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
+\fn hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
 \ingroup API_Workers_Properties
-If StarPU was compiled with blocking drivers support and worker callbacks support
-enabled, allow to specify an external resource manager callback to be notified
-about workers waking-up.
+If StarPU was compiled with \c hwloc support, return a duplicate of the
+\c hwloc cpuset associated with the worker \p workerid. The returned cpuset is obtained
+from a \c hwloc_bitmap_dup() function call. It must be freed by the caller
+using \c hwloc_bitmap_free().
+
+\fn hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid)
+\ingroup API_Workers_Properties
+If StarPU was compiled with \c hwloc support, return the \c hwloc object corresponding to 
+the worker \p workerid.
 
 */

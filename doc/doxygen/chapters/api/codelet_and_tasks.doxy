@@ -882,6 +882,18 @@ starpu_codelet::nodes or the \p i -th element of the field
 starpu_codelet::dyn_nodes
 (see \ref SettingManyDataHandlesForATask)
 
+\def STARPU_TASK_TYPE_NORMAL
+\ingroup API_Codelet_And_Tasks
+todo
+
+\def STARPU_TASK_TYPE_INTERNAL
+\ingroup API_Codelet_And_Tasks
+todo
+
+\def STARPU_TASK_TYPE_DATA_ACQUIRE
+\ingroup API_Codelet_And_Tasks
+todo
+
 \fn struct starpu_task *starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
 Allocate a task structure and initialize it with default
