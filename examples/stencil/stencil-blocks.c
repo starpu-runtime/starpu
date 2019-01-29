@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2011,2013-2017                      Université de Bordeaux
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2011,2013,2015-2017                      CNRS
+ * Copyright (C) 2011,2013,2015-2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -179,15 +179,15 @@ void assign_blocks_to_workers(int rank)
 	/*unsigned nworkers = starpu_worker_get_count();*/
 
 	/* how many blocks are on that MPI node ? */
-	unsigned nblocks = 0;
-	for (bz = 0; bz < nbz; bz++)
-	{
-		struct block_description *block =
-				get_block_description(bz);
-
-		if (block->mpi_node == rank)
-			nblocks++;
-	}
+//	unsigned nblocks = 0;
+//	for (bz = 0; bz < nbz; bz++)
+//	{
+//		struct block_description *block =
+//				get_block_description(bz);
+//
+//		if (block->mpi_node == rank)
+//			nblocks++;
+//	}
 
 	/* how many blocks per worker ? */
 	/*unsigned nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;*/

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2017                           CNRS
+ * Copyright (C) 2012,2013,2017,2019                      CNRS
  * Copyright (C) 2010-2013,2018                           Université de Bordeaux
  * Copyright (C) 2011                                     Inria
  *
@@ -62,7 +62,7 @@ soclCreateContext(const cl_context_properties * properties,
 			{
 			case CL_CONTEXT_PLATFORM:
 				i++;
-				if (p[i] != (cl_context_properties)&socl_platform)
+				if (p[i] != ((cl_context_properties)&socl_platform))
 				{
 					if (errcode_ret != NULL)
 						*errcode_ret = CL_INVALID_PLATFORM;

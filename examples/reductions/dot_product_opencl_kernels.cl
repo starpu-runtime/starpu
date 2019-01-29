@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2012,2015,2017                           CNRS
+ * Copyright (C) 2012,2015,2017,2019                      CNRS
  * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@
 __kernel void _redux_opencl(__global DOT_TYPE *dota,
 			    __global DOT_TYPE *dotb)
 {
-        const int i = get_global_id(0);
 	*dota += *dotb;
 }
 
@@ -39,6 +38,6 @@ __kernel void _dot_opencl(__global float *x,
 	tmp = 0.0;
 	for (i = 0; i < n ; i++)
 		tmp += x[i]*y[i];
-		
+
 	*dot += tmp;
 }

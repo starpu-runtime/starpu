@@ -4,7 +4,7 @@
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2017,2018                                Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2011-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -2563,9 +2563,8 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 
-       unsigned task = ev->param[0];
-       char *prefix = options->file_prefix;
-       
+	unsigned task = ev->param[0];
+
 	curq_size++;
 
 	_starpu_fxt_component_update_ntasks(nsubmitted, curq_size);
@@ -2583,23 +2582,20 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
                snprintf(container, sizeof(container), "%sp", options->file_prefix);
                poti_NewEvent(get_event_time_stamp(ev, options), container, "pu", paje_value);
 #else
-		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
-               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "pu", prefix, task);
+	       fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "pu", options->file_prefix, task);
 #endif
 	}
 
 	if (activity_file)
-	fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
+		fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
 }
 
 
 static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
-
-       unsigned task = ev->param[0];
-       char *prefix = options->file_prefix;
-       
+	unsigned task = ev->param[0];
 
 	curq_size--;
 	nsubmitted--;
@@ -2611,16 +2607,16 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		char container[STARPU_POTI_STR_LEN];
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
 		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
-	poti_SetVariable(current_timestamp, container, "nsubmitted", (double)nsubmitted);
+		poti_SetVariable(current_timestamp, container, "nsubmitted", (double)nsubmitted);
 
-               char paje_value[STARPU_POTI_STR_LEN];
-               snprintf(paje_value, sizeof(paje_value), "%u", task);
-               snprintf(container, sizeof(container), "%sp", options->file_prefix);
-               poti_NewEvent(get_event_time_stamp(ev, options), container, "po", paje_value);
+		char paje_value[STARPU_POTI_STR_LEN];
+		snprintf(paje_value, sizeof(paje_value), "%u", task);
+		snprintf(container, sizeof(container), "%sp", options->file_prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "po", paje_value);
 #else
 		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
 		fprintf(out_paje_file, "13	%.9f	%ssched	nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
-               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "po", prefix, task);
+		fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "po", options->file_prefix, task);
 #endif
 	}
 

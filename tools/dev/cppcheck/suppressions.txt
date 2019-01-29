@@ -1,6 +1,6 @@
 // StarPU --- Runtime system for heterogeneous multicore architectures.
 //
-// Copyright (C) 2017,2018                                CNRS
+// Copyright (C) 2017,2018,2019                           CNRS
 // Copyright (C) 2017,2018                                Université de Bordeaux
 // Copyright (C) 2017                                     Inria
 //
@@ -18,6 +18,10 @@
 knownConditionTrueFalse
 variableScope
 ConfigurationNotChecked
+shadowVar
+unusedFunction
+unmatchedSuppression
+unusedStructMember
 
 *:starpufft/*
 *:min-dgels/*
@@ -30,6 +34,7 @@ ConfigurationNotChecked
 varFuncNullUB:examples/sched_ctx/two_cpu_contexts.c:76
 negativeIndex:examples/stencil/stencil-tasks.c
 constStatement:examples/stencil/*
+shiftTooManyBitsSigned:examples/pi/SobolQRNG/sobol_gold.c:88
 
 unreadVariable:tests/openmp/*
 unusedLabel:tests/datawizard/gpu_register.c
@@ -45,18 +50,12 @@ unreadVariable:tests/datawizard/variable_size.c
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
 unreadVariable:mpi/src/starpu_mpi.c:971
 unusedVariable:mpi/src/starpu_mpi.c:972
-redundantAssignment:src/core/workers.c
 
+redundantAssignment:src/core/workers.c
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
 unreadVariable:src/core/dependencies/tags.c:111
 uselessAssignmentPtrArg:src/core/sched_ctx_list.c:144
-unusedStructMember:src/core/perfmodel/perfmodel_bus.c:62
-unusedStructMember:src/core/perfmodel/perfmodel_bus.c:63
-unusedStructMember:src/core/perfmodel/perfmodel_bus.c:64
-unusedStructMember:src/core/perfmodel/perfmodel_bus.c:65
-unusedStructMember:src/core/perfmodel/perfmodel_bus.c:66
-unusedStructMember:src/core/simgrid.c:225
-unusedStructMember:src/core/simgrid.c:226
+
 wrongPrintfScanfArgNum:src/core/simgrid.c:1024
 duplicateExpression:src/util/starpu_task_insert.c:52
 
@@ -79,6 +78,13 @@ negativeIndex:gcc-plugin/src/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
 
+// the following warnings are weird and not understandable, let's ignore them
+ignoredReturnValue:socl/src/cl_createkernel.c:170
+leakReturnValNotUsed:socl/src/cl_createkernel.c:170
+ignoredReturnValue:socl/src/cl_createprogramwithsource.c:136
+leakReturnValNotUsed:socl/src/cl_createprogramwithsource.c:136
+
 redundantAssignment:src/sched_policies/component_eager.c:109
 
 nullPointerRedundantCheck:src/datawizard/copy_driver.c:682
+

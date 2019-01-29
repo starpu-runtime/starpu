@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2017                                     Université de Bordeaux
  *
@@ -186,7 +186,7 @@ static void starpu_hdf5_read_internal(struct _starpu_hdf5_work * work)
         /* Receiver has to be an hyperslabs */
         offsets[0] = 0;
         count[0] = work->size;
-        status = H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        H5Sselect_hyperslab(dataspace_receive, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_receive >= 0, "Error when reading this HDF5 dataset (%s)\n", work->obj_src->path);
 
         status = H5Dread(work->obj_src->dataset, datatype, dataspace_receive, dataspace_select, H5P_DEFAULT, work->ptr);
@@ -240,7 +240,7 @@ static void starpu_hdf5_write_internal(struct _starpu_hdf5_work * work)
         /* Receiver has to be an hyperslabs */
         offsets[0] = 0;
         count[0] = work->size;
-        status = H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
+        H5Sselect_hyperslab(dataspace_send, H5S_SELECT_SET, offsets, NULL, count, NULL);
         STARPU_ASSERT_MSG(dataspace_send >= 0, "Error when writing this HDF5 dataset (%s)\n", work->obj_dst->path);
 
         status = H5Dwrite(work->obj_dst->dataset, datatype, dataspace_send, dataspace_select, H5P_DEFAULT, work->ptr);
