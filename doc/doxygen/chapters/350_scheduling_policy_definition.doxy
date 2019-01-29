@@ -252,40 +252,52 @@ The components also provide the following useful methods:
 
 StarPU is currently shipped with the following four Scheduling Components :
 
-	- Flow-control Components : Fifo, Prio \n
+	- Storage Components : Fifo, Prio \n
 	Components which store tasks. They can also prioritize them if
 	they have a defined priority. It is possible to define a threshold
 	for those Components following two criterias : the number of tasks
 	stored in the Component, or the sum of the expected length of all
-	tasks stored in the Component.
+        tasks stored in the Component. When a push operation tries to queue a
+        task beyond the threshold, the push fails. When some task leaves the
+        queue (and thus possibly more tasks can fit), this component calls
+        can_push from ancestors.
 
 	- Resource-Mapping Components : Mct, Heft, Eager, Random, Work-Stealing \n
 	"Core" of the Scheduling Strategy, those Components are the
-	ones who make scheduling choices.
+	ones who make scheduling choices between their children components.
 
 	- Worker Components : Worker \n
-	Each Worker Component modelize a concrete worker.
+        Each Worker Component modelizes a concrete worker, and copes with the
+        technical tricks of interacting with the StarPU core. Modular schedulers
+        thus usually have them at the bottom of their component tree.
 
 	- Special-Purpose Components : Perfmodel_Select, Best_Implementation \n
 	Components dedicated to original purposes. The Perfmodel_Select
 	Component decides which Resource-Mapping Component should be used to
-	schedule a task. The Best_Implementation Component chooses which
-	implementation of a task should be used on the choosen resource.
+        schedule a task: a component that assumes tasks with a calibrated
+        performance model; a component for non-yet-calibrated tasks, that will
+        distribute them to get measurements done as quickly as possible; and a
+        component that takes the tasks without performance models.\n
+	The Best_Implementation Component chooses which
+	implementation of a task should be used on the chosen resource.
 
 \subsubsection ProgressionAndValidationRules Progression And Validation Rules
 
 Some rules must be followed to ensure the correctness of a Modularized
 Scheduler :
 
-	- At least one Flow-control Component without threshold per Worker Component
-	is needed in a Modularized Scheduler, to store incoming tasks from StarPU
-	and to give tasks to Worker Components who asks for it. It is possible to
-	use one Flow-control Component per Worker Component, or one for all Worker
-	Components, depending on how the Scheduling Tree is defined.
+        - At least one Storage Component without threshold is needed in a
+        Modularized Scheduler, to store incoming tasks from StarPU. It can for
+        instance be a global component at the top of the tree, or one component
+        per worker at the bottom of the tree, or intermediate assemblies. The
+        important point is that the starpu_push_task() call at the top can not
+        fail, so there has to be a storage component without threshold between
+        the top of the tree and the first storage component with threshold, or
+        the workers themselves.
 
 	- At least one Resource-Mapping Component is needed in a Modularized
-	Scheduler. Resource-Mapping Components are the only ones who can make
-	scheduling choices, and so the only ones who can have several child.
+	Scheduler. Resource-Mapping Components are the only ones which can make
+	scheduling choices, and so the only ones which can have several child.
 
 \subsubsection ImplementAModularizedScheduler Implementing a Modularized Scheduler
 
@@ -421,6 +433,12 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
   .policy_description = "eager with prefetching tree policy"
 };
 \endcode
+
+Other modular scheduler examples can be seen in \c src/sched_policies/modular_*.c
+
+For instance, \c modular-heft-prio needs performance models, decides
+memory nodes, uses prioritized fifos above and below, and decides the best
+implementation.
 
 \subsection WriteASchedulingComponent Writing a Scheduling Component
 
