@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017,2018                                Inria
- * Copyright (C) 2011-2014,2016-2018                      CNRS
+ * Copyright (C) 2011-2014,2016-2019                      CNRS
  * Copyright (C) 2011,2013,2014,2017,2019                 Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 	{
 		FILE* input = fopen(pinput, "r");
 		char s[1024], *c;
-		struct model *model, *tmp;
+		struct model *model, *tmp=NULL;
 		uint32_t footprint = 0;
 		char *model_name = NULL;
 		int ret;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2012-2015,2017,2019                      CNRS
  * Copyright (C) 2011-2014,2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	uint32_t footprint = 0;
 	int already_there = 0;
 	char *model_name = NULL;
-	struct model *model, *tmp;
+	struct model *model, *tmp=NULL;
 	int ret;
 
 	if (argc >= 2)
