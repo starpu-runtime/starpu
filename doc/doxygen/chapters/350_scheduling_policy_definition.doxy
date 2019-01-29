@@ -179,21 +179,24 @@ A typical Scheduling Tree is shown below.
                                   v
                             Fifo_Component
                                 |  ^
-                                |  |
+                           push |  |  pull
                                 v  |
                            Eager_Component
                                 |  ^
-                                |  |
+                           push |  | pull
                                 v  |
                  --------><--------------><--------
                  |  ^                          |  ^
-                 |  |                          |  |
+            push |  | pull                push |  | pull
                  v  |                          v  |
              Fifo_Component                 Fifo_Component
                  |  ^                          |  ^
-                 |  |                          |  |
+            push |  | pull                push |  | pull
                  v  |                          v  |
             Worker_Component               Worker_Component
+                  |                             |
+starpu_pop_task   |                             |
+                  v                             v
 </pre>
 
 When a task is pushed by StarPU in a Modularized Scheduler, the task moves from
