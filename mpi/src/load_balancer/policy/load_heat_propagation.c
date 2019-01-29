@@ -569,11 +569,13 @@ static int deinit_heat()
 		int *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
 		int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
 
+		int n = 0;
 		struct moved_data_entry *md, *tmp;
 		HASH_ITER(hh, mdh, md, tmp)
 		{
 			tags[n] = starpu_mpi_data_get_tag(md->handle);
 			ranks[n] = my_rank;
+			n++;
 		}
 	}
 	else
