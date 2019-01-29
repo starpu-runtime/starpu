@@ -39,6 +39,42 @@ assemble it with other components, and notably get data prefetching support for
 free, and task performance model calibration is properly performed, which allows
 to easily extend it into taking task duration into account, etc.
 
+\section SchedulingHelpers Helper functions for defining a scheduling policy (Basic or modular)
+
+Make sure to have a look at the \ref API_Scheduling_Policy section, which
+provides a complete list of the functions available for writing advanced schedulers.
+
+This includes getting an estimation for a task computation completion with
+starpu_task_expected_length(), for the required data transfers with
+starpu_task_expected_data_transfer_time_for(), for the required energy with
+starpu_task_expected_energy(), etc. Other
+useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
+starpu_transfer_predict(), ...
+One can also directly test the presence of a data handle with starpu_data_is_on_node(). Prefetches can be triggered by calling starpu_prefetch_task_input_for(). 
+starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
+STARPU_PREFETCH environment variable.
+
+Usual functions can be used on tasks, for instance one can use the following to
+get the data size for a task.
+
+\code{.c}
+size = 0;
+write = 0;
+if (task->cl)
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    {
+        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
+	size_t datasize = starpu_data_get_size(data);
+        size += datasize;
+	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
+	    write += datasize;
+    }
+\endcode
+
+Task queues can be implemented with the starpu_task_list functions.
+
+Access to the hwloc topology is available with starpu_worker_get_hwloc_obj().
+
 \section DefiningANewBasicSchedulingPolicy Defining A New Basic Scheduling Policy
 
 A full example showing how to define a new scheduling policy is available in
@@ -75,36 +111,6 @@ the worker will sleep.
 The \ref starpu_sched_policy section provides the exact rules that govern the
 methods of the policy.
 
-Make sure to have a look at the \ref API_Scheduling_Policy section, which
-provides a complete list of the functions available for writing advanced schedulers.
-
-This includes getting an estimation for a task computation completion with
-starpu_task_expected_length(), for the required data transfers with
-starpu_task_expected_data_transfer_time_for(), for the required energy with
-starpu_task_expected_energy(), etc. Other
-useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
-starpu_transfer_predict(), ...
-One can also directly test the presence of a data handle with starpu_data_is_on_node(). Prefetches can be triggered by calling starpu_prefetch_task_input_for(). 
-starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
-STARPU_PREFETCH environment variable.
-
-Usual functions can be used on tasks, for instance one can use the following to
-get the data size for a task.
-
-\code{.c}
-size = 0;
-write = 0;
-if (task->cl)
-    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-    {
-        starpu_data_handle_t data = STARPU_TASK_GET_HANDLE(task, i)
-	size_t datasize = starpu_data_get_size(data);
-        size += datasize;
-	if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
-	    write += datasize;
-    }
-\endcode
-
 One can enumerate the workers with this iterator:
 
 \code{.c}
@@ -118,8 +124,6 @@ while(workers->has_next(workers, &it))
 	...
 }
 \endcode
-
-Task queues can be implemented with the starpu_task_list functions.
 
 To provide synchronization between workers, a per-worker lock exists to protect
 the data structures of a given worker. It is acquired around scheduler methods,
@@ -142,7 +146,7 @@ must re-assess its state after \code{.c}starpu_worker_relax_off(B)\endcode, such
 possible new tasks pushed to its queue into account.
 
 When the starpu_sched_policy::push_task method has pushed a task for another
-worker, one has to call starpu_wake_worker_relax_light() so that worker wakes up
+worker, one has to call starpu_wake_worker_relax_light() so that the worker wakes up
 and picks it. If the task was pushed on a shared queue, one may want to only
 wake one idle worker. An example doing this is available in
 <c>src/sched_policies/eager_central_policy.c</c>.
@@ -153,8 +157,6 @@ starpu_sched_ctx_set_policy_data() and fetched with
 starpu_sched_ctx_get_policy_data(). Per-worker data structures can then be
 store in it by allocating a \ref STARPU_NMAXWORKERS -sized array of structures indexed
 by workers.
-
-Access to the hwloc topology is available with starpu_worker_get_hwloc_obj().
 
 A variety of examples of
 advanced schedulers can be read in <c>src/sched_policies</c>, for
