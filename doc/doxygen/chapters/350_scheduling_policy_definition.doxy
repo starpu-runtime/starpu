@@ -454,6 +454,10 @@ For instance, \c modular-heft-prio needs performance models, decides
 memory nodes, uses prioritized fifos above and below, and decides the best
 implementation.
 
+If unsure on the result of the modular scheduler construction, you can run a
+simple application with FxT enabled (see \ref GeneratingTracesWithFxT), and open
+trace.html in a web-browser.
+
 \subsection WriteASchedulingComponent Writing a Scheduling Component
 
 \subsubsection GenericSchedulingComponent Generic Scheduling Component
