@@ -321,8 +321,6 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job *j, struct _starpu_worker *worker);
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);
 
-unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
-
 int _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
 /* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
