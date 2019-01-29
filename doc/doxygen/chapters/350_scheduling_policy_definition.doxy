@@ -173,70 +173,6 @@ unique purpose, such as prioritizing tasks or mapping tasks over resources.
 A typical Scheduling Tree is shown below.
 
 <pre>
-                                  |
-              starpu_push_task    |
-                                  |
-                                  v
-                            Fifo_Component
-                                |  ^
-                           push |  |  pull
-                                v  |
-                           Eager_Component
-                                |  ^
-                           push |  | pull
-                                v  |
-                 --------><--------------><--------
-                 |  ^                          |  ^
-            push |  | pull                push |  | pull
-                 v  |                          v  |
-             Fifo_Component                 Fifo_Component
-                 |  ^                          |  ^
-            push |  | pull                push |  | pull
-                 v  |                          v  |
-            Worker_Component               Worker_Component
-                  |                             |
-starpu_pop_task   |                             |
-                  v                             v
-</pre>
-
-When a task is pushed by StarPU in a Modularized Scheduler, the task moves from
-a Scheduling Component to an other, following the hierarchy of the
-Scheduling Tree, and is stored in one of the Scheduling Components of the
-strategy.
-When a worker wants to pop a task from the Modularized Scheduler, the
-corresponding Worker Component of the Scheduling Tree tries to pull a task from
-its parents, following the hierarchy, and gives it to the worker if it succeded
-to get one.
-
-\subsection ExistingModularizedSchedulers Existing Modularized Schedulers
-
-StarPU is currently shipped with the following pre-defined Modularized
-Schedulers :
-
-- Eager-based Schedulers (with/without prefetching) : \n
-Naive scheduler, which tries to map a task on the first available resource
-it finds.
-
-- Prio-based Schedulers (with/without prefetching) : \n
-Similar to Eager-Based Schedulers. Can handle tasks which have a defined
-priority and schedule them accordingly.
-
-- Random-based Schedulers (with/without prefetching) : \n
-Selects randomly a resource to be mapped on for each task.
-
-- HEFT Scheduler : \n
-Heterogeneous Earliest Finish Time Scheduler.
-This scheduler needs that every task submitted to StarPU have a
-defined performance model (\ref PerformanceModelCalibration)
-to work efficiently, but can handle tasks without a performance
-model.
-
-To use one of these schedulers, one can set the environment variable \ref STARPU_SCHED.
-All modularized schedulers are named following the RE <c>tree-*</c>
-
-\subsection ExampleTreeEagerPrefetchingStrategy An Example : The Tree-Eager-Prefetching Strategy
-
-<pre>
                                  |
              starpu_push_task    |
                                  |
@@ -258,7 +194,19 @@ All modularized schedulers are named following the RE <c>tree-*</c>
       Pull    |  |    Can_Pull            Pull    |  |    Can_Pull
               v  |                                v  |
         Worker_Component                     Worker_Component
+                  |                             |
+starpu_pop_task   |                             |
+                  v                             v
 </pre>
+
+When a task is pushed by StarPU in a Modularized Scheduler, the task moves from
+a Scheduling Component to an other, following the hierarchy of the
+Scheduling Tree, and is stored in one of the Scheduling Components of the
+strategy.
+When a worker wants to pop a task from the Modularized Scheduler, the
+corresponding Worker Component of the Scheduling Tree tries to pull a task from
+its parents, following the hierarchy, and gives it to the worker if it succeded
+to get one.
 
 \subsection Interface
 

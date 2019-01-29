@@ -177,6 +177,44 @@ the current consumption in Watt. Multiplying this value by the average duration
 of a single task gives the consumption of the task in Joules, which can be given
 to starpu_perfmodel_update_history().
 
+\section ExistingModularizedSchedulers Modularized Schedulers
+
+StarPU provides a powerful way to implement schedulers, as documented in \ref
+DefiningANewModularSchedulingPolicy . It is currently shipped with the following
+pre-defined Modularized Schedulers :
+
+- Eager-based Schedulers (with/without prefetching : \c modular-eager ,
+\c modular-eager-prefetching) : \n
+Naive scheduler, which tries to map a task on the first available resource
+it finds.
+
+- Prio-based Schedulers (with/without prefetching :
+\c modular-prio, \c modular-prio-prefetching) : \n
+Similar to Eager-Based Schedulers. Can handle tasks which have a defined
+priority and schedule them accordingly.
+
+- Random-based Schedulers (with/without prefetching: \c modular-random,
+\c modular-random-prio, \c modular-random-prefetching, \c
+modular-random-prio-prefetching) : \n
+Selects randomly a resource to be mapped on for each task.
+
+- Work Stealing (\c modular-ws) : \n
+Maps tasks to workers in round robin, but allows workers to steal work from other workers.
+
+- HEFT Scheduler : \n
+Maps tasks to workers using a heuristic very close to
+Heterogeneous Earliest Finish Time.
+It needs that every task submitted to StarPU have a
+defined performance model (\ref PerformanceModelCalibration)
+to work efficiently, but can handle tasks without a performance
+model. \c modular-heft just takes tasks by priority order. \c modular-heft takes
+at most 5 tasks of the same priority and checks which one fits best. \c
+modular-heft-prio is similar to \c modular-heft, but only decides the memory
+node, not the exact worker, just pushing tasks to one central queue per memory
+node.
+
+To use one of these schedulers, one can set the environment variable \ref STARPU_SCHED.
+
 \section StaticScheduling Static Scheduling
 
 In some cases, one may want to force some scheduling, for instance force a given
