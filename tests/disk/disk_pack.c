@@ -28,6 +28,14 @@
 #include <math.h>
 #include "../helper.h"
 
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+int main(void)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 /*
  * Try to write into disk memory
  * Use mechanism to push datas from main ram to disk ram
@@ -61,6 +69,12 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int *A, *C;
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	// Ignore environment variables as we want to force the exact number of workers
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NMIC");
+	unsetenv("STARPU_NSCC");
+
 	struct starpu_conf conf;
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
@@ -277,3 +291,4 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
+#endif
