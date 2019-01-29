@@ -357,9 +357,12 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
 };
 \endcode
 
+starpu_sched_component_initialize_simple_scheduler() is a helper function which
+makes it very trivial to assemble a modular scheduler around a scheduling
+decision component as seen above (here, a dumb eager decision component). Most
+often a modular scheduler can be implemented that way.
 
-starpu_sched_component_initialize_simple_scheduler is a helper function which
-makes it very trivial to assemble a modular scheduler. The modular scheduler can also be built by hand in the following way:
+That modular scheduler can also be built by hand in the following way:
 
 \code{.c}
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
