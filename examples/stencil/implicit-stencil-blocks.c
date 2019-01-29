@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2016,2017                                CNRS
+ * Copyright (C) 2016,2017,2019                           CNRS
  * Copyright (C) 2010,2013-2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -178,15 +178,15 @@ void assign_blocks_to_workers(int rank)
 	/*unsigned nworkers = starpu_worker_get_count();*/
 
 	/* how many blocks are on that MPI node ? */
-	unsigned nblocks = 0;
-	for (bz = 0; bz < nbz; bz++)
-	{
-		struct block_description *block =
-				get_block_description(bz);
-
-		if (block->mpi_node == rank)
-			nblocks++;
-	}
+//	unsigned nblocks = 0;
+//	for (bz = 0; bz < nbz; bz++)
+//	{
+//		struct block_description *block =
+//				get_block_description(bz);
+//
+//		if (block->mpi_node == rank)
+//			nblocks++;
+//	}
 
 	/* how many blocks per worker ? */
 	/*unsigned nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;*/

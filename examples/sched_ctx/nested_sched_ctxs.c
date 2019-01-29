@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2014,2017                                Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2010-2015                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -127,9 +127,9 @@ int main(void)
 //	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
 
 	int nprocs3 = nprocs1/2;
-	int nprocs4 = nprocs1/2;
+	int nprocs4 = nprocs3;
 	int nprocs5 = nprocs2/2;
-	int nprocs6 = nprocs2/2;
+	int nprocs6 = nprocs5;
 	int *procs3 = NULL;
 	int *procs4 = NULL;
 	int *procs5 = NULL;

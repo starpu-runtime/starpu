@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2015,2017                           CNRS
+ * Copyright (C) 2012,2015,2017,2019                      CNRS
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010,2011                                Université de Bordeaux
  *
@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
   assert((height % nblocks) == 0);
   assert((width % group_size) == 0);
 
-  err = clGetPlatformIDs(0, NULL, &num_platforms);
+  clGetPlatformIDs(0, NULL, &num_platforms);
   if (num_platforms == 0) {
     printf("No OpenCL platform found\n");
     exit(0);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2012,2013,2016,2017                      CNRS
+ * Copyright (C) 2012,2013,2016,2017,2019                 CNRS
  * Copyright (C) 2010-2012,2014                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,7 +69,6 @@ void init()
 
 	rv[0].flops = 0.0;
 	rv[1].flops = 0.0;
-	rv[1].avg_timing = 0.0;
 	rv[1].avg_timing = 0.0;
 
 	p1.ctx = 0;
