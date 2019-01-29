@@ -299,6 +299,20 @@ Scheduler :
 	Scheduler. Resource-Mapping Components are the only ones which can make
 	scheduling choices, and so the only ones which can have several child.
 
+\subsubsection ModularizedSchedulerLocking Locking in modularized schedulers
+
+Most often, components do not need to take locks. This allows e.g. the push
+operation to be called in parallel when tasks get released in parallel from
+different workers which have completed different ancestor tasks.
+
+When a component has internal information which needs to be kept coherent, the
+component can define its own lock at take it as it sees fit, e.g. to protect a
+task queue. This may however limit scalability of the scheduler. Conversely,
+since push and pull operations will be called concurrently from different
+workers, the component might prefer to use a central mutex to serialize all
+scheduling decisions to avoid pathological cases (all push calls decide to put
+their task on the same target)
+
 \subsubsection ImplementAModularizedScheduler Implementing a Modularized Scheduler
 
 The following code shows how the Tree-Eager-Prefetching Scheduler
