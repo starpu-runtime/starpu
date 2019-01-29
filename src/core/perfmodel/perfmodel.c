@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -311,7 +311,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (!(mode & STARPU_R))
 		return 0.0;
 
-	if (_starpu_is_data_present_or_requested(handle, memory_node))
+	if (starpu_data_is_on_node(handle, memory_node))
 		return 0.0;
 
 	size_t size = _starpu_data_get_size(handle);

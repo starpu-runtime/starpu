@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2018                                CNRS
  *
@@ -1422,7 +1422,7 @@ static void _starpu_fetch_nowhere_task_input_cb(void *arg)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsigned node)
+unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	unsigned ret = 0;
 

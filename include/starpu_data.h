@@ -113,6 +113,8 @@ int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
 
+unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
+
 void starpu_data_wont_use(starpu_data_handle_t handle);
 
 #define STARPU_MAIN_RAM 0

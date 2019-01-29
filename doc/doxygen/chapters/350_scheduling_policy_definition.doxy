@@ -83,7 +83,7 @@ starpu_task_expected_length(), for the required data transfers with
 starpu_task_expected_data_transfer_time_for(), for the required energy with
 starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
-starpu_transfer_predict(), ...
+starpu_transfer_predict(), ... One can also directly the presence of a data handle with starpu_data_is_on_node().
 
 Usual functions can be used on tasks, for instance one can use the following to
 get the data size for a task.
