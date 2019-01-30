@@ -167,7 +167,7 @@ todo
 \fn unsigned starpu_worker_get_count(void)
 \ingroup API_Workers_Properties
 Return the number of workers (i.e. processing units executing StarPU
-tasks). The returned value should be at most \ref STARPU_NMAXWORKERS.
+tasks). The return value should be at most \ref STARPU_NMAXWORKERS.
 
 \fn int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 \ingroup API_Workers_Properties
@@ -177,11 +177,11 @@ indicates that \p type is not valid otherwise.
 
 \fn unsigned starpu_cpu_worker_get_count(void)
 \ingroup API_Workers_Properties
-Return the number of CPUs controlled by StarPU. The returned value should be at most \ref STARPU_MAXCPUS.
+Return the number of CPUs controlled by StarPU. The return value should be at most \ref STARPU_MAXCPUS.
 
 \fn unsigned starpu_cuda_worker_get_count(void)
 \ingroup API_Workers_Properties
-Return the number of CUDA devices controlled by StarPU. The returned value should be at most \ref STARPU_MAXCUDADEVS.
+Return the number of CUDA devices controlled by StarPU. The return value should be at most \ref STARPU_MAXCUDADEVS.
 
 \fn unsigned starpu_mic_worker_get_count(void)
 \ingroup API_Workers_Properties
@@ -189,7 +189,7 @@ Return the number of MIC workers controlled by StarPU.
 
 \fn unsigned starpu_mic_device_get_count(void)
 \ingroup API_Workers_Properties
-Return the number of MIC devices controlled by StarPU. The returned value should be at most \ref STARPU_MAXMICDEVS.
+Return the number of MIC devices controlled by StarPU. The return value should be at most \ref STARPU_MAXMICDEVS.
 
 \fn unsigned starpu_mpi_ms_worker_get_count(void)
 \ingroup API_Workers_Properties
@@ -197,16 +197,16 @@ Return the number of MPI Master Slave workers controlled by StarPU.
 
 \fn unsigned starpu_scc_worker_get_count(void)
 \ingroup API_Workers_Properties
-Return the number of SCC devices controlled by StarPU. The returned value should be at most \ref STARPU_MAXSCCDEVS.
+Return the number of SCC devices controlled by StarPU. The return value should be at most \ref STARPU_MAXSCCDEVS.
 
 \fn unsigned starpu_opencl_worker_get_count(void)
 \ingroup API_Workers_Properties
-Return the number of OpenCL devices controlled by StarPU. The returned value should be at most \ref STARPU_MAXOPENCLDEVS.
+Return the number of OpenCL devices controlled by StarPU. The return value should be at most \ref STARPU_MAXOPENCLDEVS.
 
 \fn int starpu_worker_get_id(void)
 \ingroup API_Workers_Properties
 Return the identifier of the current worker, i.e the one associated to
-the calling thread. The returned value is either \c -1 if the current
+the calling thread. The return value is either \c -1 if the current
 context is not a StarPU worker (i.e. when called from the application
 outside a task or a callback), or an integer between \c 0 and
 starpu_worker_get_count() - \c 1.
@@ -214,13 +214,13 @@ starpu_worker_get_count() - \c 1.
 \fn unsigned starpu_worker_get_id_check(void)
 \ingroup API_Workers_Properties
 Similar to starpu_worker_get_id(), but abort when called from outside
-a worker (i.e. when starpu_worker_get_id() would return -1).
+a worker (i.e. when starpu_worker_get_id() would return \c -1).
 
 \fn unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize)
 \ingroup API_Workers_Properties
 Get the list of identifiers of workers of \p type. Fill the array \p
 workerids with the identifiers of the \p workers. The argument \p
-maxsize indicates the size of the array \p workerids. The returned
+maxsize indicates the size of the array \p workerids. The return
 value gives the number of identifiers that were put in the array.
 <c>-ERANGE</c> is returned is \p maxsize is lower than the number of workers
 with the appropriate type: in that case, the array is filled with the
@@ -267,7 +267,7 @@ worker identifier is a value returned by the function
 starpu_worker_get_id()). The return value indicates the architecture
 of the worker: ::STARPU_CPU_WORKER for a CPU core,
 ::STARPU_CUDA_WORKER for a CUDA device, and ::STARPU_OPENCL_WORKER for
-a OpenCL device. The value returned for an invalid identifier is
+a OpenCL device. The return value for an invalid identifier is
 unspecified.
 
 \fn void starpu_worker_get_name(int id, char *dst, size_t maxlen)

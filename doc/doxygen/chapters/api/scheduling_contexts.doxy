@@ -190,13 +190,13 @@ possible.
 
 \fn unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
 \ingroup API_Scheduling_Contexts
-Return the list of workers in the array \p workerids, the returned value is the
+Return the list of workers in the array \p workerids, the return value is the
 number of workers. The user should free the \p workerids table after finishing
 using it (it is allocated inside the function with the proper size)
 
 \fn unsigned starpu_sched_ctx_get_workers_list_raw(unsigned sched_ctx_id, int **workerids)
 \ingroup API_Scheduling_Contexts
-Return the list of workers in the array \p workerids, the returned value is the
+Return the list of workers in the array \p workerids, the return value is the
 number of workers. This list is provided in raw order, i.e. not sorted by tree or list order,
 and the user should not free the \p workerids table.
 This function is thus much less costly than starpu_sched_ctx_get_workers_list().

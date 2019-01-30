@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -243,7 +243,7 @@ block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
-\fn int starpu_data_is_on_node(starpu_data_handle_t handle, int node)
+\fn unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 \ingroup API_Data_Management
 Check whether a valid copy of \p handle is currently available on memory node \p
 node .

@@ -494,7 +494,7 @@ application actually has a very good idea of the complexity of the algorithm,
 and just not the speed of the processor, etc.  The example in the directory
 <c>examples/pi</c> uses this to include the number of iterations in the base
 size. starpu_perfmodel::size_base should be used when the variance of the actual
-performance is known (i.e. bigger returned value is longer execution
+performance is known (i.e. bigger return value is longer execution
 time), and thus particularly useful for ::STARPU_REGRESSION_BASED or
 ::STARPU_NL_REGRESSION_BASED. starpu_perfmodel::footprint can be used when the
 variance of the actual performance is unknown (irregular performance behavior,
