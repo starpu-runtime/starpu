@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2012,2017,2019                           CNRS
  * Copyright (C) 2010-2013,2018                           Université de Bordeaux
  * Copyright (C) 2011                                     Inria
  *
@@ -29,8 +29,7 @@ soclWaitForEvents(cl_uint           num_events,
 	DEBUG_MSG("Waiting for events: ");
 	for (i=0; i<num_events; i++)
 	{
-		char * sep = i == (num_events-1) ? "" : ", ";
-		DEBUG_MSG_NOHEAD("%d%s", event_list[i]->id, sep);
+		DEBUG_MSG_NOHEAD("%d%s", event_list[i]->id, i == (num_events-1) ? "" : ", ");
 	}
 	DEBUG_MSG_NOHEAD("\n");
 #endif

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -155,8 +155,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
 
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
-
 	/* Initialize CUDA context on the device */
 	/* We do not need to enable OpenGL interoperability at this point,
 	 * since we cleanly shutdown CUDA before returning. */
@@ -191,6 +189,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	unsigned char *h_buffer;
 
 #if defined(STARPU_HAVE_HWLOC)
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
@@ -415,8 +414,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
-
 	/* Is the context already initialised ? */
 	starpu_opencl_get_context(dev, &context);
 	not_initialized = (context == NULL);
@@ -459,6 +456,8 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -724,11 +724,11 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 		case STARPU_CPU_RAM:
 			_starpu_free_flags_on_node(dst_node, (void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-					flags & ~STARPU_MALLOC_PINNED
+						   flags & ~STARPU_MALLOC_PINNED
 #else
-					flags
+						   flags
 #endif
-					);
+				);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -750,24 +750,26 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			struct _starpu_worker *worker = _starpu_get_local_worker_key();
 			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
-#endif
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 			err = cudaFree((void*)addr);
-			if (STARPU_UNLIKELY(err != cudaSuccess
 #ifdef STARPU_OPENMP
-		/* When StarPU is used as Open Runtime support,
-		 * starpu_omp_shutdown() will usually be called from a
-		 * destructor, in which case cudaThreadExit() reports a
-		 * cudaErrorCudartUnloading here. There should not
-		 * be any remaining tasks running at this point so
-		 * we can probably ignore it without much consequences. */
-		&& err != cudaErrorCudartUnloading
-#endif /* STARPU_OPENMP */
-						))
+			/* When StarPU is used as Open Runtime support,
+			 * starpu_omp_shutdown() will usually be called from a
+			 * destructor, in which case cudaThreadExit() reports a
+			 * cudaErrorCudartUnloading here. There should not
+			 * be any remaining tasks running at this point so
+			 * we can probably ignore it without much consequences. */
+			if (STARPU_UNLIKELY(err != cudaSuccess && err != cudaErrorCudartUnloading))
 				STARPU_CUDA_REPORT_ERROR(err);
-#endif
+#else
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+#endif /* STARPU_OPENMP */
+#endif /* STARPU_SIMGRID */
 			break;
 		}
-#endif
+#endif /* STARPU_USE_CUDA || STARPU_SIMGRID */
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
                 case STARPU_OPENCL_RAM:
 		{

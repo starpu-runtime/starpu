@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2017                                CNRS
+ * Copyright (C) 2012,2017,2019                           CNRS
  * Copyright (C) 2010,2011,2013,2018                      Université de Bordeaux
  * Copyright (C) 2011                                     Inria
  *
@@ -76,7 +76,7 @@ soclSetKernelArg(cl_kernel  kernel,
 	kernel->arg_type[arg_index] = Null;
 	kernel->arg_size[arg_index] = arg_size;
 
-	DEBUG_MSG("[Kernel %d] Set argument %d: argsize %ld argvalue %p\n", kernel->id, arg_index, (long)arg_size, arg_value);
+	DEBUG_MSG("[Kernel %d] Set argument %u: argsize %ld argvalue %p\n", kernel->id, arg_index, (long)arg_size, arg_value);
 
 	/* Argument is not Null */
 	if (arg_value != NULL)

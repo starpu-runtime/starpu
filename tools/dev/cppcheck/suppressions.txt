@@ -50,6 +50,7 @@ unreadVariable:tests/datawizard/variable_size.c
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
 unreadVariable:mpi/src/starpu_mpi.c:971
 unusedVariable:mpi/src/starpu_mpi.c:972
+unreadVariable:mpi/src/load_balancer/policy/load_heat_propagation.c:578
 
 redundantAssignment:src/core/workers.c
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
@@ -64,6 +65,7 @@ unreadVariable:src/datawizard/interfaces/*
 unreadVariable:src/drivers/driver_common/driver_common.c:493
 clarifyCondition:src/drivers/opencl/driver_opencl.c:945
 unreadVariable:src/drivers/opencl/driver_opencl.c:767
+redundantAssignment:src/drivers/opencl/driver_opencl.c:831
 clarifyCondition:src/drivers/cuda/driver_cuda.c:498
 arithOperationsOnVoidPointer:src/drivers/scc/*
 nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:198
@@ -77,6 +79,7 @@ unreadVariable:gcc-plugin/tests/*
 negativeIndex:gcc-plugin/src/*
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
+unreadVariable:socl/src/gc.c:193
 
 // the following warnings are weird and not understandable, let's ignore them
 ignoredReturnValue:socl/src/cl_createkernel.c:170
