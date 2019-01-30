@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -1131,7 +1131,7 @@ static inline int _starpu_worker_trylock(int workerid)
 		return ret;
 	if (workerid == cur_workerid)
 		/* We only needed to lock ourself */
-		return ret;
+		return 0;
 
 	/* Now try to lock the other worker */
 	ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);

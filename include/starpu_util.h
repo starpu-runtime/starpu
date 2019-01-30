@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -388,10 +388,10 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 	{
 		/* the env variable was actually set */
 		long int val;
-		char *check;
+		char *pcheck;
 
-		val = strtol(strval, &check, 10);
-		if (*check) {
+		val = strtol(strval, &pcheck, 10);
+		if (*pcheck) {
 			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
 			STARPU_ABORT();
 		}
@@ -425,10 +425,10 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
 	{
 		/* the env variable was actually set */
 		float val;
-		char *check;
+		char *pcheck;
 
-		val = strtof(strval, &check);
-		if (*check) {
+		val = strtof(strval, &pcheck);
+		if (*pcheck) {
 			fprintf(stderr,"The %s environment variable must contain a float\n", str);
 			STARPU_ABORT();
 		}
