@@ -22,11 +22,13 @@ shadowVar
 unusedFunction
 unmatchedSuppression
 unusedStructMember
+missingInclude
 
 *:starpufft/*
 *:min-dgels/*
 *:starpu-top/*
 *:socl/src/CL/*
+*:tools/*
 
 // TODO. We should cppcheck the code
 *:sc_hypervisor/*
@@ -42,14 +44,15 @@ unusedLabel:tests/datawizard/gpu_ptr_register.c
 redundantAssignment:tests/datawizard/interfaces/test_interfaces.c:757
 redundantAssignment:tests/datawizard/mpi_like_async.c:165
 redundantAssignment:tests/datawizard/mpi_like_async.c:211
-unusedPrivateFunction:tests/main/combined_workers/bfs/timer.h:45
+unusedPrivateFunction:tests/main/combined_workers/bfs/timer.h
+cstyleCast:tests/main/combined_workers/bfs/bfs.cpp
 redundantAssignment:tests/main/driver_api/init_run_deinit.c
 redundantAssignment:tests/main/driver_api/run_driver.c
 unreadVariable:tests/datawizard/variable_size.c
 
 uselessAssignmentPtrArg:mpi/src/starpu_mpi.c:171
-unreadVariable:mpi/src/starpu_mpi.c:971
-unusedVariable:mpi/src/starpu_mpi.c:972
+unreadVariable:mpi/src/mpi/starpu_mpi_mpi.c:716
+unusedVariable:mpi/src/mpi/starpu_mpi_mpi.c:715
 unreadVariable:mpi/src/load_balancer/policy/load_heat_propagation.c:578
 
 redundantAssignment:src/core/workers.c
@@ -68,7 +71,7 @@ unreadVariable:src/drivers/opencl/driver_opencl.c:767
 redundantAssignment:src/drivers/opencl/driver_opencl.c:831
 clarifyCondition:src/drivers/cuda/driver_cuda.c:498
 arithOperationsOnVoidPointer:src/drivers/scc/*
-nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:198
+nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:204
 sizeofDereferencedVoidPointer:src/util/fstarpu.c
 
 allocaCalled:gcc-plugin/src/*

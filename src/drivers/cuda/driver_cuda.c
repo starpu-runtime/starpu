@@ -556,7 +556,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	if (profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
-		nvmlReturn_t nvmlRet = -1;
+		nvmlReturn_t nvmlRet;
 		nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
 #ifdef STARPU_DEVEL
 #warning TODO: measure idle consumption to subtract it
