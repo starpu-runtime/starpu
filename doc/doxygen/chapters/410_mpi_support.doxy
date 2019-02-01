@@ -31,7 +31,7 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
-\section ExampleDocumentation Example used in this documentation
+\section ExampleDocumentation Example Used In This Documentation
 
 The example below will be used as the base for this documentation. It
 initializes a token on node 0, and the token is passed from node to node,
@@ -65,7 +65,7 @@ for (loop = 0; loop < nloops; loop++)
 }
 \endcode
 
-\section NotUsingMPISupport About not using the MPI support
+\section NotUsingMPISupport About Not Using The MPI Support
 
 Although StarPU provides MPI support, the application programmer may want to
 keep his MPI communications as they are for a start, and only delegate task
@@ -518,7 +518,7 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
-\section MPIInsertPruning Pruning MPI task insertion
+\section MPIInsertPruning Pruning MPI Task Insertion
 
 Making all MPI nodes process the whole graph can be a concern with a growing
 number of nodes. To avoid this, the
@@ -684,7 +684,7 @@ To test how much MPI priorities have a good effect on performance, you can
 set the environment variable \ref STARPU_MPI_PRIORITIES to \c 0 to disable the use of
 priorities in StarPU-MPI.
 
-\section MPICache MPI cache support
+\section MPICache MPI Cache Support
 
 StarPU-MPI automatically optimizes duplicate data transmissions: if an MPI
 node \c B needs a piece of data \c D from MPI node \c A for several tasks, only one
@@ -721,7 +721,7 @@ environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to <c>
 to enable the runtime to display messages when data are added or removed
 from the cache holding the received data.
 
-\section MPIMigration MPI Data migration
+\section MPIMigration MPI Data Migration
 
 The application can dynamically change its mind about the data distribution, to
 balance the load over MPI nodes for instance. This can be done very simply by
@@ -844,7 +844,7 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL,
 Other collective operations would be easy to define, just ask starpu-devel for
 them!
 
-\section MPIDriver Make StarPU-MPI progression thread execute tasks
+\section MPIDriver Make StarPU-MPI Progression Thread Execute Tasks
 
 The default behaviour of StarPU-MPI is to spawn an MPI thread to take care only
 of MPI communications in an active fashion (i.e the StarPU-MPI thread sleeps
@@ -895,6 +895,9 @@ environment variable \ref STARPU_MPI_CACHE_STATS is set to \c 1. It
 prints messages on the standard output when data are added or removed
 from the received communication cache.
 
+When the environment variable \ref STARPU_COMM_STATS is set to \c 1,
+StarPU will display at the end of the execution for each node the
+volume and the bandwidth of data sent to each other nodes.
 
 \section MPIExamples More MPI examples
 

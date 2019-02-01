@@ -137,6 +137,7 @@ Small changes:
     scheduler context
   * Fonction starpu_is_initialized() is moved to the public API.
   * Fix code to allow to submit tasks to empty contexts
+  * STARPU_COMM_STATS also displays the bandwidth
 
 StarPU 1.2.7 (git revision xxx)
 ==============================================
