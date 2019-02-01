@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
@@ -1055,7 +1055,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	struct _starpu_mpi_early_data_handle* early_data_handle = _starpu_mpi_early_data_create(envelope, status.MPI_SOURCE, comm);
 	_starpu_mpi_early_data_add(early_data_handle);
 
-	starpu_data_handle_t data_handle = NULL;
+	starpu_data_handle_t data_handle;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	data_handle = _starpu_mpi_tag_get_data_handle_from_tag(envelope->data_tag);
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);

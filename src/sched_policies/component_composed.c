@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017,2019                           CNRS
  * Copyright (C) 2014-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -29,12 +29,10 @@ LIST_TYPE(fun_create_component,
 	  void * arg;
 );
 
-
 struct starpu_sched_component_composed_recipe
 {
 	struct fun_create_component_list list;
 };
-
 
 struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create(void)
 {
@@ -53,13 +51,15 @@ void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_co
 	e->arg = arg;
 	fun_create_component_list_push_back(&recipe->list, e);
 }
-struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
-										      void * arg)
+
+struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
+													void * arg)
 {
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_composed_recipe_create();
 	starpu_sched_component_composed_recipe_add(r, create_component, arg);
 	return r;
 }
+
 void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_component_composed_recipe * recipe)
 {
 	if(!recipe)
@@ -68,8 +68,6 @@ void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_componen
 		fun_create_component_delete(fun_create_component_list_pop_back(&recipe->list));
 	free(recipe);
 }
-
-
 
 struct composed_component
 {
@@ -81,9 +79,9 @@ struct composed_component
  */
 struct composed_component create_composed_component(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
-					  ,hwloc_obj_t obj
+						    ,hwloc_obj_t obj
 #endif
-	)
+						    )
 {
 	struct composed_component c;
 	STARPU_ASSERT(recipe);
@@ -119,17 +117,17 @@ struct composed_component create_composed_component(struct starpu_sched_tree *tr
 	return c;
 }
 
-
 static int composed_component_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	struct composed_component *c = component->data;
 	return starpu_sched_component_push_task(component,c->top,task);
 }
+
 struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	struct composed_component *c = component->data;
-	struct starpu_task * task = NULL;
-	
+	struct starpu_task *task;
+
 	task = starpu_sched_component_pull_task(c->bottom,component);
 	if(task)
 		return task;
@@ -161,6 +159,7 @@ static void composed_component_add_child(struct starpu_sched_component * compone
 	component->add_child(component, child);
 	c->bottom->add_child(c->bottom, child);
 }
+
 static void composed_component_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
 	struct composed_component * c = component->data;
@@ -207,19 +206,20 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 	_component->data = NULL;
 }
 
-struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe)
+struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree,
+										 struct starpu_sched_component_composed_recipe * recipe)
 {
 	STARPU_ASSERT(!fun_create_component_list_empty(&recipe->list));
 	struct fun_create_component_list * l = &recipe->list;
 	if(l->_head == l->_tail)
 		return l->_head->create_component(tree, l->_head->arg);
-	struct starpu_sched_component * component = starpu_sched_component_create(tree, "composed");
 
+	struct starpu_sched_component * component = starpu_sched_component_create(tree, "composed");
 	struct composed_component *c;
 	_STARPU_MALLOC(c, sizeof(struct composed_component));
 	*c = create_composed_component(tree, recipe
 #ifdef STARPU_HAVE_HWLOC
-				  ,component->obj
+				       ,component->obj
 #endif
 );
 	c->bottom->nchildren = component->nchildren;

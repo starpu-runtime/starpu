@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017,2018                 Inria
- * Copyright (C) 2011-2014,2016-2018                      CNRS
+ * Copyright (C) 2011-2014,2016-2019                      CNRS
  * Copyright (C) 2011-2016,2018                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -249,7 +249,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
 	{
-		struct starpu_task *task = NULL;
+		struct starpu_task *task;
 		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		starpu_worker_relax_off();
@@ -259,7 +259,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		return task;
 	}
 
-	struct starpu_task *task = NULL;
+	struct starpu_task *task;
 	int slave_task = 0;
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);

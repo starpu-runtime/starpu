@@ -1066,7 +1066,7 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
 			struct _starpu_sched_ctx *other_sched_ctx;
-			struct _starpu_sched_ctx_elt *e = NULL;
+			struct _starpu_sched_ctx_elt *e;
 
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
@@ -1104,7 +1104,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
 			struct _starpu_sched_ctx *other_sched_ctx;
-			struct _starpu_sched_ctx_elt *e = NULL;
+			struct _starpu_sched_ctx_elt *e;
 
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);

@@ -80,6 +80,8 @@ unreadVariable:gcc-plugin/tests/*
 //cppcheck complaints it does not find duplicate expressions
 //duplicateExpression:gcc-plugin/src/*
 negativeIndex:gcc-plugin/src/*
+uninitvar:gcc-plugin/src/warn-unregistered.c:126
+uninitvar:gcc-plugin/src/warn-unregistered.c:126
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
 unreadVariable:socl/src/gc.c:193

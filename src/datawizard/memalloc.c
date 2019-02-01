@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,7 +152,7 @@ void _starpu_deinit_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		struct mc_cache_entry *entry, *tmp;
+		struct mc_cache_entry *entry=NULL, *tmp=NULL;
 		STARPU_ASSERT(mc_nb[i] == 0);
 		STARPU_ASSERT(mc_clean_nb[i] == 0);
 		STARPU_ASSERT(mc_dirty_head[i] == NULL);
@@ -855,7 +855,7 @@ restart:
 static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
 	struct _starpu_mem_chunk *mc;
-	struct mc_cache_entry *entry, *tmp;
+	struct mc_cache_entry *entry=NULL, *tmp=NULL;
 
 	size_t freed = 0;
 

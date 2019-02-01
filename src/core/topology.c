@@ -570,7 +570,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                                 nb ++;
                         }
                 }
-		struct handle_entry *entry, *tempo;
+		struct handle_entry *entry=NULL, *tempo=NULL;
 		HASH_ITER(hh, devices_already_used, entry, tempo)
 		{
 			HASH_DEL(devices_already_used, entry);
@@ -1959,7 +1959,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 
 	topology_is_initialized = 0;
 #ifdef STARPU_USE_CUDA
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, devices_using_cuda, entry, tmp)
 	{
 		HASH_DEL(devices_using_cuda, entry);
