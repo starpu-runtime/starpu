@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2011-2019                                CNRS
  * Copyright (C) 2010,2014-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -264,13 +264,13 @@ int main(int argc, char *argv[])
 	/* compare values between the 2 values of timeout */
 	if (getenv("MPIEXEC_TIMEOUT"))
 	{
-		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);	
+		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);
 		if (mpiexec_timeout != timeout)
 			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
 	}
 #endif
 
-	if (strstr(test_name, "tasks_size_overhead_scheds.sh"))
+	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
 		/* This extensively tests various schedulers, let it run longer */
 		timeout *= 10;
 
