@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2013,2015,2017                      Inria
- * Copyright (C) 2016,2017                                CNRS
+ * Copyright (C) 2016,2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,7 +148,7 @@ void _starpu_sched_ctx_elt_remove(struct _starpu_sched_ctx_list *list,
 int _starpu_sched_ctx_elt_exists(struct _starpu_sched_ctx_list *list,
 				 unsigned sched_ctx)
 {
-	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_elt *e;
 	e = _starpu_sched_ctx_elt_find(list, sched_ctx);
 	return (e == NULL) ? 0 : 1;
 }
@@ -156,7 +156,7 @@ int _starpu_sched_ctx_elt_exists(struct _starpu_sched_ctx_list *list,
 int _starpu_sched_ctx_elt_get_priority(struct _starpu_sched_ctx_list *list,
 				       unsigned sched_ctx)
 {
-	struct _starpu_sched_ctx_elt *e = NULL;
+	struct _starpu_sched_ctx_elt *e;
 	e = _starpu_sched_ctx_elt_find(list, sched_ctx);
 	return (e == NULL) ? 0 : e->parent->priority;
 }
@@ -300,7 +300,7 @@ int _starpu_sched_ctx_list_move(struct _starpu_sched_ctx_list **list,
 int _starpu_sched_ctx_list_exists(struct _starpu_sched_ctx_list *list,
 					   unsigned prio)
 {
-	struct _starpu_sched_ctx_list *l = NULL;
+	struct _starpu_sched_ctx_list *l;
 	l = _starpu_sched_ctx_list_find(list, prio);
 	return ((l == NULL && list->priority == prio) || l != NULL) ? 1 : 0;
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2014-2018                                Inria
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017,2019                           CNRS
  * Copyright (C) 2015,2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -976,7 +976,7 @@ void starpu_omp_shutdown(void)
         _global_state.default_arbiter = NULL;
 	_starpu_spin_lock(&_global_state.named_criticals_lock);
 	{
-		struct starpu_omp_critical *critical, *tmp;
+		struct starpu_omp_critical *critical=NULL, *tmp=NULL;
 		HASH_ITER(hh, _global_state.named_criticals, critical, tmp)
 		{
 			STARPU_ASSERT(critical != NULL);
@@ -989,7 +989,7 @@ void starpu_omp_shutdown(void)
 	_starpu_spin_destroy(&_global_state.named_criticals_lock);
 	_starpu_spin_lock(&_global_state.hash_workers_lock);
 	{
-		struct starpu_omp_thread *thread, *tmp;
+		struct starpu_omp_thread *thread=NULL, *tmp=NULL;
 		HASH_ITER(hh, _global_state.hash_workers, thread, tmp)
 		{
 			STARPU_ASSERT(thread != NULL);

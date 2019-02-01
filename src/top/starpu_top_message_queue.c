@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013,2016,2017                      CNRS
+ * Copyright (C) 2011-2013,2016,2017,2019                 CNRS
  * Copyright (C) 2015                                     Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2011                                     William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony
@@ -29,7 +29,7 @@ struct _starpu_top_message_queue*  _starpu_top_mt = NULL;
 
 /* Will always return the pointer to starpu_top_message_queue */
 struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_message_queue* s,
-							char* msg)
+							  char* msg)
 {
 	if( NULL == s )
 	{
@@ -80,8 +80,8 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 	}
 
 	sem_wait(&(s->semaphore));
-	struct _starpu_top_message_queue_item* h = NULL;
-	struct _starpu_top_message_queue_item* p = NULL;
+	struct _starpu_top_message_queue_item *h;
+	struct _starpu_top_message_queue_item *p;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	h = s->head;

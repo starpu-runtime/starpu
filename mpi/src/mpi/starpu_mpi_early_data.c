@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2009-2014,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ void _starpu_mpi_early_data_check_termination(void)
 {
 	if (_starpu_mpi_early_data_handle_hashmap_count != 0)
 	{
-		struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
+		struct _starpu_mpi_early_data_handle_hashlist *current=NULL, *tmp=NULL;
 		HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap, current, tmp)
 		{
 			_STARPU_MSG("Unexpected message with comm %ld source %d tag %ld\n", (long int)current->node_tag.comm, current->node_tag.rank, current->node_tag.data_tag);
@@ -57,7 +57,7 @@ void _starpu_mpi_early_data_check_termination(void)
 
 void _starpu_mpi_early_data_shutdown(void)
 {
-	struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
+	struct _starpu_mpi_early_data_handle_hashlist *current=NULL, *tmp=NULL;
 	HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap, current, tmp)
 	{
 		STARPU_ASSERT(_starpu_mpi_early_data_handle_list_empty(&current->list));

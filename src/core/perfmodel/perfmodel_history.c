@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -1113,7 +1113,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 					if (archmodel->history)
 					{
 						struct starpu_perfmodel_history_list *list;
-						struct starpu_perfmodel_history_table *entry, *tmp;
+						struct starpu_perfmodel_history_table *entry=NULL, *tmp=NULL;
 
 						HASH_ITER(hh, archmodel->history, entry, tmp)
 						{

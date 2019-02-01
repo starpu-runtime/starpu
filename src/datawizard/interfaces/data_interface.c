@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ void _starpu_data_interface_init(void)
 
 void _starpu_data_interface_shutdown()
 {
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 
 	if (registered_handles)
 	{
@@ -87,7 +87,7 @@ void _starpu_data_interface_shutdown()
 void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
 {
 	_starpu_spin_lock(&region->registered_handles_lock);
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, (region->registered_handles), entry, tmp)
 	{
 		entry->handle->removed_from_context_hash = 1;
@@ -100,7 +100,7 @@ void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
 
 void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task)
 {
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, task->registered_handles, entry, tmp)
 	{
 		entry->handle->removed_from_context_hash = 1;

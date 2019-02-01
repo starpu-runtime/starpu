@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2012-2015,2017                           CNRS
+ * Copyright (C) 2012-2015,2017,2019                      CNRS
  * Copyright (C) 2012-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -103,9 +103,9 @@ register_coo_handle(starpu_data_handle_t handle, unsigned home_node,
 static starpu_ssize_t
 allocate_coo_buffer_on_node(void *data_interface, unsigned dst_node)
 {
-	uint32_t *addr_columns = NULL;
-	uint32_t *addr_rows = NULL;
-	uintptr_t addr_values = 0;
+	uint32_t *addr_columns;
+	uint32_t *addr_rows;
+	uintptr_t addr_values;
 
 	struct starpu_coo_interface *coo_interface =
 		(struct starpu_coo_interface *) data_interface;

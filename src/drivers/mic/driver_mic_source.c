@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2013,2015-2017                           CNRS
+ * Copyright (C) 2013,2015-2017,2019                      CNRS
  * Copyright (C) 2013-2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -106,7 +106,7 @@ static void _starpu_mic_src_free_kernel(void *kernel)
 
 void _starpu_mic_clear_kernels(void)
 {
-	struct _starpu_mic_kernel *kernel, *tmp;
+	struct _starpu_mic_kernel *kernel=NULL, *tmp=NULL;
 	HASH_ITER(hh, kernels, kernel, tmp)
 	{
 		HASH_DEL(kernels, kernel);

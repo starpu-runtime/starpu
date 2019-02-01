@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2014,2016-2018                      Université de Bordeaux
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -163,7 +163,7 @@ void _starpu_tag_clear(void)
 	 * the global rwlock. This contradicts the lock order of
 	 * starpu_tag_wait_array. Should not be a problem in practice since
 	 * _starpu_tag_clear is called at shutdown only. */
-	struct _starpu_tag_table *entry, *tmp;
+	struct _starpu_tag_table *entry=NULL, *tmp=NULL;
 
 	HASH_ITER(hh, tag_htbl, entry, tmp)
 	{

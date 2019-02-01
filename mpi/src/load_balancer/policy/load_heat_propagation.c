@@ -570,7 +570,7 @@ static int deinit_heat()
 		int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
 
 		int n = 0;
-		struct moved_data_entry *md, *tmp;
+		struct moved_data_entry *md=NULL, *tmp=NULL;
 		HASH_ITER(hh, mdh, md, tmp)
 		{
 			tags[n] = starpu_mpi_data_get_tag(md->handle);

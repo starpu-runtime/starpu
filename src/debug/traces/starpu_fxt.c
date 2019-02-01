@@ -4078,7 +4078,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	}
 
 	{
-		struct data_info *data, *tmp;
+		struct data_info *data=NULL, *tmp=NULL;
 		HASH_ITER(hh, data_info, data, tmp)
 		{
 			data_dump(data);
@@ -4086,7 +4086,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	}
 
 	{
-		struct task_info *task, *tmp;
+		struct task_info *task=NULL, *tmp=NULL;
 		HASH_ITER(hh, tasks_info, task, tmp)
 		{
 			task_dump(task, options);
@@ -4627,8 +4627,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		exit(-1);
 	}
 
-	struct starpu_data_trace_kernel *kernel, *tmp;
-
+	struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
 	HASH_ITER(hh, kernels, kernel, tmp)
 	{
 		if(fclose(kernel->file))

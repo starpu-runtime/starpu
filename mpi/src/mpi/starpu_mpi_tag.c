@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2018                                CNRS
+ * Copyright (C) 2011-2019                                CNRS
  * Copyright (C) 2011-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2014                                     Inria
  *
@@ -44,7 +44,7 @@ void _starpu_mpi_tag_init(void)
 
 void _starpu_mpi_tag_shutdown(void)
 {
-     	struct handle_tag_entry *tag_entry, *tag_tmp;
+     	struct handle_tag_entry *tag_entry=NULL, *tag_tmp=NULL;
 
 	_starpu_spin_destroy(&registered_tag_handles_lock);
 

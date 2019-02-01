@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2018                                Inria
  * Copyright (C) 2017                                     Arthur Chevalier
- * Copyright (C) 2012-2018                                CNRS
+ * Copyright (C) 2012-2019                                CNRS
  * Copyright (C) 2012-2018                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -793,7 +793,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		}
 	}
 
-	struct _starpu_sched_ctx *sched_ctx = NULL;
+	struct _starpu_sched_ctx *sched_ctx;
 	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data, nsub_ctxs, sub_ctxs, nsms);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
@@ -923,7 +923,7 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 		}
 	}
 
-	struct _starpu_sched_ctx *sched_ctx = NULL;
+	struct _starpu_sched_ctx *sched_ctx;
 	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers, init_sched, user_data, nsub_ctxs, sub_ctxs, nsms);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
