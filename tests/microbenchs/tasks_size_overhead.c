@@ -191,12 +191,10 @@ int main(int argc, char **argv)
 	unsetenv("STARPU_NCPU");
 #endif
 
-#ifndef STARPU_QUICK_CHECK
 	if (STARPU_RUNNING_ON_VALGRIND) {
-		factortime = 16;
-		cpustep = 2;
+		factortime *= 4;
+		cpustep *= 4;
 	}
-#endif
 
 	parse_args(argc, argv);
 
