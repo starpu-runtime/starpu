@@ -151,7 +151,6 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 
 static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
 
@@ -189,6 +188,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	unsigned char *h_buffer;
 
 #if defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 	if (nnuma_nodes > 1)
 	{
@@ -411,7 +411,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	size_t size = SIZE;
 	int not_initialized;
 
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Is the context already initialised ? */
@@ -456,6 +455,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 
 	if (nnuma_nodes > 1)
