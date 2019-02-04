@@ -89,11 +89,9 @@ int main(int argc, char **argv)
 
 	unsigned iter, worker, n;
 	n = N;
-#ifndef STARPU_QUICK_CHECK
 	if (STARPU_RUNNING_ON_VALGRIND) {
-		n = 100;
+		n /= 300;
 	}
-#endif
 	for (iter = 0; iter < n; iter++)
 	{
 		for (worker = 0; worker < nworker; worker++)

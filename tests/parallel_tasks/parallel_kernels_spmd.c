@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -89,8 +89,12 @@ int main(int argc, char **argv)
 
 	unsigned nworker = starpu_worker_get_count() + starpu_combined_worker_get_count();
 
-	unsigned iter, worker;
-	for (iter = 0; iter < N; iter++)
+	unsigned iter, worker, n;
+	n = N;
+	if (STARPU_RUNNING_ON_VALGRIND) {
+		n /= 300;
+	}
+	for (iter = 0; iter < n; iter++)
 	{
 		for (worker = 0; worker < nworker; worker++)
 		{
