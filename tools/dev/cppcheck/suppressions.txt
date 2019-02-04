@@ -71,7 +71,7 @@ unreadVariable:src/drivers/opencl/driver_opencl.c:767
 redundantAssignment:src/drivers/opencl/driver_opencl.c:831
 clarifyCondition:src/drivers/cuda/driver_cuda.c:498
 arithOperationsOnVoidPointer:src/drivers/scc/*
-nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:204
+nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:207
 sizeofDereferencedVoidPointer:src/util/fstarpu.c
 
 allocaCalled:gcc-plugin/src/*
