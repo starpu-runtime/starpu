@@ -70,7 +70,7 @@ void _starpu_display_msi_stats(FILE *stream)
 		if (hit_cnt[node]+miss_cnt[node])
 		{
 			char name[128];
-			_starpu_memory_node_get_name(node, name, sizeof(name));
+			starpu_memory_node_get_name(node, name, sizeof(name));
 			fprintf(stream, "memory node %s\n", name);
 			fprintf(stream, "\thit : %u (%2.2f %%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
 			fprintf(stream, "\tmiss : %u (%2.2f %%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
@@ -108,7 +108,7 @@ void _starpu_display_alloc_cache_stats(FILE *stream)
 		if (alloc_cnt[node])
 		{
 			char name[128];
-			_starpu_memory_node_get_name(node, name, sizeof(name));
+			starpu_memory_node_get_name(node, name, sizeof(name));
 			fprintf(stream, "memory node %s\n", name);
 			fprintf(stream, "\ttotal alloc : %u\n", alloc_cnt[node]);
 			fprintf(stream, "\tcached alloc: %u (%2.2f %%)\n",

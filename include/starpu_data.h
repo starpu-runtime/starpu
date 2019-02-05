@@ -135,6 +135,7 @@ enum starpu_node_kind
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
+int starpu_memory_node_get_name(unsigned node, char *name, size_t size);
 int starpu_memory_nodes_get_numa_count(void);
 int starpu_memory_nodes_numa_id_to_devid(int osid);
 int starpu_memory_nodes_numa_devid_to_id(unsigned id);
