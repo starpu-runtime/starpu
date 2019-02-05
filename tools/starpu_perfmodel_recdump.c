@@ -84,7 +84,7 @@ void get_comb_name(int comb, char* name, int name_size)
 void print_archs(FILE* output)
 {
 	int nb_workers = 0;
-	unsigned workerid; int comb, old_comb = -1;
+	unsigned workerid, node; int comb, old_comb = -1;
 
 	fprintf(output, "%%rec: worker_count\n\n");
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
@@ -116,6 +116,31 @@ void print_archs(FILE* output)
 		get_comb_name(old_comb, name, 32);
 		fprintf(output, "Architecture: %s\n", name);
 		fprintf(output, "NbWorkers: %d\n\n", nb_workers);
+	}
+
+	fprintf(output, "%%rec: memory_workers\n\n");
+	for (node = 0; node < starpu_memory_nodes_get_count(); node++)
+	{
+		unsigned printed = 0;
+		char name[32];
+		fprintf(output, "MemoryNode: %d\n", node);
+		starpu_memory_node_get_name(node, name, sizeof(name));
+		fprintf(output, "Name: %s\n", name);
+		fprintf(output, "Size: %ld\n", (long) starpu_memory_get_total(node));
+		for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+		{
+			if (starpu_worker_get_memory_node(workerid) == node)
+			{
+				if (!printed) {
+					fprintf(output, "Workers:");
+					printed = 1;
+				}
+				fprintf(output, " %d", workerid);
+			}
+		}
+		if (printed)
+			fprintf(output, "\n");
+		fprintf(output, "\n");
 	}
 }
 
