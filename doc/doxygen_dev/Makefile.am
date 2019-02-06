@@ -156,7 +156,8 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
 
 endif
 
-EXTRA_DIST += doxygen.cfg $(chapters) $(images)
+EXTRA_DIST += doxygen.cfg refman.tex \
+	      $(chapters) $(images)
 
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
