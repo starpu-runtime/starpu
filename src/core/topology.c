@@ -1652,7 +1652,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			}
 			else
 			{
-				_STARPU_DISP("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
+				_STARPU_DEBUG("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
 			}
 		}
 #endif
