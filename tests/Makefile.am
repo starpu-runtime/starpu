@@ -312,6 +312,7 @@ myPROGRAMS +=				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_dep   		\
 	datawizard/partition_lazy		\
+	datawizard/partition_init		\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
 	datawizard/variable_parameters		\
