@@ -539,16 +539,34 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		root_handle->per_node[node].state =
-			still_valid[node]?newstate:STARPU_INVALID;
+		root_handle->per_node[node].state = still_valid[node]?newstate:STARPU_INVALID;
 	}
 
+	root_handle->initialized=1;
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
+		if (!child_handle->initialized) root_handle->initialized=0;
 		_starpu_data_free_interfaces(child_handle);
 		_starpu_spin_unlock(&child_handle->header_lock);
 		_starpu_spin_destroy(&child_handle->header_lock);
+	}
+
+	if (root_handle->initialized)
+	{
+		starpu_data_handle_t child = &root_handle->children[0];
+		for (node = 0; node < STARPU_MAXNODES; node++)
+		{
+			struct _starpu_data_replicate *root_replicate;
+			struct _starpu_data_replicate *child_replicate;
+
+			root_replicate = &root_handle->per_node[node];
+			child_replicate = &child->per_node[node];
+
+			root_replicate->state = child_replicate->state;
+			root_replicate->allocated = child_replicate->allocated;
+			root_replicate->initialized = child_replicate->initialized;
+		}
 	}
 
 	for (child = 0; child < root_handle->nchildren; child++)
