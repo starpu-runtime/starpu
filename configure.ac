@@ -2960,6 +2960,8 @@ AC_ARG_ENABLE(blas-lib,
         blas_lib=none
      elif test "x$enableval" = "xmkl" ; then
         blas_lib=mkl
+     elif test "x$enableval" = "xarmpl" ; then
+        blas_lib=armpl
      elif test x$enableval = xno; then
 	blas_lib=none
      else
@@ -3074,6 +3076,38 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
 	])
     if test x$blas_lib = xmkl; then
 	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
+    fi
+fi
+
+if test x$blas_lib = xmaybe -o x$blas_lib = xarmpl; then
+    # Should we use ARMPL ?
+    if test -n "$ARMPL_DIR" ; then
+        CPPFLAGS="${CPPFLAGS} -I$ARMPL_INCLUDES"
+	SAVED_LIBS=$LIBS
+	STARPU_BLAS_LDFLAGS="-L$ARMPL_LIBRARIES -larmpl_lp64 -lgfortran -lm"
+	LIBS="$LIBS $STARPU_BLAS_LDFLAGS"
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[
+			#include <armpl.h>
+		]], [[ ]])],
+		[ blas_lib=armpl ],
+		[ STARPU_BLAS_LDFLAGS="" ],
+	)
+	LIBS=$SAVED_LIBS
+    fi
+    AC_ARG_WITH(armpl-cflags, [AS_HELP_STRING([--with-armpl-cflags], [specify ARMPL compilation flags])],
+	[
+        CPPFLAGS="${CPPFLAGS} $withval"
+	blas_lib=armpl
+	])
+
+    AC_ARG_WITH(armpl-ldflags, [AS_HELP_STRING([--with-armpl-ldflags], [specify ARMPL linking flags])],
+	[
+	STARPU_BLAS_LDFLAGS="$withval"
+	blas_lib=armpl
+	])
+    if test x$blas_lib = xarmpl; then
+	AC_DEFINE(STARPU_ARMPL, [1], [use ARMPL library])
     fi
 fi
 
