@@ -61,7 +61,7 @@ static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datat
 	ret = MPI_Type_commit(&datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
-	ret = MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
+	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
 
 	ret = MPI_Type_commit(datatype);
