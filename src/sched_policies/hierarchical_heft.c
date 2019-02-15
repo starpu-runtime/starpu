@@ -93,7 +93,7 @@ struct starpu_sched_policy _starpu_sched_tree_heft_hierarchical_policy =
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
-	.policy_name = "tree-heft-hierarchical",
+	.policy_name = "modular-heft-hierarchical",
 	.policy_description = "hierarchical heft tree policy",
 	.worker_type = STARPU_WORKER_LIST,
 };
