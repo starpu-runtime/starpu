@@ -95,9 +95,10 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 
 	for (dst = 0; dst < world_size; dst++)
 	{
-		fprintf(stream, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
-			node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024),
-			(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
+		if (comm_amount[dst])
+			fprintf(stream, "[starpu_comm_stats][%d:%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
+				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024),
+				(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
 	}
 }
 

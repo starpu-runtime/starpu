@@ -3594,6 +3594,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
+  chmod +x tools/starpu_mpi_comm_matrix.py
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
@@ -3659,6 +3660,7 @@ AC_OUTPUT([
 	tools/Makefile
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
+	tools/starpu_mpi_comm_matrix.py
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats

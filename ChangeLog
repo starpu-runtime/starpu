@@ -123,7 +123,8 @@ Small features:
   * Add starpu_task_declare_deps()
   * New function starpu_data_unpartition_submit_sequential_consistency_cb()
     to specify a callback for the task submitting the unpartitioning
-
+  * New tool starpu_mpi_comm_trace.py to draw heatmap of MPI
+    communications
 
 Changes:
   * Vastly improve simgrid simulation time.

@@ -176,11 +176,14 @@ obtained by setting the environment variable \ref STARPU_COMM_STATS to <c>1</c>;
 a summary will then be displayed at program termination:
 
 \verbatim
-[starpu_comm_stats][0] TOTAL:	4.000000 GB	4.000000 GB
-[starpu_comm_stats][0->1]	4.000000 GB	4.000000 GB
-[starpu_comm_stats][1] TOTAL:	8.000000 GB	8.000000 GB
-[starpu_comm_stats][1->0]	8.000000 GB	8.000000 GB
+starpu_comm_stats][1] TOTAL:	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+[starpu_comm_stats][1:0]	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+
+[starpu_comm_stats][0] TOTAL:	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+[starpu_comm_stats][0:1]	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
 \endverbatim
+
+These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>
 
 \subsection StarPU-TopInterface StarPU-Top Interface
 
