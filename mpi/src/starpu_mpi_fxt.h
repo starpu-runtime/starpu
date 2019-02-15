@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2010-2011,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2010-2011,2014,2017,2019                 Université de Bordeaux
  * Copyright (C) 2010,2012,2014-2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,6 +60,7 @@ extern "C"
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
 #define _STARPU_MPI_TRACE_STOP(rank, worldsize)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_STOP, (rank), (worldsize), _starpu_gettid());
+<<<<<<< HEAD
 #define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key)	\
 	FUT_DO_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid());
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, mpi_tag, size)	\
@@ -81,6 +82,35 @@ extern "C"
 #define _STARPU_MPI_TRACE_TERMINATED(req, rank, mpi_tag)		\
 	if ((req)->request_type == RECV_REQ) FUT_DO_PROBE4(_STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (mpi_tag), (req)->post_sync_jobid, _starpu_gettid()); else \
 	if ((req)->request_type == SEND_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (mpi_tag), _starpu_gettid());
+=======
+#define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key)	do {\
+	if (_starpu_fxt_started) \
+	FUT_DO_ALWAYS_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid()); \
+} while (0)
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
+	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(dest, data_tag, size, jobid)	\
+	FUT_DO_PROBE5(_STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), _starpu_gettid());
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_END, (src), (data_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(dest, data_tag, size)	\
+	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
+#define _STARPU_MPI_TRACE_COMPLETE_BEGIN(type, rank, data_tag)		\
+	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN((rank), (data_tag), 0); }
+#define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(dest, data_tag, size)	\
+	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_END, (dest), (data_tag), (size), _starpu_gettid());
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(src, data_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN, (src), (data_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(src, data_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (data_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_COMPLETE_END(type, rank, data_tag)		\
+	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_END((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_END((rank), (data_tag), 0); }
+#define _STARPU_MPI_TRACE_TERMINATED(req, rank, data_tag)		\
+	if ((req)->request_type == RECV_REQ) FUT_DO_PROBE4(_STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (data_tag), (req)->post_sync_jobid, _starpu_gettid()); else \
+	if ((req)->request_type == SEND_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (data_tag), _starpu_gettid());
+>>>>>>> 13e5c6155... Fix recording precious MPI events even when stopping tracing during execution
 #define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_END()	\
