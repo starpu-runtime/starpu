@@ -3,7 +3,7 @@
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014,2017                                Université de Bordeaux
+ * Copyright (C) 2014,2017,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #endif
 #if HWLOC_API_VERSION < 0x00010b00
 #define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
+#endif
 #endif
 
 #include "sched_component.h"
@@ -103,10 +104,7 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	if(!component)
 		return l;
 	for(i = 0; i < l.size; i++)
-	{
-		component->add_child(component, l.arr[i]);
-		starpu_sched_component_add_parent(l.arr[i],component);
-	}
+		starpu_sched_component_connect(component, l.arr[i]);
 	destroy_list(&l);
 	init_list(&l);
 	component->obj = obj;
@@ -138,7 +136,8 @@ static int is_same_kind_of_all(struct starpu_sched_component * root, struct _sta
 	if(starpu_sched_component_is_worker(root))
 	{
 		struct _starpu_worker * w = root->data;
-		return w->perf_arch.type == w_ref->perf_arch.type;
+		STARPU_ASSERT(w->perf_arch.ndevices == 1);
+		return w->perf_arch.devices[0].type == w_ref->perf_arch.devices[0].type;
 	}
 
 	unsigned i;
@@ -187,8 +186,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 	{
 		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(root->tree, specs.hwloc_component_composed_sched_component);
 		component->obj = obj;
-		parent->add_child(parent, component);
-		starpu_sched_component_add_parent(component, parent);
+		starpu_sched_component_connect(parent, component);
 		return component;
 	}
 	return parent;
@@ -209,13 +207,11 @@ static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_
 #warning FIXME component->obj is set to worker_component->obj even for accelerators workers
 #endif
 		tmp->obj = worker_component->obj;
-		starpu_sched_component_add_parent(tmp, component);
-		component->add_child(component, tmp);
+		starpu_sched_component_connect(component, tmp);
 		component = tmp;
 	}
 	starpu_sched_component_composed_recipe_destroy(recipe);
-	starpu_sched_component_add_parent(worker_component, component);
-	component->add_child(component, worker_component);
+	starpu_sched_component_connect(component, worker_component);
 }
 
 #ifdef STARPU_DEVEL

@@ -291,6 +291,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
 	sched_policies/component_work_stealing.c				\
+	sched_policies/scheduler_maker.c			\
 	sched_policies/modular_eager.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
