@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2015,2017,2018-2019       Université de Bordeaux
  * Copyright (C) 2011-2013                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -79,8 +79,8 @@ starpu_data_partition(A_handle, &f);
 Unapply the filter which has been applied to \p root_data, thus
 unpartitioning the data. The pieces of data are collected back into
 one big piece in the \p gathering_node (usually ::STARPU_MAIN_RAM).
-Tasks working on the partitioned data must be already finished when
-calling starpu_data_unpartition().
+Tasks working on the partitioned data will be waited for
+by starpu_data_unpartition().
 
 Here an example of how to use the function.
 \code{.c}
