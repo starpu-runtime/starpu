@@ -3,7 +3,7 @@
  * Copyright (C) 2013,2015                                Inria
  * Copyright (C) 2014,2016,2017                           CNRS
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2014                                     Université de Bordeaux
+ * Copyright (C) 2014,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,8 @@
 static struct  starpu_sched_component_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_composed_recipe_create();
-	starpu_sched_component_composed_recipe_add(r, starpu_sched_component_best_implementation_create, NULL);
-	starpu_sched_component_composed_recipe_add(r, starpu_sched_component_fifo_create, NULL);
+	starpu_sched_component_composed_recipe_add(r, (starpu_sched_component_create_t) starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_component_composed_recipe_add(r, (starpu_sched_component_create_t) starpu_sched_component_fifo_create, NULL);
 	return r;
 }
 
@@ -36,24 +36,28 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_component_specs specs;
 	memset(&specs,0,sizeof(specs));
 
-	struct starpu_heft_data heft_data =
+
+	struct starpu_sched_component_mct_data heft_data =
 	{
 		.alpha = 1.0,
-		.beta = 2.0,
-		.gamma = 0.0,
+		.beta = 1.0,
+		._gamma = 0.0,
 		.idle_power = 0.0,
+		/*
 		.no_perf_model_component_create = starpu_sched_component_random_create,
 		.arg_no_perf_model = NULL,
 		.calibrating_component_create = starpu_sched_component_random_create,
 		.arg_calibrating_component = NULL,
+		*/
 	};
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_composed_recipe_create();
-	starpu_sched_component_composed_recipe_add(r,(struct starpu_sched_component * (*)(void*))starpu_sched_component_heft_create,&heft_data);
+	/* FIXME: add perfmodel_select component */
+	starpu_sched_component_composed_recipe_add(r, (starpu_sched_component_create_t) starpu_sched_component_heft_create,&heft_data);
 	specs.hwloc_machine_composed_sched_component = r;
 
 	r = starpu_sched_component_composed_recipe_create();
-	starpu_sched_component_composed_recipe_add(r, starpu_sched_component_best_implementation_create, NULL);
-	starpu_sched_component_composed_recipe_add(r, starpu_sched_component_fifo_create ,NULL);
+	starpu_sched_component_composed_recipe_add(r, (starpu_sched_component_create_t) starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_component_composed_recipe_add(r, (starpu_sched_component_create_t) starpu_sched_component_fifo_create ,NULL);
 
 	specs.hwloc_component_composed_sched_component = r;
 	specs.worker_composed_sched_component = recipe_for_worker;
