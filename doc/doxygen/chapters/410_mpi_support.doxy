@@ -897,7 +897,7 @@ from the received communication cache.
 
 When the environment variable \ref STARPU_COMM_STATS is set to \c 1,
 StarPU will display at the end of the execution for each node the
-volume and the bandwidth of data sent to each other nodes.
+volume and the bandwidth of data sent to all the other nodes.
 
 \section MPIExamples More MPI examples
 

@@ -281,6 +281,7 @@ dist_bin_SCRIPTS +=			\
 	starpu_workers_activity		\
 	starpu_codelet_histo_profile	\
 	starpu_codelet_profile		\
+	starpu_mpi_comm_matrix.py	\
 	starpu_paje_draw_histogram	\
 	starpu_paje_draw_histogram.R	\
 	starpu_paje_summary		\
@@ -330,6 +331,9 @@ starpu_codelet_profile.1: starpu_codelet_profile
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_mpi_comm_matrix.1: starpu_mpi_comm_matrix.py
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
@@ -356,6 +360,7 @@ dist_man1_MANS =\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
+	starpu_mpi_comm_matrix.1 \
 	starpu_paje_draw_histogram.1 \
 	starpu_paje_state_stats.1
 
