@@ -463,6 +463,15 @@ If unsure on the result of the modular scheduler construction, you can run a
 simple application with FxT enabled (see \ref GeneratingTracesWithFxT), and open
 the generated file \c trace.html in a web-browser.
 
+\subsection ModularizedSchedulersAndParallelTasks Management of parallel task
+
+At the moment, parallel tasks can be managed in modularized schedulers through
+combined workers: instead of connecting a scheduling component to a worker
+component, one can connect it to a combined worker component (i.e. a worker
+component created with a combined worker id). That component will handle
+creating task aliases for parallel execution and push them to the different
+workers components.
+
 \subsection WriteASchedulingComponent Writing a Scheduling Component
 
 \subsubsection GenericSchedulingComponent Generic Scheduling Component
