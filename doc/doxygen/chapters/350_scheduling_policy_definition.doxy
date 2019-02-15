@@ -361,6 +361,9 @@ makes it very trivial to assemble a modular scheduler around a scheduling
 decision component as seen above (here, a dumb eager decision component). Most
 often a modular scheduler can be implemented that way.
 
+A modular scheduler can also be constructed hierarchically with
+starpu_sched_component_composed_recipe_create().
+
 That modular scheduler can also be built by hand in the following way:
 
 \code{.c}
