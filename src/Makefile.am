@@ -291,7 +291,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
 	sched_policies/component_work_stealing.c				\
-	sched_policies/scheduler_maker.c			\
 	sched_policies/modular_eager.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
@@ -303,7 +302,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c				\
-	sched_policies/hierarchical_heft.c			\
 	sched_policies/modular_ez.c
 
 
@@ -352,6 +350,9 @@ endif
 
 
 if STARPU_HAVE_HWLOC
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += \
+	sched_policies/scheduler_maker.c			\
+	sched_policies/hierarchical_heft.c
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 if STARPU_HAVE_OPENMP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += util/starpu_clusters_create.c
