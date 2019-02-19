@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012-2014,2016                           Inria
 # Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,7 @@ StarPU 1.2.7 (git revision xxx)
 Small features:
   * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
   * Add starpu_data_set/get_ooc_flag.
+  * Use starpu_mpi_tag_t (int64_t) for MPI communication tag
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ==============================================

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015,2017                           Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -89,7 +89,7 @@ int _starpu_debug_rank;
 			starpu_mpi_comm_rank(comm, &_rank); \
 			MPI_Type_size(datatype, &__size);		\
 			MPI_Comm_get_name(comm, _comm_name, &_comm_name_len); \
-			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%d:%d:%s:%p:%ld:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
+			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%d:%ld:%s:%p:%ld:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
 			fflush(stderr);					\
 		}							\
 	} while(0);
@@ -157,7 +157,7 @@ struct _starpu_mpi_envelope
 {
 	int mode;
 	starpu_ssize_t size;
-	int data_tag;
+	starpu_mpi_tag_t data_tag;
 	unsigned sync;
 };
 
@@ -167,7 +167,7 @@ struct _starpu_mpi_node_tag
 {
 	MPI_Comm comm;
 	int rank;
-	int data_tag;
+	starpu_mpi_tag_t data_tag;
 };
 
 LIST_TYPE(_starpu_mpi_req,

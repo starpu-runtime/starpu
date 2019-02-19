@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011,2014-2015                      Université de Bordeaux
- * Copyright (C) 2010-2012,2014-2015,2017                 CNRS
+ * Copyright (C) 2010-2012,2014-2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 	free(tagptr);
 }
 
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr;
 	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
@@ -37,7 +37,7 @@ int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int d
 }
 
 
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr;
 	_STARPU_MPI_MALLOC(tagptr, sizeof(starpu_tag_t));
@@ -65,9 +65,7 @@ static void starpu_mpi_array_unlock_callback(void *_arg)
 	}
 }
 
-int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
-		starpu_data_handle_t *data_handle, int *dest, int *data_tag,
-		MPI_Comm *comm, starpu_tag_t tag)
+int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag)
 {
 	if (!array_size)
 		return 0;
@@ -88,7 +86,7 @@ int starpu_mpi_isend_array_detached_unlock_tag(unsigned array_size,
 }
 
 
-int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *data_tag, MPI_Comm *comm, starpu_tag_t tag)
+int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag)
 {
 	if (!array_size)
 		return 0;
