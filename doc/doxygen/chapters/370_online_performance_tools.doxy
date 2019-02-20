@@ -183,7 +183,7 @@ a summary will then be displayed at program termination:
 [starpu_comm_stats][0:1]	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
 \endverbatim
 
-These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>
+These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c> (see \ref MPIDebug).
 
 \subsection StarPU-TopInterface StarPU-Top Interface
 
