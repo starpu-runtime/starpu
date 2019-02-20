@@ -899,6 +899,34 @@ When the environment variable \ref STARPU_COMM_STATS is set to \c 1,
 StarPU will display at the end of the execution for each node the
 volume and the bandwidth of data sent to all the other nodes.
 
+Here an example of such a trace.
+
+\verbatim
+[starpu_comm_stats][3] TOTAL:	476.000000 B	0.000454 MB	 0.000098 B/s	 0.000000 MB/s
+[starpu_comm_stats][3:0]	248.000000 B	0.000237 MB	 0.000051 B/s	 0.000000 MB/s
+[starpu_comm_stats][3:2]	50.000000 B	0.000217 MB	 0.000047 B/s	 0.000000 MB/s
+
+[starpu_comm_stats][2] TOTAL:	288.000000 B	0.000275 MB	 0.000059 B/s	 0.000000 MB/s
+[starpu_comm_stats][2:1]	70.000000 B	0.000103 MB	 0.000022 B/s	 0.000000 MB/s
+[starpu_comm_stats][2:3]	288.000000 B	0.000172 MB	 0.000037 B/s	 0.000000 MB/s
+
+[starpu_comm_stats][1] TOTAL:	188.000000 B	0.000179 MB	 0.000038 B/s	 0.000000 MB/s
+[starpu_comm_stats][1:0]	80.000000 B	0.000114 MB	 0.000025 B/s	 0.000000 MB/s
+[starpu_comm_stats][1:2]	188.000000 B	0.000065 MB	 0.000014 B/s	 0.000000 MB/s
+
+[starpu_comm_stats][0] TOTAL:	376.000000 B	0.000359 MB	 0.000077 B/s	 0.000000 MB/s
+[starpu_comm_stats][0:1]	376.000000 B	0.000141 MB	 0.000030 B/s	 0.000000 MB/s
+[starpu_comm_stats][0:3]	10.000000 B	0.000217 MB	 0.000047 B/s	 0.000000 MB/s
+\endverbatim
+
+These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>, this will produce 2 PDF files, one plot for the bandwidth, and one plot for the data volume.
+
+\image latex trace_bw_heatmap.pdf "Bandwidth Heatmap" width=0.5\textwidth
+\image html trace_bw_heatmap.png "Bandwidth Heatmap"
+
+\image latex trace_volume_heatmap.pdf "Data Volume Heatmap" width=0.5\textwidth
+\image html trace_volume_heatmap.png "Data Bandwidth Heatmap"
+
 \section MPIExamples More MPI examples
 
 MPI examples are available in the StarPU source code in mpi/examples:
