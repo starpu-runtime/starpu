@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016                           Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -21,12 +21,13 @@
 #ifndef __STARPU_PERFMODEL_H__
 #define __STARPU_PERFMODEL_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <starpu.h>
 #include <stdio.h>
-
-#include <starpu_util.h>
-#include <starpu_worker.h>
-#include <starpu_task.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -205,8 +206,18 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 
 extern struct starpu_perfmodel starpu_perfmodel_nop;
 
+/**
+   Display statistics about the current data handles registered
+   within StarPU. StarPU must have been configured with the configure
+   option \ref enable-memory-stats "--enable-memory-stats" (see \ref
+   MemoryFeedback).
+*/
+void starpu_data_display_memory_stats();
+
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_PERFMODEL_H__ */

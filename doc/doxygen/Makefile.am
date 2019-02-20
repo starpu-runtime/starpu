@@ -105,22 +105,12 @@ chapters =	\
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
-	chapters/api/cuda_extensions.doxy \
-	chapters/api/data_interfaces.doxy \
-	chapters/api/data_management.doxy \
-	chapters/api/data_partition.doxy \
-	chapters/api/data_out_of_core.doxy \
-	chapters/api/expert_mode.doxy \
 	chapters/api/explicit_dependencies.doxy \
 	chapters/api/fft_support.doxy \
-	chapters/api/fxt_support.doxy \
-	chapters/api/implicit_dependencies.doxy \
 	chapters/api/initialization.doxy \
 	chapters/api/insert_task.doxy \
-	chapters/api/lower_bound.doxy \
 	chapters/api/misc_helpers.doxy \
 	chapters/api/mpi.doxy \
-	chapters/api/multiformat_data_interface.doxy \
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
@@ -128,7 +118,6 @@ chapters =	\
 	chapters/api/parallel_tasks.doxy \
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
-	chapters/api/running_driver.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/standard_memory_library.doxy \
@@ -138,13 +127,11 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
-	chapters/api/bitmap.doxy \
 	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
 	chapters/api/modularized_scheduler.doxy \
-	chapters/api/clustering_machine.doxy \
 	chapters/api/interoperability.doxy
 
 images = 	\

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Arthur Chevalier
  * Copyright (C) 2013,2014,2017                           Inria
- * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014,2015,2017,2019                           CNRS
  * Copyright (C) 2014-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -20,6 +20,11 @@
 
 #ifndef __STARPU_SCHED_COMPONENT_H__
 #define __STARPU_SCHED_COMPONENT_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu.h>
 
@@ -245,5 +250,7 @@ while(0)
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_SCHED_COMPONENT_H__ */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                                CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -16,12 +16,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #ifndef __STARPU_SCC_H__
 #define __STARPU_SCC_H__
 
-#include <starpu_config.h>
+/** @defgroup
+ *
+ * @{
+ */
 
+#include <starpu_config.h>
 
 #ifdef STARPU_USE_SCC
 
@@ -33,5 +36,6 @@ starpu_scc_kernel_t starpu_scc_get_kernel(starpu_scc_func_symbol_t symbol);
 
 #endif /* STARPU_USE_SCC */
 
+/** @} */
 
 #endif /* __STARPU_SCC_H__ */

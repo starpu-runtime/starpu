@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2015-2017                           Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                           CNRS
  * Copyright (C) 2010,2012-2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu_config.h>
 #include <starpu_util.h>
@@ -441,6 +446,6 @@ int starpu_sem_wait(starpu_sem_t *);
 }
 #endif
 
+/** @} */
+
 #endif /* __STARPU_THREAD_H__ */
-
-

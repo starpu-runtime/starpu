@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2011,2014                           Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2011-2013,2015,2017                      CNRS
+ * Copyright (C) 2011-2013,2015,2017,2019                      CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,11 @@
 
 #ifndef __STARPU_TASK_BUNDLE_H__
 #define __STARPU_TASK_BUNDLE_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #ifdef __cplusplus
 extern "C"
@@ -40,5 +45,7 @@ void starpu_task_bundle_close(starpu_task_bundle_t bundle);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_TASK_BUNDLE_H__ */

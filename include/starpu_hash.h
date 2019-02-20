@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010,2012,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2012,2013,2015,2017,2019                 CNRS
  * Copyright (C) 2009-2014                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,11 @@
 #ifndef __STARPU_HASH_H__
 #define __STARPU_HASH_H__
 
+/** @ingroup API_Data_Interfaces
+ *
+ * @{
+ */
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -27,14 +32,34 @@ extern "C"
 {
 #endif
 
+/**
+   Compute the CRC of a byte buffer seeded by the \p inputcrc
+   <em>current state</em>. The return value should be considered as the new
+   <em>current state</em> for future CRC computation. This is used for computing
+   data size footprint.
+*/
 uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc);
 
+/**
+   Compute the CRC of a 32bit number seeded by the \p inputcrc
+   <em>current state</em>. The return value should be considered as the new
+   <em>current state</em> for future CRC computation. This is used for computing
+   data size footprint.
+*/
 uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc);
 
+/**
+   Compute the CRC of a string seeded by the \p inputcrc <em>current
+   state</em>. The return value should be considered as the new <em>current
+   state</em> for future CRC computation. This is used for computing data
+   size footprint.
+*/
 uint32_t starpu_hash_crc32c_string(const char *str, uint32_t inputcrc);
 
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_HASH_H__ */

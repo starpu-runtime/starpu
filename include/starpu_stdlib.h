@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2017,2019                      CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  *
@@ -19,6 +19,11 @@
 #ifndef __STARPU_STDLIB_H__
 #define __STARPU_STDLIB_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <starpu.h>
 
 #ifdef __cplusplus
@@ -34,6 +39,14 @@ extern "C"
 #define STARPU_MEMORY_OVERFLOW	((1ULL)<<5)
 
 #define STARPU_MALLOC_SIMULATION_FOLDED	((1ULL)<<6)
+
+/**
+   \deprecated
+   Equivalent to starpu_malloc(). This macro is provided to avoid
+   breaking old codes.
+*/
+#define starpu_data_malloc_pinned_if_possible	starpu_malloc
+#define starpu_data_free_pinned_if_possible	starpu_free
 
 void starpu_malloc_set_align(size_t align);
 
@@ -64,5 +77,7 @@ void starpu_sleep(float nb_sec);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_STDLIB_H__ */

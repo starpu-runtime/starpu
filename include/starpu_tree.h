@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2014                                     Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                           CNRS
  * Copyright (C) 2009-2014,2016                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 
 #ifndef __STARPU_TREE_H__
 #define __STARPU_TREE_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #ifdef __cplusplus
 extern "C"
@@ -48,5 +53,7 @@ void starpu_tree_free(struct starpu_tree *tree);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_TREE_H__ */
