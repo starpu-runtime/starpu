@@ -74,8 +74,8 @@ file.close()
 
 def writeData(filename, nodes, data):
     ofile=open(filename, "w")
-    for src in range(nodes):
-        for dst in range(nodes):
+    for dst in range(nodes):
+        for src in range(nodes):
             ofile.write("%f "% data[src][dst])
         ofile.write("\n")
     ofile.close()
@@ -89,7 +89,8 @@ def generateGnuplotScript(filename, datafilename, outputfile, nodes):
         dsttics += "\"dst%d\" %d, " % (node, node)
     ofile.write("set term pdf color\n")
     ofile.write("set output \"%s\"\n" % outputfile)
-    ofile.write("set view map scale 1\nset style data lines\nset palette rgbformulae 22,13,-31\n")
+    ofile.write("set view map scale 1\nset style data lines\n")
+    ofile.write("set palette model RGB defined ( 0 'white', 100 'black' )\n")
     ofile.write("set xtics (%s\"src%d\" %d)\n" % (srctics, nodes-1, nodes-1))
     ofile.write("set ytics (%s\"dst%d\" %d)\n" % (dsttics, nodes-1, nodes-1))
     ofile.write("plot '%s' matrix with image\n" % datafilename)
