@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2017                                Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                           CNRS
  * Copyright (C) 2009-2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -21,6 +21,11 @@
 #ifndef __STARPU_WORKER_H__
 #define __STARPU_WORKER_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <stdlib.h>
 #include <starpu_config.h>
 #include <starpu_thread.h>
@@ -34,6 +39,20 @@
 extern "C"
 {
 #endif
+
+enum starpu_node_kind
+{
+	STARPU_UNUSED     = 0x00,
+	STARPU_CPU_RAM    = 0x01,
+	STARPU_CUDA_RAM   = 0x02,
+	STARPU_OPENCL_RAM = 0x03,
+	STARPU_DISK_RAM   = 0x04,
+	STARPU_MIC_RAM    = 0x05,
+	STARPU_SCC_RAM    = 0x06,
+	STARPU_SCC_SHM    = 0x07,
+	STARPU_MPI_MS_RAM = 0x08
+
+};
 
 enum starpu_worker_archtype
 {
@@ -52,7 +71,7 @@ struct starpu_sched_ctx_iterator
 	void *value;
 	void *possible_value;
 	char visited[STARPU_NMAXWORKERS];
-	int possibly_parallel; 
+	int possibly_parallel;
 };
 
 enum starpu_worker_collection_type
@@ -178,9 +197,19 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);
 hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid);
 #endif
 
+unsigned starpu_worker_get_memory_node(unsigned workerid);
+unsigned starpu_memory_nodes_get_count(void);
+int starpu_memory_node_get_name(unsigned node, char *name, size_t size);
+int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_numa_id_to_devid(int osid);
+int starpu_memory_nodes_numa_devid_to_id(unsigned id);
+
+enum starpu_node_kind starpu_node_get_kind(unsigned node);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STARPU_WORKER_H__ */
+/** @} */
 
+#endif /* __STARPU_WORKER_H__ */

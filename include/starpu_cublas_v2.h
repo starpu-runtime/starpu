@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2017                           CNRS
+ * Copyright (C) 2010-2013,2017,2019                      CNRS
  * Copyright (C) 2010-2012,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 #ifndef __STARPU_CUBLAS_V2_H__
 #define __STARPU_CUBLAS_V2_H__
 
+/** @ingroup API_CUDA_Extensions
+
+    @{
+ */
+
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 
 #include <cublas_v2.h>
@@ -27,6 +32,11 @@ extern "C"
 {
 #endif
 
+/**
+   Return the CUSPARSE handle to be used to queue CUSPARSE
+   kernels. It is properly initialized and configured for multistream by
+   starpu_cusparse_init().
+*/
 cublasHandle_t starpu_cublas_get_local_handle(void);
 
 #ifdef __cplusplus
@@ -34,5 +44,7 @@ cublasHandle_t starpu_cublas_get_local_handle(void);
 #endif
 
 #endif
+
+/** @} */
 
 #endif /* __STARPU_CUBLAS_V2_H__ */

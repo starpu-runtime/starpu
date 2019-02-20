@@ -21,10 +21,12 @@
 #ifndef __STARPU_TASK_H__
 #define __STARPU_TASK_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <starpu.h>
-#include <starpu_data.h>
-#include <starpu_util.h>
-#include <starpu_task_bundle.h>
 #include <errno.h>
 #include <assert.h>
 
@@ -379,5 +381,7 @@ unsigned starpu_task_get_implementation(struct starpu_task *task);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_TASK_H__ */

@@ -19,6 +19,11 @@
 #ifndef __STARPU_TASK_UTIL_H__
 #define __STARPU_TASK_UTIL_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -102,5 +107,7 @@ void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t 
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_TASK_UTIL_H__ */

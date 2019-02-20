@@ -19,6 +19,11 @@
 #ifndef __STARPU_UTIL_H__
 #define __STARPU_UTIL_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -485,5 +490,7 @@ struct timespec
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_UTIL_H__ */

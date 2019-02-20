@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011                                     Inria
- * Copyright (C) 2011-2013,2017                           CNRS
+ * Copyright (C) 2011-2013,2017,2019                           CNRS
  * Copyright (C) 2011-2013                                Université de Bordeaux
  * Copyright (C) 2011                                     William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony
  *
@@ -19,6 +19,11 @@
 
 #ifndef __STARPU_TOP_H__
 #define __STARPU_TOP_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu.h>
 #include <stdlib.h>
@@ -109,5 +114,6 @@ void starpu_top_debug_lock(const char *message);
 }
 #endif
 
-#endif /* __STARPU_TOP_H__ */
+/** @} */
 
+#endif /* __STARPU_TOP_H__ */

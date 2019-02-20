@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011,2015,2017                      CNRS
+ * Copyright (C) 2010,2011,2015,2017,2019                      CNRS
  * Copyright (C) 2010,2011                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,20 +18,36 @@
 #ifndef __STARPU_EXPERT_H__
 #define __STARPU_EXPERT_H__
 
-#include <starpu.h>
+/** @defgroup API_Expert_Mode Expert Mode
+ *
+ * @{
+ */
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+/**
+   Wake all the workers, so they can inspect data requests and task
+   submissions again.
+*/
 void starpu_wake_all_blocked_workers(void);
 
+/**
+   Register a progression hook, to be called when workers are idle.
+*/
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg);
+
+/**
+   Unregister a given progression hook.
+*/
 void starpu_progression_hook_deregister(int hook_id);
 
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_H__ */

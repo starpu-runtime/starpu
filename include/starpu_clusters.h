@@ -19,6 +19,11 @@
 #ifndef __STARPU_CLUSTERS_UTIL_H__
 #define __STARPU_CLUSTERS_UTIL_H__
 
+/** @defgroup API_Clustering_Machine Clustering Machine
+
+    @{
+ */
+
 #ifdef STARPU_HAVE_HWLOC
 
 #include <hwloc.h>
@@ -43,14 +48,16 @@ extern "C"
 #define STARPU_CLUSTER_NEW			(13<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_NCORES			(14<<STARPU_MODE_SHIFT)
 
-/* These represent the default available functions to enforce cluster
- * use by the sub-runtime */
+/**
+   These represent the default available functions to enforce cluster
+   use by the sub-runtime
+*/
 enum starpu_cluster_types
 {
-	STARPU_CLUSTER_OPENMP,
-	STARPU_CLUSTER_INTEL_OPENMP_MKL,
+	STARPU_CLUSTER_OPENMP, /**< todo */
+	STARPU_CLUSTER_INTEL_OPENMP_MKL,  /**< todo */
 #ifdef STARPU_MKL
-	STARPU_CLUSTER_GNU_OPENMP_MKL,
+	STARPU_CLUSTER_GNU_OPENMP_MKL,  /**< todo */
 #endif
 };
 
@@ -72,4 +79,7 @@ void starpu_gnu_openmp_mkl_prologue(void*);
 #endif
 
 #endif
+
+/** @} */
+
 #endif /* __STARPU_CLUSTERS_UTIL_H__ */

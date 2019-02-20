@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2011-2013,2015,2017                      CNRS
+ * Copyright (C) 2011-2013,2015,2017,2019                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -21,6 +21,11 @@
 
 #ifndef __STARPU_SCHEDULER_H__
 #define __STARPU_SCHEDULER_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu.h>
 
@@ -114,5 +119,7 @@ void starpu_sched_task_break(struct starpu_task *task);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_SCHEDULER_H__ */

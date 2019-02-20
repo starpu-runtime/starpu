@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2012-2017                           Inria
  * Copyright (C) 2017                                     Arthur Chevalier
- * Copyright (C) 2012-2014,2017                           CNRS
+ * Copyright (C) 2012-2014,2017,2019                           CNRS
  * Copyright (C) 2012,2014,2016                           Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -20,6 +20,11 @@
 
 #ifndef __STARPU_SCHED_CTX_H__
 #define __STARPU_SCHED_CTX_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu.h>
 
@@ -183,5 +188,7 @@ void starpu_sched_ctx_get_sms_interval(int stream_workerid, int *start, int *end
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_SCHED_CTX_H__ */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                      CNRS
  * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 
 #ifndef __STARPU_THREAD_UTIL_H__
 #define __STARPU_THREAD_UTIL_H__
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #include <starpu_util.h>
 #include <starpu_thread.h>
@@ -382,5 +387,7 @@ int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_m
 	}                                                                      \
 } while (0)
 #endif /* _MSC_VER */
+
+/** @} */
 
 #endif /* __STARPU_THREAD_UTIL_H__ */

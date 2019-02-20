@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015,2017,2019                 CNRS
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,10 +19,14 @@
 #ifndef __STARPU_PROFILING_H__
 #define __STARPU_PROFILING_H__
 
+/** @defgroup
+ *
+ * @{
+ */
+
 #include <starpu.h>
 #include <errno.h>
 #include <time.h>
-#include <starpu_util.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -182,5 +186,7 @@ void starpu_profiling_worker_helper_display_summary(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif /* __STARPU_PROFILING_H__ */
