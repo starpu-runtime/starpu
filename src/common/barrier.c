@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                      CNRS
  * Copyright (C) 2011,2014,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -16,9 +16,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <common/barrier.h>
 #include <common/utils.h>
-#include <starpu_thread_util.h>
 
 int _starpu_barrier_init(struct _starpu_barrier *barrier, int count)
 {
