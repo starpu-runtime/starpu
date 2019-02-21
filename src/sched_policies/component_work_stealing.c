@@ -32,7 +32,7 @@
 #warning TODO: locality work-stealing
 #endif
 
-struct _starpu_work_stealing_data
+struct _starpu_component_work_stealing_data
 {
 /* keep track of the work performed from the beginning of the algorithm to make
  * better decisions about which queue to child when stealing or deferring work
@@ -51,7 +51,7 @@ struct _starpu_work_stealing_data
  */
 static struct starpu_task *  steal_task_round_robin(struct starpu_sched_component *component, int workerid)
 {
-	struct _starpu_work_stealing_data *wsd = component->data;
+	struct _starpu_component_work_stealing_data *wsd = component->data;
 	STARPU_HG_DISABLE_CHECKING(wsd->last_pop_child);
 	unsigned i = wsd->last_pop_child;
 	wsd->last_pop_child = (i + 1) % component->nchildren;
@@ -95,7 +95,7 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
  */
 static unsigned select_worker_round_robin(struct starpu_sched_component * component)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)component->data;
+	struct _starpu_component_work_stealing_data *ws = (struct _starpu_component_work_stealing_data*)component->data;
 	unsigned i = (ws->last_push_child + 1) % component->nchildren ;
 	ws->last_push_child = i;
 	return i;
@@ -140,7 +140,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 			break;
 	}
 	STARPU_ASSERT(i < component->nchildren);
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 	struct starpu_task * task = _starpu_prio_deque_pop_task(wsd->fifos[i]);
@@ -190,7 +190,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 double _ws_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_work_stealing(component));
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	double sum_len = 0.0;
 	double sum_start = 0.0;
 	unsigned i;
@@ -212,7 +212,7 @@ double _ws_estimated_end(struct starpu_sched_component * component)
 double _ws_estimated_load(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_work_stealing(component));
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	int ntasks = 0;
 	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
@@ -235,7 +235,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 
 static int push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	int ret;
 	unsigned i = wsd->last_push_child;
 	i = (i+1)%component->nchildren;
@@ -273,7 +273,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 					break;
 			STARPU_ASSERT(i < component->nchildren);
 
-			struct _starpu_work_stealing_data * wsd = component->data;
+			struct _starpu_component_work_stealing_data * wsd = component->data;
 			STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 			int ret = _starpu_prio_deque_push_front_task(wsd->fifos[i] , task);
 			if(ret == 0 && !isnan(task->predicted))
@@ -291,7 +291,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 
 void _ws_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	starpu_sched_component_add_child(component, child);
 	if(wsd->size < component->nchildren)
 	{
@@ -314,7 +314,7 @@ void _ws_add_child(struct starpu_sched_component * component, struct starpu_sche
 
 void _ws_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 
 	STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes[component->nchildren - 1]);
 	free(wsd->mutexes[component->nchildren - 1]);
@@ -343,7 +343,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 
 void _work_stealing_component_deinit_data(struct starpu_sched_component * component)
 {
-	struct _starpu_work_stealing_data * wsd = component->data;
+	struct _starpu_component_work_stealing_data * wsd = component->data;
 	free(wsd->fifos);
 	free(wsd->mutexes);
 	free(wsd);
@@ -358,7 +358,7 @@ struct starpu_sched_component * starpu_sched_component_work_stealing_create(stru
 {
 	(void)arg;
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "work_stealing");
-	struct _starpu_work_stealing_data *wsd;
+	struct _starpu_component_work_stealing_data *wsd;
 	_STARPU_CALLOC(wsd, 1, sizeof(*wsd));
 	component->pull_task = pull_task;
 	component->push_task = push_task;
