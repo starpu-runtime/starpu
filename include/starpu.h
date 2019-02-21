@@ -55,11 +55,9 @@ typedef INT_PTR intptr_t;
 #include <starpu_data_interfaces.h>
 #include <starpu_data_filters.h>
 #include <starpu_stdlib.h>
-#include <starpu_task_bundle.h>
-#include <starpu_task.h>
-#include <starpu_worker.h>
 #include <starpu_perfmodel.h>
 #include <starpu_worker.h>
+#include <starpu_task.h>
 #ifndef BUILDING_STARPU
 #include <starpu_task_list.h>
 #endif
