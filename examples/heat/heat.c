@@ -804,7 +804,8 @@ int main(int argc, char **argv)
 	}
 
 #ifdef STARPU_OPENGL_RENDER
-	if (getenv("DISPLAY"))
+	const char *display = getenv("DISPLAY");
+	if (display && display[0])
 		opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 
