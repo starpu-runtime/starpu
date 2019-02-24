@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014                                Inria
  * Copyright (C) 2011-2017, 2019                          CNRS
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -358,6 +358,8 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 
 void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
+	/* FIXME: this seems to be lacking shutdown support? */
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	if (config->conf.single_combined_worker > 0)
