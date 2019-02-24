@@ -1661,7 +1661,10 @@ int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id)
  */
 void starpu_sched_ctx_set_context(unsigned *sched_ctx)
 {
-	STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)*sched_ctx);
+	if (sched_ctx)
+		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)*sched_ctx);
+	else
+		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)STARPU_NMAX_SCHED_CTXS);
 }
 
 unsigned starpu_sched_ctx_get_context()
