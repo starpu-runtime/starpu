@@ -238,7 +238,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->readonly = 0;
 		child->active = inherit_state;
 		child->active_ro = 0;
-                child->mpi_data = initial_handle->mpi_data;
+                child->mpi_data = NULL;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
 		child->active_children = NULL;
