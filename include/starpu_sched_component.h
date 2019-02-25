@@ -123,6 +123,7 @@ void starpu_sched_component_connect(struct starpu_sched_component *parent, struc
 
 struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
 struct starpu_sched_component *starpu_sched_component_worker_new(unsigned sched_ctx, int workerid);
+struct starpu_sched_component *starpu_sched_component_parallel_worker_create(struct starpu_sched_tree *tree, unsigned nworkers, unsigned *workers);
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component);
 int starpu_sched_component_is_worker(struct starpu_sched_component *component);
 int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component);

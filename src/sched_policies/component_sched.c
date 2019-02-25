@@ -508,7 +508,7 @@ struct starpu_sched_tree * starpu_sched_tree_get(unsigned sched_ctx_id)
 void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child)
 {
 	STARPU_ASSERT(component && child);
-	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
+	STARPU_ASSERT(!starpu_sched_component_is_simple_worker(component));
 	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
@@ -524,7 +524,7 @@ void starpu_sched_component_add_child(struct starpu_sched_component* component, 
 static void starpu_sched_component_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
 	STARPU_ASSERT(component && child);
-	STARPU_ASSERT(!starpu_sched_component_is_worker(component));
+	STARPU_ASSERT(!starpu_sched_component_is_simple_worker(component));
 	unsigned pos;
 	for(pos = 0; pos < component->nchildren; pos++)
 		if(component->children[pos] == child)
