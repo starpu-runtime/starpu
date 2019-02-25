@@ -266,6 +266,9 @@ static void _do_add_notified_workers(struct _starpu_sched_ctx *sched_ctx, int *w
 	for(i = 0; i < nworkers; i++)
 	{
 		int workerid = workerids[i];
+		if (workerid >= (int) starpu_worker_get_count())
+			/* Combined worker, don't care */
+			continue;
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		int dev1, dev2;
 		unsigned found = 0;
@@ -1221,6 +1224,9 @@ static void add_notified_workers(int *workerids, int nworkers, unsigned sched_ct
 		int i = 0;
 		for(i = 0; i < nworkers; i++)
 		{
+			if (workerids[i] >= (int) starpu_worker_get_count())
+				/* Combined worker, don't care */
+				continue;
 			int workerid = workers->add(workers, workerids[i]);
 			if(workerid >= 0)
 			{
@@ -2122,6 +2128,9 @@ static void set_priority_on_notified_workers(int *workers, int nworkers, unsigne
 		struct _starpu_worker *worker = NULL;
 		for(w = 0; w < nworkers; w++)
 		{
+			if (workers[w] >= (int) starpu_worker_get_count())
+				/* Combined worker, don't care */
+				continue;
 			worker = _starpu_get_worker_struct(workers[w]);
 			_starpu_sched_ctx_list_move(&worker->sched_ctx_list, sched_ctx_id, priority);
 		}
