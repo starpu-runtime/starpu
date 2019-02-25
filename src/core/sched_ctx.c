@@ -387,9 +387,7 @@ static void _starpu_add_workers_to_new_sched_ctx(struct _starpu_sched_ctx *sched
 	{
 		int workerid = workerids[i];
 		{
-			int _workerid = workers->add(workers, workerid);
-			STARPU_ASSERT(_workerid >= 0);
-			(void)_workerid;
+			workers->add(workers, workerid);
 		}
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
