@@ -58,6 +58,15 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	struct starpu_sched_component *no_perfmodel_component = NULL;
 	struct starpu_sched_component *calibrator_component = NULL;
 
+	/* Start building the tree */
+	t = starpu_sched_tree_create(sched_ctx_id);
+	t->root = NULL;
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+
+	/* Create combined workers if requested */
+	if (flags & STARPU_SCHED_SIMPLE_COMBINED_WORKERS)
+		starpu_sched_find_all_worker_combinations();
+
 	/* Components parameters */
 
 	if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO || flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
@@ -137,10 +146,6 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	}
 	STARPU_ASSERT(nbelow > 0);
 
-	/* Start building the tree */
-	t = starpu_sched_tree_create(sched_ctx_id);
-	t->root = NULL;
-
 	if (nbelow == 1)
 	{
 		/* Oh, no choice, we don't actually need to decide, just
@@ -211,7 +216,8 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	for(i = 0; i < nbelow; i++)
 	{
 		last = decision_component;
-		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW)
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW
+			&& !(flags & STARPU_SCHED_SIMPLE_DECIDE_MASK && i >= starpu_worker_get_count()))
 		{
 			struct starpu_sched_component *fifo_below;
 			if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
@@ -315,5 +321,5 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	}
 
 	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+	starpu_sched_tree_update_workers_in_ctx(t);
 }
