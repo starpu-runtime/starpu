@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2017                           Inria
  * Copyright (C) 2010-2012,2014-2017                      CNRS
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -601,13 +601,14 @@ static int combined_worker_can_pull(struct starpu_sched_component * component)
 	(void) component;
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
 	struct _starpu_worker_component_data * data = component->data;
-	unsigned workerid = starpu_worker_get_id_check();
+	int workerid = starpu_worker_get_id();
 	int i;
 	for(i = 0; i < data->combined_worker->worker_size; i++)
 	{
-		if((unsigned) i == workerid)
+		int target = data->combined_worker->combined_workerid[i];
+		if(target == workerid)
 			continue;
-		if (starpu_wake_worker_relax_light(workerid))
+		if (starpu_wake_worker_relax_light(target))
 			return 1;
 	}
 	return 0;
@@ -617,7 +618,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 {
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
 	struct _starpu_worker_component_data * data = component->data;
-	STARPU_ASSERT(data->combined_worker && !data->worker);
+	STARPU_ASSERT(data->combined_worker);
 	struct _starpu_combined_worker  * combined_worker = data->combined_worker;
 	STARPU_ASSERT(combined_worker->worker_size >= 1);
 	struct _starpu_task_grid * task_alias[combined_worker->worker_size];
