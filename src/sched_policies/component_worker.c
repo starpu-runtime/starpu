@@ -685,12 +685,13 @@ static struct starpu_task *combined_worker_pull_task(struct starpu_sched_compone
 static double combined_worker_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_combined_worker(component));
-	struct _starpu_worker_component_data * data = component->data;
+	struct _starpu_worker_component_data * d = component->data;
 	double max = 0.0;
 	unsigned i;
-	for(i = 0; i < data->parallel_worker.worker_size; i++)
+	for(i = 0; i < d->parallel_worker.worker_size; i++)
 	{
-		data = _worker_components[component->tree->sched_ctx_id][data->parallel_worker.workerids[i]]->data;
+		struct _starpu_worker_component_data * data;
+		data = _worker_components[component->tree->sched_ctx_id][d->parallel_worker.workerids[i]]->data;
 		double tmp = data->list->exp_end;
 		max = tmp > max ? tmp : max;
 	}
