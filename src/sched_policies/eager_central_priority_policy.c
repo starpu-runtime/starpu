@@ -191,7 +191,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
-		workers->init_iterator_for_parallel_tasks(workers, &it, chosen_task);
+		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
 			unsigned worker = workers->get_next(workers, &it);
