@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014                                     Université de Bordeaux
+ * Copyright (C) 2014,2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,7 +30,6 @@ void _starpu_sched_component_unlock_all_workers(void);
 void _starpu_sched_component_workers_destroy(void);
 
 struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component *);
-struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_combined_worker(struct starpu_sched_component * worker_component);
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
 
