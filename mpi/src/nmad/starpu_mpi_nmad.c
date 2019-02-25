@@ -481,10 +481,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
-		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(0, NULL, 0);
 	}
 
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
@@ -646,6 +646,12 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 
+	/* Tell pioman to use a bound thread for communication progression */
+	unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	int indexes[1] = {piom_bindid};
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_CORE,indexes,1);
+
+	/* Launch thread used for nmad callbacks */
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
