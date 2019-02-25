@@ -481,10 +481,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
-		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(0, NULL, 0);
 	}
 
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
