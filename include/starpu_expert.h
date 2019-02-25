@@ -44,6 +44,9 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg);
 */
 void starpu_progression_hook_deregister(int hook_id);
 
+int starpu_idle_hook_register(unsigned (*func)(void *arg), void *arg);
+void starpu_idle_hook_deregister(int hook_id);
+
 #ifdef __cplusplus
 }
 #endif

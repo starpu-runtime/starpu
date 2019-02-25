@@ -29,6 +29,7 @@
 #include <core/debug.h>
 #include <core/workers.h>
 #include <core/drivers.h>
+#include <core/idle_hook.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
@@ -327,8 +328,11 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 #endif
 
 	if (!task)
+	{
 		/* No task or task still pending transfers */
+		_starpu_execute_registered_idle_hooks();
 		return 0;
+	}
 
 	j = _starpu_get_job_associated_to_task(task);
 	/* NOTE: j->task is != task for parallel tasks, which share the same

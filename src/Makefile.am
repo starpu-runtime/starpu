@@ -74,6 +74,7 @@ noinst_HEADERS = 						\
 	core/disk.h						\
 	core/disk_ops/unistd/disk_unistd_global.h		\
 	core/progress_hook.h                                    \
+	core/idle_hook.h                                        \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
 	core/sched_ctx_list.h					\
@@ -182,6 +183,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/debug.c						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
+	core/idle_hook.c                                        \
 	core/dependencies/cg.c					\
 	core/dependencies/dependencies.c			\
 	core/dependencies/implicit_data_deps.c			\
