@@ -225,6 +225,8 @@ void set_properties(struct starpu_sched_component * component)
 	int worker = starpu_bitmap_first(component->workers_in_ctx);
 	if (worker == -1)
 		return;
+	if (starpu_worker_is_combined_worker(worker))
+		return;
 #ifdef STARPU_DEVEL
 #warning FIXME: Not all CUDA devices have the same speed
 #endif
@@ -236,6 +238,8 @@ void set_properties(struct starpu_sched_component * component)
 	    worker != -1;
 	    worker = starpu_bitmap_next(component->workers_in_ctx, worker))
 	{
+		if(starpu_worker_is_combined_worker(worker))
+			continue;
 		if(first_worker != _starpu_get_worker_struct(worker)->worker_mask)
 			is_homogeneous = 0;
 		if(first_memory_node != _starpu_get_worker_struct(worker)->memory_node)
@@ -278,7 +282,23 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 		return;
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
-	unsigned i;
+	unsigned i,j;
+	for(i = starpu_worker_get_count(); i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++) {
+		if (starpu_bitmap_get(component->workers, i)) {
+			/* Component has this combined worker, check whether the
+			 * context has all the corresponding workers */
+			int worker_size;
+			int *combined_workerid;
+			starpu_combined_worker_get_description(i, &worker_size, &combined_workerid);
+			for (j = 0; j < (unsigned) worker_size; j++)
+				if (!starpu_bitmap_get(workers_in_ctx, combined_workerid[j]))
+					goto nocombined;
+			/* We have all workers, add it */
+			starpu_bitmap_set(component->workers_in_ctx, i);
+		}
+nocombined:
+		(void)0;
+	}
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
@@ -307,13 +327,15 @@ struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t)
 {
 	STARPU_ASSERT(t);
-	_starpu_sched_component_update_workers_in_ctx(t->root, t->sched_ctx_id);
+	if (t->root)
+		_starpu_sched_component_update_workers_in_ctx(t->root, t->sched_ctx_id);
 }
 
 void starpu_sched_tree_update_workers(struct starpu_sched_tree * t)
 {
 	STARPU_ASSERT(t);
-	_starpu_sched_component_update_workers(t->root);
+	if (t->root)
+		_starpu_sched_component_update_workers(t->root);
 }
 
 

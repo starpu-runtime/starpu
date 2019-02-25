@@ -130,6 +130,8 @@ int starpu_combined_worker_get_id(void);
 int starpu_combined_worker_get_size(void);
 int starpu_combined_worker_get_rank(void);
 
+void starpu_sched_find_all_worker_combinations(void);
+
 enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);

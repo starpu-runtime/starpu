@@ -297,7 +297,9 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
 	sched_policies/modular_random.c				\
+	sched_policies/modular_parallel_random.c		\
 	sched_policies/modular_random_prefetching.c			\
+	sched_policies/modular_parallel_heft.c			\
 	sched_policies/modular_heft.c				\
 	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heft2.c				\

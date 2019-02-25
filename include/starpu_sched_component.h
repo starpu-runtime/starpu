@@ -228,6 +228,7 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW		(1<<8)
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
 #define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
+#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<11)
 
 void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id);
 

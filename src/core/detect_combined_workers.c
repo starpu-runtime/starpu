@@ -371,3 +371,16 @@ void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 #endif
 	}
 }
+
+void starpu_sched_find_all_worker_combinations(void)
+{
+	const unsigned nbasic_workers = starpu_worker_get_count();
+	int basic_workerids[nbasic_workers];
+	unsigned i;
+	for(i = 0; i < nbasic_workers; i++)
+	{
+		basic_workerids[i] = i;
+	}
+
+	_starpu_sched_find_worker_combinations(basic_workerids, nbasic_workers);
+}

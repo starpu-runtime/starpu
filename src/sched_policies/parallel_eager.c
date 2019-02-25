@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015,2017,2018                 Inria
  * Copyright (C) 2011-2014,2016-2019                      CNRS
- * Copyright (C) 2011-2016,2018                           Université de Bordeaux
+ * Copyright (C) 2011-2016,2018-2019                      Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -51,14 +51,9 @@ static void initialize_peager_common(void)
 		_peager_common_data = common_data;
 
 		const unsigned nbasic_workers = starpu_worker_get_count();
-		int basic_workerids[nbasic_workers];
 		unsigned i;
-		for(i = 0; i < nbasic_workers; i++)
-		{
-			basic_workerids[i] = i;
-		}
 
-		_starpu_sched_find_worker_combinations(basic_workerids, nbasic_workers);
+		starpu_sched_find_all_worker_combinations();
 		const unsigned ncombined_workers = starpu_combined_worker_get_count();
 		common_data->no_combined_workers = ncombined_workers == 0;
 

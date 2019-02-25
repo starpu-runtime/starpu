@@ -18,6 +18,8 @@
 
 StarPU 1.4.0 (svn revision xxxx)
 ==============================================
+New features:
+  * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================
