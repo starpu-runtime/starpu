@@ -50,7 +50,15 @@ starpu_task_expected_data_transfer_time_for(), for the required energy with
 starpu_task_expected_energy(), etc. Other
 useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
 starpu_transfer_predict(), ...
-One can also directly test the presence of a data handle with starpu_data_is_on_node(). Prefetches can be triggered by calling starpu_prefetch_task_input_for(). 
+One can also directly test the presence of a data handle with starpu_data_is_on_node().
+Prefetches can be triggered by calling either starpu_prefetch_task_input_for(),
+starpu_idle_prefetch_task_input(), starpu_prefetch_task_input_for_prio(), or
+starpu_idle_prefetch_task_input_for_prio(). The <c>_prio</c> versions allow to
+specify a priority for the transfer (instead of taking the task priority by
+default). These prefetches are only processed when there are no fetch data
+requests (i.e. a task is waiting for it) to process. The <c>_idle</c> versions
+queue the transfers on the idle prefetch queue, which is only processed when
+there are no non-idle prefetch to process.
 starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
 \ref STARPU_PREFETCH environment variable.
 
