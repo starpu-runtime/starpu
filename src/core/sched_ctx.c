@@ -1441,7 +1441,6 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
 	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
-	STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)STARPU_NMAX_SCHED_CTXS);
 	window_size = starpu_get_env_float_default("STARPU_WINDOW_TIME_SIZE", 0.0);
 	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
@@ -1660,14 +1659,18 @@ int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id)
 void starpu_sched_ctx_set_context(unsigned *sched_ctx)
 {
 	if (sched_ctx)
-		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)*sched_ctx);
+		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)(*sched_ctx + 1));
 	else
-		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t)STARPU_NMAX_SCHED_CTXS);
+		STARPU_PTHREAD_SETSPECIFIC(sched_ctx_key, (void*)(uintptr_t) 0);
 }
 
 unsigned starpu_sched_ctx_get_context()
 {
-	return (unsigned)(uintptr_t)STARPU_PTHREAD_GETSPECIFIC(sched_ctx_key);
+	unsigned id = (unsigned)(uintptr_t)STARPU_PTHREAD_GETSPECIFIC(sched_ctx_key);
+	if (id == 0)
+		return STARPU_NMAX_SCHED_CTXS;
+	else
+		return id - 1;
 }
 
 unsigned _starpu_sched_ctx_get_current_context()
