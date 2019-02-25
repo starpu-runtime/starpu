@@ -392,8 +392,7 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 
   /* Create links between Components : the Eager Component is the child
    * of the Root Component */
-  t->root->add_child(t->root, eager_component);
-  eager_component->add_father(eager_component, t->root);
+  starpu_sched_component_connect(t->root, eager_component);
 
   /* A task threshold is set for the Flow-control Components which will
    * be connected to Worker Components. By doing so, this Modularized
@@ -412,14 +411,12 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
      * father */
     struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(i);
     struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(&fifo_data);
-    fifo_component->add_child(fifo_component, worker_component);
-    worker_component->add_father(worker_component, fifo_component);
+    starpu_sched_component_connect(fifo_component, worker_component);
 
     /* Each Flow-control Fifo Component associated to a Worker
      * Component is linked to the Eager Component as one of its
      * children */
-    eager_component->add_child(eager_component, fifo_component);
-    fifo_component->add_father(fifo_component, eager_component);
+    starpu_sched_component_connect(eager_component, fifo_component);
   }
 
   starpu_sched_tree_update_workers(t);
