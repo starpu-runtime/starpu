@@ -28,6 +28,7 @@
 #include <common/utils.h>
 #include <common/graph.h>
 #include <core/progress_hook.h>
+#include <core/idle_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/disk.h>
@@ -1335,6 +1336,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_init_all_sched_ctxs(&_starpu_config);
 	_starpu_init_progression_hooks();
+	_starpu_init_idle_hooks();
 
 	_starpu_init_tags();
 
