@@ -217,7 +217,8 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	{
 		last = decision_component;
 		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW
-			&& !(flags & STARPU_SCHED_SIMPLE_DECIDE_MASK && i >= starpu_worker_get_count()))
+			&& !((flags & STARPU_SCHED_SIMPLE_DECIDE_MASK) == STARPU_SCHED_SIMPLE_DECIDE_WORKERS
+				&& i >= starpu_worker_get_count()))
 		{
 			struct starpu_sched_component *fifo_below;
 			if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
