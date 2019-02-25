@@ -576,7 +576,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid);
 	STARPU_ASSERT(obj);
 	component->obj = obj;
 #endif
@@ -756,14 +756,17 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 
 	_worker_components[tree->sched_ctx_id][workerid] = component;
 
+	/*
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, data->parallel_worker.workerids[0]);
+	struct _starpu_worker *worker = _starpu_get_worker_struct(data->parallel_worker.workerids[0]);
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid);
 	STARPU_ASSERT(obj);
 	component->obj = obj;
 #endif
+	*/
 	return component;
 }
 
