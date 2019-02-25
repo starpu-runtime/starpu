@@ -223,6 +223,10 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 return the struct starpu_sched_component corresponding to \p workerid. Undefined if \p workerid is not a valid workerid
 
+\fn struct starpu_sched_component *starpu_sched_component_parallel_worker_create(struct starpu_sched_tree *tree, unsigned nworkers, unsigned *workers)
+\ingroup API_Modularized_Scheduler
+	 Create a combined worker that pushes tasks in parallel to workers \p workers (size \p nworkers).
+
 \fn int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component)
 \ingroup API_Modularized_Scheduler
 	 return the workerid of \p worker_component, undefined if starpu_sched_component_is_worker(worker_component) == 0
