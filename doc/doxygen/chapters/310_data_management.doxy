@@ -152,7 +152,7 @@ Tasks are actually allowed to change the size of data interfaces.
 
 The simplest case is just changing the amount of data actually used within the
 allocated buffer. This is for instance implemented for the matrix interface: one
-can set the new NX/NY values with STARPU_MATRIX_SET_NX() and STARPU_MATRIX_SET_NY()
+can set the new NX/NY values with STARPU_MATRIX_SET_NX(), STARPU_MATRIX_SET_NY(), and STARPU_MATRIX_SET_LD()
 at the end of the task implementation. Data transfers achieved by StarPU will
 then use these values instead of the whole allocated size. The values of course
 need to be set within the original allocation. To reserve room for increasing

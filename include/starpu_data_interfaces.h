@@ -848,6 +848,14 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_SET_NY(interface, newny)	        do { \
 	(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
 } while(0)
+/**
+   Set the number of elements between each row of the matrix
+   designated by \p interface. May be set to the same value as nx when there is
+   no padding.
+*/
+#define STARPU_MATRIX_SET_LD(interface, newld)	        do { \
+	(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
+} while(0)
 
 /** @} */
 
