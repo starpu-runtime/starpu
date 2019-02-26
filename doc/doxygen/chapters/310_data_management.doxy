@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -145,6 +145,18 @@ StarPU provides an example on how to deal with such matrices in
 \subsection CSRDataInterface CSR Data Interface
 
 TODO
+
+\subsection VariableSizeDataInterface Data Interface with Variable Size
+
+Tasks are actually allowed to change the size of data interfaces.
+
+The task implementation can just reallocate the buffer during its execution, and
+set the proper new values in the interface structure, e.g. nx, ny, ld, etc. so
+that the StarPU core knows the new data layout. The starpu_data_interface_ops
+structure however then needs to have the starpu_data_interface_ops::dontcache
+field set to 1, to prevent StarPU from trying to perform any cached allocation,
+since the allocated size will vary. An example is available in
+<c>tests/datawizard/variable_size.c</c>
 
 \section DataManagement Data Management
 
