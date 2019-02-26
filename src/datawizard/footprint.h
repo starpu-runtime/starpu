@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2014                           Université de Bordeaux
+ * Copyright (C) 2008-2011,2014,2019                      Université de Bordeaux
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -29,5 +29,8 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 
 /* Compute the footprint that characterizes the layout of the data handle. */
 uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle);
+
+/* Compute the footprint that characterizes the allocation of the data handle. */
+uint32_t _starpu_compute_data_alloc_footprint(starpu_data_handle_t handle);
 
 #endif // __FOOTPRINT_H__

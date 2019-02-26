@@ -657,7 +657,11 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 	if (ops_a->interfaceid != ops_b->interfaceid)
 		return -1;
 
-	int ret = ops_a->compare(data_interface_a, data_interface_b);
+	int ret;
+	if (ops_a->alloc_compare)
+		ret = ops_a->alloc_compare(data_interface_a, data_interface_b);
+	else
+		ret = ops_a->compare(data_interface_a, data_interface_b);
 
 	return ret;
 }

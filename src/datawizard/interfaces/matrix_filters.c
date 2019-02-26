@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2008-2014,2016,2019                      Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
@@ -48,6 +48,8 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, S
 	matrix_child->nx = child_nx;
 	matrix_child->ny = ny;
 	matrix_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
+	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
@@ -92,6 +94,8 @@ void starpu_matrix_filter_block_shadow(void *father_interface, void *child_inter
 	matrix_child->nx = child_nx;
 	matrix_child->ny = ny;
 	matrix_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
+	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
@@ -127,6 +131,8 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
 	matrix_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
+	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
@@ -166,6 +172,8 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
 	matrix_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
+	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)

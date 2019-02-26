@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2017                                Inria
  * Copyright (C) 2010-2014,2016,2017                      CNRS
- * Copyright (C) 2009-2011,2013-2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2015,2017,2018-2019       Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -282,7 +282,9 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.pointer_is_inside = vector_cpp_pointer_is_inside,
 	.get_size = vector_cpp_interface_get_size,
 	.footprint = footprint_vector_cpp_interface_crc32,
+	.alloc_footprint = NULL,
 	.compare = vector_cpp_compare,
+	.alloc_compare = NULL,
 	.display = display_vector_cpp_interface,
 	.describe = vector_cpp_describe,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
@@ -305,7 +307,9 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	vector_cpp_pointer_is_inside,
 	vector_cpp_interface_get_size,
 	footprint_vector_cpp_interface_crc32,
+	NULL,
 	vector_cpp_compare,
+	NULL,
 	display_vector_cpp_interface,
 	vector_cpp_describe,
 	STARPU_UNKNOWN_INTERFACE_ID,
