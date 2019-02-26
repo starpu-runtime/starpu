@@ -65,7 +65,7 @@ New features:
     --enable-starpurm option to activate it.
   * modular-gemm scheduler.
   * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
-  * Add STARPU_MATRIX_SET_NX/NY to change a matrix tile size without
+  * Add STARPU_MATRIX_SET_NX/NY/LD to change a matrix tile size without
     reallocating the buffer.
 
 Small features:
