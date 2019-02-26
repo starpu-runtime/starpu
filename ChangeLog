@@ -20,6 +20,8 @@ StarPU 1.4.0 (svn revision xxxx)
 ==============================================
 New features:
   * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
+  * Add STARPU_MATRIX_SET_NX/NY to change a matrix tile size without
+    reallocating the buffer.
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================

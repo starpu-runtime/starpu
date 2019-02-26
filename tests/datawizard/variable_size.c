@@ -52,14 +52,16 @@ int main(int argc, char **argv)
 }
 #else
 
+/* Sample Data interface with variable size */
 struct variable_size_interface
 {
 	enum starpu_data_interface_id id;
 
+	/* Just a buffer of a given size */
 	uintptr_t ptr;
 	size_t size;
 
-	/* Coordinates of the represented object, to model growth */
+	/* Coordinates of the represented object, just for modeling growth */
 	unsigned x, y;
 };
 
@@ -76,9 +78,9 @@ static void register_variable_size(starpu_data_handle_t handle, unsigned home_no
 
 		if (node == home_node)
 			local_interface->ptr = variable_size_interface->ptr;
+		local_interface->size = variable_size_interface->size;
 
 		local_interface->id = variable_size_interface->id;
-		local_interface->size = variable_size_interface->size;
 		local_interface->x = variable_size_interface->x;
 		local_interface->y = variable_size_interface->y;
 	}

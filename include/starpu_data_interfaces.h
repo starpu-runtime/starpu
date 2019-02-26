@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2010-2015,2017,2019                           CNRS
  *
@@ -440,16 +440,33 @@ struct starpu_data_interface_ops
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 
 	/**
-	   Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.)
+	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), to be used for indexing performance models.
 	*/
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 
 	/**
+	   Return a 32bit footprint which characterizes the data allocation, to be used
+	   for indexing allocation cache.
+	   If not specified, the starpu_data_interface_ops::footprint method is
+	   used instead.
+	*/
+	uint32_t 	 (*alloc_footprint)		(starpu_data_handle_t handle);
+
+	/**
 	   Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
-	   etc.). It should return 1 if the two interfaces size and layout match, and 0
-	   otherwise.
+	   etc.), to be used for indexing performance models.. It should return 1 if
+	   the two interfaces size and layout match, and 0 otherwise.
 	*/
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
+
+	/**
+	   Compare the data allocation of two interfaces etc.), to be used for indexing
+	   allocation cache. It should return
+	   1 if the two interfaces are allocation-compatible, and 0 otherwise.
+	   If not specified, the starpu_data_interface_ops::compare method is
+	   used instead.
+	*/
+	int 		 (*alloc_compare)		(void *data_interface_a, void *data_interface_b);
 
 	/**
 	   Dump the sizes of a handle to a file.
@@ -696,6 +713,7 @@ struct starpu_matrix_interface
 					       when there is no padding.
 					  */
 	size_t elemsize;                  /**< size of the elements of the matrix */
+	size_t allocsize;		  /**< size actually currently allocated */
 };
 
 /**
@@ -713,6 +731,12 @@ struct starpu_matrix_interface
    \endcode
 */
 void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
+
+/**
+   Similar to starpu_matrix_data_register, but additionally specifies which
+   allocation size should be used instead of the initial nx*ny*elemsize.
+*/
+void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize, size_t allocsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
@@ -750,6 +774,11 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle);
 */
 size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
+/**
+   Return the allocated size of the matrix designated by \p handle.
+*/
+size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
+
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
 #define STARPU_MATRIX_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.")
 #define STARPU_MATRIX_GET_PTR(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ptr) ; })
@@ -759,6 +788,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_GET_NY(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ny) ; })
 #define STARPU_MATRIX_GET_LD(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ld) ; })
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->elemsize) ; })
+#define STARPU_MATRIX_GET_ALLOCSIZE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->allocsize) ; })
 #else
 /**
    Return a pointer to the matrix designated by \p interface, valid
@@ -798,7 +828,26 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
    designated by \p interface.
 */
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->elemsize)
+/**
+   Return the allocated size of the matrix designated by \p interface.
+*/
+#define STARPU_MATRIX_GET_ALLOCSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->allocsize)
 #endif
+
+/**
+   Set the number of elements on the x-axis of the matrix
+   designated by \p interface.
+*/
+#define STARPU_MATRIX_SET_NX(interface, newnx)	        do { \
+	(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
+} while (0)
+/**
+   Set the number of elements on the y-axis of the matrix
+   designated by \p interface.
+*/
+#define STARPU_MATRIX_SET_NY(interface, newny)	        do { \
+	(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
+} while(0)
 
 /** @} */
 
@@ -898,6 +947,7 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, ui
 extern struct starpu_data_interface_ops starpu_interface_block_ops;
 
 /* TODO: rename to 3dmatrix? */
+/* TODO: add allocsize support */
 /** Block interface for 3D dense blocks */
 struct starpu_block_interface
 {
@@ -1049,6 +1099,7 @@ extern struct starpu_data_interface_ops starpu_interface_vector_ops;
 
 /**
  */
+/* TODO: add allocsize support */
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
