@@ -440,6 +440,14 @@ struct starpu_data_interface_ops
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 
 	/**
+	   Return an estimation of the size of allocated data, for allocation
+	   management.
+	   If not specified, the starpu_data_interface_ops::get_size method is
+	   used instead.
+	*/
+	size_t 		 (*get_alloc_size)		(starpu_data_handle_t handle);
+
+	/**
 	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), to be used for indexing performance models.
 	*/
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
@@ -620,6 +628,11 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
    Return the size of the data associated with \p handle.
 */
 size_t starpu_data_get_size(starpu_data_handle_t handle);
+
+/**
+   Return the size of the allocated data associated with \p handle.
+*/
+size_t starpu_data_get_alloc_size(starpu_data_handle_t handle);
 
 /**
    Return the handle corresponding to the data pointed to by the \p ptr host pointer.

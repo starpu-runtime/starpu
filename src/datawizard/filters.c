@@ -445,7 +445,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		_starpu_spin_lock(&child_handle->header_lock);
 
-		sizes[child] = _starpu_data_get_size(child_handle);
+		sizes[child] = _starpu_data_get_alloc_size(child_handle);
 
 		if (child_handle->unregister_hook)
 		{
@@ -524,7 +524,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		if (!isvalid && local->mc && local->allocated && local->automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, local, node, _starpu_data_get_size(root_handle));
+			_starpu_request_mem_chunk_removal(root_handle, local, node, _starpu_data_get_alloc_size(root_handle));
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;

@@ -900,7 +900,7 @@ retry_busy:
 		goto retry_busy;
 	}
 
-	size_t size = _starpu_data_get_size(handle);
+	size_t size = _starpu_data_get_alloc_size(handle);
 
 	/* Destroy the data now */
 	unsigned node;
@@ -996,7 +996,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 static void _starpu_data_invalidate(void *data)
 {
 	starpu_data_handle_t handle = data;
-	size_t size = _starpu_data_get_size(handle);
+	size_t size = _starpu_data_get_alloc_size(handle);
 	_starpu_spin_lock(&handle->header_lock);
 
 	//_STARPU_DEBUG("Really invalidating data %p\n", data);
@@ -1104,6 +1104,11 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
+}
+
+size_t starpu_data_get_alloc_size(starpu_data_handle_t handle)
+{
+	return handle->ops->get_alloc_size(handle);
 }
 
 void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
