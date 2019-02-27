@@ -67,6 +67,8 @@ New features:
   * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
   * Add STARPU_MATRIX_SET_NX/NY/LD and STARPU_VECTOR_SET_NX to change a matrix
     tile or vector size without reallocating the buffer.
+  * Application can change the allocation used by StarPU with
+    starpu_malloc_set_hooks()
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation

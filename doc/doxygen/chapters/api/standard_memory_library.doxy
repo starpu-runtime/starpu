@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013,2015-2017                      CNRS
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,6 +99,20 @@ Free memory which has previously been allocated with starpu_malloc().
 Free memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
+
+\fn void starpu_malloc_set_hooks(starpu_malloc_hook malloc_hook, starpu_free_hook free_hook)
+\ingroup API_Standard_Memory_Library
+Sets allocation functions to be used by StarPU. By default, StarPU will use
+\c malloc() (or \c cudaHostAlloc() if CUDA GPUs are used) for all its data
+handle allocations. The application can specify another allocation primitive
+by calling this. The malloc_hook should pass the allocated pointer through
+the \c A parameter, and return 0 on success. On allocation failure, it should
+return -ENOMEM. The \c flags parameter contains STARPU_MALLOC_PINNED if the
+memory should be pinned by the hook for GPU transfer efficiency. The hook
+can use starpu_memory_pin() to achieve this.  The \c dst_node parameter
+is the starpu memory node, one can convert it to an hwloc logical id with
+starpu_memory_nodes_numa_id_to_hwloclogid() or to an OS NUMA number with
+starpu_memory_nodes_numa_devid_to_id().
 
 \fn int starpu_memory_pin(void *addr, size_t size)
 \ingroup API_Standard_Memory_Library
