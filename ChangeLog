@@ -16,8 +16,11 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-StarPU 1.2.8 (git revision xxx)
+StarPU 1.2.8 (git revision f66374c9ad39aefb7cf5dfc31f9ab3d756bcdc3c)
 ==============================================
+
+Small features:
+  * Minor fixes
 
 StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
 ==============================================
