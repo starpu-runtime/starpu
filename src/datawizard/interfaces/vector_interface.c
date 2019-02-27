@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2014,2017                      Inria
  * Copyright (C) 2010-2015,2017                           CNRS
  *
@@ -44,7 +44,9 @@ static int vector_pointer_is_inside(void *data_interface, unsigned node, void *p
 static void free_vector_buffer_on_node(void *data_interface, unsigned node);
 static size_t vector_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle);
+static uint32_t alloc_footprint_vector_interface_crc32(starpu_data_handle_t handle);
 static int vector_compare(void *data_interface_a, void *data_interface_b);
+static int vector_alloc_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
@@ -60,7 +62,9 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
+	.alloc_footprint = alloc_footprint_vector_interface_crc32,
 	.compare = vector_compare,
+	.alloc_compare = vector_alloc_compare,
 	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_vector_interface),
 	.display = display_vector_interface,
@@ -113,13 +117,14 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
 		local_interface->id = vector_interface->id;
 		local_interface->nx = vector_interface->nx;
 		local_interface->elemsize = vector_interface->elemsize;
+		local_interface->allocsize = vector_interface->allocsize;
 		local_interface->slice_base = vector_interface->slice_base;
 	}
 }
 
 /* declare a new data with the vector interface */
-void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize)
+void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int home_node,
+		uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize)
 {
 	struct starpu_vector_interface vector =
 	{
@@ -129,7 +134,8 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.elemsize = elemsize,
                 .dev_handle = ptr,
 		.slice_base = 0,
-                .offset = 0
+                .offset = 0,
+		.allocsize = allocsize,
 	};
 #if (!defined(STARPU_SIMGRID) && !defined(STARPU_OPENMP))
 	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
@@ -144,6 +150,12 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
 #endif
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
+}
+
+void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
+                        uintptr_t ptr, uint32_t nx, size_t elemsize)
+{
+	starpu_vector_data_register_allocsize(handleptr, home_node, ptr, nx, elemsize, nx * elemsize);
 }
 
 void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node,
@@ -162,6 +174,11 @@ static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle)
 	return starpu_hash_crc32c_be(starpu_vector_get_nx(handle), 0);
 }
 
+static uint32_t alloc_footprint_vector_interface_crc32(starpu_data_handle_t handle)
+{
+	return starpu_hash_crc32c_be(starpu_vector_get_allocsize(handle), 0);
+}
+
 static int vector_compare(void *data_interface_a, void *data_interface_b)
 {
 	struct starpu_vector_interface *vector_a = (struct starpu_vector_interface *) data_interface_a;
@@ -170,6 +187,15 @@ static int vector_compare(void *data_interface_a, void *data_interface_b)
 	/* Two vectors are considered compatible if they have the same size */
 	return (vector_a->nx == vector_b->nx)
 		&& (vector_a->elemsize == vector_b->elemsize);
+}
+
+static int vector_alloc_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct starpu_vector_interface *vector_a = (struct starpu_vector_interface *) data_interface_a;
+	struct starpu_vector_interface *vector_b = (struct starpu_vector_interface *) data_interface_b;
+
+	/* Two vectors are considered compatible if they have the same size */
+	return (vector_a->allocsize == vector_b->allocsize);
 }
 
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f)
@@ -221,7 +247,7 @@ static size_t vector_interface_get_size(starpu_data_handle_t handle)
 	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
 #endif
 
-	size = vector_interface->nx*vector_interface->elemsize;
+	size = vector_interface->allocsize;
 
 	return size;
 }
@@ -268,6 +294,18 @@ size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
 	return vector_interface->elemsize;
 }
 
+size_t starpu_vector_get_allocsize(starpu_data_handle_t handle)
+{
+	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
+
+	return vector_interface->allocsize;
+}
+
 /* memory allocation/deallocation primitives for the vector interface */
 
 /* returns the size of the allocated area */
@@ -277,19 +315,13 @@ static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsi
 
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface_;
 
-	uint32_t nx = vector_interface->nx;
-	size_t elemsize = vector_interface->elemsize;
-
-	starpu_ssize_t allocated_memory;
-
-	handle = starpu_malloc_on_node(dst_node, nx*elemsize);
+	starpu_ssize_t allocated_memory = vector_interface->allocsize;
+	handle = starpu_malloc_on_node(dst_node, allocated_memory);
 	if (!handle)
 		return -ENOMEM;
 
 	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
 		addr = handle;
-
-	allocated_memory = nx*elemsize;
 
 	/* update the data properly in consequence */
 	vector_interface->ptr = addr;
@@ -302,10 +334,8 @@ static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsi
 static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface;
-	uint32_t nx = vector_interface->nx;
-	size_t elemsize = vector_interface->elemsize;
 
-	starpu_free_on_node(node, vector_interface->dev_handle, nx*elemsize);
+	starpu_free_on_node(node, vector_interface->dev_handle, vector_interface->allocsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,

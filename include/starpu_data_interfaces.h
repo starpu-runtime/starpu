@@ -839,6 +839,7 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    designated by \p interface.
 */
 #define STARPU_MATRIX_SET_NX(interface, newnx)	        do { \
+	STARPU_MATRIX_CHECK(interface); \
 	(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
 } while (0)
 /**
@@ -846,6 +847,7 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    designated by \p interface.
 */
 #define STARPU_MATRIX_SET_NY(interface, newny)	        do { \
+	STARPU_MATRIX_CHECK(interface); \
 	(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
 } while(0)
 /**
@@ -854,6 +856,7 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    no padding.
 */
 #define STARPU_MATRIX_SET_LD(interface, newld)	        do { \
+	STARPU_MATRIX_CHECK(interface); \
 	(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
 } while(0)
 
@@ -1107,7 +1110,6 @@ extern struct starpu_data_interface_ops starpu_interface_vector_ops;
 
 /**
  */
-/* TODO: add allocsize support */
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
@@ -1118,6 +1120,7 @@ struct starpu_vector_interface
 	uint32_t nx;                      /**< number of elements on the x-axis of the vector */
 	size_t elemsize;                  /**< size of the elements of the vector */
 	uint32_t slice_base;              /**< vector slice base, used by the StarPU OpenMP runtime support */
+	size_t allocsize;                 /**< size actually currently allocated */
 };
 
 /**
@@ -1131,6 +1134,12 @@ struct starpu_vector_interface
    \endcode
  */
 void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
+
+/**
+   Similar to starpu_matrix_data_register, but additionally specifies which
+   allocation size should be used instead of the initial nx*elemsize.
+*/
+void starpu_vector_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
@@ -1150,6 +1159,11 @@ uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
 
 /**
+  Return the allocated size of the array designated by \p handle.
+ */
+size_t starpu_vector_get_allocsize(starpu_data_handle_t handle);
+
+/**
    Return the local pointer associated with \p handle.
  */
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
@@ -1161,6 +1175,7 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VECTOR_GET_OFFSET(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->offset); })
 #define STARPU_VECTOR_GET_NX(interface)	        ({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->nx); })
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->elemsize); })
+#define STARPU_VECTOR_GET_ALLOCSIZE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->allocsize); })
 #define STARPU_VECTOR_GET_SLICE_BASE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->slice_base); })
 #else
 /**
@@ -1191,11 +1206,25 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
  */
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 /**
+   Return the size of each element of the array designated by
+   \p interface.
+ */
+#define STARPU_VECTOR_GET_ALLOCSIZE(interface)	(((struct starpu_vector_interface *)(interface))->allocsize)
+/**
    Return the OpenMP slice base annotation of each element of the array designated by
    \p interface.
  */
 #define STARPU_VECTOR_GET_SLICE_BASE(interface)	(((struct starpu_vector_interface *)(interface))->slice_base)
 #endif
+
+/**
+   Set the number of elements registered into the array designated by \p
+   interface.
+ */
+#define STARPU_VECTOR_SET_NX(interface, newnx)	do { \
+	STARPU_VECTOR_CHECK(interface); \
+	(((struct starpu_vector_interface *)(interface))->nx) = (newnx); \
+} while(0)
 
 /** @} */
 
