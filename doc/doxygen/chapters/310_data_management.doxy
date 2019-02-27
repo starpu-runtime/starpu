@@ -183,6 +183,10 @@ transfer to overlap with computations. Otherwise, the trace will show
 that the <c>DriverCopyAsync</c> state takes a lot of time, this is
 because CUDA or OpenCL then reverts to synchronous transfers.
 
+The application can provide its own allocation function by calling
+starpu_malloc_set_hooks(). StarPU will then use them for all data handle
+allocations in the main memory.
+
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
 task modifies some data, all the other replicates are invalidated, and only the

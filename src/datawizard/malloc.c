@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2017, 2019                          CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,6 +67,15 @@ static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
 #endif
 #endif
+
+static starpu_malloc_hook malloc_hook;
+static starpu_free_hook free_hook;
+
+void starpu_malloc_set_hooks(starpu_malloc_hook _malloc_hook, starpu_free_hook _free_hook)
+{
+	malloc_hook = _malloc_hook;
+	free_hook = _free_hook;
+}
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -173,6 +182,12 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			starpu_memory_allocate(dst_node, dim, flags);
 		else
 			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
+	}
+
+	if (malloc_hook)
+	{
+		ret = malloc_hook(dst_node, A, dim, flags);
+		goto end;
 	}
 
 	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
@@ -376,9 +391,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				ret = -ENOMEM;
 		}
 
-#if (defined(STARPU_SIMGRID) && (SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559)) || defined(STARPU_USE_CUDA)
 end:
-#endif
 	if (ret == 0)
 	{
 		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
@@ -440,6 +453,12 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
 {
+	if (free_hook)
+	{
+		free_hook(dst_node, A, dim, flags);
+		goto out;
+	}
+
 	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
@@ -540,9 +559,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	else
 		free(A);
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 out:
-#endif
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		starpu_memory_deallocate(dst_node, dim);

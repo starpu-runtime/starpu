@@ -56,6 +56,11 @@ int starpu_free(void *A);
 int starpu_malloc_flags(void **A, size_t dim, int flags);
 int starpu_free_flags(void *A, size_t dim, int flags);
 
+typedef int (*starpu_malloc_hook)(unsigned dst_node, void **A, size_t dim, int flags);
+typedef int (*starpu_free_hook)(unsigned dst_node, void *A, size_t dim, int flags);
+
+void starpu_malloc_set_hooks(starpu_malloc_hook malloc_hook, starpu_free_hook free_hook);
+
 int starpu_memory_pin(void *addr, size_t size);
 int starpu_memory_unpin(void *addr, size_t size);
 
