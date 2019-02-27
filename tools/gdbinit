@@ -1,7 +1,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2016, 2018  Université de Bordeaux
+# Copyright (C) 2010-2016, 2018-2019  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -639,12 +639,18 @@ define starpu-memusage
     set $wt_b = 0
     set $home = 0
     set $home_b = 0
+    set $ooc = 0
+    set $ooc_b = 0
     set $redux = 0
     set $redux_b = 0
     set $relax = 0
     set $relax_b = 0
     set $noref = 0
     set $noref_b = 0
+    set $normal = 0
+    set $normal_b = 0
+    set $owner = 0
+    set $owner_b = 0
     set $nodataref = 0
     set $nodataref_b = 0
     set $nosubdataref = 0
@@ -663,6 +669,10 @@ define starpu-memusage
         set $home = $home + 1
 	set $home_b = $home_b + $size
       end
+      if $handle->ooc
+        set $ooc = $ooc + 1
+	set $ooc_b = $ooc_b + $size
+      end
       if $mc->relaxed_coherency == 2
         set $redux = $redux + 1
 	set $redux_b = $redux_b + $size
@@ -678,6 +688,12 @@ define starpu-memusage
         end
       end
       if $mc->relaxed_coherency == 0
+        set $normal = $normal + 1
+	set $normal_b = $normal_b + $size
+	if $handle->per_node[$node].state == STARPU_OWNER
+	  set $owner = $owner + 1
+	  set $owner_b = $owner_b + $size
+	end
         if (may_free_subtree($handle,$node))
 	  set $nosubdataref = $nosubdataref + 1
 	  set $nosubdataref_b = $nosubdataref_b + $size
@@ -692,9 +708,12 @@ define starpu-memusage
     printf "  Total used: %u, %uMiB\n", $total, $total_b / 1048576
     printf "  WT: %u, %uMiB\n", $wt, $wt_b / 1048576
     printf "  home: %u, %uMiB\n", $home, $home_b / 1048576
+    printf "  OOC: %u, %uMiB\n", $ooc, $ooc_b / 1048576
     printf "  redux: %u, %uMiB\n", $redux, $redux_b / 1048576
     printf "  relax: %u, %uMiB\n", $relax, $relax_b / 1048576
     printf "  noref: %u, %uMiB\n", $noref, $noref_b / 1048576
+    printf "  normal: %u, %uMiB\n", $normal, $normal_b / 1048576
+    printf "  owner: %u, %uMiB\n", $owner, $owner_b / 1048576
     printf "  nosubdataref: %u, %uMiB\n", $nosubdataref, $nosubdataref_b / 1048576
     printf "  nodataref: %u, %uMiB\n", $nodataref, $nodataref_b / 1048576
     printf "\n  cached: %u, %uMiB\n", mc_cache_nb[$node], mc_cache_size[$node] / 1048576
