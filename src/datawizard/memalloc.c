@@ -423,7 +423,7 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	if (handle)
 	{
 		_starpu_spin_checklocked(&handle->header_lock);
-		mc->size = _starpu_data_get_size(handle);
+		mc->size = _starpu_data_get_alloc_size(handle);
 	}
 
 	if (mc->replicate)
@@ -1372,7 +1372,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
 	int ret;
-	starpu_ssize_t data_size = _starpu_data_get_size(handle);
+	starpu_ssize_t data_size = _starpu_data_get_alloc_size(handle);
 	int told_reclaiming = 0;
 	int reused = 0;
 
@@ -1430,7 +1430,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 		if (allocated_memory == -ENOMEM)
 		{
-			size_t handle_size = handle->ops->get_size(handle);
+			size_t handle_size = handle->ops->get_alloc_size(handle);
 			size_t reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
 			/* First try to flush data explicitly marked for freeing */
@@ -1689,7 +1689,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 	{
 		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
 		    (handle->per_node[i].allocated ||
-		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_size(handle)) == 1))
+		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_alloc_size(handle)) == 1))
 		{
 			/* if we can write on the disk */
 			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
@@ -1699,7 +1699,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 				for (numa = 0; numa < nnumas; numa++)
 				{
 					/* TODO : check if starpu_transfer_predict(node, i,...) is the same */
-					double time_tmp = starpu_transfer_predict(node, numa, _starpu_data_get_size(handle)) + starpu_transfer_predict(i, numa, _starpu_data_get_size(handle));
+					double time_tmp = starpu_transfer_predict(node, numa, _starpu_data_get_alloc_size(handle)) + starpu_transfer_predict(i, numa, _starpu_data_get_alloc_size(handle));
 					if (target == -1 || time_disk > time_tmp)
 					{
 						target = i;
@@ -1721,7 +1721,7 @@ static int
 choose_target(starpu_data_handle_t handle, unsigned node)
 {
 	int target = -1;
-	size_t size_handle = _starpu_data_get_size(handle);
+	size_t size_handle = _starpu_data_get_alloc_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))

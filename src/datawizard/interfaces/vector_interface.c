@@ -43,6 +43,7 @@ static void *vector_to_pointer(void *data_interface, unsigned node);
 static int vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_vector_buffer_on_node(void *data_interface, unsigned node);
 static size_t vector_interface_get_size(starpu_data_handle_t handle);
+static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle);
 static uint32_t alloc_footprint_vector_interface_crc32(starpu_data_handle_t handle);
 static int vector_compare(void *data_interface_a, void *data_interface_b);
@@ -61,6 +62,7 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.free_data_on_node = free_vector_buffer_on_node,
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
+	.get_alloc_size = vector_interface_get_alloc_size,
 	.footprint = footprint_vector_interface_crc32,
 	.alloc_footprint = alloc_footprint_vector_interface_crc32,
 	.compare = vector_compare,
@@ -238,6 +240,21 @@ static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void
 }
 
 static size_t vector_interface_get_size(starpu_data_handle_t handle)
+{
+	size_t size;
+	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(vector_interface->id == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.");
+#endif
+
+	size = vector_interface->nx * vector_interface->elemsize;
+
+	return size;
+}
+
+static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle)
 {
 	size_t size;
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)

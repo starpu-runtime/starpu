@@ -91,6 +91,7 @@ static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *p
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
+static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static uint32_t alloc_footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
@@ -109,6 +110,7 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.free_data_on_node = free_matrix_buffer_on_node,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
+	.get_alloc_size = matrix_interface_get_alloc_size,
 	.footprint = footprint_matrix_interface_crc32,
 	.alloc_footprint = alloc_footprint_matrix_interface_crc32,
 	.compare = matrix_compare,
@@ -313,6 +315,18 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 }
 
 static size_t matrix_interface_get_size(starpu_data_handle_t handle)
+{
+	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
+#endif
+
+	return matrix_interface->nx * matrix_interface->ny * matrix_interface->elemsize;
+}
+
+static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
