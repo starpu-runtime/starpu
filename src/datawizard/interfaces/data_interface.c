@@ -1108,7 +1108,10 @@ size_t starpu_data_get_size(starpu_data_handle_t handle)
 
 size_t starpu_data_get_alloc_size(starpu_data_handle_t handle)
 {
-	return handle->ops->get_alloc_size(handle);
+	if (handle->ops->get_alloc_size)
+		return handle->ops->get_alloc_size(handle);
+	else
+		return handle->ops->get_size(handle);
 }
 
 void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)

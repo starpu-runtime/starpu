@@ -1430,7 +1430,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 		if (allocated_memory == -ENOMEM)
 		{
-			size_t handle_size = handle->ops->get_alloc_size(handle);
+			size_t handle_size = _starpu_data_get_alloc_size(handle);
 			size_t reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
 			/* First try to flush data explicitly marked for freeing */
