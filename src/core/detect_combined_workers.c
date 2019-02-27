@@ -26,6 +26,8 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
+int _starpu_initialized_combined_workers;
+
 static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
 {
 	struct _starpu_hwloc_userdata *data = obj->userdata;
@@ -357,6 +359,10 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
 	/* FIXME: this seems to be lacking shutdown support? */
+
+	if (_starpu_initialized_combined_workers)
+		return;
+	_starpu_initialized_combined_workers = 1;
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 

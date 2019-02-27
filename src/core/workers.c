@@ -33,6 +33,7 @@
 #include <core/debug.h>
 #include <core/disk.h>
 #include <core/task.h>
+#include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <sched_policies/sched_component.h>
@@ -1753,6 +1754,7 @@ void starpu_shutdown(void)
 	free(_starpu_config.topology.tree);
 #endif
 	_starpu_destroy_topology(&_starpu_config);
+	_starpu_initialized_combined_workers = 0;
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
 #endif
