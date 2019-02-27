@@ -58,7 +58,8 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned ho
 		.elemsize = elemsize,
                 .dev_handle = ptr,
 		.slice_base = 0,
-                .offset = 0
+                .offset = 0,
+		.allocsize = nx * elemsize,
 	};
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_my_vector_ops);
