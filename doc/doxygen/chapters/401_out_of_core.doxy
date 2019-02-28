@@ -46,7 +46,7 @@ disk, e.g. a file name in the \c stdio or \c unistd cases, or a database key in 
 data handle. StarPU will then use this file as external source of data, and
 automatically read and write data as appropriate.
 
-In any case, the user also needs to set STARPU_LIMIT_CPU_MEM to the amount of
+In any case, the user also needs to set \ref STARPU_LIMIT_CPU_MEM to the amount of
 data that StarPU will be allowed to afford. By default StarPU will use the
 machine memory size, but part of it is taken by the kernel, the system,
 daemons, and the application's own allocated data, whose size can not be
@@ -79,10 +79,10 @@ caching in the kernel), \c unistd_o_direct (no caching), \c leveldb, or \c hdf5.
 
 It is important to understand that when the backend is not set to \c
 unistd_o_direct, some caching will occur at the kernel level (the page cache),
-which will also consume memory... STARPU_LIMIT_CPU_MEM might need to be set
+which will also consume memory... \ref STARPU_LIMIT_CPU_MEM might need to be set
 to less that half of the machine memory just to leave room for the kernel's
 page cache, otherwise the kernel will struggle to get memory. Using \c
-unistd_o_direct avoids this caching, thus allowing to set STARPU_LIMIT_CPU_MEM
+unistd_o_direct avoids this caching, thus allowing to set \ref STARPU_LIMIT_CPU_MEM
 to the machine memory size (minus some memory for normal kernel operations,
 system daemons, and application data).
 
