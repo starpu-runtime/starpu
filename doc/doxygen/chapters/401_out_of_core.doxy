@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013-2017                                CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2013-2014,2017-2018                           Université de Bordeaux
+ * Copyright (C) 2013-2014,2017-2019                      Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,6 +46,12 @@ leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a 
 data handle. StarPU will then use this file as external source of data, and
 automatically read and write data as appropriate.
 
+In any case, the user also needs to set STARPU_LIMIT_CPU_MEM to the amount of
+data that StarPU will be allowed to afford. By default StarPU will use the
+machine memory size, but part of it is taken by the kernel, the system,
+daemons, and the application's own allocated data, whose size can not be
+predicted. That is why the user needs to specify what StarPU can afford.
+
 \section UseANewDiskMemory Use a new disk memory
 
 To use a disk memory node, you have to register it with this function:
@@ -68,10 +74,19 @@ export STARPU_DISK_SWAP_BACKEND=unistd
 export STARPU_DISK_SWAP_SIZE=200
 \endverbatim
 
-The backend can be set to stdio (some caching is done by libc), unistd (only
-caching in the kernel), unistd_o_direct (no caching), leveldb, or hdf5.
+The backend can be set to \c stdio (some caching is done by \c libc and the kernel), \c unistd (only
+caching in the kernel), \c unistd_o_direct (no caching), \c leveldb, or \c hdf5.
 
-When that register call is made, StarPU will benchmark the disk. This can
+It is important to understand that when the backend is not set to \c
+unistd_o_direct, some caching will occur at the kernel level (the page cache),
+which will also consume memory... STARPU_LIMIT_CPU_MEM might need to be set
+to less that half of the machine memory just to leave room for the kernel's
+page cache, otherwise the kernel will struggle to get memory. Using \c
+unistd_o_direct avoids this caching, thus allowing to set STARPU_LIMIT_CPU_MEM
+to the machine memory size (minus some memory for normal kernel operations,
+system daemons, and application data).
+
+When the register call is made, StarPU will benchmark the disk. This can
 take some time.
 
 <strong>Warning: the size thus has to be at least \ref STARPU_DISK_SIZE_MIN bytes ! </strong> 
