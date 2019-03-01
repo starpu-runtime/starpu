@@ -1330,15 +1330,21 @@ if test x$enable_cuda = xyes; then
 	CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
 	SAVED_LDFLAGS="${LDFLAGS}"
 	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	SAVED_LIBS="${LIBS}"
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 
-	AC_CHECK_LIB([cusparse], [cusparseCreate])
+	AC_CHECK_LIB([cusparse], [cusparseCreate],
+		     [AC_DEFINE([HAVE_LIBCUSPARSE], [1], [Define to 1 if you have the cusparse library])
+		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 
 	AC_CHECK_HEADER([nvml.h],
-	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption])])
+	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption],
+		        [AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
+		         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"])])
         CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"
+	LIBS="${SAVED_LIBS}"
 fi
 
 dnl Hey dude, are you around?
