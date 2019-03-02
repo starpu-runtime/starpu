@@ -663,6 +663,8 @@ define starpu-memusage
     set $reading_b = 0
     set $writing = 0
     set $writing_b = 0
+    set $overwriting = 0
+    set $overwriting_b = 0
     set $mc = mc_list[$node]->_head
     set pagination off
     while $mc != 0
@@ -723,20 +725,30 @@ define starpu-memusage
 	  set $nodataref_b = $nodataref_b + $size
 	else
 	  set $r = 0
+	  set $w = 0
 	  set $_node = 0
 	  while $_node < _starpu_descr.nnodes
 	    set $_node = $_node + 1
-	    if $_node != $node && $handle->per_node[$node].request[$_node] != 0
-	      set $r = $r + 1
+	    if $_node != $node
+	      if $handle->per_node[$_node].request[$node] != 0
+		set $r = $r + 1
+	      end
+	      if $handle->per_node[$node].request[$_node] != 0
+		set $w = $w + 1
+	      end
 	    end
 	  end
 	  if $r != 0
 	    set $reading = $reading + 1
 	    set $reading_b = $reading_b + $size
 	  end
-	  if $handle->per_node[$node].request[$node] != 0
+	  if $w != 0
 	    set $writing = $writing + 1
 	    set $writing_b = $writing_b + $size
+	  end
+	  if $handle->per_node[$node].request[$node] != 0
+	    set $overwriting = $overwriting + 1
+	    set $overwriting_b = $overwriting_b + $size
 	  end
         end
       end
@@ -759,6 +771,7 @@ define starpu-memusage
     printf "    nodataref: %u, %uMiB\n", $nodataref, $nodataref_b / 1048576
     printf "    reading: %u, %uMiB\n", $reading, $reading_b / 1048576
     printf "    writing: %u, %uMiB\n", $writing, $writing_b / 1048576
+    printf "    overwriting: %u, %uMiB\n", $overwriting, $overwriting_b / 1048576
     printf "\n  cached: %u, %uMiB\n", mc_cache_nb[$node], mc_cache_size[$node] / 1048576
     set $node = $node + 1
   end
