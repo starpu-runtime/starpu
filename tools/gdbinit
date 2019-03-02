@@ -656,10 +656,14 @@ define starpu-memusage
     set $nosubdataref = 0
     set $nosubdataref_b = 0
     set $mc = mc_list[$node]->_head
+    set pagination off
     while $mc != 0
       set $handle = $mc->data
       set $size = _starpu_data_get_size($handle)
       set $total = $total + 1
+      if $total % 100 == 0
+        printf "\rinspected %d data...", $total
+      end
       set $total_b = $total_b + $size
       if $handle->wt_mask & (1 << $node)
         set $wt = $wt + 1
@@ -705,6 +709,8 @@ define starpu-memusage
       end
       set $mc = $mc->_next
     end
+    set pagination on
+    printf "\r                               \r"
     printf "  Total used: %u, %uMiB\n", $total, $total_b / 1048576
     printf "  WT: %u, %uMiB\n", $wt, $wt_b / 1048576
     printf "  home: %u, %uMiB\n", $home, $home_b / 1048576
