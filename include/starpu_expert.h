@@ -18,10 +18,10 @@
 #ifndef __STARPU_EXPERT_H__
 #define __STARPU_EXPERT_H__
 
-/** @defgroup API_Expert_Mode Expert Mode
- *
- * @{
- */
+/**
+   @defgroup API_Expert_Mode Expert Mode
+   @{
+*/
 
 #ifdef __cplusplus
 extern "C"

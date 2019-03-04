@@ -21,10 +21,10 @@
 #ifndef __STARPU_DATA_FILTERS_H__
 #define __STARPU_DATA_FILTERS_H__
 
-/** @defgroup API_Data_Partition Data Partition
-
-    @{
- */
+/**
+   @defgroup API_Data_Partition Data Partition
+   @{
+*/
 
 #include <starpu.h>
 #include <stdarg.h>
@@ -36,7 +36,9 @@ extern "C"
 
 struct starpu_data_interface_ops;
 
-/** Describe a data partitioning operation, to be given to starpu_data_partition() */
+/**
+   Describe a data partitioning operation, to be given to starpu_data_partition()
+*/
 struct starpu_data_filter
 {
 	/**
@@ -99,37 +101,38 @@ struct starpu_data_filter
 	void *filter_arg_ptr;
 };
 
-/** @name Basic API
- *
- * @{
- */
+/**
+   @name Basic API
+   @{
+*/
 
 /**
-    Request the partitioning of \p initial_handle into several subdata
-    according to the filter \p f.
-    Here an example of how to use the function.
-    \code{.c}
-    struct starpu_data_filter f =
-    {
-      .filter_func = starpu_matrix_filter_block,
-      .nchildren = nslicesx
-    };
-    starpu_data_partition(A_handle, &f);
+   Request the partitioning of \p initial_handle into several subdata
+   according to the filter \p f.
+
+   Here an example of how to use the function.
+   \code{.c}
+   struct starpu_data_filter f =
+   {
+     .filter_func = starpu_matrix_filter_block,
+     .nchildren = nslicesx
+   };
+   starpu_data_partition(A_handle, &f);
     \endcode
 */
 void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f);
 
 /**
-   Unapply the filter which has been applied to \p root_data, thus
-   unpartitioning the data. The pieces of data are collected back into
-   one big piece in the \p gathering_node (usually ::STARPU_MAIN_RAM).
-   Tasks working on the partitioned data will be waited for
-   by starpu_data_unpartition().
+  Unapply the filter which has been applied to \p root_data, thus
+  unpartitioning the data. The pieces of data are collected back into
+  one big piece in the \p gathering_node (usually ::STARPU_MAIN_RAM).
+  Tasks working on the partitioned data will be waited for
+  by starpu_data_unpartition().
 
-   Here an example of how to use the function.
-   \code{.c}
-   starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
-   \endcode
+  Here an example of how to use the function.
+  \code{.c}
+  starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
+  \endcode
 */
 void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_node);
 
@@ -182,10 +185,10 @@ void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters,
 
 /** @} */
 
-/** @name Asynchronous API
- *
- * @{
- */
+/**
+   @name Asynchronous API
+   @{
+*/
 
 /**
    Plan to partition \p initial_handle into several subdata according to
@@ -303,44 +306,47 @@ void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name Predefined BCSR Filter Functions
- * Predefined partitioning functions for BCSR data. Examples on how to
- * use them are shown in \ref PartitioningData.
- * @{
- */
+/**
+   @name Predefined BCSR Filter Functions
+   Predefined partitioning functions for BCSR data. Examples on how to
+   use them are shown in \ref PartitioningData.
+   @{
+*/
 
 /**
    Partition a block-sparse matrix into dense matrices.
- */
+*/
 void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */
 
-/** @name Predefined CSR Filter Functions
- * Predefined partitioning functions for CSR data. Examples on how to
- * use them are shown in \ref PartitioningData.
- * @{
- */
+/**
+   @name Predefined CSR Filter Functions
+   Predefined partitioning functions for CSR data. Examples on how to
+   use them are shown in \ref PartitioningData.
+   @{
+*/
 
 /**
    Partition a block-sparse matrix into vertical block-sparse matrices.
- */
+*/
 void starpu_csr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */
 
-/** @name Predefined Matrix Filter Functions
- * Predefined partitioning functions for matrix
- * data. Examples on how to use them are shown in \ref
- * PartitioningData.
- * @{
- */
+/**
+   @name Predefined Matrix Filter Functions
+   Predefined partitioning functions for matrix
+   data. Examples on how to use them are shown in \ref
+   PartitioningData.
+   @{
+*/
 
 /**
    Partition a dense Matrix along the x dimension, thus getting (x/\p
    nparts ,y) matrices. If \p nparts does not divide x, the last
    submatrix contains the remainder.
- */
+*/
 void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
@@ -353,14 +359,14 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, s
    only be used for read-only access, as no coherency is enforced for the
    shadowed parts. A usage example is available in
    examples/filters/shadow2d.c
- */
+*/
 void starpu_matrix_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a dense Matrix along the y dimension, thus getting
    (x,y/\p nparts) matrices. If \p nparts does not divide y, the last
    submatrix contains the remainder.
- */
+*/
 void starpu_matrix_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
@@ -377,18 +383,19 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 
 /** @} */
 
-/** @name Predefined Vector Filter Functions
- * Predefined partitioning functions for vector
- * data. Examples on how to use them are shown in \ref
- * PartitioningData.
- * @{
- */
+/**
+   @name Predefined Vector Filter Functions
+   Predefined partitioning functions for vector
+   data. Examples on how to use them are shown in \ref
+   PartitioningData.
+   @{
+*/
 
 /**
    Return in \p child_interface the \p id th element of the vector
    represented by \p father_interface once partitioned in \p nparts chunks of
    equal size.
- */
+*/
 void starpu_vector_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
@@ -411,39 +418,40 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
    <c>filter_arg_ptr</c> field must point to an array of \p nparts long
    elements, each of which specifies the number of elements in each chunk
    of the partition.
- */
+*/
 void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
-   Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned into \p nparts chunks
-   according to the <c>filter_arg_ptr</c> field of \p f. The
-   <c>filter_arg_ptr</c> field must point to an array of \p nparts uint32_t
-   elements, each of which specifies the number of elements in each chunk
-   of the partition.
- */
+  Return in \p child_interface the \p id th element of the vector
+  represented by \p father_interface once partitioned into \p nparts chunks
+  according to the <c>filter_arg_ptr</c> field of \p f. The
+  <c>filter_arg_ptr</c> field must point to an array of \p nparts uint32_t
+  elements, each of which specifies the number of elements in each chunk
+  of the partition.
+*/
 void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return in \p child_interface the \p id th element of the vector
    represented by \p father_interface once partitioned in <c>2</c> chunks of
    equal size, ignoring nparts. Thus, \p id must be <c>0</c> or <c>1</c>.
- */
+*/
 void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */
 
-/** @name Predefined Block Filter Functions
- * Predefined partitioning functions for block data. Examples on how
- * to use them are shown in \ref PartitioningData. An example is
- * available in \c examples/filters/shadow3d.c
- * @{
- */
+/**
+   @name Predefined Block Filter Functions
+   Predefined partitioning functions for block data. Examples on how
+   to use them are shown in \ref PartitioningData. An example is
+   available in \c examples/filters/shadow3d.c
+   @{
+*/
 
 /**
-   Partition a block along the X dimension, thus getting
-   (x/\p nparts ,y,z) 3D matrices. If \p nparts does not divide x, the last
-   submatrix contains the remainder.
+  Partition a block along the X dimension, thus getting
+  (x/\p nparts ,y,z) 3D matrices. If \p nparts does not divide x, the last
+  submatrix contains the remainder.
  */
 void starpu_block_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
@@ -475,14 +483,14 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
    <b>IMPORTANT</b>:
    This can only be used for read-only access, as no coherency is
    enforced for the shadowed parts.
- */
+*/
 void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the Z dimension, thus getting
    (x,y,z/\p nparts) blocks. If \p nparts does not divide z, the last
    submatrix contains the remainder.
- */
+*/
 void starpu_block_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
@@ -494,7 +502,7 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
    <b>IMPORTANT</b>:
    This can only be used for read-only access, as no coherency is
    enforced for the shadowed parts.
- */
+*/
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */

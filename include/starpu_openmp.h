@@ -18,10 +18,11 @@
 #ifndef __STARPU_OPENMP_H__
 #define __STARPU_OPENMP_H__
 
-/** @defgroup API_OpenMP_Runtime_Support OpenMP Runtime Support
-    @brief This section describes the interface provided for implementing OpenMP runtimes on top of StarPU.
-    @{
- */
+/**
+   @defgroup API_OpenMP_Runtime_Support OpenMP Runtime Support
+   @brief This section describes the interface provided for implementing OpenMP runtimes on top of StarPU.
+   @{
+*/
 
 #include <starpu_config.h>
 
@@ -213,8 +214,9 @@ extern "C"
 #define __STARPU_OMP_NOTHROW __attribute__((__nothrow__))
 #endif
 
-/** @name Initialisation
-    @{
+/**
+   @name Initialisation
+   @{
 */
 
 /**
@@ -228,9 +230,10 @@ extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 
 /** @} */
 
-/** @name Parallel
-    \anchor ORS_Parallel
-    @{
+/**
+   @name Parallel
+   \anchor ORS_Parallel
+   @{
 */
 
 /**
@@ -266,9 +269,10 @@ extern int starpu_omp_master_inline(void) __STARPU_OMP_NOTHROW;
 
 /** @} */
 
-/** @name Synchronization
-    \anchor ORS_Synchronization
-    @{
+/**
+   @name Synchronization
+   \anchor ORS_Synchronization
+   @{
 */
 
 /**
@@ -317,9 +321,10 @@ extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHRO
 
 /** @} */
 
-/** @name Worksharing
-    \anchor ORS_Worksharing
-    @{
+/**
+   @name Worksharing
+   \anchor ORS_Worksharing
+   @{
 */
 
 /**
@@ -542,9 +547,10 @@ extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*
 
 /** @} */
 
-/** @name Task
-    \anchor ORS_Task
-    @{
+/**
+   @name Task
+   \anchor ORS_Task
+   @{
 */
 
 /**
@@ -604,9 +610,10 @@ extern void starpu_omp_taskloop_inline_end(const struct starpu_omp_task_region_a
 
 /** @} */
 
-/** @name API
-    \anchor ORS_API
-    @{
+/**
+   @name API
+   \anchor ORS_API
+   @{
 */
 
 /**

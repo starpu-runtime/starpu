@@ -19,11 +19,10 @@
 #ifndef __STARPU_BITMAP_H__
 #define __STARPU_BITMAP_H__
 
-/** @defgroup API_Bitmap Bitmap
-
-    @brief This is the interface for the bitmap utilities provided by StarPU.
-
-    @{
+/**
+   @defgroup API_Bitmap Bitmap
+   @brief This is the interface for the bitmap utilities provided by StarPU.
+   @{
  */
 
 #ifdef __cplusplus
@@ -33,7 +32,7 @@ extern "C"
 
 /** create a empty starpu_bitmap */
 struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
-/** free \b */
+/** free \p b */
 void starpu_bitmap_destroy(struct starpu_bitmap *b);
 
 /** set bit \p e in \p b */

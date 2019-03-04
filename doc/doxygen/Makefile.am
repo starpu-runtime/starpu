@@ -116,8 +116,6 @@ chapters =	\
 	chapters/api/mic_extensions.doxy \
 	chapters/api/scc_extensions.doxy \
 	chapters/api/parallel_tasks.doxy \
-	chapters/api/performance_model.doxy \
-	chapters/api/profiling.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/standard_memory_library.doxy \
@@ -131,7 +129,6 @@ chapters =	\
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
-	chapters/api/modularized_scheduler.doxy \
 	chapters/api/interoperability.doxy
 
 images = 	\

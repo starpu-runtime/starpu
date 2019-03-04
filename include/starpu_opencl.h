@@ -19,10 +19,10 @@
 #ifndef __STARPU_OPENCL_H__
 #define __STARPU_OPENCL_H__
 
-/** @defgroup API_OpenCL_Extensions OpenCL Extensions
- *
- * @{
- */
+/**
+   @defgroup API_OpenCL_Extensions OpenCL Extensions
+   @{
+*/
 
 #include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
@@ -51,9 +51,10 @@ struct starpu_opencl_program
 	cl_program programs[STARPU_MAXOPENCLDEVS];
 };
 
-/** @name Writing OpenCL kernels
-    @{
- */
+/**
+   @name Writing OpenCL kernels
+   @{
+*/
 
 /**
    Return the OpenCL context of the device designated by \p devid
@@ -105,17 +106,18 @@ int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
 
 /** @} */
 
-/** @name Compiling OpenCL kernels
-    Source codes for OpenCL kernels can be stored in a file or in a
-    string. StarPU provides functions to build the program executable for
-    each available OpenCL device as a cl_program object. This program
-    executable can then be loaded within a specific queue as explained in
-    the next section. These are only helpers, Applications can also fill a
-    starpu_opencl_program array by hand for more advanced use (e.g.
-    different programs on the different OpenCL devices, for relocation
-    purpose for instance).
-    @{
- */
+/**
+   @name Compiling OpenCL kernels
+   Source codes for OpenCL kernels can be stored in a file or in a
+   string. StarPU provides functions to build the program executable for
+   each available OpenCL device as a cl_program object. This program
+   executable can then be loaded within a specific queue as explained in
+   the next section. These are only helpers, Applications can also fill a
+   starpu_opencl_program array by hand for more advanced use (e.g.
+   different programs on the different OpenCL devices, for relocation
+   purpose for instance).
+   @{
+*/
 
 /**
    Store the contents of the file \p source_file_name in the buffer
@@ -182,9 +184,10 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 
 /** @} */
 
-/** @name Loading OpenCL kernels
-    @{
- */
+/**
+   @name Loading OpenCL kernels
+   @{
+*/
 
 /**
    Create a kernel \p kernel for device \p devid, on its computation
@@ -200,9 +203,10 @@ int starpu_opencl_release_kernel(cl_kernel kernel);
 
 /** @} */
 
-/** @name OpenCL Statistics
-    @{
- */
+/**
+   @name OpenCL Statistics
+   @{
+*/
 
 /**
    Collect statistics on a kernel execution.
@@ -215,9 +219,10 @@ int starpu_opencl_collect_stats(cl_event event);
 
 /** @} */
 
-/** @name OpenCL Utilities
-    @{
- */
+/**
+   @name OpenCL Utilities
+   @{
+*/
 
 /**
    Return the error message in English corresponding to \p status, an OpenCL

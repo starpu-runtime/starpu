@@ -19,9 +19,9 @@
 #ifndef __STARPU_CUDA_H__
 #define __STARPU_CUDA_H__
 
-/** @defgroup API_CUDA_Extensions CUDA Extensions
-
-    @{
+/**
+   @defgroup API_CUDA_Extensions CUDA Extensions
+   @{
  */
 
 #include <starpu_config.h>
@@ -36,49 +36,60 @@ extern "C"
 {
 #endif
 
-/** Report a CUBLAS error. */
+/**
+   Report a CUBLAS error.
+*/
 void starpu_cublas_report_error(const char *func, const char *file, int line, int status);
 
-/** Calls starpu_cublas_report_error(), passing the current function, file and line position.*/
+/**
+   Call starpu_cublas_report_error(), passing the current function, file and line position.
+*/
 #define STARPU_CUBLAS_REPORT_ERROR(status) starpu_cublas_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
-/** Report a CUDA error. */
+/**
+   Report a CUDA error.
+*/
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status);
 
-/** Calls starpu_cuda_report_error(), passing the current function, file and line position.*/
+/**
+   Call starpu_cuda_report_error(), passing the current function, file and line position.
+*/
 #define STARPU_CUDA_REPORT_ERROR(status) starpu_cuda_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
 /**
-    Return the current worker’s CUDA stream. StarPU
-    provides a stream for every CUDA device controlled by StarPU. This
-    function is only provided for convenience so that programmers can
-    easily use asynchronous operations within codelets without having to
-    create a stream by hand. Note that the application is not forced to
-    use the stream provided by starpu_cuda_get_local_stream() and may also
-    create its own streams. Synchronizing with <c>cudaThreadSynchronize()</c> is
-    allowed, but will reduce the likelihood of having all transfers
-    overlapped.
+   Return the current worker’s CUDA stream. StarPU provides a stream
+   for every CUDA device controlled by StarPU. This function is only
+   provided for convenience so that programmers can easily use
+   asynchronous operations within codelets without having to create a
+   stream by hand. Note that the application is not forced to use the
+   stream provided by starpu_cuda_get_local_stream() and may also
+   create its own streams. Synchronizing with
+   <c>cudaThreadSynchronize()</c> is allowed, but will reduce the
+   likelihood of having all transfers overlapped.
 */
 cudaStream_t starpu_cuda_get_local_stream(void);
 
-/** Return a pointer to device properties for worker \p workerid (assumed to be a CUDA worker). */
+/**
+   Return a pointer to device properties for worker \p workerid
+   (assumed to be a CUDA worker).
+*/
 const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid);
 
 /**
-    Copy \p ssize bytes from the pointer \p src_ptr on \p src_node
-    to the pointer \p dst_ptr on \p dst_node. The function first tries to
-    copy the data asynchronous (unless \p stream is <c>NULL</c>). If the
-    asynchronous copy fails or if \p stream is <c>NULL</c>, it copies the
-    data synchronously. The function returns <c>-EAGAIN</c> if the
-    asynchronous launch was successfull. It returns 0 if the synchronous
-    copy was successful, or fails otherwise.
+   Copy \p ssize bytes from the pointer \p src_ptr on \p src_node
+   to the pointer \p dst_ptr on \p dst_node. The function first tries to
+   copy the data asynchronous (unless \p stream is <c>NULL</c>). If the
+   asynchronous copy fails or if \p stream is <c>NULL</c>, it copies the
+   data synchronously. The function returns <c>-EAGAIN</c> if the
+   asynchronous launch was successfull. It returns 0 if the synchronous
+   copy was successful, or fails otherwise.
 */
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind);
 
 /**
-    Calls <c>cudaSetDevice(\p devid)</c> or <c>cudaGLSetGLDevice(\p devid)</c>,
-    according to whether \p devid is among the field
-    starpu_conf::cuda_opengl_interoperability.
+   Call <c>cudaSetDevice(\p devid)</c> or <c>cudaGLSetGLDevice(\p devid)</c>,
+   according to whether \p devid is among the field
+   starpu_conf::cuda_opengl_interoperability.
 */
 void starpu_cuda_set_device(unsigned devid);
 
