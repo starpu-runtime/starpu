@@ -18,9 +18,9 @@
 #ifndef __STARPU_CUBLAS_H__
 #define __STARPU_CUBLAS_H__
 
-/** @ingroup API_CUDA_Extensions
-
-    @{
+/**
+   @ingroup API_CUDA_Extensions
+   @{
  */
 
 #ifdef __cplusplus
@@ -38,10 +38,11 @@ extern "C"
 void starpu_cublas_init(void);
 
 /**
-   Set the proper CUBLAS stream for CUBLAS v1. This must be called from the CUDA
-   codelet before calling CUBLAS v1 kernels, so that they are queued on the proper
-   CUDA stream. When using one thread per CUDA worker, this function does not
-   do anything since the CUBLAS stream does not change, and is set once by
+   Set the proper CUBLAS stream for CUBLAS v1. This must be called
+   from the CUDA codelet before calling CUBLAS v1 kernels, so that
+   they are queued on the proper CUDA stream. When using one thread
+   per CUDA worker, this function does not do anything since the
+   CUBLAS stream does not change, and is set once by
    starpu_cublas_init().
 */
 void starpu_cublas_set_stream(void);

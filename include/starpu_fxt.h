@@ -21,10 +21,10 @@
 #ifndef __STARPU_FXT_H__
 #define __STARPU_FXT_H__
 
-/** @defgroup API_FxT_Support FxT Support
- *
- * @{
- */
+/**
+   @defgroup API_FxT_Support FxT Support
+   @{
+*/
 
 #include <starpu_perfmodel.h>
 

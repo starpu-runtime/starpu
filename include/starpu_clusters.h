@@ -19,9 +19,9 @@
 #ifndef __STARPU_CLUSTERS_UTIL_H__
 #define __STARPU_CLUSTERS_UTIL_H__
 
-/** @defgroup API_Clustering_Machine Clustering Machine
-
-    @{
+/**
+   @defgroup API_Clustering_Machine Clustering Machine
+   @{
  */
 
 #ifdef STARPU_HAVE_HWLOC

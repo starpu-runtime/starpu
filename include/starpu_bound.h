@@ -18,12 +18,11 @@
 #ifndef __STARPU_BOUND_H__
 #define __STARPU_BOUND_H__
 
-/** @defgroup API_Theoretical_Lower_Bound_on_Execution_Time Theoretical Lower Bound on Execution Time
-
-    @brief Compute theoretical upper computation efficiency bound corresponding to some actual execution.
-
-    @{
- */
+/**
+   @defgroup API_Theoretical_Lower_Bound_on_Execution_Time Theoretical Lower Bound on Execution Time
+   @brief Compute theoretical upper computation efficiency bound corresponding to some actual execution.
+   @{
+*/
 
 #include <stdio.h>
 
@@ -32,34 +31,46 @@ extern "C"
 {
 #endif
 
-/** Start recording tasks (resets stats). \p deps tells whether dependencies should be recorded too (this is quite expensive) */
+/**
+   Start recording tasks (resets stats). \p deps tells whether
+   dependencies should be recorded too (this is quite expensive)
+*/
 void starpu_bound_start(int deps, int prio);
-/** Stop recording tasks */
+
+/**
+   Stop recording tasks
+*/
 void starpu_bound_stop(void);
 
-/** Emit the DAG that was recorded on \p output. */
+/**
+   Emit the DAG that was recorded on \p output.
+*/
 void starpu_bound_print_dot(FILE *output);
 
-/** Get theoretical upper bound (in ms) (needs glpk support
-    detected by configure script). It returns 0 if some performance models
-    are not calibrated.
+/**
+   Get theoretical upper bound (in ms) (needs glpk support detected by
+   configure script). It returns 0 if some performance models are not
+   calibrated.
 */
 void starpu_bound_compute(double *res, double *integer_res, int integer);
 
-/** Emit the Linear Programming system on \p output for the recorded
-    tasks, in the lp format
+/**
+   Emit the Linear Programming system on \p output for the recorded
+   tasks, in the lp format
 */
 void starpu_bound_print_lp(FILE *output);
 
-/** Emit the Linear Programming system on \p output for the recorded
-    tasks, in the mps format
+/**
+   Emit the Linear Programming system on \p output for the recorded
+   tasks, in the mps format
 */
 void starpu_bound_print_mps(FILE *output);
 
-/** Emit on \p output the statistics of actual execution vs theoretical upper bound.
-    \p integer permits to choose between integer solving (which takes a
-    long time but is correct), and relaxed solving (which provides an
-    approximate solution).
+/**
+   Emit on \p output the statistics of actual execution vs theoretical
+   upper bound. \p integer permits to choose between integer solving
+   (which takes a long time but is correct), and relaxed solving
+   (which provides an approximate solution).
 */
 void starpu_bound_print(FILE *output, int integer);
 

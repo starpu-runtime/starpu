@@ -20,14 +20,17 @@
 #ifndef __STARPU_DISK_H__
 #define __STARPU_DISK_H__
 
-/** @defgroup API_Out_Of_Core Out Of Core
-    @{
- */
+/**
+   @defgroup API_Out_Of_Core Out Of Core
+   @{
+*/
 
 #include <sys/types.h>
 #include <starpu_config.h>
 
-/** Set of functions to manipulate datas on disk. */
+/**
+   Set of functions to manipulate datas on disk.
+*/
 struct starpu_disk_ops
 {
 	/**

@@ -18,10 +18,10 @@
 #ifndef __STARPU_MPI_MS_H__
 #define __STARPU_MPI_MS_H__
 
-/** @defgroup API_Master_Slave Master Slave Extension
- *
- * @{
- */
+/**
+   @defgroup API_Master_Slave Master Slave Extension
+   @{
+*/
 
 #include <starpu_config.h>
 

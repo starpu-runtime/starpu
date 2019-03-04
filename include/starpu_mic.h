@@ -19,10 +19,10 @@
 #ifndef __STARPU_MIC_H__
 #define __STARPU_MIC_H__
 
-/** @defgroup API_MIC_Extensions MIC Extensions
- *
- * @{
- */
+/**
+   @defgroup API_MIC_Extensions MIC Extensions
+   @{
+*/
 
 #include <starpu_config.h>
 

@@ -19,53 +19,53 @@
 #ifndef __STARPU_DATA_INTERFACES_H__
 #define __STARPU_DATA_INTERFACES_H__
 
-/** @defgroup API_Data_Interfaces Data Interfaces
+/**
+   @defgroup API_Data_Interfaces Data Interfaces
+   @brief Data management is done at a high-level in StarPU: rather than
+   accessing a mere list of contiguous buffers, the tasks may manipulate
+   data that are described by a high-level construct which we call data
+   interface.
 
-    @brief Data management is done at a high-level in StarPU: rather than
-    accessing a mere list of contiguous buffers, the tasks may manipulate
-    data that are described by a high-level construct which we call data
-    interface.
+   An example of data interface is the "vector" interface which describes
+   a contiguous data array on a spefic memory node. This interface is a
+   simple structure containing the number of elements in the array, the
+   size of the elements, and the address of the array in the appropriate
+   address space (this address may be invalid if there is no valid copy
+   of the array in the memory node). More informations on the data
+   interfaces provided by StarPU are given in \ref API_Data_Interfaces.
 
-    An example of data interface is the "vector" interface which describes
-    a contiguous data array on a spefic memory node. This interface is a
-    simple structure containing the number of elements in the array, the
-    size of the elements, and the address of the array in the appropriate
-    address space (this address may be invalid if there is no valid copy
-    of the array in the memory node). More informations on the data
-    interfaces provided by StarPU are given in \ref API_Data_Interfaces.
+   When a piece of data managed by StarPU is used by a task, the task
+   implementation is given a pointer to an interface describing a valid
+   copy of the data that is accessible from the current processing unit.
 
-    When a piece of data managed by StarPU is used by a task, the task
-    implementation is given a pointer to an interface describing a valid
-    copy of the data that is accessible from the current processing unit.
+   Every worker is associated to a memory node which is a logical
+   abstraction of the address space from which the processing unit gets
+   its data. For instance, the memory node associated to the different
+   CPU workers represents main memory (RAM), the memory node associated
+   to a GPU is DRAM embedded on the device. Every memory node is
+   identified by a logical index which is accessible from the
+   function starpu_worker_get_memory_node(). When registering a piece of
+   data to StarPU, the specified memory node indicates where the piece of
+   data initially resides (we also call this memory node the home node of
+   a piece of data).
 
-    Every worker is associated to a memory node which is a logical
-    abstraction of the address space from which the processing unit gets
-    its data. For instance, the memory node associated to the different
-    CPU workers represents main memory (RAM), the memory node associated
-    to a GPU is DRAM embedded on the device. Every memory node is
-    identified by a logical index which is accessible from the
-    function starpu_worker_get_memory_node(). When registering a piece of
-    data to StarPU, the specified memory node indicates where the piece of
-    data initially resides (we also call this memory node the home node of
-    a piece of data).
+   In the case of NUMA systems, functions starpu_memory_nodes_numa_devid_to_id()
+   and starpu_memory_nodes_numa_id_to_devid() can be used to convert from NUMA node
+   numbers as seen by the Operating System and NUMA node numbers as seen by StarPU.
 
-    In the case of NUMA systems, functions starpu_memory_nodes_numa_devid_to_id()
-    and starpu_memory_nodes_numa_id_to_devid() can be used to convert from NUMA node
-    numbers as seen by the Operating System and NUMA node numbers as seen by StarPU.
+   There are several ways to register a memory region so that it can be
+   managed by StarPU. StarPU provides data interfaces for vectors, 2D
+   matrices, 3D matrices as well as BCSR and CSR sparse matrices.
 
-    There are several ways to register a memory region so that it can be
-    managed by StarPU. StarPU provides data interfaces for vectors, 2D
-    matrices, 3D matrices as well as BCSR and CSR sparse matrices.
+   Each data interface is provided with a set of field access functions.
+   The ones using a <c>void *</c> parameter aimed to be used in codelet
+   implementations (see for example the code in
+   \ref VectorScalingUsingStarPUAPI).
 
-    Each data interface is provided with a set of field access functions.
-    The ones using a <c>void *</c> parameter aimed to be used in codelet
-    implementations (see for example the code in
-    \ref VectorScalingUsingStarPUAPI).
+   Applications can provide their own interface as shown in \ref DefiningANewDataInterface.
 
-    Applications can provide their own interface as shown in \ref DefiningANewDataInterface.
-
-    @{
- */
+   @{
+*/
 
 #include <starpu.h>
 
@@ -538,9 +538,11 @@ struct starpu_data_interface_ops
 	char *name;
 };
 
-/** @name Basic API
-    @{
-    */
+/**
+   @name Basic API
+   @{
+*/
+
 /**
    Register a piece of data into the handle located at the
    \p handleptr address. The \p data_interface buffer contains the initial
@@ -706,13 +708,16 @@ void starpu_malloc_on_node_set_default_flags(unsigned node, int flags);
 
 /** @} */
 
-/** @name Accessing Matrix Data Interfaces
-    @{
- */
+/**
+   @name Accessing Matrix Data Interfaces
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
 
-/** Matrix interface for dense matrices */
+/**
+   Matrix interface for dense matrices
+*/
 struct starpu_matrix_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
@@ -875,13 +880,16 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name Accessing COO Data Interfaces
-    @{
- */
+/**
+   @name Accessing COO Data Interfaces
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_coo_ops;
 
-/** COO Matrices */
+/**
+   COO Matrices
+*/
 struct starpu_coo_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
@@ -964,15 +972,18 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, ui
 
 /** @} */
 
-/** @name Block Data Interface
-    @{
- */
+/**
+   @name Block Data Interface
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_block_ops;
 
 /* TODO: rename to 3dmatrix? */
 /* TODO: add allocsize support */
-/** Block interface for 3D dense blocks */
+/**
+   Block interface for 3D dense blocks
+*/
 struct starpu_block_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
@@ -1115,9 +1126,10 @@ designated by \p interface.
 
 /** @} */
 
-/** @name Vector Data Interface
-    @{
- */
+/**
+   @name Vector Data Interface
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_vector_ops;
 
@@ -1241,9 +1253,10 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name Variable Data Interface
-    @{
- */
+/**
+   @name Variable Data Interface
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_variable_ops;
 
@@ -1322,9 +1335,10 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name Void Data Interface
-    @{
- */
+/**
+   @name Void Data Interface
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_void_ops;
 
@@ -1340,8 +1354,9 @@ void starpu_void_data_register(starpu_data_handle_t *handle);
 
 /** @} */
 
-/** @name CSR Data Interface
-    @{
+/**
+   @name CSR Data Interface
+   @{
  */
 
 extern struct starpu_data_interface_ops starpu_interface_csr_ops;
@@ -1473,9 +1488,10 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name BCSR Data Interface
-    @{
- */
+/**
+   @name BCSR Data Interface
+   @{
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_bcsr_ops;
 
@@ -1677,9 +1693,10 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 
 /** @} */
 
-/** @name Multiformat Data Interface
-    @{
- */
+/**
+   @name Multiformat Data Interface
+   @{
+*/
 
 /**
    Multiformat operations

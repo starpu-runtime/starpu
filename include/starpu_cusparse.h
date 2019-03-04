@@ -18,10 +18,10 @@
 #ifndef __STARPU_CUSPARSE_H__
 #define __STARPU_CUSPARSE_H__
 
-/** @ingroup API_CUDA_Extensions
-
-    @{
- */
+/**
+   @ingroup API_CUDA_Extensions
+   @{
+*/
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 #include <cusparse.h>
@@ -40,14 +40,14 @@ extern "C"
 void starpu_cusparse_init(void);
 
 /**
-   Synchronously deinitialize the CUSPARSE library on
+   @brief Synchronously deinitialize the CUSPARSE library on
    every CUDA device.
 */
 void starpu_cusparse_shutdown(void);
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 /**
-   Return the CUSPARSE handle to be used to queue CUSPARSE
+   @brief Return the CUSPARSE handle to be used to queue CUSPARSE
    kernels. It is properly initialized and configured for multistream by
    starpu_cusparse_init().
 */

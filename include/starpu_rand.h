@@ -19,9 +19,9 @@
 #ifndef __STARPU_RAND_H__
 #define __STARPU_RAND_H__
 
-/** @defgroup
- *
- * @{
+/**
+   @defgroup API_Random_Functions Random Functions
+   @{
  */
 
 #include <stdlib.h>

@@ -19,14 +19,13 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
-/** @defgroup API_Data_Management Data Management
-
-    @brief Data management facilities provided by StarPU. We show how
-    to use existing data interfaces in \ref API_Data_Interfaces, but
-    developers can design their own data interfaces if required.
-
-    @{
- */
+/**
+   @defgroup API_Data_Management Data Management
+   @brief Data management facilities provided by StarPU. We show how
+   to use existing data interfaces in \ref API_Data_Interfaces, but
+   developers can design their own data interfaces if required.
+   @{
+*/
 
 #include <starpu.h>
 
@@ -52,12 +51,12 @@ struct _starpu_data_state;
 typedef struct _starpu_data_state* starpu_data_handle_t;
 
 /**
-    Describe a StarPU data access mode
+   Describe a StarPU data access mode
 
-    Note: when adding a flag here, update
-    _starpu_detect_implicit_data_deps_with_handle
+   Note: when adding a flag here, update
+   _starpu_detect_implicit_data_deps_with_handle
 
-    Note: other STARPU_* values in include/starpu_task_util.h
+   Note: other STARPU_* values in include/starpu_task_util.h
  */
 enum starpu_data_access_mode
 {

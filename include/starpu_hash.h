@@ -19,10 +19,10 @@
 #ifndef __STARPU_HASH_H__
 #define __STARPU_HASH_H__
 
-/** @ingroup API_Data_Interfaces
- *
- * @{
- */
+/**
+   @ingroup API_Data_Interfaces
+   @{
+*/
 
 #include <stdint.h>
 #include <stddef.h>
