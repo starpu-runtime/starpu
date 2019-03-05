@@ -159,13 +159,13 @@ static unsigned with_noctxs = 0;
 static unsigned chole1 = 0;
 static unsigned chole2 = 0;
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+extern struct starpu_perfmodel chol_model_11;
+extern struct starpu_perfmodel chol_model_21;
+extern struct starpu_perfmodel chol_model_22;
 
-struct starpu_codelet cl11;
-struct starpu_codelet cl21;
-struct starpu_codelet cl22;
+extern struct starpu_codelet cl11;
+extern struct starpu_codelet cl21;
+extern struct starpu_codelet cl22;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);

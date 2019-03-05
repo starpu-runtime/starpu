@@ -294,6 +294,10 @@ void chol_cublas_codelet_update_u11(void *descr[], void *_args)
 }
 #endif/* STARPU_USE_CUDA */
 
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
+
 struct starpu_codelet cl11 =
 {
 	.type = STARPU_SEQ,
