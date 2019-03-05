@@ -20,4 +20,4 @@
 /* Initialize combined workers */
 void _starpu_sched_find_worker_combinations(int *workerids, int nworkers);
 
-int _starpu_initialized_combined_workers;
+extern int _starpu_initialized_combined_workers;
