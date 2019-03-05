@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2014,2019                      Université de Bordeaux
  * Copyright (C) 2010-2012,2015,2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,9 +24,9 @@
 #define xstr(s)        str(s)
 #define STARPU_PLU_STR(name)  xstr(STARPU_PLU(name))
 
-struct starpu_codelet STARPU_PLU(cl11);
-struct starpu_codelet STARPU_PLU(cl12);
-struct starpu_codelet STARPU_PLU(cl21);
-struct starpu_codelet STARPU_PLU(cl22);
+extern struct starpu_codelet STARPU_PLU(cl11);
+extern struct starpu_codelet STARPU_PLU(cl12);
+extern struct starpu_codelet STARPU_PLU(cl21);
+extern struct starpu_codelet STARPU_PLU(cl22);
 
 #endif // __PXLU_KERNELS_H__
