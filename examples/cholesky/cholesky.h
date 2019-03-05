@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2019                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -158,13 +158,13 @@ static unsigned with_noctxs_p = 0;
 static unsigned chole1_p = 0;
 static unsigned chole2_p = 0;
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+extern struct starpu_perfmodel chol_model_11;
+extern struct starpu_perfmodel chol_model_21;
+extern struct starpu_perfmodel chol_model_22;
 
-struct starpu_codelet cl11;
-struct starpu_codelet cl21;
-struct starpu_codelet cl22;
+extern struct starpu_codelet cl11;
+extern struct starpu_codelet cl21;
+extern struct starpu_codelet cl22;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
