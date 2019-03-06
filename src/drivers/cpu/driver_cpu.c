@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011,2012,2014-2017                      Inria
+ * Copyright (C) 2011,2012,2014-2017,2019                 Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017,2019                           CNRS
@@ -44,6 +44,7 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/disk.h>
+#include <common/knobs.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>

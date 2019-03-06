@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2011-2017,2019                           Inria
 # Copyright (C) 2012                                     Benjamin Lorendeau
 # Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018,2019                 CNRS
@@ -129,6 +129,7 @@ noinst_HEADERS = 						\
 	common/rbtree_i.h					\
 	common/prio_list.h					\
 	common/graph.h						\
+	common/knobs.h						\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -176,6 +177,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/rbtree.c						\
 	common/graph.c						\
 	common/inlines.c					\
+	common/knobs.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
