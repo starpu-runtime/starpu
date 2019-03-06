@@ -21,11 +21,6 @@
 #ifndef __STARPU_DATA_FILTERS_H__
 #define __STARPU_DATA_FILTERS_H__
 
-/**
-   @defgroup API_Data_Partition Data Partition
-   @{
-*/
-
 #include <starpu.h>
 #include <stdarg.h>
 
@@ -33,6 +28,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Data_Partition Data Partition
+   @{
+*/
 
 struct starpu_data_interface_ops;
 
@@ -507,10 +507,10 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
 
 /** @} */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif

@@ -19,10 +19,10 @@
 #ifndef __STARPU_SINK_H__
 #define __STARPU_SINK_H__
 
-/** @defgroup
- *
- * @{
- */
+/**
+   @defgroup API_Sink Sink
+   @{
+*/
 
 void starpu_sink_common_worker(int argc, char **argv);
 

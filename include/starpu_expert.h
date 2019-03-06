@@ -18,15 +18,15 @@
 #ifndef __STARPU_EXPERT_H__
 #define __STARPU_EXPERT_H__
 
-/**
-   @defgroup API_Expert_Mode Expert Mode
-   @{
-*/
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Expert_Mode Expert Mode
+   @{
+*/
 
 /**
    Wake all the workers, so they can inspect data requests and task
@@ -47,10 +47,10 @@ void starpu_progression_hook_deregister(int hook_id);
 int starpu_idle_hook_register(unsigned (*func)(void *arg), void *arg);
 void starpu_idle_hook_deregister(int hook_id);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_H__ */

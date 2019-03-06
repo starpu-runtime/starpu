@@ -19,11 +19,6 @@
 #ifndef __STARPU_CLUSTERS_UTIL_H__
 #define __STARPU_CLUSTERS_UTIL_H__
 
-/**
-   @defgroup API_Clustering_Machine Clustering Machine
-   @{
- */
-
 #ifdef STARPU_HAVE_HWLOC
 
 #include <hwloc.h>
@@ -32,6 +27,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Clustering_Machine Clustering Machine
+   @{
+ */
 
 #define STARPU_CLUSTER_MIN_NB			(1<<STARPU_MODE_SHIFT)
 #define STARPU_CLUSTER_MAX_NB			(2<<STARPU_MODE_SHIFT)
@@ -74,12 +74,12 @@ void starpu_openmp_prologue(void*);
 void starpu_gnu_openmp_mkl_prologue(void*);
 #endif /* STARPU_MKL */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-/** @} */
 
 #endif /* __STARPU_CLUSTERS_UTIL_H__ */

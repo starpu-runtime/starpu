@@ -19,12 +19,12 @@
 #ifndef __STARPU_SCC_H__
 #define __STARPU_SCC_H__
 
+#include <starpu_config.h>
+
 /**
    @defgroup API_SCC_Extensions SCC Extensions
    @{
 */
-
-#include <starpu_config.h>
 
 #ifdef STARPU_USE_SCC
 

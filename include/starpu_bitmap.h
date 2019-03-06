@@ -19,16 +19,16 @@
 #ifndef __STARPU_BITMAP_H__
 #define __STARPU_BITMAP_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
    @defgroup API_Bitmap Bitmap
    @brief This is the interface for the bitmap utilities provided by StarPU.
    @{
  */
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /** create a empty starpu_bitmap */
 struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
@@ -62,10 +62,10 @@ int starpu_bitmap_next(struct starpu_bitmap *b, int e);
 /** todo */
 int starpu_bitmap_has_next(struct starpu_bitmap *b, int e);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif

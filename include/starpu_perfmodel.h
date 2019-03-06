@@ -21,11 +21,6 @@
 #ifndef __STARPU_PERFMODEL_H__
 #define __STARPU_PERFMODEL_H__
 
-/**
-   @defgroup API_Performance_Model Performance Model
-   @{
-*/
-
 #include <starpu.h>
 #include <stdio.h>
 
@@ -33,6 +28,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Performance_Model Performance Model
+   @{
+*/
 
 struct starpu_task;
 struct starpu_data_descr;
@@ -432,10 +432,10 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 */
 extern struct starpu_perfmodel starpu_perfmodel_nop;
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_PERFMODEL_H__ */

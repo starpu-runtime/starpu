@@ -19,11 +19,6 @@
 #ifndef __STARPU_MIC_H__
 #define __STARPU_MIC_H__
 
-/**
-   @defgroup API_MIC_Extensions MIC Extensions
-   @{
-*/
-
 #include <starpu_config.h>
 
 #ifdef STARPU_USE_MIC
@@ -32,6 +27,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_MIC_Extensions MIC Extensions
+   @{
+*/
 
 /**
    Type for MIC function symbols
@@ -52,12 +52,12 @@ int starpu_mic_register_kernel(starpu_mic_func_symbol_t *symbol, const char *fun
 */
 starpu_mic_kernel_t starpu_mic_get_kernel(starpu_mic_func_symbol_t symbol);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* STARPU_USE_MIC */
-
-/** @} */
 
 #endif /* __STARPU_MIC_H__ */

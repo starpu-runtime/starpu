@@ -18,11 +18,6 @@
 #ifndef __STARPU_DRIVER_H__
 #define __STARPU_DRIVER_H__
 
-/**
-   @defgroup API_Running_Drivers Running Drivers
-   @{
-*/
-
 #include <starpu_config.h>
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 #include <starpu_opencl.h>
@@ -32,6 +27,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Running_Drivers Running Drivers
+   @{
+*/
 
 /**
    structure for a driver
@@ -93,10 +93,10 @@ int starpu_driver_run_once(struct starpu_driver *d);
 */
 int starpu_driver_deinit(struct starpu_driver *d);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_DRIVER_H__ */

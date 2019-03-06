@@ -19,11 +19,6 @@
 #ifndef __STARPU_CUDA_H__
 #define __STARPU_CUDA_H__
 
-/**
-   @defgroup API_CUDA_Extensions CUDA Extensions
-   @{
- */
-
 #include <starpu_config.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
@@ -35,6 +30,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_CUDA_Extensions CUDA Extensions
+   @{
+ */
 
 /**
    Report a CUBLAS error.
@@ -93,12 +93,12 @@ int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr,
 */
 void starpu_cuda_set_device(unsigned devid);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* STARPU_USE_CUDA && !STARPU_DONT_INCLUDE_CUDA_HEADERS */
-
-/** @} */
 
 #endif /* __STARPU_CUDA_H__ */

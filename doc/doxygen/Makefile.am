@@ -105,10 +105,8 @@ chapters =	\
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
-	chapters/api/explicit_dependencies.doxy \
 	chapters/api/fft_support.doxy \
 	chapters/api/initialization.doxy \
-	chapters/api/insert_task.doxy \
 	chapters/api/misc_helpers.doxy \
 	chapters/api/mpi.doxy \
 	chapters/api/opencl_extensions.doxy \
@@ -118,14 +116,9 @@ chapters =	\
 	chapters/api/parallel_tasks.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
-	chapters/api/standard_memory_library.doxy \
-	chapters/api/task_bundles.doxy \
-	chapters/api/task_lists.doxy \
-	chapters/api/top.doxy \
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
-	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
@@ -246,6 +239,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_sink.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
 	$(top_srcdir)/include/starpu_task_bundle.h	\
+	$(top_srcdir)/include/starpu_task_dep.h		\
 	$(top_srcdir)/include/starpu_task.h		\
 	$(top_srcdir)/include/starpu_task_list.h	\
 	$(top_srcdir)/include/starpu_task_util.h	\

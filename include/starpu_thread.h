@@ -16,13 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+// The documentation for this file is in doc/doxygen/chapters/api/threads.doxy
+
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
-
-/** @defgroup
- *
- * @{
- */
 
 #include <starpu_config.h>
 #include <starpu_util.h>
@@ -445,7 +442,5 @@ int starpu_sem_wait(starpu_sem_t *);
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_THREAD_H__ */

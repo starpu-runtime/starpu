@@ -19,11 +19,6 @@
 #ifndef __STARPU_OPENCL_H__
 #define __STARPU_OPENCL_H__
 
-/**
-   @defgroup API_OpenCL_Extensions OpenCL Extensions
-   @{
-*/
-
 #include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
 #ifndef CL_TARGET_OPENCL_VERSION
@@ -40,6 +35,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_OpenCL_Extensions OpenCL Extensions
+   @{
+*/
 
 /**
    Store the OpenCL programs as compiled for the different OpenCL
@@ -328,12 +328,12 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 
 /** @} */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* STARPU_USE_OPENCL */
-
-/** @} */
 
 #endif /* __STARPU_OPENCL_H__ */

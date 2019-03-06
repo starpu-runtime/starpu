@@ -19,11 +19,6 @@
 #ifndef __STARPU_RAND_H__
 #define __STARPU_RAND_H__
 
-/**
-   @defgroup API_Random_Functions Random Functions
-   @{
- */
-
 #include <stdlib.h>
 #include <starpu_config.h>
 
@@ -31,6 +26,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Random_Functions Random Functions
+   @{
+ */
 
 #ifdef STARPU_SIMGRID
 /* In simgrid mode, force using seed 0 by default to get reproducible behavior by default */
@@ -67,10 +67,10 @@ typedef int starpu_drand48_data;
 #  define starpu_erand48_r(xsubi, buffer, result)	do {(void) xsubi; (void) buffer; *(result) = ((double)(rand()) / RAND_MAX);} while (0)
 #endif
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_RAND_H__ */

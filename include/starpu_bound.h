@@ -18,18 +18,18 @@
 #ifndef __STARPU_BOUND_H__
 #define __STARPU_BOUND_H__
 
-/**
-   @defgroup API_Theoretical_Lower_Bound_on_Execution_Time Theoretical Lower Bound on Execution Time
-   @brief Compute theoretical upper computation efficiency bound corresponding to some actual execution.
-   @{
-*/
-
 #include <stdio.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Theoretical_Lower_Bound_on_Execution_Time Theoretical Lower Bound on Execution Time
+   @brief Compute theoretical upper computation efficiency bound corresponding to some actual execution.
+   @{
+*/
 
 /**
    Start recording tasks (resets stats). \p deps tells whether
@@ -74,10 +74,10 @@ void starpu_bound_print_mps(FILE *output);
 */
 void starpu_bound_print(FILE *output, int integer);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_BOUND_H__ */

@@ -54,6 +54,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_stdlib.h \
 			 @top_srcdir@/include/starpu_task_bundle.h \
 			 @top_srcdir@/include/starpu_task.h \
+			 @top_srcdir@/include/starpu_task_dep.h \
 			 @top_srcdir@/include/starpu_task_list.h \
 			 @top_srcdir@/include/starpu_task_util.h \
 			 @top_srcdir@/include/starpu_thread.h \

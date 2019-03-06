@@ -18,15 +18,15 @@
 #ifndef __STARPU_CUBLAS_H__
 #define __STARPU_CUBLAS_H__
 
-/**
-   @ingroup API_CUDA_Extensions
-   @{
- */
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+   @ingroup API_CUDA_Extensions
+   @{
+ */
 
 /**
    Initialize CUBLAS on every CUDA device. The
@@ -53,10 +53,10 @@ void starpu_cublas_set_stream(void);
 */
 void starpu_cublas_shutdown(void);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_CUBLAS_H__ */

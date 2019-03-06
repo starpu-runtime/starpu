@@ -19,15 +19,16 @@
 #ifndef __STARPU_TREE_H__
 #define __STARPU_TREE_H__
 
-/** @defgroup
- *
- * @{
- */
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Tree Tree
+   @brief This section describes the tree facilities provided by StarPU.
+   @{
+*/
 
 struct starpu_tree
 {
@@ -50,10 +51,10 @@ struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 
 void starpu_tree_free(struct starpu_tree *tree);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_TREE_H__ */

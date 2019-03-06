@@ -18,11 +18,6 @@
 #ifndef __STARPU_CUSPARSE_H__
 #define __STARPU_CUSPARSE_H__
 
-/**
-   @ingroup API_CUDA_Extensions
-   @{
-*/
-
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 #include <cusparse.h>
 #endif
@@ -31,6 +26,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @ingroup API_CUDA_Extensions
+   @{
+*/
 
 /**
    Initialize CUSPARSE on every CUDA device
@@ -54,10 +54,10 @@ void starpu_cusparse_shutdown(void);
 cusparseHandle_t starpu_cusparse_get_local_handle(void);
 #endif
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_CUSPARSE_H__ */
