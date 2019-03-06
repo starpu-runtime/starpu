@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2017,2019                           Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -558,6 +558,9 @@ struct starpu_codelet
 	   Various flags for the codelet.
 	 */
 	int flags;
+
+	struct starpu_perf_counter_sample *perf_counter_sample;
+	struct starpu_perf_counter_sample_cl_values *perf_counter_values;
 };
 
 /**

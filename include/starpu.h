@@ -84,6 +84,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_simgrid_wrap.h>
 #include <starpu_bitmap.h>
 #include <starpu_clusters.h>
+#include <starpu_perf_monitoring.h>
 
 #ifdef __cplusplus
 extern "C"

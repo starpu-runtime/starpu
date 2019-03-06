@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                Inria
+ * Copyright (C) 2010-2019                                Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -38,6 +38,7 @@
 #include <profiling/profiling.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
+#include <common/knobs.h>
 #include <top/starpu_top_core.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
@@ -619,6 +620,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->state_unblock_in_parallel_req = 0;
 	workerarg->state_unblock_in_parallel_ack = 0;
 	workerarg->block_in_parallel_ref_count = 0;
+	_starpu_perf_counter_sample_init(&workerarg->perf_counter_sample, starpu_perf_counter_scope_per_worker);
 
 	/* cpu_set/hwloc_cpu_set/hwloc_obj initialized in topology.c */
 }
@@ -631,6 +633,7 @@ static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 	starpu_pthread_wait_destroy(&workerarg->wait);
 #endif
+	_starpu_perf_counter_sample_exit(&workerarg->perf_counter_sample);
 }
 
 #ifdef STARPU_USE_FXT
@@ -1459,6 +1462,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 	_starpu_initialize_registered_performance_models();
+	_starpu_perf_counter_init();
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_cuda_init();

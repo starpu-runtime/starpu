@@ -24,6 +24,7 @@
 .dirstamp
 .tramp_history
 *.pc
+*.vim
 stamp-h[0-9]*
 starpu.log
 /gcc-plugin/include/starpu-gcc/config.h

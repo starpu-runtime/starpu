@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2015,2017,2018                      Université de Bordeaux
- * Copyright (C) 2011,2012                                Inria
+ * Copyright (C) 2011,2012,2019                           Inria
  * Copyright (C) 2010,2011,2013,2015-2017,2019            CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -26,6 +26,7 @@
 #include "driver_gordon.h"
 #include "gordon_interface.h"
 #include <core/sched_policy.h>
+#include <common/knobs.h>
 
 static unsigned progress_thread_is_inited = 0;
 
@@ -210,9 +211,13 @@ static void gordon_callback_list_func(void *arg)
 #ifndef STARPU_SIMGRID
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
 		struct starpu_perfmodel *model = j->task->cl->model;
+		double measured = (double)gordon_task->measured;
+		worker->__w_total_executed__value++;
+		worker->__w_cumul_execution_time__value += measured;
+		_starpu_perf_counter_update_per_worker_sample(worker->workerid);
+
 		if (model && model->benchmarking)
 		{
-			double measured = (double)gordon_task->measured;
 			unsigned cpuid = 0; /* XXX */
 
 			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
