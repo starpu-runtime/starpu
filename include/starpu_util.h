@@ -19,11 +19,6 @@
 #ifndef __STARPU_UTIL_H__
 #define __STARPU_UTIL_H__
 
-/** @defgroup
- *
- * @{
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -44,6 +39,11 @@
 extern "C"
 {
 #endif
+
+/** @defgroup
+ *
+ * @{
+ */
 
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define STARPU_GNUC_PREREQ(maj, min) \
@@ -487,10 +487,10 @@ struct timespec
 #include <sys/time.h>
 #endif /* _WIN32 */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_UTIL_H__ */

@@ -16,18 +16,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \defgroup API_Scheduling_Policy Scheduling Policy
-
-\brief TODO. While StarPU comes with a variety of scheduling policies
-(see \ref TaskSchedulingPolicy), it may sometimes be desirable to
-implement custom policies to address specific problems. The API
-described below allows users to write their own scheduling policy.
+/*! \ingroup API_Scheduling_Policy Scheduling Policy
 
 \def STARPU_MAXIMPLEMENTATIONS
 \ingroup API_Scheduling_Policy
 Define the maximum number of implementations per architecture. The default value can be modified at
 configure by using the option \ref enable-maximplementations "--enable-maximplementations".
 
+<<<<<<< HEAD
 \struct starpu_sched_policy
 \ingroup API_Scheduling_Policy
 Contain all the methods that implement a
@@ -299,4 +295,6 @@ started and we know how long it will take.
 The scheduling policies indicates if the worker may pop tasks from the list of other workers
 or if there is a central list with task for all the workers
 
+=======
+>>>>>>> ab85b3863... moving public api documentation from doxygen files to .h files
 */

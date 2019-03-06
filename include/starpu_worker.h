@@ -21,11 +21,6 @@
 #ifndef __STARPU_WORKER_H__
 #define __STARPU_WORKER_H__
 
-/** @defgroup
- *
- * @{
- */
-
 #include <stdlib.h>
 #include <starpu_config.h>
 #include <starpu_thread.h>
@@ -39,6 +34,11 @@
 extern "C"
 {
 #endif
+
+/** @defgroup
+ *
+ * @{
+ */
 
 enum starpu_node_kind
 {
@@ -206,10 +206,10 @@ int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_WORKER_H__ */

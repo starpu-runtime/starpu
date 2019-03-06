@@ -55,6 +55,13 @@ typedef INT_PTR intptr_t;
 #include <starpu_data_interfaces.h>
 #include <starpu_data_filters.h>
 #include <starpu_stdlib.h>
+<<<<<<< HEAD
+=======
+#include <starpu_task_bundle.h>
+#include <starpu_task_dep.h>
+#include <starpu_task.h>
+#include <starpu_worker.h>
+>>>>>>> ab85b3863... moving public api documentation from doxygen files to .h files
 #include <starpu_perfmodel.h>
 #include <starpu_worker.h>
 #include <starpu_task.h>
@@ -62,6 +69,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_task_list.h>
 #endif
 #include <starpu_task_util.h>
+#include <starpu_scheduler.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>

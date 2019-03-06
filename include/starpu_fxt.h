@@ -21,17 +21,17 @@
 #ifndef __STARPU_FXT_H__
 #define __STARPU_FXT_H__
 
-/**
-   @defgroup API_FxT_Support FxT Support
-   @{
-*/
-
 #include <starpu_perfmodel.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_FxT_Support FxT Support
+   @{
+*/
 
 #define STARPU_FXT_MAX_FILES	64
 
@@ -145,10 +145,10 @@ void starpu_fxt_trace_user_event(unsigned long code);
 */
 void starpu_fxt_trace_user_event_string(const char *s);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_FXT_H__ */

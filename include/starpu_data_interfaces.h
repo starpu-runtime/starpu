@@ -19,6 +19,23 @@
 #ifndef __STARPU_DATA_INTERFACES_H__
 #define __STARPU_DATA_INTERFACES_H__
 
+#include <starpu.h>
+
+#ifdef STARPU_USE_CUDA
+/* to use CUDA streams */
+# ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
+typedef void *starpu_cudaStream_t;
+# else
+#  include <cuda_runtime.h>
+typedef cudaStream_t starpu_cudaStream_t;
+# endif
+#endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
    @defgroup API_Data_Interfaces Data Interfaces
    @brief Data management is done at a high-level in StarPU: rather than
@@ -66,23 +83,6 @@
 
    @{
 */
-
-#include <starpu.h>
-
-#ifdef STARPU_USE_CUDA
-/* to use CUDA streams */
-# ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
-typedef void *starpu_cudaStream_t;
-# else
-#  include <cuda_runtime.h>
-typedef cudaStream_t starpu_cudaStream_t;
-# endif
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /**
    Define the per-interface methods. If the
@@ -1760,10 +1760,10 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
 
 /** @} */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_DATA_INTERFACES_H__ */

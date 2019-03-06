@@ -19,11 +19,6 @@
 #ifndef __STARPU_HASH_H__
 #define __STARPU_HASH_H__
 
-/**
-   @ingroup API_Data_Interfaces
-   @{
-*/
-
 #include <stdint.h>
 #include <stddef.h>
 
@@ -31,6 +26,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @ingroup API_Data_Interfaces
+   @{
+*/
 
 /**
    Compute the CRC of a byte buffer seeded by the \p inputcrc
@@ -56,10 +56,10 @@ uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc);
 */
 uint32_t starpu_hash_crc32c_string(const char *str, uint32_t inputcrc);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_HASH_H__ */

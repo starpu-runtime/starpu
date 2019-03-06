@@ -18,11 +18,6 @@
 #ifndef __STARPU_CUBLAS_V2_H__
 #define __STARPU_CUBLAS_V2_H__
 
-/**
-   @ingroup API_CUDA_Extensions
-   @{
- */
-
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 
 #include <cublas_v2.h>
@@ -33,18 +28,23 @@ extern "C"
 #endif
 
 /**
+   @ingroup API_CUDA_Extensions
+   @{
+ */
+
+/**
    Return the CUSPARSE handle to be used to queue CUSPARSE kernels. It
    is properly initialized and configured for multistream by
    starpu_cusparse_init().
 */
 cublasHandle_t starpu_cublas_get_local_handle(void);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-/** @} */
 
 #endif /* __STARPU_CUBLAS_V2_H__ */

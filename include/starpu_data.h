@@ -19,14 +19,6 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
-/**
-   @defgroup API_Data_Management Data Management
-   @brief Data management facilities provided by StarPU. We show how
-   to use existing data interfaces in \ref API_Data_Interfaces, but
-   developers can design their own data interfaces if required.
-   @{
-*/
-
 #include <starpu.h>
 
 #ifdef __cplusplus
@@ -35,9 +27,12 @@ extern "C"
 #endif
 
 /**
-   This macro is used when the RAM memory node is specified.
+   @defgroup API_Data_Management Data Management
+   @brief Data management facilities provided by StarPU. We show how
+   to use existing data interfaces in \ref API_Data_Interfaces, but
+   developers can design their own data interfaces if required.
+   @{
 */
-#define STARPU_MAIN_RAM 0
 
 struct _starpu_data_state;
 /**
@@ -118,15 +113,6 @@ enum starpu_data_access_mode
 				   source code.
 				*/
 	STARPU_ACCESS_MODE_MAX=(1<<7) /**< todo */
-};
-
-/**
-   Describe a data handle along with an access mode.
-*/
-struct starpu_data_descr
-{
-	starpu_data_handle_t handle; /**< data */
-	enum starpu_data_access_mode mode; /**< access mode */
 };
 
 struct starpu_data_interface_ops;
@@ -550,10 +536,10 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle);
 */
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_DATA_H__ */

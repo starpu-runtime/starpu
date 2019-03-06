@@ -19,11 +19,6 @@
 #ifndef __STARPU_PROFILING_H__
 #define __STARPU_PROFILING_H__
 
-/**
-   @defgroup API_Profiling Profiling
-   @{
-*/
-
 #include <starpu.h>
 #include <errno.h>
 #include <time.h>
@@ -32,6 +27,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Profiling Profiling
+   @{
+*/
 
 /**
    Used when calling the function starpu_profiling_status_set() to disable profiling.
@@ -304,10 +304,10 @@ void starpu_profiling_worker_helper_display_summary(void);
 */
 void starpu_data_display_memory_stats();
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_PROFILING_H__ */

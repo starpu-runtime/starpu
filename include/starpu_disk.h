@@ -20,13 +20,13 @@
 #ifndef __STARPU_DISK_H__
 #define __STARPU_DISK_H__
 
+#include <sys/types.h>
+#include <starpu_config.h>
+
 /**
    @defgroup API_Out_Of_Core Out Of Core
    @{
 */
-
-#include <sys/types.h>
-#include <starpu_config.h>
 
 /**
    Set of functions to manipulate datas on disk.

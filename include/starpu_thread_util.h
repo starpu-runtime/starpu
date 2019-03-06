@@ -16,13 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+// The documentation for this file is in doc/doxygen/chapters/api/threads.doxy
+
 #ifndef __STARPU_THREAD_UTIL_H__
 #define __STARPU_THREAD_UTIL_H__
-
-/** @defgroup
- *
- * @{
- */
 
 #include <starpu_util.h>
 #include <starpu_thread.h>
@@ -387,7 +384,5 @@ int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_m
 	}                                                                      \
 } while (0)
 #endif /* _MSC_VER */
-
-/** @} */
 
 #endif /* __STARPU_THREAD_UTIL_H__ */

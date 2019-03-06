@@ -21,11 +21,6 @@
 #ifndef __STARPU_SCHED_COMPONENT_H__
 #define __STARPU_SCHED_COMPONENT_H__
 
-/**
-   @defgroup API_Modularized_Scheduler Modularized Scheduler Interface
-   @{
-*/
-
 #include <starpu.h>
 
 #ifdef STARPU_HAVE_HWLOC
@@ -36,6 +31,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Modularized_Scheduler Modularized Scheduler Interface
+   @{
+*/
 
 /**
    flags for starpu_sched_component::properties
@@ -751,10 +751,10 @@ while(0)
 
 #define STARPU_COMPONENT_MUTEX_UNLOCK(m) STARPU_PTHREAD_MUTEX_UNLOCK((m))
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif /* __STARPU_SCHED_COMPONENT_H__ */
