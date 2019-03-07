@@ -28,8 +28,6 @@ int _starpu_initialized_combined_workers;
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 
-int _starpu_initialized_combined_workers;
-
 static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], unsigned *n)
 {
 	struct _starpu_hwloc_userdata *data = obj->userdata;
