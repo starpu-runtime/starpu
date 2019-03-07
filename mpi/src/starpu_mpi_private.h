@@ -40,8 +40,8 @@ extern "C"
 #endif
 
 #ifdef STARPU_SIMGRID
-starpu_pthread_wait_t wait;
-starpu_pthread_queue_t dontsleep;
+extern starpu_pthread_wait_t wait;
+extern starpu_pthread_queue_t dontsleep;
 
 struct _starpu_simgrid_mpi_req
 {

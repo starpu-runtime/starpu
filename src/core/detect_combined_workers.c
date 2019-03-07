@@ -23,6 +23,8 @@
 #include <math.h>
 #include <core/detect_combined_workers.h>
 
+int _starpu_initialized_combined_workers;
+
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 

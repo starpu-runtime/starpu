@@ -88,6 +88,7 @@ static int mpi_driver_task_freq = 0;
 static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
+starpu_pthread_queue_t dontsleep;
 #endif
 
 /* Count requests posted by the application and not yet submitted to MPI */
