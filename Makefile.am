@@ -69,6 +69,7 @@ pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	include/starpu.h			\
+	include/starpu_helper.h			\
 	include/starpu_bitmap.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\

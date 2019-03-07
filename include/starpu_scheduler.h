@@ -213,22 +213,8 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies();
    variable would be used to block and wake up all workers.
 */
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
+
 unsigned long starpu_task_get_job_id(struct starpu_task *task);
-
-/**
-   Must be called to wake up a worker that is sleeping on the cond.
-   Return 0 whenever the worker is not in a sleeping state or has the
-   state_keep_awake flag on.
-*/
-int starpu_wake_worker_no_relax(int workerid);
-
-/**
-   Version of starpu_wake_worker_no_relax() which assumes that the
-   sched mutex is locked
-*/
-int starpu_wake_worker_locked(int workerid);
-
-int starpu_wake_worker_relax_light(int workerid);
 
 /**
    TODO: check if this is correct
@@ -436,6 +422,42 @@ void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, voi
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 
 void starpu_sched_task_break(struct starpu_task *task);
+
+/**
+   @name Worker operations
+   @{
+*/
+
+/**
+   Wake up \p workerid while temporarily entering the current worker
+   relax state if needed during the waiting process. Return 1 if \p
+   workerid has been woken up or its state_keep_awake flag has been
+   set to \c 1, and \c 0 otherwise (if \p workerid was not in the
+   STATE_SLEEPING or in the STATE_SCHEDULING).
+*/
+int starpu_wake_worker_relax(int workerid);
+
+/**
+   Must be called to wake up a worker that is sleeping on the cond.
+   Return 0 whenever the worker is not in a sleeping state or has the
+   state_keep_awake flag on.
+*/
+int starpu_wake_worker_no_relax(int workerid);
+
+/**
+   Version of starpu_wake_worker_no_relax() which assumes that the
+   sched mutex is locked
+*/
+int starpu_wake_worker_locked(int workerid);
+
+/**
+   Light version of starpu_wake_worker_relax() which, when possible,
+   speculatively set keep_awake on the target worker without waiting
+   for the worker to enter the relax state.
+*/
+int starpu_wake_worker_relax_light(int workerid);
+
+/** @} */
 
 /** @} */
 

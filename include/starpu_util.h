@@ -40,11 +40,17 @@ extern "C"
 {
 #endif
 
-/** @defgroup
- *
- * @{
- */
+/**
+   @defgroup API_Toolbox Toolbox
+   @brief The following macros allow to make GCC extensions portable,
+   and to have a code which can be compiled with any C compiler.
+   @{
+*/
 
+/**
+   Return true (non-zero) if GCC version \p maj.\p min or later is
+   being used (macro taken from glibc.)
+*/
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define STARPU_GNUC_PREREQ(maj, min) \
 	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -52,27 +58,92 @@ extern "C"
 # define STARPU_GNUC_PREREQ(maj, min) 0
 #endif
 
+/**
+   When building with a GNU C Compiler, allow programmers to mark an
+   expression as unlikely.
+*/
 #ifdef __GNUC__
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
-#  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
-#  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
-#  define STARPU_ATTRIBUTE_NORETURN                  __attribute__((noreturn))
-#  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
-#  define STARPU_ATTRIBUTE_MALLOC                  __attribute__((malloc))
-#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
-#  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
-#  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
-#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)                  __attribute__((format(type, string, first)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
+#endif
+
+/**
+   When building with a GNU C Compiler, allow programmers to mark an
+   expression as likely.
+*/
+#ifdef __GNUC__
+#  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
+#else
 #  define STARPU_LIKELY(expr)            (expr)
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to __attribute__((unused))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
+#else
 #  define STARPU_ATTRIBUTE_UNUSED
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to __attribute__((noreturn))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_NORETURN                  __attribute__((noreturn))
+#else
 #  define STARPU_ATTRIBUTE_NORETURN
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to __attribute__((visibility ("internal")))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
+#else
 #  define STARPU_ATTRIBUTE_INTERNAL
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to __attribute__((malloc))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_MALLOC                  __attribute__((malloc))
+#else
 #  define STARPU_ATTRIBUTE_MALLOC
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to __attribute__((warn_unused_result))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
+#else
 #  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to  __attribute__((pure))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
+#else
 #  define STARPU_ATTRIBUTE_PURE
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to__attribute__((aligned(size)))
+*/
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
+#else
 #  define STARPU_ATTRIBUTE_ALIGNED(size)
+#endif
+
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_FORMAT(type, string, first)                  __attribute__((format(type, string, first)))
+#else
 #  define STARPU_ATTRIBUTE_FORMAT(type, string, first)
 #endif
 
@@ -106,11 +177,6 @@ extern "C"
 #define STARPU_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#define STARPU_POISON_PTR	((void *)0xdeadbeef)
-
-#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
-#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
-
 #define STARPU_BACKTRACE_LENGTH	32
 #ifdef __GLIBC__
 #  define STARPU_DUMP_BACKTRACE() do { \
@@ -128,22 +194,39 @@ extern "C"
 #define STARPU_SIMGRID_ASSERT(x)
 #endif
 
+/**
+   Unless StarPU has been configured with the option \ref enable-fast
+   "--enable-fast", this macro will abort if the expression \p x is false.
+*/
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)		do { if (0) { (void) (x); } } while(0)
-#define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
-#define STARPU_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); (void) msg; } } while(0)
 #else
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; } } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); assert(x); } } while (0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); assert(x); } } while(0)
-
 #  endif
-#  define STARPU_ASSERT_ACCESSIBLE(ptr)	do { \
-	volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); \
-} while(0)
+#endif
+
+#ifdef STARPU_NO_ASSERT
+#define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
+#else
+#define STARPU_ASSERT_ACCESSIBLE(ptr)	do { volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); } while(0)
+#endif
+
+/**
+   Unless StarPU has been configured with the option \ref enable-fast
+   "--enable-fast", this macro will abort if the expression \p x is false.
+   The string \p msg will be displayed.
+*/
+#ifdef STARPU_NO_ASSERT
+#define STARPU_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); (void) msg; } } while(0)
+#else
+#  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; }} while(0)
+#  else
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(x); assert(x); } } while(0)
+#  endif
 #endif
 
 #ifdef __APPLE_CC__
@@ -156,12 +239,20 @@ extern "C"
 #  define _starpu_abort() abort()
 #endif
 
+/**
+   Abort the program.
+*/
 #define STARPU_ABORT() do {                                          \
 	STARPU_DUMP_BACKTRACE();                                     \
         fprintf(stderr, "[starpu][abort][%s()@%s:%d]\n", __starpu_func__, __FILE__, __LINE__); \
 	_starpu_abort();				\
 } while(0)
 
+/**
+   Print the string '[starpu][abort][name of the calling function:name
+   of the file:line in the file]' followed by the given string \p msg
+   and abort the program
+*/
 #define STARPU_ABORT_MSG(msg, ...) do {					\
 	STARPU_DUMP_BACKTRACE();                                        \
 	fprintf(stderr, "[starpu][abort][%s()@%s:%d] " msg "\n", __starpu_func__, __FILE__, __LINE__, ## __VA_ARGS__); \
@@ -171,7 +262,7 @@ extern "C"
 #if defined(STARPU_HAVE_STRERROR_R)
 #if (! defined(__GLIBC__) || !__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (! defined(_GNU_SOURCE)))
 /* XSI-compliant version of strerror_r returns an int */
-#define starpu_strerror_r(errnum, buf, buflen) \
+#       define starpu_strerror_r(errnum, buf, buflen) \
 	do \
 	{ \
 		int _ret = strerror_r((errnum), (buf), (buflen)); \
@@ -180,7 +271,7 @@ extern "C"
 	while (0)
 #else
 /* GNU-specific version of strerror_r returns a char * */
-#define starpu_strerror_r(errnum, buf, buflen) \
+#       define starpu_strerror_r(errnum, buf, buflen) \
 	do \
 	{ \
 		char * const _user_buf = (buf); \
@@ -199,23 +290,37 @@ extern "C"
 	} \
 	while (0)
 #endif /* strerror_r ABI version */
+#endif  /* STARPU_HAVE_STRERROR_R */
 
+/**
+   Abort the program (after displaying \p message) if \p err has a
+   value which is not 0.
+*/
+#if defined(STARPU_HAVE_STRERROR_R)
 #  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
 			char xmessage[256]; starpu_strerror_r(-err, xmessage, 256); \
 			fprintf(stderr, "[starpu] Unexpected value: <%d:%s> returned for " message "\n", err, xmessage, ## __VA_ARGS__); \
-			STARPU_ABORT(); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
-			char xmessage[256]; starpu_strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "[starpu] Unexpected value: <%d!=%d:%s> returned for " message "\n", err, value, xmessage, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
 #else
 #  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
 			fprintf(stderr, "[starpu] Unexpected value: <%d> returned for " message "\n", err, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
+#endif
+
+/**
+   Abort the program (after displaying \p message) if \p err is
+   different from \p value.
+*/
+#if defined(STARPU_HAVE_STRERROR_R)
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
+			char xmessage[256]; starpu_strerror_r(-err, xmessage, 256); \
+			fprintf(stderr, "[starpu] Unexpected value: <%d!=%d:%s> returned for " message "\n", err, value, xmessage, ## __VA_ARGS__); \
+			STARPU_ABORT(); }}
+#else
 #  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
 	       		fprintf(stderr, "[starpu] Unexpected value: <%d != %d> returned for " message "\n", err, value, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
-#endif /* STARPU_HAVE_STRERROR_R */
+#endif
 
 #if defined(__i386__) || defined(__x86_64__)
 
@@ -353,109 +458,35 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
+/**
+   This macro can be used to do a synchronization.
+*/
 #if defined(__i386__)
 #define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
 #elif defined(__KNC__) || defined(__KNF__)
 #define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
 #elif defined(__x86_64__)
 #define STARPU_RMB() __asm__ __volatile__("lfence" ::: "memory")
-#define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
 #elif defined(__ppc__) || defined(__ppc64__)
 #define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
-#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
 #else
 #define STARPU_RMB() STARPU_SYNCHRONIZE()
+#endif
+
+/**
+   This macro can be used to do a synchronization.
+*/
+#if defined(__i386__)
+#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#elif defined(__KNC__) || defined(__KNF__)
+#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
+#elif defined(__x86_64__)
+#define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
+#elif defined(__ppc__) || defined(__ppc64__)
+#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
+#else
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-extern int _starpu_silent;
-
-char *starpu_getenv(const char *str);
-
-
-static __starpu_inline int starpu_get_env_number(const char *str)
-{
-	char *strval;
-
-	strval = starpu_getenv(str);
-	if (strval)
-	{
-		/* the env variable was actually set */
-		long int val;
-		char *pcheck;
-
-		val = strtol(strval, &pcheck, 10);
-		if (*pcheck) {
-			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
-			STARPU_ABORT();
-		}
-
-		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
-		STARPU_ASSERT_MSG(val >= 0, "The value for the environment variable '%s' cannot be negative", str);
-		return (int)val;
-	}
-	else
-	{
-		/* there is no such env variable */
-		/* fprintf("There was no %s ENV\n", str); */
-		return -1;
-	}
-}
-
-static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
-{
-	int ret = starpu_get_env_number(str);
-	if (ret == -1)
-		ret = defval;
-	return ret;
-}
-
-static __starpu_inline float starpu_get_env_float_default(const char *str, float defval)
-{
-	char *strval;
-
-	strval = starpu_getenv(str);
-	if (strval)
-	{
-		/* the env variable was actually set */
-		float val;
-		char *pcheck;
-
-		val = strtof(strval, &pcheck);
-		if (*pcheck) {
-			fprintf(stderr,"The %s environment variable must contain a float\n", str);
-			STARPU_ABORT();
-		}
-
-		/* fprintf(stderr, "ENV %s WAS %f\n", str, val); */
-		return val;
-	}
-	else
-	{
-		/* there is no such env variable */
-		/* fprintf("There was no %s ENV\n", str); */
-		return defval;
-	}
-}
-
-void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
-
-void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
-
-void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
-
-double starpu_timing_now(void);
 
 #ifdef _WIN32
 /* Try to fetch the system definition of timespec */

@@ -106,8 +106,6 @@ chapters =	\
 	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/fft_support.doxy \
-	chapters/api/initialization.doxy \
-	chapters/api/misc_helpers.doxy \
 	chapters/api/mpi.doxy \
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
@@ -119,7 +117,6 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
-	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
 	chapters/api/interoperability.doxy
