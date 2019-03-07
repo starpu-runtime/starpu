@@ -162,8 +162,6 @@ extern struct starpu_worker_collection worker_tree;
    STARPU_NMAXWORKERS.
 */
 unsigned starpu_worker_get_count(void);
-unsigned starpu_combined_worker_get_count(void);
-unsigned starpu_worker_is_combined_worker(int id);
 
 /**
    Return the number of CPUs controlled by StarPU. The return value
@@ -225,10 +223,6 @@ unsigned starpu_worker_get_id_check(void);
 
 #define starpu_worker_get_id_check() _starpu_worker_get_id_check(__FILE__, __LINE__)
 int starpu_worker_get_bindid(int workerid);
-
-int starpu_combined_worker_get_id(void);
-int starpu_combined_worker_get_size(void);
-int starpu_combined_worker_get_rank(void);
 
 void starpu_sched_find_all_worker_combinations(void);
 
@@ -464,6 +458,68 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
 #endif
 
 /** @} */
+
+/** @} */
+
+/**
+   @defgroup API_Parallel_Tasks Parallel Tasks
+   @{
+*/
+
+/**
+   Return the number of different combined workers.
+*/
+unsigned starpu_combined_worker_get_count(void);
+unsigned starpu_worker_is_combined_worker(int id);
+
+/**
+   Return the identifier of the current combined worker.
+*/
+int starpu_combined_worker_get_id(void);
+
+/**
+   Return the size of the current combined worker, i.e. the total
+   number of CPUS running the same task in the case of ::STARPU_SPMD
+   parallel tasks, or the total number of threads that the task is
+   allowed to start in the case of ::STARPU_FORKJOIN parallel tasks.
+*/
+int starpu_combined_worker_get_size(void);
+
+/**
+   Return the rank of the current thread within the combined worker.
+   Can only be used in ::STARPU_FORKJOIN parallel tasks, to know which
+   part of the task to work on.
+*/
+int starpu_combined_worker_get_rank(void);
+
+/**
+   Register a new combined worker and get its identifier
+*/
+int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
+
+/**
+   Get the description of a combined worker
+*/
+int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
+
+/**
+   Variant of starpu_worker_can_execute_task() compatible with
+   combined workers
+*/
+int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
+
+/**
+   Initialise the barrier for the parallel task, and dispatch the task
+   between the different workers of the given combined worker.
+ */
+void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
+
+/**
+   Initialise the barrier for the parallel task, to be pushed to \p
+   worker_size workers (without having to explicit a given combined
+   worker).
+*/
+void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);
 
 /** @} */
 

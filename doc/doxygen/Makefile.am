@@ -111,15 +111,13 @@ chapters =	\
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
 	chapters/api/scc_extensions.doxy \
-	chapters/api/parallel_tasks.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
-	chapters/api/interoperability.doxy
+	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
 
 images = 	\
 	chapters/images/data_trace.eps \

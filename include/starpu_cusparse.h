@@ -40,14 +40,14 @@ extern "C"
 void starpu_cusparse_init(void);
 
 /**
-   @brief Synchronously deinitialize the CUSPARSE library on
+   Synchronously deinitialize the CUSPARSE library on
    every CUDA device.
 */
 void starpu_cusparse_shutdown(void);
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 /**
-   @brief Return the CUSPARSE handle to be used to queue CUSPARSE
+   Return the CUSPARSE handle to be used to queue CUSPARSE
    kernels. It is properly initialized and configured for multistream by
    starpu_cusparse_init().
 */

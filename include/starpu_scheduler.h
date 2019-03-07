@@ -299,10 +299,6 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 */
 int starpu_push_task_end(struct starpu_task *task);
 
-int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
-int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
-int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
-
 /**
    Whether \ref STARPU_PREFETCH was set
 */
