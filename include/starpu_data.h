@@ -524,18 +524,6 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
 */
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
-/**
-   Copy the content of \p src_handle into \p dst_handle. The parameter \p
-   asynchronous indicates whether the function should block or not. In
-   the case of an asynchronous call, it is possible to synchronize with
-   the termination of this operation either by the means of implicit
-   dependencies (if enabled) or by calling starpu_task_wait_for_all(). If
-   \p callback_func is not <c>NULL</c>, this callback function is executed after
-   the handle has been copied, and it is given the pointer \p
-   callback_arg as argument.
-*/
-int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
-
 /** @} */
 
 #ifdef __cplusplus
