@@ -179,9 +179,10 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 */
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
 
-/** @name Access registered data from the application
- * @{
- */
+/**
+   @name Access registered data from the application
+   @{
+*/
 
 /**
    This macro can be used to acquire data, but not require it to be
@@ -435,17 +436,18 @@ void starpu_data_wont_use(starpu_data_handle_t handle);
 */
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
 
-/** @name Implicit Data Dependencies
-    In this section, we describe how StarPU makes it possible to
-    insert implicit task dependencies in order to enforce sequential data
-    consistency. When this data consistency is enabled on a specific data
-    handle, any data access will appear as sequentially consistent from
-    the application. For instance, if the application submits two tasks
-    that access the same piece of data in read-only mode, and then a third
-    task that access it in write mode, dependencies will be added between
-    the two first tasks and the third one. Implicit data dependencies are
-    also inserted in the case of data accesses from the application.
-    @{
+/**
+   @name Implicit Data Dependencies
+   In this section, we describe how StarPU makes it possible to
+   insert implicit task dependencies in order to enforce sequential data
+   consistency. When this data consistency is enabled on a specific data
+   handle, any data access will appear as sequentially consistent from
+   the application. For instance, if the application submits two tasks
+   that access the same piece of data in read-only mode, and then a third
+   task that access it in write mode, dependencies will be added between
+   the two first tasks and the third one. Implicit data dependencies are
+   also inserted in the case of data accesses from the application.
+   @{
 */
 
 /**

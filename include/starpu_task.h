@@ -1383,9 +1383,6 @@ const char *starpu_task_get_model_name(struct starpu_task *task);
 */
 const char *starpu_task_get_name(struct starpu_task *task);
 
-void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
-void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);
-
 /**
    Allocate a task structure which is the exact duplicate of \p task.
 */

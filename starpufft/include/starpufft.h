@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2012,2014,2015,2017                 CNRS
+ * Copyright (C) 2010,2012,2014,2015,2017,2019            CNRS
  * Copyright (C) 2009,2011,2014                           Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -16,13 +16,17 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+// The documentation for this file is in doc/doxygen/chapters/api/fft_support.doxy
+
+#ifndef __STARPU_FFT_H__
+#define __STARPU_FFT_H__
+
 #include <stdio.h>
 #include <complex.h>
 #include <starpu.h>
 #ifdef STARPU_USE_CUDA
 #include <cufft.h>
-#define STARPU_CUFFT_REPORT_ERROR(status) \
-	STARPUFFT(report_error)(__starpu_func__, __FILE__, __LINE__, status)
+#define STARPU_CUFFT_REPORT_ERROR(status) STARPUFFT(report_error)(__starpu_func__, __FILE__, __LINE__, status)
 #endif /* !STARPU_USE_CUDA */
 
 #define STARPUFFT_FORWARD -1
@@ -64,3 +68,5 @@ __STARPUFFT_INTERFACE(__STARPUFFTL, long double)
 
 /* Internal use */
 extern int starpufft_last_plan_number;
+
+#endif // __STARPU_FFT_H__

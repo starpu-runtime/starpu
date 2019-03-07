@@ -73,7 +73,20 @@ extern "C"
 */
 #define STARPU_PRIORITY		 (5<<STARPU_MODE_SHIFT)
 
+/**
+   \ingroup API_MPI_Support
+   Used when calling starpu_mpi_task_insert(), must be followed by a
+   integer value which specified the node on which to execute the
+   codelet.
+ */
 #define STARPU_EXECUTE_ON_NODE	 (6<<STARPU_MODE_SHIFT)
+
+/**
+   \ingroup API_MPI_Support
+   Used when calling starpu_mpi_task_insert(), must be followed by a
+   data handle to specify that the node owning the given data will
+   execute the codelet.
+*/
 #define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
 #define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
 #define STARPU_DATA_MODE_ARRAY   (9<<STARPU_MODE_SHIFT)
@@ -126,6 +139,13 @@ extern "C"
    to execute the tasks (as specified by starpu_task::workerorder)
 */
 #define STARPU_WORKER_ORDER      (22<<STARPU_MODE_SHIFT)
+
+/**
+   \ingroup API_MPI_Support
+   Used when calling starpu_mpi_task_insert(), must be followed by a
+   identifier to a node selection policy. This is needed when several
+   nodes own data in ::STARPU_W mode.
+*/
 #define STARPU_NODE_SELECTION_POLICY (23<<STARPU_MODE_SHIFT)
 
 /**
