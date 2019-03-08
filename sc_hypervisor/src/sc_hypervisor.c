@@ -20,6 +20,7 @@
 #include <sc_hypervisor_policy.h>
 #include <starpu_config.h>
 
+starpu_pthread_mutex_t act_hypervisor_mutex;
 double hyp_overhead = 0.0;
 unsigned imposed_resize = 0;
 unsigned type_of_tasks_known = 0;
