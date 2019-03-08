@@ -3,7 +3,7 @@
  * Copyright (C) 2017                                     Guillaume Beauchamp
  * Copyright (C) 2011-2018                                CNRS
  * Copyright (C) 2014,2017                                Inria
- * Copyright (C) 2011-2017                                Université de Bordeaux
+ * Copyright (C) 2011-2017, 2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ void _starpu_mpi_comm_shutdown()
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		free(_comm->envelope);
 #ifdef STARPU_SIMGRID
-		starpu_pthread_queue_unregister(&wait, &_comm->queue);
+		starpu_pthread_queue_unregister(&_starpu_mpi_thread_wait, &_comm->queue);
 		starpu_pthread_queue_destroy(&_comm->queue);
 #endif
 		free(_comm);
@@ -133,7 +133,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 
 #ifdef STARPU_SIMGRID
 		starpu_pthread_queue_init(&_comm->queue);
-		starpu_pthread_queue_register(&wait, &_comm->queue);
+		starpu_pthread_queue_register(&_starpu_mpi_thread_wait, &_comm->queue);
 		_comm->done = 0;
 #endif
 	}

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2016,2017                           Inria
  * Copyright (C) 2010-2017, 2019                          CNRS
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,8 +40,8 @@ extern "C"
 #endif
 
 #ifdef STARPU_SIMGRID
-extern starpu_pthread_wait_t wait;
-extern starpu_pthread_queue_t dontsleep;
+extern starpu_pthread_wait_t _starpu_mpi_thread_wait;
+extern starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 
 struct _starpu_simgrid_mpi_req
 {

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
@@ -88,7 +88,8 @@ static int mpi_driver_task_freq = 0;
 static int wait_counter;
 static starpu_pthread_cond_t wait_counter_cond;
 static starpu_pthread_mutex_t wait_counter_mutex;
-starpu_pthread_queue_t dontsleep;
+starpu_pthread_wait_t _starpu_mpi_thread_wait;
+starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 #endif
 
 /* Count requests posted by the application and not yet submitted to MPI */
@@ -284,7 +285,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	newer_requests = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 #ifdef STARPU_SIMGRID
-	starpu_pthread_queue_signal(&dontsleep);
+	starpu_pthread_queue_signal(&_starpu_mpi_thread_dontsleep);
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	_STARPU_MPI_LOG_OUT();
@@ -301,7 +302,7 @@ int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag)
 	*flag = 0;
 	if (*done)
 	{
-		starpu_pthread_queue_signal(&dontsleep);
+		starpu_pthread_queue_signal(&_starpu_mpi_thread_dontsleep);
 		*flag = 1;
 	}
 	return MPI_SUCCESS;
@@ -1174,9 +1175,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		starpu_driver_init(mpi_driver);
 
 #ifdef STARPU_SIMGRID
-	starpu_pthread_wait_init(&wait);
-	starpu_pthread_queue_init(&dontsleep);
-	starpu_pthread_queue_register(&wait, &dontsleep);
+	starpu_pthread_wait_init(&_starpu_mpi_thread_wait);
+	starpu_pthread_queue_init(&_starpu_mpi_thread_dontsleep);
+	starpu_pthread_queue_register(&_starpu_mpi_thread_wait, &_starpu_mpi_thread_dontsleep);
 #endif
 
 #ifdef STARPU_USE_FXT
@@ -1203,7 +1204,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	while (running || posted_requests || !(_starpu_mpi_req_list_empty(&ready_recv_requests)) || !(_starpu_mpi_req_prio_list_empty(&ready_send_requests)) || !(_starpu_mpi_req_list_empty(&detached_requests)))// || !(_starpu_mpi_early_request_count()) || !(_starpu_mpi_sync_data_count()))
 	{
 #ifdef STARPU_SIMGRID
-		starpu_pthread_wait_reset(&wait);
+		starpu_pthread_wait_reset(&_starpu_mpi_thread_wait);
 #endif
 		/* shall we block ? */
 		unsigned block = _starpu_mpi_req_list_empty(&ready_recv_requests) && _starpu_mpi_req_prio_list_empty(&ready_send_requests) && _starpu_mpi_early_request_count() == 0 && _starpu_mpi_sync_data_count() == 0 && _starpu_mpi_req_list_empty(&detached_requests);
@@ -1419,7 +1420,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 #ifdef STARPU_SIMGRID
 		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-		starpu_pthread_wait_wait(&wait);
+		starpu_pthread_wait_wait(&_starpu_mpi_thread_wait);
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 #endif
 	}
@@ -1441,9 +1442,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_MUTEX_DESTROY(&wait_counter_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&wait_counter_cond);
 
-	starpu_pthread_queue_unregister(&wait, &dontsleep);
-	starpu_pthread_queue_destroy(&dontsleep);
-	starpu_pthread_wait_destroy(&wait);
+	starpu_pthread_queue_unregister(&_starpu_mpi_thread_wait, &_starpu_mpi_thread_dontsleep);
+	starpu_pthread_queue_destroy(&_starpu_mpi_thread_dontsleep);
+	starpu_pthread_wait_destroy(&_starpu_mpi_thread_wait);
 #endif
 
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(&detached_requests), "List of detached requests not empty");
@@ -1561,7 +1562,7 @@ void _starpu_mpi_progress_shutdown(void **value)
         STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 
 #ifdef STARPU_SIMGRID
-	starpu_pthread_queue_signal(&dontsleep);
+	starpu_pthread_queue_signal(&_starpu_mpi_thread_dontsleep);
 #endif
         STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
