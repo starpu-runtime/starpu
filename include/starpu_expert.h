@@ -44,14 +44,11 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg);
 */
 void starpu_progression_hook_deregister(int hook_id);
 
-<<<<<<< HEAD
-=======
 int starpu_idle_hook_register(unsigned (*func)(void *arg), void *arg);
 void starpu_idle_hook_deregister(int hook_id);
 
 /** @} */
 
->>>>>>> ab85b3863... moving public api documentation from doxygen files to .h files
 #ifdef __cplusplus
 }
 #endif

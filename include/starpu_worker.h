@@ -224,15 +224,6 @@ unsigned starpu_worker_get_id_check(void);
 #define starpu_worker_get_id_check() _starpu_worker_get_id_check(__FILE__, __LINE__)
 int starpu_worker_get_bindid(int workerid);
 
-<<<<<<< HEAD
-int starpu_combined_worker_get_id(void);
-int starpu_combined_worker_get_size(void);
-int starpu_combined_worker_get_rank(void);
-
-<<<<<<< HEAD
-=======
-=======
->>>>>>> e8e8cf926... move documentation from separate doxygen files to public .h files
 void starpu_sched_find_all_worker_combinations(void);
 
 /**
@@ -244,7 +235,6 @@ void starpu_sched_find_all_worker_combinations(void);
    for a OpenCL device. The return value for an invalid identifier is
    unspecified.
 */
->>>>>>> 396629220... move documentation from separate doxygen files to public .h files
 enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 /**

@@ -142,8 +142,6 @@ int starpu_malloc_flags(void **A, size_t dim, int flags);
 */
 int starpu_free_flags(void *A, size_t dim, int flags);
 
-<<<<<<< HEAD
-=======
 typedef int (*starpu_malloc_hook)(unsigned dst_node, void **A, size_t dim, int flags);
 typedef int (*starpu_free_hook)(unsigned dst_node, void *A, size_t dim, int flags);
 
@@ -170,7 +168,6 @@ void starpu_malloc_set_hooks(starpu_malloc_hook malloc_hook, starpu_free_hook fr
    starpu_memory_unpin() before being freed. Return 0 on success, -1
    on error.
 */
->>>>>>> ab85b3863... moving public api documentation from doxygen files to .h files
 int starpu_memory_pin(void *addr, size_t size);
 
 /**

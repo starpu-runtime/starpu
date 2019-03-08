@@ -328,8 +328,6 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component *comp
 */
 struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
 struct starpu_sched_component *starpu_sched_component_worker_new(unsigned sched_ctx, int workerid);
-<<<<<<< HEAD
-=======
 
 /**
    Create a combined worker that pushes tasks in parallel to workers \p workers (size \p nworkers).
@@ -339,7 +337,6 @@ struct starpu_sched_component *starpu_sched_component_parallel_worker_create(str
 /**
    return the workerid of \p worker_component, undefined if starpu_sched_component_is_worker(worker_component) == 0
 */
->>>>>>> 6862bbddb... move documentation to independant doxygen files into public .h files
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component);
 
 /**
@@ -715,14 +712,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
 #define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
-<<<<<<< HEAD
-=======
 
 /**
    Request to not only choose between simple workers, but also choose between combined workers.
 */
 #define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<11)
->>>>>>> 6862bbddb... move documentation to independant doxygen files into public .h files
 
 /**
    Create a simple modular scheduler tree around a scheduling decision-making
