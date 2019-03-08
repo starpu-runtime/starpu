@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2013,2014                           Inria
  * Copyright (C) 2015                                     Mathieu Lirzin
- * Copyright (C) 2013,2017                                CNRS
+ * Copyright (C) 2013,2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,143 +26,253 @@ extern "C"
 {
 #endif
 
-/* structure to indicate when the moving of workers was actually done 
-   (moved workers can be seen in the new ctx ) */
+/**
+   @ingroup API_SC_Hypervisor
+   @{
+*/
+
+/**
+   Structure to check if the workers moved to another context are
+   actually taken into account in that context.
+*/
 struct sc_hypervisor_resize_ack
 {
-	/* receiver context */
+	/**
+	   The context receiving the new workers
+	*/
 	int receiver_sched_ctx;
-	/* list of workers required to be moved */
+
+	/**
+	   List of workers required to be moved
+	*/
 	int *moved_workers;
-	/* number of workers required to be moved */
+
+	/**
+	   Number of workers required to be moved
+	*/
 	int nmoved_workers;
-	/* list of workers that actually got in the receiver ctx */
+
+	/**
+	   List of workers that actually got in the receiver ctx. If
+	   the value corresponding to a worker is 1, this worker got
+	   moved in the new context.
+	*/
 	int *acked_workers;
 };
 
-/* wrapper attached to a sched_ctx storing monitoring information */
+/**
+   Wrapper of the contexts available in StarPU which contains all
+   information about a context obtained by incrementing the
+   performance counters. it is attached to a sched_ctx storing
+   monitoring information
+*/
 struct sc_hypervisor_wrapper
 {
-	/* the sched_ctx it monitors */
+	/**
+	   the monitored context
+	*/
 	unsigned sched_ctx;
 
-	/* user configuration meant to limit resizing */
+	/**
+	   The corresponding resize configuration
+	*/
 	struct sc_hypervisor_policy_config *config;
 
-
-	/* the start time of the resizing sample of the workers of this context*/
+	/**
+	   the start time of the resizing sample of the workers of
+	   this context
+	*/
 	double start_time_w[STARPU_NMAXWORKERS];
 
-	/* idle time of workers in this context */
+	/**
+	   The idle time counter of each worker of the context
+	*/
 	double current_idle_time[STARPU_NMAXWORKERS];
 
-	/* idle time from the last resize */
+	/**
+	   The time the workers were idle from the last resize
+	*/
 	double idle_time[STARPU_NMAXWORKERS];
 
-	/* time when the idle started */
+	/**
+	   The moment when the workers started being idle
+	*/
 	double idle_start_time[STARPU_NMAXWORKERS];
-	
-	/* time during which the worker executed tasks */
+
+	/**
+	   Time during which the worker executed tasks
+	*/
 	double exec_time[STARPU_NMAXWORKERS];
 
-	/* time when the worker started executing a task */
+	/**
+	   Time when the worker started executing a task
+	*/
 	double exec_start_time[STARPU_NMAXWORKERS];
 
-	/* list of workers that will leave this contexts (lazy resizing process) */
+	/**
+	   List of workers that will leave the context (lazy resizing
+	   process)
+	*/
 	int worker_to_be_removed[STARPU_NMAXWORKERS];
 
-	/* number of tasks pushed on each worker in this ctx */
+	/**
+	   Number of tasks pushed on each worker in this context
+	*/
 	int pushed_tasks[STARPU_NMAXWORKERS];
 
-	/* number of tasks poped from each worker in this ctx */
+	/**
+	   Number of tasks poped from each worker in this context
+	*/
 	int poped_tasks[STARPU_NMAXWORKERS];
 
-	/* number of flops the context has to execute */
+	/**
+	   The total number of flops to execute by the context
+	*/
 	double total_flops;
 
-	/* number of flops executed since the beginning until now */
+	/**
+	   The number of flops executed by each workers of the context
+	*/
 	double total_elapsed_flops[STARPU_NMAXWORKERS];
 
-	/* number of flops executed since last resizing */
+	/**
+	   number of flops executed since last resizing
+	*/
 	double elapsed_flops[STARPU_NMAXWORKERS];
 
-	/* data quantity executed on each worker in this ctx */
+	/**
+	   Quantity of data (in bytes) used to execute tasks on each
+	   worker in this context
+	*/
 	size_t elapsed_data[STARPU_NMAXWORKERS];
 
-	/* nr of tasks executed on each worker in this ctx */
+	/**
+	   Number of tasks executed on each worker in this context
+	*/
 	int elapsed_tasks[STARPU_NMAXWORKERS];
 
-	/* the average speed of the type of workers when they belonged to this context */
-	/* 0 - cuda 1 - cpu */
+	/**
+	   the average speed of the type of workers when they belonged
+	   to this context
+	   0 - cuda 1 - cpu
+	*/
 	double ref_speed[2];
 
-	/* number of flops submitted to this ctx */
+	/**
+	   Number of flops submitted to this context
+	*/
 	double submitted_flops;
 
-	/* number of flops that still have to be executed in this ctx */
+	/**
+	   Number of flops that still have to be executed by the
+	   workers in this context
+	*/
 	double remaining_flops;
-	
-	/* the start time of the resizing sample of this context*/
+
+	/**
+	   Start time of the resizing sample of this context
+	*/
 	double start_time;
 
-	/* the first time a task was pushed to this context*/
+	/**
+	   First time a task was pushed to this context
+	*/
 	double real_start_time;
-	
-	/* the start time for sample in which the hyp is not allowed to react
-	   bc too expensive */
+
+	/**
+	   Start time for sample in which the hypervisor is not allowed to
+	   react bc too expensive */
 	double hyp_react_start_time;
 
-	/* the workers don't leave the current ctx until the receiver ctx 
-	   doesn't ack the receive of these workers */
+	/**
+	   Structure confirming the last resize finished and a new one
+	   can be done.
+	   Workers do not leave the current context until the receiver
+	   context does not ack the receive of these workers
+	*/
 	struct sc_hypervisor_resize_ack resize_ack;
 
-	/* mutex to protect the ack of workers */
+	/**
+	   Mutex needed to synchronize the acknowledgment of the
+	   workers into the receiver context
+	*/
 	starpu_pthread_mutex_t mutex;
 
-	/* boolean indicating if the resizing strategy can see the
-	   flops of all the execution or not */
+	/**
+	   Boolean indicating if the hypervisor can use the flops
+	   corresponding to the entire execution of the context
+	*/
 	unsigned total_flops_available;
 
-	/* boolean indicating that a context is being sized */
+	/**
+	   boolean indicating that a context is being sized
+	*/
 	unsigned to_be_sized;
 
-	/* boolean indicating if we add the idle of this worker to 
-	   the idle of the context */
+	/**
+	   Boolean indicating if we add the idle of this worker to the
+	   idle of the context
+	*/
 	unsigned compute_idle[STARPU_NMAXWORKERS];
 
-	/* boolean indicating if we add the entiere idle of this 
-	   worker to the idle of the context or just half*/
+	/**
+	   Boolean indicating if we add the entiere idle of this
+	   worker to the idle of the context or just half
+	*/
 	unsigned compute_partial_idle[STARPU_NMAXWORKERS];
 
-	/* consider the max in the lp */
+	/**
+	   consider the max in the lp
+	*/
 	unsigned consider_max;
-
-
 };
 
-/* return the wrapper of context that saves its monitoring information */
+/**
+   Return the wrapper of the given context
+   @ingroup API_SC_Hypervisor
+*/
 struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx);
 
-/* get the list of registered contexts */
+/**
+   Get the list of registered contexts
+   @ingroup API_SC_Hypervisor
+*/
 unsigned *sc_hypervisor_get_sched_ctxs();
 
-/* get the number of registered contexts */
+/**
+   Get the number of registered contexts
+   @ingroup API_SC_Hypervisor
+*/
 int sc_hypervisor_get_nsched_ctxs();
 
-/* get the number of workers of a certain architecture in a context */
+/**
+   Get the number of workers of a certain architecture in a context
+*/
 int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_worker_archtype arch);
 
-/* get the number of flops executed by a context since last resizing (reset to 0 when a resizing is done)*/
+/**
+   Get the number of flops executed by a context since last resizing
+   (reset to 0 when a resizing is done)
+   @ingroup API_SC_Hypervisor
+*/
 double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w);
 
-/* get the number of flops executed by a context since the begining */
+/**
+   Get the number of flops executed by a context since the begining
+*/
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w);
 
-/* compute an average value of the cpu/cuda speed */
+/**
+   Compute an average value of the cpu/cuda speed
+*/
 double sc_hypervisorsc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
-/* compte the actual speed of all workers of a specific type of worker */
+/**
+   Compte the actual speed of all workers of a specific type of worker
+*/
 double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
+
+/** @} */
 
 #ifdef __cplusplus
 }

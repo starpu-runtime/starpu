@@ -115,9 +115,7 @@ chapters =	\
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
-	chapters/api/threads.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
+	chapters/api/threads.doxy
 
 images = 	\
 	chapters/images/data_trace.eps \
