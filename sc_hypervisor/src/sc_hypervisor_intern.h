@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2012,2013,2016,2017                      CNRS
+ * Copyright (C) 2012,2013,2016,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -111,8 +111,7 @@ struct sc_hypervisor_adjustment
 	int nworkers;
 };
 
-struct sc_hypervisor hypervisor;
-
+extern struct sc_hypervisor hypervisor;
 
 void _add_config(unsigned sched_ctx);
 
