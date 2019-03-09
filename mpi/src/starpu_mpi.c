@@ -1836,6 +1836,7 @@ void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 	struct _starpu_mpi_node_tag *mpi_data = data_handle->mpi_data;
 	_starpu_mpi_cache_flush(mpi_data->comm, data_handle);
 	free(data_handle->mpi_data);
+	data_handle->mpi_data = NULL;
 }
 
 void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_tag_t tag, int rank, MPI_Comm comm)
