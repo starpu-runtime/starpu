@@ -32,6 +32,7 @@ New features:
   * New scheduler 'heteroprio' with heterogeneous priorities
   * Support priorities for data transfers.
   * Add support for multiple linear regression performance models
+    - Bump performance model file format version to 45.
   * Add MPI Master-Slave support to use the cores of remote nodes. Use the
     --enable-mpi-master-slave option to activate it.
   * Add STARPU_CUDA_THREAD_PER_DEV environment variable to support driving all

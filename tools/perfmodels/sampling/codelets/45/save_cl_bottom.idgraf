@@ -1,0 +1,314 @@
+##################
+# Performance Model Version
+45
+
+####################
+# COMBs
+# number of combinations
+9
+####################
+# COMB_0
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+0
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cpu0_impl0 (Comb0)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.985465e+01   	6.158621e+00   	3.552703e+03   	1.105782e+05   	119
+fb4b8624	4427800        	0.000000e+00   	1.132689e+01   	2.249702e+00   	2.423954e+03   	2.853894e+04   	214
+f2ff9ae5	34480152       	0.000000e+00   	5.622304e+01   	1.121739e+01   	9.276802e+03   	5.423319e+05   	165
+
+####################
+# COMB_2
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb2)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.632587e+01   	4.244468e+00   	1.174134e+04   	3.171360e+05   	446
+fb4b8624	4427800        	0.000000e+00   	2.560067e+01   	2.946464e+00   	6.809779e+03   	1.766442e+05   	266
+f2ff9ae5	34480152       	0.000000e+00   	2.687395e+01   	3.041318e+00   	1.378634e+04   	3.752385e+05   	513
+
+####################
+# COMB_6
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+3
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda3_impl0 (Comb6)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.682825e+01   	3.688517e+00   	9.309402e+03   	2.544759e+05   	347
+fb4b8624	4427800        	0.000000e+00   	2.601287e+01   	3.034296e+00   	6.711320e+03   	1.769561e+05   	258
+f2ff9ae5	34480152       	0.000000e+00   	2.650277e+01   	3.250317e+00   	1.327789e+04   	3.571937e+05   	501
+
+####################
+# COMB_5
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda0_impl0 (Comb5)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.844841e+01   	4.987346e+00   	1.118023e+04   	3.278350e+05   	393
+fb4b8624	4427800        	0.000000e+00   	2.545228e+01   	3.038424e+00   	7.533874e+03   	1.944869e+05   	296
+f2ff9ae5	34480152       	0.000000e+00   	2.671593e+01   	2.977811e+00   	9.510870e+03   	2.572485e+05   	356
+
+####################
+# COMB_7
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+5
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda5_impl0 (Comb7)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.683154e+01   	3.643920e+00   	1.145707e+04   	3.130806e+05   	427
+fb4b8624	4427800        	0.000000e+00   	2.439165e+01   	2.519213e+00   	6.951620e+03   	1.713702e+05   	285
+f2ff9ae5	34480152       	0.000000e+00   	2.686670e+01   	3.337051e+00   	1.332588e+04   	3.635460e+05   	496
+
+####################
+# COMB_8
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+7
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda7_impl0 (Comb8)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.743422e+01   	5.313897e+00   	8.504608e+03   	2.420709e+05   	310
+fb4b8624	4427800        	0.000000e+00   	2.591823e+01   	3.009457e+00   	7.879143e+03   	2.069667e+05   	304
+f2ff9ae5	34480152       	0.000000e+00   	2.671837e+01   	2.963498e+00   	1.282482e+04   	3.468736e+05   	480
+
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+4
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda4_impl0 (Comb1)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.572873e+01   	2.716127e+00   	1.232406e+04   	3.206163e+05   	479
+fb4b8624	4427800        	0.000000e+00   	2.555023e+01   	2.989409e+00   	6.362008e+03   	1.647760e+05   	249
+f2ff9ae5	34480152       	0.000000e+00   	2.648407e+01   	2.593556e+00   	1.504295e+04   	4.022192e+05   	568
+
+####################
+# COMB_4
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+6
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda6_impl0 (Comb4)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.535931e+01   	2.801001e+00   	7.303480e+03   	1.874707e+05   	288
+fb4b8624	4427800        	0.000000e+00   	2.706983e+01   	4.764143e+00   	1.228970e+04   	3.429847e+05   	454
+f2ff9ae5	34480152       	0.000000e+00   	2.645378e+01   	3.704623e+00   	1.251264e+04   	3.374982e+05   	473
+
+####################
+# COMB_3
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+2
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda2_impl0 (Comb3)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+4af260f6	14678040       	0.000000e+00   	2.565071e+01   	2.881053e+00   	1.064505e+04   	2.764977e+05   	415
+fb4b8624	4427800        	0.000000e+00   	2.622930e+01   	4.388391e+00   	8.262230e+03   	2.227788e+05   	315
+f2ff9ae5	34480152       	0.000000e+00   	2.628917e+01   	2.974884e+00   	1.204044e+04   	3.205863e+05   	458
+

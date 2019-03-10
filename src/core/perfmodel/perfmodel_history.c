@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -359,7 +359,12 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	 * Multiple Regression Model
 	 */
 
-	if (model->type == STARPU_MULTIPLE_REGRESSION_BASED)
+	if (model->type != STARPU_MULTIPLE_REGRESSION_BASED)
+	{
+		fprintf(f, "# not multiple-regression-base\n");
+		fprintf(f, "0\n");
+	}
+	else
 	{
 		if (reg_model->ncoeff==0 && model->ncombinations!=0 && model->combinations!=NULL)
 		{
@@ -455,17 +460,17 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
 	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
 
+	_starpu_drop_comments(f);
+
+	// Read how many coefficients is there
+	res = fscanf(f, "%u", &reg_model->ncoeff);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
+
 	/*
 	 * Multiple Regression Model
 	 */
 	if (model_type == STARPU_MULTIPLE_REGRESSION_BASED)
 	{
-		_starpu_drop_comments(f);
-
-		// Read how many coefficients is there
-		res = fscanf(f, "%u", &reg_model->ncoeff);
-		STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
-
 		_STARPU_MALLOC(reg_model->coeff, reg_model->ncoeff*sizeof(double));
 
 		unsigned multi_invalid = 0;
@@ -479,6 +484,10 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 		reg_model->multi_valid = !multi_invalid;
 		res = fscanf(f, "\n");
 		STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
+	}
+	else
+	{
+		STARPU_ASSERT_MSG(reg_model->ncoeff == 0, "Incorrect performance model file %s", path);
 	}
 }
 

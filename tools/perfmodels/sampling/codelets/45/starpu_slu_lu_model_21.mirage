@@ -1,0 +1,144 @@
+##################
+# Performance Model Version
+45
+
+####################
+# COMBs
+# number of combinations
+4
+####################
+# COMB_3
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+0
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cpu0_impl0 (Comb3)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	3276800        	0.000000e+00   	1.373117e+04   	2.756172e+02   	7.167670e+06   	9.846014e+10   	522
+ff82dda0	7372800        	0.000000e+00   	4.545501e+04   	7.462378e+02   	1.750018e+07   	7.956851e+11   	385
+2c1922b7	819200         	0.000000e+00   	1.798916e+03   	8.480081e+01   	1.219665e+06   	2.198952e+09   	678
+
+####################
+# COMB_0
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda0_impl0 (Comb0)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	3276800        	0.000000e+00   	2.883473e+03   	4.679640e+02   	2.537456e+05   	7.509396e+08   	88
+ff82dda0	7372800        	0.000000e+00   	6.462089e+03   	4.136967e+02   	5.751259e+05   	3.731746e+09   	89
+2c1922b7	819200         	0.000000e+00   	4.040830e+02   	6.411732e+01   	3.717564e+04   	1.540026e+07   	92
+
+####################
+# COMB_2
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb2)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	3276800        	0.000000e+00   	2.231007e+03   	5.378925e+02   	3.234960e+05   	7.636746e+08   	145
+ff82dda0	7372800        	0.000000e+00   	3.904524e+03   	2.515208e+02   	4.021660e+05   	1.576783e+09   	103
+2c1922b7	819200         	0.000000e+00   	5.307827e+02   	1.276617e+02   	5.467062e+04   	3.069686e+07   	103
+
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+2
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda2_impl0 (Comb1)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	3276800        	0.000000e+00   	1.665736e+03   	1.392688e+02   	2.881723e+05   	4.833744e+08   	173
+ff82dda0	7372800        	0.000000e+00   	3.891632e+03   	2.259287e+02   	7.199519e+05   	2.811230e+09   	185
+2c1922b7	819200         	0.000000e+00   	5.125766e+02   	1.240167e+02   	5.587085e+04   	3.031453e+07   	109
+
