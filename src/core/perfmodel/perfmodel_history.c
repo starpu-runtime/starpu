@@ -418,7 +418,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 }
 #endif
 
-static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_regression_model *reg_model, enum starpu_perfmodel_type model_type)
+static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_regression_model *reg_model)
 {
 	int res;
 
@@ -469,7 +469,7 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 	/*
 	 * Multiple Regression Model
 	 */
-	if (model_type == STARPU_MULTIPLE_REGRESSION_BASED)
+	if (reg_model->ncoeff != 0)
 	{
 		_STARPU_MALLOC(reg_model->coeff, reg_model->ncoeff*sizeof(double));
 
@@ -482,13 +482,9 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 			multi_invalid = (multi_invalid||isnan(reg_model->coeff[i]));
 		}
 		reg_model->multi_valid = !multi_invalid;
-		res = fscanf(f, "\n");
-		STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
 	}
-	else
-	{
-		STARPU_ASSERT_MSG(reg_model->ncoeff == 0, "Incorrect performance model file %s", path);
-	}
+	res = fscanf(f, "\n");
+	STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
 }
 
 
@@ -560,7 +556,7 @@ static void scan_history_entry(FILE *f, const char *path, struct starpu_perfmode
 	}
 }
 
-static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history, enum starpu_perfmodel_type model_type)
+static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_perfmodel_per_arch *per_arch_model, unsigned scan_history)
 {
 	unsigned nentries;
 
@@ -569,7 +565,7 @@ static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_p
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file %s", path);
 
-	scan_reg_model(f, path, &per_arch_model->regression, model_type);
+	scan_reg_model(f, path, &per_arch_model->regression);
 
 	/* parse entries */
 	unsigned i;
@@ -627,7 +623,7 @@ static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model
 		{
 			struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
 			model->state->per_arch_is_set[comb][impl] = 1;
-			parse_per_arch_model_file(f, path, per_arch_model, scan_history, model->type);
+			parse_per_arch_model_file(f, path, per_arch_model, scan_history);
 		}
 	}
 	else
@@ -638,12 +634,7 @@ static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model
 	/* if the number of implementation is greater than STARPU_MAXIMPLEMENTATIONS
 	 * we skip the last implementation */
 	for (i = impl; i < nimpls; i++)
-	{
-		if( model != NULL)
-			parse_per_arch_model_file(f, path, &dummy, 0, model->type);
-		else
-			parse_per_arch_model_file(f, path, &dummy, 0, 0);
-	}
+		parse_per_arch_model_file(f, path, &dummy, 0);
 }
 
 static enum starpu_worker_archtype _get_enum_type(int type)
