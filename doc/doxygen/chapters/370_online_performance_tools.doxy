@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2016                           Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014,2016,2018                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2016,2018-2019            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -538,6 +538,10 @@ of the task cost on a given arch. starpu_task_footprint() can also be
 used to get the footprint used for indexing history-based performance
 models. starpu_task_destroy() needs to be called to destroy the dummy
 task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
+
+The application can also request an on-the-fly XML report of the performance
+model, by calling starpu_perfmodel_dump_xml() to print the report to a
+<c>FILE*</c>.
 
 \section DataTrace Data trace and tasks length
 It is possible to get statistics about tasks length and data size by using :

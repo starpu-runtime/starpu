@@ -335,6 +335,11 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen);
 
 /**
+  Dump performance model \p model to output stream \p output, in XML format.
+*/
+void starpu_perfmodel_dump_xml(FILE *output, struct starpu_perfmodel *model);
+
+/**
    Free internal memory used for sampling directory
    management. It should only be called by an application which is not
    calling starpu_shutdown() as this function already calls it. See for

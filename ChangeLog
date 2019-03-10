@@ -24,6 +24,8 @@ New features:
     tile or vector size without reallocating the buffer.
   * Application can change the allocation used by StarPU with
     starpu_malloc_set_hooks()
+  * XML output for starpu_perfmodel_display and starpu_perfmodel_dump_xml()
+    function
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================

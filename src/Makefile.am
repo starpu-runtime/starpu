@@ -23,6 +23,10 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 
 EXTRA_DIST = dolib.c
 
+xml_DATA = $(srcdir)/core/perfmodel/starpu-perfmodel.dtd
+xmldir = $(pkgdatadir)
+EXTRA_DIST += core/perfmodel/starpu-perfmodel.dtd
+
 ldflags =
 
 libstarpu_so_version = $(LIBSTARPU_INTERFACE_CURRENT):$(LIBSTARPU_INTERFACE_REVISION):$(LIBSTARPU_INTERFACE_AGE)
