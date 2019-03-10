@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016                           Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -300,6 +300,10 @@ struct starpu_perfmodel
 	starpu_perfmodel_state_t state;
 };
 
+/**
+   Initialize the \p model performance model structure. This is automatically
+   called when e.g. submitting a task using a codelet using this performance model.
+*/
 void starpu_perfmodel_init(struct starpu_perfmodel *model);
 
 /**
@@ -323,6 +327,11 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 */
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 
+/**
+  Fills \p path (supposed to be \p maxlen long) with the full path to the
+  performance model file for symbol \p symbol.  This path can later on be used
+  for instance with starpu_perfmodel_load_file() .
+*/
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen);
 
 /**
