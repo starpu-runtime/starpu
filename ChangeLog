@@ -130,6 +130,7 @@ Small features:
     to specify a callback for the task submitting the unpartitioning
   * New tool starpu_mpi_comm_trace.py to draw heatmap of MPI
     communications
+  * Support for ARM performance libraries
 
 Changes:
   * Vastly improve simgrid simulation time.
