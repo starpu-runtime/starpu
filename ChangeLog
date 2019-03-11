@@ -19,13 +19,6 @@
 StarPU 1.4.0 (svn revision xxxx)
 ==============================================
 New features:
-  * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
-  * Add STARPU_MATRIX_SET_NX/NY/LD and STARPU_VECTOR_SET_NX to change a matrix
-    tile or vector size without reallocating the buffer.
-  * Application can change the allocation used by StarPU with
-    starpu_malloc_set_hooks()
-  * XML output for starpu_perfmodel_display and starpu_perfmodel_dump_xml()
-    function
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================
@@ -75,7 +68,14 @@ New features:
   * New StarPU-RM resource management module to share processor cores and
     accelerator devices with other parallel runtime systems. Use
     --enable-starpurm option to activate it.
-  * modular-gemm scheduler.
+  * New schedulers modular-gemm, modular-pheft, modular-prandom and
+    modular-prandom-prio
+  * Add STARPU_MATRIX_SET_NX/NY/LD and STARPU_VECTOR_SET_NX to change a matrix
+    tile or vector size without reallocating the buffer.
+  * Application can change the allocation used by StarPU with
+    starpu_malloc_set_hooks()
+  * XML output for starpu_perfmodel_display and starpu_perfmodel_dump_xml()
+    function
 
 Small features:
   * Scheduling contexts may now be associated a user data pointer at creation
