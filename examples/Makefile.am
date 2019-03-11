@@ -321,12 +321,12 @@ TESTS += \
 
 endif
 
+endif
+
 if STARPU_SIMGRID
 if !STARPU_QUICK_CHECK
 TESTS += \
 	 cholesky/cholesky.sh
-endif
-
 endif
 endif
 endif
