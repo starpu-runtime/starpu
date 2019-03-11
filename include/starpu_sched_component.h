@@ -712,7 +712,6 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
 #define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
-#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<11)
 
 /**
    Request to not only choose between simple workers, but also choose between combined workers.
