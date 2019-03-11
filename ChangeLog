@@ -64,8 +64,8 @@ New features:
   * New StarPU-RM resource management module to share processor cores and
     accelerator devices with other parallel runtime systems. Use
     --enable-starpurm option to activate it.
-  * modular-gemm scheduler.
-  * New schedulers modular-pheft, modular-prandom and modular-prandom-prio
+  * New schedulers modular-gemm, modular-pheft, modular-prandom and
+    modular-prandom-prio
   * Add STARPU_MATRIX_SET_NX/NY/LD and STARPU_VECTOR_SET_NX to change a matrix
     tile or vector size without reallocating the buffer.
   * Application can change the allocation used by StarPU with
