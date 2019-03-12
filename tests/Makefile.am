@@ -415,9 +415,11 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS += \
 	datawizard/locality.sh \
 	overlap/overlap.sh
+endif
 
 ################################
 # Simgrid Model Checking tests #
