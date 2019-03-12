@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2013                                Inria
- * Copyright (C) 2009-2011,2013-2015,2017-2018            Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2015,2017-2019            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -46,6 +46,11 @@ void parse_args(int argc, char **argv)
 	{
 		strncpy(filename_in, argv[1], 1023);
 		strncpy(filename_out, argv[2], 1023);
+	}
+	else
+	{
+		strncpy(filename_in, filename_in_default, 1023);
+		strncpy(filename_out, filename_out_default, 1023);
 	}
 }
 
@@ -137,11 +142,17 @@ int main(int argc, char **argv)
 
 	/* fetch input data */
 	FILE *f_in = fopen(filename_in, "r");
-	assert(f_in);
+	if (!f_in) {
+		fprintf(stderr, "couldn't open input file %s\n", filename_in);
+		exit(EXIT_FAILURE);
+	}
 
 	/* allocate room for an output buffer */
 	FILE *f_out = fopen(filename_out, "w+");
-	assert(f_out);
+	if (!f_out) {
+		fprintf(stderr, "couldn't open output file %s\n", filename_out);
+		exit(EXIT_FAILURE);
+	}
 
 	sret = fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
 	assert(sret == nframes);
