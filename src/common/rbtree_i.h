@@ -43,7 +43,7 @@
  * special alignment constraints such as member packing.
  */
 struct starpu_rbtree_node {
-    unsigned long parent;
+    uintptr_t parent;
     struct starpu_rbtree_node *children[2];
 };
 
@@ -79,7 +79,7 @@ struct starpu_rbtree {
  */
 static inline int starpu_rbtree_check_alignment(const struct starpu_rbtree_node *node)
 {
-    return ((unsigned long)node & (~STARPU_RBTREE_PARENT_MASK)) == 0;
+    return ((uintptr_t)node & (~STARPU_RBTREE_PARENT_MASK)) == 0;
 }
 
 /*
@@ -112,17 +112,17 @@ static inline struct starpu_rbtree_node * starpu_rbtree_parent(const struct star
 /*
  * Translate an insertion point into a slot.
  */
-static inline unsigned long starpu_rbtree_slot(struct starpu_rbtree_node *parent, int index)
+static inline uintptr_t starpu_rbtree_slot(struct starpu_rbtree_node *parent, int index)
 {
     assert(starpu_rbtree_check_alignment(parent));
     assert(starpu_rbtree_check_index(index));
-    return (unsigned long)parent | index;
+    return (uintptr_t)parent | index;
 }
 
 /*
  * Extract the parent address from a slot.
  */
-static inline struct starpu_rbtree_node * starpu_rbtree_slot_parent(unsigned long slot)
+static inline struct starpu_rbtree_node * starpu_rbtree_slot_parent(uintptr_t slot)
 {
     return (struct starpu_rbtree_node *)(slot & STARPU_RBTREE_SLOT_PARENT_MASK);
 }
@@ -130,7 +130,7 @@ static inline struct starpu_rbtree_node * starpu_rbtree_slot_parent(unsigned lon
 /*
  * Extract the index from a slot.
  */
-static inline int starpu_rbtree_slot_index(unsigned long slot)
+static inline int starpu_rbtree_slot_index(uintptr_t slot)
 {
     return slot & STARPU_RBTREE_SLOT_INDEX_MASK;
 }
