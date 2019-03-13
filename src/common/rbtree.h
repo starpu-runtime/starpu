@@ -31,6 +31,7 @@
 
 #include <stddef.h>
 #include <assert.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #define MACRO_BEGIN ({
