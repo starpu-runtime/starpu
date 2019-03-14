@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2015-2017                      CNRS
+ * Copyright (C) 2012,2013,2015-2017,2019                      CNRS
  * Copyright (C) 2013-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  *
@@ -81,6 +81,7 @@ int main(int argc, char **argv)
 	starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
 	starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
 
+	// Ping-pong
 	if (rank == 0)
 	{
 		int *compare_ptr = &compare;
@@ -97,6 +98,28 @@ int main(int argc, char **argv)
 		starpu_mpi_irecv_detached(handle, 0, 10, MPI_COMM_WORLD, NULL, NULL);
 		starpu_task_insert(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value")+1, STARPU_R, handle, 0);
 		starpu_mpi_isend_detached(handle, 0, 20, MPI_COMM_WORLD, NULL, NULL);
+	}
+
+	// Ping
+	if (rank == 0)
+	{
+		starpu_data_handle_t xhandle;
+		double xreal = 4.0;
+		double ximaginary = 8.0;
+		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
+		starpu_mpi_send(xhandle, 1, 10, MPI_COMM_WORLD);
+		starpu_data_unregister(xhandle);
+	}
+	else if (rank == 1)
+	{
+		starpu_data_handle_t xhandle;
+		double xreal = 14.0;
+		double ximaginary = 18.0;
+		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
+		starpu_mpi_recv(xhandle, 0, 10, MPI_COMM_WORLD, NULL);
+		starpu_data_unregister(xhandle);
+		FPRINTF(stderr, "[received] real %f imaginary %f\n", xreal, ximaginary);
+		STARPU_ASSERT_MSG(xreal == 4 && ximaginary == 8, "Incorrect received value\n");
 	}
 
 	starpu_task_wait_for_all();
