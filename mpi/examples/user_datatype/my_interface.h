@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,43 +20,55 @@
 #ifndef __DATA_INTERFACE_H
 #define __DATA_INTERFACE_H
 
-struct starpu_my_interface
+struct starpu_my_data_interface
+{
+	enum starpu_data_interface_id id; /**< Identifier of the interface */
+
+	uintptr_t ptr;                    /**< local pointer of the data */
+	uintptr_t dev_handle;             /**< device handle of the data. */
+	size_t offset;                    /**< offset in the data */
+};
+
+struct starpu_my_data
 {
 	int d;
 	char c;
 };
 
-void starpu_my_interface_data_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_interface *xc);
+void starpu_my_data_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_data *xc);
 
-char starpu_my_interface_get_char(starpu_data_handle_t handle);
-int starpu_my_interface_get_int(starpu_data_handle_t handle);
+char starpu_my_data_get_char(starpu_data_handle_t handle);
+int starpu_my_data_get_int(starpu_data_handle_t handle);
 
-#define STARPU_MY_INTERFACE_GET_CHAR(interface)	(((struct starpu_my_interface *)(interface))->c)
-#define STARPU_MY_INTERFACE_GET_INT(interface)	(((struct starpu_my_interface *)(interface))->d)
+char starpu_my_data_interface_get_char(void *interface);
+int starpu_my_data_interface_get_int(void *interface);
 
-void _starpu_my_interface_datatype_allocate(MPI_Datatype *mpi_datatype);
-void starpu_my_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype);
-void starpu_my_interface_datatype_free(MPI_Datatype *mpi_datatype);
+#define STARPU_MY_DATA_GET_CHAR(interface)	starpu_my_data_interface_get_char(interface)
+#define STARPU_MY_DATA_GET_INT(interface)	starpu_my_data_interface_get_int(interface)
 
-void starpu_my_interface_display_codelet_cpu(void *descr[], void *_args);
-void starpu_my_interface_compare_codelet_cpu(void *descr[], void *_args);
+void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype);
+void starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype);
+void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype);
 
-static struct starpu_codelet starpu_my_interface_display_codelet =
+void starpu_my_data_display_codelet_cpu(void *descr[], void *_args);
+void starpu_my_data_compare_codelet_cpu(void *descr[], void *_args);
+
+static struct starpu_codelet starpu_my_data_display_codelet =
 {
-	.cpu_funcs = {starpu_my_interface_display_codelet_cpu},
-	.cpu_funcs_name = {"starpu_my_interface_display_codelet_cpu"},
+	.cpu_funcs = {starpu_my_data_display_codelet_cpu},
+	.cpu_funcs_name = {"starpu_my_data_display_codelet_cpu"},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
-	.name = "starpu_my_interface_display_codelet"
+	.name = "starpu_my_data_display_codelet"
 };
 
-static struct starpu_codelet starpu_my_interface_compare_codelet =
+static struct starpu_codelet starpu_my_data_compare_codelet =
 {
-	.cpu_funcs = {starpu_my_interface_compare_codelet_cpu},
-	.cpu_funcs_name = {"starpu_my_interface_compare_codelet_cpu"},
+	.cpu_funcs = {starpu_my_data_compare_codelet_cpu},
+	.cpu_funcs_name = {"starpu_my_data_compare_codelet_cpu"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
-	.name = "starpu_my_interface_compare_codelet"
+	.name = "starpu_my_data_compare_codelet"
 };
 
 #endif /* __MY_INTERFACE_H */
