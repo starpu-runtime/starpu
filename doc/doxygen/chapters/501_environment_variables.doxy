@@ -1246,6 +1246,16 @@ If the environment variable STARPU_HWLOC_INPUT is defined to the path of an XML 
 To produce this XML file, use <c>lstopo file.xml</c>
 </dd>
 
+<dt>STARPU_CATCH_SIGNALS</dt>
+<dd>
+\anchor STARPU_CATCH_SIGNALS
+\addindex __env__STARPU_CATCH_SIGNALS
+By default, StarPU catch signals SIGINT, SIGSEGV and SIGTRAP to
+perform final actions such as dumping FxT trace files even though the
+application has crashed. Setting this variable to a value other than 1
+will disable this behaviour. This should be done on JVM systems which
+may use these signals for their own needs.
+The flag can also be set through the field starpu_conf::catch_signals.
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

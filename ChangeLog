@@ -131,6 +131,9 @@ Small features:
   * New tool starpu_mpi_comm_trace.py to draw heatmap of MPI
     communications
   * Support for ARM performance libraries
+  * Add functionality to disable signal catching either through field
+    starpu_conf::catch_signals or through the environment variable
+    STARPU_CATCH_SIGNALS
 
 Changes:
   * Vastly improve simgrid simulation time.

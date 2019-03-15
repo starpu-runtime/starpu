@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -974,6 +974,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
 	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
+	conf->catch_signals = starpu_get_env_number_default("STARPU_CATCH_SIGNALS", 1);
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
@@ -1202,11 +1203,14 @@ void _starpu_handler(int sig)
 
 void _starpu_catch_signals(void)
 {
-	act_sigint  = signal(SIGINT, _starpu_handler);
-	act_sigsegv = signal(SIGSEGV, _starpu_handler);
+	if (_starpu_config.conf.catch_signals == 1)
+	{
+		act_sigint  = signal(SIGINT, _starpu_handler);
+		act_sigsegv = signal(SIGSEGV, _starpu_handler);
 #ifdef SIGTRAP
-	act_sigtrap = signal(SIGTRAP, _starpu_handler);
+		act_sigtrap = signal(SIGTRAP, _starpu_handler);
 #endif
+	}
 }
 
 int starpu_init(struct starpu_conf *user_conf)

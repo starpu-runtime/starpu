@@ -431,6 +431,18 @@ struct starpu_conf
 	void (*callback_worker_going_to_sleep)(unsigned workerid);
 	void (*callback_worker_waking_up)(unsigned workerid);
 #endif
+
+	/**
+	   Specify if StarPU should catch SIGINT, SIGSEGV and SIGTRAP
+	   signals to make sure final actions (e.g dumping FxT trace
+	   files) are done even though the application has crashed. By
+	   default (value = \c 1), signals are catched. It should be
+	   disabled on systems which already catch these signals for
+	   their own needs (e.g JVM)
+	   This can also be specified with the environment variable
+	   \ref STARPU_CATCH_SIGNALS
+	 */
+	int catch_signals;
 };
 
 /**
