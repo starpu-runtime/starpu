@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
  * Copyright (C) 2015                                     Mathieu Lirzin
  *
@@ -162,6 +162,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
 {
         int res;
         int id_proc;
+
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
         //_STARPU_MSG("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
@@ -202,13 +203,13 @@ void _starpu_mpi_common_mp_send(const struct _starpu_mp_node *node, void *msg, i
         _starpu_mpi_common_send(node, msg, len, NULL);
 }
 
-
 /* RECV to source node */
 void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
 {
         int res;
         int id_proc;
         MPI_Status s;
+
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
         //_STARPU_MSG("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
@@ -258,6 +259,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU
 {
         int res;
         int id_proc;
+
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
         //_STARPU_MSG("S_to_D send %d bytes from %d from %p\n", len, dst_devid, msg);
@@ -299,6 +301,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
 {
         int res;
         int id_proc;
+
         MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 
         //_STARPU_MSG("R_to_D nop recv %d bytes from %d\n", len, src_devid);
@@ -405,7 +408,6 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
         return !event->starpu_mp_common_finished_sender && !event->starpu_mp_common_finished_receiver;
 }
 
-
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
@@ -447,8 +449,6 @@ void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
                 _starpu_mpi_common_polling_node(event->polling_node_receiver);
         }
 }
-
-
 
 void _starpu_mpi_common_barrier(void)
 {
