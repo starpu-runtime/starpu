@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2009-2011,2013-2015                      Université de Bordeaux
  *
@@ -124,11 +124,7 @@ int main(void)
 	struct starpu_conf conf;
 
 	starpu_conf_init(&conf);
-	conf.ncpus = 0;
 	conf.ncuda = 0;
-	conf.nmic = 0;
-	conf.nscc = 0;
-	conf.nmpi_ms = 0;
 
         ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -137,6 +133,12 @@ int main(void)
 		return 77;
 	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	if (starpu_opencl_worker_get_count() == 0)
+	{
+                FPRINTF(stderr, "This application requires an OpenCL worker.\n");
+		starpu_shutdown();
+		return 77;
+	}
 
 	ret = compute("examples/incrementer/incrementer_kernels_opencl_kernel.cl", 1, -1);
 	if (ret == 0)
