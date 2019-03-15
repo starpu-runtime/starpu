@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018                                     CNRS
+ * Copyright (C) 2018, 2019                               CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +35,8 @@ int main(void)
 		return 77;
 	}
 
-	nprocs = starpu_worker_get_count_by_type(STARPU_ANY_WORKER);
-	starpu_worker_get_ids_by_type(STARPU_ANY_WORKER, procs, nprocs);
+	nprocs = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs, nprocs);
 
 	sched_ctx1 = starpu_sched_ctx_create(procs, nprocs, "ctx1", 0);
 	sched_ctx2 = starpu_sched_ctx_create(procs, nprocs, "ctx2", 0);
