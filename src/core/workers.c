@@ -921,14 +921,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
                 while (!worker_set_zero->set_is_initialized)
                         STARPU_PTHREAD_COND_WAIT(&worker_set_zero->ready_cond,
-                                        &worker_set_zero->mutex);
+						 &worker_set_zero->mutex);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
 
                 worker_set_zero->started = 1;
                 worker_set_zero->worker_thread = mpi_worker_set[0].worker_thread;
-
         }
-
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)

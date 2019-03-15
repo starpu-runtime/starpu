@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2013-2017                                CNRS
+ * Copyright (C) 2013-2017, 2019                                CNRS
  * Copyright (C) 2013,2015                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -150,180 +150,177 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	switch(node->kind)
 	{
 #ifdef STARPU_USE_MIC
-	case STARPU_NODE_MIC_SOURCE:
-	{
-		node->nb_mp_sinks = starpu_mic_worker_get_count();
-		node->devid = peer_id;
+		case STARPU_NODE_MIC_SOURCE:
+		{
+			node->nb_mp_sinks = starpu_mic_worker_get_count();
+			node->devid = peer_id;
 
-		node->init = _starpu_mic_src_init;
-		node->launch_workers= NULL;
-		node->deinit = _starpu_mic_src_deinit;
-		node->report_error = _starpu_mic_src_report_scif_error;
+			node->init = _starpu_mic_src_init;
+			node->launch_workers= NULL;
+			node->deinit = _starpu_mic_src_deinit;
+			node->report_error = _starpu_mic_src_report_scif_error;
 
-		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-		node->mp_send = _starpu_mic_common_send;
-		node->mp_recv = _starpu_mic_common_recv;
-		node->dt_send = _starpu_mic_common_dt_send;
-		node->dt_recv = _starpu_mic_common_dt_recv;
+			node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+			node->mp_send = _starpu_mic_common_send;
+			node->mp_recv = _starpu_mic_common_recv;
+			node->dt_send = _starpu_mic_common_dt_send;
+			node->dt_recv = _starpu_mic_common_dt_recv;
 
-		node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
-		node->lookup = NULL;
-		node->bind_thread = NULL;
-		node->execute = NULL;
-		node->allocate = NULL;
-		node->free = NULL;
-	}
-	break;
+			node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
+			node->lookup = NULL;
+			node->bind_thread = NULL;
+			node->execute = NULL;
+			node->allocate = NULL;
+			node->free = NULL;
+		}
+		break;
 
-	case STARPU_NODE_MIC_SINK:
-	{
-		node->devid = atoi(starpu_getenv("_STARPU_MIC_DEVID"));
-		node->nb_mp_sinks = atoi(starpu_getenv("_STARPU_MIC_NB"));
+		case STARPU_NODE_MIC_SINK:
+		{
+			node->devid = atoi(starpu_getenv("_STARPU_MIC_DEVID"));
+			node->nb_mp_sinks = atoi(starpu_getenv("_STARPU_MIC_NB"));
 
-		node->init = _starpu_mic_sink_init;
-		node->launch_workers = _starpu_mic_sink_launch_workers;
-		node->deinit = _starpu_mic_sink_deinit;
-		node->report_error = _starpu_mic_sink_report_error;
+			node->init = _starpu_mic_sink_init;
+			node->launch_workers = _starpu_mic_sink_launch_workers;
+			node->deinit = _starpu_mic_sink_deinit;
+			node->report_error = _starpu_mic_sink_report_error;
 
-		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-		node->mp_send = _starpu_mic_common_send;
-		node->mp_recv = _starpu_mic_common_recv;
-		node->dt_send = _starpu_mic_common_dt_send;
-		node->dt_recv = _starpu_mic_common_dt_recv;
+			node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+			node->mp_send = _starpu_mic_common_send;
+			node->mp_recv = _starpu_mic_common_recv;
+			node->dt_send = _starpu_mic_common_dt_send;
+			node->dt_recv = _starpu_mic_common_dt_recv;
 
-                node->dt_test = NULL; /* Not used now */
+			node->dt_test = NULL; /* Not used now */
 
-		node->get_kernel_from_job = NULL;
-		node->lookup = _starpu_mic_sink_lookup;
-		node->bind_thread = _starpu_mic_sink_bind_thread;
-		node->execute = _starpu_sink_common_execute;
-		node->allocate = _starpu_mic_sink_allocate;
-		node->free = _starpu_mic_sink_free;
-
-	}
-	break;
+			node->get_kernel_from_job = NULL;
+			node->lookup = _starpu_mic_sink_lookup;
+			node->bind_thread = _starpu_mic_sink_bind_thread;
+			node->execute = _starpu_sink_common_execute;
+			node->allocate = _starpu_mic_sink_allocate;
+			node->free = _starpu_mic_sink_free;
+		}
+		break;
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_SCC
-	case STARPU_NODE_SCC_SOURCE:
-	{
-		node->init = _starpu_scc_src_init;
-		node->deinit = NULL;
-		node->report_error = _starpu_scc_common_report_rcce_error;
+		case STARPU_NODE_SCC_SOURCE:
+		{
+			node->init = _starpu_scc_src_init;
+			node->deinit = NULL;
+			node->report_error = _starpu_scc_common_report_rcce_error;
 
-		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
-		node->mp_send = _starpu_scc_common_send;
-		node->mp_recv = _starpu_scc_common_recv;
-		node->dt_send = _starpu_scc_common_send;
-		node->dt_recv = _starpu_scc_common_recv;
-		node->dt_send_to_device = NULL;
-		node->dt_recv_from_device = NULL;
+			node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+			node->mp_send = _starpu_scc_common_send;
+			node->mp_recv = _starpu_scc_common_recv;
+			node->dt_send = _starpu_scc_common_send;
+			node->dt_recv = _starpu_scc_common_recv;
+			node->dt_send_to_device = NULL;
+			node->dt_recv_from_device = NULL;
 
-		node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
-		node->lookup = NULL;
-		node->bind_thread = NULL;
-		node->execute = NULL;
-		node->allocate = NULL;
-		node->free = NULL;
-	}
-	break;
+			node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
+			node->lookup = NULL;
+			node->bind_thread = NULL;
+			node->execute = NULL;
+			node->allocate = NULL;
+			node->free = NULL;
+		}
+		break;
 
-	case STARPU_NODE_SCC_SINK:
-	{
-		node->init = _starpu_scc_sink_init;
-		node->launch_workers = _starpu_scc_sink_launch_workers;
-		node->deinit = _starpu_scc_sink_deinit;
-		node->report_error = _starpu_scc_common_report_rcce_error;
+		case STARPU_NODE_SCC_SINK:
+		{
+			node->init = _starpu_scc_sink_init;
+			node->launch_workers = _starpu_scc_sink_launch_workers;
+			node->deinit = _starpu_scc_sink_deinit;
+			node->report_error = _starpu_scc_common_report_rcce_error;
 
-		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
-		node->mp_send = _starpu_scc_common_send;
-		node->mp_recv = _starpu_scc_common_recv;
-		node->dt_send = _starpu_scc_common_send;
-		node->dt_recv = _starpu_scc_common_recv;
-		node->dt_send_to_device = _starpu_scc_sink_send_to_device;
-		node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
+			node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+			node->mp_send = _starpu_scc_common_send;
+			node->mp_recv = _starpu_scc_common_recv;
+			node->dt_send = _starpu_scc_common_send;
+			node->dt_recv = _starpu_scc_common_recv;
+			node->dt_send_to_device = _starpu_scc_sink_send_to_device;
+			node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
-                node->dt_test = NULL /* not used now */
+			node->dt_test = NULL /* not used now */
 
-		node->get_kernel_from_job = NULL;
-		node->lookup = _starpu_scc_sink_lookup;
-		node->bind_thread = _starpu_scc_sink_bind_thread;
-		node->execute = _starpu_scc_sink_execute;
-		node->allocate = _starpu_sink_common_allocate;
-		node->free = _starpu_sink_common_free;
-	}
-	break;
+				node->get_kernel_from_job = NULL;
+			node->lookup = _starpu_scc_sink_lookup;
+			node->bind_thread = _starpu_scc_sink_bind_thread;
+			node->execute = _starpu_scc_sink_execute;
+			node->allocate = _starpu_sink_common_allocate;
+			node->free = _starpu_sink_common_free;
+		}
+		break;
 #endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	case STARPU_NODE_MPI_SOURCE:
-        {
-                /*
-                   node->nb_mp_sinks = 
-                   node->devid = 
-                   */
-                node->peer_id = (_starpu_mpi_common_get_src_node() <= peer_id ? peer_id+1 : peer_id);
-                node->mp_connection.mpi_remote_nodeid = node->peer_id;
+		case STARPU_NODE_MPI_SOURCE:
+		{
+			/*
+			  node->nb_mp_sinks =
+			  node->devid =
+			*/
+			node->peer_id = (_starpu_mpi_common_get_src_node() <= peer_id ? peer_id+1 : peer_id);
+			node->mp_connection.mpi_remote_nodeid = node->peer_id;
 
-                node->init = _starpu_mpi_source_init;
-                node->launch_workers = NULL;
-                node->deinit = _starpu_mpi_source_deinit;
-                /*     node->report_error = */
+			node->init = _starpu_mpi_source_init;
+			node->launch_workers = NULL;
+			node->deinit = _starpu_mpi_source_deinit;
+			/*     node->report_error = */
 
-                node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
-                node->mp_send = _starpu_mpi_common_mp_send;
-                node->mp_recv = _starpu_mpi_common_mp_recv;
-                node->dt_send = _starpu_mpi_common_send;
-                node->dt_recv = _starpu_mpi_common_recv;
-                node->dt_send_to_device = _starpu_mpi_common_send_to_device;
-                node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
+			node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+			node->mp_send = _starpu_mpi_common_mp_send;
+			node->mp_recv = _starpu_mpi_common_mp_recv;
+			node->dt_send = _starpu_mpi_common_send;
+			node->dt_recv = _starpu_mpi_common_recv;
+			node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+			node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-                node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
-                node->lookup = NULL;
-                node->bind_thread = NULL;
-                node->execute = NULL;
-                node->allocate = NULL;
-                node->free = NULL;
-        }
-        break;
+			node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
+			node->lookup = NULL;
+			node->bind_thread = NULL;
+			node->execute = NULL;
+			node->allocate = NULL;
+			node->free = NULL;
+		}
+		break;
 
-        case STARPU_NODE_MPI_SINK:
-        {
-                /*
-                   node->nb_mp_sinks = 
-                   node->devid = 
-                   */
-                node->mp_connection.mpi_remote_nodeid = _starpu_mpi_common_get_src_node();
+	        case STARPU_NODE_MPI_SINK:
+		{
+			/*
+			  node->nb_mp_sinks =
+			  node->devid =
+			*/
+			node->mp_connection.mpi_remote_nodeid = _starpu_mpi_common_get_src_node();
 
-                node->init = _starpu_mpi_sink_init;
-                node->launch_workers = _starpu_mpi_sink_launch_workers;
-                node->deinit = _starpu_mpi_sink_deinit;
-                /*    node->report_error =  */
+			node->init = _starpu_mpi_sink_init;
+			node->launch_workers = _starpu_mpi_sink_launch_workers;
+			node->deinit = _starpu_mpi_sink_deinit;
+			/*    node->report_error =  */
 
-                node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
-                node->mp_send = _starpu_mpi_common_mp_send;
-                node->mp_recv = _starpu_mpi_common_mp_recv;
-                node->dt_send = _starpu_mpi_common_send;
-                node->dt_recv = _starpu_mpi_common_recv;
-                node->dt_send_to_device = _starpu_mpi_common_send_to_device;
-                node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
+			node->mp_recv_is_ready = _starpu_mpi_common_recv_is_ready;
+			node->mp_send = _starpu_mpi_common_mp_send;
+			node->mp_recv = _starpu_mpi_common_mp_recv;
+			node->dt_send = _starpu_mpi_common_send;
+			node->dt_recv = _starpu_mpi_common_recv;
+			node->dt_send_to_device = _starpu_mpi_common_send_to_device;
+			node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-                node->dt_test = _starpu_mpi_common_test_event;
+			node->dt_test = _starpu_mpi_common_test_event;
 
-                node->get_kernel_from_job = NULL;
-                node->lookup = _starpu_mpi_sink_lookup;
-                node->bind_thread = _starpu_mpi_sink_bind_thread;
-                node->execute = _starpu_sink_common_execute;
-                node->allocate = _starpu_sink_common_allocate;
-                node->free = _starpu_sink_common_free;
-
-
-        }
+			node->get_kernel_from_job = NULL;
+			node->lookup = _starpu_mpi_sink_lookup;
+			node->bind_thread = _starpu_mpi_sink_bind_thread;
+			node->execute = _starpu_sink_common_execute;
+			node->allocate = _starpu_sink_common_allocate;
+			node->free = _starpu_sink_common_free;
+		}
 		break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
-	default:
-		STARPU_ASSERT(0);
+		default:
+			STARPU_ASSERT(0);
 	}
 
 	/* Let's allocate the buffer, we want it to be big enough to contain
@@ -391,14 +388,11 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 	}
 
 	free(node->buffer);
-
 	free(node);
 }
 
 /* Send COMMAND to RECIPIENT, along with ARG if ARG_SIZE is non-zero */
-void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
-				    const enum _starpu_mp_command command,
-				    void *arg, int arg_size)
+void _starpu_mp_common_send_command(const struct _starpu_mp_node *node, const enum _starpu_mp_command command, void *arg, int arg_size)
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
@@ -424,8 +418,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
  * However, the data pointed by arg shouldn't be relied on after a new call to
  * STARPU_MP_COMMON_RECV_COMMAND as it might corrupt it.
  */
-enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node,
-						       void **arg, int *arg_size)
+enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node, void **arg, int *arg_size)
 {
 	enum _starpu_mp_command command;
 

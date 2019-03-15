@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017, 2019                          CNRS
  * Copyright (C) 2013-2016                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -138,7 +138,7 @@ LIST_TYPE(mp_message,
 		int size;
 	 );
 
-struct mp_task 
+struct mp_task
 {
 	void (*kernel)(void **, void *);
 	void **interfaces;
@@ -221,7 +221,7 @@ struct _starpu_mp_node
         struct _starpu_mp_event_list event_list;
 
         /* */
-        starpu_pthread_barrier_t init_completed_barrier; 
+        starpu_pthread_barrier_t init_completed_barrier;
 
         /* table to store pointer of the thread workers*/
         void* thread_table;
@@ -275,8 +275,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 				    const enum _starpu_mp_command command,
 				    void *arg, int arg_size);
 
-enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node,
-						       void **arg, int *arg_size);
+enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node, void **arg, int *arg_size);
 
 
 #endif /* STARPU_USE_MP */
