@@ -58,8 +58,8 @@ struct starpu_rbtree {
  * Masks applied on the parent member of a node to obtain either the
  * color or the parent address.
  */
-#define STARPU_RBTREE_COLOR_MASK   0x1UL
-#define STARPU_RBTREE_PARENT_MASK  (~0x3UL)
+#define STARPU_RBTREE_COLOR_MASK   ((uintptr_t) 0x1)
+#define STARPU_RBTREE_PARENT_MASK  (~((uintptr_t) 0x3))
 
 /*
  * Node colors.
@@ -71,7 +71,7 @@ struct starpu_rbtree {
  * Masks applied on slots to obtain either the child index or the parent
  * address.
  */
-#define STARPU_RBTREE_SLOT_INDEX_MASK  0x1UL
+#define STARPU_RBTREE_SLOT_INDEX_MASK  ((uintptr_t) 0x1)
 #define STARPU_RBTREE_SLOT_PARENT_MASK (~STARPU_RBTREE_SLOT_INDEX_MASK)
 
 /*
