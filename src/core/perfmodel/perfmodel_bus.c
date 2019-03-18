@@ -2997,6 +2997,9 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	int direct = starpu_bus_get_direct(busid);
 #endif
 	float ngpus = topology->ncudagpus+topology->nopenclgpus;
+#ifdef STARPU_DEVEL
+#warning FIXME: ngpus shouldn't be used e.g. for slow disk transfers...
+#endif
 
 #if 0
 	/* Ideally we should take into account that some GPUs are directly
@@ -3010,6 +3013,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 		ngpus = neighbours + (ngpus - neighbours) * neighbours / ngpus;
 	}
 #endif
+
 
 	return latency + (size/bandwidth)*2*ngpus;
 }
