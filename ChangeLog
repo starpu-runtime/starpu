@@ -138,6 +138,7 @@ Small features:
   * Add functionality to disable signal catching either through field
     starpu_conf::catch_signals or through the environment variable
     STARPU_CATCH_SIGNALS
+  * Support for OpenMP Taskloop directive
 
 Changes:
   * Vastly improve simgrid simulation time.
