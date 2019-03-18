@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2010-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -247,12 +247,9 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 				do_update_time_model = 1;
 			}
 #else
-			unsigned do_update_time_model = 1;
+			const unsigned do_update_time_model = 1;
 			const double time_consumed = measured;
 #endif
-			if (j->task->failed)
-				/* Do not record perfmodel for failed tasks, they may terminate earlier */
-				do_update_time_model = 0;
 			if (do_update_time_model)
 			{
 				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker->devid, time_consumed, j->nimpl);
@@ -283,12 +280,9 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		}
 #else
 		const double energy_consumed = profiling_info->energy_consumed;
-		unsigned do_update_energy_model = 1;
+		const unsigned do_update_energy_model = 1;
 #endif
 
-		if (j->task->failed)
-			/* Do not record perfmodel for failed tasks, they may terminate earlier */
-			do_update_energy_model = 0;
 		if (do_update_energy_model)
 		{
 			_starpu_update_perfmodel_history(j, j->task->cl->energy_model, perf_arch, worker->devid, energy_consumed, j->nimpl);

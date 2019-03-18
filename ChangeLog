@@ -19,7 +19,6 @@
 StarPU 1.4.0 (svn revision xxxx)
 ==============================================
 New features:
-  * Fault tolerance support with starpu_task_failed().
 
 StarPU 1.3.0 (svn revision xxxx)
 ==============================================

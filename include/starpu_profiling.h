@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014,2016,2017,2019                 Université de Bordeaux
- * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
+ * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2010,2011,2013,2015,2017,2019                 CNRS
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -117,8 +117,6 @@ struct starpu_profiling_worker_info
 	uint64_t stall_cycles;
 	/** Energy consumed by the worker, in Joules */
 	double energy_consumed;
-
-	/* TODO: add wasted time due to failed tasks */
 
 	double flops;
 };

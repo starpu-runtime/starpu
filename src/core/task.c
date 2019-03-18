@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2018                                Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -1375,18 +1375,4 @@ void _starpu_watchdog_shutdown(void)
 		return;
 
 	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
-}
-
-void starpu_task_failed(struct starpu_task *task)
-{
-	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-	unsigned i;
-
-	for (i = 0; i < nbuffers; i++)
-	{
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
-		STARPU_ASSERT_MSG (mode == STARPU_R || mode == STARPU_W,
-				"starpu_task_failed is only supported for tasks with access modes STARPU_R and STARPU_W");
-	}
-	task->failed = 1;
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -548,7 +548,6 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		/* Release the reference acquired in _starpu_push_task_output */
 		_starpu_spin_lock(&handle->header_lock);
 		STARPU_ASSERT(handle->busy_count > 0);
-		handle->refcnt--;
 		handle->busy_count--;
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);

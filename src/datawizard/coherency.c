@@ -1307,7 +1307,6 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
 		_starpu_spin_lock(&handle->header_lock);
-		handle->refcnt++;
 		handle->busy_count++;
 
 		if (node == -1)

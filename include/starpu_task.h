@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -870,11 +870,6 @@ struct starpu_task
 	unsigned no_submitorder:1;
 
 	/**
-	   Whether this task has failed and will thus have to be retried
-	*/
-	unsigned failed:1;
-
-	/**
 	   Whether the scheduler has pushed the task on some queue
 	*/
 	unsigned scheduled:1;
@@ -1410,18 +1405,6 @@ unsigned starpu_task_get_implementation(struct starpu_task *task);
    dependencies are fulfilled.
  */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
-
-/**
-   Record that this task failed, and should thus be retried.
-   This is usually called from the task codelet function itself, after checking
-   the result and noticing that the computation went wrong, and thus the task
-   should be retried. The performance of this task execution will not be
-   recorded for performance models.
-
-   This can only be called for a task whose data access mode are either STARPU_R
-   and STARPU_W.
- */
-void starpu_task_failed(struct starpu_task *task);
 
 /** @} */
 
