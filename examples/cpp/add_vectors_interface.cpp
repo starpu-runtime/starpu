@@ -278,6 +278,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
 	.copy_methods = &vector_cpp_copy_data_methods_s,
+	.handle_to_pointer = NULL,
 	.to_pointer = vector_cpp_to_pointer,
 	.pointer_is_inside = vector_cpp_pointer_is_inside,
 	.get_size = vector_cpp_interface_get_size,
