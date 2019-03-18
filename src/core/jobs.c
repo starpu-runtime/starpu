@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -277,19 +277,41 @@ void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
-	if (j->task->nb_termination_call_required != 0)
+	struct starpu_task *task = j->task;
+	unsigned sched_ctx = task->sched_ctx;
+	double flops = task->flops;
+
+	if (task->nb_termination_call_required != 0)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		int nb = j->task->nb_termination_call_required;
-		j->task->nb_termination_call_required -= 1;
+		int nb = task->nb_termination_call_required;
+		task->nb_termination_call_required -= 1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		if (nb != 0) return;
 	}
 
-	struct starpu_task *task = j->task;
+	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx, flops);
+
+	if (task->failed)
+	{
+		/* Oops, try again */
+		task->failed = 0;
+
+		/* Tell the scheduler we finished this task */
+		_starpu_sched_post_exec_hook(task);
+#ifdef STARPU_USE_SC_HYPERVISOR
+		int workerid = starpu_worker_get_id();
+		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
+#endif //STARPU_USE_SC_HYPERVISOR
+
+		/* But actually re-push it for execution, as if it just came out
+		 * of data dependency check */
+		task->status = STARPU_TASK_BLOCKED_ON_DATA;
+		_starpu_repush_task(j);
+		return;
+	}
+
 	struct starpu_task *end_rdep = NULL;
-	unsigned sched_ctx = task->sched_ctx;
-	double flops = task->flops;
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
 		j->continuation
@@ -535,7 +557,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 	}
 
-	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx, flops);
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
 	struct _starpu_worker *worker;
 	worker = _starpu_get_local_worker_key();
