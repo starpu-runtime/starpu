@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017,2018                                Inria
  * Copyright (C) 2016,2017                                CNRS
- * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2015-2017,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,7 +176,7 @@
 	} \
 	PRIO_LIST_INLINE struct ENAME##_prio_list_stage *ENAME##_prio_list_add(struct ENAME##_prio_list *priolist, int prio) \
 	{ \
-		unsigned long slot; \
+		uintptr_t slot; \
 		struct starpu_rbtree_node *node; \
 		struct ENAME##_prio_list_stage *stage; \
 		node = starpu_rbtree_lookup_slot(&priolist->tree, prio, ENAME##_prio_list_cmp_fn, slot); \
@@ -381,7 +381,7 @@
 		struct starpu_rbtree_node *node_toadd, *tmp; \
 		starpu_rbtree_for_each_remove(&priolist_toadd->tree, node_toadd, tmp) { \
 			struct ENAME##_prio_list_stage *stage_toadd = ENAME##_node_to_list_stage(node_toadd); \
-			unsigned long slot; \
+			uintptr_t slot; \
 			struct starpu_rbtree_node *node = starpu_rbtree_lookup_slot(&priolist->tree, stage_toadd->prio, ENAME##_prio_list_cmp_fn, slot); \
 			if (node) \
 			{ \
