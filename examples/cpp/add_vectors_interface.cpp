@@ -22,7 +22,7 @@
  * transfers between objects.
  */
 
-#if defined(__GNUC__) && (__GNUC__ < 4 || __GNU_MINOR < 9)
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNU_MINOR < 9))
 int main(int argc, char **argv)
 {
 	return 77;
