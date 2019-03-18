@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2010-2014,2016,2017                      CNRS
+ * Copyright (C) 2010-2014,2016,2017,2019                 CNRS
  * Copyright (C) 2009-2011,2013-2015,2017,2018-2019       Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -260,7 +260,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_cpp_to_pointer(void *data_interface, unsigned node);
-static void *vector_cpp_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
+static int vector_cpp_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_vector_cpp_buffer_on_node(void *data_interface, unsigned node);
 static void free_vector_cpp_buffer_on_node(void *data_interface, unsigned node);
 static size_t vector_cpp_interface_get_size(starpu_data_handle_t handle);
@@ -333,7 +333,7 @@ static void *vector_cpp_to_pointer(void *data_interface, unsigned node)
 	return (void*) vector_interface->ptr;
 }
 
-static int vector_cpp_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
+static int vector_cpp_pointer_is_inside(void *data_interface, unsigned int node, void *ptr)
 {
 	(void) node;
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
