@@ -346,7 +346,7 @@ static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
  * node that handles the hop. The returned value indicates the number of hops,
  * and the max_len is the maximum number of hops (ie. the size of the
  * src_nodes, dst_nodes and handling_nodes arrays. */
-static int determine_request_path(starpu_data_handle_t handle,
+int _starpu_determine_request_path(starpu_data_handle_t handle,
 				  int src_node, int dst_node,
 				  enum starpu_data_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
@@ -630,7 +630,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
 	/* keep one slot for the last W request, if any */
 	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
-	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
+	int nhops = _starpu_determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
 					   src_nodes, dst_nodes, handling_nodes, write_invalidation);
 
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);

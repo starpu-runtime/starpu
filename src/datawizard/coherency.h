@@ -323,6 +323,11 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);
 
 int _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
+int _starpu_determine_request_path(starpu_data_handle_t handle,
+				  int src_node, int dst_node,
+				  enum starpu_data_access_mode mode, int max_len,
+				  unsigned *src_nodes, unsigned *dst_nodes,
+				  unsigned *handling_nodes, unsigned write_invalidation);
 
 /* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
  * async is whether the caller wants a reference on the last request, to be

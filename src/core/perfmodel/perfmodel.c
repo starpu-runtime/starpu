@@ -328,7 +328,20 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 		/* Will just create it in place. Ideally we should take the
 		 * time to create it into account */
 		return 0.0;
-	return starpu_transfer_predict(src_node, memory_node, size);
+
+#define MAX_REQUESTS 4
+	unsigned src_nodes[MAX_REQUESTS];
+	unsigned dst_nodes[MAX_REQUESTS];
+	unsigned handling_nodes[MAX_REQUESTS];
+	int nhops = _starpu_determine_request_path(handle, src_node, memory_node, mode,
+			MAX_REQUESTS,
+			src_nodes, dst_nodes, handling_nodes, 0);
+	int i;
+	double duration = 0.;
+
+	for (i = 0; i < nhops; i++)
+		duration += starpu_transfer_predict(src_nodes[i], dst_nodes[i], size);
+	return duration;
 }
 
 /* Data transfer performance modeling */
