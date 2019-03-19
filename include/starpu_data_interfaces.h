@@ -431,6 +431,7 @@ struct starpu_data_interface_ops
 
 	/**
 	   Return whether the given \p ptr is within the data for the given interface on the given node.
+	   This method is optional, as it is only used for coherency checks.
 	*/
 	int 		 (*pointer_is_inside)		(void *data_interface, unsigned node, void *ptr);
 
