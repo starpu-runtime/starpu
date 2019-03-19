@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2009-2014,2017,2019                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -31,6 +31,8 @@
 
 #define PROGNAME "starpu_perfmodel_display"
 
+/* XML format */
+static int xml = 0;
 /* display all available models */
 static int plist = 0;
 /* display directory */
@@ -50,10 +52,11 @@ static void usage()
 	fprintf(stderr, "Display a given perfmodel\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
         fprintf(stderr, "\n");
-        fprintf(stderr, "One must specify either -l or -s\n");
+        fprintf(stderr, "One must specify either -l or -s. -x can be used with -s\n");
         fprintf(stderr, "Options:\n");
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
+	fprintf(stderr, "   -x                  display output in XML format\n");
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
         fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda)\n");
 	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
@@ -84,7 +87,7 @@ static void parse_args(int argc, char **argv)
 	};
 
 	int option_index;
-	while ((c = getopt_long(argc, argv, "dls:p:a:f:h", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "dls:p:a:f:hx", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -118,6 +121,11 @@ static void parse_args(int argc, char **argv)
 		case 'd':
 			/* directory */
 			pdirectory = 1;
+			break;
+
+		case 'x':
+			/* symbol */
+			xml = 1;
 			break;
 
 		case 'h':
@@ -169,12 +177,16 @@ int main(int argc, char **argv)
 			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", psymbol);
 			return 1;
 		}
-		uint32_t *footprint = NULL;
-		if (pdisplay_specific_footprint == 1)
-		{
-			footprint = &pspecific_footprint;
+		if (xml) {
+			starpu_perfmodel_dump_xml(stdout, &model);
+		} else {
+			uint32_t *footprint = NULL;
+			if (pdisplay_specific_footprint == 1)
+			{
+				footprint = &pspecific_footprint;
+			}
+			starpu_perfmodel_print_all(&model, parch, pparameter, footprint, stdout);
 		}
-		starpu_perfmodel_print_all(&model, parch, pparameter, footprint, stdout);
 		starpu_perfmodel_unload_model(&model);
         }
 

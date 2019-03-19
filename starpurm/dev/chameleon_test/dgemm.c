@@ -130,7 +130,7 @@ static void test(void *_args)
 
 	const double alpha = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
 	const double beta  = (double)rand_r(&rand_seed) / ((double)rand_r(&rand_seed) + DBL_MIN);
- 
+
 	int i;
 	for (i = 0; i < m; i++)
 	{
@@ -142,10 +142,10 @@ static void test(void *_args)
 		}
 	}
 
-	int res = MORSE_dgemm(transA, transB, m, n, k, alpha, A, k, B, n, beta, C, n);
+	MORSE_dgemm(transA, transB, m, n, k, alpha, A, k, B, n, beta, C, n);
 #ifdef CHECK
 	/* Check */
-	cblas_dgemm( CblasColMajor, 
+	cblas_dgemm( CblasColMajor,
 			( CBLAS_TRANSPOSE ) transA,
 			( CBLAS_TRANSPOSE ) transB,
 			m, n, k,
@@ -208,7 +208,7 @@ void spawn_tests(int cpu_offset, int cpu_nb, int cuda_offset, int cuda_nb, void 
 		char str2[strl2+1];
 		hwloc_bitmap_snprintf(str2, strl2+1, cuda_cpuset);
 		printf("all cpus cpuset = %s\n", str1);
-		
+
 		int strl3 = hwloc_bitmap_snprintf(NULL, 0, sel_cpuset);
 		char str3[strl3+1];
 		hwloc_bitmap_snprintf(str3, strl1+3, sel_cpuset);
@@ -242,17 +242,17 @@ int main( int argc, char const *argv[])
 	int k = atoi(argv[3]);
 	if (k < 1)
 		usage();
-	
-	if (strcmp(argv[4], "T") == 0) 
+
+	if (strcmp(argv[4], "T") == 0)
 		transA = MorseTrans;
-	else if (strcmp(argv[4], "N") == 0) 
+	else if (strcmp(argv[4], "N") == 0)
 		transA = MorseNoTrans;
 	else
 		usage();
-	
-	if (strcmp(argv[5], "T") == 0) 
+
+	if (strcmp(argv[5], "T") == 0)
 		transB = MorseTrans;
-	else if (strcmp(argv[5], "N") == 0) 
+	else if (strcmp(argv[5], "N") == 0)
 		transB = MorseNoTrans;
 	else
 		usage();
@@ -289,7 +289,7 @@ int main( int argc, char const *argv[])
 	}
 	{
 		int cpu_offset = rm_nb_cpu_units/2;
-		int cpu_nb = rm_nb_cpu_units/2;
+		int cpu_nb = cpu_offset;
 		if (cpu_nb == 0 && rm_nb_cpu_units > 0)
 		{
 			cpu_nb = 1;

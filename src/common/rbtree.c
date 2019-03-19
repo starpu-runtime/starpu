@@ -82,7 +82,7 @@ static inline void starpu_rbtree_set_parent(struct starpu_rbtree_node *node,
     assert(starpu_rbtree_check_alignment(node));
     assert(starpu_rbtree_check_alignment(parent));
 
-    node->parent = (unsigned long)parent | (node->parent & STARPU_RBTREE_COLOR_MASK);
+    node->parent = (uintptr_t)parent | (node->parent & STARPU_RBTREE_COLOR_MASK);
 }
 
 /*
@@ -150,7 +150,7 @@ void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rb
     assert(starpu_rbtree_check_alignment(parent));
     assert(starpu_rbtree_check_alignment(node));
 
-    node->parent = (unsigned long)parent | STARPU_RBTREE_COLOR_RED;
+    node->parent = (uintptr_t)parent | STARPU_RBTREE_COLOR_RED;
     node->children[STARPU_RBTREE_LEFT] = NULL;
     node->children[STARPU_RBTREE_RIGHT] = NULL;
 

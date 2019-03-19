@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017,2018                                Inria
- * Copyright (C) 2011-2014,2016-2018                      CNRS
- * Copyright (C) 2011,2013,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2011-2014,2016-2019                      CNRS
+ * Copyright (C) 2011,2013,2014,2017,2019                 Université de Bordeaux
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -84,7 +84,7 @@ void get_comb_name(int comb, char* name, int name_size)
 void print_archs(FILE* output)
 {
 	int nb_workers = 0;
-	unsigned workerid; int comb, old_comb = -1;
+	unsigned workerid, node; int comb, old_comb = -1;
 
 	fprintf(output, "%%rec: worker_count\n\n");
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
@@ -117,6 +117,31 @@ void print_archs(FILE* output)
 		fprintf(output, "Architecture: %s\n", name);
 		fprintf(output, "NbWorkers: %d\n\n", nb_workers);
 	}
+
+	fprintf(output, "%%rec: memory_workers\n\n");
+	for (node = 0; node < starpu_memory_nodes_get_count(); node++)
+	{
+		unsigned printed = 0;
+		char name[32];
+		fprintf(output, "MemoryNode: %d\n", node);
+		starpu_memory_node_get_name(node, name, sizeof(name));
+		fprintf(output, "Name: %s\n", name);
+		fprintf(output, "Size: %ld\n", (long) starpu_memory_get_total(node));
+		for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
+		{
+			if (starpu_worker_get_memory_node(workerid) == node)
+			{
+				if (!printed) {
+					fprintf(output, "Workers:");
+					printed = 1;
+				}
+				fprintf(output, " %d", workerid);
+			}
+		}
+		if (printed)
+			fprintf(output, "\n");
+		fprintf(output, "\n");
+	}
 }
 
 /* output file name */
@@ -126,12 +151,26 @@ static char* pinput = NULL;
 static void usage()
 {
 	fprintf(stderr, "Dumps perfmodels to a rec file\n\n");
-	fprintf(stderr, "Usage: %s [ output-file ]\n", PROGNAME);
+	fprintf(stderr, "Usage: %s [ input-file ] [ -o output-file ]\n", PROGNAME);
         fprintf(stderr, "\n");
 	fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 	fprintf(stderr, "\n");
         fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
         fprintf(stderr, "\n");
+}
+
+static void print_entry(const char *name, const char *archname, FILE *output, struct starpu_perfmodel_history_entry *entry)
+{
+	fprintf(output, "Name: %s\n", name);
+	fprintf(output, "Architecture: %s\n", archname);
+	fprintf(output, "Footprint: %08x\n", entry->footprint);
+	fprintf(output, "Size: %lu\n", (unsigned long) entry->size);
+	if (!isnan(entry->flops))
+		fprintf(output, "Flops: %-15e\n", entry->flops);
+	fprintf(output, "Mean: %-15e\nStddev: %-15e\n",
+		entry->mean, entry->deviation);
+	fprintf(output, "Samples: %u\n", entry->nsample);
+	fprintf(output, "\n");
 }
 
 static void parse_args(int argc, char **argv)
@@ -211,7 +250,7 @@ int main(int argc, char **argv)
 	{
 		FILE* input = fopen(pinput, "r");
 		char s[1024], *c;
-		struct model *model, *tmp;
+		struct model *model, *tmp=NULL;
 		uint32_t footprint = 0;
 		char *model_name = NULL;
 		int ret;
@@ -320,12 +359,7 @@ int main(int argc, char **argv)
 							     struct starpu_perfmodel_history_entry *entry = ptr->entry;
 							     if(entry->footprint == l->footprint)
 							     {
-								     fprintf(output, "Name: %s\n", model->name);
-								     fprintf(output, "Architecture: %s\n", archname);
-								     fprintf(output, "Footprint: %08x\n", l->footprint);
-								     fprintf(output, "Mean: %-15e\nStddev: %-15e\n",
-									     entry->mean, entry->deviation);
-								     fprintf(output, "\n");
+								     print_entry(model->name, archname, output, entry);
 								     break;
 							     }
 							     ptr=ptr->next;
@@ -398,13 +432,7 @@ int main(int argc, char **argv)
 							_STARPU_DISP("Symbol %s for comb %d does not have history based model, not dumping\n", symbol,  comb);
 						else while(ptr)
 						     {
-							     struct starpu_perfmodel_history_entry *entry = ptr->entry;
-							     fprintf(output, "Name: %s\n", symbol);
-							     fprintf(output, "Architecture: %s\n", name);
-							     fprintf(output, "Footprint: %08x\nMean: %-15e\nStddev: %-15e\n",
-								     entry->footprint, entry->mean, entry->deviation);
-							     fprintf(output, "\n");
-
+							     print_entry(symbol, name, output, ptr->entry);
 							     ptr=ptr->next;
 						     }
 					}

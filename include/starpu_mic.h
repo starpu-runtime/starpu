@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                                CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -28,15 +28,36 @@ extern "C"
 {
 #endif
 
+/**
+   @defgroup API_MIC_Extensions MIC Extensions
+   @{
+*/
+
+/**
+   Type for MIC function symbols
+*/
 typedef void *starpu_mic_func_symbol_t;
 
+/**
+   Initiate a lookup on each MIC device to find the address of the
+   function named \p func_name, store it in the global array kernels
+   and return the index in the array through \p symbol.
+*/
 int starpu_mic_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name);
 
+/**
+   If successfull, return the pointer to the function defined by \p symbol on
+   the device linked to the called device. This can for instance be used
+   in a starpu_mic_func_t implementation.
+*/
 starpu_mic_kernel_t starpu_mic_get_kernel(starpu_mic_func_symbol_t symbol);
+
+/** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* STARPU_USE_MIC */
+
 #endif /* __STARPU_MIC_H__ */

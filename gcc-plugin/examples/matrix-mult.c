@@ -159,10 +159,10 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-  fprintf (stderr, "running %d loops with %lux%lux%lu matrices and %lux%lux%lu blocks...\n",
+  fprintf (stderr, "running %d loops with %ldx%ldx%ld matrices and %ldx%ldx%ld blocks...\n",
 	   nloop,
-	   xdim, ydim, zdim,
-	   bxdim, bydim, bzdim);
+	   (long)xdim, (long)ydim, (long)zdim,
+	   (long)bxdim, (long)bydim, (long)bzdim);
 
   double computetime[nloop];
   double starttaskstime[nloop];

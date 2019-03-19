@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2018                                Inria
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2017                                     Guillaume Beauchamp
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2018                                     Umeà University
@@ -1318,24 +1318,33 @@ if test x$enable_cuda = xyes; then
             AC_SUBST(STARPU_CUDA_FORTRAN_LDFLAGS)
         fi
 
-	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
+	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		NVCCFLAGS="${NVCCFLAGS} -m64"
+		case \ $NVCCFLAGS\  in 
+			*\ -m64\ *) ;;
+			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
+		esac
 	fi
 
 	SAVED_CPPFLAGS="${CPPFLAGS}"
 	CPPFLAGS="${CPPFLAGS} ${STARPU_CUDA_CPPFLAGS}"
 	SAVED_LDFLAGS="${LDFLAGS}"
 	LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	SAVED_LIBS="${LIBS}"
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 
-	AC_CHECK_LIB([cusparse], [cusparseCreate])
+	AC_CHECK_LIB([cusparse], [cusparseCreate],
+		     [AC_DEFINE([HAVE_LIBCUSPARSE], [1], [Define to 1 if you have the cusparse library])
+		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 
 	AC_CHECK_HEADER([nvml.h],
-	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption])])
+	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption],
+		        [AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
+		         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"])])
         CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"
+	LIBS="${SAVED_LIBS}"
 fi
 
 dnl Hey dude, are you around?
@@ -2009,18 +2018,24 @@ if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
 	CFLAGS="$CFLAGS -O0"
 	CXXFLAGS="$CXXFLAGS -O0"
+	FFLAGS="$FFLAGS -O0"
+	FCFLAGS="$FCFLAGS -O0"
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
 		if test x$starpu_windows != xyes ; then
 			if test x$enable_fstack_protector_all = xyes ; then
 			   CFLAGS="$CFLAGS -fstack-protector-all"
 			   CXXFLAGS="$CXXFLAGS -fstack-protector-all"
+			   FFLAGS="$FFLAGS -fstack-protector-all"
+			   FCFLAGS="$FCFLAGS -fstack-protector-all"
 			fi
 		fi
 	fi
 else
 	CFLAGS="-O3 $CFLAGS"
 	CXXFLAGS="-O3 $CXXFLAGS"
+	FFLAGS="-O3 $FFLAGS"
+	FCFLAGS="-O3 $FCFLAGS"
 fi
 
 AC_MSG_CHECKING(whether full gdb information should be enabled)
@@ -2030,10 +2045,14 @@ AC_MSG_RESULT($enable_full_gdb_information)
 if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	CFLAGS+=" -gdwarf-2 -g3"
 	CXXFLAGS+=" -gdwarf-2 -g3"
+	FFLAGS+=" -gdwarf-2 -g3"
+	FCFLAGS+=" -gdwarf-2 -g3"
 	LDFLAGS+=" -gdwarf-2 -g3"
 fi
 CFLAGS+=" -g "
 CXXFLAGS+=" -g "
+FFLAGS+=" -g "
+FCFLAGS+=" -g "
 LDFLAGS+=" -g "
 
 if test x$enable_spinlock_check = xyes; then
@@ -2081,6 +2100,8 @@ AM_CONDITIONAL(STARPU_COVERAGE_ENABLED, [test "x$enable_coverage" = "xyes"])
 if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
 	CXXFLAGS="${CXXFLAGS} --coverage"
+	FFLAGS="${FFLAGS} --coverage"
+	FCFLAGS="${FCFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
 	LIBS="${LIBS} -lgcov"
 fi
@@ -2608,6 +2629,7 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
+	IS_SUPPORTED_CFLAG(-fno-common)
 	if test x$enable_debug = xyes; then
 		IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
 	fi
@@ -2965,6 +2987,8 @@ AC_ARG_ENABLE(blas-lib,
         blas_lib=none
      elif test "x$enableval" = "xmkl" ; then
         blas_lib=mkl
+     elif test "x$enableval" = "xarmpl" ; then
+        blas_lib=armpl
      elif test x$enableval = xno; then
 	blas_lib=none
      else
@@ -3079,6 +3103,38 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
 	])
     if test x$blas_lib = xmkl; then
 	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
+    fi
+fi
+
+if test x$blas_lib = xmaybe -o x$blas_lib = xarmpl; then
+    # Should we use ARMPL ?
+    if test -n "$ARMPL_DIR" ; then
+        CPPFLAGS="${CPPFLAGS} -I$ARMPL_INCLUDES"
+	SAVED_LIBS=$LIBS
+	STARPU_BLAS_LDFLAGS="-L$ARMPL_LIBRARIES -larmpl_lp64 -lgfortran -lm"
+	LIBS="$LIBS $STARPU_BLAS_LDFLAGS"
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[
+			#include <armpl.h>
+		]], [[ ]])],
+		[ blas_lib=armpl ],
+		[ STARPU_BLAS_LDFLAGS="" ],
+	)
+	LIBS=$SAVED_LIBS
+    fi
+    AC_ARG_WITH(armpl-cflags, [AS_HELP_STRING([--with-armpl-cflags], [specify ARMPL compilation flags])],
+	[
+        CPPFLAGS="${CPPFLAGS} $withval"
+	blas_lib=armpl
+	])
+
+    AC_ARG_WITH(armpl-ldflags, [AS_HELP_STRING([--with-armpl-ldflags], [specify ARMPL linking flags])],
+	[
+	STARPU_BLAS_LDFLAGS="$withval"
+	blas_lib=armpl
+	])
+    if test x$blas_lib = xarmpl; then
+	AC_DEFINE(STARPU_ARMPL, [1], [use ARMPL library])
     fi
 fi
 
@@ -3565,6 +3621,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
+  chmod +x tools/starpu_mpi_comm_matrix.py
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
@@ -3630,6 +3687,7 @@ AC_OUTPUT([
 	tools/Makefile
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
+	tools/starpu_mpi_comm_matrix.py
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats

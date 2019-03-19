@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014                                Inria
- * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2017, 2019                          CNRS
+ * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,6 +22,8 @@
 #include <core/workers.h>
 #include <math.h>
 #include <core/detect_combined_workers.h>
+
+int _starpu_initialized_combined_workers;
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -203,7 +205,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 static void assign_combinations_without_hwloc(struct starpu_worker_collection* worker_collection, int* workers, unsigned n, int min, int max)
 {
 
-	int size,i,count =0;
+	int size,i;
 	//if the maximun number of worker is already reached
 	if(worker_collection->nworkers >= STARPU_NMAXWORKERS - 1)
 		return;
@@ -224,7 +226,6 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 				int newworkerid;
 				newworkerid = starpu_combined_worker_assign_workerid(size, found_workerids);
 				STARPU_ASSERT(newworkerid >= 0);
-				count++;
 				worker_collection->add(worker_collection, newworkerid);
 				//if the maximun number of worker is reached, then return
 				if(worker_collection->nworkers >= STARPU_NMAXWORKERS - 1)
@@ -357,6 +358,12 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 
 void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 {
+	/* FIXME: this seems to be lacking shutdown support? */
+
+	if (_starpu_initialized_combined_workers)
+		return;
+	_starpu_initialized_combined_workers = 1;
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	if (config->conf.single_combined_worker > 0)
@@ -369,4 +376,17 @@ void _starpu_sched_find_worker_combinations(int *workerids, int nworkers)
 		find_and_assign_combinations_without_hwloc(workerids, nworkers);
 #endif
 	}
+}
+
+void starpu_sched_find_all_worker_combinations(void)
+{
+	const unsigned nbasic_workers = starpu_worker_get_count();
+	int basic_workerids[nbasic_workers];
+	unsigned i;
+	for(i = 0; i < nbasic_workers; i++)
+	{
+		basic_workerids[i] = i;
+	}
+
+	_starpu_sched_find_worker_combinations(basic_workerids, nbasic_workers);
 }

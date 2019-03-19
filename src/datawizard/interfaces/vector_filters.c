@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2008-2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015-2017                 CNRS
@@ -40,6 +40,8 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, S
 	vector_child->id = vector_father->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
 	{
@@ -74,6 +76,8 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 	vector_child->id = vector_father->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
 	{
@@ -102,12 +106,14 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_father->id;
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
 
 	/* this is the first child */
 	if (id == 0)
 	{
 		vector_child->nx = length_first;
 		vector_child->elemsize = elemsize;
+		vector_child->allocsize = vector_child->nx * elemsize;
 
 		if (vector_father->dev_handle)
 		{
@@ -121,6 +127,7 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 	{
 		vector_child->nx = nx - length_first;
 		vector_child->elemsize = elemsize;
+		vector_child->allocsize = vector_child->nx * elemsize;
 
 		if (vector_father->dev_handle)
 		{
@@ -148,6 +155,8 @@ void starpu_vector_filter_list_long(void *father_interface, void *child_interfac
 	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
 	{
@@ -179,6 +188,8 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
 	{

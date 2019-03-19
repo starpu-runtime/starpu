@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ void _starpu_data_interface_init(void)
 
 void _starpu_data_interface_shutdown()
 {
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 
 	if (registered_handles)
 	{
@@ -87,7 +87,7 @@ void _starpu_data_interface_shutdown()
 void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
 {
 	_starpu_spin_lock(&region->registered_handles_lock);
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, (region->registered_handles), entry, tmp)
 	{
 		entry->handle->removed_from_context_hash = 1;
@@ -100,7 +100,7 @@ void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
 
 void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task)
 {
-	struct handle_entry *entry, *tmp;
+	struct handle_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, task->registered_handles, entry, tmp)
 	{
 		entry->handle->removed_from_context_hash = 1;
@@ -298,6 +298,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->sequential_consistency =
 		starpu_data_get_default_sequential_consistency_flag();
 	handle->initialized = home_node != -1;
+	handle->ooc = 1;
 
 	STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
@@ -908,7 +909,7 @@ retry_busy:
 		goto retry_busy;
 	}
 
-	size_t size = _starpu_data_get_size(handle);
+	size_t size = _starpu_data_get_alloc_size(handle);
 
 	/* Destroy the data now */
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -1003,7 +1004,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 static void _starpu_data_invalidate(void *data)
 {
 	starpu_data_handle_t handle = data;
-	size_t size = _starpu_data_get_size(handle);
+	size_t size = _starpu_data_get_alloc_size(handle);
 	_starpu_spin_lock(&handle->header_lock);
 
 	//_STARPU_DEBUG("Really invalidating data %p\n", data);
@@ -1111,6 +1112,14 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
+}
+
+size_t starpu_data_get_alloc_size(starpu_data_handle_t handle)
+{
+	if (handle->ops->get_alloc_size)
+		return handle->ops->get_alloc_size(handle);
+	else
+		return handle->ops->get_size(handle);
 }
 
 void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)

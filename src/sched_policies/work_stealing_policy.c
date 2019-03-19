@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -543,29 +543,27 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			locality_popped_task(ws, task, workerid, sched_ctx_id);
 	}
 
-	if (task)
+	if(task)
 	{
 		/* there was a local task */
 		ws->per_worker[workerid].busy = 1;
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		if (_starpu_get_nsched_ctxs() > 1)
 		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			task = NULL;
+			starpu_worker_relax_on();
+			_starpu_sched_ctx_lock_write(sched_ctx_id);
+			starpu_worker_relax_off();
+			starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
+			if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+				task = NULL;
+			_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		}
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		return task;
 	}
 
 	/* we need to steal someone's job */
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	int victim = ws->select_victim(ws, sched_ctx_id, workerid);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	if (victim == -1)
 	{
 		return NULL;
@@ -590,7 +588,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		record_worker_locality(ws, task, workerid, sched_ctx_id);
 		locality_popped_task(ws, task, victim, sched_ctx_id);
 	}
-	_starpu_worker_unlock(victim);
+	starpu_worker_unlock(victim);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
         /* While stealing, perhaps somebody actually give us a task, don't miss
@@ -610,20 +608,16 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	}
 #endif
 
-	if (task)
+	if (task &&_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			return NULL;
-		}
+		starpu_worker_relax_off();
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		if (!task)
+			return NULL;
 	}
 	ws->per_worker[workerid].busy = !!task;
 	return task;
@@ -650,7 +644,7 @@ int ws_push_task(struct starpu_task *task)
 	if (workerid == -1 || !starpu_sched_ctx_contains_worker(workerid, sched_ctx_id) ||
 			!starpu_worker_can_execute_task_first_impl(workerid, task, NULL))
 		workerid = select_worker(ws, task, sched_ctx_id);
-	_starpu_worker_lock(workerid);
+	starpu_worker_lock(workerid);
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 	starpu_sched_task_break(task);
 	record_data_locality(task, workerid);
@@ -659,7 +653,7 @@ int ws_push_task(struct starpu_task *task)
 	locality_pushed_task(ws, task, workerid, sched_ctx_id);
 
 	starpu_push_task_end(task);
-	_starpu_worker_unlock(workerid);
+	starpu_worker_unlock(workerid);
 	starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, workerid);
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)

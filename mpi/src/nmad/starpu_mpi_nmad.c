@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2010-2015,2017,2018                      CNRS
- * Copyright (C) 2009-2014,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -383,8 +383,9 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 		        nm_mpi_nmad_data_release(req->datatype);
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
-		_starpu_mpi_release_req_data(req);
 	}
+	_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.rank, req->node_tag.data_tag);
+	_starpu_mpi_release_req_data(req);
 
 	/* Execute the specified callback, if any */
 	if (req->callback)
@@ -480,10 +481,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
-		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(0, NULL, 0);
 	}
 
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
@@ -645,6 +646,53 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 
+	/* Tell pioman to use a bound thread for communication progression */
+	unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	int indexes[1] = {piom_bindid};
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_CORE,indexes,1);
+
+	/* Register some hooks for communication progress if needed */
+	int polling_point_prog, polling_point_idle;
+	char *s_prog_hooks = starpu_getenv("STARPU_MPI_NMAD_PROG_HOOKS");
+	char *s_idle_hooks = starpu_getenv("STARPU_MPI_NMAD_IDLE_HOOKS");
+
+	if(!s_prog_hooks)
+	{
+		polling_point_prog = 0;
+	}
+	else
+	{
+		polling_point_prog =
+			(strcmp(s_prog_hooks, "FORCED") == 0) ? PIOM_POLL_POINT_FORCED :
+			(strcmp(s_prog_hooks, "SINGLE") == 0) ? PIOM_POLL_POINT_SINGLE :
+			(strcmp(s_prog_hooks, "HOOK")   == 0) ? PIOM_POLL_POINT_HOOK :
+			0;
+	}
+
+	if(!s_idle_hooks)
+	{
+		polling_point_idle = 0;
+	}
+	else
+	{
+		polling_point_idle =
+			(strcmp(s_idle_hooks, "FORCED") == 0) ? PIOM_POLL_POINT_FORCED :
+			(strcmp(s_idle_hooks, "SINGLE") == 0) ? PIOM_POLL_POINT_SINGLE :
+			(strcmp(s_idle_hooks, "HOOK")   == 0) ? PIOM_POLL_POINT_HOOK :
+			0;
+	}
+	
+	if(polling_point_prog)
+	{
+		starpu_progression_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_prog);
+	}
+	
+	if(polling_point_idle)
+	{
+		starpu_idle_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_idle);
+	}
+
+	/* Launch thread used for nmad callbacks */
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);

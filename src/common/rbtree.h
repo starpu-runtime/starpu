@@ -31,6 +31,7 @@
 
 #include <stddef.h>
 #include <assert.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #define MACRO_BEGIN ({
@@ -75,7 +76,7 @@ static inline void starpu_rbtree_node_init(struct starpu_rbtree_node *node)
 {
     assert(starpu_rbtree_check_alignment(node));
 
-    node->parent = (unsigned long)node | STARPU_RBTREE_COLOR_RED;
+    node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
     node->children[STARPU_RBTREE_LEFT] = NULL;
     node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
@@ -212,7 +213,7 @@ MACRO_END
  * it also returns a slot, which identifies an insertion point in the tree.
  * If the returned node is null, the slot can be used by starpu_rbtree_insert_slot()
  * to insert without the overhead of an additional lookup. The slot is a
- * simple unsigned long integer.
+ * simple uintptr_t integer.
  *
  * The constraints that apply to the key parameter are the same as for
  * starpu_rbtree_lookup().
@@ -250,7 +251,7 @@ MACRO_END
  * must not compare equal to an existing node in the tree (i.e. the slot
  * must denote a null node).
  */
-static inline void starpu_rbtree_insert_slot(struct starpu_rbtree *tree, unsigned long slot,
+static inline void starpu_rbtree_insert_slot(struct starpu_rbtree *tree, uintptr_t slot,
                    struct starpu_rbtree_node *node)
 {
     struct starpu_rbtree_node *parent;

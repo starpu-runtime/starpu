@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -631,6 +631,20 @@ static void _starpu_data_wont_use(void *data)
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 	if (handle->home_node != -1)
 		starpu_data_idle_prefetch_on_node(handle, handle->home_node, 1);
+	else
+	{
+		if (handle->ooc)
+		{
+			/* Try to push it to some disk */
+			unsigned i;
+			unsigned nnodes = starpu_memory_nodes_get_count();
+			for (i = 0; i < nnodes; i++)
+			{
+				if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
+					starpu_data_idle_prefetch_on_node(handle, i, 1);
+			}
+		}
+	}
 }
 
 void starpu_data_wont_use(starpu_data_handle_t handle)
@@ -691,6 +705,16 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle)
 {
 	return handle->sequential_consistency;
+}
+
+void starpu_data_set_ooc_flag(starpu_data_handle_t handle, unsigned flag)
+{
+	handle->ooc = flag;
+}
+
+unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle)
+{
+	return handle->ooc;
 }
 
 /* By default, sequential consistency is enabled */

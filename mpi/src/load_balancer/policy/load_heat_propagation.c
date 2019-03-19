@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016                                     Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017,2019                                CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -570,7 +570,7 @@ static int deinit_heat()
 		int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
 
 		int n = 0;
-		struct moved_data_entry *md, *tmp;
+		struct moved_data_entry *md=NULL, *tmp=NULL;
 		HASH_ITER(hh, mdh, md, tmp)
 		{
 			tags[n] = starpu_mpi_data_get_tag(md->handle);

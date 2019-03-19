@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -276,18 +276,19 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 #if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && defined(HAVE_CUDA_GL_INTEROP_H)
 done:
 #endif
-	if (STARPU_UNLIKELY(cures
 #ifdef STARPU_OPENMP
-		/* When StarPU is used as Open Runtime support,
-		 * starpu_omp_shutdown() will usually be called from a
-		 * destructor, in which case cudaThreadExit() reports a
-		 * cudaErrorCudartUnloading here. There should not
-		 * be any remaining tasks running at this point so
-		 * we can probably ignore it without much consequences. */
-		&& cures != cudaErrorCudartUnloading
-#endif /* STARPU_OPENMP */
-				))
+	/* When StarPU is used as Open Runtime support,
+	 * starpu_omp_shutdown() will usually be called from a
+	 * destructor, in which case cudaThreadExit() reports a
+	 * cudaErrorCudartUnloading here. There should not
+	 * be any remaining tasks running at this point so
+	 * we can probably ignore it without much consequences. */
+	if (STARPU_UNLIKELY(cures && cures != cudaErrorCudartUnloading))
 		STARPU_CUDA_REPORT_ERROR(cures);
+#else
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+#endif /* STARPU_OPENMP */
 #endif
 }
 
@@ -530,7 +531,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef HAVE_LIBNVIDIA_ML
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
-		if (profiling)
+		if (profiling && task->profiling_info)
 		{
 			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
 			if (nvmlRet == NVML_SUCCESS)
@@ -552,10 +553,10 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 
 
 #ifdef HAVE_LIBNVIDIA_ML
-	if (profiling && j->task->profiling_info->energy_consumed)
+	if (profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
-		nvmlReturn_t nvmlRet = -1;
+		nvmlReturn_t nvmlRet;
 		nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
 #ifdef STARPU_DEVEL
 #warning TODO: measure idle consumption to subtract it
@@ -1173,7 +1174,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
 
-
+		if (!cures)
+			cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 

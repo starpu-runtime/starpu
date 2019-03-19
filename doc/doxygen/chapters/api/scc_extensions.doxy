@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                      CNRS
  * Copyright (C) 2009-2011,2014                           Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \defgroup API_SCC_Extensions SCC Extensions
+/*! \ingroup API_SCC_Extensions
 
 \def STARPU_USE_SCC
 \ingroup API_SCC_Extensions
@@ -27,21 +27,5 @@ It should be used in your code to detect the availability of SCC.
 \ingroup API_SCC_Extensions
 Define the maximum number of SCC devices that are
 supported by StarPU.
-
-\typedef starpu_scc_func_symbol_t
-\ingroup API_SCC_Extensions
-Type for SCC function symbols
-
-\fn int starpu_scc_register_kernel(starpu_scc_func_symbol_t *symbol, const char *func_name)
-\ingroup API_SCC_Extensions
-Initiate a lookup on each SCC device to find the adress of the
-function named \p func_name, store them in the global array kernels
-and return the index in the array through \p symbol.
-
-\fn starpu_scc_kernel_t starpu_scc_get_kernel(starpu_scc_func_symbol_t symbol)
-\ingroup API_SCC_Extensions
-If success, return the pointer to the function defined by \p symbol on
-the device linked to the called device. This can for instance be used
-in a starpu_scc_func_symbol_t implementation.
 
 */

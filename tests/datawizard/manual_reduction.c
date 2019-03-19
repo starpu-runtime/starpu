@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2011-2013,2015-2018                      CNRS
  *
@@ -32,6 +32,8 @@ static starpu_data_handle_t variable_handle;
 
 static uintptr_t per_worker[STARPU_NMAXWORKERS];
 static starpu_data_handle_t per_worker_handle[STARPU_NMAXWORKERS];
+
+static unsigned ndone;
 
 /* Create per-worker handles */
 static void initialize_per_worker_handle(void *arg)
@@ -72,7 +74,11 @@ static void initialize_per_worker_handle(void *arg)
 			{
 				STARPU_CUDA_REPORT_ERROR(status);
 			}
-			cudaMemset((void *)per_worker[workerid], 0, sizeof(variable));
+			status = cudaMemsetAsync((void *)per_worker[workerid], 0, sizeof(variable), starpu_cuda_get_local_stream());
+			if (!status)
+				status = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			if (status)
+				STARPU_CUDA_REPORT_ERROR(status);
 			break;
 		}
 #endif
@@ -80,6 +86,7 @@ static void initialize_per_worker_handle(void *arg)
 			STARPU_ABORT();
 			break;
 	}
+	FPRINTF(stderr, "worker %d got data %lx\n", workerid, (unsigned long) per_worker[workerid]);
 
 	STARPU_ASSERT(per_worker[workerid]);
 }
@@ -116,6 +123,7 @@ void cpu_func_incr(void *descr[], void *cl_arg)
 	(void)cl_arg;
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val = *val + 1;
+	STARPU_ATOMIC_ADD(&ndone, 1);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -127,11 +135,31 @@ static void cuda_func_incr(void *descr[], void *cl_arg)
 
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	unsigned h_val;
-	cudaMemcpyAsync(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	unsigned h_val, h_val2;
+	cudaError_t status;
+	status = cudaMemcpyAsync(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
+	status = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
 	h_val++;
-	cudaMemcpyAsync(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	status = cudaMemcpyAsync(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
+	status = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
+
+	status = cudaMemcpyAsync(&h_val2, val, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
+	status = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+	if (status)
+		STARPU_CUDA_REPORT_ERROR(status);
+	STARPU_ASSERT_MSG(h_val2 == h_val, "%lx should be %u, not %u, I have just written it ?!\n", (unsigned long)(uintptr_t) val, h_val, h_val2);
+
+	STARPU_ATOMIC_ADD(&ndone, 1);
 }
 #endif
 
@@ -153,6 +181,7 @@ static void opencl_func_incr(void *descr[], void *cl_arg)
 	h_val++;
 	clEnqueueWriteBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
 	clFinish(queue);
+	STARPU_ATOMIC_ADD(&ndone, 1);
 }
 #endif
 
@@ -271,6 +300,7 @@ int main(int argc, char **argv)
 	else
 	{
 		FPRINTF(stderr, "%u != %d + %d\n", variable, INIT_VALUE, NTASKS);
+		FPRINTF(stderr, "ndone: %u\n", ndone);
 		ret = EXIT_FAILURE;
 	}
 	STARPU_RETURN(ret);

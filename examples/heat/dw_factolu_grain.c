@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2017, 2019                      Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
@@ -37,11 +37,6 @@
 #define TAG22(k,i,j, prefix)	((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
-
-struct starpu_perfmodel model_11;
-struct starpu_perfmodel model_12;
-struct starpu_perfmodel model_21;
-struct starpu_perfmodel model_22;
 
 /*
  *	Construct the DAG

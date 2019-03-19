@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -79,7 +79,7 @@ specified for a codelet, every task built from this codelet will be scheduled
 using an <b>eager</b> fallback policy.
 
 <b>Troubleshooting:</b> Configuring and recompiling StarPU using the
-<c>--enable-verbose</c> configure flag displays some statistics at the end of
+\ref enable-verbose "--enable-verbose" \c configure option displays some statistics at the end of
 execution about the percentage of tasks which have been scheduled by a DM*
 family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
@@ -177,6 +177,44 @@ the current consumption in Watt. Multiplying this value by the average duration
 of a single task gives the consumption of the task in Joules, which can be given
 to starpu_perfmodel_update_history().
 
+\section ExistingModularizedSchedulers Modularized Schedulers
+
+StarPU provides a powerful way to implement schedulers, as documented in \ref
+DefiningANewModularSchedulingPolicy . It is currently shipped with the following
+pre-defined Modularized Schedulers :
+
+- Eager-based Schedulers (with/without prefetching : \c modular-eager ,
+\c modular-eager-prefetching) : \n
+Naive scheduler, which tries to map a task on the first available resource
+it finds.
+
+- Prio-based Schedulers (with/without prefetching :
+\c modular-prio, \c modular-prio-prefetching) : \n
+Similar to Eager-Based Schedulers. Can handle tasks which have a defined
+priority and schedule them accordingly.
+
+- Random-based Schedulers (with/without prefetching: \c modular-random,
+\c modular-random-prio, \c modular-random-prefetching, \c
+modular-random-prio-prefetching) : \n
+Selects randomly a resource to be mapped on for each task.
+
+- Work Stealing (\c modular-ws) : \n
+Maps tasks to workers in round robin, but allows workers to steal work from other workers.
+
+- HEFT Scheduler : \n
+Maps tasks to workers using a heuristic very close to
+Heterogeneous Earliest Finish Time.
+It needs that every task submitted to StarPU have a
+defined performance model (\ref PerformanceModelCalibration)
+to work efficiently, but can handle tasks without a performance
+model. \c modular-heft just takes tasks by priority order. \c modular-heft takes
+at most 5 tasks of the same priority and checks which one fits best. \c
+modular-heft-prio is similar to \c modular-heft, but only decides the memory
+node, not the exact worker, just pushing tasks to one central queue per memory
+node.
+
+To use one of these schedulers, one can set the environment variable \ref STARPU_SCHED.
+
 \section StaticScheduling Static Scheduling
 
 In some cases, one may want to force some scheduling, for instance force a given
@@ -216,50 +254,5 @@ could be tricky. Be careful to schedule the tasks exactly on the workers of the 
 contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
 the execution of the application may deadlock. Moreover, the hypervisor should not be used when
 statically scheduling tasks.
-
-\section GraphScheduling Graph-based Scheduling
-
-For performance reasons, most of the schedulers shipped with StarPU use simple
-list-scheduling heuristics, assuming that the application has already set
-priorities.  This is why they do their scheduling between when tasks become
-available for execution and when a worker becomes idle, without looking at the
-task graph.
-
-Other heuristics can however look at the task graph. Recording the task graph
-is expensive, so it is not available by default, the scheduling heuristic has
-to set _starpu_graph_record to 1 from the initialization function, to make it
-available. Then the <c>_starpu_graph*</c> functions can be used.
-
-<c>src/sched_policies/graph_test_policy.c</c> is an example of simple greedy
-policy which automatically computes priorities by bottom-up rank.
-
-The idea is that while the application submits tasks, they are only pushed
-to a bag of tasks. When the application is finished with submitting tasks,
-it calls starpu_do_schedule() (or starpu_task_wait_for_all(), which calls
-starpu_do_schedule()), and the starpu_sched_policy::do_schedule method of the
-scheduler is called. This method calls _starpu_graph_compute_depths to compute
-the bottom-up ranks, and then uses these rank to set priorities over tasks.
-
-It then has two priority queues, one for CPUs, and one for GPUs, and uses a dumb
-heuristic based on the duration of the task over CPUs and GPUs to decide between
-the two queues. CPU workers can then pop from the CPU priority queue, and GPU
-workers from the GPU priority queue.
-
-\section DebuggingScheduling Debugging Scheduling
-
-All the \ref OnlinePerformanceTools and \ref OfflinePerformanceTools can
-be used to get information about how well the execution proceeded, and thus the
-overall quality of the execution.
-
-Precise debugging can also be performed by using the
-\ref STARPU_TASK_BREAK_ON_PUSH, \ref STARPU_TASK_BREAK_ON_SCHED,
-\ref STARPU_TASK_BREAK_ON_POP, and \ref STARPU_TASK_BREAK_ON_EXEC environment variables.
-By setting the job_id of a task
-in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
-scheduled, pushed, or popped by the scheduler. This means that when one notices
-that a task is being scheduled in a seemingly odd way, one can just reexecute
-the application in a debugger, with some of those variables set, and the
-execution will stop exactly at the scheduling points of this task, thus allowing
-to inspect the scheduler state, etc.
 
 */

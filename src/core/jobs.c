@@ -760,7 +760,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->where)))
 		return -ENODEV;
 
-	_starpu_worker_lock(worker->workerid);
+	starpu_worker_lock(worker->workerid);
 
 	if (task->execute_on_a_specific_worker && task->workerorder)
 	{
@@ -807,7 +807,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	starpu_wake_worker_locked(worker->workerid);
 	starpu_push_task_end(task);
-	_starpu_worker_unlock(worker->workerid);
+	starpu_worker_unlock(worker->workerid);
 
 	return 0;
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017, 2019                                CNRS
  * Copyright (C) 2015,2016                                Inria
  * Copyright (C) 2015                                     Université de Bordeaux
  *
@@ -31,6 +31,16 @@
 #ifdef __cplusplus
 extern
 #endif
+
+struct starpu_cluster_machine
+{
+	unsigned id;
+	hwloc_topology_t topology;
+	unsigned nclusters;
+	unsigned ngroups;
+	struct _starpu_cluster_group_list* groups;
+	struct _starpu_cluster_parameters* params;
+};
 
 struct _starpu_cluster_parameters
 {
@@ -112,6 +122,6 @@ static struct starpu_codelet _starpu_cluster_bind_cl=
 };
 
 typedef void (*starpu_binding_function)(void*);
-starpu_binding_function _starpu_cluster_type_get_func(starpu_cluster_types type);
+starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type);
 
 #endif /* __STARPU_CLUSTERS_CREATE_H__ */

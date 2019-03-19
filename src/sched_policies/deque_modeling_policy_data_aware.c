@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2013                                     Simon Archipoff
@@ -329,9 +329,9 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	_starpu_worker_lock_self();
+	starpu_worker_lock_self();
 	new_list = _starpu_fifo_pop_every_task(fifo, workerid);
-	_starpu_worker_unlock_self();
+	starpu_worker_unlock_self();
 
 	starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
 
@@ -345,23 +345,23 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 				    double predicted, double predicted_transfer,
 				    int prio, unsigned sched_ctx_id)
 {
-	_starpu_worker_relax_on();
-	_starpu_sched_ctx_lock_write(sched_ctx_id);
-	_starpu_worker_relax_off();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone could execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(best_workerid, sched_ctx_id);
 
-        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-        {
-                starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+	if (_starpu_get_nsched_ctxs() > 1)
+	{
+		starpu_worker_relax_on();
+		_starpu_sched_ctx_lock_write(sched_ctx_id);
+		starpu_worker_relax_off();
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
+			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
-                return 0;
-        }
 
-	_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		if (!task)
+			return 0;
+	}
+
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
 	double now = starpu_timing_now();
@@ -370,7 +370,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	starpu_sched_ctx_call_pushed_task_cb(best_workerid, sched_ctx_id);
 #endif //STARPU_USE_SC_HYPERVISOR
 
-	_starpu_worker_lock(best_workerid);
+	starpu_worker_lock(best_workerid);
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
@@ -416,7 +416,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	_starpu_worker_unlock(best_workerid);
+	starpu_worker_unlock(best_workerid);
 
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
@@ -431,21 +431,25 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_for(task, best_workerid);
 
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
-	unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
-	if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
+
+	if (_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
-		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
-		starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-		_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		unsigned stream_ctx_id = starpu_worker_get_sched_ctx_id_stream(best_workerid);
+		if(stream_ctx_id != STARPU_NMAX_SCHED_CTXS)
+		{
+			starpu_worker_relax_on();
+			_starpu_sched_ctx_lock_write(sched_ctx_id);
+			starpu_worker_relax_off();
+			starpu_sched_ctx_move_task_to_ctx_locked(task, stream_ctx_id, 0);
+			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
+			_starpu_sched_ctx_unlock_write(sched_ctx_id);
+		}
 	}
 
 	int ret = 0;
 	if (prio)
 	{
-		_starpu_worker_lock(best_workerid);
+		starpu_worker_lock(best_workerid);
 		ret =_starpu_fifo_push_sorted_task(dt->queue_array[best_workerid], task);
 		if(dt->num_priorities != -1)
 		{
@@ -460,11 +464,11 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
-		_starpu_worker_unlock(best_workerid);
+		starpu_worker_unlock(best_workerid);
 	}
 	else
 	{
-		_starpu_worker_lock(best_workerid);
+		starpu_worker_lock(best_workerid);
 		starpu_task_list_push_back (&dt->queue_array[best_workerid]->taskq, task);
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
@@ -472,7 +476,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_wake_worker_locked(best_workerid);
 #endif
 		starpu_push_task_end(task);
-		_starpu_worker_unlock(best_workerid);
+		starpu_worker_unlock(best_workerid);
 	}
 
 	starpu_sched_ctx_list_task_counters_increment(sched_ctx_id, best_workerid);
@@ -698,9 +702,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				}
 				else
 				{
-					_starpu_worker_lock(workerid);
+					starpu_worker_lock(workerid);
 					prev_exp_len = _starpu_fifo_get_exp_len_prev_task_list(fifo, task, workerid, nimpl, &fifo_ntasks);
-					_starpu_worker_unlock(workerid);
+					starpu_worker_unlock(workerid);
 				}
 			}
 
@@ -1139,7 +1143,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 
 	/* Once the task is executing, we can update the predicted amount
 	 * of work. */
-	_starpu_worker_lock_self();
+	starpu_worker_lock_self();
 
 	_starpu_fifo_task_started(fifo, task, dt->num_priorities);
 
@@ -1147,7 +1151,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 	fifo->exp_start = STARPU_MAX(now + fifo->pipeline_len, fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	_starpu_worker_unlock_self();
+	starpu_worker_unlock_self();
 }
 
 static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
@@ -1164,7 +1168,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	double now = starpu_timing_now();
 
 	/* Update the predictions */
-	_starpu_worker_lock(workerid);
+	starpu_worker_lock(workerid);
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
@@ -1222,7 +1226,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 
 	fifo->ntasks++;
 
-	_starpu_worker_unlock(workerid);
+	starpu_worker_unlock(workerid);
 }
 
 static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
@@ -1230,9 +1234,9 @@ static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
-	_starpu_worker_lock_self();
+	starpu_worker_lock_self();
 	_starpu_fifo_task_finished(fifo, task, dt->num_priorities);
-	_starpu_worker_unlock_self();
+	starpu_worker_unlock_self();
 }
 
 struct starpu_sched_policy _starpu_sched_dm_policy =

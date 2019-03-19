@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2013-2015,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2013-2015,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,14 +87,32 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
                 _starpu_register_bus(numa_node, disk_memnode);
         }
 
-	/* workers can manage disk memnode */
+	/* Any worker can manage disk memnode */
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned worker;
 	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
-		struct _starpu_worker *workerarg = &config->workers[worker];
-		_starpu_memory_node_add_nworkers(disk_memnode);
-		_starpu_worker_drives_memory_node(workerarg, disk_memnode);
+		/* But prefer to use only CPU workers if possible */
+		if (starpu_worker_get_type(worker) == STARPU_CPU_WORKER)
+		{
+			struct _starpu_worker *workerarg = &config->workers[worker];
+			_starpu_memory_node_add_nworkers(disk_memnode);
+			_starpu_worker_drives_memory_node(workerarg, disk_memnode);
+		}
+	}
+
+	if (!_starpu_memory_node_get_nworkers(disk_memnode))
+	{
+		/* Bleh, no CPU worker to drive the disk, use non-CPU workers too */
+		for (worker = 0; worker < starpu_worker_get_count(); worker++)
+		{
+			if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
+			{
+				struct _starpu_worker *workerarg = &config->workers[worker];
+				_starpu_memory_node_add_nworkers(disk_memnode);
+				_starpu_worker_drives_memory_node(workerarg, disk_memnode);
+			}
+		}
 	}
 
 	//Add bus for disk <-> disk copy

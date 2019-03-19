@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2013-2017                           Inria
  * Copyright (C) 2010-2015,2017,2018                      CNRS
  *
@@ -209,6 +209,8 @@ struct _starpu_data_state
 	unsigned sequential_consistency;
 	/* Is the data initialized, or a task is already submitted to initialize it */
 	unsigned initialized;
+	/* Can the data be pushed to the disk? */
+	unsigned ooc;
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */
@@ -314,6 +316,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, unsigned node);
 
 size_t _starpu_data_get_size(starpu_data_handle_t handle);
+size_t _starpu_data_get_alloc_size(starpu_data_handle_t handle);
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
@@ -329,9 +332,12 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job *j, struct _starpu_worker *worker);
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);
 
-unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
-
 int _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
+int _starpu_determine_request_path(starpu_data_handle_t handle,
+				  int src_node, int dst_node,
+				  enum starpu_data_access_mode mode, int max_len,
+				  unsigned *src_nodes, unsigned *dst_nodes,
+				  unsigned *handling_nodes, unsigned write_invalidation);
 
 /* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
  * async is whether the caller wants a reference on the last request, to be

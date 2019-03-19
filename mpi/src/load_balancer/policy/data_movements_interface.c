@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016                                     Inria
- * Copyright (C) 2017,2018                                CNRS
+ * Copyright (C) 2017,2018,2019                           CNRS
  * Copyright (C) 2018                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -131,8 +131,8 @@ static starpu_ssize_t data_movements_allocate_data_on_node(void *data_interface,
 {
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) data_interface;
 
-	int *addr_tags = NULL;
-	int *addr_ranks = NULL;
+	int *addr_tags;
+	int *addr_ranks;
 	starpu_ssize_t requested_memory = dm_interface->size * sizeof(int);
 
 	addr_tags = (int*) starpu_malloc_on_node(node, requested_memory);

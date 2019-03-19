@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2019                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +50,11 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	int ret;
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	// Ignore environment variables as we want to force the exact number of workers
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NMIC");
+	unsetenv("STARPU_NSCC");
 	struct starpu_conf conf;
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
@@ -142,6 +148,10 @@ int main(void)
 	int ret2;
 	char s[128];
 	char *ptr;
+
+#ifdef STARPU_HAVE_SETENV
+	setenv("STARPU_CALIBRATE_MINIMUM", "1", 1);
+#endif
 
 	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
 	ptr = _starpu_mkdtemp(s);

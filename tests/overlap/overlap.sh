@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017,2018                                Université de Bordeaux
+# Copyright (C) 2017,2018-2019                           Université de Bordeaux
 # Copyright (C) 2017                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -31,6 +31,7 @@ fi
 
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
 [ -f perfs.rec ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -197,6 +197,7 @@ LIST_TYPE(_starpu_worker,
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
+	hwloc_obj_t hwloc_obj;
 #endif
 );
 
@@ -1103,7 +1104,7 @@ static inline void _starpu_worker_lock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		while (!worker->state_relax_refcnt)
@@ -1130,7 +1131,7 @@ static inline int _starpu_worker_trylock(int workerid)
 		return ret;
 	if (workerid == cur_workerid)
 		/* We only needed to lock ourself */
-		return ret;
+		return 0;
 
 	/* Now try to lock the other worker */
 	ret = STARPU_PTHREAD_MUTEX_TRYLOCK_SCHED(&worker->sched_mutex);
@@ -1155,7 +1156,7 @@ static inline void _starpu_worker_unlock(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 	}
 }
 

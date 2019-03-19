@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017,2018                 Inria
- * Copyright (C) 2011-2014,2016-2018                      CNRS
- * Copyright (C) 2011-2016,2018                           Université de Bordeaux
+ * Copyright (C) 2011-2014,2016-2019                      CNRS
+ * Copyright (C) 2011-2016,2018-2019                      Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -51,14 +51,9 @@ static void initialize_peager_common(void)
 		_peager_common_data = common_data;
 
 		const unsigned nbasic_workers = starpu_worker_get_count();
-		int basic_workerids[nbasic_workers];
 		unsigned i;
-		for(i = 0; i < nbasic_workers; i++)
-		{
-			basic_workerids[i] = i;
-		}
 
-		_starpu_sched_find_worker_combinations(basic_workerids, nbasic_workers);
+		starpu_sched_find_all_worker_combinations();
 		const unsigned ncombined_workers = starpu_combined_worker_get_count();
 		common_data->no_combined_workers = ncombined_workers == 0;
 
@@ -249,21 +244,21 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
 	{
-		struct starpu_task *task = NULL;
-		_starpu_worker_relax_on();
+		struct starpu_task *task;
+		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 		task = _starpu_fifo_pop_task(data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 		return task;
 	}
 
-	struct starpu_task *task = NULL;
+	struct starpu_task *task;
 	int slave_task = 0;
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 	/* check if a slave task is available in the local queue */
 	task = _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
 	if (!task)
@@ -358,11 +353,11 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	for (i = 1; i < worker_size; i++)
 	{
 		int local_worker = combined_workerid[i];
-		_starpu_worker_lock(local_worker);
+		starpu_worker_lock(local_worker);
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 		starpu_wake_worker_locked(local_worker);
 #endif
-		_starpu_worker_unlock(local_worker);
+		starpu_worker_unlock(local_worker);
 	}
 
 ret:

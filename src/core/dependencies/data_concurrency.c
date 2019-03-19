@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015-2017                           Inria
  * Copyright (C) 2009-2015,2017,2018                      Université de Bordeaux
- * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,7 +152,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 	/* If we are currently performing a reduction, we freeze any request
 	 * that is not explicitely a reduction task. */
-	unsigned is_a_reduction_task = (request_from_codelet && j->reduction_task);
+	unsigned is_a_reduction_task = (request_from_codelet && j && j->reduction_task);
 
 	if (pending_reduction && !is_a_reduction_task)
 		frozen = 1;

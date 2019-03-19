@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2011,2012,2016                           Inria
  * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
  *
@@ -30,7 +30,7 @@ cross-compiled <c>hwloc.pc</c>.
 The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
 calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
-recurse into both directories. If different configuration options are needed
+recurse into both directories. If different \c configure options are needed
 for the host and for the mic, one can use <c>--with-host-param=--with-fxt</c>
 for instance to specify the <c>--with-fxt</c> option for the host only, or
 <c>--with-mic-param=--with-fxt</c> for the mic only.
@@ -47,10 +47,10 @@ or option for the host and the device builds, for instance:
     --with-host-param=--with-mpicc=/.../mpiicc
 \endverbatim
 
-In case you have troubles with the coi or scif libraries (the Intel paths are
+In case you have troubles with the \c coi or \c scif libraries (the Intel paths are
 really not standard, it seems...), you can still make a build in native mode
 only, by using <c>mic-configure --enable-native-mic</c> (and notably without
-<c>--enable-mic</c> since in that case we don't need mic offloading support).
+<c>--enable-mic</c> since in that case we don't need \c mic offloading support).
 
 \section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
@@ -70,15 +70,15 @@ struct starpu_codelet cl =
 StarPU will thus simply use the
 existing CPU implementation (cross-rebuilt in the MIC Xeon Phi case). The
 functions have to be globally-visible (i.e. not <c>static</c>) for
-StarPU to be able to look them up, and -rdynamic must be passed to gcc (or
--export-dynamic to ld) so that symbols of the main program are visible.
+StarPU to be able to look them up, and \c -rdynamic must be passed to \c gcc (or
+\c -export-dynamic to \c ld) so that symbols of the main program are visible.
 
-If you have used the <c>.where</c> field, you additionally need to add in it
-<c>STARPU_MIC</c> for the Xeon Phi, and/or <c>STARPU_SCC</c> for the SCC.
+If you have used the starpu_codelet::where field, you additionally need to add in it
+::STARPU_MIC for the Xeon Phi, and/or ::STARPU_SCC for the SCC.
 
 For non-native MIC Xeon Phi execution, the 'main' function of the application, on the sink, should call starpu_init() immediately upon start-up; the starpu_init() function never returns. On the host, the 'main' function may freely perform application related initialization calls as usual, before calling starpu_init().
 
-For MIC Xeon Phi, the application may programmatically detect whether executing on the sink or on the host, by checking whether the STARPU_SINK environment variable is defined (on the sink) or not (on the host).
+For MIC Xeon Phi, the application may programmatically detect whether executing on the sink or on the host, by checking whether the \ref STARPU_SINK environment variable is defined (on the sink) or not (on the host).
 
 For SCC execution, the function starpu_initialize() also has to be
 used instead of starpu_init(), so as to pass <c>argc</c> and

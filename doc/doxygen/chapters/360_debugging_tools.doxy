@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -24,10 +24,10 @@ can be generated and displayed graphically, see \ref GeneratingTracesWithFxT.
 \section DebuggingInGeneral TroubleShooting In General
 
 Generally-speaking, if you have troubles, pass \ref enable-debug "--enable-debug" to
-<c>./configure</c> to enable some checks which impact performance, but will
+<c>configure</c> to enable some checks which impact performance, but will
 catch common issues, possibly earlier than the actual problem you are observing,
 which may just be a consequence of a bug that happened earlier. Also, make sure
-not to have the \ref enable-fast "--enable-fast" option which drops very useful
+not to have the \ref enable-fast "--enable-fast" \c configure option which drops very useful
 catchup assertions. If your program is valgrind-safe, you can use it, see \ref
 UsingOtherDebugger.
 
@@ -83,12 +83,12 @@ For instance,
 </ul>
 
 Some functions can only work if \ref enable-debug "--enable-debug"
-was passed to <c>./configure</c>
+was passed to <c>configure</c>
 (because they impact performance)
 
 \section UsingOtherDebugger Using Other Debugging Tools
 
-Valgrind can be used on StarPU: valgrind.h just needs to be found at <c>./configure</c>
+Valgrind can be used on StarPU: valgrind.h just needs to be found at <c>configure</c>
 time, to tell valgrind about some known false positives and disable host memory
 pinning. Other known false positives can be suppressed by giving the suppression
 files in <c>tools/valgrind/*.suppr</c> to valgrind's <c>--suppressions</c> option.
@@ -104,7 +104,7 @@ StarPU can connect to Temanejo >= 1.0rc2 (see
 http://www.hlrs.de/temanejo), to permit
 nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
 install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the
-<c>tools/patch-ayudame</c> to it to fix C build, re-<c>./configure</c>, make
+<c>tools/patch-ayudame</c> to it to fix C build, re-<c>configure</c>, make
 sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
 to your application, any options you want to pass it, the path to <c>libayudame.so</c>.
 

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2018                                Inria
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2009,2011,2013,2014,2017                 Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ DOX_TAG = starpu.tag
 
 txtdir   = $(docdir)/manual
 
-EXTRA_DIST = 
+EXTRA_DIST =
 
 if BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
@@ -98,54 +98,24 @@ chapters =	\
 	chapters/code/simgrid.c \
 	chapters/code/vector_scal_c.c \
 	chapters/code/vector_scal_cpu.c \
-	chapters/code/vector_scal_cuda.cu \
+	chapters/code/vector_scal_cuda.c \
 	chapters/code/vector_scal_opencl.c \
 	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
 	chapters/api/codelet_and_tasks.doxy \
-	chapters/api/cuda_extensions.doxy \
-	chapters/api/data_interfaces.doxy \
-	chapters/api/data_management.doxy \
-	chapters/api/data_partition.doxy \
-	chapters/api/data_out_of_core.doxy \
-	chapters/api/expert_mode.doxy \
-	chapters/api/explicit_dependencies.doxy \
 	chapters/api/fft_support.doxy \
-	chapters/api/fxt_support.doxy \
-	chapters/api/implicit_dependencies.doxy \
-	chapters/api/initialization.doxy \
-	chapters/api/insert_task.doxy \
-	chapters/api/lower_bound.doxy \
-	chapters/api/misc_helpers.doxy \
 	chapters/api/mpi.doxy \
-	chapters/api/multiformat_data_interface.doxy \
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
 	chapters/api/scc_extensions.doxy \
-	chapters/api/parallel_tasks.doxy \
-	chapters/api/performance_model.doxy \
-	chapters/api/profiling.doxy \
-	chapters/api/running_driver.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
-	chapters/api/standard_memory_library.doxy \
-	chapters/api/task_bundles.doxy \
-	chapters/api/task_lists.doxy \
-	chapters/api/top.doxy \
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
-	chapters/api/threads.doxy \
-	chapters/api/bitmap.doxy \
-	chapters/api/tree.doxy \
-	chapters/api/toolbox.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
-	chapters/api/modularized_scheduler.doxy \
-	chapters/api/clustering_machine.doxy \
-	chapters/api/interoperability.doxy
+	chapters/api/threads.doxy
 
 images = 	\
 	chapters/images/data_trace.eps \
@@ -233,8 +203,9 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_bitmap.h		\
 	$(top_srcdir)/include/starpu_bound.h		\
-	$(top_srcdir)/include/starpu_clusters_util.h	\
+	$(top_srcdir)/include/starpu_clusters.h		\
 	$(top_srcdir)/include/starpu_cublas.h		\
+	$(top_srcdir)/include/starpu_cusparse.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
 	$(top_srcdir)/include/starpu_data_filters.h	\
 	$(top_srcdir)/include/starpu_data.h		\
@@ -261,6 +232,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_sink.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
 	$(top_srcdir)/include/starpu_task_bundle.h	\
+	$(top_srcdir)/include/starpu_task_dep.h		\
 	$(top_srcdir)/include/starpu_task.h		\
 	$(top_srcdir)/include/starpu_task_list.h	\
 	$(top_srcdir)/include/starpu_task_util.h	\
@@ -272,6 +244,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_worker.h		\
 	$(top_srcdir)/include/fstarpu_mod.f90		\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/mpi/include/starpu_mpi_lb.h	\
 	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
@@ -279,6 +252,10 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h	\
 	$(top_srcdir)/starpurm/include/starpurm.h
+
+doxy:
+	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
+	@$(DOXYGEN) $(DOX_CONFIG)
 
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
@@ -300,8 +277,8 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
 	$(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
 	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
-	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
-	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item File\\.Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex ;\
 	$(MAKEINDEX) refman.idx ;\
 	$(PDFLATEX) refman.tex ;\

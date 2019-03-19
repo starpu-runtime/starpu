@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2012                                     Benjamin Lorendeau
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018                      CNRS
 # Copyright (C) 2013                                     Simon Archipoff
 #
@@ -22,6 +22,10 @@ SUBDIRS =
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 EXTRA_DIST = dolib.c
+
+xml_DATA = $(srcdir)/core/perfmodel/starpu-perfmodel.dtd
+xmldir = $(pkgdatadir)
+EXTRA_DIST += core/perfmodel/starpu-perfmodel.dtd
 
 ldflags =
 
@@ -74,6 +78,7 @@ noinst_HEADERS = 						\
 	core/disk.h						\
 	core/disk_ops/unistd/disk_unistd_global.h		\
 	core/progress_hook.h                                    \
+	core/idle_hook.h                                        \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
 	core/sched_ctx_list.h					\
@@ -182,6 +187,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/debug.c						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
+	core/idle_hook.c                                        \
 	core/dependencies/cg.c					\
 	core/dependencies/dependencies.c			\
 	core/dependencies/implicit_data_deps.c			\
@@ -293,10 +299,13 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_work_stealing.c				\
 	sched_policies/modular_eager.c				\
 	sched_policies/modular_eager_prefetching.c				\
+	sched_policies/modular_gemm.c				\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
 	sched_policies/modular_random.c				\
+	sched_policies/modular_parallel_random.c		\
 	sched_policies/modular_random_prefetching.c			\
+	sched_policies/modular_parallel_heft.c			\
 	sched_policies/modular_heft.c				\
 	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heft2.c				\
@@ -349,6 +358,9 @@ endif
 
 
 if STARPU_HAVE_HWLOC
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += \
+	sched_policies/scheduler_maker.c			\
+	sched_policies/hierarchical_heft.c
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 if STARPU_HAVE_OPENMP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += util/starpu_clusters_create.c

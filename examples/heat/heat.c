@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2012,2014,2015,2017                 Université de Bordeaux
+ * Copyright (C) 2008-2012,2014,2015,2017,2019            Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,8 +22,13 @@
 #include "heat.h"
 
 /* default values */
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntheta = 8+2;
+static unsigned nthick = 8+2;
+#else
 static unsigned ntheta = 32+2;
 static unsigned nthick = 32+2;
+#endif
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
 static unsigned shape = 0;
@@ -799,7 +804,9 @@ int main(int argc, char **argv)
 	}
 
 #ifdef STARPU_OPENGL_RENDER
-	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
+	const char *display = getenv("DISPLAY");
+	if (display && display[0])
+		opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 
 	free(pmesh);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2017                                CNRS
+ * Copyright (C) 2012-2017, 2019                          CNRS
  * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,11 +19,13 @@
 #include <common/config.h>
 #include <stdio.h>
 #include <starpu_mpi_private.h>
+#include <starpu_util.h>
 
 /* measure the amount of data transfers between each pair of MPI nodes */
 static size_t *comm_amount;
 static int world_size;
 static int stats_enabled=0;
+static double time_init;
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
@@ -42,6 +44,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
 	_STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
+	time_init = starpu_timing_now();
 }
 
 void _starpu_mpi_comm_amounts_shutdown()
@@ -81,20 +84,21 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 	if (stats_enabled == 0)
 		return;
 
+	double time = starpu_timing_now() - time_init;
+
 	for (dst = 0; dst < world_size; dst++)
 	{
 		sum += comm_amount[dst];
 	}
 
-	fprintf(stream, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
+	fprintf(stream, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\t %f B/s\t %f MB/s\n", node, (float)sum, (float)sum/1024/1024, (float)sum/(float)time, (float)sum/1204/1024/(float)time);
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		if (comm_amount[dst])
-		{
-			fprintf(stream, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
-				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
-		}
+			fprintf(stream, "[starpu_comm_stats][%d:%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
+				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024),
+				(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
 	}
 }
 

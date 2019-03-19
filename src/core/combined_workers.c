@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2015,2017                           Inria
- * Copyright (C) 2010-2015,2018                           Université de Bordeaux
+ * Copyright (C) 2010-2015,2018-2019                      Université de Bordeaux
  * Copyright (C) 2010,2011,2013-2017                      CNRS
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -163,7 +163,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #endif
 	}
 
-	starpu_sched_ctx_add_combined_workers(&combined_worker_id, 1, STARPU_GLOBAL_SCHED_CTX);
+	starpu_sched_ctx_add_combined_workers(&new_workerid, 1, STARPU_GLOBAL_SCHED_CTX);
 
 	return new_workerid;
 }

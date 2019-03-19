@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2013-2015,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013-2015,2017                           Inria
  * Copyright (C) 2014,2015,2017                           CNRS
  * Copyright (C) 2013                                     Simon Archipoff
@@ -58,6 +58,15 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	struct starpu_sched_component *no_perfmodel_component = NULL;
 	struct starpu_sched_component *calibrator_component = NULL;
 
+	/* Start building the tree */
+	t = starpu_sched_tree_create(sched_ctx_id);
+	t->root = NULL;
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+
+	/* Create combined workers if requested */
+	if (flags & STARPU_SCHED_SIMPLE_COMBINED_WORKERS)
+		starpu_sched_find_all_worker_combinations();
+
 	/* Components parameters */
 
 	if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO || flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
@@ -70,6 +79,12 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	}
 
 	struct starpu_sched_component_prio_data prio_data =
+		{
+			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
+			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
+		};
+
+	struct starpu_sched_component_fifo_data fifo_data =
 		{
 			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
 			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
@@ -130,10 +145,6 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 			STARPU_ABORT();
 	}
 	STARPU_ASSERT(nbelow > 0);
-
-	/* Start building the tree */
-	t = starpu_sched_tree_create(sched_ctx_id);
-	t->root = NULL;
 
 	if (nbelow == 1)
 	{
@@ -205,7 +216,9 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	for(i = 0; i < nbelow; i++)
 	{
 		last = decision_component;
-		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW)
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW
+			&& !((flags & STARPU_SCHED_SIMPLE_DECIDE_MASK) == STARPU_SCHED_SIMPLE_DECIDE_WORKERS
+				&& i >= starpu_worker_get_count()))
 		{
 			struct starpu_sched_component *fifo_below;
 			if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
@@ -214,7 +227,7 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 			}
 			else
 			{
-				fifo_below = starpu_sched_component_fifo_create(t, NULL);
+				fifo_below = starpu_sched_component_fifo_create(t, &fifo_data);
 			}
 			starpu_sched_component_connect(last, fifo_below);
 			last = fifo_below;
@@ -309,5 +322,5 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	}
 
 	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+	starpu_sched_tree_update_workers_in_ctx(t);
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016,2017                                CNRS
+ * Copyright (C) 2016,2017,2019                           CNRS
  * Copyright (C) 2015                                     Université de Bordeaux
  * Copyright (C) 2015                                     Anthony Simonet
  *
@@ -46,7 +46,7 @@ static unsigned nflowing;
 
 static struct component *fxt_component_root(void)
 {
-	struct component *comp, *tmp;
+	struct component *comp=NULL, *tmp=NULL;
 	HASH_ITER(hh, components, comp, tmp)
 	{
 		while (comp->parent)

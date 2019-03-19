@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -28,10 +28,12 @@
 #include <common/utils.h>
 #include <common/graph.h>
 #include <core/progress_hook.h>
+#include <core/idle_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/disk.h>
 #include <core/task.h>
+#include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <sched_policies/sched_component.h>
@@ -618,7 +620,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->state_unblock_in_parallel_ack = 0;
 	workerarg->block_in_parallel_ref_count = 0;
 
-	/* cpu_set/hwloc_cpu_set initialized in topology.c */
+	/* cpu_set/hwloc_cpu_set/hwloc_obj initialized in topology.c */
 }
 
 static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
@@ -919,14 +921,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
                 while (!worker_set_zero->set_is_initialized)
                         STARPU_PTHREAD_COND_WAIT(&worker_set_zero->ready_cond,
-                                        &worker_set_zero->mutex);
+						 &worker_set_zero->mutex);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set_zero->mutex);
 
                 worker_set_zero->started = 1;
                 worker_set_zero->worker_thread = mpi_worker_set[0].worker_thread;
-
         }
-
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)
@@ -973,6 +973,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
 	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
+	conf->catch_signals = starpu_get_env_number_default("STARPU_CATCH_SIGNALS", 1);
 
 	/* Note that starpu_get_env_number returns -1 in case the variable is
 	 * not defined */
@@ -1206,11 +1207,14 @@ void _starpu_handler(int sig)
 
 void _starpu_catch_signals(void)
 {
-	act_sigint  = signal(SIGINT, _starpu_handler);
-	act_sigsegv = signal(SIGSEGV, _starpu_handler);
+	if (_starpu_config.conf.catch_signals == 1)
+	{
+		act_sigint  = signal(SIGINT, _starpu_handler);
+		act_sigsegv = signal(SIGSEGV, _starpu_handler);
 #ifdef SIGTRAP
-	act_sigtrap = signal(SIGTRAP, _starpu_handler);
+		act_sigtrap = signal(SIGTRAP, _starpu_handler);
 #endif
+	}
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -1387,6 +1391,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_init_all_sched_ctxs(&_starpu_config);
 	_starpu_init_progression_hooks();
+	_starpu_init_idle_hooks();
 
 	_starpu_init_tags();
 
@@ -1756,6 +1761,7 @@ void starpu_shutdown(void)
 	free(_starpu_config.topology.tree);
 #endif
 	_starpu_destroy_topology(&_starpu_config);
+	_starpu_initialized_combined_workers = 0;
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
 #endif
@@ -1880,9 +1886,9 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 
 unsigned starpu_worker_is_slave_somewhere(int workerid)
 {
-	_starpu_worker_lock(workerid);
+	starpu_worker_lock(workerid);
 	unsigned ret = _starpu_config.workers[workerid].is_slave_somewhere;
-	_starpu_worker_unlock(workerid);
+	starpu_worker_unlock(workerid);
 	return ret;
 }
 
@@ -2542,6 +2548,11 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return hwloc_bitmap_dup(worker->hwloc_cpu_set);
 }
+hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	return worker->hwloc_obj;
+}
 #endif
 
 /* Light version of _starpu_wake_worker_relax, which, when possible,
@@ -2555,7 +2566,7 @@ int starpu_wake_worker_relax_light(int workerid)
 	int cur_workerid = starpu_worker_get_id();
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 		while (!worker->state_relax_refcnt)
@@ -2565,7 +2576,7 @@ int starpu_wake_worker_relax_light(int workerid)
 			{
 				_starpu_config.workers[workerid].state_keep_awake = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
-				_starpu_worker_relax_off();
+				starpu_worker_relax_off();
 				return 1;
 			}
 
@@ -2580,7 +2591,7 @@ int starpu_wake_worker_relax_light(int workerid)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	if (workerid != cur_workerid)
 	{
-		_starpu_worker_relax_off();
+		starpu_worker_relax_off();
 	}
 	return ret;
 }

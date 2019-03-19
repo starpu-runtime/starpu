@@ -2,8 +2,8 @@
  *
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -56,16 +56,20 @@ static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
+	&_starpu_sched_modular_gemm_policy,
 	&_starpu_sched_modular_prio_policy,
 	&_starpu_sched_modular_prio_prefetching_policy,
 	&_starpu_sched_modular_random_policy,
 	&_starpu_sched_modular_random_prio_policy,
 	&_starpu_sched_modular_random_prefetching_policy,
 	&_starpu_sched_modular_random_prio_prefetching_policy,
+	&_starpu_sched_modular_parallel_random_policy,
+	&_starpu_sched_modular_parallel_random_prio_policy,
 	&_starpu_sched_modular_ws_policy,
 	&_starpu_sched_modular_heft_policy,
 	&_starpu_sched_modular_heft_prio_policy,
 	&_starpu_sched_modular_heft2_policy,
+	&_starpu_sched_modular_parallel_heft_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,
@@ -80,6 +84,9 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_peager_policy,
 	&_starpu_sched_heteroprio_policy,
 	&_starpu_sched_graph_test_policy,
+#ifdef STARPU_HAVE_HWLOC
+	//&_starpu_sched_tree_heft_hierarchical_policy,
+#endif
 	NULL
 };
 
@@ -408,7 +415,11 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 int _starpu_push_task(struct _starpu_job *j)
 {
 	if(j->task->prologue_callback_func)
+	{
+		_starpu_set_current_task(j->task);
 		j->task->prologue_callback_func(j->task->prologue_callback_arg);
+		_starpu_set_current_task(NULL);
+	}
 
 	return _starpu_repush_task(j);
 }
@@ -460,7 +471,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		task->status = STARPU_TASK_RUNNING;
 		if (task->prologue_callback_pop_func)
+		{
+			_starpu_set_current_task(task);
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
+			_starpu_set_current_task(NULL);
+		}
 
 		if (task->cl && task->cl->specific_nodes)
 		{
@@ -1057,7 +1072,7 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
 			struct _starpu_sched_ctx *other_sched_ctx;
-			struct _starpu_sched_ctx_elt *e = NULL;
+			struct _starpu_sched_ctx_elt *e;
 
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
@@ -1095,7 +1110,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 		while (_starpu_sched_ctx_list_iterator_has_next(&list_it))
 		{
 			struct _starpu_sched_ctx *other_sched_ctx;
-			struct _starpu_sched_ctx_elt *e = NULL;
+			struct _starpu_sched_ctx_elt *e;
 
 			e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 			other_sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);

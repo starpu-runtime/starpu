@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2018                                CNRS
  *
@@ -355,7 +355,7 @@ static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
  * node that handles the hop. The returned value indicates the number of hops,
  * and the max_len is the maximum number of hops (ie. the size of the
  * src_nodes, dst_nodes and handling_nodes arrays. */
-static int determine_request_path(starpu_data_handle_t handle,
+int _starpu_determine_request_path(starpu_data_handle_t handle,
 				  int src_node, int dst_node,
 				  enum starpu_data_access_mode mode, int max_len,
 				  unsigned *src_nodes, unsigned *dst_nodes,
@@ -670,7 +670,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	unsigned src_nodes[MAX_REQUESTS], dst_nodes[MAX_REQUESTS], handling_nodes[MAX_REQUESTS];
 	/* keep one slot for the last W request, if any */
 	int write_invalidation = (mode & STARPU_W) && nwait && !is_prefetch;
-	int nhops = determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
+	int nhops = _starpu_determine_request_path(handle, src_node, requesting_node, mode, MAX_REQUESTS,
 					   src_nodes, dst_nodes, handling_nodes, write_invalidation);
 
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
@@ -889,6 +889,14 @@ uint32_t _starpu_get_data_refcnt(starpu_data_handle_t handle, unsigned node)
 size_t _starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
+}
+
+size_t _starpu_data_get_alloc_size(starpu_data_handle_t handle)
+{
+	if (handle->ops->get_alloc_size)
+		return handle->ops->get_alloc_size(handle);
+	else
+		return handle->ops->get_size(handle);
 }
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
@@ -1462,7 +1470,7 @@ static void _starpu_fetch_nowhere_task_input_cb(void *arg)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsigned node)
+unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	unsigned ret = 0;
 

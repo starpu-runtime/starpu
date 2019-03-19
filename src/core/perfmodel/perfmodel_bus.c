@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -151,11 +151,8 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 
 static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
-
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 
 	/* Initialize CUDA context on the device */
 	/* We do not need to enable OpenGL interoperability at this point,
@@ -191,6 +188,8 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	unsigned char *h_buffer;
 
 #if defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
@@ -217,6 +216,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -335,6 +335,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&s_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(s_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	/* Initialize CUDA context on the destination */
 	/* We do not need to enable OpenGL interoperability at this point,
@@ -360,6 +361,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&d_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(d_buffer, 0, size);
+	cudaThreadSynchronize();
 
 	unsigned iter;
 	double timing;
@@ -409,10 +411,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	size_t size = SIZE;
 	int not_initialized;
 
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
-
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 
 	/* Is the context already initialised ? */
 	starpu_opencl_get_context(dev, &context);
@@ -456,6 +455,9 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
@@ -2995,6 +2997,9 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	int direct = starpu_bus_get_direct(busid);
 #endif
 	float ngpus = topology->ncudagpus+topology->nopenclgpus;
+#ifdef STARPU_DEVEL
+#warning FIXME: ngpus shouldn't be used e.g. for slow disk transfers...
+#endif
 
 #if 0
 	/* Ideally we should take into account that some GPUs are directly
@@ -3008,6 +3013,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 		ngpus = neighbours + (ngpus - neighbours) * neighbours / ngpus;
 	}
 #endif
+
 
 	return latency + (size/bandwidth)*2*ngpus;
 }

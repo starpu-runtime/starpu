@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2016-2018                                CNRS
+ * Copyright (C) 2016-2019                                CNRS
  * Copyright (C) 2016-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,6 +60,7 @@ static const intptr_t fstarpu_tag_only	= STARPU_TAG_ONLY;
 static const intptr_t fstarpu_name	= STARPU_NAME;
 static const intptr_t fstarpu_task_color	= STARPU_TASK_COLOR;
 static const intptr_t fstarpu_handles_sequential_consistency	= STARPU_HANDLES_SEQUENTIAL_CONSISTENCY;
+static const intptr_t fstarpu_task_end_dep	= STARPU_TASK_END_DEP;
 static const intptr_t fstarpu_task_synchronous	= STARPU_TASK_SYNCHRONOUS;
 static const intptr_t fstarpu_node_selection_policy	= STARPU_NODE_SELECTION_POLICY;
 
@@ -140,6 +141,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SCHED_CTX"))	{ return fstarpu_sched_ctx; }
 	else if (!strcmp(s, "FSTARPU_TASK_COLOR"))	{ return fstarpu_task_color; }
 	else if (!strcmp(s, "FSTARPU_HANDLES_SEQUENTIAL_CONSISTENCY"))	{ return fstarpu_handles_sequential_consistency; }
+	else if (!strcmp(s, "FSTARPU_TASK_END_DEP"))	{ return fstarpu_task_end_dep; }
 	else if (!strcmp(s, "FSTARPU_TASK_SYNCHRONOUS"))	{ return fstarpu_task_synchronous; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }

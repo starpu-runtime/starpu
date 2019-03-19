@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2009-2012,2014-2017,2019                 Université de Bordeaux
  * Copyright (C) 2012,2016,2017                           Inria
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
  *
@@ -119,8 +119,6 @@ static inline int _starpu_memory_node_get_devid(unsigned node)
 {
 	return _starpu_descr.devid[node];
 }
-
-void _starpu_memory_node_get_name(unsigned node, char *name, int size);
 
 static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {

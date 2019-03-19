@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2018                                CNRS
+ * Copyright (C) 2015-2019                                CNRS
  * Copyright (C) 2015,2018                                Université de Bordeaux
  * Copyright (C) 2015,2016                                Inria
  *
@@ -24,7 +24,7 @@ using the context API.
 \section GeneralIdeas General Ideas
 Clusters are a concept introduced in this
 <a href="https://hal.inria.fr/view/index/docid/1181135">paper</a>. This
-comes from a basic idea, making use of two level of parallelism in a DAG.
+comes from a basic idea, making use of two levels of parallelism in a DAG.
 We keep the DAG parallelism but consider on top of it that a task can
 contain internal parallelism. A good example is if each task in the DAG
 is OpenMP enabled.
@@ -38,21 +38,21 @@ top of which the parallel tasks (e.g. OpenMP tasks) will be ran in a
 contained fashion.
 
 The aim of the cluster API is to facilitate this process in an automatic
-fashion. For this purpose, we depend on the hwloc tool to detect the
+fashion. For this purpose, we depend on the \c hwloc tool to detect the
 machine configuration and then partition it into usable clusters.
 
 An example of code running on clusters is available in
 <c>examples/sched_ctx/parallel_tasks_with_cluster_api.c</c>.
 
-Let's first look at how to create one in practice, then we will detail
-their internals.
+Let's first look at how to create a cluster.
 
 \section CreatingClusters Creating Clusters
+
 Partitioning a machine into clusters with the cluster API is fairly
 straightforward. The simplest way is to state under which machine
-topology level we wish to regroup all resources. This level is an HwLoc
-object, of the type <c>hwloc_obj_type_t</c>. More can be found in the
-<a href="https://www.open-mpi.org/projects/hwloc/doc/v1.11.0/a00076.php">hwloc
+topology level we wish to regroup all resources. This level is an \c hwloc
+object, of the type <c>hwloc_obj_type_t</c>. More information can be found in the
+<a href="https://www.open-mpi.org/projects/hwloc/doc/v2.0.3/">hwloc
 documentation</a>.
 
 Once a cluster is created, the full machine is represented with an opaque
@@ -82,11 +82,12 @@ system, represented with a dashed box around the resources.
 Creating clusters as shown in the example above will create workers able to
 execute OpenMP code by default. The cluster API aims in allowing to
 parametrize the cluster creation and can take a <c>va_list</c> of arguments
-as input after the HwLoc object (always terminated by a 0 value). These can
+as input after the \c hwloc object (always terminated by a 0 value). These can
 help creating clusters of a type different from OpenMP, or create a more
 precise partition of the machine.
 
 \section ExampleOfConstrainingOpenMP Example Of Constraining OpenMP
+
 Clusters require being able to constrain the runtime managing the internal
 task parallelism (internal runtime) to the resources set by StarPU. The
 purpose of this is to express how StarPU must communicate with the internal
@@ -135,20 +136,26 @@ void starpu_openmp_prologue(void * sched_ctx_id)
 }
 \endcode
 
-This is in fact exactly the default function used when we don't specify
-anything. As can be seen, we based the clusters on several tools and
-models present in the StarPU contexts, and merely extended them to allow
-to represent and carry clusters. More on contexts can be read here
-\ref SchedulingContexts.
+This function is the default function used when calling starpu_cluster_machine() without extra parameter.
+
+Cluster are based on several tools and models already available within
+StarPU contexts, and merely extend contexts. More on contexts can be
+read in Section \ref SchedulingContexts.
 
 \section CreatingCustomClusters Creating Custom Clusters
-As was previously said it is possible to create clusters using another
-cluster type, in order to bind another internal runtime inside StarPU.
-This can be done with in several ways:
-- By using the currently available functions
-- By passing as argument a user defined function
 
-Here are two examples:
+Clusters can be created either with the predefined functions provided
+within StarPU, or with user-defined functions to bind another runtime
+inside StarPU.
+
+The predefined cluster types provided by StarPU are
+::STARPU_CLUSTER_OPENMP, ::STARPU_CLUSTER_INTEL_OPENMP_MKL and
+::STARPU_CLUSTER_GNU_OPENMP_MKL. The last one is only provided if
+StarPU is compiled with the \c MKL library.  It uses MKL functions to
+set the number of threads which is more reliable when using an OpenMP
+implementation different from the Intel one.
+
+Here an example creating a MKL cluster.
 \code{.c}
 struct starpu_cluster_machine *clusters;
 clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
@@ -156,10 +163,10 @@ clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
                                  0);
 \endcode
 
-This type of clusters is available by default only if StarPU is compiled
-with MKL. It uses MKL functions to set the number of threads which is
-more reliable when using an OpenMP implementation different from the
-Intel one.
+Using the default type ::STARPU_CLUSTER_OPENMP is similar to calling
+starpu_cluster_machine() without any extra parameter.
+
+Users can also define their own function.
 
 \code{.c}
 void foo_func(void* foo_arg);
@@ -174,16 +181,17 @@ clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
 \endcode
 
 \section ClustersWithSchedulingContextsAPI Clusters With Scheduling
-Contexts API As previously mentioned, the cluster API is implemented
+
+As previously mentioned, the cluster API is implemented
 on top of \ref SchedulingContexts. Its main addition is to ease the
 creation of a machine CPU partition with no overlapping by using
-HwLoc, whereas scheduling contexts can use any number of any
+\c hwloc, whereas scheduling contexts can use any number of any
 resources.
 
 It is therefore possible, but not recommended, to create clusters
 using the scheduling contexts API. This can be useful mostly in the
-most complex machine configurations where the user has to dimension
-precisely clusters by hand using his own algorithm.
+most complex machine configurations where users have to dimension
+precisely clusters by hand using their own algorithm.
 
 \code{.c}
 /* the list of resources the context will manage */
@@ -197,18 +205,17 @@ int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", 0);
 /* let StarPU know that the following tasks will be submitted to this context */
 starpu_sched_ctx_set_task_context(id);
 
-task->prologue_callback_pop_func=runtime_interface_function_here;
+task->prologue_callback_pop_func=&runtime_interface_function_here;
 
 /* submit the task to StarPU */
 starpu_task_submit(task);
 \endcode
 
 As this example illustrates, creating a context without scheduling
-policy will create a cluster. The important change is that the user
-will have to specify an interface function between the two runtimes he
-plans to use. This can be done in the
-<c>prologue_callback_pop_func</c> field of the task. Such a function
-can be similar to the OpenMP thread team creation one.
+policy will create a cluster. The important change is that users
+will have to specify an interface function between StarPU and the other runtime.
+This can be done in the field starpu_task::prologue_callback_pop_func. Such a function
+can be similar to the OpenMP thread team creation one (see above).
 
 Note that the OpenMP mode is the default one both for clusters and
 contexts. The result of a cluster creation is a woken up master worker

@@ -2,8 +2,8 @@
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2017, 2019                          CNRS
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,6 +67,15 @@ static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
 #endif
 #endif
+
+static starpu_malloc_hook malloc_hook;
+static starpu_free_hook free_hook;
+
+void starpu_malloc_set_hooks(starpu_malloc_hook _malloc_hook, starpu_free_hook _free_hook)
+{
+	malloc_hook = _malloc_hook;
+	free_hook = _free_hook;
+}
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -182,6 +191,12 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			starpu_memory_allocate(dst_node, dim, flags);
 		else
 			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
+	}
+
+	if (malloc_hook)
+	{
+		ret = malloc_hook(dst_node, A, dim, flags);
+		goto end;
 	}
 
 	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
@@ -395,9 +410,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				ret = -ENOMEM;
 		}
 
-#if (defined(STARPU_SIMGRID) && (SIMGRID_VERSION < 31500 || SIMGRID_VERSION == 31559)) || defined(STARPU_USE_CUDA)
 end:
-#endif
 	if (ret == 0)
 	{
 		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
@@ -463,6 +476,12 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
 {
+	if (free_hook)
+	{
+		free_hook(dst_node, A, dim, flags);
+		goto out;
+	}
+
 	if (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
@@ -568,9 +587,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	else
 		free(A);
 
-#if !defined(STARPU_SIMGRID) && defined(STARPU_USE_CUDA)
 out:
-#endif
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		starpu_memory_deallocate(dst_node, dim);
@@ -752,11 +769,11 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 		case STARPU_CPU_RAM:
 			_starpu_free_flags_on_node(dst_node, (void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-					flags & ~STARPU_MALLOC_PINNED
+						   flags & ~STARPU_MALLOC_PINNED
 #else
-					flags
+						   flags
 #endif
-					);
+				);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -778,24 +795,26 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			struct _starpu_worker *worker = _starpu_get_local_worker_key();
 			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
-#endif
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 			err = cudaFree((void*)addr);
-			if (STARPU_UNLIKELY(err != cudaSuccess
 #ifdef STARPU_OPENMP
-		/* When StarPU is used as Open Runtime support,
-		 * starpu_omp_shutdown() will usually be called from a
-		 * destructor, in which case cudaThreadExit() reports a
-		 * cudaErrorCudartUnloading here. There should not
-		 * be any remaining tasks running at this point so
-		 * we can probably ignore it without much consequences. */
-		&& err != cudaErrorCudartUnloading
-#endif /* STARPU_OPENMP */
-						))
+			/* When StarPU is used as Open Runtime support,
+			 * starpu_omp_shutdown() will usually be called from a
+			 * destructor, in which case cudaThreadExit() reports a
+			 * cudaErrorCudartUnloading here. There should not
+			 * be any remaining tasks running at this point so
+			 * we can probably ignore it without much consequences. */
+			if (STARPU_UNLIKELY(err != cudaSuccess && err != cudaErrorCudartUnloading))
 				STARPU_CUDA_REPORT_ERROR(err);
-#endif
+#else
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+#endif /* STARPU_OPENMP */
+#endif /* STARPU_SIMGRID */
 			break;
 		}
-#endif
+#endif /* STARPU_USE_CUDA || STARPU_SIMGRID */
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
                 case STARPU_OPENCL_RAM:
 		{

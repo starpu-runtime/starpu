@@ -1,0 +1,144 @@
+##################
+# Performance Model Version
+45
+
+####################
+# COMBs
+# number of combinations
+4
+####################
+# COMB_0
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+0
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cpu0_impl0 (Comb0)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+fb4b8624	4427800        	0.000000e+00   	1.161593e+01   	2.312881e+00   	1.684310e+04   	2.034051e+05   	1450
+4af260f6	14678040       	0.000000e+00   	2.793439e+01   	6.208645e+00   	2.807406e+04   	8.229715e+05   	1005
+f2ff9ae5	34480152       	0.000000e+00   	5.388292e+01   	1.191766e+01   	4.930288e+04   	2.786541e+06   	915
+
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda0_impl0 (Comb1)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+fb4b8624	4427800        	0.000000e+00   	3.349897e+01   	6.495369e+00   	7.939257e+03   	2.759560e+05   	237
+4af260f6	14678040       	0.000000e+00   	3.814493e+01   	8.460348e+00   	1.609716e+04   	6.442306e+05   	422
+f2ff9ae5	34480152       	0.000000e+00   	3.894616e+01   	8.022125e+00   	1.339748e+04   	5.439182e+05   	344
+
+####################
+# COMB_2
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb2)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+fb4b8624	4427800        	0.000000e+00   	4.505725e+01   	1.044174e+01   	7.209160e+02   	3.422697e+04   	16
+4af260f6	14678040       	0.000000e+00   	3.820932e+01   	8.787776e+00   	1.138638e+04   	4.580788e+05   	298
+f2ff9ae5	34480152       	0.000000e+00   	4.714002e+01   	1.060923e+01   	1.343491e+04   	6.654002e+05   	285
+
+####################
+# COMB_3
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+2
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda2_impl0 (Comb3)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+fb4b8624	4427800        	0.000000e+00   	2.397521e+01   	2.109607e+00   	5.754050e+02   	1.390227e+04   	24
+4af260f6	14678040       	0.000000e+00   	3.827520e+01   	8.943097e+00   	9.453975e+03   	3.816076e+05   	247
+f2ff9ae5	34480152       	0.000000e+00   	5.567087e+01   	1.159966e+01   	8.127947e+03   	4.721345e+05   	146
+

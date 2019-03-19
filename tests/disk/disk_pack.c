@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                CNRS
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2017,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,7 +58,8 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned ho
 		.elemsize = elemsize,
                 .dev_handle = ptr,
 		.slice_base = 0,
-                .offset = 0
+                .offset = 0,
+		.allocsize = nx * elemsize,
 	};
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_my_vector_ops);
@@ -79,10 +80,6 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
-#ifdef STARPU_HAVE_UNSETENV
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
-#endif
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
@@ -271,6 +268,10 @@ int main(void)
 	int ret2;
 	char s[128];
 	char *ptr;
+
+#ifdef STARPU_HAVE_SETENV
+	setenv("STARPU_CALIBRATE_MINIMUM", "1", 1);
+#endif
 
 	snprintf(s, sizeof(s), "/tmp/%s-disk-XXXXXX", getenv("USER"));
 	ptr = _starpu_mkdtemp(s);

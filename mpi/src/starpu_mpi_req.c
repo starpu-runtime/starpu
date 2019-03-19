@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
@@ -93,7 +93,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_init(&((*req)->queue));
-	starpu_pthread_queue_register(&wait, &((*req)->queue));
+	starpu_pthread_queue_register(&_starpu_mpi_thread_wait, &((*req)->queue));
 	(*req)->done = 0;
 #endif
 }
@@ -153,7 +153,7 @@ void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 	req->datatype_name = NULL;
 #endif
 #ifdef STARPU_SIMGRID
-	starpu_pthread_queue_unregister(&wait, &req->queue);
+	starpu_pthread_queue_unregister(&_starpu_mpi_thread_wait, &req->queue);
 	starpu_pthread_queue_destroy(&req->queue);
 #endif
 	free(req);

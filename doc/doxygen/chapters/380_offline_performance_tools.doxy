@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2015-2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -91,7 +91,7 @@ $ ./configure --with-fxt=$FXTDIR
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
 <c>$FXTDIR/lib/pkgconfig</c> and pass
-\ref with-fxt "--with-fxt" to <c>./configure</c>
+\ref with-fxt "--with-fxt" to <c>configure</c>
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
@@ -100,7 +100,7 @@ starpu_shutdown(). The trace is a binary file whose name has the form
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
-The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can
+The additional \c configure option \ref enable-fxt-lock "--enable-fxt-lock" can
 be used to generate trace events which describes the locks behaviour during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
@@ -154,7 +154,7 @@ ViTE, use the following command:
 $ vite paje.trace
 \endverbatim
 
-Tasks can be assigned a name (instead of the default 'unknown') by
+Tasks can be assigned a name (instead of the default \c unknown) by
 filling the optional starpu_codelet::name, or assigning them a
 performance model. The name can also be set with the field
 starpu_task::name or by using \ref STARPU_NAME when calling
@@ -167,7 +167,7 @@ one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
 \ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
 color by setting the field starpu_codelet::color or the
 starpu_task::color. Colors are expressed with the following format
-0xRRGGBB (e.g 0xFF0000 for red). See
+\c 0xRRGGBB (e.g \c 0xFF0000 for red). See
 <c>basic_examples/task_insert_color</c> for examples on how to assign
 colors.
 
@@ -360,6 +360,29 @@ The same can also be achieved by using StarPU's library API, see
 \ref API_Performance_Model and notably the function
 starpu_perfmodel_load_symbol(). The source code of the tool
 <c>starpu_perfmodel_display</c> can be a useful example.
+
+An XML output can also be printed by using the <c>-x</c> option:
+\verbatim
+tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE StarPUPerfmodel SYSTEM "starpu-perfmodel.dtd">
+<!-- symbol non_linear_memset_regression_based -->
+<!-- All times in us -->
+<perfmodel version="45">
+  <combination>
+    <device type="CPU" id="0" ncores="1"/>
+    <implementation id="0">
+      <!-- cpu0_impl0 (Comb0) -->
+      <!-- time = a size ^b + c -->
+      <nl_regression a="5.429195e-04" b="8.654899e-01" c="9.009313e-01"/>
+      <entry footprint="a3d3725e" size="4096" flops="0.000000e+00" mean="4.763200e+00" deviation="7.650928e-01" nsample="100"/>
+      <entry footprint="870a30aa" size="8192" flops="0.000000e+00" mean="1.827970e+00" deviation="2.037181e-01" nsample="100"/>
+      <entry footprint="48e988e9" size="16384" flops="0.000000e+00" mean="2.652800e+00" deviation="1.876459e-01" nsample="100"/>
+      <entry footprint="961e65d2" size="32768" flops="0.000000e+00" mean="4.255530e+00" deviation="3.518025e-01" nsample="100"/>
+    </implementation>
+  </combination>
+</perfmodel>
+\endverbatim
 
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be

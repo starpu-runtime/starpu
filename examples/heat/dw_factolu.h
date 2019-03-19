@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2008-2014,2017,2019                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -214,5 +214,10 @@ void dw_callback_v2_codelet_update_u11(void *);
 void dw_callback_v2_codelet_update_u12(void *);
 void dw_callback_v2_codelet_update_u21(void *);
 void dw_callback_v2_codelet_update_u22(void *);
+
+extern struct starpu_perfmodel model_11;
+extern struct starpu_perfmodel model_12;
+extern struct starpu_perfmodel model_21;
+extern struct starpu_perfmodel model_22;
 
 #endif /* __DW_FACTO_LU_H__ */

@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2018                                Inria
 # Copyright (C) 2009-2017                                Université de Bordeaux
 # Copyright (C) 2017                                     Guillaume Beauchamp
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -69,11 +69,13 @@ pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	include/starpu.h			\
+	include/starpu_helper.h			\
 	include/starpu_bitmap.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
 	include/starpu_worker.h			\
 	include/starpu_task.h			\
+	include/starpu_task_dep.h		\
 	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
 	include/starpu_task_util.h		\
@@ -112,7 +114,7 @@ versinclude_HEADERS = 				\
 	include/starpu_simgrid_wrap.h		\
 	include/starpu_mod.f90			\
 	include/fstarpu_mod.f90			\
-	include/starpu_clusters_util.h
+	include/starpu_clusters.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

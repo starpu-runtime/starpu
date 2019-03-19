@@ -1,7 +1,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2018  Université de Bordeaux
+# Copyright (C) 2010-2019  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018  CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -701,21 +701,43 @@ define starpu-memusage
     set $wt_b = 0
     set $home = 0
     set $home_b = 0
+    set $ooc = 0
+    set $ooc_b = 0
+    set $diduse = 0
+    set $diduse_b = 0
     set $redux = 0
     set $redux_b = 0
     set $relax = 0
     set $relax_b = 0
     set $noref = 0
     set $noref_b = 0
+    set $normal = 0
+    set $normal_b = 0
+    set $owner = 0
+    set $owner_b = 0
+    set $shared = 0
+    set $shared_b = 0
+    set $invalid = 0
+    set $invalid_b = 0
     set $nodataref = 0
     set $nodataref_b = 0
     set $nosubdataref = 0
     set $nosubdataref_b = 0
+    set $reading = 0
+    set $reading_b = 0
+    set $writing = 0
+    set $writing_b = 0
+    set $overwriting = 0
+    set $overwriting_b = 0
     set $mc = mc_list[$node]->_head
+    set pagination off
     while $mc != 0
       set $handle = $mc->data
       set $size = _starpu_data_get_size($handle)
       set $total = $total + 1
+      if $total % 100 == 0
+        printf "\rinspected %d data...", $total
+      end
       set $total_b = $total_b + $size
       if $handle->wt_mask & (1 << $node)
         set $wt = $wt + 1
@@ -724,6 +746,14 @@ define starpu-memusage
       if $node == $handle->home_node
         set $home = $home + 1
 	set $home_b = $home_b + $size
+      end
+      if $handle->ooc
+        set $ooc = $ooc + 1
+	set $ooc_b = $ooc_b + $size
+      end
+      if $mc->diduse
+        set $diduse = $diduse + 1
+	set $diduse_b = $diduse_b + $size
       end
       if $mc->relaxed_coherency == 2
         set $redux = $redux + 1
@@ -740,6 +770,20 @@ define starpu-memusage
         end
       end
       if $mc->relaxed_coherency == 0
+        set $normal = $normal + 1
+	set $normal_b = $normal_b + $size
+	if $handle->per_node[$node].state == STARPU_OWNER
+	  set $owner = $owner + 1
+	  set $owner_b = $owner_b + $size
+	end
+	if $handle->per_node[$node].state == STARPU_SHARED
+	  set $shared = $shared + 1
+	  set $shared_b = $shared_b + $size
+	end
+	if $handle->per_node[$node].state == STARPU_INVALID
+	  set $invalid = $invalid + 1
+	  set $invalid_b = $invalid_b + $size
+	end
         if (may_free_subtree($handle,$node))
 	  set $nosubdataref = $nosubdataref + 1
 	  set $nosubdataref_b = $nosubdataref_b + $size
@@ -747,18 +791,56 @@ define starpu-memusage
         if $handle->per_node[$node].refcnt == 0
           set $nodataref = $nodataref + 1
 	  set $nodataref_b = $nodataref_b + $size
+	else
+	  set $r = 0
+	  set $w = 0
+	  set $_node = 0
+	  while $_node < _starpu_descr.nnodes
+	    set $_node = $_node + 1
+	    if $_node != $node
+	      if $handle->per_node[$_node].request[$node] != 0
+		set $r = $r + 1
+	      end
+	      if $handle->per_node[$node].request[$_node] != 0
+		set $w = $w + 1
+	      end
+	    end
+	  end
+	  if $r != 0
+	    set $reading = $reading + 1
+	    set $reading_b = $reading_b + $size
+	  end
+	  if $w != 0
+	    set $writing = $writing + 1
+	    set $writing_b = $writing_b + $size
+	  end
+	  if $handle->per_node[$node].request[$node] != 0
+	    set $overwriting = $overwriting + 1
+	    set $overwriting_b = $overwriting_b + $size
+	  end
         end
       end
       set $mc = $mc->_next
     end
+    set pagination on
+    printf "\r                               \r"
     printf "  Total used: %u, %uMiB\n", $total, $total_b / 1048576
     printf "  WT: %u, %uMiB\n", $wt, $wt_b / 1048576
     printf "  home: %u, %uMiB\n", $home, $home_b / 1048576
+    printf "  OOC: %u, %uMiB\n", $ooc, $ooc_b / 1048576
+    printf "  diduse: %u, %uMiB\n", $diduse, $diduse_b / 1048576
     printf "  redux: %u, %uMiB\n", $redux, $redux_b / 1048576
     printf "  relax: %u, %uMiB\n", $relax, $relax_b / 1048576
-    printf "  noref: %u, %uMiB\n", $noref, $noref_b / 1048576
-    printf "  nosubdataref: %u, %uMiB\n", $nosubdataref, $nosubdataref_b / 1048576
-    printf "  nodataref: %u, %uMiB\n", $nodataref, $nodataref_b / 1048576
+    printf "    noref: %u, %uMiB\n", $noref, $noref_b / 1048576
+    printf "  normal: %u, %uMiB\n", $normal, $normal_b / 1048576
+    printf "    owner: %u, %uMiB\n", $owner, $owner_b / 1048576
+    printf "    shared: %u, %uMiB\n", $shared, $shared_b / 1048576
+    printf "    invalid: %u, %uMiB\n", $invalid, $invalid_b / 1048576
+    printf "    nosubdataref: %u, %uMiB\n", $nosubdataref, $nosubdataref_b / 1048576
+    printf "    nodataref: %u, %uMiB\n", $nodataref, $nodataref_b / 1048576
+    printf "    reading: %u, %uMiB\n", $reading, $reading_b / 1048576
+    printf "    writing: %u, %uMiB\n", $writing, $writing_b / 1048576
+    printf "    overwriting: %u, %uMiB\n", $overwriting, $overwriting_b / 1048576
     printf "\n  cached: %u, %uMiB\n", mc_cache_nb[$node], mc_cache_size[$node] / 1048576
     set $node = $node + 1
   end
@@ -796,7 +878,7 @@ define starpu-print-spaces
 end
 
 define starpu-sched-print-component
-    set $c = $arg1
+    set $c = (struct starpu_sched_component *) $arg1
     starpu-print-spaces $arg0
     printf "%s %s %s (struct starpu_sched_component *) %p\n", $c->name, $c->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS ? "homogeneous":"heterogeneous", $c->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE ? "single-node" : "multi-node", $c
     if $c->push_task == fifo_push_task

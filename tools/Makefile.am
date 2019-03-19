@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2009-2017,2019                           Université de Bordeaux
 # Copyright (C) 2011,2012,2016,2017                      Inria
 # Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2013                                     Joris Pablo
@@ -42,7 +42,7 @@ dist_bin_SCRIPTS =
 dist_pkgdata_DATA = gdbinit
 
 pkgdata_perfmodels_sampling_busdir = $(datarootdir)/starpu/perfmodels/sampling/bus
-pkgdata_perfmodels_sampling_codeletsdir = $(datarootdir)/starpu/perfmodels/sampling/codelets/44
+pkgdata_perfmodels_sampling_codeletsdir = $(datarootdir)/starpu/perfmodels/sampling/codelets/45
 
 dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.affinity	\
@@ -71,73 +71,73 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/sirocco.platform.v4.xml
 
 dist_pkgdata_perfmodels_sampling_codelets_DATA = \
-	perfmodels/sampling/codelets/44/chol_model_11.attila	\
-	perfmodels/sampling/codelets/44/chol_model_21.attila	\
-	perfmodels/sampling/codelets/44/chol_model_22.attila	\
-	perfmodels/sampling/codelets/44/cl_update.attila	\
-	perfmodels/sampling/codelets/44/save_cl_bottom.attila	\
-	perfmodels/sampling/codelets/44/save_cl_top.attila	\
-	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.attila	\
-	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.attila	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.attila	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.attila	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.attila	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.attila	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.attila	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.attila	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.attila	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.attila	\
-	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.attila	\
-	perfmodels/sampling/codelets/44/chol_model_11.idgraf	\
-	perfmodels/sampling/codelets/44/chol_model_21.idgraf	\
-	perfmodels/sampling/codelets/44/chol_model_22.idgraf	\
-	perfmodels/sampling/codelets/44/cl_update.idgraf	\
-	perfmodels/sampling/codelets/44/save_cl_bottom.idgraf	\
-	perfmodels/sampling/codelets/44/save_cl_top.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.idgraf	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.idgraf	\
-	perfmodels/sampling/codelets/44/chol_model_11.mirage	\
-	perfmodels/sampling/codelets/44/chol_model_21.mirage	\
-	perfmodels/sampling/codelets/44/chol_model_22.mirage	\
-	perfmodels/sampling/codelets/44/cl_update.mirage	\
-	perfmodels/sampling/codelets/44/save_cl_bottom.mirage	\
-	perfmodels/sampling/codelets/44/save_cl_top.mirage	\
-	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.mirage	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.mirage	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.mirage	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.mirage	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
-	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.mirage	\
-	perfmodels/sampling/codelets/44/chol_model_11.sirocco	\
-	perfmodels/sampling/codelets/44/chol_model_21.sirocco	\
-	perfmodels/sampling/codelets/44/chol_model_22.sirocco	\
-	perfmodels/sampling/codelets/44/cl_update.sirocco	\
-	perfmodels/sampling/codelets/44/save_cl_bottom.sirocco	\
-	perfmodels/sampling/codelets/44/save_cl_top.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_sgemm_gemm.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dgemm_gemm.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.sirocco	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.sirocco	\
-	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.sirocco
+	perfmodels/sampling/codelets/45/chol_model_11.attila	\
+	perfmodels/sampling/codelets/45/chol_model_21.attila	\
+	perfmodels/sampling/codelets/45/chol_model_22.attila	\
+	perfmodels/sampling/codelets/45/cl_update.attila	\
+	perfmodels/sampling/codelets/45/save_cl_bottom.attila	\
+	perfmodels/sampling/codelets/45/save_cl_top.attila	\
+	perfmodels/sampling/codelets/45/starpu_sgemm_gemm.attila	\
+	perfmodels/sampling/codelets/45/starpu_dgemm_gemm.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.attila	\
+	perfmodels/sampling/codelets/45/chol_model_11.idgraf	\
+	perfmodels/sampling/codelets/45/chol_model_21.idgraf	\
+	perfmodels/sampling/codelets/45/chol_model_22.idgraf	\
+	perfmodels/sampling/codelets/45/cl_update.idgraf	\
+	perfmodels/sampling/codelets/45/save_cl_bottom.idgraf	\
+	perfmodels/sampling/codelets/45/save_cl_top.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_sgemm_gemm.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dgemm_gemm.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.idgraf	\
+	perfmodels/sampling/codelets/45/chol_model_11.mirage	\
+	perfmodels/sampling/codelets/45/chol_model_21.mirage	\
+	perfmodels/sampling/codelets/45/chol_model_22.mirage	\
+	perfmodels/sampling/codelets/45/cl_update.mirage	\
+	perfmodels/sampling/codelets/45/save_cl_bottom.mirage	\
+	perfmodels/sampling/codelets/45/save_cl_top.mirage	\
+	perfmodels/sampling/codelets/45/starpu_sgemm_gemm.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dgemm_gemm.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
+	perfmodels/sampling/codelets/45/chol_model_11.sirocco	\
+	perfmodels/sampling/codelets/45/chol_model_21.sirocco	\
+	perfmodels/sampling/codelets/45/chol_model_22.sirocco	\
+	perfmodels/sampling/codelets/45/cl_update.sirocco	\
+	perfmodels/sampling/codelets/45/save_cl_bottom.sirocco	\
+	perfmodels/sampling/codelets/45/save_cl_top.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_sgemm_gemm.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dgemm_gemm.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco
 
 EXTRA_DIST =				\
 	dev/checker/rename.sed		\
@@ -162,8 +162,7 @@ EXTRA_DIST =				\
 	dev/valgrind/valgrind_xml.sh	\
 	dev/valgrind/helgrind.sh	\
 	dev/tsan/starpu.suppr		\
-	dev/lsan/libc.suppr		\
-	dev/lsan/openmpi.suppr		\
+	dev/lsan/suppressions		\
 	perfmodels/README		\
 	perfmodels/cluster.xml		\
 	perfmodels/hostfile		\
@@ -282,6 +281,7 @@ dist_bin_SCRIPTS +=			\
 	starpu_workers_activity		\
 	starpu_codelet_histo_profile	\
 	starpu_codelet_profile		\
+	starpu_mpi_comm_matrix.py	\
 	starpu_paje_draw_histogram	\
 	starpu_paje_draw_histogram.R	\
 	starpu_paje_summary		\
@@ -331,6 +331,9 @@ starpu_codelet_profile.1: starpu_codelet_profile
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_mpi_comm_matrix.1: starpu_mpi_comm_matrix.py
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
@@ -357,6 +360,7 @@ dist_man1_MANS =\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
+	starpu_mpi_comm_matrix.1 \
 	starpu_paje_draw_histogram.1 \
 	starpu_paje_state_stats.1
 

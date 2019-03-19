@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2018                                     Umeà University
- * Copyright (C) 2010,2011,2016,2017                      CNRS
+ * Copyright (C) 2010,2011,2016,2017,2019                 CNRS
  * Copyright (C) 2009-2011,2015-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -70,8 +70,7 @@ static void load_old_calibration(double *mx, double *my, unsigned nparameters, c
 	char *line;
 	int i=0;
 
-	FILE *f=NULL;
-	f = fopen(filepath, "a+");
+	FILE *f = fopen(filepath, "a+");
 	STARPU_ASSERT_MSG(f, "Could not load performance model from file %s\n", filepath);
 
 	line = fgets(buffer,sizeof(buffer),f);//skipping first line

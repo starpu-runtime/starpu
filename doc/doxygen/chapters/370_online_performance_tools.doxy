@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2014,2016,2018                 Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2009-2011,2014,2016,2018-2019            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,11 +176,14 @@ obtained by setting the environment variable \ref STARPU_COMM_STATS to <c>1</c>;
 a summary will then be displayed at program termination:
 
 \verbatim
-[starpu_comm_stats][0] TOTAL:	4.000000 GB	4.000000 GB
-[starpu_comm_stats][0->1]	4.000000 GB	4.000000 GB
-[starpu_comm_stats][1] TOTAL:	8.000000 GB	8.000000 GB
-[starpu_comm_stats][1->0]	8.000000 GB	8.000000 GB
+[starpu_comm_stats][1] TOTAL:	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+[starpu_comm_stats][1:0]	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+
+[starpu_comm_stats][0] TOTAL:	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
+[starpu_comm_stats][0:1]	456.000000 B	0.000435 MB	 0.000188 B/s	 0.000000 MB/s
 \endverbatim
+
+These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c> (see \ref MPIDebug).
 
 \subsection StarPU-TopInterface StarPU-Top Interface
 
@@ -451,7 +454,7 @@ directory. These files are reused when \ref STARPU_CALIBRATE
 environment variable is set to <c>1</c>, to recompute coefficients
 based on the current, but also on the previous
 executions. Additionally, when multiple linear regression models are
-disabled (using "--disable-mlr" configuration option) or when the
+disabled (using \ref disable-mlr "--disable-mlr" configure option) or when the
 <c>model->combinations</c> are not defined, StarPU will still write
 output files into <c>.starpu/sampling/codelets/tmp/</c> to allow
 performing an analysis. This analysis typically aims at finding the
@@ -494,7 +497,7 @@ application actually has a very good idea of the complexity of the algorithm,
 and just not the speed of the processor, etc.  The example in the directory
 <c>examples/pi</c> uses this to include the number of iterations in the base
 size. starpu_perfmodel::size_base should be used when the variance of the actual
-performance is known (i.e. bigger returned value is longer execution
+performance is known (i.e. bigger return value is longer execution
 time), and thus particularly useful for ::STARPU_REGRESSION_BASED or
 ::STARPU_NL_REGRESSION_BASED. starpu_perfmodel::footprint can be used when the
 variance of the actual performance is unknown (irregular performance behavior,
@@ -535,6 +538,10 @@ of the task cost on a given arch. starpu_task_footprint() can also be
 used to get the footprint used for indexing history-based performance
 models. starpu_task_destroy() needs to be called to destroy the dummy
 task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
+
+The application can also request an on-the-fly XML report of the performance
+model, by calling starpu_perfmodel_dump_xml() to print the report to a
+<c>FILE*</c>.
 
 \section DataTrace Data trace and tasks length
 It is possible to get statistics about tasks length and data size by using :

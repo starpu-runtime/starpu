@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2018                                Inria
-# Copyright (C) 2009-2018                                Université de Bordeaux
-# Copyright (C) 2010-2017                                CNRS
+# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2010-2017,2019                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include -I${includedir} $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
 	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
@@ -269,6 +269,7 @@ myPROGRAMS +=				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
 	datawizard/scratch			\
+	datawizard/scratch_reuse		\
 	datawizard/sync_and_notify_data		\
 	datawizard/sync_and_notify_data_implicit\
 	datawizard/dsm_stress			\
@@ -312,6 +313,7 @@ myPROGRAMS +=				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_dep   		\
 	datawizard/partition_lazy		\
+	datawizard/partition_init		\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
 	datawizard/variable_parameters		\
@@ -413,9 +415,11 @@ if STARPU_SIMGRID
 TESTS += $(MICROBENCHS:=.sh)
 endif
 
+if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS += \
 	datawizard/locality.sh \
 	overlap/overlap.sh
+endif
 
 ################################
 # Simgrid Model Checking tests #

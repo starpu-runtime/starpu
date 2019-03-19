@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2010,2011,2013,2015-2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015-2017,2019            CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -199,8 +199,9 @@ static void gordon_callback_list_func(void *arg)
 
 //	_STARPU_DEBUG("gordon callback : push job j %p\n", task_wrapper->j);
 
+#ifndef STARPU_SIMGRID
 	unsigned task_cnt = 0;
-
+#endif
 	/* XXX 0 was hardcoded */
 	while (!_starpu_job_list_empty(wrapper_list))
 	{
@@ -222,7 +223,9 @@ static void gordon_callback_list_func(void *arg)
 		_starpu_handle_job_termination(j);
 		//starpu_wake_all_blocked_workers();
 
+#ifndef STARPU_SIMGRID
 		task_cnt++;
+#endif
 	}
 
 	/* the job list was allocated by the gordon driver itself */

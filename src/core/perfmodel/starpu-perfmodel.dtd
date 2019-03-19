@@ -1,0 +1,64 @@
+<!--
+  StarPU - Runtime system for heterogeneous multicore architectures.
+  
+  Copyright (C) 2019                                     Université de Bordeaux
+  
+  StarPU is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation; either version 2.1 of the License, or (at
+  your option) any later version.
+  
+  StarPU is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  
+  See the GNU Lesser General Public License in COPYING.LGPL for more details.
+  
+  This is the DTD for StarPU performance models.
+ -->
+
+<!ELEMENT perfmodel (combination)+>
+<!ATTLIST perfmodel version CDATA "">
+
+<!ELEMENT combination (device,implementation+)>
+
+<!ELEMENT device EMPTY>
+<!ATTLIST device type CDATA #REQUIRED>
+<!ATTLIST device id CDATA #REQUIRED>
+<!ATTLIST device ncores CDATA "">
+
+<!ELEMENT implementation (l_regression*,nl_regression*,ml_regression*,entry*)>
+<!ATTLIST implementation id CDATA #REQUIRED>
+
+<!ELEMENT l_regression EMPTY>
+<!ATTLIST l_regression sumlnx CDATA "">
+<!ATTLIST l_regression sumlnx2 CDATA "">
+<!ATTLIST l_regression sumlny CDATA "">
+<!ATTLIST l_regression sumlnxlny CDATA "">
+<!ATTLIST l_regression alpha CDATA #REQUIRED>
+<!ATTLIST l_regression beta CDATA #REQUIRED>
+<!ATTLIST l_regression nsample CDATA "">
+<!ATTLIST l_regression minx CDATA "">
+<!ATTLIST l_regression maxx CDATA "">
+
+<!ELEMENT nl_regression EMPTY>
+<!ATTLIST nl_regression a CDATA #REQUIRED>
+<!ATTLIST nl_regression b CDATA #REQUIRED>
+<!ATTLIST nl_regression c CDATA #REQUIRED>
+
+<!ELEMENT ml_regression (monomial+)>
+<!ATTLIST ml_regression constant CDATA #REQUIRED>
+
+<!ELEMENT monomial EMPTY>
+<!ATTLIST monomial name CDATA #REQUIRED>
+<!ATTLIST monomial coef CDATA #REQUIRED>
+
+<!ELEMENT entry EMPTY>
+<!ATTLIST entry footprint CDATA #REQUIRED>
+<!ATTLIST entry size CDATA #REQUIRED>
+<!ATTLIST entry flops CDATA "">
+<!ATTLIST entry mean CDATA #REQUIRED>
+<!ATTLIST entry deviation CDATA #REQUIRED>
+<!ATTLIST entry sum CDATA "">
+<!ATTLIST entry sum2 CDATA "">
+<!ATTLIST entry nsample CDATA "0">

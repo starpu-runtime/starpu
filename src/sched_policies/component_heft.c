@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017,2018                           Inria
  * Copyright (C) 2014-2018                                CNRS
- * Copyright (C) 2013-2018                                Université de Bordeaux
+ * Copyright (C) 2013-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -159,6 +159,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		STARPU_ASSERT(best_icomponent != -1);
 		STARPU_ASSERT(best_task >= 0);
 		best_component = component->children[best_icomponent];
+
+		tasks[best_task]->predicted = estimated_lengths[best_icomponent];
+		tasks[best_task]->predicted_transfer = estimated_transfer_length[best_icomponent];
 
 		if(starpu_sched_component_is_worker(best_component))
 		{

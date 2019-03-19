@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2010,2011,2013,2015-2018                 CNRS
  *
@@ -796,8 +796,8 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 		{
 			char src_name[16], dst_name[16];
 			warned = 1;
-			_starpu_memory_node_get_name(src_node, src_name, sizeof(src_name));
-			_starpu_memory_node_get_name(dst_node, dst_name, sizeof(dst_name));
+			starpu_memory_node_get_name(src_node, src_name, sizeof(src_name));
+			starpu_memory_node_get_name(dst_node, dst_name, sizeof(dst_name));
 
 			_STARPU_DISP("Warning: the submission of asynchronous transfer from %s to %s took a very long time (%f ms)\nFor proper asynchronous transfer overlapping, data registered to StarPU must be allocated with starpu_malloc() or pinned with starpu_memory_pin()\n", src_name, dst_name, elapsed / 1000.);
 		}

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2014,2016                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -85,12 +85,13 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 	STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 	if (check)
-		STARPU_ASSERT_MSG(
-				!job->submitted || !task->destroy || task->detach
+	{
+		int ret = !job->submitted || !task->destroy || task->detach;
 #ifdef STARPU_OPENMP
-				|| job->continuation
+		ret = ret || job->continuation;
 #endif
-				, "Task dependencies have to be set before submission (submitted %u destroy %u detach %u)", job->submitted, task->destroy, task->detach);
+		STARPU_ASSERT_MSG(ret, "Task dependencies have to be set before submission (submitted %u destroy %u detach %u)", job->submitted, task->destroy, task->detach);
+	}
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
 

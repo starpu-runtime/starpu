@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
- * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ Specify the number of CPU cores that should not be used by StarPU, so the
 application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
 its own threads.
 
-This option is ignored if \ref STARPU_NCPU or starpu_config::ncpus is set.
+This option is ignored if \ref STARPU_NCPU or starpu_conf::ncpus is set.
 </dd>
 
 <dt>STARPU_NCPUS</dt>
@@ -79,9 +79,9 @@ which will be concurrently running on the devices. The default value is 1.
 \addindex __env__STARPU_CUDA_THREAD_PER_WORKER
 Specify whether the cuda driver should use one thread per stream (1) or to use
 a single thread to drive all the streams of the device or all devices (0), and
-STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
+\ref STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
 thread for all devices. The default value is 0. Setting it to 1 is contradictory
-with setting STARPU_CUDA_THREAD_PER_DEV.
+with setting \ref STARPU_CUDA_THREAD_PER_DEV.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_DEV</dt>
@@ -90,8 +90,8 @@ with setting STARPU_CUDA_THREAD_PER_DEV.
 \addindex __env__STARPU_CUDA_THREAD_PER_DEV
 Specify whether the cuda driver should use one thread per device (1) or to use a
 single thread to drive all the devices (0). The default value is 1.  It does not
-make sense to set this variable if STARPU_CUDA_THREAD_PER_WORKER is set to to 1
-(since STARPU_CUDA_THREAD_PER_DEV is then meaningless).
+make sense to set this variable if \ref STARPU_CUDA_THREAD_PER_WORKER is set to to 1
+(since \ref STARPU_CUDA_THREAD_PER_DEV is then meaningless).
 </dd>
 
 <dt>STARPU_CUDA_PIPELINE</dt>
@@ -490,7 +490,7 @@ Note: this currently only applies to <c>dm</c> and <c>dmda</c> scheduling polici
 <dd>
 \anchor STARPU_CALIBRATE_MINIMUM
 \addindex __env__STARPU_CALIBRATE_MINIMUM
-This defines the minimum number of calibration measurements that will be made
+Define the minimum number of calibration measurements that will be made
 before considering that the performance model is calibrated. The default value is 10.
 </dd>
 
@@ -505,7 +505,7 @@ If this variable is set to 1, the bus is recalibrated during intialization.
 <dd>
 \anchor STARPU_PREFETCH
 \addindex __env__STARPU_PREFETCH
-This variable indicates whether data prefetching should be enabled (0 means
+Indicate whether data prefetching should be enabled (0 means
 that it is disabled). If prefetching is enabled, when a task is scheduled to be
 executed e.g. on a GPU, StarPU will request an asynchronous transfer in
 advance, so that data is already present on the GPU when the task starts. As a
@@ -703,7 +703,7 @@ When unset or set to 1, simulate within simgrid the GPU transfer queueing.
 <dd>
 \anchor STARPU_MALLOC_SIMULATION_FOLD
 \addindex __env__STARPU_MALLOC_SIMULATION_FOLD
-This defines the size of the file used for folding virtual allocation, in
+Define the size of the file used for folding virtual allocation, in
 MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
 <c>sysctl vm.max_map_count</c> value is the default 65535.
 </dd>
@@ -746,7 +746,7 @@ it also makes simulation non-deterministic.
 <dd>
 \anchor STARPU_HOME
 \addindex __env__STARPU_HOME
-This specifies the main directory in which StarPU stores its
+Specify the main directory in which StarPU stores its
 configuration files. The default is <c>$HOME</c> on Unix environments,
 and <c>$USERPROFILE</c> on Windows environments.
 </dd>
@@ -756,7 +756,7 @@ and <c>$USERPROFILE</c> on Windows environments.
 \anchor STARPU_PATH
 \addindex __env__STARPU_PATH
 Only used on  Windows environments.
-This specifies the main directory in which StarPU is installed
+Specify the main directory in which StarPU is installed
 (\ref RunningABasicStarPUApplicationOnMicrosoft)
 </dd>
 
@@ -764,7 +764,7 @@ This specifies the main directory in which StarPU is installed
 <dd>
 \anchor STARPU_PERF_MODEL_DIR
 \addindex __env__STARPU_PERF_MODEL_DIR
-This specifies the main directory in which StarPU stores its
+Specify the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 </dd>
 
@@ -842,7 +842,7 @@ machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
 <dd>
 \anchor STARPU_OPENCL_PROGRAM_DIR
 \addindex __env__STARPU_OPENCL_PROGRAM_DIR
-This specifies the directory where the OpenCL codelet source files are
+Specify the directory where the OpenCL codelet source files are
 located. The function starpu_opencl_load_program_source() looks
 for the codelet in the current directory, in the directory specified
 by the environment variable \ref STARPU_OPENCL_PROGRAM_DIR, in the
@@ -854,37 +854,37 @@ StarPU, and finally in the source directory of StarPU.
 <dd>
 \anchor STARPU_SILENT
 \addindex __env__STARPU_SILENT
-This variable allows to disable verbose mode at runtime when StarPU
-has been configured with the option \ref enable-verbose "--enable-verbose". It also
-disables the display of StarPU information and warning messages.
+Allow to disable verbose mode at runtime when StarPU
+has been configured with the option \ref enable-verbose "--enable-verbose". Also
+disable the display of StarPU information and warning messages.
 </dd>
 
 <dt>STARPU_LOGFILENAME</dt>
 <dd>
 \anchor STARPU_LOGFILENAME
 \addindex __env__STARPU_LOGFILENAME
-This variable specifies in which file the debugging output should be saved to.
+Specify in which file the debugging output should be saved to.
 </dd>
 
 <dt>STARPU_FXT_PREFIX</dt>
 <dd>
 \anchor STARPU_FXT_PREFIX
 \addindex __env__STARPU_FXT_PREFIX
-This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
+Specify in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 </dd>
 
 <dt>STARPU_FXT_TRACE</dt>
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-This variable specifies whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY . The default is 1 (generate it)
+Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY . The default is 1 (generate it)
 </dd>
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
 <dd>
 \anchor STARPU_LIMIT_CUDA_devid_MEM
 \addindex __env__STARPU_LIMIT_CUDA_devid_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application on the CUDA device with the identifier
 <c>devid</c>. This variable is intended to be used for experimental
 purposes as it emulates devices that have a limited amount of memory.
@@ -896,7 +896,7 @@ When defined, the variable overwrites the value of the variable
 <dd>
 \anchor STARPU_LIMIT_CUDA_MEM
 \addindex __env__STARPU_LIMIT_CUDA_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application on each CUDA devices. This variable is
 intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
@@ -906,7 +906,7 @@ that have a limited amount of memory.
 <dd>
 \anchor STARPU_LIMIT_OPENCL_devid_MEM
 \addindex __env__STARPU_LIMIT_OPENCL_devid_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application on the OpenCL device with the identifier
 <c>devid</c>. This variable is intended to be used for experimental
 purposes as it emulates devices that have a limited amount of memory.
@@ -918,7 +918,7 @@ When defined, the variable overwrites the value of the variable
 <dd>
 \anchor STARPU_LIMIT_OPENCL_MEM
 \addindex __env__STARPU_LIMIT_OPENCL_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application on each OpenCL devices. This variable is
 intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
@@ -928,7 +928,7 @@ that have a limited amount of memory.
 <dd>
 \anchor STARPU_LIMIT_CPU_MEM
 \addindex __env__STARPU_LIMIT_CPU_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application in the main CPU memory. Setting it enables allocation
 cache in main memory. Setting it to zero lets StarPU overflow memory.
 </dd>
@@ -937,7 +937,7 @@ cache in main memory. Setting it to zero lets StarPU overflow memory.
 <dd>
 \anchor STARPU_LIMIT_CPU_NUMA_devid_MEM
 \addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
-This variable specifies the maximum number of megabytes that should be
+Specify the maximum number of megabytes that should be
 available to the application on the NUMA node with the OS identifier <c>devid</c>.
 </dd>
 
@@ -945,7 +945,7 @@ available to the application on the NUMA node with the OS identifier <c>devid</c
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM
 \addindex __env__STARPU_MINIMUM_AVAILABLE_MEM
-This specifies the minimum percentage of memory that should be available in GPUs
+Specify the minimum percentage of memory that should be available in GPUs
 (or in main memory, when using out of core), below which a reclaiming pass is
 performed. The default is 0%.
 </dd>
@@ -954,7 +954,7 @@ performed. The default is 0%.
 <dd>
 \anchor STARPU_TARGET_AVAILABLE_MEM
 \addindex __env__STARPU_TARGET_AVAILABLE_MEM
-This specifies the target percentage of memory that should be reached in
+Specify the target percentage of memory that should be reached in
 GPUs (or in main memory, when using out of core), when performing a periodic
 reclaiming pass. The default is 0%.
 </dd>
@@ -963,7 +963,7 @@ reclaiming pass. The default is 0%.
 <dd>
 \anchor STARPU_MINIMUM_CLEAN_BUFFERS
 \addindex __env__STARPU_MINIMUM_CLEAN_BUFFERS
-This specifies the minimum percentage of number of buffers that should be clean in GPUs
+Specify the minimum percentage of number of buffers that should be clean in GPUs
 (or in main memory, when using out of core), below which asynchronous writebacks will be
 issued. The default is 5%.
 </dd>
@@ -972,7 +972,7 @@ issued. The default is 5%.
 <dd>
 \anchor STARPU_TARGET_CLEAN_BUFFERS
 \addindex __env__STARPU_TARGET_CLEAN_BUFFERS
-This specifies the target percentage of number of buffers that should be reached in
+Specify the target percentage of number of buffers that should be reached in
 GPUs (or in main memory, when using out of core), when performing an asynchronous
 writeback pass. The default is 10%.
 </dd>
@@ -990,7 +990,7 @@ can lead to deadlocks, so is to be considered experimental only.
 <dd>
 \anchor STARPU_DISK_SWAP
 \addindex __env__STARPU_DISK_SWAP
-This specifies a path where StarPU can push data when the main memory is getting
+Specify a path where StarPU can push data when the main memory is getting
 full.
 </dd>
 
@@ -998,7 +998,7 @@ full.
 <dd>
 \anchor STARPU_DISK_SWAP_BACKEND
 \addindex __env__STARPU_DISK_SWAP_BACKEND
-This specifies then backend to be used by StarPU to push data when the main
+Specify the backend to be used by StarPU to push data when the main
 memory is getting full. The default is unistd (i.e. using read/write functions),
 other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
 read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5
@@ -1009,7 +1009,7 @@ read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5
 <dd>
 \anchor STARPU_DISK_SWAP_SIZE
 \addindex __env__STARPU_DISK_SWAP_SIZE
-This specifies then maximum size in MiB to be used by StarPU to push data when the main
+Specify the maximum size in MiB to be used by StarPU to push data when the main
 memory is getting full. The default is unlimited.
 </dd>
 
@@ -1017,7 +1017,7 @@ memory is getting full. The default is unlimited.
 <dd>
 \anchor STARPU_LIMIT_MAX_SUBMITTED_TASKS
 \addindex __env__STARPU_LIMIT_MAX_SUBMITTED_TASKS
-This variable allows the user to control the task submission flow by specifying
+Allow users to control the task submission flow by specifying
 to StarPU a maximum number of submitted tasks allowed at a given time, i.e. when
 this limit is reached task submission becomes blocking until enough tasks have
 completed, specified by \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS.
@@ -1028,7 +1028,7 @@ Setting it enables allocation cache buffer reuse in main memory.
 <dd>
 \anchor STARPU_LIMIT_MIN_SUBMITTED_TASKS
 \addindex __env__STARPU_LIMIT_MIN_SUBMITTED_TASKS
-This variable allows the user to control the task submission flow by specifying
+Allow users to control the task submission flow by specifying
 to StarPU a submitted task threshold to wait before unblocking task submission. This
 variable has to be used in conjunction with \ref STARPU_LIMIT_MAX_SUBMITTED_TASKS
 which puts the task submission thread to
@@ -1039,7 +1039,7 @@ sleep.  Setting it enables allocation cache buffer reuse in main memory.
 <dd>
 \anchor STARPU_TRACE_BUFFER_SIZE
 \addindex __env__STARPU_TRACE_BUFFER_SIZE
-This sets the buffer size for recording trace events in MiB. Setting it to a big
+Set the buffer size for recording trace events in MiB. Setting it to a big
 size allows to avoid pauses in the trace while it is recorded on the disk. This
 however also consumes memory, of course. The default value is 64.
 </dd>
@@ -1048,7 +1048,7 @@ however also consumes memory, of course. The default value is 64.
 <dd>
 \anchor STARPU_GENERATE_TRACE
 \addindex __env__STARPU_GENERATE_TRACE
-When set to <c>1</c>, this variable indicates that StarPU should automatically
+When set to <c>1</c>, indicate that StarPU should automatically
 generate a Paje trace when starpu_shutdown() is called.
 </dd>
 
@@ -1125,7 +1125,7 @@ be used in combination with \ref STARPU_WATCHDOG_CRASH
 <dd>
 \anchor STARPU_WATCHDOG_CRASH
 \addindex __env__STARPU_WATCHDOG_CRASH
-When set to a value other than 0, it triggers a crash when the watch
+When set to a value other than 0, trigger a crash when the watch
 dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
@@ -1134,7 +1134,7 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 <dd>
 \anchor STARPU_WATCHDOG_DELAY
 \addindex __env__STARPU_WATCHDOG_DELAY
-This delays the activation of the watchdog by the given time (in µs). This can
+Delay the activation of the watchdog by the given time (in µs). This can
 be convenient for letting the application initialize data etc. before starting
 to look for idle time.
 </dd>
@@ -1245,6 +1245,25 @@ If the environment variable STARPU_IDLE_FILE is defined, a file named after its 
 The file will contain the sum of the idle times of all the workers.
 </dd>
 
+<dt>STARPU_HWLOC_INPUT</dt>
+<dd>
+\anchor STARPU_HWLOC_INPUT
+\addindex __env__STARPU_HWLOC_INPUT
+If the environment variable STARPU_HWLOC_INPUT is defined to the path of an XML file, hwloc will be made to use it as input instead of detecting the current platform topology, which can save significant initialization time.
+
+To produce this XML file, use <c>lstopo file.xml</c>
+</dd>
+
+<dt>STARPU_CATCH_SIGNALS</dt>
+<dd>
+\anchor STARPU_CATCH_SIGNALS
+\addindex __env__STARPU_CATCH_SIGNALS
+By default, StarPU catch signals SIGINT, SIGSEGV and SIGTRAP to
+perform final actions such as dumping FxT trace files even though the
+application has crashed. Setting this variable to a value other than 1
+will disable this behaviour. This should be done on JVM systems which
+may use these signals for their own needs.
+The flag can also be set through the field starpu_conf::catch_signals.
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

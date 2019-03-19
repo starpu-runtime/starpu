@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014-2017                      Université de Bordeaux
+ * Copyright (C) 2010-2012,2014-2017, 2019                      Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2011-2013,2016,2017                      CNRS
  *
@@ -78,7 +78,7 @@ static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
 #ifdef STARPU_QUICK_CHECK
-static int i_max = 10;
+static int i_max = 5;
 #elif !defined(STARPU_LONG_CHECK)
 static int i_max = 100;
 #else
@@ -426,10 +426,6 @@ int main(int argc, char **argv)
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return 77;
-
-#ifdef STARPU_QUICK_CHECK
-	i_max = 16;
-#endif
 
 	parse_args(argc, argv);
 

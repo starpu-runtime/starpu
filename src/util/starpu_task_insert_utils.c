@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2011-2018                                CNRS
- * Copyright (C) 2011-2018                                Université de Bordeaux
+ * Copyright (C) 2011-2019                                CNRS
+ * Copyright (C) 2011-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -209,6 +209,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
                 {
                         (void)va_arg(varg_list, unsigned char *);
                 }
+		else if (arg_type==STARPU_TASK_END_DEP)
+		{
+			(void)va_arg(varg_list, int);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -519,6 +523,11 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
                 {
                         task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
                 }
+		else if (arg_type==STARPU_TASK_END_DEP)
+		{
+			int end_dep = va_arg(varg_list, int);
+			starpu_task_end_dep_add(task, end_dep);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -782,6 +791,11 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
                 {
                         task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
                 }
+		else if (arg_type==STARPU_TASK_END_DEP)
+		{
+			arg_i++;
+			starpu_task_end_dep_add(task, *(int*)arglist[arg_i]);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("unknown/unsupported argument %d, did you perhaps forget to end arguments with 0?", arg_type);

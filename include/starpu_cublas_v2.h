@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2017                           CNRS
+ * Copyright (C) 2010-2013,2017,2019                      CNRS
  * Copyright (C) 2010-2012,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,19 @@ extern "C"
 {
 #endif
 
+/**
+   @ingroup API_CUDA_Extensions
+   @{
+ */
+
+/**
+   Return the CUSPARSE handle to be used to queue CUSPARSE kernels. It
+   is properly initialized and configured for multistream by
+   starpu_cusparse_init().
+*/
 cublasHandle_t starpu_cublas_get_local_handle(void);
+
+/** @} */
 
 #ifdef __cplusplus
 }

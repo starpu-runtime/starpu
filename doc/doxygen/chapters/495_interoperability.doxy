@@ -55,11 +55,11 @@ LDLIBS += $(shell pkg-config --libs-only-l starpurm-1.3)
 
 \subsection InitExit Initialization and Shutdown
 
-The \c starpurm module is initialized with a call to \ref starpurm_initialize
-and must be finalized with a call to \ref starpurm_shutdown. The \c starpurm
+The \c starpurm module is initialized with a call to starpurm_initialize()
+and must be finalized with a call to starpurm_shutdown(). The \c starpurm
 module supports CPU cores as well as devices. An integer ID is assigned to each
 supported device type. The ID assigned to a given device type can be queried
-with the \ref starpurm_get_device_type_id routine, which currently expects one
+with the starpurm_get_device_type_id() routine, which currently expects one
 of the following strings as argument and returns the corresponding ID:
 <ul>
 <li><c>"cpu"</c></li>
@@ -69,27 +69,27 @@ of the following strings as argument and returns the corresponding ID:
 </ul>
 The \c cpu pseudo device type is defined for convenience and designates CPU
 cores. The number of units of each type available for computation can be
-obtained with a call to \ref starpu_get_nb_devices_by_type.
+obtained with a call to starpu_get_nb_devices_by_type().
 
 Each CPU core unit available for computation is designated by its rank among the
 StarPU CPU worker threads and by its own CPUSET bit. Each non-CPU device unit
 can be designated both by its rank number in the type, and by the CPUSET bit
 corresponding to its StarPU device worker thread. The CPUSET of a computing unit
-or its associated worker can be obtained from its type ID and rank with \ref
-starpurm_get_device_worker_cpuset, which returns the corresponding HWLOC CPUSET. 
+or its associated worker can be obtained from its type ID and rank with 
+starpurm_get_device_worker_cpuset(), which returns the corresponding HWLOC CPUSET. 
 
 
 \subsection DefCTX Default Context
 
 The \c starpurm module assumes a default, global context, manipulated through a
 series of routines allowing to assign and withdraw computing units from the main
-StarPU context. Assigning CPU cores can be done with \ref
-starpurm_assign_cpu_to_starpu and \ref starpurm_assign_cpu_mask_to_starpu, and
-assigning device units can be done with \ref starpurm_assign_device_to_starpu
-and \ref starpurm_assign_device_mask_to_starpu. Conversely, withdrawing CPU
-cores can be done with \ref starpurm_withdraw_cpu_from_starpu and \ref starpurm_withdraw_cpu_mask_from_starpu,
+StarPU context. Assigning CPU cores can be done with
+starpurm_assign_cpu_to_starpu() and starpurm_assign_cpu_mask_to_starpu(), and
+assigning device units can be done with starpurm_assign_device_to_starpu()
+and starpurm_assign_device_mask_to_starpu(). Conversely, withdrawing CPU
+cores can be done with starpurm_withdraw_cpu_from_starpu() and starpurm_withdraw_cpu_mask_from_starpu(=,
 and withdrawing device units can be done with
-\ref starpurm_withdraw_device_from_starpu and \ref starpurm_withdraw_device_mask_from_starpu.
+starpurm_withdraw_device_from_starpu() and starpurm_withdraw_device_mask_from_starpu().
 These routine should typically be used to control resource usage for the main
 applicative code.
 
@@ -97,21 +97,21 @@ applicative code.
 
 Besides the default, global context, \c starpurm can create temporary contexts
 and launch the computation of kernels confined to these temporary contexts.
-The routine \ref starpurm_spawn_kernel_on_cpus can be used to do so: it
+The routine starpurm_spawn_kernel_on_cpus() can be used to do so: it
 allocates a temporary context and spawns a kernel within this context. The
 temporary context is subsequently freed upon completion of the kernel. The
 temporary context is set as the default context for the kernel throughout its
 lifespan. This routine should typically be used to control resource usage for a
 parallel kernel handled by an external library built on StarPU. Internally, it
-relies on the use of \ref starpu_sched_ctx_set_context to set the temporary
-context as default context for the parallel kernel, and then restaure the main
+relies on the use of starpu_sched_ctx_set_context() to set the temporary
+context as default context for the parallel kernel, and then restore the main
 context upon completion. Note: the maximum number of temporary contexts
 allocated concurrently at any time should not exceed
-<c>STARPU_NMAX_SCHED_CTXS-2</c>, otherwise, the call to \ref
-starpurm_spawn_kernel_on_cpus may block until a temporary context becomes
-available. The routine \ref starpurm_spawn_kernel_on_cpus returns upon the
+::STARPU_NMAX_SCHED_CTXS-2, otherwise, the call to
+starpurm_spawn_kernel_on_cpus() may block until a temporary context becomes
+available. The routine starpurm_spawn_kernel_on_cpus() returns upon the
 completion of the parallel kernel. An asynchronous variant is available with the
-routine \ref starpurm_spawn_kernel_on_cpus_callback. This variant returns
+routine starpurm_spawn_kernel_on_cpus_callback(). This variant returns
 immediately, however it accepts a callback function, which is subsequently
 called to notify the calling code about the completion of the parallel kernel.
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                Inria
  * Copyright (C) 2015-2017                                CNRS
- * Copyright (C) 2015-2018                                Université de Bordeaux
+ * Copyright (C) 2015-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -376,9 +376,9 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* One worker at a time use heteroprio */
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 
 	/* Retrieve the correct bucket */
 	STARPU_ASSERT(task->priority < STARPU_HETEROPRIO_MAX_PRIO);
@@ -475,9 +475,9 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 #endif
-	_starpu_worker_relax_on();
+	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
-	_starpu_worker_relax_off();
+	starpu_worker_relax_off();
 
 	/* keep track of the new added task to perfom real prefetch on node */
 	unsigned nb_added_tasks = 0;
@@ -592,7 +592,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				   && hp->workers_heteroprio[victim].tasks_queue.ntasks)
 				{
 					/* ensure the worker is not currently prefetching its data */
-					_starpu_worker_lock(victim);
+					starpu_worker_lock(victim);
 
 					if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 					   && hp->workers_heteroprio[victim].tasks_queue.ntasks)
@@ -603,10 +603,10 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						/* we steal a task update global counter */
 						hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
-						_starpu_worker_unlock(victim);
+						starpu_worker_unlock(victim);
 						goto done;
 					}
-					_starpu_worker_unlock(victim);
+					starpu_worker_unlock(victim);
 				}
 			}
 		}
@@ -620,19 +620,13 @@ done:		;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 
-	if(task)
+	if(task &&_starpu_get_nsched_ctxs() > 1)
 	{
-		_starpu_worker_relax_on();
+		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
-		_starpu_worker_relax_off();
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
-		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-		{
-			starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);
-			starpu_sched_ctx_revert_task_counters_ctx_locked(sched_ctx_id, task->flops);
-			_starpu_sched_ctx_unlock_write(sched_ctx_id);
-			return NULL;
-		}
+		starpu_worker_relax_off();
+		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}
 

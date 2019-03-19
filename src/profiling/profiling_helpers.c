@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2010-2013,2016,2017                      CNRS
- * Copyright (C) 2010,2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2010,2011,2013-2016, 2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,8 +53,8 @@ void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 
 		double d = convert_to_GB(transferred);
 
-		_starpu_memory_node_get_name(src, src_name, sizeof(src_name));
-		_starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
+		starpu_memory_node_get_name(src, src_name, sizeof(src_name));
+		starpu_memory_node_get_name(dst, dst_name, sizeof(dst_name));
 
 		fprintf(stream, "\t%s -> %s", src_name, dst_name);
 		fprintf(stream, "\t%.4lf %s", d, "GB");

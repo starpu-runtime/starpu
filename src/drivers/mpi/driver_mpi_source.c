@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
  * Copyright (C) 2015                                     Mathieu Lirzin
  *
@@ -45,7 +45,6 @@ struct _starpu_mpi_ms_kernel
 	char *name;
 	starpu_mpi_ms_kernel_t func[STARPU_MAXMPIDEVS];
 } *kernels;
-
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
@@ -114,8 +113,8 @@ int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, un
 int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
         return _starpu_src_common_copy_sink_to_sink_sync(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
-                        _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
-                        src, dst, size);
+							 _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+							 src, dst, size);
 }
 
 int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
@@ -133,10 +132,9 @@ int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIB
 int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
 {
         return _starpu_src_common_copy_sink_to_sink_async(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
-                        _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
-                        src, dst, size, event);
+							  _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+							  src, dst, size, event);
 }
-
 
 int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
 {
@@ -185,7 +183,6 @@ int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const cha
 
         return 0;
 }
-
 
 starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
 {
@@ -290,7 +287,6 @@ unsigned _starpu_mpi_src_get_device_count()
         nb_mpi_devices = nb_mpi_devices - 1;
 
         return nb_mpi_devices;
-
 }
 
 void *_starpu_mpi_src_worker(void *arg)
@@ -308,7 +304,7 @@ void *_starpu_mpi_src_worker(void *arg)
 #endif
 
                 /* As all workers of a set share common data, we just use the first
-                 *       * one for intializing the following stuffs. */
+		 * one for intializing the following stuffs. */
                 struct _starpu_worker *baseworker = &worker_set->workers[0];
                 struct _starpu_machine_config *config = baseworker->config;
                 unsigned baseworkerid = baseworker - config->workers;
@@ -376,7 +372,6 @@ void *_starpu_mpi_src_worker(void *arg)
         }
 #endif
 
-
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_mpi_ms_nodes);
 #else
@@ -384,6 +379,4 @@ void *_starpu_mpi_src_worker(void *arg)
 #endif
 
         return NULL;
-
-
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2015,2017                      CNRS
+ * Copyright (C) 2012,2013,2015,2017,2019                      CNRS
  * Copyright (C) 2012,2015,2016                           Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -26,6 +26,11 @@
 extern "C"
 {
 #endif
+
+/**
+   @defgroup API_Random_Functions Random Functions
+   @{
+ */
 
 #ifdef STARPU_SIMGRID
 /* In simgrid mode, force using seed 0 by default to get reproducible behavior by default */
@@ -61,6 +66,8 @@ typedef int starpu_drand48_data;
 #  define starpu_srand48_r(seed, buffer) 		srand(starpu_seed(seed))
 #  define starpu_erand48_r(xsubi, buffer, result)	do {(void) xsubi; (void) buffer; *(result) = ((double)(rand()) / RAND_MAX);} while (0)
 #endif
+
+/** @} */
 
 #ifdef __cplusplus
 }

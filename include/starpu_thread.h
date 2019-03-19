@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2015-2017                           Inria
- * Copyright (C) 2010-2015,2017                           CNRS
- * Copyright (C) 2010,2012-2018                           Université de Bordeaux
+ * Copyright (C) 2010-2015,2017,2019                           CNRS
+ * Copyright (C) 2010,2012-2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,12 +16,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+// The documentation for this file is in doc/doxygen/chapters/api/threads.doxy
+
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
 
 #include <starpu_config.h>
 #include <starpu_util.h>
 #ifdef STARPU_SIMGRID
+#include <pthread.h>
 #ifdef STARPU_HAVE_XBT_SYNCHRO_H
 #include <xbt/synchro.h>
 #else
@@ -441,5 +444,3 @@ int starpu_sem_wait(starpu_sem_t *);
 #endif
 
 #endif /* __STARPU_THREAD_H__ */
-
-

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017,2019                           CNRS
  * Copyright (C) 2015                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,7 @@ void _starpu_mpi_sync_data_init(void)
 
 void _starpu_mpi_sync_data_shutdown(void)
 {
-	struct _starpu_mpi_sync_data_handle_hashlist *current, *tmp;
+	struct _starpu_mpi_sync_data_handle_hashlist *current=NULL, *tmp=NULL;
 	HASH_ITER(hh, _starpu_mpi_sync_data_handle_hashmap, current, tmp)
 	{
 		STARPU_ASSERT(_starpu_mpi_req_list_empty(&current->list));
