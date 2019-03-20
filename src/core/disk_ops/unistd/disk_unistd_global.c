@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017,2018                           Inria
  * Copyright (C) 2013,2015-2017                           CNRS
- * Copyright (C) 2013-2018                                Université de Bordeaux
+ * Copyright (C) 2013-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -328,6 +328,7 @@ void *starpu_unistd_global_async_read(void *base, void *obj, void *buf, off_t of
         struct iocb *iocb = &starpu_aiocb->iocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
+	int err;
 
         if (fd < 0)
                 fd = _starpu_unistd_reopen(obj);
@@ -336,9 +337,9 @@ void *starpu_unistd_global_async_read(void *base, void *obj, void *buf, off_t of
         starpu_aiocb->finished = 0;
         starpu_aiocb->base = fileBase;
 	io_prep_pread(iocb, fd, buf, size, offset);
-	if (io_submit(fileBase->ctx, 1, &iocb) < 0)
+	if ((err = io_submit(fileBase->ctx, 1, &iocb)) < 0)
 	{
-                free(iocb);
+		_STARPU_DISP("Warning: io_submit returned %d (%s)\n", err, strerror(err));
                 if (tmp->descriptor < 0)
                         _starpu_unistd_reclose(fd);
                 iocb = NULL;
@@ -378,10 +379,9 @@ void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *
 
         if (aio_read(aiocb) < 0)
         {
-                free(aiocb);
+		_STARPU_DISP("Warning: aio_read returned %d (%s)\n", errno, strerror(errno));
                 if (tmp->descriptor < 0)
                         _starpu_unistd_reclose(fd);
-                aiocb = NULL;
         }
 
         return event;
@@ -457,6 +457,7 @@ void *starpu_unistd_global_async_write(void *base, void *obj, void *buf, off_t o
         struct iocb *iocb = &starpu_aiocb->iocb;
         starpu_aiocb->obj = obj;
         int fd = tmp->descriptor;
+	int err;
 
         if (fd < 0)
                 fd = _starpu_unistd_reopen(obj);
@@ -465,9 +466,9 @@ void *starpu_unistd_global_async_write(void *base, void *obj, void *buf, off_t o
         starpu_aiocb->finished = 0;
         starpu_aiocb->base = fileBase;
 	io_prep_pwrite(iocb, fd, buf, size, offset);
-	if (io_submit(fileBase->ctx, 1, &iocb) < 0)
+	if ((err = io_submit(fileBase->ctx, 1, &iocb)) < 0)
         {
-                free(iocb);
+		_STARPU_DISP("Warning: io_submit returned %d (%s)\n", err, strerror(err));
                 if (tmp->descriptor < 0)
                         _starpu_unistd_reclose(fd);
                 iocb = NULL;
@@ -507,7 +508,7 @@ void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void 
 
         if (aio_write(aiocb) < 0)
         {
-                free(aiocb);
+		_STARPU_DISP("Warning: aio_write returned %d (%s)\n", errno, strerror(errno));
                 if (tmp->descriptor < 0)
                         _starpu_unistd_reclose(fd);
                 aiocb = NULL;
