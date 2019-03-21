@@ -300,7 +300,8 @@ STARPU_EXAMPLES +=				\
 	mult/dgemm				\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
-	cholesky/cholesky_implicit
+	cholesky/cholesky_implicit		\
+	cholesky/cholesky_compil
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
@@ -713,6 +714,16 @@ cholesky_cholesky_implicit_SOURCES =		\
 	common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
+
+cholesky_cholesky_compil_SOURCES =		\
+	cholesky/cholesky_compil.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
+	sched_ctx_utils/sched_ctx_utils.c	\
+	common/blas.c
+
+cholesky_cholesky_compil_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 
 endif
