@@ -147,11 +147,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 #define trsm_bande(k,m)			{ TRSM(A(k,k),A(m,k), (2*nblocks - 2*k - m)); }
 #define herk_oreille_up(k,n)		{ SYRK_GPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
 #define herk_oreille_down(k,n)		{ SYRK_GPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
-#define herk_cpu(k,n)			{ SYRK_CPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
+#define herk_cpu(k,n)			{ SYRK(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
 #define herk_bande(k,n)			{ SYRK(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
 #define gemm_oreille_up(k,n,m)		{ GEMM_GPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
 #define gemm_oreille_down(k,n,m)	{ GEMM_GPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
-#define gemm_cpu(k,n,m)			{ GEMM_CPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
+#define gemm_cpu(k,n,m)			{ GEMM(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
 #define gemm_bande(k,n,m)		{ GEMM(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
 
 #include "cholesky_compiled.c"
