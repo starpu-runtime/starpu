@@ -53,9 +53,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	int N = nblocks;
 	int M = nblocks;
 
-	int lambda_b = starpu_get_env_number_default("CHOLESKY_LAMBDA_B", nblocks);
-	int lambda_o_u = starpu_get_env_number_default("CHOLESKY_LAMBDA_O_U", 0);
-	int lambda_o_d = starpu_get_env_number_default("CHOLESKY_LAMBDA_O_D", 0);
+	int lambda_b = starpu_get_env_float_default("CHOLESKY_LAMBDA_B", nblocks);
+	int lambda_o_u = starpu_get_env_float_default("CHOLESKY_LAMBDA_O_U", 0);
+	int lambda_o_d = starpu_get_env_float_default("CHOLESKY_LAMBDA_O_D", 0);
 
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
