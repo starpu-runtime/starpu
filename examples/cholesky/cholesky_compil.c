@@ -72,66 +72,70 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, j, i)
 
-#define _POTRF(cl, A, prio) do { \
+#define _POTRF(cl, A, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_MAX_PRIO, \
 					 STARPU_RW, A, \
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn), \
+					 STARPU_NAME, name, \
 					 0); \
 		if (ret == -ENODEV) return 77; \
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define _TRSM(cl, A, B, prio) do { \
+#define _TRSM(cl, A, B, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_RW, B, \
 					 STARPU_FLOPS, (double) FLOPS_STRSM(nn,nn), \
+					 STARPU_NAME, name, \
 					 0); \
 		if (ret == -ENODEV) return 77; \
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
 /* TODO: use real SYRK */
-#define _SYRK(cl, A, C, prio) do { \
+#define _SYRK(cl, A, C, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_R, A, \
 					 STARPU_RW, C, \
 					 STARPU_FLOPS, (double) FLOPS_SGEMM(nn,nn,nn), \
+					 STARPU_NAME, name, \
 					 0); \
 		if (ret == -ENODEV) return 77; \
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define _GEMM(cl, A, B, C, prio) do { \
+#define _GEMM(cl, A, B, C, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_R, B, \
 					 STARPU_RW, C, \
 					 STARPU_FLOPS, (double) FLOPS_SGEMM(nn,nn,nn), \
+					 STARPU_NAME, name, \
 					 0); \
 		if (ret == -ENODEV) return 77; \
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define POTRF(A, prio)		_POTRF(&cl11, A, prio)
-#define TRSM(A, B, prio)	_TRSM(&cl21, A, B, prio)
-#define SYRK(A, B, prio)	_SYRK(&cl22, A, B, prio)
-#define GEMM(A, B, C, prio)	_GEMM(&cl22, A, B, C, prio)
+#define POTRF(A, prio)		_POTRF(&cl11, A, prio, "potrf")
+#define TRSM(A, B, prio)	_TRSM(&cl21, A, B, prio, "trsm")
+#define SYRK(A, B, prio)	_SYRK(&cl22, A, B, prio, "syrk")
+#define GEMM(A, B, C, prio)	_GEMM(&cl22, A, B, C, prio, "gemm")
 
-#define POTRF_GPU(A, prio)	_POTRF(&cl11_gpu, A, prio)
-#define TRSM_GPU(A, B, prio)	_TRSM(&cl21_gpu, A, B, prio)
-#define SYRK_GPU(A, B, prio)	_SYRK(&cl22_gpu, A, B, prio)
-#define GEMM_GPU(A, B, C, prio)	_GEMM(&cl22_gpu, A, B, C, prio)
+#define POTRF_GPU(A, prio)	_POTRF(&cl11_gpu, A, prio, "potrf_gpu")
+#define TRSM_GPU(A, B, prio)	_TRSM(&cl21_gpu, A, B, prio, "trsm_gpu")
+#define SYRK_GPU(A, B, prio)	_SYRK(&cl22_gpu, A, B, prio, "syrk_gpu")
+#define GEMM_GPU(A, B, C, prio)	_GEMM(&cl22_gpu, A, B, C, prio, "gemm_gpu")
 
-#define POTRF_CPU(A, prio)	_POTRF(&cl11_cpu, A, prio)
-#define TRSM_CPU(A, B, prio)	_TRSM(&cl21_cpu, A, B, prio)
-#define SYRK_CPU(A, B, prio)	_SYRK(&cl22_cpu, A, B, prio)
-#define GEMM_CPU(A, B, C, prio)	_GEMM(&cl22_cpu, A, B, C, prio)
+#define POTRF_CPU(A, prio)	_POTRF(&cl11_cpu, A, prio, "potrf_cpu")
+#define TRSM_CPU(A, B, prio)	_TRSM(&cl21_cpu, A, B, prio, "trsm_cpu")
+#define SYRK_CPU(A, B, prio)	_SYRK(&cl22_cpu, A, B, prio, "syrk_cpu")
+#define GEMM_CPU(A, B, C, prio)	_GEMM(&cl22_cpu, A, B, C, prio, "gemm_cpu")
 
 #define potrf_oreille_up(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
 #define potrf_oreille_down(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
