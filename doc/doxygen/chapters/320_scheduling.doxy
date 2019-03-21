@@ -63,6 +63,10 @@ also takes into account priorities.
 The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
 priority specified by the programmer (between -5 and 5).
 
+The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
+This scheduler must be configured to work correclty and to expect high-performance
+as described in the corresponding section.
+
 \section DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
 
 If (<b>and only if</b>) your application <b>codelets have performance models</b> (\ref
@@ -254,5 +258,76 @@ could be tricky. Be careful to schedule the tasks exactly on the workers of the 
 contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
 the execution of the application may deadlock. Moreover, the hypervisor should not be used when
 statically scheduling tasks.
+
+\section Configuring Heteroprio
+
+Within Heteroprio, one priority per processing unit type is assigned  to each task, such that a task has several
+priorities. Each worker pops the task that has the highest priority for the hardware type it uses, which
+could be CPU or CUDA for example. Therefore, the priorities has to be used to manage the critical path,
+but also to promote the consumption of tasks by the more appropriate workers.
+
+The tasks are stored inside buckets, where each bucket corresponds to a priority set. Then each
+worker uses an indirect access array to know the order in which it should access the buckets. Moreover,
+all the tasks inside a bucket must be compatible with all the processing units that may access it (at least).
+
+As an example, see the following code where we have 5 types of tasks.
+CPU workers can compute all of them, but CUDA workers can only execute
+tasks of types 0 and 1, and is expected to go 20 and 30 time
+faster than the CPU, respectively.
+\code{.c}
+// In the file that init StarPU
+#include <starpu_heteroprio.h>
+
+////////////////////////////////////////////////////
+
+// Before calling starpu_init
+struct starpu_conf conf;
+starpu_conf_init(&conf);
+// Inform StarPU to use Heteroprio
+conf.sched_policy_name = "heteroprio";
+// Inform StarPU about the function that will init the priorities in Heteroprio
+// where init_heteroprio is a function to implement
+conf.sched_policy_init = &init_heteroprio;
+// Do other things with conf if needed, then init StarPU
+starpu_init(&conf);
+
+////////////////////////////////////////////////////
+
+void init_heteroprio(unsigned sched_ctx) {
+  // CPU uses 5 buckets and visits them in the natural order
+  starpu_heteroprio_set_nb_prios(ctx, STARPU_CPU_IDX, 5);
+  // It uses direct mapping idx => idx
+  for(unsigned idx = 0; idx < 5; ++idx){
+    starpu_heteroprio_set_mapping(ctx, STARPU_CPU_IDX, idx, idx);
+    // If there is no CUDA worker we must tell that CPU is faster
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CPU_IDX, idx);
+  }
+  
+  if(starpu_cuda_worker_get_count()){
+    // CUDA is enabled and uses 2 buckets
+    starpu_heteroprio_set_nb_prios(ctx, STARPU_CUDA_IDX, 2);
+    // CUDA will first look at bucket 1
+    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_IDX, 0, 1);
+    // CUDA will then look at bucket 2
+    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_IDX, 1, 2);
+
+    // For bucket 1 CUDA is the fastest
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_IDX, 1);
+    // And CPU is 30 times slower
+    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_IDX, 1, 30.0f);
+    
+    // For bucket 0 CUDA is the fastest
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_IDX, 0);
+    // And CPU is 20 times slower
+    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_IDX, 0, 20.0f);
+  }
+}
+\endcode
+
+Then, when a task is inserted <b>the priority of the task will be used to 
+select in which bucket is has to be stored</b>.
+So, in the given example, the priority of a task will be between 0 and 4 included.
+However, tasks of priorities 0-1 must provide CPU and CUDA kernels, and
+tasks of priorities 2-4 must provide CPU kernels (at least).
 
 */
