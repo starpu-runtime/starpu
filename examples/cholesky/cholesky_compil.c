@@ -26,6 +26,7 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
+#include <math.h>
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
@@ -47,8 +48,14 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	double start;
 	double end;
 
-	unsigned long N = starpu_matrix_get_nx(dataA);
-	unsigned long nn = N/nblocks;
+	unsigned long nelems = starpu_matrix_get_nx(dataA);
+	unsigned long nn = nelems/nblocks;
+	int N = nblocks;
+	int M = nblocks;
+
+	int lambda_b = starpu_get_env_number_default("CHOLESKY_LAMBDA_B", nblocks);
+	int lambda_o_u = starpu_get_env_number_default("CHOLESKY_LAMBDA_O_U", 0);
+	int lambda_o_d = starpu_get_env_number_default("CHOLESKY_LAMBDA_O_D", 0);
 
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
@@ -58,7 +65,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	start = starpu_timing_now();
 
+#define min(x,y)  (x<y?x:y)
+#define max(x,y)  (x<y?y:x)
+#define ceild(n,d)  ceil(((double)(n))/((double)(d)))
+#define floord(n,d) floor(((double)(n))/((double)(d)))
+
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, j, i)
+
 #define _POTRF(cl, A, prio) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_MAX_PRIO, \
@@ -120,6 +133,23 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 #define SYRK_CPU(A, B, prio)	_SYRK(&cl22_cpu, A, B, prio)
 #define GEMM_CPU(A, B, C, prio)	_GEMM(&cl22_cpu, A, B, C, prio)
 
+#define potrf_oreille_up(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
+#define potrf_oreille_down(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
+#define potrf_cpu(k)			{ POTRF_CPU(A(k,k),(2*N - 2*k)); }
+#define potrf_bande(k)			{ POTRF(A(k,k),(2*N - 2*k)); }
+#define trsm_oreille_up(k,m)		{ TRSM_GPU(A(k,k),A(m,k), (2*nblocks - 2*k - m)); }
+#define trsm_oreille_down(k,m)		{ TRSM_GPU(A(k,k),A(m,k), (2*nblocks - 2*k - m)); }
+#define trsm_cpu(k,m)			{ TRSM_CPU(A(k,k),A(m,k), (2*nblocks - 2*k - m)); }
+#define trsm_bande(k,m)			{ TRSM(A(k,k),A(m,k), (2*nblocks - 2*k - m)); }
+#define herk_oreille_up(k,n)		{ SYRK_GPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
+#define herk_oreille_down(k,n)		{ SYRK_GPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
+#define herk_cpu(k,n)			{ SYRK_CPU(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
+#define herk_bande(k,n)			{ SYRK(A(n,k),A(n,n), (2*nblocks - 2*k - n)); }
+#define gemm_oreille_up(k,n,m)		{ GEMM_GPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
+#define gemm_oreille_down(k,n,m)	{ GEMM_GPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
+#define gemm_cpu(k,n,m)			{ GEMM_CPU(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
+#define gemm_bande(k,n,m)		{ GEMM(A(m,k),A(n,k),A(m,n), (2*nblocks - 2*k - n - m)); }
+
 #include "cholesky_compiled.c"
 
 	starpu_task_wait_for_all();
@@ -132,7 +162,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double timing = end - start;
 
-	double flop = FLOPS_SPOTRF(N);
+	double flop = FLOPS_SPOTRF(nelems);
 
 	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
@@ -143,7 +173,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			PRINTF("\tTms\tTGFlops");
 		PRINTF("\n");
 
-		PRINTF("%lu\t%.0f\t%.1f", N, timing/1000, (flop/timing/1000.0f));
+		PRINTF("%lu\t%.0f\t%.1f", nelems, timing/1000, (flop/timing/1000.0f));
 		if (bound_lp_p)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
