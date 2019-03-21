@@ -354,3 +354,79 @@ struct starpu_codelet cl22 =
 	.model = &chol_model_22,
 	.color = 0x00ff00,
 };
+
+struct starpu_codelet cl11_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u11},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.model = &chol_model_11,
+	.color = 0xffff00,
+};
+
+struct starpu_codelet cl21_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u21},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_21,
+	.color = 0x8080ff,
+};
+
+struct starpu_codelet cl22_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u22},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
+	.model = &chol_model_22,
+	.color = 0x00ff00,
+};
+
+struct starpu_codelet cl11_cpu =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.model = &chol_model_11,
+	.color = 0xffff00,
+};
+
+struct starpu_codelet cl21_cpu =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_u21},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_21,
+	.color = 0x8080ff,
+};
+
+struct starpu_codelet cl22_cpu =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_u22},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
+	.model = &chol_model_22,
+	.color = 0x00ff00,
+};
+

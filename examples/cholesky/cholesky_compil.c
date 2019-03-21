@@ -59,8 +59,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	start = starpu_timing_now();
 
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, j, i)
-#define POTRF(A, prio) do { \
-                int ret = starpu_task_insert(&cl11, \
+#define _POTRF(cl, A, prio) do { \
+		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_MAX_PRIO, \
 					 STARPU_RW, A, \
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn), \
@@ -69,8 +69,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define TRSM(A, B, prio) do { \
-                int ret = starpu_task_insert(&cl21, \
+#define _TRSM(cl, A, B, prio) do { \
+		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_RW, B, \
@@ -81,8 +81,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 } while (0)
 
 /* TODO: use real SYRK */
-#define SYRK(A, C, prio) do { \
-                int ret = starpu_task_insert(&cl22, \
+#define _SYRK(cl, A, C, prio) do { \
+		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_R, A, \
@@ -93,8 +93,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define GEMM(A, B, C, prio) do { \
-                int ret = starpu_task_insert(&cl22, \
+#define _GEMM(cl, A, B, C, prio) do { \
+		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_DEFAULT_PRIO, \
 					 STARPU_R, A, \
 					 STARPU_R, B, \
@@ -104,6 +104,21 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		if (ret == -ENODEV) return 77; \
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
+
+#define POTRF(A, prio)		_POTRF(&cl11, A, prio)
+#define TRSM(A, B, prio)	_TRSM(&cl21, A, B, prio)
+#define SYRK(A, B, prio)	_SYRK(&cl22, A, B, prio)
+#define GEMM(A, B, C, prio)	_GEMM(&cl22, A, B, C, prio)
+
+#define POTRF_GPU(A, prio)	_POTRF(&cl11_gpu, A, prio)
+#define TRSM_GPU(A, B, prio)	_TRSM(&cl21_gpu, A, B, prio)
+#define SYRK_GPU(A, B, prio)	_SYRK(&cl22_gpu, A, B, prio)
+#define GEMM_GPU(A, B, C, prio)	_GEMM(&cl22_gpu, A, B, C, prio)
+
+#define POTRF_CPU(A, prio)	_POTRF(&cl11_cpu, A, prio)
+#define TRSM_CPU(A, B, prio)	_TRSM(&cl21_cpu, A, B, prio)
+#define SYRK_CPU(A, B, prio)	_SYRK(&cl22_cpu, A, B, prio)
+#define GEMM_CPU(A, B, C, prio)	_GEMM(&cl22_cpu, A, B, C, prio)
 
 #include "cholesky_compiled.c"
 
