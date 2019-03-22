@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2012,2013,2015-2018                      CNRS
- * Copyright (C) 2012-2018                                Université de Bordeaux
+ * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,6 +51,8 @@ extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 /* 1 when MSG_init was done, 2 when initialized through redirected main, 3 when
  * initialized through MSG_process_attach */
 static int simgrid_started;
+
+static int simgrid_transfer_cost;
 
 static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
@@ -267,6 +269,8 @@ void _starpu_start_simgrid(int *argc, char **argv)
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 #endif
 	MSG_create_environment(path);
+
+	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
 
 static int main_ret;
@@ -912,6 +916,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 {
 	/* Simgrid does not like 0-bytes transfers */
 	if (!size)
+		return 0;
+
+	/* Explicitly disabled by user? */
+	if (!simgrid_transfer_cost)
 		return 0;
 
 	msg_task_t task;

@@ -156,6 +156,8 @@ Small changes:
 
 StarPU 1.2.9 (git revision xxx)
 ==============================================
+  * Add STARPU_SIMGRID_TRANSFER_COST environment variable to easily disable
+    data transfer costs.
 
 StarPU 1.2.8 (git revision f66374c9ad39aefb7cf5dfc31f9ab3d756bcdc3c)
 ==============================================
