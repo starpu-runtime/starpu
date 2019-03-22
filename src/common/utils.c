@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                Université de Bordeaux
+ * Copyright (C) 2010-2017,2019                           Université de Bordeaux
  * Copyright (C) 2012,2016,2017                           Inria
  * Copyright (C) 2010-2017, 2019                          CNRS
  *
@@ -227,7 +227,8 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 	if (*fd < 0)
 	{
 		int err = errno;
-		_STARPU_DISP("Could not create temporary file in directory '%s', mk[o]stemp failed with error '%s'\n", directory, strerror(errno));
+		if (err != ENOENT)
+			_STARPU_DISP("Could not create temporary file in directory '%s', mk[o]stemp failed with error '%s'\n", directory, strerror(errno));
 		free(baseCpy);
 		errno = err;
 		return NULL;
@@ -276,6 +277,7 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 	}
 
 	memcpy(path, directory, len+1);
+retry:
 	for (i = 0; i < depth; i++)
 	{
 		int r = starpu_lrand48();
@@ -307,6 +309,11 @@ char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd)
 	retpath = _starpu_mktemp(path, flags, fd);
 	if (!retpath)
 	{
+		if (errno == ENOENT)
+		{
+			/* Somebody else dropped our directory, retry */
+			goto retry;
+		}
 		/* That failed, drop our directories */
 		_starpu_rmdir_many(path, depth);
 	}
@@ -329,7 +336,7 @@ void _starpu_rmdir_many(char *path, int depth)
 	int i;
 	for (i = 0; i < depth; i++)
 	{
-		if (rmdir(path) < 0 && errno != ENOTEMPTY && errno != EBUSY)
+		if (rmdir(path) < 0 && errno != ENOTEMPTY && errno != EBUSY && errno != ENOENT)
 			_STARPU_DISP("Could not remove temporary directory '%s', rmdir failed with error '%s'\n", path, strerror(errno));
 		path = dirname(path);
 	}
