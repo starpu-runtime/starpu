@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013,2016,2017                      Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -441,12 +441,7 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 int starpu_mpi_wait_for_all(MPI_Comm comm)
 {
-	int mpi = 1;
-	int task = 1;
-	while (task || mpi)
-	{
-		task = _starpu_task_wait_for_all_and_return_nb_waited_tasks();
-		mpi = _starpu_mpi_barrier(comm);
-	}
+	starpu_task_wait_for_all();
+	starpu_mpi_barrier(comm);
 	return 0;
 }
