@@ -1581,7 +1581,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 		     handle->per_node[i].allocated))
 		{
 			/* if we can write on the disk */
-			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
+			if ((_starpu_get_disk_flag(i) & STARPU_DISK_NO_RECLAIM) == 0)
 			{
 				/* only time can change between disk <-> main_ram
 				 * and not between main_ram <-> worker if we compare diks*/
@@ -1645,7 +1645,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 	}
 	/* we haven't the right to write on the disk */
-	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && (_starpu_get_disk_flag(target) & STARPU_DISK_NO_RECLAIM))
 		target = -1;
 
 	return target;
