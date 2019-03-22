@@ -154,7 +154,16 @@ Small changes:
   * Fix code to allow to submit tasks to empty contexts
   * STARPU_COMM_STATS also displays the bandwidth
 
-StarPU 1.2.7 (git revision xxx)
+StarPU 1.2.9 (git revision xxx)
+==============================================
+
+StarPU 1.2.8 (git revision f66374c9ad39aefb7cf5dfc31f9ab3d756bcdc3c)
+==============================================
+
+Small features:
+  * Minor fixes
+
+StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
 ==============================================
 
 Small features:
