@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2015-2017                      CNRS
- * Copyright (C) 2012-2018                                Université de Bordeaux
+ * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,6 +38,8 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
 static int simgrid_started;
+
+static int simgrid_transfer_cost;
 
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
@@ -237,6 +239,8 @@ static void start_simgrid(int *argc, char **argv)
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 #endif
 	MSG_create_environment(path);
+
+	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
 
 static int main_ret;
@@ -648,6 +652,11 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	/* Simgrid does not like 0-bytes transfers */
 	if (!size)
 		return 0;
+
+	/* Explicitly disabled by user? */
+	if (!simgrid_transfer_cost)
+		return 0;
+
 	msg_task_t task;
 	msg_host_t *hosts;
 	double *computation;
