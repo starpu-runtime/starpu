@@ -52,7 +52,7 @@ extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
  * initialized through MSG_process_attach */
 static int simgrid_started;
 
-static int simgrid_transfer_cost;
+static int simgrid_transfer_cost = 1;
 
 static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
