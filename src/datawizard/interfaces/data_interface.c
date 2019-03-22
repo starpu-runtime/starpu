@@ -889,6 +889,7 @@ retry_busy:
 	if (handle->unregister_hook)
 	{
 		handle->unregister_hook(handle);
+		handle->unregister_hook = NULL;
 	}
 
 	/* Wait for finished requests to release the handle */
