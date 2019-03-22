@@ -39,7 +39,7 @@ extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
 static int simgrid_started;
 
-static int simgrid_transfer_cost;
+static int simgrid_transfer_cost = 1;
 
 /* In case the MPI application didn't use smpicc to build the file containing
  * main(), try to cope by calling starpu_main */
