@@ -1695,7 +1695,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_alloc_size(handle)) == 1))
 		{
 			/* if we can write on the disk */
-			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
+			if ((_starpu_get_disk_flag(i) & STARPU_DISK_NO_RECLAIM) == 0)
 			{
 				unsigned numa;
 				unsigned nnumas = starpu_memory_nodes_get_numa_count();
@@ -1780,7 +1780,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 	}
 	/* we haven't the right to write on the disk */
-	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && (_starpu_get_disk_flag(target) & STARPU_DISK_NO_RECLAIM))
 		target = -1;
 
 	return target;
