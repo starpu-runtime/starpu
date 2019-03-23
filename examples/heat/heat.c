@@ -331,7 +331,7 @@ static float compute_A_value(unsigned i, unsigned j, point *pmesh)
 	theta_j = NODE_TO_THETA(j);
 
 	/* Compute the Sum of all the integral over all triangles */
-	if ( (abs(thick_i - thick_j) <= 1) && (abs(theta_i - theta_j) <= 1) )
+	if ( (abs((int)thick_i - (int)thick_j) <= 1) && (abs((int)theta_i - (int)theta_j) <= 1) )
 	{
 		if ( (theta_j == theta_i -1) && (thick_j == thick_i +1))
 			goto done;
