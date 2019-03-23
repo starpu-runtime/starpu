@@ -60,7 +60,6 @@ extern "C"
 #define _STARPU_MPI_FUT_DRIVER_RUN_END			0x5217
 
 #ifdef STARPU_USE_FXT
-static int trace_loop = 0;
 
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());

@@ -112,6 +112,10 @@ extern void smpi_process_set_user_data(void *);
 #endif
 #endif
 
+#ifdef STARPU_USE_FXT
+static int trace_loop = 0;
+#endif
+
  /********************************************************/
  /*                                                      */
  /*  Send/Receive functionalities                        */
