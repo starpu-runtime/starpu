@@ -100,7 +100,7 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	};
 
 	/* Simulate that tiles close to the diagonal are more dense */
-	interface.size = FULLSIZE * (starpu_lrand48() % 1024 + 1024) / 2048. * (N-sqrt(abs(x-y)*N)) / N;
+	interface.size = FULLSIZE * (starpu_lrand48() % 1024 + 1024) / 2048. * (N-sqrt(abs((int)x-(int)y)*N)) / N;
 	/* Round to page size */
 	interface.size -= interface.size & (65536-1);
 
