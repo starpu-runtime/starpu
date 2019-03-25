@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017,2019                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2015,2017                                Inria
  * Copyright (C) 2015,2017                                Université de Bordeaux
  *
@@ -25,13 +25,12 @@ int main(void)
 	return 77;
 }
 #else
+
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 8
 #else
 #define NTASKS 32
 #endif
-
-
 #define SIZE 4000
 
 /* Codelet SUM */
@@ -43,7 +42,10 @@ static void sum_cpu(void * descr[], void *cl_arg)
 
 	int size;
 	starpu_codelet_unpack_args(cl_arg, &size);
+	fprintf(stderr, "sum_cpu\n");
 	int i, k;
+#pragma omp parallel
+	fprintf(stderr, "hello from the task %d\n", omp_get_thread_num());
 	for (k=0;k<10;k++)
 	{
 #pragma omp parallel for
@@ -79,7 +81,12 @@ int main(void)
 	/* We regroup resources under each sockets into a cluster. We express a partition
 	 * of one socket to create two internal clusters */
 	clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
-					  STARPU_CLUSTER_PARTITION_ONE, STARPU_CLUSTER_NB, 2,
+					  STARPU_CLUSTER_PARTITION_ONE,
+					  STARPU_CLUSTER_NEW,
+//					  STARPU_CLUSTER_TYPE, STARPU_CLUSTER_OPENMP,
+//					  STARPU_CLUSTER_TYPE, STARPU_CLUSTER_INTEL_OPENMP_MKL,
+					  STARPU_CLUSTER_NB, 2,
+					  STARPU_CLUSTER_NCORES, 1,
 					  0);
 	starpu_cluster_print(clusters);
 
@@ -103,24 +110,23 @@ int main(void)
 
 	for (i = 0; i < ntasks; i++)
 	{
-		struct starpu_task * t;
-		t=starpu_task_build(&sum_cl,
-				    STARPU_RW,handle1,
-				    STARPU_R,handle2,
-				    STARPU_R,handle1,
-				    STARPU_VALUE,&size,sizeof(int),
-				    0);
-		t->destroy = 1;
-		/* For two tasks, try out the case when the task isn't parallel and expect
-			 the configuration to be sequential due to this, then automatically changed
-			 back to the parallel one */
-		if (i<=4 || i > 6)
-			t->possibly_parallel = 1;
-		/* Note that this mode requires that you put a prologue callback managing
-			 this on all tasks to be taken into account. */
-		t->prologue_callback_pop_func = &starpu_openmp_prologue;
+		ret = starpu_task_insert(&sum_cl,
+					 STARPU_RW, handle1,
+					 STARPU_R, handle2,
+					 STARPU_R, handle1,
+					 STARPU_VALUE, &size, sizeof(int),
 
-		ret=starpu_task_submit(t);
+					 /* For two tasks, try out the case when the task isn't parallel and expect
+					    the configuration to be sequential due to this, then automatically changed
+					    back to the parallel one */
+					 STARPU_POSSIBLY_PARALLEL, (i<=4 || i > 6) ? 1 : 0,
+
+					 /* Note that this mode requires that you put a prologue callback managing
+					    this on all tasks to be taken into account. */
+					 STARPU_PROLOGUE_CALLBACK_POP, &starpu_openmp_prologue,
+
+					 0);
+
 		if (ret == -ENODEV)
 			goto out;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
