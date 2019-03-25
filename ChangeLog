@@ -149,6 +149,8 @@ Changes:
     operation in favor of new starpu_data_interface_ops::to_pointer
     operation.
   * Sort data access requests by priority.
+  * Cluster support is disabled by default, unless the configure
+    option --enable-cluster is specified
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.

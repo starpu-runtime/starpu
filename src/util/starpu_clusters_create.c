@@ -21,6 +21,8 @@
 
 #include <util/starpu_clusters_create.h>
 
+#ifdef STARPU_CLUSTER
+
 starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type)
 {
 	starpu_binding_function prologue_func;
@@ -768,3 +770,5 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 
 	return;
 }
+
+#endif

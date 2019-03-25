@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,7 @@
 #undef STARPU_USE_MPI_MASTER_SLAVE
 
 #undef STARPU_OPENMP
+#undef STARPU_CLUSTER
 
 #undef STARPU_SIMGRID
 #undef STARPU_SIMGRID_MC

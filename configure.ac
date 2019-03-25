@@ -5,7 +5,7 @@
 # Copyright (C) 2017                                     Guillaume Beauchamp
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2018                                     Umeà University
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
 #
@@ -91,7 +91,6 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
-AC_OPENMP
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
@@ -2815,6 +2814,25 @@ AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
   [test "x$run_gcc_plugin_test_suite" = "xyes"])
 
+########################################################################
+#                                                                      #
+#                            Cluster support                           #
+#                                                                      #
+########################################################################
+
+AC_ARG_ENABLE(cluster, [AS_HELP_STRING([--enable-cluster], [build the cluster support])],
+			enable_cluster=$enableval, enable_cluster=no)
+
+AC_MSG_CHECKING(for cluster support)
+
+if test x$enable_cluster = xyes; then
+	AC_DEFINE(STARPU_CLUSTER, [1], [Define this to enable cluster support])
+	AC_OPENMP
+fi
+
+AM_CONDITIONAL([STARPU_CLUSTER], [test "x$enable_cluster" = "xyes"])
+AC_MSG_RESULT($enable_cluster)
+
 ###############################################################################
 #                                                                             #
 #                            OpenMP runtime support                           #
@@ -3781,6 +3799,7 @@ AC_MSG_NOTICE([
 	       GCC plug-in:                                   $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
 	       OpenMP runtime support enabled:                $enable_openmp
+	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
                SOCL test suite:                               $run_socl_check
                Scheduler Hypervisor:                          $build_sc_hypervisor
