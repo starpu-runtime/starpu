@@ -574,7 +574,7 @@ files in the directory <c>$prefix/share/starpu/opencl/vendors</c>.
 <dd>
 \anchor STARPU_COMM_STATS
 \addindex __env__STARPU_COMM_STATS
-Communication statistics for starpumpi (\ref MPISupport)
+Communication statistics for starpumpi (\ref MPIDebug)
 will be enabled when the environment variable \ref STARPU_COMM_STATS
 is defined to an value other than 0.
 </dd>
