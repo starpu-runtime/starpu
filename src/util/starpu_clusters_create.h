@@ -28,6 +28,8 @@
 #include <mkl_service.h>
 #endif
 
+#ifdef STARPU_CLUSTER
+
 #ifdef __cplusplus
 extern
 #endif
@@ -124,4 +126,5 @@ static struct starpu_codelet _starpu_cluster_bind_cl=
 typedef void (*starpu_binding_function)(void*);
 starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type);
 
+#endif
 #endif /* __STARPU_CLUSTERS_CREATE_H__ */

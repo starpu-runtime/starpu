@@ -19,6 +19,9 @@
 #ifndef __STARPU_CLUSTERS_UTIL_H__
 #define __STARPU_CLUSTERS_UTIL_H__
 
+#include <starpu_config.h>
+
+#ifdef STARPU_CLUSTER
 #ifdef STARPU_HAVE_HWLOC
 
 #include <hwloc.h>
@@ -79,7 +82,7 @@ void starpu_gnu_openmp_mkl_prologue(void*);
 #ifdef __cplusplus
 }
 #endif
-
+#endif
 #endif
 
 #endif /* __STARPU_CLUSTERS_UTIL_H__ */

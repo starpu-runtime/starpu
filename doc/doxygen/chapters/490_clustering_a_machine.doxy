@@ -46,6 +46,9 @@ An example of code running on clusters is available in
 
 Let's first look at how to create a cluster.
 
+To enable clusters in StarPU, one needs to set the configure option
+\ref enable-cluster "--enable-cluster".
+
 \section CreatingClusters Creating Clusters
 
 Partitioning a machine into clusters with the cluster API is fairly
