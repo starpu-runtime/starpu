@@ -135,6 +135,8 @@ Small features:
     starpu_conf::catch_signals or through the environment variable
     STARPU_CATCH_SIGNALS
   * Support for OpenMP Taskloop directive
+  * Optional data interface init function (used by the vector and
+    matrix interfaces)
 
 Changes:
   * Vastly improve simgrid simulation time.

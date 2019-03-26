@@ -413,6 +413,13 @@ struct starpu_data_interface_ops
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 
 	/**
+	   Initialize the interface.
+	   This method is optional. It is called when initializing the
+	   handler on all the memory nodes.
+	*/
+	void             (*init)                        (void *data_interface);
+
+	/**
 	   Struct with pointer to functions for performing ram/cuda/opencl synchronous and asynchronous transfers.
 	*/
 	const struct starpu_data_copy_methods *copy_methods;
