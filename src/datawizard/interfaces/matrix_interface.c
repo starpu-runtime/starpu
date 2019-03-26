@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,6 +85,7 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
+static void matrix_init(void *data_interface);
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static void *matrix_to_pointer(void *data_interface, unsigned node);
 static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -103,6 +104,7 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
+	.init = matrix_init,
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
 	.to_pointer = matrix_to_pointer,
@@ -123,6 +125,12 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.describe = describe,
 	.name = "STARPU_MATRIX_INTERFACE"
 };
+
+static void matrix_init(void *data_interface)
+{
+	struct starpu_matrix_interface *matrix_interface = data_interface;
+	matrix_interface->allocsize = -1;
+}
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
@@ -334,6 +342,8 @@ static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle)
 #ifdef STARPU_DEBUG
 	STARPU_ASSERT_MSG(matrix_interface->id == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.");
 #endif
+
+	STARPU_ASSERT_MSG(matrix_interface->allocsize != (size_t)-1, "The matrix allocation size needs to be defined");
 
 	return matrix_interface->allocsize;
 }

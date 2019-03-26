@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2014,2017                      Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,7 @@ static const struct starpu_data_copy_methods vector_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
+static void vector_init(void *data_interface);
 static void register_vector_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_to_pointer(void *data_interface, unsigned node);
@@ -55,6 +56,7 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_vector_ops =
 {
+	.init = vector_init,
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.to_pointer = vector_to_pointer,
@@ -75,6 +77,12 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.describe = describe,
 	.name = "STARPU_VECTOR_INTERFACE"
 };
+
+static void vector_init(void *data_interface)
+{
+	struct starpu_vector_interface *vector_interface = data_interface;
+	vector_interface->allocsize = -1;
+}
 
 static void *vector_to_pointer(void *data_interface, unsigned node)
 {
@@ -265,6 +273,7 @@ static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle)
 #endif
 
 	size = vector_interface->allocsize;
+	STARPU_ASSERT_MSG(size != (size_t)-1, "The vector allocation size needs to be defined");
 
 	return size;
 }

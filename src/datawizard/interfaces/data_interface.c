@@ -468,6 +468,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 		replicate->handle = handle;
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
+		if (handle->ops->init) handle->ops->init(replicate->data_interface);
 	}
 
 	return 0;
