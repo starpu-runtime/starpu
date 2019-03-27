@@ -244,7 +244,7 @@ static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
 
-	starpu_free_on_node_flags(node, ptr, count, 0);
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }

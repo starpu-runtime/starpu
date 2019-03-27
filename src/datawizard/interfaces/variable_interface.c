@@ -201,7 +201,7 @@ static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, vo
 
 	memcpy((void*)variable_interface->ptr, ptr, variable_interface->elemsize);
 
-	starpu_free_on_node_flags(node, ptr, count, 0);
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }

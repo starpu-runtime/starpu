@@ -466,7 +466,7 @@ static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, si
 	tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
 	memcpy((void*)bcsr->nzval, tmp, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
 
-	starpu_free_on_node_flags(node, ptr, count, 0);
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }
