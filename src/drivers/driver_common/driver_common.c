@@ -43,6 +43,20 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
+	if (worker->bindid_requested != -1)
+	{
+		typedef unsigned __attribute__((__may_alias__)) alias_unsigned;
+		typedef int __attribute__((__may_alias__)) alias_int;
+
+		unsigned raw_bindid_requested = starpu_xchg((alias_unsigned *)&worker->bindid_requested, -1);
+		int bindid_requested = *(alias_int *)&raw_bindid_requested;
+
+		if (bindid_requested != -1)
+		{
+			worker->bindid = bindid_requested;
+			_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid, NULL);
+		}
+	}
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 

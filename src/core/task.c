@@ -68,6 +68,20 @@ static int __c_peak_ready;
 static int __c_total_executed;
 static int __c_cumul_execution_time;
 
+/* - */
+
+/* per-scheduler knobs */
+static int __s_max_priority_cap_knob;
+static int __s_min_priority_cap_knob;
+
+/* knob variables */
+static int __s_max_priority_cap__value;
+static int __s_min_priority_cap__value;
+
+static struct starpu_perf_knob_group * __kg_starpu_task__per_scheduler;
+
+/* - */
+
 static void global_sample_updater(struct starpu_perf_counter_sample *sample, void *context)
 {
 	STARPU_ASSERT(context == NULL); /* no context for the global updater */
@@ -132,6 +146,83 @@ void _starpu__task_c__register_counters(void)
 		_starpu_perf_counter_register_updater(scope, per_codelet_sample_updater);
 	}
 }
+
+/* - */
+
+void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_max_priority_cap_knob)
+	{
+		STARPU_ASSERT(value->val_int32_t <= STARPU_MAX_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= STARPU_MIN_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= __s_min_priority_cap__value);
+		__s_max_priority_cap__value = value->val_int32_t;
+	}
+	else if (knob->id == __s_min_priority_cap_knob)
+	{
+		STARPU_ASSERT(value->val_int32_t <= STARPU_MAX_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= STARPU_MIN_PRIO);
+		STARPU_ASSERT(value->val_int32_t <= __s_max_priority_cap__value);
+		__s_min_priority_cap__value = value->val_int32_t;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void sched_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_max_priority_cap_knob)
+	{
+		value->val_int32_t = __s_max_priority_cap__value;
+	}
+	else if (knob->id == __s_min_priority_cap_knob)
+	{
+		value->val_int32_t = __s_min_priority_cap__value;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void _starpu__task_c__register_knobs(void)
+{
+#if 0
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_global;
+		__kg_starpu_global = _starpu_perf_knob_group_register(scope, global_knobs__set, global_knobs__get);
+	}
+#endif
+
+#if 0
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_worker;
+		__kg_starpu_worker__per_worker = _starpu_perf_knob_group_register(scope, worker_knobs__set, worker_knobs__get);
+	}
+#endif
+
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_scheduler;
+		__kg_starpu_task__per_scheduler = _starpu_perf_knob_group_register(scope, sched_knobs__set, sched_knobs__get);
+
+		/* TODO: priority capping knobs actually work globally for now, the sched policy name is ignored */
+		__STARPU_PERF_KNOB_REG("starpu.task", __kg_starpu_task__per_scheduler, s_max_priority_cap_knob, int32, "force task priority to this value or below (priority value)");
+		__s_max_priority_cap__value = STARPU_MAX_PRIO;
+
+		__STARPU_PERF_KNOB_REG("starpu.task", __kg_starpu_task__per_scheduler, s_min_priority_cap_knob, int32, "force task priority to this value or above (priority value)");
+		__s_min_priority_cap__value = STARPU_MIN_PRIO;
+	}
+}
+
+/* - */
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -738,6 +829,13 @@ int starpu_task_submit(struct starpu_task *task)
 	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
 
 	int ret;
+	{
+		/* task knobs */
+		if (task->priority > __s_max_priority_cap__value)
+			task->priority = __s_max_priority_cap__value;
+		if (task->priority < __s_min_priority_cap__value)
+			task->priority = __s_min_priority_cap__value;
+	}
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
 	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a

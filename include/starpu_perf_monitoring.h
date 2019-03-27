@@ -32,9 +32,9 @@ extern "C"
 enum starpu_perf_counter_scope
 {
 	starpu_perf_counter_scope_undefined     = 0,
-	starpu_perf_counter_scope_global        = 1,
-	starpu_perf_counter_scope_per_worker    = 2,
-	starpu_perf_counter_scope_per_codelet   = 3
+	starpu_perf_counter_scope_global        = 2,
+	starpu_perf_counter_scope_per_worker    = 4,
+	starpu_perf_counter_scope_per_codelet   = 6
 };
 
 enum starpu_perf_counter_type
