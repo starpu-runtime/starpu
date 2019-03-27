@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2011,2012,2015,2017                      CNRS
+ * Copyright (C) 2011,2012,2015,2017,2019                 CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,13 +30,13 @@ enum exit_code
 	SUCCESS                 = 0,
 	FAILURE                 = 1,
 	UNTESTED                = 2,
-	TASK_CREATION_FAILURE   = 3,
+	NO_DEVICE		= 3,
 	TASK_SUBMISSION_FAILURE = 4
 };
 
-
 struct test_config
 {
+	/** we use pointers as we want to allow static initializations in the main application */
 	/* A pointer to a registered handle */
 	starpu_data_handle_t *handle;
 
@@ -50,12 +50,8 @@ struct test_config
 	 * 2) Negate every element
 	 */
 	starpu_cpu_func_t cpu_func;
-#ifdef STARPU_USE_CUDA
 	starpu_cuda_func_t cuda_func;
-#endif
-#ifdef STARPU_USE_OPENCL
 	starpu_opencl_func_t opencl_func;
-#endif
 	char *cpu_func_name;
 
 	/* The previous codelets must update this field at the end of their
@@ -66,12 +62,37 @@ struct test_config
 	const char *name;
 };
 
+struct data_interface_test_summary
+{
+	int success;
 
-typedef struct data_interface_test_summary data_interface_test_summary;
+	/* Copy methods */
+	int cpu_to_cpu;
+	int cpu_to_cuda;
+	int cuda_to_cuda;
+	int cuda_to_cpu;
+	int cpu_to_cuda_async;
+	int cuda_to_cpu_async;
+	int cuda_to_cuda_async;
+	int cpu_to_opencl;
+	int opencl_to_cpu;
+	int cpu_to_opencl_async;
+	int opencl_to_cpu_async;
+	int cpu_to_mic;
+	int mic_to_cpu;
+	int cpu_to_mic_async;
+	int mic_to_cpu_async;
 
-void data_interface_test_summary_print(FILE *, data_interface_test_summary *);
-int data_interface_test_summary_success(data_interface_test_summary *);
+	/* Other stuff */
+	int compare;
+	int to_pointer;
+	int pointer_is_inside;
+	int pack;
+};
 
-data_interface_test_summary *run_tests(struct test_config*);
+void data_interface_test_summary_print(FILE *f, struct data_interface_test_summary *summary);
+int data_interface_test_summary_success(struct data_interface_test_summary *summary);
+
+void run_tests(struct test_config*, struct data_interface_test_summary *summary);
 
 #endif /* !TEST_INTERFACES_H */
