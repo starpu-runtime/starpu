@@ -868,7 +868,6 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		struct starpu_data_interface_ops *itf_dst = starpu_data_get_interface_ops(args->data_handle);
 		STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
 		itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->early_handle));
-		free(args->buffer);
 		args->buffer = NULL;
 	}
 	else

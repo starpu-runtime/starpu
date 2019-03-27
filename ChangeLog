@@ -149,6 +149,12 @@ Changes:
   * Sort data access requests by priority.
   * Cluster support is disabled by default, unless the configure
     option --enable-cluster is specified
+  * For unpack operations, move the memory deallocation from
+    starpu_data_unpack() to the interface function
+    starpu_data_interface_ops::unpack_data(). Pack and unpack
+    functions of predefined interfaces
+    use public API starpu_malloc_on_node_flags() and
+    starpu_free_on_node_flags() to allocate and de-allocate memory
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.

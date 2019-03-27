@@ -1099,7 +1099,6 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
-	_starpu_free_flags_on_node(_starpu_memory_node_get_local_key(), ptr, count, 0);
 	return ret;
 }
 
