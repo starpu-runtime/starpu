@@ -161,7 +161,7 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
 	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
-	free(ptr);
+	starpu_free_flags(ptr, count, 0);
 
 	return 0;
 }
