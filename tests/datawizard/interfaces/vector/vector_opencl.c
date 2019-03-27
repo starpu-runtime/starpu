@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2012,2015-2017                           CNRS
+ * Copyright (C) 2012,2015-2017,2019                      CNRS
  * Copyright (C) 2011                                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #include <starpu.h>
 #include "../test_interfaces.h"
 
-#define KERNEL_LOCATION "tests/datawizard/interfaces/vector/test_vector_opencl_kernel.cl"
+#define KERNEL_LOCATION "tests/datawizard/interfaces/vector/vector_opencl_kernel.cl"
 extern struct test_config vector_config;
 static struct starpu_opencl_program opencl_program;
 
@@ -47,12 +47,10 @@ test_vector_opencl_func(void *buffers[], void *args)
 	devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_context(devid, &context);
 
-	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-		sizeof(int), &vector_config.copy_failed, &err);
+	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(int), &vector_config.copy_failed, &err);
 
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
-
 
 	err = starpu_opencl_load_kernel(&kernel,
 					&queue,
@@ -75,7 +73,7 @@ test_vector_opencl_func(void *buffers[], void *args)
 		fprintf(stderr, "Failed to set argument #%d\n", err);
 		STARPU_OPENCL_REPORT_ERROR(err);
 	}
-			
+
 	{
 		size_t global=n;
 		size_t local;
@@ -113,7 +111,7 @@ test_vector_opencl_func(void *buffers[], void *args)
 	err = clEnqueueReadBuffer(queue,
 				  fail,
 				  CL_TRUE,
-				  0, 
+				  0,
 				  sizeof(int),
 				  &vector_config.copy_failed,
 				  0,

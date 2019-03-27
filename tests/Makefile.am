@@ -60,7 +60,7 @@ EXTRA_DIST =					\
 	datawizard/interfaces/coo/coo_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
 	datawizard/interfaces/variable/variable_opencl_kernel.cl \
-	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
+	datawizard/interfaces/vector/vector_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_types.h \
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
@@ -308,7 +308,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
-	datawizard/interfaces/vector/test_vector_interface   \
+	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
 	datawizard/in_place_partition   	\
 	datawizard/partition_dep   		\
@@ -843,20 +843,20 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 endif
 
 
-datawizard_interfaces_vector_test_vector_interface_SOURCES =               \
-	datawizard/interfaces/vector/test_vector_interface.c               \
+datawizard_interfaces_vector_vector_interface_SOURCES =               \
+	datawizard/interfaces/vector/vector_interface.c               \
 	datawizard/interfaces/test_interfaces.c
 
 if STARPU_USE_CUDA
-datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/vector/test_vector_cuda.cu
+datawizard_interfaces_vector_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/vector_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/vector/test_vector_opencl.c
+datawizard_interfaces_vector_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/vector_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
+	datawizard/interfaces/vector/vector_opencl_kernel.cl
 endif
 
 ####################
