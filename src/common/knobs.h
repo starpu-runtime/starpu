@@ -23,6 +23,7 @@
 #include <starpu.h>
 #include <common/config.h>
 
+/* Performance Monitoring */
 #define STARPU_ASSERT_PERF_COUNTER_SCOPE_DEFINED(t) STARPU_ASSERT( \
 		(t == starpu_perf_counter_scope_global ) \
 		|| (t == starpu_perf_counter_scope_per_worker ) \
@@ -251,5 +252,102 @@ extern int32_t _starpu_task__g_current_ready__value;
 /* performance counter registration routines per modules */
 void _starpu__task_c__register_counters(void);	/* module: task.c */
 
+
+/* -------------------------------------------------------------------- */
+/* Performance Steering */
+
+#define STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(t) STARPU_ASSERT( \
+		(t == starpu_perf_knob_scope_global ) \
+		|| (t == starpu_perf_knob_scope_per_worker ) \
+		|| (t == starpu_perf_knob_scope_per_scheduler ) \
+	)
+
+
+#define STARPU_ASSERT_PERF_KNOB_TYPE_DEFINED(t) STARPU_ASSERT( \
+		(t == starpu_perf_knob_type_int32 ) \
+		|| (t == starpu_perf_knob_type_int64 ) \
+		|| (t == starpu_perf_knob_type_float ) \
+		|| (t == starpu_perf_knob_type_double ) \
+	)
+
+#define _STARPU_PERF_KNOBS_ID_SCOPE_BITS 4
+
+struct starpu_perf_knob;
+
+struct starpu_perf_knob_value
+{
+	enum starpu_perf_knob_type type;
+	union
+	{
+		int32_t val_int32_t;
+		int64_t val_int64_t;
+		float   val_float;
+		double  val_double;
+	};
+};
+
+struct starpu_perf_knob_group
+{
+	enum starpu_perf_knob_scope scope;
+	void (*set)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value);
+	void (*get)(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value);
+	int array_size;
+	struct starpu_perf_knob **array;
+};
+
+struct starpu_perf_knob
+{
+	int id;
+	int id_in_group;
+	const char *name;
+	const char *help;
+	enum starpu_perf_knob_type type;
+	struct starpu_perf_knob_group *group;
+};
+
+#define __STARPU_PERF_KNOB_REG(PREFIX, SCOPE, CTR, TYPESTRING, HELP) \
+	do \
+		{ \
+			__##CTR =  _starpu_perf_knob_register(SCOPE, \
+					PREFIX "." #CTR, starpu_perf_knob_type_ ## TYPESTRING, \
+					HELP); \
+		} \
+	while (0)
+
+static inline int _starpu_perf_knob_id_get_scope(const int knob_id)
+{
+	STARPU_ASSERT(knob_id >= 0);
+	return knob_id & ((1 << _STARPU_PERF_KNOBS_ID_SCOPE_BITS) - 1);
+}
+
+static inline int _starpu_perf_knob_id_get_index(const int knob_id)
+{
+	STARPU_ASSERT(knob_id >= 0);
+	return knob_id >> _STARPU_PERF_KNOBS_ID_SCOPE_BITS;
+}
+
+static inline int _starpu_perf_knob_id_build(const enum starpu_perf_knob_scope scope, const int index)
+{
+	STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(scope);
+	STARPU_ASSERT(index >= 0);
+	return (index << _STARPU_PERF_KNOBS_ID_SCOPE_BITS) | scope;
+}
+
+
+void _starpu_perf_knob_init(void);
+void _starpu_perf_knob_exit(void);
+
+struct starpu_perf_knob_group *_starpu_perf_knob_group_register(
+	enum starpu_perf_knob_scope scope,
+	void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
+	void (*get_func)(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value));
+void _starpu_perf_knob_group_unregister(struct starpu_perf_knob_group *group);
+
+int _starpu_perf_knob_register(struct starpu_perf_knob_group *group, const char *name, enum starpu_perf_knob_type type, const char *help);
+void _starpu_perf_knob_unregister_all_scopes(void);
+
+/* performance knob registration routines per modules */
+void _starpu__workers_c__register_knobs(void);	/* module: workers.c */
+void _starpu__task_c__register_knobs(void); /* module: task.c */
 
 #endif // __KNOBS_H__

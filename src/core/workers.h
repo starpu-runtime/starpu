@@ -205,6 +205,8 @@ LIST_TYPE(_starpu_worker,
 	int32_t __w_total_executed__value;
 	double __w_cumul_execution_time__value;
 
+	int enable_knob;
+	int bindid_requested;
 );
 
 struct _starpu_combined_worker
@@ -1200,6 +1202,9 @@ int starpu_wake_worker_relax_light(int workerid);
  *  send it back to the scheduler.
  */
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task);
+
+void _starpu_set_catch_signals(int do_catch_signal);
+int _starpu_get_catch_signals(void);
 
 /* @}*/
 

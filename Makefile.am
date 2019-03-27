@@ -115,7 +115,8 @@ versinclude_HEADERS = 				\
 	include/starpu_mod.f90			\
 	include/fstarpu_mod.f90			\
 	include/starpu_clusters.h		\
-	include/starpu_perf_monitoring.h
+	include/starpu_perf_monitoring.h	\
+	include/starpu_perf_steering.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

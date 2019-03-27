@@ -24,6 +24,7 @@
 #include <core/workers.h>
 #include <common/knobs.h>
 
+/* Performance Monitoring */
 struct perf_counter_array
 {
 	int size;
@@ -189,7 +190,7 @@ int _starpu_perf_counter_register(enum starpu_perf_counter_scope scope, const ch
 	return id;
 }
 
-static void _unregister_scope(enum starpu_perf_counter_scope scope)
+static void _unregister_counter_scope(enum starpu_perf_counter_scope scope)
 {
 	STARPU_ASSERT(!_starpu_machine_is_running());
 
@@ -203,9 +204,9 @@ void _starpu_perf_counter_unregister_all_scopes(void)
 {
 	STARPU_ASSERT(!_starpu_machine_is_running());
 
-	_unregister_scope(starpu_perf_counter_scope_global);
-	_unregister_scope(starpu_perf_counter_scope_per_worker);
-	_unregister_scope(starpu_perf_counter_scope_per_codelet);
+	_unregister_counter_scope(starpu_perf_counter_scope_global);
+	_unregister_counter_scope(starpu_perf_counter_scope_per_worker);
+	_unregister_counter_scope(starpu_perf_counter_scope_per_codelet);
 }
 
 /* - */
@@ -516,4 +517,366 @@ STARPU_PERF_COUNTER_SAMPLE_GET_TYPED_VALUE(int64, int64_t);
 STARPU_PERF_COUNTER_SAMPLE_GET_TYPED_VALUE(float, float);
 STARPU_PERF_COUNTER_SAMPLE_GET_TYPED_VALUE(double, double);
 #undef STARPU_PERF_COUNTER_SAMPLE_GET_TYPED_VALUE
+
+/* -------------------------------------------------------------------- */
+/* Performance Steering */
+
+struct perf_knob_array
+{
+	int size;
+	struct starpu_perf_knob *array;
+};
+
+static struct perf_knob_array global_knobs	= { .size = 0, .array = NULL };
+static struct perf_knob_array per_worker_knobs	= { .size = 0, .array = NULL };
+static struct perf_knob_array per_scheduler_knobs	= { .size = 0, .array = NULL };
+
+void _starpu_perf_knob_init(void)
+{
+	STARPU_ASSERT(!_starpu_machine_is_running());
+	/* call knob registration routines in each modules */
+	_starpu__workers_c__register_knobs();
+	_starpu__task_c__register_knobs();
+}
+
+void _starpu_perf_knob_exit(void)
+{
+	STARPU_ASSERT(!_starpu_machine_is_running());
+
+	_starpu_perf_knob_unregister_all_scopes();
+}
+
+/* - */
+
+int starpu_perf_knob_scope_name_to_id(const char * const name)
+{
+	if (strcmp(name, "global") == 0)
+		return starpu_perf_knob_scope_global;
+	if (strcmp(name, "per_worker") == 0)
+		return starpu_perf_knob_scope_per_worker;
+	if (strcmp(name, "per_scheduler") == 0)
+		return starpu_perf_knob_scope_per_scheduler;
+	return -1;
+}
+
+const char *starpu_perf_knob_scope_id_to_name(const enum starpu_perf_knob_scope scope)
+{
+	switch (scope)
+	{
+		case starpu_perf_knob_scope_global:
+			return "global";
+
+		case starpu_perf_knob_scope_per_worker:
+			return "per_worker";
+
+		case starpu_perf_knob_scope_per_scheduler:
+			return "per_scheduler";
+
+		default:
+			return NULL;
+	};
+}
+
+/* - */
+
+int starpu_perf_knob_type_name_to_id(const char * const name)
+{
+	if (strcmp(name, "int32") == 0)
+		return starpu_perf_knob_type_int32;
+	if (strcmp(name, "int64") == 0)
+		return starpu_perf_knob_type_int64;
+	if (strcmp(name, "float") == 0)
+		return starpu_perf_knob_type_float;
+	if (strcmp(name, "double") == 0)
+		return starpu_perf_knob_type_double;
+	return -1;
+}
+
+const char *starpu_perf_knob_type_id_to_name(const enum starpu_perf_knob_type type)
+{
+	switch (type)
+	{
+		case starpu_perf_knob_type_int32:
+			return "int32";
+
+		case starpu_perf_knob_type_int64:
+			return "int64";
+
+		case starpu_perf_knob_type_float:
+			return "float";
+
+		case starpu_perf_knob_type_double:
+			return "double";
+
+		default:
+			return NULL;
+	};
+}
+
+static struct perf_knob_array *_get_knobs(const enum starpu_perf_knob_scope scope)
+{
+	STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(scope);
+	switch (scope)
+	{
+		case starpu_perf_knob_scope_global:
+			return &global_knobs;
+
+		case starpu_perf_knob_scope_per_worker:
+			return &per_worker_knobs;
+
+		case starpu_perf_knob_scope_per_scheduler:
+			return &per_scheduler_knobs;
+
+		default:
+			STARPU_ABORT();
+	};
+};
+
+/* - */
+
+struct starpu_perf_knob_group *_starpu_perf_knob_group_register(
+	enum starpu_perf_knob_scope scope,
+	void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
+	void (*get_func)(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value))
+{
+	STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(scope);
+	STARPU_ASSERT(set_func != NULL);
+	STARPU_ASSERT(get_func != NULL);
+	struct starpu_perf_knob_group *new_group;
+	_STARPU_MALLOC(new_group, sizeof(*new_group));
+	new_group->scope = scope;
+	new_group->set = set_func;
+	new_group->get = get_func;
+	new_group->array_size = 0;
+	new_group->array = NULL;
+	return new_group;
+}
+
+void _starpu_perf_knob_group_unregister(struct starpu_perf_knob_group *group)
+{
+	STARPU_ASSERT((group->array_size > 0 && group->array != NULL)  ||  (group->array_size = 0 && group->array == NULL));
+	if (group->array != NULL)
+	{
+		free(group->array);
+	}
+	memset(group, 0, sizeof(*group));
+}
+
+/* - */
+
+int _starpu_perf_knob_register(struct starpu_perf_knob_group *group, const char *name, enum starpu_perf_knob_type type, const char *help)
+{
+	STARPU_ASSERT(!_starpu_machine_is_running());
+
+	struct perf_knob_array * const knobs = _get_knobs(group->scope);
+	STARPU_ASSERT_PERF_KNOB_TYPE_DEFINED(type);
+
+	const int index = knobs->size++;
+	_STARPU_REALLOC(knobs->array, knobs->size * sizeof(*knobs->array));
+
+	struct starpu_perf_knob * const new_knob = &knobs->array[index];
+	const int id = _starpu_perf_knob_id_build(group->scope, index);
+	new_knob->id = id;
+	new_knob->name = name;
+	new_knob->help = help;
+	new_knob->type = type;
+	new_knob->group = group;
+	new_knob->id_in_group = group->array_size++;
+	_STARPU_REALLOC(group->array, group->array_size * sizeof(*group->array));
+	group->array[new_knob->id_in_group] = new_knob;
+	return id;
+}
+
+static void _unregister_knob_scope(enum starpu_perf_knob_scope scope)
+{
+	STARPU_ASSERT(!_starpu_machine_is_running());
+
+	struct perf_knob_array * const knobs = _get_knobs(scope);
+	free(knobs->array);
+	knobs->array = NULL;
+	knobs->size  = 0;
+}
+
+void _starpu_perf_knob_unregister_all_scopes(void)
+{
+	STARPU_ASSERT(!_starpu_machine_is_running());
+
+	_unregister_knob_scope(starpu_perf_knob_scope_global);
+	_unregister_knob_scope(starpu_perf_knob_scope_per_worker);
+	_unregister_knob_scope(starpu_perf_knob_scope_per_scheduler);
+}
+
+/* - */
+
+int starpu_perf_knob_nb(enum starpu_perf_knob_scope scope)
+{
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	return knobs->size;
+}
+
+int starpu_perf_knob_nth_to_id(enum starpu_perf_knob_scope scope, int nth)
+{
+	return _starpu_perf_knob_id_build(scope, nth);
+}
+
+int starpu_perf_knob_name_to_id(enum starpu_perf_knob_scope scope, const char *name)
+{
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	int index;
+	for (index = 0; index < knobs->size; index++)
+	{
+		if (strcmp(name, knobs->array[index].name) == 0)
+		{
+			return _starpu_perf_knob_id_build(scope, index);
+		}
+	}
+	return -1;
+}
+
+const char *starpu_perf_knob_id_to_name(int id)
+{
+	const int scope = _starpu_perf_knob_id_get_scope(id);
+	const int index = _starpu_perf_knob_id_get_index(id);
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	if (index < 0 || index >= knobs->size)
+		return NULL;
+	return knobs->array[index].name;
+}
+
+const char *starpu_perf_knob_get_help_string(int id)
+{
+	const int scope = _starpu_perf_knob_id_get_scope(id);
+	const int index = _starpu_perf_knob_id_get_index(id);
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	STARPU_ASSERT(index >= 0 && index < knobs->size);
+	return knobs->array[index].help;
+}
+
+int starpu_perf_knob_get_type_id(int id)
+{
+	const int scope = _starpu_perf_knob_id_get_scope(id);
+	const int index = _starpu_perf_knob_id_get_index(id);
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	STARPU_ASSERT(index >= 0 && index < knobs->size);
+	return knobs->array[index].type;
+}
+
+static struct starpu_perf_knob *get_knob(int id)
+{
+	const int scope = _starpu_perf_knob_id_get_scope(id);
+	struct perf_knob_array *knobs = _get_knobs(scope);
+	const int index = _starpu_perf_knob_id_get_index(id);
+	STARPU_ASSERT(index >= 0  &&  index < knobs->size);
+	return &knobs->array[index];
+}
+
+/* - */
+
+void starpu_perf_knob_list_avail(enum starpu_perf_knob_scope scope)
+{
+	const struct perf_knob_array * const knobs = _get_knobs(scope);
+	int index;
+	for (index = 0; index < knobs->size; index++)
+	{
+		const struct starpu_perf_knob * const knob = &knobs->array[index];
+		printf("0x%08x:%s [%s] - %s\n", _starpu_perf_knob_id_build(scope, index), knob->name, starpu_perf_knob_type_id_to_name(knob->type), knob->help);
+	}
+}
+
+void starpu_perf_knob_list_all_avail(enum starpu_perf_knob_scope scope)
+{
+	printf("scope: global\n");
+	starpu_perf_knob_list_avail(starpu_perf_knob_scope_global);
+
+	printf("scope: per_worker\n");
+	starpu_perf_knob_list_avail(starpu_perf_knob_scope_per_worker);
+
+	printf("scope: per_scheduler\n");
+	starpu_perf_knob_list_avail(starpu_perf_knob_scope_per_scheduler);
+}
+
+#define __STARPU_PERF_KNOB_SET_TYPED_VALUE(SCOPE_NAME, STRING, TYPE) \
+void starpu_perf_knob_set_##SCOPE_NAME##_##STRING##_value(const int knob_id, const TYPE value) \
+{ \
+	STARPU_ASSERT(_starpu_perf_knob_id_get_scope(knob_id) == starpu_perf_knob_scope_global); \
+	const struct starpu_perf_knob * const knob = get_knob(knob_id); \
+	STARPU_ASSERT(starpu_perf_knob_get_type_id(knob_id) == starpu_perf_knob_type_##STRING); \
+	const struct starpu_perf_knob_group * const knob_group = knob->group; \
+	const struct starpu_perf_knob_value kv = { .val_##TYPE = value }; \
+	knob_group->set(knob, NULL, &kv); \
+}
+
+__STARPU_PERF_KNOB_SET_TYPED_VALUE(global, int32, int32_t);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE(global, int64, int64_t);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE(global, float, float);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE(global, double, double);
+
+#undef __STARPU_PERF_KNOB_SAMPLE_SET_TYPED_VALUE
+
+#define __STARPU_PERF_KNOB_GET_TYPED_VALUE(SCOPE_NAME, STRING, TYPE) \
+TYPE starpu_perf_knob_get_##SCOPE_NAME##_##STRING##_value(const int knob_id) \
+{ \
+	STARPU_ASSERT(_starpu_perf_knob_id_get_scope(knob_id) == starpu_perf_knob_scope_global); \
+	const struct starpu_perf_knob * const knob = get_knob(knob_id); \
+	STARPU_ASSERT(starpu_perf_knob_get_type_id(knob_id) == starpu_perf_knob_type_##STRING); \
+	const struct starpu_perf_knob_group * const knob_group = knob->group; \
+	struct starpu_perf_knob_value kv; \
+	knob_group->get(knob, NULL, &kv); \
+	return kv.val_##TYPE; \
+}
+
+__STARPU_PERF_KNOB_GET_TYPED_VALUE(global, int32, int32_t);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE(global, int64, int64_t);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE(global, float, float);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE(global, double, double);
+
+#undef __STARPU_PERF_KNOB_SAMPLE_GET_TYPED_VALUE
+
+
+#define __STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(SCOPE_NAME, STRING, TYPE, CONTEXT_TYPE, CONTEXT_VAR) \
+void starpu_perf_knob_set_##SCOPE_NAME##_##STRING##_value(const int knob_id, CONTEXT_TYPE CONTEXT_VAR, const TYPE value) \
+{ \
+	STARPU_ASSERT(_starpu_perf_knob_id_get_scope(knob_id) == starpu_perf_knob_scope_##SCOPE_NAME); \
+	const struct starpu_perf_knob * const knob = get_knob(knob_id); \
+	STARPU_ASSERT(starpu_perf_knob_get_type_id(knob_id) == starpu_perf_knob_type_##STRING); \
+	const struct starpu_perf_knob_group * const knob_group = knob->group; \
+	const struct starpu_perf_knob_value kv = { .val_##TYPE = value }; \
+	knob_group->set(knob, &CONTEXT_VAR, &kv); \
+}
+
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_worker, int32,  int32_t, unsigned, workerid);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_worker, int64,  int64_t, unsigned, workerid);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_worker, float,  float,   unsigned, workerid);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_worker, double, double,  unsigned, workerid);
+
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, int32,  int32_t, const char *, sched_policy_name);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, int64,  int64_t, const char *, sched_policy_name);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, float,  float,   const char *, sched_policy_name);
+__STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, double, double,  const char *, sched_policy_name);
+
+#undef __STARPU_PERF_KNOB_SAMPLE_SET_TYPED_VALUE_WITH_CONTEXT
+
+#define __STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(SCOPE_NAME, STRING, TYPE, CONTEXT_TYPE, CONTEXT_VAR) \
+TYPE starpu_perf_knob_get_##SCOPE_NAME##_##STRING##_value(const int knob_id, CONTEXT_TYPE CONTEXT_VAR) \
+{ \
+	STARPU_ASSERT(_starpu_perf_knob_id_get_scope(knob_id) == starpu_perf_knob_scope_##SCOPE_NAME); \
+	const struct starpu_perf_knob * const knob = get_knob(knob_id); \
+	STARPU_ASSERT(starpu_perf_knob_get_type_id(knob_id) == starpu_perf_knob_type_##STRING); \
+	const struct starpu_perf_knob_group * const knob_group = knob->group; \
+	struct starpu_perf_knob_value kv; \
+	knob_group->get(knob, &CONTEXT_VAR, &kv); \
+	return kv.val_##TYPE; \
+}
+
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_worker, int32,  int32_t, unsigned, workerid);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_worker, int64,  int64_t, unsigned, workerid);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_worker, float,  float,   unsigned, workerid);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_worker, double, double,  unsigned, workerid);
+
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, int32,  int32_t, const char *, sched_policy_name);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, int64,  int64_t, const char *, sched_policy_name);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, float,  float,   const char *, sched_policy_name);
+__STARPU_PERF_KNOB_GET_TYPED_VALUE_WITH_CONTEXT(per_scheduler, double, double,  const char *, sched_policy_name);
+
+#undef __STARPU_PERF_KNOB_SAMPLE_GET_TYPED_VALUE_WITH_CONTEXT
 
