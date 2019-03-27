@@ -319,7 +319,7 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 		matrix += matrix_interface->ld * matrix_interface->elemsize;
 	}
 
-	starpu_free_on_node_flags(node, ptr, count, 0);
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }
