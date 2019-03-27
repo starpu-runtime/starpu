@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -364,8 +364,8 @@ void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI
 	struct starpu_complex_interface *complex_interface =
           (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	MPI_Address(complex_interface, displacements);
-	MPI_Address(&complex_interface->imaginary, displacements+1);
+	MPI_Get_address(complex_interface, displacements);
+	MPI_Get_address(&complex_interface->imaginary, displacements+1);
 	displacements[1] -= displacements[0];
 	displacements[0] = 0;
 
