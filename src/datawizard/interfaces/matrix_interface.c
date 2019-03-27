@@ -286,7 +286,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		uint32_t y;
 		char *matrix = (void *)matrix_interface->ptr;
 
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)
@@ -318,6 +318,8 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 		cur += matrix_interface->nx*matrix_interface->elemsize;
 		matrix += matrix_interface->ld * matrix_interface->elemsize;
 	}
+
+	starpu_free_on_node_flags(node, ptr, count, 0);
 
 	return 0;
 }

@@ -536,7 +536,8 @@ struct starpu_data_interface_ops
 
 	/**
 	   Unpack the data handle from the contiguous buffer at the address
-	   \p ptr of size \p count
+	   \p ptr of size \p count.
+	   The memory at the address \p ptr should be freed after the data unpacking operation.
 	*/
 	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
@@ -629,8 +630,7 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
    Unpack in handle the data located at \p ptr of size \p count as
    described by the interface of the data. The interface registered at
    \p handle must define a unpacking operation (see
-   starpu_data_interface_ops). The memory at the address \p ptr is freed
-   after calling the data unpacking operation.
+   starpu_data_interface_ops).
 */
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 

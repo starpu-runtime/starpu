@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -183,7 +183,7 @@ static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void
 
 	if (ptr != NULL)
 	{
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, (void*)variable_interface->ptr, variable_interface->elemsize);
 	}
 
@@ -200,6 +200,9 @@ static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, vo
 	STARPU_ASSERT(count == variable_interface->elemsize);
 
 	memcpy((void*)variable_interface->ptr, ptr, variable_interface->elemsize);
+
+	starpu_free_on_node_flags(node, ptr, count, 0);
+
 	return 0;
 }
 

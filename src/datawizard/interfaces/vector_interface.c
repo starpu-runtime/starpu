@@ -227,7 +227,7 @@ static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void *
 
 	if (ptr != NULL)
 	{
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, (void*)vector_interface->ptr, vector_interface->elemsize*vector_interface->nx);
 	}
 
@@ -243,6 +243,8 @@ static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
+
+	starpu_free_on_node_flags(node, ptr, count, 0);
 
 	return 0;
 }

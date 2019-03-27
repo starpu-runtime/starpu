@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
- * Copyright (C) 2010,2011,2013,2015-2018                 CNRS
+ * Copyright (C) 2010,2011,2013,2015-2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -592,8 +592,6 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			{
 				/* read is already finished, we can already unpack */
 				handle->ops->unpack_data(handle, dst_node, ptr, size);
-				/* ptr is allocated in full_read */
-				_starpu_free_flags_on_node(dst_node, ptr, size, 0);
 			}
 			else if (ret == -EAGAIN)
 			{
@@ -936,8 +934,6 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 			{
 				/* read is finished, we can already unpack */
 				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
-				/* ptr is allocated in full_read */
-				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
 			}
 			else
 			{
@@ -1016,8 +1012,6 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 			{
 				/* read is finished, we can already unpack */
 				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
-				/* ptr is allocated in full_read */
-				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
 			}
 			else
 			{
