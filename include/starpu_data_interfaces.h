@@ -723,6 +723,12 @@ void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_no
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
 
 /**
+   Record in offline execution traces the copy of \p size bytes from
+   node \p src_node to node \p dst_node
+ */
+void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size);
+
+/**
    Allocate \p size bytes on node \p dst_node with the given allocation \p flags. This returns 0 if
    allocation failed, the allocation method should then return <c>-ENOMEM</c> as
    allocated size. Deallocation must be done with starpu_free_on_node_flags().

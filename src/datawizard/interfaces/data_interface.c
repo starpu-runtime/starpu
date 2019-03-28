@@ -542,8 +542,7 @@ int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, vo
 
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
-	return starpu_data_handle_to_pointer(handle,
-					_starpu_memory_node_get_local_key());
+	return starpu_data_handle_to_pointer(handle, starpu_worker_get_local_memory_node());
 }
 
 struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle)
@@ -554,7 +553,6 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 /*
  * Stop monitoring a piece of data
  */
-
 void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
@@ -1091,14 +1089,14 @@ int starpu_data_interface_get_next_id(void)
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
-	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
+	return handle->ops->pack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
-	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
+	ret = handle->ops->unpack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
 	return ret;
 }
 

@@ -3,7 +3,7 @@
  * Copyright (C) 2008-2017                                Université de Bordeaux
  * Copyright (C) 2011,2016,2017                           Inria
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -204,7 +204,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 	int completed;
 
 #ifdef STARPU_SIMGRID
-	unsigned local_node = _starpu_memory_node_get_local_key();
+	unsigned local_node = starpu_worker_get_local_memory_node();
 
 	starpu_pthread_wait_t wait;
 

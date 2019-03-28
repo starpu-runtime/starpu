@@ -174,12 +174,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
 		{
 			/* GPU-GPU transfer, issue it from the destination */
-			devid = _starpu_memory_node_get_devid(dst_node);
+			devid = starpu_memory_node_get_devid(dst_node);
 		}
 		else
 		{
 			unsigned node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-			devid = _starpu_memory_node_get_devid(node);
+			devid = starpu_memory_node_get_devid(node);
 		}
 		starpu_cuda_set_device(devid);
 	}
@@ -256,6 +256,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	return 0;
+}
+
+void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size)
+{
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 }
 
 void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start)

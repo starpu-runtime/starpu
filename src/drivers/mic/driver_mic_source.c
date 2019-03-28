@@ -90,7 +90,7 @@ struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 
 struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
 {
-	int devid = _starpu_memory_node_get_devid(memory_node);
+	int devid = starpu_memory_node_get_devid(memory_node);
 	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMICDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
 	return _starpu_mic_nodes[devid];
@@ -381,7 +381,7 @@ int _starpu_mic_allocate_memory(void **addr, size_t size, unsigned memory_node)
 	 * transfert with scif is not possible when the MIC
 	 * doesn't have enought free memory.
 	 * In this cas we can't tell any things to the host. */
-	//int devid = _starpu_memory_node_get_devid(memory_node);
+	//int devid = starpu_memory_node_get_devid(memory_node);
 	//if (_starpu_mic_get_free_mem_size(devid) < size * 1.25)
 	//	return 1;
 

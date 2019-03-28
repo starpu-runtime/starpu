@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012,2014-2017,2019                 Université de Bordeaux
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,14 +73,6 @@ extern struct _starpu_memory_node_descr _starpu_descr;
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
 
-static inline unsigned _starpu_memory_node_get_local_key(void)
-{
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-	if (!worker)
-		return STARPU_MAIN_RAM;
-	return worker->memory_node;
-}
-
 static inline void _starpu_memory_node_add_nworkers(unsigned node)
 {
 	_starpu_descr.nworkers[node]++;
@@ -113,11 +105,6 @@ static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
-
-static inline int _starpu_memory_node_get_devid(unsigned node)
-{
-	return _starpu_descr.devid[node];
-}
 
 static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {

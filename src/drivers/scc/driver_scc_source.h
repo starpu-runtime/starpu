@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2012                                     Inria
@@ -47,8 +47,6 @@ int _starpu_scc_allocate_memory(void **addr, size_t size, unsigned memory_node);
 void _starpu_scc_free_memory(void *addr, unsigned memory_node);
 int _starpu_scc_allocate_shared_memory(void **addr, size_t size);
 void _starpu_scc_free_shared_memory(void *addr);
-
-void _starpu_scc_set_offset_in_shared_memory(void *ptr, void **dev_handle, size_t *offset);
 
 int _starpu_scc_copy_src_to_sink(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size);
 int _starpu_scc_copy_sink_to_src(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size);
