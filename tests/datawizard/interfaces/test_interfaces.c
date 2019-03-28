@@ -510,7 +510,7 @@ static void compare(struct data_interface_test_summary *s)
 	interface_b = starpu_data_get_interface_on_node(dummy_handle, STARPU_MAIN_RAM);
 
 	err = handle->ops->compare(interface_a, interface_b);
-	s->compare = (err = 0) ? FAILURE : SUCCESS;
+	s->compare = (err == 0) ? FAILURE : SUCCESS;
 
 	set_field(s, &s->compare, s->compare);
 }
