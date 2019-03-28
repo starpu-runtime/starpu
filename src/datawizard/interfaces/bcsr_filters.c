@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013,2014,2016                 Université de Bordeaux
+ * Copyright (C) 2008-2011,2013,2014,2016,2019            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
  *
@@ -42,6 +42,7 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 	matrix_child->ny = r;
 	matrix_child->ld = c;
 	matrix_child->elemsize = elemsize;
+	matrix_child->allocsize = c*r*elemsize;
 
 	if (bcsr_father->nzval)
 	{
