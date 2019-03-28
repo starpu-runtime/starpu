@@ -194,6 +194,7 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 #ifdef STARPU_SIMGRID
 		starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
 #endif
+		_starpu_memory_node_register_condition(worker, &worker->sched_cond, memnode);
 	}
 }
 
