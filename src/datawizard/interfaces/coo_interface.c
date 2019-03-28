@@ -17,9 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/fxt.h>
-#include <datawizard/memalloc.h>
-#include <datawizard/memory_nodes.h>
 
 static int
 copy_any_to_any(void *src_interface, unsigned src_node,

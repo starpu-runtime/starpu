@@ -17,20 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-
-#include <starpu_hash.h>
-
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/mic/driver_mic_source.h>
 
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);

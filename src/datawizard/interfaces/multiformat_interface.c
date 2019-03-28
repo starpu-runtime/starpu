@@ -15,18 +15,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/mic/driver_mic_source.h>
-#include <core/task.h>
 
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
@@ -225,13 +215,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
 {
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_opencl_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->opencl_to_cpu_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_cuda_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cuda_to_cpu_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_mic_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->mic_to_cpu_cl);
-
 	struct starpu_multiformat_interface multiformat =
 	{
 		.id         = STARPU_MULTIFORMAT_INTERFACE_ID,
