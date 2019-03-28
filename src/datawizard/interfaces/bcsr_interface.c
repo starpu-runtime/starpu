@@ -17,18 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-#include <starpu_hash.h>
-
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
 
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)
@@ -275,9 +263,8 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 {
-	int node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
+	int node;
+	node = starpu_worker_get_local_memory_node();
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
@@ -292,9 +279,8 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 {
-	int node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
+	int node;
+	node = starpu_worker_get_local_memory_node();
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)

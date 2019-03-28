@@ -671,14 +671,12 @@ int _starpu_pop_task_end(struct starpu_task *task)
  * Given a handle that needs to be converted in order to be used on the given
  * node, returns a task that takes care of the conversion.
  */
-struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
-						   unsigned int node)
+struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle, unsigned int node)
 {
 	return _starpu_create_conversion_task_for_arch(handle, starpu_node_get_kind(node));
 }
 
-struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle,
-						   enum starpu_node_kind node_kind)
+struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle, enum starpu_node_kind node_kind)
 {
 	struct starpu_task *conversion_task;
 
@@ -774,6 +772,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		STARPU_ABORT();
 	}
 
+	_starpu_codelet_check_deprecated_fields(conversion_task->cl);
 	STARPU_TASK_SET_MODE(conversion_task, STARPU_RW, 0);
 	return conversion_task;
 }
