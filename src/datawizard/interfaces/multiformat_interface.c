@@ -672,7 +672,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	if (dst_multiformat->opencl_ptr == NULL)
 	{
 		/* XXX : it is weird that we might have to allocate memory here... */
-		_STARPU_MALLOC(dst_multiformat->opencl_ptr, dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+		STARPU_ASSERT_MSG(dst_multiformat->opencl_ptr != NULL || dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize == 0, "Cannot allocate %ld bytes\n", (long) (dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize));
 	}
 	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_multiformat->opencl_ptr,
 					       src_node,
