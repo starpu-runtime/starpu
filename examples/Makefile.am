@@ -197,7 +197,16 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
 	scheduler/dummy_sched			\
 	scheduler/dummy_modular_sched		\
-	worker_collections/worker_list_example
+	worker_collections/worker_list_example  \
+	api/bcsr_data_interface			\
+	api/block_data_interface		\
+	api/coo_data_interface			\
+	api/csr_data_interface			\
+	api/matrix_data_interface		\
+	api/multiformat_data_interface		\
+	api/variable_data_interface		\
+	api/vector_data_interface		\
+	api/void_data_interface
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\

@@ -177,6 +177,7 @@ Small changes:
   * Fonction starpu_is_initialized() is moved to the public API.
   * Fix code to allow to submit tasks to empty contexts
   * STARPU_COMM_STATS also displays the bandwidth
+  * Update data interfaces implementations to only use public API
 
 StarPU 1.2.9 (git revision xxx)
 ==============================================
