@@ -42,6 +42,7 @@ void _starpu_memory_nodes_init(void)
 		_starpu_descr.nodes[i] = STARPU_UNUSED;
 		_starpu_descr.nworkers[i] = 0;
 	}
+	memset(&_starpu_worker_drives_memory, 0, sizeof(_starpu_worker_drives_memory));
 	STARPU_HG_DISABLE_CHECKING(_starpu_worker_drives_memory);
 
 	_starpu_init_mem_chunk_lists();
