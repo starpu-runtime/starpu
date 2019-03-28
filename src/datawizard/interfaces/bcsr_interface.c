@@ -259,7 +259,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -408,7 +408,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	if (starpu_interface_copy((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, 0, dst_node, (nrow+1)*sizeof(uint32_t), async_data))
 		ret = -EAGAIN;
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
+	starpu_interface_data_copy(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return ret;
 }

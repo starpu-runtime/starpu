@@ -181,7 +181,7 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 
 cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned dst_node)
 {
-	int dst_devid = _starpu_memory_node_get_devid(dst_node);
+	int dst_devid = starpu_memory_node_get_devid(dst_node);
 	cudaStream_t stream;
 
 	stream = in_transfer_streams[dst_devid];
@@ -202,7 +202,7 @@ cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 
 cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
 {
-	int src_devid = _starpu_memory_node_get_devid(src_node);
+	int src_devid = starpu_memory_node_get_devid(src_node);
 	cudaStream_t stream;
 
 	stream = out_transfer_streams[src_devid];
@@ -212,8 +212,8 @@ cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
 
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
-	int src_devid = _starpu_memory_node_get_devid(src_node);
-	int dst_devid = _starpu_memory_node_get_devid(dst_node);
+	int src_devid = starpu_memory_node_get_devid(src_node);
+	int dst_devid = starpu_memory_node_get_devid(dst_node);
 	cudaStream_t stream;
 
 	stream = in_peer_transfer_streams[src_devid][dst_devid];
@@ -1131,8 +1131,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 	{
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		peer_copy = 1;
-		src_dev = _starpu_memory_node_get_devid(src_node);
-		dst_dev = _starpu_memory_node_get_devid(dst_node);
+		src_dev = starpu_memory_node_get_devid(src_node);
+		dst_dev = starpu_memory_node_get_devid(dst_node);
 #else
 		STARPU_ABORT();
 #endif

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017,2019                           CNRS
  * Copyright (C) 2013-2016                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -44,7 +44,7 @@ starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static struct _starpu_mp_node *_starpu_scc_src_memory_node_to_mp_node(unsigned memory_node)
 {
-	int devid = _starpu_memory_node_get_devid(memory_node);
+	int devid = starpu_memory_node_get_devid(memory_node);
 
 	STARPU_ASSERT(devid < STARPU_MAXSCCDEVS);
 	return scc_mp_nodes[devid];
@@ -231,11 +231,7 @@ void _starpu_scc_free_shared_memory(void *addr)
 	RCCE_shfree(addr);
 }
 
-/* Assigns the offset to "offset" between "ptr" and the start of the shared memory.
- * Affect "dev_handle" with the start of the shared memory is useful for data
- * partionning.
- */
-void _starpu_scc_set_offset_in_shared_memory(void *ptr, void **dev_handle, size_t *offset)
+void starpu_scc_get_offset_in_shared_memory(void *ptr, void **dev_handle, size_t *offset)
 {
 	/* We're on SCC... */
 	if (_starpu_can_submit_scc_task())

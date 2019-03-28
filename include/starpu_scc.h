@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017,2019                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -46,6 +46,14 @@ int starpu_scc_register_kernel(starpu_scc_func_symbol_t *symbol, const char *fun
    in a starpu_scc_func_symbol_t implementation.
 */
 starpu_scc_kernel_t starpu_scc_get_kernel(starpu_scc_func_symbol_t symbol);
+
+/**
+   Assign the offset to \p offset between \p ptr and the start of the
+   shared memory.
+   Assign \p dev_handle with the start of the shared memory is useful
+   for data partionning.
+ */
+void starpu_scc_get_offset_in_shared_memory(void *ptr, void **dev_handle, size_t *offset);
 
 #endif /* STARPU_USE_SCC */
 

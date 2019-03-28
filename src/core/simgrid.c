@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2012,2013,2015-2018                      CNRS
+ * Copyright (C) 2012,2013,2015-2019                      CNRS
  * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -947,7 +947,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->task = task;
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;
-	transfer->run_node = _starpu_memory_node_get_local_key();
+	transfer->run_node = starpu_worker_get_local_memory_node();
 
 	if (req)
 		event = &req->async_channel.event;
@@ -974,7 +974,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (req)
 	{
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
-		_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+		starpu_interface_data_copy(src_node, dst_node, size);
 		return -EAGAIN;
 	}
 	else
@@ -1029,7 +1029,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 			STARPU_ABORT();
 			break;
 	}
-	snprintf(name, sizeof(name), fmt, _starpu_memory_node_get_devid(node));
+	snprintf(name, sizeof(name), fmt, starpu_memory_node_get_devid(node));
 
 	return _starpu_simgrid_get_host_by_name(name);
 }

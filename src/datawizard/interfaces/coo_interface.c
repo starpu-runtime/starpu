@@ -53,9 +53,9 @@ copy_any_to_any(void *src_interface, unsigned src_node,
 		size, async_data))
 		ret = -EAGAIN;
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node,
-		src_coo->n_values *
-		(2 * sizeof(src_coo->rows[0]) + src_coo->elemsize));
+	starpu_interface_data_copy(src_node, dst_node,
+				   src_coo->n_values *
+				   (2 * sizeof(src_coo->rows[0]) + src_coo->elemsize));
 
 	return ret;
 }
