@@ -3001,7 +3001,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 #endif
 	float ngpus = topology->ncudagpus+topology->nopenclgpus;
 #ifdef STARPU_DEVEL
-#warning FIXME: ngpus shouldn't be used e.g. for slow disk transfers...
+#warning FIXME: ngpus should not be used e.g. for slow disk transfers...
 #endif
 
 #if 0
