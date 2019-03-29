@@ -17,18 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/mic/driver_mic_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -113,7 +101,7 @@ static void register_variable_handle(starpu_data_handle_t handle, unsigned home_
 
 /* declare a new data with the variable interface */
 void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        uintptr_t ptr, size_t elemsize)
+				   uintptr_t ptr, size_t elemsize)
 {
 	struct starpu_variable_interface variable =
 	{
@@ -132,15 +120,14 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_nod
 #endif
 
 #ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)variable.ptr, (void**)&(variable.dev_handle),
-			&(variable.offset));
+	starpu_scc_get_offset_in_shared_memory((void*)variable.ptr, (void**)&(variable.dev_handle), &(variable.offset));
 #endif
 
 	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
 }
 
 void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node,
-			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+				  uintptr_t ptr, uintptr_t dev_handle, size_t offset)
 {
 	struct starpu_variable_interface *variable_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
@@ -221,7 +208,7 @@ static size_t variable_interface_get_size(starpu_data_handle_t handle)
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -270,7 +257,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 	ret = starpu_interface_copy(ptr_src, 0, src_node, ptr_dst, 0, dst_node, elemsize, async_data);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
+	starpu_interface_data_copy(src_node, dst_node, elemsize);
 
 	return ret;
 }

@@ -633,7 +633,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			unsigned devid = _starpu_memory_node_get_devid(dst_node);
+			unsigned devid = starpu_memory_node_get_devid(dst_node);
 #if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			starpu_cuda_set_device(devid);
 #else
@@ -680,7 +680,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
                                 int ret;
 				cl_mem ptr;
 
-				ret = starpu_opencl_allocate_memory(_starpu_memory_node_get_devid(dst_node), &ptr, size, CL_MEM_READ_WRITE);
+				ret = starpu_opencl_allocate_memory(starpu_memory_node_get_devid(dst_node), &ptr, size, CL_MEM_READ_WRITE);
 				if (ret)
 				{
 					addr = 0;
@@ -760,7 +760,7 @@ _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int f
 			_starpu_simgrid_sync_gpus();
 #else
 			cudaError_t err;
-			unsigned devid = _starpu_memory_node_get_devid(dst_node);
+			unsigned devid = starpu_memory_node_get_devid(dst_node);
 #if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 			starpu_cuda_set_device(devid);
 #else

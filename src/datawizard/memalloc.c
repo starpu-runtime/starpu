@@ -383,7 +383,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the free method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_get_devid(node));
+			starpu_cuda_set_device(starpu_memory_node_get_devid(node));
 		}
 #endif
 
@@ -1424,7 +1424,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the malloc method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_get_devid(dst_node));
+			starpu_cuda_set_device(starpu_memory_node_get_devid(dst_node));
 		}
 #endif
 

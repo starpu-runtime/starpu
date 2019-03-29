@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011-2017,2019                           CNRS
  * Copyright (C) 2011-2013,2015,2016,2018-2019            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,18 +15,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/mic/driver_mic_source.h>
-#include <core/task.h>
 
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
@@ -225,13 +215,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 				      uint32_t nobjects,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
 {
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_opencl_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->opencl_to_cpu_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_cuda_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cuda_to_cpu_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_mic_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->mic_to_cpu_cl);
-
 	struct starpu_multiformat_interface multiformat =
 	{
 		.id         = STARPU_MULTIFORMAT_INTERFACE_ID,
@@ -559,8 +542,8 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	cudaError_t status;
 	int size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
-	int src_dev = _starpu_memory_node_get_devid(src_node);
-	int dst_dev = _starpu_memory_node_get_devid(dst_node);
+	int src_dev = starpu_memory_node_get_devid(src_node);
+	int dst_dev = starpu_memory_node_get_devid(dst_node);
 
 	if (stream)
 	{
@@ -586,7 +569,7 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 	return 0;
 }
@@ -663,7 +646,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 	return ret;
 }
 
@@ -689,7 +672,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	if (dst_multiformat->opencl_ptr == NULL)
 	{
 		/* XXX : it is weird that we might have to allocate memory here... */
-		_STARPU_MALLOC(dst_multiformat->opencl_ptr, dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+		dst_multiformat->opencl_ptr = malloc(dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize);
+		STARPU_ASSERT_MSG(dst_multiformat->opencl_ptr != NULL || dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize == 0, "Cannot allocate %ld bytes\n", (long) (dst_multiformat->nx * dst_multiformat->ops->opencl_elemsize));
 	}
 	err = starpu_opencl_copy_opencl_to_ram((cl_mem)src_multiformat->opencl_ptr,
 					       src_node,
@@ -702,7 +686,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 
 	return ret;
@@ -754,7 +738,7 @@ static int copy_mic_common_ram_to_mic(void *src_interface, unsigned src_node, vo
 
 	copy_func(src_multiformat->cpu_ptr, src_node, dst_multiformat->cpu_ptr, dst_node, size);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 	return 0;
 }
@@ -772,7 +756,7 @@ static int copy_mic_common_mic_to_ram(void *src_interface, unsigned src_node, vo
 	size_t size = src_multiformat->nx * src_multiformat->ops->mic_elemsize;
 	copy_func(src_multiformat->mic_ptr, src_node, dst_multiformat->mic_ptr, dst_node, size);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 	return 0;
 }

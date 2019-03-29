@@ -184,12 +184,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
 		{
 			/* GPU-GPU transfer, issue it from the destination */
-			devid = _starpu_memory_node_get_devid(dst_node);
+			devid = starpu_memory_node_get_devid(dst_node);
 		}
 		else
 		{
 			unsigned node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-			devid = _starpu_memory_node_get_devid(node);
+			devid = starpu_memory_node_get_devid(node);
 		}
 		starpu_cuda_set_device(devid);
 	}
@@ -208,7 +208,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		/* only the proper CUBLAS thread can initiate this directly ! */
 #if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(_starpu_memory_node_get_local_key() == src_node);
+		STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
 #endif
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
 				!(copy_methods->cuda_to_ram_async || copy_methods->any_to_any))
@@ -243,7 +243,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		/* STARPU_CPU_RAM -> CUBLAS_RAM */
 		/* only the proper CUBLAS thread can initiate this ! */
 #if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node);
+		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
 #endif
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
 				!(copy_methods->ram_to_cuda_async || copy_methods->any_to_any))
@@ -311,7 +311,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #ifdef STARPU_USE_OPENCL
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
 		/* OpenCL -> RAM */
-		STARPU_ASSERT(_starpu_memory_node_get_local_key() == src_node);
+		STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->opencl_to_ram_async || copy_methods->any_to_any))
 		{
@@ -336,7 +336,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
 		/* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
-		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node);
+		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->ram_to_opencl_async || copy_methods->any_to_any))
 		{
@@ -361,7 +361,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
 		/* STARPU_OPENCL_RAM -> STARPU_OPENCL_RAM */
-		STARPU_ASSERT(_starpu_memory_node_get_local_key() == dst_node || _starpu_memory_node_get_local_key() == src_node);
+		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node || starpu_worker_get_local_memory_node() == src_node);
 		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
 				!(copy_methods->opencl_to_opencl_async || copy_methods->any_to_any))
 		{
@@ -685,6 +685,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	return 0;
+}
+
+void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size)
+{
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
 }
 
 void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start)

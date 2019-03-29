@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017,2019                           Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,7 @@ void _starpu_memory_nodes_init(void)
 		_starpu_descr.nodes[i] = STARPU_UNUSED;
 		_starpu_descr.nworkers[i] = 0;
 	}
+	memset(&_starpu_worker_drives_memory, 0, sizeof(_starpu_worker_drives_memory));
 	STARPU_HG_DISABLE_CHECKING(_starpu_worker_drives_memory);
 
 	_starpu_init_mem_chunk_lists();
@@ -193,6 +194,20 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 #ifdef STARPU_SIMGRID
 		starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
 #endif
+		_starpu_memory_node_register_condition(worker, &worker->sched_cond, memnode);
 	}
+}
+
+unsigned starpu_worker_get_local_memory_node(void)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker)
+		return STARPU_MAIN_RAM;
+	return worker->memory_node;
+}
+
+int starpu_memory_node_get_devid(unsigned node)
+{
+	return _starpu_descr.devid[node];
 }
 

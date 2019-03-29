@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2011,2013,2014,2018                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010,2012,2015,2017                      CNRS
+ * Copyright (C) 2010,2012,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,8 @@
 #include <CL/cl.h>
 #endif
 #endif
+
+#include <core/workers.h>
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 struct _starpu_machine_config;

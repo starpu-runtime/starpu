@@ -74,7 +74,7 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 
 struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node)
 {
-        int devid = _starpu_memory_node_get_devid(memory_node);
+        int devid = starpu_memory_node_get_devid(memory_node);
         STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
         return _starpu_mpi_ms_nodes[devid];

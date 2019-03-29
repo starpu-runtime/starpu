@@ -17,18 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/mic/driver_mic_source.h>
-#include <drivers/scc/driver_scc_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -134,7 +122,7 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
 
 /* declare a new data with the vector interface */
 void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int home_node,
-		uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize)
+					   uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize)
 {
 	struct starpu_vector_interface vector =
 	{
@@ -156,14 +144,14 @@ void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 #endif
 
 #ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
+	starpu_scc_get_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
 #endif
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
 
 void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize)
+				 uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	starpu_vector_data_register_allocsize(handleptr, home_node, ptr, nx, elemsize, nx * elemsize);
 }
@@ -296,7 +284,7 @@ uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -377,7 +365,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 				    dst_vector->dev_handle, dst_vector->offset, dst_node,
 				    src_vector->nx*src_vector->elemsize, async_data);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 	return ret;
 }
 

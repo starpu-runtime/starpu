@@ -339,6 +339,13 @@ hwloc_cpuset_t starpu_worker_get_hwloc_cpuset(int workerid);
 hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid);
 #endif
 
+int starpu_memory_node_get_devid(unsigned node);
+
+/**
+   Return the memory node associated to the current worker
+*/
+unsigned starpu_worker_get_local_memory_node(void);
+
 /**
    Return the identifier of the memory node associated to the worker
    identified by \p workerid.
