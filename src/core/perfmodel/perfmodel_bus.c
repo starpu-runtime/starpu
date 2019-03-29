@@ -593,9 +593,10 @@ static int find_cpu_from_numa_node(hwloc_obj_t obj)
 	{
 		current = current->first_child;
 
-		/* If we don't find a "PU" obj before the leave, this means
-		 * hwloc does not know whether there are CPU or not. */
-		STARPU_ASSERT(current);
+                /* If we don't find a "PU" obj before the leave, perhaps we are
+                 * just not allowed to use it. */
+                if (!current)
+                        return -1;
 	}
 
 	STARPU_ASSERT(current->depth == HWLOC_OBJ_PU);
@@ -620,7 +621,7 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		dev_timing_per_numanode[timing_numa_index].numa_id = numa_id;
 
 		/* Chose one CPU connected to this NUMA node */
-		unsigned cpu_id = 0;
+		int cpu_id = 0;
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_id);
 
@@ -637,6 +638,9 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
                          * node, just take one CPU from the whole system */
 			cpu_id = find_cpu_from_numa_node(hwloc_get_root_obj(hwtopology));
 #endif
+
+		if (cpu_id < 0)
+			continue;
 
 #ifdef STARPU_USE_CUDA
 		if (strncmp(type, "CUDA", 4) == 0)
