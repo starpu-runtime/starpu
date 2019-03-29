@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2015,2017                                CNRS
 # Copyright (C) 2016                                     Inria
-# Copyright (C) 2014-2016                                Université de Bordeaux
+# Copyright (C) 2014-2016,2019                            Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +40,13 @@ else
 	V=3
 	VF=""
 	DASH=_
+fi
+
+if [ "$SMPI_MAJOR" -ge 4 -o \( "$SMPI_MAJOR" = 3 -a "$SMPI_MINOR" -ge 16 \) ]
+then
+	PRIV_OPT="--cfg=smpi/privatization:yes"
+else
+	PRIV_OPT="--cfg=smpi/privatize${DASH}global${DASH}variables:yes"
 fi
 
 # When executed from source, take xslt from source
@@ -115,7 +122,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" --cfg=smpi/privatize${DASH}global${DASH}variables:yes --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" $PRIV_OPT --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM
