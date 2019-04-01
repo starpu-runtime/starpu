@@ -50,3 +50,8 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 		matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 	}
 }
+
+void starpu_bcsr_filter_canonical_block_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned child)
+{
+	return &starpu_interface_matrix_ops;
+}

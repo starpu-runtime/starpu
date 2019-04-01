@@ -355,12 +355,15 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 }
 \endcode
 
+When the sub-data is not of the same type as the original data, the
+starpu_data_filter::get_child_ops field needs to be set appropriately for StarPU
+to know which type should be used.
+
 StarPU provides various interfaces and filters for matrices, vectors, etc.,
 but applications can also write their own data interfaces and filters, see
 <c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example,
 and see \ref DefiningANewDataInterface and \ref DefiningANewDataFilter
 for documentation.
-
 
 \section AsynchronousPartitioning Asynchronous Partitioning
 
