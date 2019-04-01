@@ -480,6 +480,8 @@ additional filters can be defined by the application. The principle is that the
 filter function just fills the memory location of the <c>i-th</c> subpart of a data.
 Examples are provided in <c>src/datawizard/interfaces/*_filters.c</c>,
 and see \ref starpu_data_filter::filter_func for the details.
+The starpu_filter_nparts_compute_chunk_size_and_offset() helper can be used to
+compute the division of pieces of data.
 
 \section DataReduction Data Reduction
 
@@ -789,6 +791,13 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
         starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
 }
 \endcode
+
+The <c>starpu_complex_interface</c> structure is here used just to store the
+parameters that the user provided to <c>starpu_complex_data_register</c>.
+starpu_data_register() will first allocate the handle, and
+then pass the <c>starpu_complex_interface</c> structure to the
+starpu_data_interface_ops::register_data_handle method, which records them
+within the data handle (it is called once per node by starpu_data_register()).
 
 Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic
