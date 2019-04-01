@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2014                           Inria
  * Copyright (C) 2010-2017                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -378,7 +378,7 @@ static struct bound_task *find_job(unsigned long id)
 }
 
 /* Job J depends on previous job of id ID (which is already finished) */
-void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j, unsigned long id)
+void _starpu_bound_job_id_dep_size(size_t size, struct _starpu_job *j, unsigned long id)
 {
 	struct bound_task *t, *dep_t;
 	int i;
@@ -410,7 +410,7 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 		if (t->deps[i].dep == dep_t)
 		{
 			/* Found, just add size */
-			t->deps[i].size += _starpu_data_get_size(handle);
+			t->deps[i].size += size;
 			break;
 		}
 	if (i == t->depsn)
@@ -418,9 +418,14 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 		/* Not already there, add */
 		_STARPU_REALLOC(t->deps, ++t->depsn * sizeof(t->deps[0]));
 		t->deps[t->depsn-1].dep = dep_t;
-		t->deps[t->depsn-1].size = _starpu_data_get_size(handle);
+		t->deps[t->depsn-1].size = size;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+}
+
+void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j, unsigned long id)
+{
+	_starpu_bound_job_id_dep_size(_starpu_data_get_size(handle), j, id);
 }
 
 void starpu_bound_stop(void)
