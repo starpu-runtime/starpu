@@ -52,6 +52,8 @@ machine memory size, but part of it is taken by the kernel, the system,
 daemons, and the application's own allocated data, whose size can not be
 predicted. That is why the user needs to specify what StarPU can afford.
 
+Some Out-of-core tests are worth giving a read, see <c>tests/disk/*.c</c>
+
 \section UseANewDiskMemory Use a new disk memory
 
 To use a disk memory node, you have to register it with this function:
@@ -119,7 +121,11 @@ starpu_task_insert(cl_fill_with_data, STARPU_W, h, 0);
 
 Which makes StarPU automatically do the allocation when the task running
 cl_fill_with_data gets executed. And then if its needs to, it will be able to
-release it after having pushed the data to the disk.
+release it after having pushed the data to the disk. Since no initial buffer is
+provided to starpu_matrix_data_register(), the handle does not have any initial
+value right after this call, and thus the very first task using the handle needs
+to use the ::STARPU_W mode like above, ::STARPU_R or ::STARPU_RW would not make
+sense.
 
 By default, StarPU will try to push any data handle to the disk. 
 To specify whether a given handle should be pushed to the disk,
