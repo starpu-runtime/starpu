@@ -969,7 +969,8 @@ endif
 
 interface_complex_SOURCES	=	\
 	interface/complex.c		\
-	interface/complex_interface.c
+	interface/complex_interface.c	\
+	interface/complex_filters.c
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
