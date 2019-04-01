@@ -391,6 +391,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
+#ifdef HAVE_MSG_PROCESS_USERDATA_INIT
+		MSG_process_userdata_init();
+#endif
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		MSG_process_set_data(MSG_process_self(), tsd);
