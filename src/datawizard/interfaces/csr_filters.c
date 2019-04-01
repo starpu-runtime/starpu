@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013,2014,2016                 Université de Bordeaux
+ * Copyright (C) 2008-2011,2013,2014,2016, 2019                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
@@ -41,7 +41,7 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 	  STARPU_MIN(chunk_size, nrow - id*chunk_size);
 	/* TODO: the formula for the chunk size is probably wrong: we should
 	 * probably do this instead, and write a test.
-	_starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nparts, elemsize,
+	starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nparts, elemsize,
 						     id, 1, &chunk_size, NULL);
 	 */
 

@@ -1042,14 +1042,8 @@ void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write
 	_starpu_data_partition_access_look_up(target, NULL, write);
 }
 
-/*
- * Given an integer N, NPARTS the number of parts it must be divided in, ID the
- * part currently considered, determines the CHUNK_SIZE and the OFFSET, taking
- * into account the size of the elements stored in the data structure ELEMSIZE
- * and LD, the leading dimension.
- */
 void
-_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
 					     unsigned ld, unsigned *chunk_size,
 					     size_t *offset)

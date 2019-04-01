@@ -33,7 +33,7 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, S
 
 	uint32_t child_nx;
 	size_t offset;
-	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
@@ -68,7 +68,7 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 
 	uint32_t child_nx;
 	size_t offset;
-	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 	child_nx += 2*shadow_size;
 
