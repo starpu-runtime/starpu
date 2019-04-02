@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011                                     Antoine Lucas
- * Copyright (C) 2009-2012,2014,2015,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2012,2014,2015,2017,2019            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015,2017,2018,2019            CNRS
  * Copyright (C) 2011                                     Inria
@@ -315,8 +315,14 @@ void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
 
 /**
    Partition a block-sparse matrix into dense matrices.
+   starpu_data_filter::get_child_ops needs to be set to
+   starpu_bcsr_filter_canonical_block_child_ops()
 */
 void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+/**
+   Return the child_ops of the partition obtained with starpu_bcsr_filter_canonical_block().
+*/
+void starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /** @} */
 
@@ -504,6 +510,18 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
    enforced for the shadowed parts.
 */
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Given an integer \p n, \p n the number of parts it must be divided in, \p id the
+   part currently considered, determines the \p chunk_size and the \p offset, taking
+   into account the size of the elements stored in the data structure \p elemsize
+   and \p ld, the leading dimension, which is most often 1.
+ */
+void
+starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+					     size_t elemsize, unsigned id,
+					     unsigned ld, unsigned *chunk_size,
+					     size_t *offset);
 
 /** @} */
 

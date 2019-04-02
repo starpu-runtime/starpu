@@ -92,6 +92,9 @@ AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 
+dnl locate pkg-config
+PKG_PROG_PKG_CONFIG
+
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
@@ -176,7 +179,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach MSG_zone_get_hosts MSG_process_self_name])
+	AC_CHECK_FUNCS([MSG_process_attach MSG_zone_get_hosts MSG_process_self_name MSG_process_userdata_init])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
@@ -1337,17 +1340,38 @@ if test x$enable_cuda = xyes; then
 		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 
-	AC_CHECK_HEADER([nvml.h],
-	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption],
-		        [AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
-		         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"])])
-        CPPFLAGS="${SAVED_CPPFLAGS}"
+	LDFLAGS="${LDFLAGS} -lnvidia-ml"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		[[#include <nvml.h>]],
+		[[nvmlInit();]]
+		)],
+	    [
+	      AC_RUN_IFELSE([AC_LANG_PROGRAM(
+	        [[#include <nvml.h>]],
+		[[nvmlInit();]]
+		)],
+		[have_valid_nvml="yes"],
+		[
+	          AC_MSG_RESULT([NVML found and can be compiled, but compiled application can not be run, you are probably on a machine without the CUDA driver])
+	          have_valid_nvml="no"
+		])
+	    ],
+	    [
+	    AC_MSG_ERROR([NVML found, but nvml.h could not be compiled])
+	    have_valid_nvml="no"
+	    ]
+	)
+	if test x$have_valid_nvml = xyes ; then
+		AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
+		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
+	fi
+	AC_MSG_CHECKING(whether nvidia-ml should be used)
+	AC_MSG_RESULT($have_valid_nvml)
+
+	CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"
 	LIBS="${SAVED_LIBS}"
 fi
-
-dnl Hey dude, are you around?
-PKG_PROG_PKG_CONFIG
 
 have_magma=no
 if test x$enable_cuda = xyes; then

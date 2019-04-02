@@ -38,4 +38,11 @@ int starpu_complex_get_nx(starpu_data_handle_t handle);
 #define STARPU_COMPLEX_GET_IMAGINARY(interface)	(((struct starpu_complex_interface *)(interface))->imaginary)
 #define STARPU_COMPLEX_GET_NX(interface)	(((struct starpu_complex_interface *)(interface))->nx)
 
+/* Split complex vector into smaller complex vectors */
+void starpu_complex_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
+
+/* Split complex into two simple vectors */
+void starpu_complex_filter_canonical(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
+struct starpu_data_interface_ops *starpu_complex_filter_canonical_child_ops(struct starpu_data_filter *f, unsigned child);
+
 #endif /* __COMPLEX_INTERFACE_H */

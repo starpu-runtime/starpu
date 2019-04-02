@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2008-2015,2017,2019                      Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017                                CNRS
@@ -126,11 +126,6 @@ unsigned get_bcsr_nchildren(struct starpu_data_filter *f, starpu_data_handle_t h
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops *get_bcsr_child_ops(struct starpu_data_filter *f, unsigned child)
-{
-  return &starpu_interface_matrix_ops;
-}
-
 void call_filters(void)
 {
 
@@ -140,7 +135,7 @@ void call_filters(void)
 	bcsr_f.filter_func    = starpu_bcsr_filter_canonical_block;
 	bcsr_f.get_nchildren = get_bcsr_nchildren;
 	/* the children use a matrix interface ! */
-	bcsr_f.get_child_ops = get_bcsr_child_ops;
+	bcsr_f.get_child_ops = starpu_bcsr_filter_canonical_block_child_ops;
 
 	vector_in_f.filter_func = starpu_vector_filter_block;
 	vector_in_f.nchildren  = size/c;

@@ -660,6 +660,14 @@ for that environment variable to be used, and the
 STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
+<dt>STARPU_SIMGRID_TRANSFER_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_TRANSFER_COST
+\addindex __env__STARPU_SIMGRID_TRANSFER_COST
+When set to 1 (which is the default), data transfers (over PCI bus, typically) are taken into account
+in simgrid mode.
+</dd>
+
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_CUDA_MALLOC_COST
