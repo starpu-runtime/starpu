@@ -1337,11 +1337,35 @@ if test x$enable_cuda = xyes; then
 		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 
-	AC_CHECK_HEADER([nvml.h],
-	  [AC_CHECK_LIB([nvidia-ml], [nvmlDeviceGetTotalEnergyConsumption],
-		        [AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
-		         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"])])
-        CPPFLAGS="${SAVED_CPPFLAGS}"
+	LDFLAGS="${LDFLAGS} -lnvidia-ml"
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+		[[#include <nvml.h>]],
+		[[nvmlInit();]]
+		)],
+	    [
+	      AC_RUN_IFELSE([AC_LANG_PROGRAM(
+	        [[#include <nvml.h>]],
+		[[nvmlInit();]]
+		)],
+		[have_valid_nvml="yes"],
+		[
+	          AC_MSG_RESULT([NVML found and can be compiled, but compiled application can not be run, you are probably on a machine without the CUDA driver])
+	          have_valid_nvml="no"
+		])
+	    ],
+	    [
+	    AC_MSG_ERROR([NVML found, but nvml.h could not be compiled])
+	    have_valid_nvml="no"
+	    ]
+	)
+	if test x$have_valid_nvml = xyes ; then
+		AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
+		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
+	fi
+	AC_MSG_CHECKING(whether nvidia-ml should be used)
+	AC_MSG_RESULT($have_valid_nvml)
+
+	CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"
 	LIBS="${SAVED_LIBS}"
 fi

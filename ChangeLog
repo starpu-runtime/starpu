@@ -27,6 +27,10 @@ Small features:
   * Add starpu_filter_nparts_compute_chunk_size_and_offset helper.
   * Add starpu_bcsr_filter_canonical_block_child_ops.
 
+Small changes:
+  * Improve detection of NVML availability. Do not only check the
+    library is available, also check the compiled code can be run.
+
 StarPU 1.3.0 (git revision 24ca83c6dbb102e1cfc41db3bb21c49662067062)
 ==============================================
 
