@@ -19,9 +19,9 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid from 3.11 to 3.16, and 3.18 to 3.20.
+platform. This was tested with simgrid from 3.11 to 3.16, and 3.18 to 3.22.
 Other versions may have compatibility issues. 3.17 notably does not build at
-all.
+all. MPI simulation does not work with version 3.22.
 
 \section Preparing Preparing Your Application For Simulation
 
