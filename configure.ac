@@ -92,6 +92,9 @@ AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 
+dnl locate pkg-config
+PKG_PROG_PKG_CONFIG
+
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
@@ -1369,9 +1372,6 @@ if test x$enable_cuda = xyes; then
 	LDFLAGS="${SAVED_LDFLAGS}"
 	LIBS="${SAVED_LIBS}"
 fi
-
-dnl Hey dude, are you around?
-PKG_PROG_PKG_CONFIG
 
 have_magma=no
 if test x$enable_cuda = xyes; then
