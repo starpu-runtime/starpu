@@ -651,6 +651,10 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	int indexes[1] = {piom_bindid};
 	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_CORE,indexes,1);
 
+	/* We force the "MPI" thread to share the same core as the pioman thread
+	   to avoid binding it on the same core as a worker */
+	_starpu_mpi_thread_cpuid = piom_bindid;
+
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;
 	char *s_prog_hooks = starpu_getenv("STARPU_MPI_NMAD_PROG_HOOKS");
