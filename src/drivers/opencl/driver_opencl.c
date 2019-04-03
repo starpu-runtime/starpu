@@ -3,7 +3,7 @@
  * Copyright (C) 2011,2012,2014-2017                      Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -641,8 +641,8 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	const char *devname = "Simgrid";
 #else
 	/* get the device's name */
-	char devname[32];
-	_starpu_opencl_get_device_name(devid, devname, 32);
+	char devname[64];
+	_starpu_opencl_get_device_name(devid, devname, 64);
 #endif
 	snprintf(worker->name, sizeof(worker->name), "OpenCL %d (%s %.1f GiB)", devid, devname, size);
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
