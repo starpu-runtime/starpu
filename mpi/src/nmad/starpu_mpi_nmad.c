@@ -646,6 +646,57 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 
+	/* Tell pioman to use a bound thread for communication progression */
+	unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	int indexes[1] = {piom_bindid};
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_CORE,indexes,1);
+
+	/* We force the "MPI" thread to share the same core as the pioman thread
+	   to avoid binding it on the same core as a worker */
+	_starpu_mpi_thread_cpuid = piom_bindid;
+
+	/* Register some hooks for communication progress if needed */
+	int polling_point_prog, polling_point_idle;
+	char *s_prog_hooks = starpu_getenv("STARPU_MPI_NMAD_PROG_HOOKS");
+	char *s_idle_hooks = starpu_getenv("STARPU_MPI_NMAD_IDLE_HOOKS");
+
+	if(!s_prog_hooks)
+	{
+		polling_point_prog = 0;
+	}
+	else
+	{
+		polling_point_prog =
+			(strcmp(s_prog_hooks, "FORCED") == 0) ? PIOM_POLL_POINT_FORCED :
+			(strcmp(s_prog_hooks, "SINGLE") == 0) ? PIOM_POLL_POINT_SINGLE :
+			(strcmp(s_prog_hooks, "HOOK")   == 0) ? PIOM_POLL_POINT_HOOK :
+			0;
+	}
+
+	if(!s_idle_hooks)
+	{
+		polling_point_idle = 0;
+	}
+	else
+	{
+		polling_point_idle =
+			(strcmp(s_idle_hooks, "FORCED") == 0) ? PIOM_POLL_POINT_FORCED :
+			(strcmp(s_idle_hooks, "SINGLE") == 0) ? PIOM_POLL_POINT_SINGLE :
+			(strcmp(s_idle_hooks, "HOOK")   == 0) ? PIOM_POLL_POINT_HOOK :
+			0;
+	}
+	
+	if(polling_point_prog)
+	{
+		starpu_progression_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_prog);
+	}
+	
+	if(polling_point_idle)
+	{
+		starpu_idle_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_idle);
+	}
+
+	/* Launch thread used for nmad callbacks */
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
         STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
