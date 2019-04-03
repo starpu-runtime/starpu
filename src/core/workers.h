@@ -153,7 +153,7 @@ LIST_TYPE(_starpu_worker,
 	unsigned worker_is_initialized;
 	enum _starpu_worker_status status; /**< what is the worker doing now ? (eg. CALLBACK) */
 	unsigned state_keep_awake; /**< !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
-	char name[64];
+	char name[128];
 	char short_name[32];
 	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;

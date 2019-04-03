@@ -717,9 +717,9 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		const char *devname = "Simgrid";
 #else
 		/* get the device's name */
-		char devname[16];
-		strncpy(devname, props[devid].name, 15);
-		devname[15] = 0;
+		char devname[64];
+		strncpy(devname, props[devid].name, 63);
+		devname[63] = 0;
 #endif
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
