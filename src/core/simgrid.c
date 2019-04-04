@@ -38,6 +38,7 @@
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
+#include <smpi/smpi.h>
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
@@ -47,6 +48,11 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #endif
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
+
+#pragma weak smpi_process_set_user_data
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA && !defined(smpi_process_set_user_data)
+extern void smpi_process_set_user_data(void *);
+#endif
 
 /* 1 when MSG_init was done, 2 when initialized through redirected main, 3 when
  * initialized through MSG_process_attach */
@@ -396,7 +402,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #endif
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		MSG_process_set_data(MSG_process_self(), tsd);
+		smpi_process_set_user_data(tsd);
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
