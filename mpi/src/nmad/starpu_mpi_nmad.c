@@ -649,7 +649,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	/* Tell pioman to use a bound thread for communication progression */
 	unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	int indexes[1] = {piom_bindid};
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_CORE,indexes,1);
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU,indexes,1);
 
 	/* We force the "MPI" thread to share the same core as the pioman thread
 	   to avoid binding it on the same core as a worker */
