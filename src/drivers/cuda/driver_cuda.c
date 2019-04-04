@@ -1427,6 +1427,8 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(uintptr_t src, size_t src_offse
 					   cudaMemcpyHostToDevice);
 }
 
+#endif /* STARPU_USE_CUDA */
+
 int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	/* GPUs not always allow direct remote access: if CUDA4
@@ -1452,8 +1454,6 @@ int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node)
 	return 0;
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 }
-
-#endif /* STARPU_USE_CUDA */
 
 uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {

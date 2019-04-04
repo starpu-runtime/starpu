@@ -1281,13 +1281,14 @@ int _starpu_opencl_copy_interface_from_cpu_to_opencl(uintptr_t src, size_t src_o
 					     &async_channel->event.opencl_event);
 }
 
+#endif /* STARPU_USE_OPENCL */
+
 int _starpu_opencl_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void)node;
 	(void)handling_node;
 	return 0;
 }
-#endif /* STARPU_USE_OPENCL */
 
 uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
