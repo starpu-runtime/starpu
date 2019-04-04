@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2013                                     Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -48,6 +48,9 @@ void _starpu_scc_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 void _starpu_scc_common_report_rcce_error(const char *func, const char *file, const int line, const int err_no);
 
 int _starpu_scc_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
+
+int _starpu_scc_common_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_scc_common_copy_data_to_scc(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 
 #endif /* STARPU_USE_SCC */
 

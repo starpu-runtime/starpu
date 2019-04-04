@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2012                                     Benjamin Lorendeau
 # Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017,2018                      CNRS
+# Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2013                                     Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -98,6 +98,7 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
+	datawizard/node_ops.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -224,6 +225,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/graph_test_policy.c			\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
+	datawizard/node_ops.c					\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2013,2017                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -190,4 +190,34 @@ int _starpu_scc_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
       TODO
   ************/
   STARPU_ASSERT(0);
+}
+
+int _starpu_scc_common_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->scc_sink_to_src)
+		copy_methods->scc_sink_to_src(src_interface, src_node, dst_interface, dst_node);
+	else
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	return ret;
+}
+
+int _starpu_scc_common_copy_data_to_scc(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_SCC_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->scc_sink_to_sink)
+		copy_methods->scc_sink_to_sink(src_interface, src_node, dst_interface, dst_node);
+	else
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	return ret;
 }

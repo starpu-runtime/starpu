@@ -471,9 +471,29 @@ int _starpu_mic_init_event(struct _starpu_mic_async_event *event, unsigned memor
 	return 0;
 }
 
-/* Wait the end of the asynchronous request */
-void _starpu_mic_wait_request_completion(struct _starpu_mic_async_event *event)
+/* Test if a asynchronous request is end.
+ * Return 1 if is end, 0 else. */
+unsigned _starpu_mic_test_request_completion(struct _starpu_async_channel *async_channel)
 {
+	struct _starpu_mic_async_event *event = &async_channel->event.mic_event;
+	if (event->signal != NULL && *(event->signal) != STARPU_MIC_REQUEST_COMPLETE)
+		return 0;
+
+	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(event->memory_node);
+	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
+
+	if (scif_unregister(epd, (off_t)(event->signal), 0x1000) < 0)
+		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
+
+	free(event->signal);
+	event->signal = NULL;
+	return 1;
+}
+
+/* Wait the end of the asynchronous request */
+void _starpu_mic_wait_request_completion(struct _starpu_async_channel *async_channel)
+{
+	struct _starpu_mic_async_event *event = &async_channel->event.mic_event;
 	if (event->signal != NULL)
 	{
 		const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(event->memory_node);
@@ -489,26 +509,6 @@ void _starpu_mic_wait_request_completion(struct _starpu_mic_async_event *event)
 		event->signal = NULL;
 	}
 }
-
-/* Test if a asynchronous request is end.
- * Return 1 if is end, 0 else. */
-int _starpu_mic_request_is_complete(struct _starpu_mic_async_event *event)
-{
-	if (event->signal != NULL && *(event->signal) != STARPU_MIC_REQUEST_COMPLETE)
-		return 0;
-
-	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(event->memory_node);
-	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
-
-	if (scif_unregister(epd, (off_t)(event->signal), 0x1000) < 0)
-		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
-
-	free(event->signal);
-	event->signal = NULL;
-	return 1;
-}
-
-
 
 void *_starpu_mic_src_worker(void *arg)
 {
@@ -561,4 +561,84 @@ void *_starpu_mic_src_worker(void *arg)
 
 	return NULL;
 
+}
+
+int _starpu_mic_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MIC_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 1;
+
+#ifdef STARPU_USE_MIC
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	/* MIC -> RAM */
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() || !(copy_methods->mic_to_ram_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->mic_to_ram || copy_methods->any_to_any);
+		if (copy_methods->mic_to_ram)
+			copy_methods->mic_to_ram(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MIC_RAM;
+		if (copy_methods->mic_to_ram_async)
+			ret = copy_methods->mic_to_ram_async(src_interface, src_node, dst_interface, dst_node);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+		_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
+	}
+#endif
+	return 1;
+}
+
+int _starpu_mic_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	STARPU_ASSERT(src_kind == STARPU_MIC_RAM);
+
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	if (dst_kind == STARPU_CPU_RAM)
+	{
+		if (async_channel)
+			return _starpu_mic_copy_mic_to_ram_async((void*) (src + src_offset), src_node,
+								 (void*) (dst + dst_offset), dst_node,
+								 size);
+		else
+			return _starpu_mic_copy_mic_to_ram((void*) (src + src_offset), src_node,
+							   (void*) (dst + dst_offset), dst_node,
+							   size);
+	}
+	else
+	{
+		STARPU_ABORT();
+		return -1;
+	}
+}
+
+int _starpu_mic_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	/* TODO: We don't handle direct MIC-MIC transfers yet */
+	return 0;
+}
+
+uintptr_t _starpu_mic_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	uintptr_t addr = 0;
+	if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
+		addr = 0;
+	return addr;
+}
+
+void _starpu_mic_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	_starpu_mic_free_memory((void*) addr, size, dst_node);
 }
