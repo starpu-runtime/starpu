@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014-2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -54,6 +54,7 @@
 #endif
 
 
+#ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.
  * Handle binding CPUs on cores.
  * In the case of a combined worker WORKER_TASK != J->TASK */
@@ -425,6 +426,15 @@ int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 	return 0;
 }
 
+struct _starpu_driver_ops _starpu_driver_cpu_ops =
+{
+	.init = _starpu_cpu_driver_init,
+	.run = _starpu_cpu_driver_run,
+	.run_once = _starpu_cpu_driver_run_once,
+	.deinit = _starpu_cpu_driver_deinit
+};
+#endif /* STARPU_USE_CPU */
+
 int _starpu_cpu_copy_data(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
@@ -487,11 +497,3 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 #endif
 				   );
 }
-
-struct _starpu_driver_ops _starpu_driver_cpu_ops =
-{
-	.init = _starpu_cpu_driver_init,
-	.run = _starpu_cpu_driver_run,
-	.run_once = _starpu_cpu_driver_run_once,
-	.deinit = _starpu_cpu_driver_deinit
-};
