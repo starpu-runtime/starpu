@@ -30,10 +30,6 @@
 #include <core/simgrid.h>
 #endif
 
-#define _STARPU_MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
-#define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
-#define _STARPU_MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
-
 extern char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 struct _starpu_cond_and_worker
@@ -68,7 +64,6 @@ struct _starpu_memory_node_descr
 	/* the number of queues attached to each node */
 	unsigned total_condition_count;
 	unsigned condition_count[STARPU_MAXNODES];
-
 };
 
 extern struct _starpu_memory_node_descr _starpu_descr;

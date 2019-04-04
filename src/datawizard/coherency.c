@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <limits.h>
+#include <math.h>
+
 #include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
@@ -25,11 +28,10 @@
 #include <core/dependencies/data_concurrency.h>
 #include <core/disk.h>
 #include <profiling/profiling.h>
-#include <math.h>
 #include <core/task.h>
 #include <starpu_scheduler.h>
 #include <core/workers.h>
-#include <limits.h>
+#include <datawizard/node_ops.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -106,7 +108,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		STARPU_ASSERT(handle->per_node[src_node].initialized);
 		return src_node;
 	}
-	
+
 	int i_ram = -1;
 	int i_gpu = -1;
 	int i_disk = -1;
@@ -114,7 +116,6 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
 	{
-		
 		if (src_node_mask & (1<<i))
 		{
 			int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
@@ -146,16 +147,16 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			    starpu_node_get_kind(i) == STARPU_MIC_RAM)
 				i_gpu = i;
 
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM || 
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM ||
 			    starpu_node_get_kind(i) == STARPU_SCC_RAM ||
 			    starpu_node_get_kind(i) == STARPU_SCC_SHM ||
                             starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
 				i_ram = i;
-			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
+			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
 				i_disk = i;
 		}
 	}
-	
+
 	/* we have to use cpu_ram in first */
 	if (i_ram != -1)
 		src_node = i_ram;
@@ -233,55 +234,12 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		return 0;
 
 	int type = starpu_node_get_kind(node);
-	switch (type)
+	if (_node_ops[type].direct_access_supported)
+		return _node_ops[type].direct_access_supported(node, handling_node);
+	else
 	{
-		case STARPU_CUDA_RAM:
-		{
-			/* GPUs not always allow direct remote access: if CUDA4
-			 * is enabled, we allow two CUDA devices to communicate. */
-#ifdef STARPU_SIMGRID
-			if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
-			{
-				msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
-				const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
-				return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
-			}
-			else
-				return 0;
-#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-			/* simgrid */
-			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
-			return kind == STARPU_CUDA_RAM;
-#else /* STARPU_HAVE_CUDA_MEMCPY_PEER */
-			/* Direct GPU-GPU transfers are not allowed in general */
-			return 0;
-#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
-		}
-		case STARPU_OPENCL_RAM:
-			return 0;
-		case STARPU_MIC_RAM:
-			/* TODO: We don't handle direct MIC-MIC transfers yet */
-			return 0;
-		case STARPU_DISK_RAM:
-			/* Each worker can manage disks but disk <-> disk is not always allowed */
-			switch (starpu_node_get_kind(handling_node))
-			{
-				case STARPU_CPU_RAM:
-					return 1;
-				case STARPU_DISK_RAM:
-					return _starpu_disk_can_copy(node, handling_node);
-				default:
-					return 0;
-			}
-                case STARPU_MPI_MS_RAM:
-                {
-                        enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
-                        return kind == STARPU_MPI_MS_RAM;
-                }
-		case STARPU_SCC_RAM:
-			return 1;
-		default:
-			return 1;
+		STARPU_ABORT_MSG("Node %d does not define the operation 'direct_access_supported'", type);
+		return 1;
 	}
 }
 
@@ -338,7 +296,7 @@ static unsigned chose_best_numa_between_src_and_dest(int src, int dst)
 		}
 	}
 	STARPU_ASSERT(best_numa >= 0);
-	
+
 	return best_numa;
 }
 
@@ -1110,7 +1068,7 @@ static void _starpu_fetch_task_input_cb(void *arg)
 }
 
 
-/* Synchronously or asynchronously fetch data for a given task (if it's not there already) 
+/* Synchronously or asynchronously fetch data for a given task (if it's not there already)
  * Returns the number of data acquired here.  */
 
 /* _starpu_fetch_task_input must be called before

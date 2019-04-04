@@ -660,6 +660,8 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
 
+enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type);
+
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);

@@ -21,7 +21,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <drivers/mp_common/source_common.h>
-#include "driver_mpi_common.h"
+#include <drivers/mpi/driver_mpi_common.h>
 
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
@@ -366,7 +366,7 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
+unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -411,7 +411,7 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
+void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -549,4 +549,67 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 
         }
         free(buf);
+}
+
+int _starpu_mpi_common_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_ram_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->mpi_ms_to_ram || copy_methods->any_to_any);
+		if (copy_methods->mpi_ms_to_ram)
+			copy_methods->mpi_ms_to_ram(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MPI_MS_RAM;
+		if(copy_methods->mpi_ms_to_ram_async)
+			ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_mpi_common_copy_data_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_mpi_ms_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->mpi_ms_to_mpi_ms || copy_methods->any_to_any);
+		if (copy_methods->mpi_ms_to_mpi_ms)
+			copy_methods->mpi_ms_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MPI_MS_RAM;
+		if(copy_methods->mpi_ms_to_mpi_ms_async)
+			ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
 }

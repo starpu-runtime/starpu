@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017, 2019                          CNRS
  * Copyright (C) 2013-2015,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
@@ -451,13 +451,12 @@ static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *
 
 int _starpu_disk_can_copy(unsigned node1, unsigned node2)
 {
-	if (starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
-	{
-		if (disk_register_list[node1]->functions == disk_register_list[node2]->functions)
-			/* they must have a copy function */
-			if (disk_register_list[node1]->functions->copy != NULL)
-				return 1;
-	}
+	STARPU_ASSERT(starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM);
+
+	if (disk_register_list[node1]->functions == disk_register_list[node2]->functions)
+		/* they must have a copy function */
+		if (disk_register_list[node1]->functions->copy != NULL)
+			return 1;
 	return 0;
 }
 

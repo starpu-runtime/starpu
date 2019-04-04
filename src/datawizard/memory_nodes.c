@@ -23,8 +23,9 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <common/fxt.h>
-#include "copy_driver.h"
-#include "memalloc.h"
+#include <datawizard/copy_driver.h>
+#include <datawizard/memalloc.h>
+#include <datawizard/node_ops.h>
 
 char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
@@ -75,38 +76,7 @@ unsigned starpu_memory_nodes_get_count(void)
 
 int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 {
-	const char *prefix;
-	switch (_starpu_descr.nodes[node])
-	{
-	case STARPU_CPU_RAM:
-		prefix = "NUMA";
-		break;
-	case STARPU_CUDA_RAM:
-		prefix = "CUDA";
-		break;
-	case STARPU_OPENCL_RAM:
-		prefix = "OpenCL";
-		break;
-	case STARPU_DISK_RAM:
-		prefix = "Disk";
-		break;
-	case STARPU_MIC_RAM:
-		prefix = "MIC";
-		break;
-	case STARPU_MPI_MS_RAM:
-		prefix = "MPI_MS";
-		break;
-	case STARPU_SCC_RAM:
-		prefix = "SCC_RAM";
-		break;
-	case STARPU_SCC_SHM:
-		prefix = "SCC_shared";
-		break;
-	case STARPU_UNUSED:
-	default:
-		prefix = "unknown";
-		STARPU_ASSERT(0);
-	}
+	const char *prefix = _starpu_node_get_prefix(_starpu_descr.nodes[node]);
 	return snprintf(name, size, "%s %d", prefix, _starpu_descr.devid[node]);
 }
 

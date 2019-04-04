@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -246,7 +246,6 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 {
 	unsigned i;
 	double sum = 0.0;
-	enum starpu_node_kind node_kind;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 #ifdef STARPU_DEVEL
@@ -258,35 +257,13 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	{
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
+		enum starpu_node_kind node_kind;
 
 		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		switch(arch->devices[0].type)
-		{
-			case STARPU_CPU_WORKER:
-				node_kind = STARPU_CPU_RAM;
-				break;
-			case STARPU_CUDA_WORKER:
-				node_kind = STARPU_CUDA_RAM;
-				break;
-			case STARPU_OPENCL_WORKER:
-				node_kind = STARPU_OPENCL_RAM;
-				break;
-			case STARPU_MIC_WORKER:
-				node_kind = STARPU_MIC_RAM;
-				break;
-			case STARPU_SCC_WORKER:
-				node_kind = STARPU_SCC_RAM;
-				break;
-			case STARPU_MPI_MS_WORKER:
-				node_kind = STARPU_MPI_MS_RAM;
-				break;
-			default:
-				STARPU_ABORT();
-				break;
-		}
+		node_kind = _starpu_worker_get_node_kind(arch->devices[0].type);
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 

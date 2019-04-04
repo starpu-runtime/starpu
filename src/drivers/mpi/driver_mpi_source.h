@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017,2019                                CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
  * Copyright (C) 2015                                     Mathieu Lirzin
  *
@@ -47,7 +47,10 @@ int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, 
 int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event);
 int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event);
 int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event);
-
+int _starpu_mpi_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_mpi_direct_access_supported(unsigned node, unsigned handling_node);
+uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags);
+void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);

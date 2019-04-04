@@ -54,6 +54,11 @@ int _starpu_scc_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsig
 
 void *_starpu_scc_src_worker(void *arg);
 
+int _starpu_scc_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_scc_direct_access_supported(unsigned node, unsigned handling_node);
+uintptr_t _starpu_scc_malloc_on_node(unsigned dst_node, size_t size, int flags);
+void _starpu_scc_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
 #endif /* STARPU_USE_SCC */
 
 

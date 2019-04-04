@@ -28,6 +28,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/node_ops.h>
 #include <core/simgrid.h>
 #include <core/task.h>
 
@@ -578,14 +579,9 @@ static starpu_pthread_mutex_t cuda_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZE
 static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-static uintptr_t
-_starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
+static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;
-
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
-	cudaError_t status;
-#endif
 
 	/* Handle count first */
 	if (flags & STARPU_MALLOC_COUNT)
@@ -596,130 +592,11 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 		flags &= ~STARPU_MALLOC_COUNT;
 	}
 
-	switch(starpu_node_get_kind(dst_node))
-	{
-		case STARPU_CPU_RAM:
-		{
-			_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-					/* without memcpy_peer, we can not
-					 * allocated pinned memory, since it
-					 * requires waiting for a task, and we
-					 * may be called with a spinlock held
-					 */
-					flags & ~STARPU_MALLOC_PINNED
-#else
-					flags
-#endif
-					);
-			break;
-		}
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-		case STARPU_CUDA_RAM:
-		{
-#ifdef STARPU_SIMGRID
-			static uintptr_t last[STARPU_MAXNODES];
-#ifdef STARPU_DEVEL
-#warning TODO: record used memory, using a simgrid property to know the available memory
-#endif
-			/* Sleep for the allocation */
-			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			if (_starpu_simgrid_cuda_malloc_cost())
-				MSG_process_sleep(0.000175);
-			if (!last[dst_node])
-				last[dst_node] = 1<<10;
-			addr = last[dst_node];
-			last[dst_node]+=size;
-			STARPU_ASSERT(last[dst_node] >= addr);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
-#else
-			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-			starpu_cuda_set_device(devid);
-#else
-			struct _starpu_worker *worker = _starpu_get_local_worker_key();
-			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
-				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
-#endif
-			/* Check if there is free memory */
-			size_t cuda_mem_free, cuda_mem_total;
-			status = cudaMemGetInfo(&cuda_mem_free, &cuda_mem_total);
-			if (status == cudaSuccess &&
-					cuda_mem_free < (size*2))
-			{
-					addr = 0;
-					break;
-			}
-			status = cudaMalloc((void **)&addr, size);
-			if (!addr || (status != cudaSuccess))
-			{
-				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					STARPU_CUDA_REPORT_ERROR(status);
-				addr = 0;
-			}
-#endif
-			break;
-		}
-#endif
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	        case STARPU_OPENCL_RAM:
-		{
-#ifdef STARPU_SIMGRID
-				static uintptr_t last[STARPU_MAXNODES];
-				/* Sleep for the allocation */
-				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-				if (_starpu_simgrid_cuda_malloc_cost())
-					MSG_process_sleep(0.000175);
-				if (!last[dst_node])
-					last[dst_node] = 1<<10;
-				addr = last[dst_node];
-				last[dst_node]+=size;
-				STARPU_ASSERT(last[dst_node] >= addr);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
-#else
-                                int ret;
-				cl_mem ptr;
-
-				ret = starpu_opencl_allocate_memory(_starpu_memory_node_get_devid(dst_node), &ptr, size, CL_MEM_READ_WRITE);
-				if (ret)
-				{
-					addr = 0;
-				}
-				else
-				{
-					addr = (uintptr_t)ptr;
-				}
-#endif
-			break;
-		}
-#endif
-	        case STARPU_DISK_RAM:
-		{
-			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
-			break;
-		}
-
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
-				addr = 0;
-			break;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		case STARPU_MPI_MS_RAM:
-			if (_starpu_mpi_src_allocate_memory((void **)(&addr), size, dst_node))
-				addr = 0;
-			break;
-#endif
-#ifdef STARPU_USE_SCC
-		case STARPU_SCC_RAM:
-			if (_starpu_scc_allocate_memory((void **)(&addr), size, dst_node))
-				addr = 0;
-			break;
-#endif
-		default:
-			STARPU_ABORT();
-	}
+	enum starpu_node_kind node_kind = starpu_node_get_kind(dst_node);
+	if (_node_ops[node_kind].malloc_on_node)
+		return _node_ops[node_kind].malloc_on_node(dst_node, size, flags);
+	else
+		STARPU_ABORT_MSG("No malloc_on_node function defined for node %s\n", _starpu_node_get_prefix(node_kind));
 
 	if (addr == 0)
 	{
@@ -730,108 +607,19 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	return addr;
 }
 
-void
-_starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
 	int count = flags & STARPU_MALLOC_COUNT;
 	flags &= ~STARPU_MALLOC_COUNT;
-	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
-	switch(kind)
-	{
-		case STARPU_CPU_RAM:
-			_starpu_free_flags_on_node(dst_node, (void*)addr, size,
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-						   flags & ~STARPU_MALLOC_PINNED
-#else
-						   flags
-#endif
-				);
-			break;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-		case STARPU_CUDA_RAM:
-		{
-#ifdef STARPU_SIMGRID
-			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			/* Sleep for the free */
-			if (_starpu_simgrid_cuda_malloc_cost())
-				MSG_process_sleep(0.000750);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
-			/* CUDA also synchronizes roughly everything on cudaFree */
-			_starpu_simgrid_sync_gpus();
-#else
-			cudaError_t err;
-			unsigned devid = _starpu_memory_node_get_devid(dst_node);
-#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-			starpu_cuda_set_device(devid);
-#else
-			struct _starpu_worker *worker = _starpu_get_local_worker_key();
-			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
-				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
-#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
-			err = cudaFree((void*)addr);
-#ifdef STARPU_OPENMP
-			/* When StarPU is used as Open Runtime support,
-			 * starpu_omp_shutdown() will usually be called from a
-			 * destructor, in which case cudaThreadExit() reports a
-			 * cudaErrorCudartUnloading here. There should not
-			 * be any remaining tasks running at this point so
-			 * we can probably ignore it without much consequences. */
-			if (STARPU_UNLIKELY(err != cudaSuccess && err != cudaErrorCudartUnloading))
-				STARPU_CUDA_REPORT_ERROR(err);
-#else
-			if (STARPU_UNLIKELY(err != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(err);
-#endif /* STARPU_OPENMP */
-#endif /* STARPU_SIMGRID */
-			break;
-		}
-#endif /* STARPU_USE_CUDA || STARPU_SIMGRID */
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-                case STARPU_OPENCL_RAM:
-		{
-#ifdef STARPU_SIMGRID
-			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-			/* Sleep for the free */
-			if (_starpu_simgrid_cuda_malloc_cost())
-				MSG_process_sleep(0.000750);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
-#else
-			cl_int err;
-                        err = clReleaseMemObject((void*)addr);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS))
-				STARPU_OPENCL_REPORT_ERROR(err);
-#endif
-                        break;
-		}
-#endif
-	        case STARPU_DISK_RAM:
-		{
-			_starpu_disk_free (dst_node, (void *) addr , size);
-			break;
-		}
+	enum starpu_node_kind node_kind = starpu_node_get_kind(dst_node);
+	if (_node_ops[node_kind].free_on_node)
+		_node_ops[node_kind].free_on_node(dst_node, addr, size, flags);
+	else
+		STARPU_ABORT_MSG("No free_on_node function defined for node %s\n", _starpu_node_get_prefix(node_kind));
 
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-			_starpu_mic_free_memory((void*) addr, size, dst_node);
-			break;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        case STARPU_MPI_MS_RAM:
-            _starpu_mpi_source_free_memory((void*) addr, dst_node);
-            break;
-#endif
-#ifdef STARPU_USE_SCC
-		case STARPU_SCC_RAM:
-			_starpu_scc_free_memory((void *) addr, dst_node);
-			break;
-#endif
-		default:
-			STARPU_ABORT();
-	}
 	if (count)
 		starpu_memory_deallocate(dst_node, size);
-
 }
 
 int
@@ -983,10 +771,10 @@ static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node, int flags)
 static int _starpu_malloc_should_suballoc(unsigned dst_node, size_t size, int flags)
 {
 	return size <= CHUNK_ALLOC_MAX &&
-			(   starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
-			|| (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
-			    && _starpu_malloc_should_pin(flags))
-			);
+		(starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
+		 || (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
+		     && _starpu_malloc_should_pin(flags))
+		 );
 }
 
 uintptr_t

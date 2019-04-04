@@ -37,6 +37,8 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/node_ops.h>
+
 #include <common/uthash.h>
 
 #ifdef STARPU_HAVE_HWLOC
@@ -2969,6 +2971,7 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 	/* for the data management library */
 	_starpu_memory_nodes_init();
 	_starpu_datastats_init();
+	_starpu_node_ops_init();
 
 	_starpu_init_workers_binding_and_memory(config, no_mp_config);
 
