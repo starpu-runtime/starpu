@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015,2017                           Inria
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2010,2012-2018                           Université de Bordeaux
+ * Copyright (C) 2010,2012-2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -259,7 +259,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
-	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
+	if (!*end || !strcmp(process_name, "wait for mpi transfer") || !strcmp(process_name, "main"))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -281,7 +281,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
-	if (!*end || !strcmp(process_name, "wait for mpi transfer"))
+	if (!*end || !strcmp(process_name, "wait for mpi transfer") || !strcmp(process_name, "main"))
 		/* Special-case the SMPI processes */
 		array = smpi_process_get_user_data();
 	else
