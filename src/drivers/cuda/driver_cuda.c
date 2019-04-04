@@ -77,6 +77,7 @@ static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_USE_CUDA */
 #ifdef STARPU_SIMGRID
 static unsigned task_finished[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+static starpu_pthread_mutex_t cuda_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif /* STARPU_SIMGRID */
 
 static enum initialization cuda_device_init[STARPU_MAXCUDADEVS];

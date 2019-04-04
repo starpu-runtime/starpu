@@ -573,11 +573,6 @@ int starpu_free(void *A)
 	return starpu_free_flags(A, 0, STARPU_MALLOC_PINNED);
 }
 
-#ifdef STARPU_SIMGRID
-static starpu_pthread_mutex_t cuda_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;
