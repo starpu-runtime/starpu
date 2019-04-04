@@ -28,9 +28,15 @@ int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_n
 
 unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_channel);
-int _starpu_disk_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_disk_copy_data_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_disk_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+
+int _starpu_disk_copy_data_from_disk_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_disk_copy_data_from_disk_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_disk_copy_data_from_cpu_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+
+int _starpu_disk_copy_interface_from_disk_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_disk_copy_interface_from_disk_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_disk_copy_interface_from_cpu_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+
 int _starpu_disk_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);

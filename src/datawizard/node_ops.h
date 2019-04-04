@@ -34,7 +34,7 @@ typedef int (*copy_interface_t)(uintptr_t src_ptr, size_t src_offset, unsigned s
 struct _starpu_node_ops
 {
 	copy_data_func_t copy_data_to[STARPU_MPI_MS_RAM+1];
-	copy_interface_t copy_interface;
+	copy_interface_t copy_interface_to[STARPU_MPI_MS_RAM+1];
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 	int (*direct_access_supported)(unsigned node, unsigned handling_node);
