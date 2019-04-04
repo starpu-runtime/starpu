@@ -1286,6 +1286,7 @@ int _starpu_opencl_direct_access_supported(unsigned node, unsigned handling_node
 	(void)handling_node;
 	return 0;
 }
+#endif /* STARPU_USE_OPENCL */
 
 uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
@@ -1338,5 +1339,3 @@ void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size,
 		STARPU_OPENCL_REPORT_ERROR(err);
 #endif
 }
-
-#endif /* STARPU_USE_OPENCL */
