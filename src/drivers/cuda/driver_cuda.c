@@ -1453,6 +1453,8 @@ int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node)
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 }
 
+#endif /* STARPU_USE_CUDA */
+
 uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;
@@ -1548,7 +1550,6 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 #endif /* STARPU_SIMGRID */
 #endif
 }
-#endif
 
 struct _starpu_driver_ops _starpu_driver_cuda_ops =
 {
