@@ -300,13 +300,14 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 {
 	struct _starpu_async_channel *async_channel = async_data;
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
-	if (_node_ops[src_kind].copy_interface)
+	if (_node_ops[src_kind].copy_interface_to[dst_kind])
 	{
-		return _node_ops[src_kind].copy_interface(src, src_offset, src_node,
-							  dst, dst_offset, dst_node,
-							  size,
-							  async_channel);
+		return _node_ops[src_kind].copy_interface_to[dst_kind](src, src_offset, src_node,
+								       dst, dst_offset, dst_node,
+								       size,
+								       async_channel);
 	}
 	else
 	{

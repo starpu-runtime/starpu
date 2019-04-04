@@ -49,9 +49,6 @@ void _starpu_scc_common_report_rcce_error(const char *func, const char *file, co
 
 int _starpu_scc_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
 
-int _starpu_scc_common_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_scc_common_copy_data_to_scc(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-
 #endif /* STARPU_USE_SCC */
 
 

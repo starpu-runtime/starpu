@@ -54,9 +54,6 @@ void _starpu_mpi_common_barrier(void);
 
 void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
 
-int _starpu_mpi_common_copy_data_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_mpi_common_copy_data_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #endif	/* __DRIVER_MPI_COMMON_H__ */

@@ -326,40 +326,97 @@ void *_starpu_scc_src_worker(void *arg)
 	return NULL;
 }
 
-int _starpu_scc_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_scc_copy_data_from_scc_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	(void) req;
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->scc_sink_to_src)
+		ret = copy_methods->scc_sink_to_src(src_interface, src_node, dst_interface, dst_node);
+	else
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	return ret;
+}
+
+int _starpu_scc_copy_data_from_scc_to_scc(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	(void) req;
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_SCC_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->scc_sink_to_sink)
+		ret = copy_methods->scc_sink_to_sink(src_interface, src_node, dst_interface, dst_node);
+	else
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	return ret;
+}
+
+int _starpu_scc_copy_data_from_cpu_to_scc(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	(void) req;
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_SCC_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->scc_src_to_sink)
+		ret = copy_methods->scc_src_to_sink(src_interface, src_node, dst_interface, dst_node);
+	else
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	return ret;
+}
+
+int _starpu_scc_copy_interface_from_scc_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
-	STARPU_ASSERT(src_kind == STARPU_SCC_RAM);
-
 	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_CPU_RAM);
 
-	if (dst_kind == STARPU_CPU_RAM)
-	{
-		return _starpu_scc_copy_sink_to_src((void*) (src + src_offset), src_node,
-						    (void*) (dst + dst_offset), dst_node,
-						    size);
+	return _starpu_scc_copy_sink_to_src((void*) (src + src_offset), src_node,
+					    (void*) (dst + dst_offset), dst_node,
+					    size);
+}
 
-	}
-	else if (dst_kind == STARPU_SCC_RAM)
-	{
-		return _starpu_scc_copy_sink_to_sink((void*) (src + src_offset), src_node,
-						     (void*) (dst + dst_offset), dst_node,
-						     size);
-	}
-	else
-	{
-		STARPU_ABORT();
-		return -1;
-	}
+int _starpu_scc_copy_interface_from_scc_to_scc(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_SCC_RAM && dst_kind == STARPU_SCC_RAM);
+
+	return _starpu_scc_copy_sink_to_sink((void*) (src + src_offset), src_node,
+					     (void*) (dst + dst_offset), dst_node,
+					     size);
+}
+
+int _starpu_scc_copy_interface_from_cpu_to_scc(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_SCC_RAM);
+
+	return _starpu_scc_copy_src_to_sink((void*) (src + src_offset), src_node,
+					    (void*) (dst + dst_offset), dst_node,
+					    size);
 }
 
 int _starpu_scc_direct_access_supported(unsigned node, unsigned handling_node)
 {
+	(void) node;
+	(void) handling_node;
 	return 1;
 }
 
 uintptr_t _starpu_scc_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
+	(void) flags;
 	uintptr_t addr = 0;
 	if (_starpu_scc_allocate_memory((void **)(&addr), size, dst_node))
 		addr = 0;
@@ -368,5 +425,6 @@ uintptr_t _starpu_scc_malloc_on_node(unsigned dst_node, size_t size, int flags)
 
 void _starpu_scc_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	(void) flags;
 	_starpu_scc_free_memory((void *) addr, dst_node);
 }
