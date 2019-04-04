@@ -50,9 +50,9 @@ void _starpu_node_ops_init()
 	_node_ops[STARPU_CUDA_RAM].copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda;
 	_node_ops[STARPU_CUDA_RAM].copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu;
 	_node_ops[STARPU_CPU_RAM].copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda;
-	_node_ops[STARPU_CUDA_RAM].direct_access_supported = _starpu_cuda_direct_access_supported;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	_node_ops[STARPU_CUDA_RAM].direct_access_supported = _starpu_cuda_direct_access_supported;
 	_node_ops[STARPU_CUDA_RAM].malloc_on_node = _starpu_cuda_malloc_on_node;
 	_node_ops[STARPU_CUDA_RAM].free_on_node = _starpu_cuda_free_on_node;
 #endif
@@ -66,9 +66,9 @@ void _starpu_node_ops_init()
 	_node_ops[STARPU_OPENCL_RAM].copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_opencl_to_opencl;
 	_node_ops[STARPU_OPENCL_RAM].copy_interface_to[STARPU_CPU_RAM] = _starpu_opencl_copy_interface_from_opencl_to_cpu;
 	_node_ops[STARPU_CPU_RAM].copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl;
-	_node_ops[STARPU_OPENCL_RAM].direct_access_supported = _starpu_opencl_direct_access_supported;
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	_node_ops[STARPU_OPENCL_RAM].direct_access_supported = _starpu_opencl_direct_access_supported;
 	_node_ops[STARPU_OPENCL_RAM].malloc_on_node = _starpu_opencl_malloc_on_node;
 	_node_ops[STARPU_OPENCL_RAM].free_on_node = _starpu_opencl_free_on_node;
 #endif
