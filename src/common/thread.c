@@ -259,7 +259,8 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
-	if (!*end || !strcmp(process_name, "wait for mpi transfer") || !strcmp(process_name, "main"))
+	if (!*end || !strcmp(process_name, "wait for mpi transfer") ||
+			(!strcmp(process_name, "main") && _starpu_simgrid_running_smpi()))
 		/* Special-case the SMPI process */
 		array = smpi_process_get_user_data();
 	else
@@ -281,7 +282,8 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 	char *end;
 	/* Test whether it is an MPI rank */
 	strtol(process_name, &end, 10);
-	if (!*end || !strcmp(process_name, "wait for mpi transfer") || !strcmp(process_name, "main"))
+	if (!*end || !strcmp(process_name, "wait for mpi transfer") ||
+			(!strcmp(process_name, "main") && _starpu_simgrid_running_smpi()))
 		/* Special-case the SMPI processes */
 		array = smpi_process_get_user_data();
 	else
