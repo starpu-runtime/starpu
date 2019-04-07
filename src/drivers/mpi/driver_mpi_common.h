@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017,2019                                CNRS
  * Copyright (C) 2015                                     Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,13 +47,12 @@ void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, i
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event);
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
 
-int _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
-void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event);
+unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
+void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);
 
 void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
-
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
 

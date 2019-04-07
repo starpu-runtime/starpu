@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                Université de Bordeaux
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -335,7 +335,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 		}
 		else
 		{
-			char binary_file_name[1024];
+			char binary_file_name[2048];
 			char *binary;
 			size_t binary_len;
 			FILE *fh;

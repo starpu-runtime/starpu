@@ -322,7 +322,7 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 /**
    Return the child_ops of the partition obtained with starpu_bcsr_filter_canonical_block().
 */
-void starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
+struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /** @} */
 

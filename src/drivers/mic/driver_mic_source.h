@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2012,2017                                Inria
  * Copyright (C) 2013,2014,2017                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -74,12 +74,22 @@ int _starpu_mic_copy_ram_to_mic_async(void *src, unsigned src_node STARPU_ATTRIB
 int _starpu_mic_copy_mic_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size);
 
 int _starpu_mic_init_event(struct _starpu_mic_async_event *event, unsigned memory_node);
-void _starpu_mic_wait_request_completion(struct _starpu_mic_async_event *event);
-int _starpu_mic_request_is_complete(struct _starpu_mic_async_event *event);
 
 void *_starpu_mic_src_worker(void *arg);
 
 #endif /* STARPU_USE_MIC */
 
+unsigned _starpu_mic_test_request_completion(struct _starpu_async_channel *async_channel);
+void _starpu_mic_wait_request_completion(struct _starpu_async_channel *async_channel);
+
+int _starpu_mic_copy_data_from_mic_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_mic_copy_data_from_cpu_to_mic(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+
+int _starpu_mic_copy_interface_from_mic_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_mic_copy_interface_from_cpu_to_mic(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+
+int _starpu_mic_direct_access_supported(unsigned node, unsigned handling_node);
+uintptr_t _starpu_mic_malloc_on_node(unsigned dst_node, size_t size, int flags);
+void _starpu_mic_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 #endif /* __DRIVER_MIC_SOURCE_H__ */

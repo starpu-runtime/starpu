@@ -154,7 +154,7 @@ LIST_TYPE(_starpu_worker,
 	unsigned worker_is_initialized;
 	enum _starpu_worker_status status; /**< what is the worker doing now ? (eg. CALLBACK) */
 	unsigned state_keep_awake; /**< !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
-	char name[64];
+	char name[128];
 	char short_name[32];
 	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;
@@ -666,6 +666,8 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
+
+enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type);
 
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 

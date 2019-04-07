@@ -77,6 +77,7 @@ static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 #endif /* STARPU_USE_CUDA */
 #ifdef STARPU_SIMGRID
 static unsigned task_finished[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+static starpu_pthread_mutex_t cuda_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif /* STARPU_SIMGRID */
 
 static enum initialization cuda_device_init[STARPU_MAXCUDADEVS];
@@ -718,9 +719,9 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		const char *devname = "Simgrid";
 #else
 		/* get the device's name */
-		char devname[128];
-		strncpy(devname, props[devid].name, 127);
-		devname[127] = 0;
+		char devname[64];
+		strncpy(devname, props[devid].name, 63);
+		devname[63] = 0;
 #endif
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
@@ -1213,6 +1214,342 @@ int _starpu_cuda_driver_run_once_from_worker(struct _starpu_worker *worker)
 int _starpu_cuda_driver_deinit_from_worker(struct _starpu_worker *worker)
 {
 	return _starpu_cuda_driver_deinit(worker->set);
+}
+
+#ifdef STARPU_USE_CUDA
+unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *async_channel)
+{
+	cudaEvent_t event;
+	cudaError_t cures;
+	unsigned success;
+
+	event = (*async_channel).event.cuda_event;
+	cures = cudaEventQuery(event);
+	success = (cures == cudaSuccess);
+
+	if (success)
+		cudaEventDestroy(event);
+	else if (cures != cudaErrorNotReady)
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	return success;
+}
+
+void _starpu_cuda_wait_request_completion(struct _starpu_async_channel *async_channel)
+{
+	cudaEvent_t event;
+	cudaError_t cures;
+
+	event = (*async_channel).event.cuda_event;
+
+	cures = cudaEventSynchronize(event);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaEventDestroy(event);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+}
+
+int _starpu_cuda_copy_data_from_cuda_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	int ret = 1;
+	cudaError_t cures;
+	cudaStream_t stream;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+/* CUDA - CUDA transfer */
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !(copy_methods->cuda_to_cuda_async || copy_methods->any_to_any))
+	{
+		STARPU_ASSERT(copy_methods->cuda_to_cuda || copy_methods->any_to_any);
+		/* this is not associated to a request so it's synchronous */
+		if (copy_methods->cuda_to_cuda)
+			copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_CUDA_RAM;
+		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+
+		stream = starpu_cuda_get_peer_transfer_stream(src_node, dst_node);
+		if (copy_methods->cuda_to_cuda_async)
+			ret = copy_methods->cuda_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+
+		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+	}
+	return ret;
+}
+
+int _starpu_cuda_copy_data_from_cuda_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 1;
+	cudaError_t cures;
+	cudaStream_t stream;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	/* only the proper CUBLAS thread can initiate this directly ! */
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
+#endif
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !(copy_methods->cuda_to_ram_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->cuda_to_ram || copy_methods->any_to_any);
+		if (copy_methods->cuda_to_ram)
+			copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_CUDA_RAM;
+		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+
+		stream = starpu_cuda_get_out_transfer_stream(src_node);
+		if (copy_methods->cuda_to_ram_async)
+			ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+
+		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+	}
+	return ret;
+}
+
+int _starpu_cuda_copy_data_from_cpu_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	int ret = 1;
+	cudaError_t cures;
+	cudaStream_t stream;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	/* STARPU_CPU_RAM -> CUBLAS_RAM */
+	/* only the proper CUBLAS thread can initiate this ! */
+#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
+#endif
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
+	    !(copy_methods->ram_to_cuda_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->ram_to_cuda || copy_methods->any_to_any);
+		if (copy_methods->ram_to_cuda)
+			copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_CUDA_RAM;
+		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		if (STARPU_UNLIKELY(cures != cudaSuccess))
+			STARPU_CUDA_REPORT_ERROR(cures);
+
+		stream = starpu_cuda_get_in_transfer_stream(dst_node);
+		if (copy_methods->ram_to_cuda_async)
+			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+
+		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		if (STARPU_UNLIKELY(cures != cudaSuccess))
+			STARPU_CUDA_REPORT_ERROR(cures);
+	}
+	return ret;
+}
+
+int _starpu_cuda_copy_interface_from_cuda_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CPU_RAM);
+
+	return starpu_cuda_copy_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   size,
+					   async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
+					   cudaMemcpyDeviceToHost);
+}
+
+int _starpu_cuda_copy_interface_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	return starpu_cuda_copy_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   size,
+					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
+					   cudaMemcpyDeviceToDevice);
+}
+
+int _starpu_cuda_copy_interface_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	return starpu_cuda_copy_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   size,
+					   async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
+					   cudaMemcpyHostToDevice);
+}
+
+#endif /* STARPU_USE_CUDA */
+
+int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	/* GPUs not always allow direct remote access: if CUDA4
+	 * is enabled, we allow two CUDA devices to communicate. */
+#ifdef STARPU_SIMGRID
+	(void) node;
+	if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
+	{
+		msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+		const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+		return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
+	}
+	else
+		return 0;
+#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	(void) node;
+	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
+	return kind == STARPU_CUDA_RAM;
+#else /* STARPU_HAVE_CUDA_MEMCPY_PEER */
+	/* Direct GPU-GPU transfers are not allowed in general */
+	(void) node;
+	(void) handling_node;
+	return 0;
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
+}
+
+uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	uintptr_t addr = 0;
+	(void) flags;
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+
+#ifdef STARPU_SIMGRID
+	static uintptr_t last[STARPU_MAXNODES];
+#ifdef STARPU_DEVEL
+#warning TODO: record used memory, using a simgrid property to know the available memory
+#endif
+	/* Sleep for the allocation */
+	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+	if (_starpu_simgrid_cuda_malloc_cost())
+		MSG_process_sleep(0.000175);
+	if (!last[dst_node])
+		last[dst_node] = 1<<10;
+	addr = last[dst_node];
+	last[dst_node]+=size;
+	STARPU_ASSERT(last[dst_node] >= addr);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+#else
+	unsigned devid = starpu_memory_node_get_devid(dst_node);
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	starpu_cuda_set_device(devid);
+#else
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
+		STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
+#endif
+	/* Check if there is free memory */
+	size_t cuda_mem_free, cuda_mem_total;
+	cudaError_t status;
+	status = cudaMemGetInfo(&cuda_mem_free, &cuda_mem_total);
+	if (status == cudaSuccess && cuda_mem_free < (size*2))
+	{
+		addr = 0;
+	}
+	else
+	{
+		status = cudaMalloc((void **)&addr, size);
+		if (!addr || (status != cudaSuccess))
+		{
+			if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+				STARPU_CUDA_REPORT_ERROR(status);
+			addr = 0;
+		}
+	}
+#endif
+#endif
+	return addr;
+}
+
+void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	(void) size;
+	(void) flags;
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+#ifdef STARPU_SIMGRID
+	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+	/* Sleep for the free */
+	if (_starpu_simgrid_cuda_malloc_cost())
+		MSG_process_sleep(0.000750);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+	/* CUDA also synchronizes roughly everything on cudaFree */
+	_starpu_simgrid_sync_gpus();
+#else
+	cudaError_t err;
+	unsigned devid = starpu_memory_node_get_devid(dst_node);
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	starpu_cuda_set_device(devid);
+#else
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
+		STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
+#endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
+	err = cudaFree((void*)addr);
+#ifdef STARPU_OPENMP
+	/* When StarPU is used as Open Runtime support,
+	 * starpu_omp_shutdown() will usually be called from a
+	 * destructor, in which case cudaThreadExit() reports a
+	 * cudaErrorCudartUnloading here. There should not
+	 * be any remaining tasks running at this point so
+	 * we can probably ignore it without much consequences. */
+	if (STARPU_UNLIKELY(err != cudaSuccess && err != cudaErrorCudartUnloading))
+		STARPU_CUDA_REPORT_ERROR(err);
+#else
+	if (STARPU_UNLIKELY(err != cudaSuccess))
+		STARPU_CUDA_REPORT_ERROR(err);
+#endif /* STARPU_OPENMP */
+#endif /* STARPU_SIMGRID */
+#endif
 }
 
 struct _starpu_driver_ops _starpu_driver_cuda_ops =

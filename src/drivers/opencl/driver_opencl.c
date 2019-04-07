@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014-2017,2019                 Inria
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -61,6 +61,7 @@ static cl_event task_events[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 #endif
 #ifdef STARPU_SIMGRID
 static unsigned task_finished[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
+static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif /* STARPU_SIMGRID */
 
 #define _STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err) do { if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err); } while(0)
@@ -416,36 +417,34 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 	cl_int err;
 	int ret;
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	if (src_kind == STARPU_OPENCL_RAM && dst_kind == STARPU_CPU_RAM)
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
-		err = starpu_opencl_copy_opencl_to_ram(
-				(cl_mem) src, src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size, src_offset, event, &ret);
+		err = starpu_opencl_copy_opencl_to_ram((cl_mem) src, src_node,
+						       (void*) (dst + dst_offset), dst_node,
+						       size, src_offset, event, &ret);
 		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 		return ret;
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-		err = starpu_opencl_copy_ram_to_opencl(
-				(void*) (src + src_offset), src_node,
-				(cl_mem) dst, dst_node,
-				size, dst_offset, event, &ret);
-		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
-		return ret;
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
-		err = starpu_opencl_copy_opencl_to_opencl(
-				(cl_mem) src, src_node, src_offset,
-				(cl_mem) dst, dst_node, dst_offset,
-				size, event, &ret);
-		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
-		return ret;
-
-	default:
-		STARPU_ABORT();
-		break;
 	}
+
+	if (src_kind == STARPU_CPU_RAM && dst_kind == STARPU_OPENCL_RAM)
+	{
+		err = starpu_opencl_copy_ram_to_opencl((void*) (src + src_offset), src_node,
+						       (cl_mem) dst, dst_node,
+						       size, dst_offset, event, &ret);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+		return ret;
+	}
+
+	if (src_kind == STARPU_OPENCL_RAM && (dst_kind == STARPU_CPU_RAM || dst_kind == STARPU_OPENCL_RAM))
+	{
+		err = starpu_opencl_copy_opencl_to_opencl((cl_mem) src, src_node, src_offset,
+							  (cl_mem) dst, dst_node, dst_offset,
+							  size, event, &ret);
+		_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+		return ret;
+	}
+
+	STARPU_ABORT();
 }
 
 #if 0
@@ -642,8 +641,8 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	const char *devname = "Simgrid";
 #else
 	/* get the device's name */
-	char devname[128];
-	_starpu_opencl_get_device_name(devid, devname, 128);
+	char devname[64];
+	_starpu_opencl_get_device_name(devid, devname, 64);
 #endif
 	snprintf(worker->name, sizeof(worker->name), "OpenCL %d (%s %.1f GiB)", devid, devname, size);
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
@@ -1096,6 +1095,37 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 }
 
 #ifdef STARPU_USE_OPENCL
+unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *async_channel)
+{
+	cl_int event_status;
+	cl_event opencl_event = (*async_channel).event.opencl_event;
+	if (opencl_event == NULL) STARPU_ABORT();
+	cl_int err = clGetEventInfo(opencl_event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(event_status), &event_status, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+	if (event_status < 0)
+		STARPU_OPENCL_REPORT_ERROR(event_status);
+	if (event_status == CL_COMPLETE)
+	{
+		err = clReleaseEvent(opencl_event);
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	return (event_status == CL_COMPLETE);
+}
+
+void _starpu_opencl_wait_request_completion(struct _starpu_async_channel *async_channel)
+{
+	cl_int err;
+	if ((*async_channel).event.opencl_event == NULL)
+		STARPU_ABORT();
+	err = clWaitForEvents(1, &((*async_channel).event.opencl_event));
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+	err = clReleaseEvent((*async_channel).event.opencl_event);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+}
+
 int _starpu_run_opencl(struct _starpu_worker *workerarg)
 {
 	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
@@ -1117,4 +1147,198 @@ struct _starpu_driver_ops _starpu_driver_opencl_ops =
 	.deinit = _starpu_opencl_driver_deinit
 };
 
+int _starpu_opencl_copy_data_from_opencl_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_OPENCL_RAM && dst_kind == STARPU_OPENCL_RAM);
+
+	int ret = 1;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	/* STARPU_OPENCL_RAM -> STARPU_OPENCL_RAM */
+	STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node || starpu_worker_get_local_memory_node() == src_node);
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() || !(copy_methods->opencl_to_opencl_async || copy_methods->any_to_any))
+	{
+		STARPU_ASSERT(copy_methods->opencl_to_opencl || copy_methods->any_to_any);
+		/* this is not associated to a request so it's synchronous */
+		if (copy_methods->opencl_to_opencl)
+			copy_methods->opencl_to_opencl(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_OPENCL_RAM;
+		if (copy_methods->opencl_to_opencl_async)
+			ret = copy_methods->opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_opencl_copy_data_from_opencl_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_OPENCL_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 1;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	/* OpenCL -> RAM */
+	STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() || !(copy_methods->opencl_to_ram_async || copy_methods->any_to_any))
+	{
+		STARPU_ASSERT(copy_methods->opencl_to_ram || copy_methods->any_to_any);
+		/* this is not associated to a request so it's synchronous */
+		if (copy_methods->opencl_to_ram)
+			copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_OPENCL_RAM;
+		if (copy_methods->opencl_to_ram_async)
+			ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_opencl_copy_data_from_cpu_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_OPENCL_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	/* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
+	STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() || !(copy_methods->ram_to_opencl_async || copy_methods->any_to_any))
+	{
+		STARPU_ASSERT(copy_methods->ram_to_opencl || copy_methods->any_to_any);
+		/* this is not associated to a request so it's synchronous */
+		if (copy_methods->ram_to_opencl)
+			copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_OPENCL_RAM;
+		if (copy_methods->ram_to_opencl_async)
+			ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_opencl_copy_interface_from_opencl_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_OPENCL_RAM && dst_kind == STARPU_OPENCL_RAM);
+
+	return starpu_opencl_copy_async_sync(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     size,
+					     &async_channel->event.opencl_event);
+}
+
+int _starpu_opencl_copy_interface_from_opencl_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_OPENCL_RAM && dst_kind == STARPU_CPU_RAM);
+
+	return starpu_opencl_copy_async_sync(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     size,
+					     &async_channel->event.opencl_event);
+}
+
+int _starpu_opencl_copy_interface_from_cpu_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_OPENCL_RAM);
+
+	return starpu_opencl_copy_async_sync(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     size,
+					     &async_channel->event.opencl_event);
+}
+
 #endif /* STARPU_USE_OPENCL */
+
+int _starpu_opencl_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	(void)node;
+	(void)handling_node;
+	return 0;
+}
+
+uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	(void)flags;
+	uintptr_t addr = 0;
+#ifdef STARPU_SIMGRID
+	static uintptr_t last[STARPU_MAXNODES];
+	/* Sleep for the allocation */
+	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+	if (_starpu_simgrid_cuda_malloc_cost())
+		MSG_process_sleep(0.000175);
+	if (!last[dst_node])
+		last[dst_node] = 1<<10;
+	addr = last[dst_node];
+	last[dst_node]+=size;
+	STARPU_ASSERT(last[dst_node] >= addr);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
+	int ret;
+	cl_mem ptr;
+
+	ret = starpu_opencl_allocate_memory(starpu_memory_node_get_devid(dst_node), &ptr, size, CL_MEM_READ_WRITE);
+	if (ret)
+	{
+		addr = 0;
+	}
+	else
+	{
+		addr = (uintptr_t)ptr;
+	}
+#endif
+	return addr;
+}
+
+void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	(void)flags;
+	(void)size;
+	(void)dst_node;
+#ifdef STARPU_SIMGRID
+	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+	/* Sleep for the free */
+	if (_starpu_simgrid_cuda_malloc_cost())
+		MSG_process_sleep(0.000750);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
+	cl_int err;
+	err = clReleaseMemObject((void*)addr);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS))
+		STARPU_OPENCL_REPORT_ERROR(err);
+#endif
+}

@@ -380,3 +380,169 @@ void *_starpu_mpi_src_worker(void *arg)
 
         return NULL;
 }
+
+int _starpu_mpi_copy_data_from_mpi_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_ram_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->mpi_ms_to_ram || copy_methods->any_to_any);
+		if (copy_methods->mpi_ms_to_ram)
+			copy_methods->mpi_ms_to_ram(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MPI_MS_RAM;
+		if(copy_methods->mpi_ms_to_ram_async)
+			ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_mpi_copy_data_from_mpi_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_mpi_ms_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->mpi_ms_to_mpi_ms || copy_methods->any_to_any);
+		if (copy_methods->mpi_ms_to_mpi_ms)
+			copy_methods->mpi_ms_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MPI_MS_RAM;
+		if(copy_methods->mpi_ms_to_mpi_ms_async)
+			ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_mpi_copy_data_from_cpu_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->ram_to_mpi_ms_async || copy_methods->any_to_any))
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->ram_to_mpi_ms || copy_methods->any_to_any);
+		if (copy_methods->ram_to_mpi_ms)
+			copy_methods->ram_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		req->async_channel.type = STARPU_MPI_MS_RAM;
+		if(copy_methods->ram_to_mpi_ms_async)
+			ret = copy_methods->ram_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		else
+		{
+			STARPU_ASSERT(copy_methods->any_to_any);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+		}
+	}
+	return ret;
+}
+
+int _starpu_mpi_copy_interface_from_mpi_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
+
+	if (async_channel)
+		return _starpu_mpi_copy_mpi_to_ram_async((void*) (src + src_offset), src_node,
+							 (void*) (dst + dst_offset), dst_node,
+							 size, async_channel);
+	else
+		return _starpu_mpi_copy_mpi_to_ram_sync((void*) (src + src_offset), src_node,
+							(void*) (dst + dst_offset), dst_node,
+							size);
+}
+
+int _starpu_mpi_copy_interface_from_mpi_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	if (async_channel)
+		return _starpu_mpi_copy_sink_to_sink_async((void*) (src + src_offset), src_node,
+							   (void*) (dst + dst_offset), dst_node,
+							   size, async_channel);
+	else
+		return _starpu_mpi_copy_sink_to_sink_sync((void*) (src + src_offset), src_node,
+							  (void*) (dst + dst_offset), dst_node,
+							  size);
+}
+
+int _starpu_mpi_copy_interface_from_cpu_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	if (async_channel)
+		return _starpu_mpi_copy_ram_to_mpi_async((void*) (src + src_offset), src_node,
+							 (void*) (dst + dst_offset), dst_node,
+							 size, async_channel);
+	else
+		return _starpu_mpi_copy_ram_to_mpi_sync((void*) (src + src_offset), src_node,
+							(void*) (dst + dst_offset), dst_node,
+							size);
+}
+
+int _starpu_mpi_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	(void) node;
+	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
+	return kind == STARPU_MPI_MS_RAM;
+}
+
+uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	(void) flags;
+	uintptr_t addr = 0;
+	if (_starpu_mpi_src_allocate_memory((void **)(&addr), size, dst_node))
+		addr = 0;
+	return addr;
+}
+
+void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	(void) flags;
+	(void) size;
+	_starpu_mpi_source_free_memory((void*) addr, dst_node);
+}

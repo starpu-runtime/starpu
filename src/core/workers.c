@@ -2601,3 +2601,25 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 	_starpu_config.conf.callback_worker_waking_up = callback;
 }
 #endif
+
+enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type)
+{
+	switch(type)
+	{
+		case STARPU_CPU_WORKER:
+			return STARPU_CPU_RAM;
+		case STARPU_CUDA_WORKER:
+			return STARPU_CUDA_RAM;
+		case STARPU_OPENCL_WORKER:
+			return STARPU_OPENCL_RAM;
+			break;
+		case STARPU_MIC_WORKER:
+			return STARPU_MIC_RAM;
+		case STARPU_SCC_WORKER:
+			return STARPU_SCC_RAM;
+		case STARPU_MPI_MS_WORKER:
+			return STARPU_MPI_MS_RAM;
+		default:
+			STARPU_ABORT();
+	}
+}

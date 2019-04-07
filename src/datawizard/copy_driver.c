@@ -26,13 +26,15 @@
 #include <drivers/mpi/driver_mpi_sink.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/mic/driver_mic_source.h>
 #include <common/fxt.h>
-#include "copy_driver.h"
-#include "memalloc.h"
+#include <datawizard/copy_driver.h>
+#include <datawizard/memalloc.h>
 #include <starpu_opencl.h>
 #include <starpu_cuda.h>
 #include <profiling/profiling.h>
 #include <core/disk.h>
+#include <datawizard/node_ops.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -146,8 +148,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *dst_replicate,
 				    struct _starpu_data_request *req)
 {
-	unsigned src_node = src_replicate->memory_node;
-	unsigned dst_node = dst_replicate->memory_node;
+	unsigned src_node = (unsigned)src_replicate->memory_node;
+	unsigned dst_node = (unsigned)dst_replicate->memory_node;
 
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
@@ -161,19 +163,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 
 	return _starpu_simgrid_transfer(handle->ops->get_size(handle), src_node, dst_node, req);
 #else /* !SIMGRID */
-
-	int ret = 0;
-
-	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-
-#ifdef STARPU_USE_CUDA
-	cudaError_t cures;
-	cudaStream_t stream;
-#endif
-
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
@@ -195,434 +186,14 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	}
 #endif
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	if (_node_ops[src_kind].copy_data_to[dst_kind])
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		/* STARPU_CPU_RAM -> STARPU_CPU_RAM */
-		if (copy_methods->ram_to_ram)
-			copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
-		break;
-#ifdef STARPU_USE_CUDA
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
-		/* only the proper CUBLAS thread can initiate this directly ! */
-#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
-#endif
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
-				!(copy_methods->cuda_to_ram_async || copy_methods->any_to_any))
-		{
-			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->cuda_to_ram || copy_methods->any_to_any);
-			if (copy_methods->cuda_to_ram)
-				copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_CUDA_RAM;
-			cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
-			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-
-			stream = starpu_cuda_get_out_transfer_stream(src_node);
-			if (copy_methods->cuda_to_ram_async)
-				ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-
-			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
-			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-		}
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-		/* STARPU_CPU_RAM -> CUBLAS_RAM */
-		/* only the proper CUBLAS thread can initiate this ! */
-#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
-#endif
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
-				!(copy_methods->ram_to_cuda_async || copy_methods->any_to_any))
-		{
-			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->ram_to_cuda || copy_methods->any_to_any);
-			if (copy_methods->ram_to_cuda)
-				copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_CUDA_RAM;
-			cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
-			if (STARPU_UNLIKELY(cures != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(cures);
-
-			stream = starpu_cuda_get_in_transfer_stream(dst_node);
-			if (copy_methods->ram_to_cuda_async)
-				ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-
-			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
-			if (STARPU_UNLIKELY(cures != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(cures);
-		}
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CUDA_RAM):
-		/* CUDA - CUDA transfer */
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
-				!(copy_methods->cuda_to_cuda_async || copy_methods->any_to_any))
-		{
-			STARPU_ASSERT(copy_methods->cuda_to_cuda || copy_methods->any_to_any);
-			/* this is not associated to a request so it's synchronous */
-			if (copy_methods->cuda_to_cuda)
-				copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_CUDA_RAM;
-			cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
-			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-
-			stream = starpu_cuda_get_peer_transfer_stream(src_node, dst_node);
-			if (copy_methods->cuda_to_cuda_async)
-				ret = copy_methods->cuda_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-
-			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
-			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-		}
-		break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
-		/* OpenCL -> RAM */
-		STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
-				!(copy_methods->opencl_to_ram_async || copy_methods->any_to_any))
-		{
-			STARPU_ASSERT(copy_methods->opencl_to_ram || copy_methods->any_to_any);
-			/* this is not associated to a request so it's synchronous */
-			if (copy_methods->opencl_to_ram)
-				copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_OPENCL_RAM;
-			if (copy_methods->opencl_to_ram_async)
-				ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-		}
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-		/* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
-		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
-				!(copy_methods->ram_to_opencl_async || copy_methods->any_to_any))
-		{
-			STARPU_ASSERT(copy_methods->ram_to_opencl || copy_methods->any_to_any);
-			/* this is not associated to a request so it's synchronous */
-			if (copy_methods->ram_to_opencl)
-				copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_OPENCL_RAM;
-			if (copy_methods->ram_to_opencl_async)
-				ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-		}
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
-		/* STARPU_OPENCL_RAM -> STARPU_OPENCL_RAM */
-		STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node || starpu_worker_get_local_memory_node() == src_node);
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_opencl_copy_disabled() ||
-				!(copy_methods->opencl_to_opencl_async || copy_methods->any_to_any))
-		{
-			STARPU_ASSERT(copy_methods->opencl_to_opencl || copy_methods->any_to_any);
-			/* this is not associated to a request so it's synchronous */
-			if (copy_methods->opencl_to_opencl)
-				copy_methods->opencl_to_opencl(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_OPENCL_RAM;
-			if (copy_methods->opencl_to_opencl_async)
-				ret = copy_methods->opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-		}
-		break;
-#endif
-#ifdef STARPU_USE_MIC
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
-		/* RAM -> MIC */
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
-				!(copy_methods->ram_to_mic_async || copy_methods->any_to_any))
-		{
-			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->ram_to_mic || copy_methods->any_to_any);
-			if (copy_methods->ram_to_mic)
-				copy_methods->ram_to_mic(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_MIC_RAM;
-			if (copy_methods->ram_to_mic_async)
-				ret = copy_methods->ram_to_mic_async(src_interface, src_node, dst_interface, dst_node);
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-			_starpu_mic_init_event(&(req->async_channel.event.mic_event), dst_node);
-		}
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
-		/* MIC -> RAM */
-		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
-				!(copy_methods->mic_to_ram_async || copy_methods->any_to_any))
-		{
-			/* this is not associated to a request so it's synchronous */
-			STARPU_ASSERT(copy_methods->mic_to_ram || copy_methods->any_to_any);
-			if (copy_methods->mic_to_ram)
-				copy_methods->mic_to_ram(src_interface, src_node, dst_interface, dst_node);
-			else
-				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		}
-		else
-		{
-			req->async_channel.type = STARPU_MIC_RAM;
-			if (copy_methods->mic_to_ram_async)
-				ret = copy_methods->mic_to_ram_async(src_interface, src_node, dst_interface, dst_node);
-			else
-			{
-				STARPU_ASSERT(copy_methods->any_to_any);
-				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-			}
-			_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
-		}
-		break;
-	/* TODO: MIC -> MIC */
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MPI_MS_RAM):
-                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
-                                !(copy_methods->ram_to_mpi_ms_async || copy_methods->any_to_any))
-                {
-                        /* this is not associated to a request so it's synchronous */
-                        STARPU_ASSERT(copy_methods->ram_to_mpi_ms || copy_methods->any_to_any);
-                        if (copy_methods->ram_to_mpi_ms)
-                                copy_methods->ram_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
-                        else
-                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-                }
-                else
-                {
-                        req->async_channel.type = STARPU_MPI_MS_RAM;
-                        if(copy_methods->ram_to_mpi_ms_async)
-                                ret = copy_methods->ram_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        else
-                        {
-                                STARPU_ASSERT(copy_methods->any_to_any);
-                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        }
-                }
-                break;
-
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_CPU_RAM):
-                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
-                                !(copy_methods->mpi_ms_to_ram_async || copy_methods->any_to_any))
-                {
-                        /* this is not associated to a request so it's synchronous */
-                        STARPU_ASSERT(copy_methods->mpi_ms_to_ram || copy_methods->any_to_any);
-                        if (copy_methods->mpi_ms_to_ram)
-                                copy_methods->mpi_ms_to_ram(src_interface, src_node, dst_interface, dst_node);
-                        else
-                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-                }
-                else
-                {
-                        req->async_channel.type = STARPU_MPI_MS_RAM;
-                        if(copy_methods->mpi_ms_to_ram_async)
-                                ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        else
-                        {
-                                STARPU_ASSERT(copy_methods->any_to_any);
-                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        }
-                }
-                break;
-
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM,STARPU_MPI_MS_RAM):
-                if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() ||
-                                !(copy_methods->mpi_ms_to_mpi_ms_async || copy_methods->any_to_any))
-                {
-                        /* this is not associated to a request so it's synchronous */
-                        STARPU_ASSERT(copy_methods->mpi_ms_to_mpi_ms || copy_methods->any_to_any);
-                        if (copy_methods->mpi_ms_to_mpi_ms)
-                                copy_methods->mpi_ms_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
-                        else
-                                copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-                }
-                else
-                {
-                        req->async_channel.type = STARPU_MPI_MS_RAM;
-                        if(copy_methods->mpi_ms_to_mpi_ms_async)
-                                ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        else
-                        {
-                                STARPU_ASSERT(copy_methods->any_to_any);
-                                ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-                        }
-                }
-                break;
-#endif
-#ifdef STARPU_USE_SCC
-		/* SCC RAM associated to the master process is considered as
-		 * the main memory node. */
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
-		/* master private SCC RAM -> slave private SCC RAM */
-		if (copy_methods->scc_src_to_sink)
-			copy_methods->scc_src_to_sink(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
-		/* slave private SCC RAM -> master private SCC RAM */
-		if (copy_methods->scc_sink_to_src)
-			copy_methods->scc_sink_to_src(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		break;
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
-		/* slave private SCC RAM -> slave private SCC RAM */
-		if (copy_methods->scc_sink_to_sink)
-			copy_methods->scc_sink_to_sink(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
-		break;
-#endif
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
-                if (req && !starpu_asynchronous_copy_disabled())
-                {
-                        req->async_channel.type = STARPU_DISK_RAM;
-                        req->async_channel.event.disk_event.requests = NULL;
-                        req->async_channel.event.disk_event.ptr = NULL;
-                        req->async_channel.event.disk_event.handle = NULL;
-                }
-		if(copy_methods->any_to_any)
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
-
-		else
-		{
-			void *obj = starpu_data_handle_to_pointer(handle, dst_node);
-			void * ptr = NULL;
-			starpu_ssize_t size = 0;
-			handle->ops->pack_data(handle, src_node, &ptr, &size);
-			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
-			if (ret == 0)
-			{
-				/* write is already finished, ptr was allocated in pack_data */
-				_starpu_free_flags_on_node(src_node, ptr, size, 0);
-			}
-			else if (ret == -EAGAIN)
-			{
-				STARPU_ASSERT(req);
-				req->async_channel.event.disk_event.ptr = ptr;
-				req->async_channel.event.disk_event.node = src_node;
-				req->async_channel.event.disk_event.size = size;
-			}
-
-			STARPU_ASSERT(ret == 0 || ret == -EAGAIN);
-		}
-		break;
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-                if (req && !starpu_asynchronous_copy_disabled())
-                {
-                        req->async_channel.type = STARPU_DISK_RAM;
-                        req->async_channel.event.disk_event.requests = NULL;
-                        req->async_channel.event.disk_event.ptr = NULL;
-                        req->async_channel.event.disk_event.handle = NULL;
-                }
-		if(copy_methods->any_to_any)
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
-		else
-		{
-			void *obj = starpu_data_handle_to_pointer(handle, src_node);
-			void * ptr = NULL;
-			size_t size = 0;
-			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
-			if (ret == 0)
-			{
-				/* read is already finished, we can already unpack */
-				handle->ops->unpack_data(handle, dst_node, ptr, size);
-			}
-			else if (ret == -EAGAIN)
-			{
-				STARPU_ASSERT(req);
-				req->async_channel.event.disk_event.ptr = ptr;
-				req->async_channel.event.disk_event.node = dst_node;
-				req->async_channel.event.disk_event.size = size;
-				req->async_channel.event.disk_event.handle = handle;
-			}
-
-			STARPU_ASSERT(ret == 0 || ret == -EAGAIN);
-		}
-		break;
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):
-                if (req && !starpu_asynchronous_copy_disabled())
-                {
-                        req->async_channel.type = STARPU_DISK_RAM;
-                        req->async_channel.event.disk_event.requests = NULL;
-                        req->async_channel.event.disk_event.ptr = NULL;
-                        req->async_channel.event.disk_event.handle = NULL;
-                }
-		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
-		break;
-
-	default:
-		STARPU_ABORT();
-		break;
+		return _node_ops[src_kind].copy_data_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
 	}
-
-	return ret;
+	else
+	{
+		STARPU_ABORT();
+	}
 #endif /* !SIMGRID */
 }
 
@@ -728,155 +299,21 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
 	struct _starpu_async_channel *async_channel = async_data;
-
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	if (_node_ops[src_kind].copy_interface_to[dst_kind])
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
-		return 0;
-
-#ifdef STARPU_USE_CUDA
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
-		return starpu_cuda_copy_async_sync(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size,
-				async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
-				cudaMemcpyDeviceToHost);
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-		return starpu_cuda_copy_async_sync(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size,
-				async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
-				cudaMemcpyHostToDevice);
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CUDA_RAM):
-		return starpu_cuda_copy_async_sync(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size,
-				async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
-				cudaMemcpyDeviceToDevice);
-
-#endif
-#ifdef STARPU_USE_OPENCL
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_OPENCL_RAM):
-		return starpu_opencl_copy_async_sync(
-				src, src_offset, src_node,
-				dst, dst_offset, dst_node,
-				size,
-				&async_channel->event.opencl_event);
-#endif
-#ifdef STARPU_USE_MIC
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
-		if (async_data)
-			return _starpu_mic_copy_mic_to_ram_async(
-					(void*) (src + src_offset), src_node,
-					(void*) (dst + dst_offset), dst_node,
-					size);
-		else
-			return _starpu_mic_copy_mic_to_ram(
-					(void*) (src + src_offset), src_node,
-					(void*) (dst + dst_offset), dst_node,
-					size);
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
-		if (async_data)
-			return _starpu_mic_copy_ram_to_mic_async(
-					(void*) (src + src_offset), src_node,
-					(void*) (dst + dst_offset), dst_node,
-					size);
-		else
-			return _starpu_mic_copy_ram_to_mic(
-					(void*) (src + src_offset), src_node,
-					(void*) (dst + dst_offset), dst_node,
-					size);
-	/* TODO: MIC->MIC */
-#endif
-#ifdef STARPU_USE_SCC
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
-		return _starpu_scc_copy_sink_to_src(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size);
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
-		return _starpu_scc_copy_src_to_sink(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size);
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
-		return _starpu_scc_copy_sink_to_sink(
-				(void*) (src + src_offset), src_node,
-				(void*) (dst + dst_offset), dst_node,
-				size);
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_MPI_MS_RAM):
-                if (async_data)
-                        return _starpu_mpi_copy_ram_to_mpi_async(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size, async_data);
-                else
-                        return _starpu_mpi_copy_ram_to_mpi_sync(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size);
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_CPU_RAM):
-                if (async_data)
-                        return _starpu_mpi_copy_mpi_to_ram_async(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size, async_data);
-                else
-                        return _starpu_mpi_copy_mpi_to_ram_sync(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size);
-
-        case _STARPU_MEMORY_NODE_TUPLE(STARPU_MPI_MS_RAM, STARPU_MPI_MS_RAM):
-                if (async_data)
-                        return _starpu_mpi_copy_sink_to_sink_async(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size, async_data);
-                else
-                        return _starpu_mpi_copy_sink_to_sink_sync(
-                                        (void*) (src + src_offset), src_node,
-                                        (void*) (dst + dst_offset), dst_node,
-                                        size);
-#endif
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
-	{
-		return _starpu_disk_copy_src_to_disk(
-			(void*) (src + src_offset), src_node,
-			(void*) dst, dst_offset, dst_node,
-			size, async_channel);
+		return _node_ops[src_kind].copy_interface_to[dst_kind](src, src_offset, src_node,
+								       dst, dst_offset, dst_node,
+								       size,
+								       async_channel);
 	}
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
-		return _starpu_disk_copy_disk_to_src(
-			(void*) src, src_offset, src_node,
-			(void*) (dst + dst_offset), dst_node,
-			size, async_channel);
-
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):
-		return _starpu_disk_copy_disk_to_disk(
-			(void*) src, src_offset, src_node,
-			(void*) dst, dst_offset, dst_node,
-			size, async_channel);
-
-	default:
+	else
+	{
 		STARPU_ABORT();
 		return -1;
 	}
-	return 0;
 }
 
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
@@ -885,70 +322,13 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 	_starpu_simgrid_wait_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
-#ifdef STARPU_USE_CUDA
-	cudaEvent_t event;
-	cudaError_t cures;
-#endif
 
-	switch (kind)
+	if (_node_ops[kind].wait_request_completion != NULL)
 	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-		event = (*async_channel).event.cuda_event;
-
-		cures = cudaEventSynchronize(event);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		cures = cudaEventDestroy(event);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int err;
-		if ((*async_channel).event.opencl_event == NULL)
-			STARPU_ABORT();
-		err = clWaitForEvents(1, &((*async_channel).event.opencl_event));
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		err = clReleaseEvent((*async_channel).event.opencl_event);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-	      break;
+		_node_ops[kind].wait_request_completion(async_channel);
 	}
-#endif
-#ifdef STARPU_USE_MIC
-	case STARPU_MIC_RAM:
-		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
-		break;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        case STARPU_MPI_MS_RAM:
-                _starpu_mpi_common_wait_event(async_channel);
-                break;
-#endif
-	case STARPU_DISK_RAM:
-		starpu_disk_wait_request(async_channel);
-		if (async_channel->event.disk_event.ptr != NULL)
-		{
-			if (async_channel->event.disk_event.handle != NULL)
-			{
-				/* read is finished, we can already unpack */
-				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
-			}
-			else
-			{
-				/* write is finished, ptr was allocated in pack_data */
-				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
-			}
-		}
-		break;
-	case STARPU_CPU_RAM:
-	default:
+	else
+	{
 		STARPU_ABORT();
 	}
 #endif /* !SIMGRID */
@@ -960,76 +340,14 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 	return _starpu_simgrid_test_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
-	unsigned success = 0;
-#ifdef STARPU_USE_CUDA
-	cudaEvent_t event;
-#endif
 
-	switch (kind)
+	if (_node_ops[kind].test_request_completion != NULL)
 	{
-#ifdef STARPU_USE_CUDA
-	case STARPU_CUDA_RAM:
-		event = (*async_channel).event.cuda_event;
-		cudaError_t cures = cudaEventQuery(event);
-
-		success = (cures == cudaSuccess);
-		if (success)
-			cudaEventDestroy(event);
-		else if (cures != cudaErrorNotReady)
-			STARPU_CUDA_REPORT_ERROR(cures);
-		break;
-#endif
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_RAM:
-	{
-		cl_int event_status;
-		cl_event opencl_event = (*async_channel).event.opencl_event;
-		if (opencl_event == NULL) STARPU_ABORT();
-		cl_int err = clGetEventInfo(opencl_event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(event_status), &event_status, NULL);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS))
-			STARPU_OPENCL_REPORT_ERROR(err);
-		if (event_status < 0)
-			STARPU_OPENCL_REPORT_ERROR(event_status);
-		if (event_status == CL_COMPLETE)
-		{
-			err = clReleaseEvent(opencl_event);
-			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-		}
-		success = (event_status == CL_COMPLETE);
-		break;
+		return _node_ops[kind].test_request_completion(async_channel);
 	}
-#endif
-#ifdef STARPU_USE_MIC
-	case STARPU_MIC_RAM:
-		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
-		break;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        case STARPU_MPI_MS_RAM:
-                success = _starpu_mpi_common_test_event(async_channel);
-                break;
-#endif
-	case STARPU_DISK_RAM:
-		success = starpu_disk_test_request(async_channel);
-		if (async_channel->event.disk_event.ptr != NULL && success)
-		{
-			if (async_channel->event.disk_event.handle != NULL)
-			{
-				/* read is finished, we can already unpack */
-				async_channel->event.disk_event.handle->ops->unpack_data(async_channel->event.disk_event.handle, async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size);
-			}
-			else
-			{
-				/* write is finished, ptr was allocated in pack_data */
-				_starpu_free_flags_on_node(async_channel->event.disk_event.node, async_channel->event.disk_event.ptr, async_channel->event.disk_event.size, 0);
-			}
-		}
-		break;
-	case STARPU_CPU_RAM:
-	default:
+	else
+	{
 		STARPU_ABORT_MSG("Memory is not recognized (kind %d) \n", kind);
 	}
-
-	return success;
 #endif /* !SIMGRID */
 }

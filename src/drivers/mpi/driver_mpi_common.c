@@ -21,7 +21,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <drivers/mp_common/source_common.h>
-#include "driver_mpi_common.h"
+#include <drivers/mpi/driver_mpi_common.h>
 
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
@@ -366,7 +366,7 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
+unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -411,7 +411,7 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
+void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -550,3 +550,4 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
         }
         free(buf);
 }
+
