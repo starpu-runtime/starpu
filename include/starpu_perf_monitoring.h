@@ -64,7 +64,7 @@ int starpu_perf_counter_get_type_id(int id);
 const char *starpu_perf_counter_get_help_string(int id);
 
 void starpu_perf_counter_list_avail(enum starpu_perf_counter_scope scope);
-void starpu_perf_counter_list_all_avail(enum starpu_perf_counter_scope scope);
+void starpu_perf_counter_list_all_avail(void);
 
 struct starpu_perf_counter_set *starpu_perf_counter_set_alloc(enum starpu_perf_counter_scope scope);
 void starpu_perf_counter_set_free(struct starpu_perf_counter_set *set);

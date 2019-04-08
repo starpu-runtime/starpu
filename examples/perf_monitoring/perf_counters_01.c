@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 	printf("\n");
 
 	printf("list all available counters\n");
-	starpu_perf_counter_list_all_avail(starpu_perf_counter_scope_global);
+	starpu_perf_counter_list_all_avail();
 	printf("\n");
 
 	starpu_shutdown();
