@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2015-2017                                CNRS
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2013-2017                                Université de Bordeaux
+ * Copyright (C) 2013-2017,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,7 +58,7 @@ static int starpu_unistd_o_direct_read(void *base, void *obj, void *buf, off_t o
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %d)", getpagesize(), (int) size);
 
-	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
 	return starpu_unistd_global_read (base, obj, buf, offset, size);
 }
@@ -68,7 +68,7 @@ static int starpu_unistd_o_direct_write(void *base, void *obj, const void *buf, 
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %d)", getpagesize(), (int) size);
 
-	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
 	return starpu_unistd_global_write (base, obj, buf, offset, size);
 }
@@ -87,7 +87,7 @@ void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf,
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only read a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
 			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
-	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
 	return starpu_unistd_global_async_read (base, obj, buf, offset, size);
 }
@@ -97,7 +97,7 @@ void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
 			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
-	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
 	return starpu_unistd_global_async_write (base, obj, buf, offset, size);
 }
@@ -114,6 +114,16 @@ void *  starpu_unistd_o_direct_global_copy(void *base_src, void* obj_src, off_t 
 }
 
 #endif
+
+int starpu_unistd_o_direct_global_full_write(void *base, void *obj, void *ptr, size_t size)
+{
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
+			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+
+	STARPU_ASSERT_MSG((((uintptr_t)ptr) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
+
+	return starpu_unistd_global_full_write(base, obj, ptr, size);
+}
 
 struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 {
@@ -141,5 +151,5 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 	.async_full_write = starpu_unistd_global_async_full_write,
 #endif
 	.full_read = starpu_unistd_global_full_read,
-	.full_write = starpu_unistd_global_full_write
+	.full_write = starpu_unistd_o_direct_global_full_write
 };
