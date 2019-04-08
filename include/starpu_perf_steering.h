@@ -60,7 +60,7 @@ int starpu_perf_knob_get_type_id(int id);
 const char *starpu_perf_knob_get_help_string(int id);
 
 void starpu_perf_knob_list_avail(enum starpu_perf_knob_scope scope);
-void starpu_perf_knob_list_all_avail(enum starpu_perf_knob_scope scope);
+void starpu_perf_knob_list_all_avail(void);
 
 int32_t starpu_perf_knob_get_global_int32_value (const int knob_id);
 int64_t starpu_perf_knob_get_global_int64_value (const int knob_id);

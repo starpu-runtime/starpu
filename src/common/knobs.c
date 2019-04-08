@@ -277,7 +277,7 @@ void starpu_perf_counter_list_avail(enum starpu_perf_counter_scope scope)
 	}
 }
 
-void starpu_perf_counter_list_all_avail(enum starpu_perf_counter_scope scope)
+void starpu_perf_counter_list_all_avail(void)
 {
 	printf("scope: global\n");
 	starpu_perf_counter_list_avail(starpu_perf_counter_scope_global);
@@ -783,7 +783,7 @@ void starpu_perf_knob_list_avail(enum starpu_perf_knob_scope scope)
 	}
 }
 
-void starpu_perf_knob_list_all_avail(enum starpu_perf_knob_scope scope)
+void starpu_perf_knob_list_all_avail(void)
 {
 	printf("scope: global\n");
 	starpu_perf_knob_list_avail(starpu_perf_knob_scope_global);
