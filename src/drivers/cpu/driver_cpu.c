@@ -38,11 +38,8 @@
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 #include <core/task.h>
-<<<<<<< HEAD
-#include <common/knobs.h>
-=======
 #include <core/disk.h>
->>>>>>> master
+#include <common/knobs.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
