@@ -2865,7 +2865,7 @@ AC_MSG_RESULT($enable_cluster)
 
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
-			enable_openmp=$enableval, enable_openmp=no)
+			enable_openmp=$enableval, enable_openmp=yes)
 
 AC_MSG_CHECKING(for OpenMP runtime support)
 
