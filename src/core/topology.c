@@ -37,7 +37,6 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memory_manager.h>
-#include <datawizard/node_ops.h>
 
 #include <common/uthash.h>
 
@@ -2272,7 +2271,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				if (numa_starpu_id == -1)
 				{
 					int devid = numa_logical_id == STARPU_NUMA_MAIN_RAM ? 0 : numa_logical_id;
-					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid);
+					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid, &_starpu_driver_cpu_node_ops);
 					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(devid, config));
 					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 					numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
@@ -2319,7 +2318,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 			if (numa_starpu_id == -1)
 			{
-				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 				_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 				numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
@@ -2379,7 +2378,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 					if (numa_starpu_id == -1)
 					{
-						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 						_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 						STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 						numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
@@ -2436,7 +2435,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			numa_logical_id = 0;
 			numa_physical_id = 0;
 		}
-		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
+		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id, &_starpu_driver_cpu_node_ops);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
 
 		numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
@@ -2629,7 +2628,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					}
 					else
 						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
+					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid, &_starpu_driver_cuda_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2726,7 +2725,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					opencl_init[devid] = 1;
 					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
+					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid, &_starpu_driver_opencl_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2771,7 +2770,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					//	npreferred = config->topology.nhwpus;
 					//}
 					mic_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
+					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid, &_starpu_driver_mic_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2824,7 +2823,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					mpi_init[devid] = 1;
 					mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
+					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid, &_starpu_driver_mpi_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2971,7 +2970,6 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 	/* for the data management library */
 	_starpu_memory_nodes_init();
 	_starpu_datastats_init();
-	_starpu_node_ops_init();
 
 	_starpu_init_workers_binding_and_memory(config, no_mp_config);
 

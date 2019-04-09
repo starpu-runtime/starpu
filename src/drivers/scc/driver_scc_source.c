@@ -411,7 +411,7 @@ int _starpu_scc_copy_interface_from_cpu_to_scc(uintptr_t src, size_t src_offset,
 					    size);
 }
 
-int _starpu_scc_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_scc_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	(void) handling_node;
@@ -432,3 +432,33 @@ void _starpu_scc_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 	(void) flags;
 	_starpu_scc_free_memory((void *) addr, dst_node);
 }
+
+struct _starpu_node_ops _starpu_driver_scc_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_scc_copy_data_from_scc_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = _starpu_scc_copy_data_from_scc_to_scc,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_scc_copy_interface_from_scc_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = _starpu_scc_copy_interface_from_scc_to_scc,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = NULL,
+	.test_request_completion = NULL,
+	.is_direct_access_supported = _starpu_scc_is_direct_access_supported,
+	.malloc_on_node = _starpu_scc_malloc_on_node,
+	.free_on_node = _starpu_scc_free_on_node,
+	.name = "scc driver"
+};

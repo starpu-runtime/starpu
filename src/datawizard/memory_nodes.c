@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017,2019                           Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,7 @@ int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 	return snprintf(name, size, "%s %d", prefix, _starpu_descr.devid[node]);
 }
 
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops)
 {
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
@@ -91,6 +91,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	_STARPU_TRACE_NEW_MEM_NODE(node);
 
 	_starpu_descr.devid[node] = devid;
+	_starpu_descr.node_ops[node] = node_ops;
 
 	/* for now, there is no condition associated to that newly created node */
 	_starpu_descr.condition_count[node] = 0;
@@ -168,3 +169,15 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 	}
 }
 
+unsigned starpu_worker_get_local_memory_node(void)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker)
+		return STARPU_MAIN_RAM;
+	return worker->memory_node;
+}
+
+int starpu_memory_node_get_devid(unsigned node)
+{
+	return _starpu_descr.devid[node];
+}

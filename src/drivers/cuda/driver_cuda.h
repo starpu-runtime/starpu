@@ -30,8 +30,10 @@
 
 #include <starpu.h>
 #include <core/workers.h>
+#include <datawizard/node_ops.h>
 
 extern struct _starpu_driver_ops _starpu_driver_cuda_ops;
+extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 
 void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
@@ -64,7 +66,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(uintptr_t src, size_t src_offs
 int _starpu_cuda_copy_interface_from_cuda_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 int _starpu_cuda_copy_interface_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 
-int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node);
+int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 

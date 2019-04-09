@@ -583,7 +583,7 @@ int _starpu_mic_copy_data_from_mic_to_cpu(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.type = STARPU_MIC_RAM;
+		req->async_channel.node_ops = &_starpu_driver_mic_node_ops;
 		if (copy_methods->mic_to_ram_async)
 			ret = copy_methods->mic_to_ram_async(src_interface, src_node, dst_interface, dst_node);
 		else
@@ -616,7 +616,7 @@ int _starpu_mic_copy_data_from_cpu_to_mic(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.type = STARPU_MIC_RAM;
+		req->async_channel.node_ops = &_starpu_driver_mic_node_ops;
 		if (copy_methods->ram_to_mic_async)
 			ret = copy_methods->ram_to_mic_async(src_interface, src_node, dst_interface, dst_node);
 		else
@@ -662,7 +662,7 @@ int _starpu_mic_copy_interface_from_cpu_to_mic(uintptr_t src, size_t src_offset,
 						   size);
 }
 
-int _starpu_mic_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_mic_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	(void) handling_node;
@@ -684,3 +684,34 @@ void _starpu_mic_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 	(void) flags;
 	_starpu_mic_free_memory((void*) addr, size, dst_node);
 }
+
+/* TODO: MIC -> MIC */
+struct _starpu_node_ops _starpu_driver_mic_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_mic_copy_data_from_mic_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mic_copy_interface_from_mic_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = _starpu_mic_wait_request_completion,
+	.test_request_completion = _starpu_mic_test_request_completion,
+	.is_direct_access_supported = _starpu_mic_is_direct_access_supported,
+	.malloc_on_node = _starpu_mic_malloc_on_node,
+	.free_on_node = _starpu_mic_free_on_node,
+	.name = "mic driver"
+};

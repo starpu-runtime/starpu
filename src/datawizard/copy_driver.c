@@ -34,7 +34,6 @@
 #include <starpu_cuda.h>
 #include <profiling/profiling.h>
 #include <core/disk.h>
-#include <datawizard/node_ops.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -186,13 +185,14 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	}
 #endif
 
-	if (_node_ops[src_kind].copy_data_to[dst_kind])
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	if (node_ops && node_ops->copy_data_to[dst_kind])
 	{
-		return _node_ops[src_kind].copy_data_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
+		return node_ops->copy_data_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
 	}
 	else
 	{
-		STARPU_ABORT();
+		STARPU_ABORT_MSG("No copy_data_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 	}
 #endif /* !SIMGRID */
 }
@@ -294,19 +294,19 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
 	struct _starpu_async_channel *async_channel = async_data;
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
-	if (_node_ops[src_kind].copy_interface_to[dst_kind])
+	if (node_ops && node_ops->copy_interface_to[dst_kind])
 	{
-		return _node_ops[src_kind].copy_interface_to[dst_kind](src, src_offset, src_node,
-								       dst, dst_offset, dst_node,
-								       size,
-								       async_channel);
+		return node_ops->copy_interface_to[dst_kind](src, src_offset, src_node,
+							     dst, dst_offset, dst_node,
+							     size,
+							     async_channel);
 	}
 	else
 	{
-		STARPU_ABORT();
+		STARPU_ABORT_MSG("No copy_interface_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 		return -1;
 	}
 }
@@ -316,15 +316,14 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_wait_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
-	enum starpu_node_kind kind = async_channel->type;
-
-	if (_node_ops[kind].wait_request_completion != NULL)
+	struct _starpu_node_ops *node_ops = async_channel->node_ops;
+	if (node_ops && node_ops->wait_request_completion != NULL)
 	{
-		_node_ops[kind].wait_request_completion(async_channel);
+		node_ops->wait_request_completion(async_channel);
 	}
 	else
 	{
-		STARPU_ABORT();
+		STARPU_ABORT_MSG("No wait_request_completion function defined for node %s\n", node_ops?node_ops->name:"unknown");
 	}
 #endif /* !SIMGRID */
 }
@@ -334,15 +333,14 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 #ifdef STARPU_SIMGRID
 	return _starpu_simgrid_test_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
-	enum starpu_node_kind kind = async_channel->type;
-
-	if (_node_ops[kind].test_request_completion != NULL)
+	struct _starpu_node_ops *node_ops = async_channel->node_ops;
+	if (node_ops && node_ops->test_request_completion != NULL)
 	{
-		return _node_ops[kind].test_request_completion(async_channel);
+		return node_ops->test_request_completion(async_channel);
 	}
 	else
 	{
-		STARPU_ABORT_MSG("Memory is not recognized (kind %d) \n", kind);
+		STARPU_ABORT_MSG("No test_request_completion function defined for node %s\n", node_ops?node_ops->name:"unknown");
 	}
 #endif /* !SIMGRID */
 }

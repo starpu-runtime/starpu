@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2011,2014,2017                      Université de Bordeaux
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2010,2013,2015,2017,2019                      CNRS
+ * Copyright (C) 2010,2013,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,14 +37,12 @@ struct _starpu_node_ops
 	copy_interface_t copy_interface_to[STARPU_MPI_MS_RAM+1];
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
-	int (*direct_access_supported)(unsigned node, unsigned handling_node);
+	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
 	uintptr_t (*malloc_on_node)(unsigned dst_node, size_t size, int flags);
 	void (*free_on_node)(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+	char *name;
 };
 
-extern struct _starpu_node_ops _node_ops[STARPU_MPI_MS_RAM+1];
-
-void _starpu_node_ops_init();
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind);
 
 #endif // __NODE_OPS_H__

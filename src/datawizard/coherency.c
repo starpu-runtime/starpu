@@ -31,7 +31,6 @@
 #include <core/task.h>
 #include <starpu_scheduler.h>
 #include <core/workers.h>
-#include <datawizard/node_ops.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -233,12 +232,12 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		/* No worker to process the request from that node */
 		return 0;
 
-	int type = starpu_node_get_kind(node);
-	if (_node_ops[type].direct_access_supported)
-		return _node_ops[type].direct_access_supported(node, handling_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
+	if (node_ops && node_ops->is_direct_access_supported)
+		return node_ops->is_direct_access_supported(node, handling_node);
 	else
 	{
-		STARPU_ABORT_MSG("Node %d does not define the operation 'direct_access_supported'", type);
+		STARPU_ABORT_MSG("Node %s does not define the operation 'is_direct_access_supported'", _starpu_node_get_prefix(starpu_node_get_kind(node)));
 		return 1;
 	}
 }

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2011,2013,2014,2018                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010,2012,2015,2017                      CNRS
+ * Copyright (C) 2010,2012,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,9 @@
 #endif
 #endif
 
+#include <core/workers.h>
+#include <datawizard/node_ops.h>
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 struct _starpu_machine_config;
 void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
@@ -45,6 +48,7 @@ void *_starpu_opencl_worker(void *);
 #endif
 
 #ifdef STARPU_USE_OPENCL
+extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 extern struct _starpu_driver_ops _starpu_driver_opencl_ops;
 extern char *_starpu_opencl_program_dir;
 
@@ -79,7 +83,7 @@ int _starpu_opencl_copy_interface_from_opencl_to_cpu(uintptr_t src, size_t src_o
 int _starpu_opencl_copy_interface_from_opencl_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 int _starpu_opencl_copy_interface_from_cpu_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 
-int _starpu_opencl_direct_access_supported(unsigned node, unsigned handling_node);
+int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 

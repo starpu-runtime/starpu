@@ -28,7 +28,6 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
-#include <datawizard/node_ops.h>
 #include <core/simgrid.h>
 #include <core/task.h>
 
@@ -592,11 +591,11 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 		flags &= ~STARPU_MALLOC_COUNT;
 	}
 
-	enum starpu_node_kind node_kind = starpu_node_get_kind(dst_node);
-	if (_node_ops[node_kind].malloc_on_node)
-		return _node_ops[node_kind].malloc_on_node(dst_node, size, flags);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	if (node_ops && node_ops->malloc_on_node)
+		return node_ops->malloc_on_node(dst_node, size, flags);
 	else
-		STARPU_ABORT_MSG("No malloc_on_node function defined for node %s\n", _starpu_node_get_prefix(node_kind));
+		STARPU_ABORT_MSG("No malloc_on_node function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 
 	if (addr == 0)
 	{
@@ -612,11 +611,11 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 	int count = flags & STARPU_MALLOC_COUNT;
 	flags &= ~STARPU_MALLOC_COUNT;
 
-	enum starpu_node_kind node_kind = starpu_node_get_kind(dst_node);
-	if (_node_ops[node_kind].free_on_node)
-		_node_ops[node_kind].free_on_node(dst_node, addr, size, flags);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	if (node_ops && node_ops->free_on_node)
+		node_ops->free_on_node(dst_node, addr, size, flags);
 	else
-		STARPU_ABORT_MSG("No free_on_node function defined for node %s\n", _starpu_node_get_prefix(node_kind));
+		STARPU_ABORT_MSG("No free_on_node function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 
 	if (count)
 		starpu_memory_deallocate(dst_node, size);

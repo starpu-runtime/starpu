@@ -27,8 +27,8 @@
 #include <core/debug.h>
 #include <starpu_opencl.h>
 #include <drivers/driver_common/driver_common.h>
-#include "driver_opencl.h"
-#include "driver_opencl_utils.h"
+#include <drivers/opencl/driver_opencl.h>
+#include <drivers/opencl/driver_opencl_utils.h>
 #include <common/utils.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -1166,7 +1166,7 @@ int _starpu_opencl_copy_data_from_opencl_to_opencl(starpu_data_handle_t handle, 
 	}
 	else
 	{
-		req->async_channel.type = STARPU_OPENCL_RAM;
+		req->async_channel.node_ops = &_starpu_driver_opencl_node_ops;
 		if (copy_methods->opencl_to_opencl_async)
 			ret = copy_methods->opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
 		else
@@ -1199,7 +1199,7 @@ int _starpu_opencl_copy_data_from_opencl_to_cpu(starpu_data_handle_t handle, voi
 	}
 	else
 	{
-		req->async_channel.type = STARPU_OPENCL_RAM;
+		req->async_channel.node_ops = &_starpu_driver_opencl_node_ops;
 		if (copy_methods->opencl_to_ram_async)
 			ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
 		else
@@ -1232,7 +1232,7 @@ int _starpu_opencl_copy_data_from_cpu_to_opencl(starpu_data_handle_t handle, voi
 	}
 	else
 	{
-		req->async_channel.type = STARPU_OPENCL_RAM;
+		req->async_channel.node_ops = &_starpu_driver_opencl_node_ops;
 		if (copy_methods->ram_to_opencl_async)
 			ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.event.opencl_event));
 		else
@@ -1282,7 +1282,7 @@ int _starpu_opencl_copy_interface_from_cpu_to_opencl(uintptr_t src, size_t src_o
 
 #endif /* STARPU_USE_OPENCL */
 
-int _starpu_opencl_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void)node;
 	(void)handling_node;
@@ -1340,3 +1340,33 @@ void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size,
 		STARPU_OPENCL_REPORT_ERROR(err);
 #endif
 }
+
+struct _starpu_node_ops _starpu_driver_opencl_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_opencl_copy_data_from_opencl_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_opencl_to_opencl,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_opencl_copy_interface_from_opencl_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_opencl_to_opencl,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = _starpu_opencl_wait_request_completion,
+	.test_request_completion = _starpu_opencl_test_request_completion,
+	.is_direct_access_supported = _starpu_opencl_is_direct_access_supported,
+	.malloc_on_node = _starpu_opencl_malloc_on_node,
+	.free_on_node = _starpu_opencl_free_on_node,
+	.name = "opencl driver"
+};

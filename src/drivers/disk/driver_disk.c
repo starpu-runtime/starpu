@@ -21,6 +21,7 @@
 #include <core/disk.h>
 #include <starpu_profiling.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/cpu/driver_cpu.h>
 #include <datawizard/coherency.h>
 
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
@@ -92,7 +93,7 @@ int _starpu_disk_copy_data_from_disk_to_cpu(starpu_data_handle_t handle, void *s
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
-		req->async_channel.type = STARPU_DISK_RAM;
+		req->async_channel.node_ops = &_starpu_driver_cpu_node_ops;
 		req->async_channel.event.disk_event.requests = NULL;
 		req->async_channel.event.disk_event.ptr = NULL;
 		req->async_channel.event.disk_event.handle = NULL;
@@ -135,7 +136,7 @@ int _starpu_disk_copy_data_from_disk_to_disk(starpu_data_handle_t handle, void *
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
-		req->async_channel.type = STARPU_DISK_RAM;
+		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
 		req->async_channel.event.disk_event.requests = NULL;
 		req->async_channel.event.disk_event.ptr = NULL;
 		req->async_channel.event.disk_event.handle = NULL;
@@ -155,7 +156,7 @@ int _starpu_disk_copy_data_from_cpu_to_disk(starpu_data_handle_t handle, void *s
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
-		req->async_channel.type = STARPU_DISK_RAM;
+		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
 		req->async_channel.event.disk_event.requests = NULL;
 		req->async_channel.event.disk_event.ptr = NULL;
 		req->async_channel.event.disk_event.handle = NULL;
@@ -221,7 +222,7 @@ int _starpu_disk_copy_interface_from_cpu_to_disk(uintptr_t src, size_t src_offse
 					     size, async_channel);
 }
 
-int _starpu_disk_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	/* Each worker can manage disks but disk <-> disk is not always allowed */
 	switch (starpu_node_get_kind(handling_node))
@@ -248,3 +249,33 @@ void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 	(void) flags;
 	_starpu_disk_free(dst_node, (void *) addr , size);
 }
+
+struct _starpu_node_ops _starpu_driver_disk_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_disk_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_disk_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = _starpu_disk_wait_request_completion,
+	.test_request_completion = _starpu_disk_test_request_completion,
+	.is_direct_access_supported = _starpu_disk_is_direct_access_supported,
+	.malloc_on_node = _starpu_disk_malloc_on_node,
+	.free_on_node = _starpu_disk_free_on_node,
+	.name = "disk driver"
+};
