@@ -23,6 +23,7 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/node_ops.h>
 #include <common/utils.h>
 #include <core/workers.h>
 
@@ -42,6 +43,7 @@ struct _starpu_memory_node_descr
 {
 	unsigned nnodes;
 	enum starpu_node_kind nodes[STARPU_MAXNODES];
+	struct _starpu_node_ops *node_ops[STARPU_MAXNODES];
 
 	/* Get the device id associated to this node, or -1 if not applicable */
 	int devid[STARPU_MAXNODES];
@@ -79,6 +81,11 @@ static inline void _starpu_memory_node_add_nworkers(unsigned node)
 /* same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode);
 
+static inline struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
+{
+	return _starpu_descr.node_ops[node];
+}
+
 static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
 {
 	return _starpu_descr.nworkers[node];
@@ -95,7 +102,7 @@ static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 	return _starpu_descr.host[node];
 }
 #endif
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
 

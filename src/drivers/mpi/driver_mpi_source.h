@@ -22,8 +22,11 @@
 
 #include <drivers/mp_common/mp_common.h>
 #include <starpu_mpi_ms.h>
+#include <datawizard/node_ops.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+
+extern struct _starpu_node_ops _starpu_driver_mpi_node_ops;
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
@@ -56,7 +59,7 @@ int _starpu_mpi_copy_interface_from_mpi_to_cpu(uintptr_t src, size_t src_offset,
 int _starpu_mpi_copy_interface_from_mpi_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 int _starpu_mpi_copy_interface_from_cpu_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
 
-int _starpu_mpi_direct_access_supported(unsigned node, unsigned handling_node);
+int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 

@@ -26,6 +26,7 @@
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
+#include <drivers/cpu/driver_cpu.h>
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
@@ -1272,7 +1273,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cuda(starpu_data_handle_t handle, void *
 	}
 	else
 	{
-		req->async_channel.type = STARPU_CUDA_RAM;
+		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
 		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -1317,7 +1318,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cpu(starpu_data_handle_t handle, void *s
 	}
 	else
 	{
-		req->async_channel.type = STARPU_CUDA_RAM;
+		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
 		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -1364,7 +1365,7 @@ int _starpu_cuda_copy_data_from_cpu_to_cuda(starpu_data_handle_t handle, void *s
 	}
 	else
 	{
-		req->async_channel.type = STARPU_CUDA_RAM;
+		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
 		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 			STARPU_CUDA_REPORT_ERROR(cures);
@@ -1429,7 +1430,7 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(uintptr_t src, size_t src_offse
 
 #endif /* STARPU_USE_CUDA */
 
-int _starpu_cuda_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	/* GPUs not always allow direct remote access: if CUDA4
 	 * is enabled, we allow two CUDA devices to communicate. */
@@ -1557,4 +1558,34 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 	.run = _starpu_cuda_run_from_worker,
 	.run_once = _starpu_cuda_driver_run_once_from_worker,
 	.deinit = _starpu_cuda_driver_deinit_from_worker
+};
+
+struct _starpu_node_ops _starpu_driver_cuda_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cuda_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = _starpu_cuda_wait_request_completion,
+	.test_request_completion = _starpu_cuda_test_request_completion,
+	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
+	.malloc_on_node = _starpu_cuda_malloc_on_node,
+	.free_on_node = _starpu_cuda_free_on_node,
+	.name = "cuda driver"
 };

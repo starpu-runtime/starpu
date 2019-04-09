@@ -400,7 +400,7 @@ int _starpu_mpi_copy_data_from_mpi_to_cpu(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.type = STARPU_MPI_MS_RAM;
+		req->async_channel.node_ops = &_starpu_driver_cpu_node_ops;
 		if(copy_methods->mpi_ms_to_ram_async)
 			ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		else
@@ -432,7 +432,7 @@ int _starpu_mpi_copy_data_from_mpi_to_mpi(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.type = STARPU_MPI_MS_RAM;
+		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
 		if(copy_methods->mpi_ms_to_mpi_ms_async)
 			ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		else
@@ -464,7 +464,7 @@ int _starpu_mpi_copy_data_from_cpu_to_mpi(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.type = STARPU_MPI_MS_RAM;
+		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
 		if(copy_methods->ram_to_mpi_ms_async)
 			ret = copy_methods->ram_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		else
@@ -524,11 +524,11 @@ int _starpu_mpi_copy_interface_from_cpu_to_mpi(uintptr_t src, size_t src_offset,
 							size);
 }
 
-int _starpu_mpi_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
-	return kind == STARPU_MPI_MS_RAM;
+	return (kind == STARPU_MPI_MS_RAM);
 }
 
 uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags)
@@ -546,3 +546,33 @@ void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 	(void) size;
 	_starpu_mpi_source_free_memory((void*) addr, dst_node);
 }
+
+struct _starpu_node_ops _starpu_driver_mic_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_mpi_copy_data_from_mpi_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_mpi_to_mpi,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mpi_copy_interface_from_mpi_to_cpu,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_mpi_to_mpi,
+
+	.wait_request_completion = _starpu_mpi_common_wait_request_completion,
+	.test_request_completion = _starpu_mpi_common_test_event,
+	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
+	.malloc_on_node = _starpu_mpi_malloc_on_node,
+	.free_on_node = _starpu_mpi_free_on_node,
+	.name = "mpi driver"
+};

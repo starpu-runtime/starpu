@@ -141,7 +141,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->src_replicate = src_replicate;
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
-	r->async_channel.type = STARPU_UNUSED;
+	r->async_channel.node_ops = NULL;
         r->async_channel.starpu_mp_common_finished_sender = 0;
         r->async_channel.starpu_mp_common_finished_receiver = 0;
         r->async_channel.polling_node_sender = NULL;

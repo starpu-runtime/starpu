@@ -80,7 +80,7 @@ int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 	return snprintf(name, size, "%s %d", prefix, _starpu_descr.devid[node]);
 }
 
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops)
 {
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
@@ -91,6 +91,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	_STARPU_TRACE_NEW_MEM_NODE(node);
 
 	_starpu_descr.devid[node] = devid;
+	_starpu_descr.node_ops[node] = node_ops;
 
 	/* for now, there is no condition associated to that newly created node */
 	_starpu_descr.condition_count[node] = 0;
@@ -180,4 +181,3 @@ int starpu_memory_node_get_devid(unsigned node)
 {
 	return _starpu_descr.devid[node];
 }
-

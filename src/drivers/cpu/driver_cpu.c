@@ -32,6 +32,11 @@
 #include <core/idle_hook.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/opencl/driver_opencl.h>
+#include <drivers/cuda/driver_cuda.h>
+#include <drivers/mic/driver_mic_source.h>
+#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/disk/driver_disk.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -466,7 +471,7 @@ int _starpu_cpu_copy_interface(uintptr_t src, size_t src_offset, unsigned src_no
 	return 0;
 }
 
-int _starpu_cpu_direct_access_supported(unsigned node, unsigned handling_node)
+int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	(void) handling_node;
@@ -501,3 +506,73 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 #endif
 				   );
 }
+
+struct _starpu_node_ops _starpu_driver_cpu_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
+#ifdef STARPU_USE_CUDA
+	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
+#else
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
+#else
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
+#ifdef STARPU_USE_MIC
+	.copy_data_to[STARPU_MIC_RAM] = _starpu_mic_copy_data_from_cpu_to_mic,
+#else
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_SCC
+	.copy_data_to[STARPU_SCC_RAM] = _starpu_scc_copy_data_from_cpu_to_scc,
+#else
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+#endif
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
+#else
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
+#ifdef STARPU_USE_CUDA
+	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
+#else
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl,
+#else
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
+#ifdef STARPU_USE_MIC
+	.copy_interface_to[STARPU_MIC_RAM] = _starpu_mic_copy_interface_from_cpu_to_mic,
+#else
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_SCC
+	.copy_interface_to[STARPU_SCC_RAM] = _starpu_scc_copy_interface_from_cpu_to_scc,
+#else
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+#endif
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
+#else
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.wait_request_completion = NULL,
+	.test_request_completion = NULL,
+	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
+	.malloc_on_node = _starpu_cpu_malloc_on_node,
+	.free_on_node = _starpu_cpu_free_on_node,
+	.name = "cpu driver"
+};
