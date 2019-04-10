@@ -38,8 +38,8 @@
 #define _STARPU_INITIAL_THREAD_STACKSIZE 2097152
 
 static struct starpu_omp_global _global_state;
-static starpu_pthread_key_t omp_thread_key;
-static starpu_pthread_key_t omp_task_key;
+starpu_pthread_key_t omp_thread_key;
+starpu_pthread_key_t omp_task_key;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
