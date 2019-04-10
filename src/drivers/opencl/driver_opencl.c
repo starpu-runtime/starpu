@@ -1094,6 +1094,29 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 }
 
 #ifdef STARPU_USE_OPENCL
+int _starpu_run_opencl(struct _starpu_worker *workerarg)
+{
+	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
+
+	workerarg->set = NULL;
+	workerarg->worker_is_initialized = 0;
+
+	/* Let's go ! */
+	_starpu_opencl_worker(workerarg);
+
+	return 0;
+}
+
+struct _starpu_driver_ops _starpu_driver_opencl_ops =
+{
+	.init = _starpu_opencl_driver_init,
+	.run = _starpu_run_opencl,
+	.run_once = _starpu_opencl_driver_run_once,
+	.deinit = _starpu_opencl_driver_deinit
+};
+#endif
+
+#if defined(STARPU_USE_OPENCL)
 unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 	cl_int event_status;
@@ -1124,27 +1147,6 @@ void _starpu_opencl_wait_request_completion(struct _starpu_async_channel *async_
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 }
-
-int _starpu_run_opencl(struct _starpu_worker *workerarg)
-{
-	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
-
-	workerarg->set = NULL;
-	workerarg->worker_is_initialized = 0;
-
-	/* Let's go ! */
-	_starpu_opencl_worker(workerarg);
-
-	return 0;
-}
-
-struct _starpu_driver_ops _starpu_driver_opencl_ops =
-{
-	.init = _starpu_opencl_driver_init,
-	.run = _starpu_run_opencl,
-	.run_once = _starpu_opencl_driver_run_once,
-	.deinit = _starpu_opencl_driver_deinit
-};
 
 int _starpu_opencl_copy_data_from_opencl_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
@@ -1280,15 +1282,7 @@ int _starpu_opencl_copy_interface_from_cpu_to_opencl(uintptr_t src, size_t src_o
 					     size,
 					     &async_channel->event.opencl_event);
 }
-
-#endif /* STARPU_USE_OPENCL */
-
-int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node)
-{
-	(void)node;
-	(void)handling_node;
-	return 0;
-}
+#endif
 
 uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
@@ -1342,6 +1336,44 @@ void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size,
 #endif
 }
 
+int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	(void)node;
+	(void)handling_node;
+	return 0;
+}
+
+#ifdef STARPU_SIMGRID
+struct _starpu_node_ops _starpu_driver_opencl_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = NULL,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = NULL,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = NULL,
+	.test_request_completion = NULL,
+	.is_direct_access_supported = _starpu_opencl_is_direct_access_supported,
+	.malloc_on_node = _starpu_opencl_malloc_on_node,
+	.free_on_node = _starpu_opencl_free_on_node,
+	.name = "opencl driver"
+};
+#else
 struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 {
 	.copy_data_to[STARPU_UNUSED] = NULL,
@@ -1371,3 +1403,4 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 	.free_on_node = _starpu_opencl_free_on_node,
 	.name = "opencl driver"
 };
+#endif
