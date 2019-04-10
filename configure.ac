@@ -2869,6 +2869,10 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 
 AC_MSG_CHECKING(for OpenMP runtime support)
 
+if test x$starpu_windows = xyes ; then
+   enable_openmp=no
+fi
+
 if test x$enable_openmp = xyes; then
 	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
