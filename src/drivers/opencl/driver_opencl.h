@@ -43,12 +43,12 @@ void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
 unsigned _starpu_opencl_get_device_count(void);
 void _starpu_opencl_init(void);
 void *_starpu_opencl_worker(void *);
+extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 #else
 #define _starpu_opencl_discover_devices(config) ((void) (config))
 #endif
 
 #ifdef STARPU_USE_OPENCL
-extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 extern struct _starpu_driver_ops _starpu_driver_opencl_ops;
 extern char *_starpu_opencl_program_dir;
 

@@ -1559,6 +1559,37 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 	.deinit = _starpu_cuda_driver_deinit_from_worker
 };
 
+#ifdef STARPU_SIMGRID
+struct _starpu_node_ops _starpu_driver_cuda_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = NULL,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = NULL,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_RAM] = NULL,
+	.copy_data_to[STARPU_SCC_SHM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = NULL,
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_interface_to[STARPU_DISK_RAM] = NULL,
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_RAM] = NULL,
+	.copy_interface_to[STARPU_SCC_SHM] = NULL,
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.wait_request_completion = NULL,
+	.test_request_completion = NULL,
+	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
+	.malloc_on_node = _starpu_cuda_malloc_on_node,
+	.free_on_node = _starpu_cuda_free_on_node,
+	.name = "cuda driver"
+};
+#else
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
 	.copy_data_to[STARPU_UNUSED] = NULL,
@@ -1588,3 +1619,4 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.free_on_node = _starpu_cuda_free_on_node,
 	.name = "cuda driver"
 };
+#endif
