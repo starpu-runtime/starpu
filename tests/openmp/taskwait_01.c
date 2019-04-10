@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014,2015,2017,2019                      CNRS
  * Copyright (C) 2014,2016                                Inria
  * Copyright (C) 2017                                     Université de Bordeaux
  *
@@ -35,6 +35,7 @@ __attribute__((constructor))
 static void omp_constructor(void)
 {
 	int ret = starpu_omp_init();
+	if (ret == -ENODEV) exit(STARPU_TEST_SKIPPED);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_omp_init");
 }
 
@@ -67,7 +68,7 @@ void parallel_region_f(void *buffers[], void *args)
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d: implicit task \"f\"\n", (void *)tid, worker_id);
-	
+
 	memset(&attr, 0, sizeof(attr));
 #ifdef STARPU_SIMGRID
 	attr.cl.model         = &starpu_perfmodel_nop;
