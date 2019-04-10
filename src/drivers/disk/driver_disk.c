@@ -93,7 +93,7 @@ int _starpu_disk_copy_data_from_disk_to_cpu(starpu_data_handle_t handle, void *s
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
-		req->async_channel.node_ops = &_starpu_driver_cpu_node_ops;
+		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
 		req->async_channel.event.disk_event.requests = NULL;
 		req->async_channel.event.disk_event.ptr = NULL;
 		req->async_channel.event.disk_event.handle = NULL;
