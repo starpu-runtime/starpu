@@ -174,7 +174,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
                 channel->event.mpi_ms_event.is_sender = 1;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -221,7 +221,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
                 channel->event.mpi_ms_event.is_sender = 0;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -271,7 +271,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU
                 channel->event.mpi_ms_event.is_sender = 1;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -313,7 +313,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
                 channel->event.mpi_ms_event.is_sender = 0;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */

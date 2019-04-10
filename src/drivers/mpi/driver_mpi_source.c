@@ -547,7 +547,7 @@ void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 	_starpu_mpi_source_free_memory((void*) addr, dst_node);
 }
 
-struct _starpu_node_ops _starpu_driver_mic_node_ops =
+struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 {
 	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_mpi_copy_data_from_mpi_to_cpu,
