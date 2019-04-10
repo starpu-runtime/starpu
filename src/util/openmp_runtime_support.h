@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014,2015,2017,2019                      CNRS
  * Copyright (C) 2014-2018                                Inria
  * Copyright (C) 2015,2016                                Université de Bordeaux
  *
@@ -35,6 +35,9 @@
 #define _XOPEN_SOURCE
 #endif
 #include <ucontext.h>
+
+extern starpu_pthread_key_t omp_thread_key;
+extern starpu_pthread_key_t omp_task_key;
 
 /*
  * Arbitrary limit on the number of nested parallel sections
