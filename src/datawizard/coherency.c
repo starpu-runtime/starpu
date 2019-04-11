@@ -924,6 +924,12 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 
 int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned target_node, int prio)
 {
+#ifdef STARPU_OPENMP
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	/* do not attempt to prefetch task input if this is an OpenMP task resuming after blocking */
+	if (j->discontinuous != 0)
+		return 0;
+#endif
 	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
@@ -995,6 +1001,12 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 
 int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio)
 {
+#ifdef STARPU_OPENMP
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	/* do not attempt to prefetch task input if this is an OpenMP task resuming after blocking */
+	if (j->discontinuous != 0)
+		return 0;
+#endif
 	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
