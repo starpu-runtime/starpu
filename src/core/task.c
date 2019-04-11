@@ -149,7 +149,7 @@ void _starpu__task_c__register_counters(void)
 
 /* - */
 
-void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+static void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
 {
 	const char * const sched_policy_name = *(const char **)context;
 	(void) sched_policy_name;
@@ -174,7 +174,7 @@ void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context,
 	}
 }
 
-void sched_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+static void sched_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
 {
 	const char * const sched_policy_name = *(const char **)context;
 	(void) sched_policy_name;
