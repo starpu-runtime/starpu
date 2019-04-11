@@ -349,5 +349,6 @@ void _starpu_perf_knob_unregister_all_scopes(void);
 /* performance knob registration routines per modules */
 void _starpu__workers_c__register_knobs(void);	/* module: workers.c */
 void _starpu__task_c__register_knobs(void); /* module: task.c */
+void _starpu__dmda_c__register_knobs(void); /* module: dmda.c */
 
 #endif // __KNOBS_H__

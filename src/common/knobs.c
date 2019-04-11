@@ -537,6 +537,7 @@ void _starpu_perf_knob_init(void)
 	/* call knob registration routines in each modules */
 	_starpu__workers_c__register_knobs();
 	_starpu__task_c__register_knobs();
+	_starpu__dmda_c__register_knobs();
 }
 
 void _starpu_perf_knob_exit(void)

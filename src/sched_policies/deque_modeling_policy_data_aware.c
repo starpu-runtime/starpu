@@ -34,6 +34,7 @@
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
+#include <math.h> /* for fpclassify() checks on knob values */
 
 
 #ifndef DBL_MIN
@@ -60,6 +61,98 @@ struct _starpu_dmda_data
 	long int eager_task_cnt; /* number of tasks scheduled without model */
 	int num_priorities;
 };
+
+/* performance steering knobs */
+
+/* . per-scheduler knobs */
+static int __s_alpha_knob;
+static int __s_beta_knob;
+static int __s_gamma_knob;
+static int __s_idle_power_knob;
+
+/* . knob variables */
+static double __s_alpha__value = 1.0;
+static double __s_beta__value = 1.0;
+static double __s_gamma__value = 1.0;
+static double __s_idle_power__value = 1.0;
+
+/* . per-scheduler knob group */
+static struct starpu_perf_knob_group * __kg_starpu_dmda__per_scheduler;
+
+static void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_alpha_knob)
+	{
+		STARPU_ASSERT(fpclassify(value->val_double) == FP_NORMAL);
+		__s_alpha__value = value->val_double;
+	}
+	else if (knob->id == __s_beta_knob)
+	{
+		STARPU_ASSERT(fpclassify(value->val_double) == FP_NORMAL);
+		__s_beta__value = value->val_double;
+	}
+	else if (knob->id == __s_gamma_knob)
+	{
+		STARPU_ASSERT(fpclassify(value->val_double) == FP_NORMAL);
+		__s_gamma__value = value->val_double;
+	}
+	else if (knob->id == __s_idle_power_knob)
+	{
+		STARPU_ASSERT(fpclassify(value->val_double) == FP_NORMAL);
+		__s_idle_power__value = value->val_double;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+static void sched_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_alpha_knob)
+	{
+		value->val_double = __s_alpha__value;
+	}
+	else if (knob->id == __s_beta_knob)
+	{
+		value->val_double = __s_beta__value;
+	}
+	else if (knob->id == __s_gamma_knob)
+	{
+		value->val_double = __s_gamma__value;
+	}
+	else if (knob->id == __s_idle_power_knob)
+	{
+		value->val_double = __s_idle_power__value;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void _starpu__dmda_c__register_knobs(void)
+{
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_scheduler;
+		__kg_starpu_dmda__per_scheduler = _starpu_perf_knob_group_register(scope, sched_knobs__set, sched_knobs__get);
+
+		/* TODO: priority capping knobs actually work globally for now, the sched policy name is ignored */
+		__STARPU_PERF_KNOB_REG("starpu.dmda", __kg_starpu_dmda__per_scheduler, s_alpha_knob, double, "alpha constant multiplier");
+
+		__STARPU_PERF_KNOB_REG("starpu.dmda", __kg_starpu_dmda__per_scheduler, s_beta_knob, double, "beta constant multiplier");
+
+		__STARPU_PERF_KNOB_REG("starpu.dmda", __kg_starpu_dmda__per_scheduler, s_gamma_knob, double, "gamma constant multiplier");
+		
+		__STARPU_PERF_KNOB_REG("starpu.dmda", __kg_starpu_dmda__per_scheduler, s_idle_power_knob, double, "idle_power constant multiplier");
+	}
+}
 
 /* The dmda scheduling policy uses
  *
@@ -881,16 +974,16 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					/* no one on that queue may execute this task */
 					continue;
 				}
-				fitness[worker_ctx][nimpl] = dt->alpha*(exp_end[worker_ctx][nimpl] - best_exp_end)
-					+ dt->beta*(local_data_penalty[worker_ctx][nimpl])
-					+ dt->_gamma*(local_energy[worker_ctx][nimpl]);
+				fitness[worker_ctx][nimpl] = dt->alpha * __s_alpha__value *(exp_end[worker_ctx][nimpl] - best_exp_end)
+					+ dt->beta * __s_beta__value *(local_data_penalty[worker_ctx][nimpl])
+					+ dt->_gamma * __s_gamma__value *(local_energy[worker_ctx][nimpl]);
 
 				if (exp_end[worker_ctx][nimpl] > max_exp_end)
 				{
 					/* This placement will make the computation
 					 * longer, take into account the idle
 					 * consumption of other cpus */
-					fitness[worker_ctx][nimpl] += dt->_gamma * dt->idle_power * (exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0;
+					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0;
 				}
 
 				if (best == -1 || fitness[worker_ctx][nimpl] < best_fitness)
