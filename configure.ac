@@ -2867,18 +2867,23 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=no)
 
-AC_MSG_CHECKING(for OpenMP runtime support)
-
+openmp_msg=""
 if test x$starpu_windows = xyes ; then
    enable_openmp=no
+   openmp_msg="disabled on windows"
+fi
+if test "x$use_mpi_master_slave" = "xyes" ; then
+   enable_openmp=no
+   openmp_msg="incompatibility with MPI master slave support"
 fi
 
 if test x$enable_openmp = xyes; then
 	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
 
+AC_MSG_CHECKING(for OpenMP runtime support)
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
-AC_MSG_RESULT($enable_openmp)
+AC_MSG_RESULT($enable_openmp $openmp_msg)
 
 if test x$enable_simgrid = xno; then
   if test -n "{OPENMP_CFLAGS}"; then
