@@ -35,7 +35,7 @@ __attribute__((constructor))
 static void omp_constructor(void)
 {
 	int ret = starpu_omp_init();
-	if (ret == -ENODEV) exit(STARPU_TEST_SKIPPED);
+	if (ret == -EINVAL) exit(STARPU_TEST_SKIPPED);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_omp_init");
 }
 

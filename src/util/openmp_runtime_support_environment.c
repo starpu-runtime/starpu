@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017, 2019                          CNRS
  * Copyright (C) 2014,2016                                Inria
  * Copyright (C) 2015-2017                                Université de Bordeaux
  *
@@ -23,6 +23,7 @@
 #include <ctype.h>
 #include <strings.h>
 #include <limits.h>
+#include <core/sched_policy.h>
 
 #define _STARPU_INITIAL_PLACES_LIST_SIZE      4
 #define _STARPU_INITIAL_PLACE_ITEMS_LIST_SIZE 4
@@ -874,6 +875,27 @@ void _starpu_omp_environment_init(void)
 	{
 		display_omp_environment(display_env);
 	}
+}
+
+int _starpu_omp_environment_check(void)
+{
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		_STARPU_DISP("OpenMP support needs at least 1 CPU worker\n");
+		return -EINVAL;
+	}
+
+	int i;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		struct starpu_sched_policy *sched_policy = starpu_sched_ctx_get_sched_policy(i);
+		if (sched_policy && (strcmp(sched_policy->policy_name, _starpu_sched_graph_test_policy.policy_name) == 0))
+		{
+			_STARPU_DISP("OpenMP support is not compatible with scheduler '%s' ('%s')\n", _starpu_sched_graph_test_policy.policy_name, _starpu_sched_graph_test_policy.policy_description);
+			return -EINVAL;
+		}
+	}
+	return 0;
 }
 
 void _starpu_omp_environment_exit(void)
