@@ -766,9 +766,8 @@ static int omp_initial_thread_setup(void)
 	omp_starpu_conf.n_not_launched_drivers = 1;
 	/* we are now ready to start StarPU */
 	ret = starpu_init(&omp_starpu_conf);
-	if (starpu_cpu_worker_get_count() == 0)
-		return -ENODEV;
-	else
+	int check = _starpu_omp_environment_check();
+	if (check == 0)
 	{
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 		ret = starpu_driver_init(&initial_thread->starpu_driver);
@@ -786,8 +785,8 @@ static int omp_initial_thread_setup(void)
 		STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
 		_starpu_omp_set_thread(initial_thread);
 		register_thread_worker(initial_thread);
-		return 0;
 	}
+	return check;
 }
 
 static void omp_initial_thread_exit()
@@ -811,8 +810,7 @@ static void omp_initial_thread_exit()
 static int omp_initial_region_setup(void)
 {
 	int ret = omp_initial_thread_setup();
-	if (ret == -ENODEV)
-		return ret;
+	if (ret != 0) return ret;
 
 	const int max_active_levels = _starpu_omp_initial_icv_values->max_active_levels_var;
 	const int max_threads = (int)starpu_cpu_worker_get_count();
@@ -965,19 +963,17 @@ int starpu_omp_init(void)
 
 	_starpu_omp_environment_init();
 	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
-	int ret = omp_initial_region_setup();
-	if (ret == -ENODEV)
-		return ret;
+	_global_state.environment_valid = omp_initial_region_setup();
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
 
-	return 0;
+	return _global_state.environment_valid;
 }
 
 void starpu_omp_shutdown(void)
 {
-	if (starpu_cpu_worker_get_count() == 0) return;
+	if (_global_state.environment_valid != 0) return;
 
 	omp_initial_region_exit();
 	/* TODO: free ICV variables */

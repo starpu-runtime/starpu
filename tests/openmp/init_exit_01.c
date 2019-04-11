@@ -33,7 +33,7 @@ int
 main (void)
 {
 	int ret = starpu_omp_init();
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (ret == -EINVAL) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_omp_init");
 	starpu_omp_shutdown();
 	return 0;

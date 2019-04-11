@@ -28,7 +28,7 @@
 
 /* ucontexts have been deprecated as of POSIX 1-2004
  * _XOPEN_SOURCE required at least on OS/X
- * 
+ *
  * TODO: add detection in configure.ac
  */
 #ifndef _XOPEN_SOURCE
@@ -77,7 +77,7 @@ struct starpu_omp_place
 	int nb_numeric_places;
 };
 
-/* 
+/*
  * Internal Control Variables (ICVs) declared following
  * OpenMP 4.0.0 spec section 2.3.1
  */
@@ -251,7 +251,7 @@ LIST_TYPE(starpu_omp_task,
 	enum starpu_omp_task_state state;
 	enum starpu_omp_task_flags flags;
 
-	/* 
+	/*
 	 * context to store the processing state of the task
 	 * in case of blocking/recursive task operation
 	 */
@@ -393,20 +393,22 @@ struct starpu_omp_global
 	struct starpu_arbiter *default_arbiter;
 	unsigned nb_starpu_cpu_workers;
 	int *starpu_cpu_worker_ids;
+	int environment_valid;
 };
 
-/* 
+/*
  * internal global variables
  */
 extern struct starpu_omp_initial_icv_values *_starpu_omp_initial_icv_values;
 extern struct starpu_omp_global *_starpu_omp_global_state;
 extern double _starpu_omp_clock_ref;
 
-/* 
+/*
  * internal API
  */
 void _starpu_omp_environment_init(void);
 void _starpu_omp_environment_exit(void);
+int _starpu_omp_environment_check(void);
 struct starpu_omp_thread *_starpu_omp_get_thread(void);
 struct starpu_omp_region *_starpu_omp_get_region_at_level(int level);
 struct starpu_omp_task *_starpu_omp_get_task(void);
