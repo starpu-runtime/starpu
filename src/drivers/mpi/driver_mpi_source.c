@@ -400,7 +400,7 @@ int _starpu_mpi_copy_data_from_mpi_to_cpu(starpu_data_handle_t handle, void *src
 	}
 	else
 	{
-		req->async_channel.node_ops = &_starpu_driver_cpu_node_ops;
+		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
 		if(copy_methods->mpi_ms_to_ram_async)
 			ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		else
