@@ -2876,6 +2876,10 @@ if test "x$use_mpi_master_slave" = "xyes" ; then
    enable_openmp=no
    openmp_msg="incompatibility with MPI master slave support"
 fi
+if test x$enable_simgrid = xyes ; then
+   enable_openmp=no
+   openmp_msg="incompatibility with Simgrid support"
+fi
 
 if test x$enable_openmp = xyes; then
 	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
