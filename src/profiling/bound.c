@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014                           Inria
- * Copyright (C) 2010-2017                                Université de Bordeaux
- * Copyright (C) 2010-2017, 2019                          CNRS
+ * Copyright (C) 2010-2017,2019                           Université de Bordeaux
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -425,6 +425,12 @@ void _starpu_bound_job_id_dep_size(size_t size, struct _starpu_job *j, unsigned 
 
 void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j, unsigned long id)
 {
+	if (!_starpu_bound_recording || !recorddeps)
+		return;
+
+	if (!good_job(j))
+		return;
+
 	_starpu_bound_job_id_dep_size(_starpu_data_get_size(handle), j, id);
 }
 
