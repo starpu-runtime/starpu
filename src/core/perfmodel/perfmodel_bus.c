@@ -1815,47 +1815,23 @@ void starpu_bus_print_filenames(FILE *output)
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
-	unsigned src, dst, maxnode;
-
-	maxnode = nnumas;
-#ifdef STARPU_USE_CUDA
-	maxnode += ncuda;
-#endif
-#ifdef STARPU_USE_OPENCL
-	maxnode += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	maxnode += nmpi_ms;
-#endif
+	unsigned src, dst, maxnode = starpu_memory_nodes_get_count();
 
 	fprintf(f, "from/to\t");
-	for (dst = 0; dst < nnumas; dst++)
-		fprintf(f, "NUMA_%u\t", dst);
-	for (dst = 0; dst < ncuda; dst++)
-		fprintf(f, "CUDA_%u\t", dst);
-	for (dst = 0; dst < nopencl; dst++)
-		fprintf(f, "OpenCL%u\t", dst);
-	for (dst = 0; dst < nmic; dst++)
-		fprintf(f, "MIC_%u\t", dst);
-	for (dst = 0; dst < nmpi_ms; dst++)
-		fprintf(f, "MPI_MS%u\t", dst);
+	for (dst = 0; dst < maxnode; dst++)
+	{
+		char name[128];
+		starpu_memory_node_get_name(dst, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+	}
 	fprintf(f, "\n");
 
 	for (src = 0; src < maxnode; src++)
 	{
-		if (src < nnumas)
-			fprintf(f, "NUMA_%u\t", src);
-		else if (src < nnumas + ncuda)
-			fprintf(f, "CUDA_%u\t", src-nnumas);
-		else if (src < nnumas + ncuda + nopencl)
-			fprintf(f, "OpenCL%u\t", src-nnumas-ncuda);
-		else if (src < nnumas + ncuda + nopencl + nmic)
-			fprintf(f, "MIC_%u\t", src-nnumas-ncuda-nopencl);
-		else
-			fprintf(f, "MPI_MS%u\t", src-nnumas-ncuda-nopencl-nmic);
+		char name[128];
+		starpu_memory_node_get_name(src, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+
 		for (dst = 0; dst < maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1865,16 +1841,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 
 	for (src = 0; src < maxnode; src++)
 	{
-		if (src < nnumas)
-			fprintf(f, "NUMA_%u\t", src);
-		else if (src < nnumas + ncuda)
-			fprintf(f, "CUDA_%u\t", src-nnumas);
-		else if (src < nnumas + ncuda + nopencl)
-			fprintf(f, "OpenCL%u\t", src-nnumas-ncuda);
-		else if (src < nnumas + ncuda + nopencl + nmic)
-			fprintf(f, "MIC_%u\t", src-nnumas-ncuda-nopencl);
-		else
-			fprintf(f, "MPI_MS%u\t", src-nnumas-ncuda-nopencl-nmic);
+		char name[128];
+		starpu_memory_node_get_name(src, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+
 		for (dst = 0; dst < maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
