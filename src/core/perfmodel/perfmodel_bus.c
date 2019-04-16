@@ -3075,14 +3075,14 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
 
 				if (!isnan(latency_matrix[i][j]) && print_stats)
-					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
+					fprintf(stderr,"%u -> %u: %.0f us\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
 				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
 
 				if (!isnan(latency_matrix[i][j]) && print_stats)
-					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
+					fprintf(stderr,"%u -> %u: %.0f us\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{

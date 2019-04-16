@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\ntopology ... (hwloc logical indexes)\n");
 		starpu_topology_print(stdout);
 
-		fprintf(stdout, "\nbandwidth (MB/s) and latency (µs)...\n");
+		fprintf(stdout, "\nbandwidth (MB/s) and latency (us)...\n");
 		starpu_bus_print_bandwidth(stdout);
 
 		starpu_shutdown();
