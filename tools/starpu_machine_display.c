@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015,2017                           Université de Bordeaux
+ * Copyright (C) 2011-2015,2017, 2019                           Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2012-2014,2016,2017                      CNRS
  *
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 		fprintf(stdout, "\ntopology ... (hwloc logical indexes)\n");
 		starpu_topology_print(stdout);
 
-		fprintf(stdout, "\nbandwidth and latency ...\n");
+		fprintf(stdout, "\nbandwidth (MB/s) and latency (µs)...\n");
 		starpu_bus_print_bandwidth(stdout);
 
 		starpu_shutdown();
