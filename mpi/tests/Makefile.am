@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2009-2018                                Université de Bordeaux
 # Copyright (C) 2013                                     Thibaut Lambert
 #
@@ -16,15 +16,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
-
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
 
 CC=$(MPICC)
 CCLD=$(MPICC)

@@ -4,7 +4,7 @@
 # Copyright (C) 2011,2012,2016,2017                      Inria
 # Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2013                                     Joris Pablo
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,15 +19,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
-
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
 
 SUBDIRS =
 

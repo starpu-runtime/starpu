@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011,2016,2017                           Inria
-# Copyright (C) 2011-2018                                CNRS
+# Copyright (C) 2011-2019                                CNRS
 # Copyright (C) 2010-2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -16,13 +16,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
-
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-endif
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
