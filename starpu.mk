@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     Inria
-# Copyright (C) 2017, 2018                               CNRS
+# Copyright (C) 2017, 2018, 2019                         CNRS
 # Copyright (C) 2016,2017                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -60,3 +60,18 @@ showsuite:
 		make -C $$i showsuite || RET=1 ; \
 	done ; \
 	exit $$RET
+
+if STARPU_SIMGRID
+STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+STARPU_HOSTNAME=mirage
+MALLOC_PERTURB_=0
+export STARPU_PERF_MODEL_DIR
+export STARPU_HOSTNAME
+export MALLOC_PERTURB_
+
+env:
+	@echo export STARPU_PERF_MODEL_DIR=$(STARPU_PERF_MODEL_DIR)
+	@echo export STARPU_HOSTNAME=$(STARPU_HOSTNAME)
+	@echo export MALLOC_PERTURB_=$(MALLOC_PERTURB_)
+endif
+
