@@ -228,6 +228,12 @@ task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
+or equivalently
+
+\code{.c}
+starpu_task_insert(&cl, ..., STARPU_EXECUTE_ON_WORKER, starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), ...);
+\endcode
+
 One can also specify a set worker(s) which are allowed to take the task, as an
 array of bit, for instance to allow workers 2 and 42:
 
