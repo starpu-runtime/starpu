@@ -3,7 +3,7 @@
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2018                                     Inria
  * Copyright (C) 2017,2018,2019                           CNRS
- * Copyright (C) 2016-2018                                Université de Bordeaux
+ * Copyright (C) 2016-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,8 +93,6 @@ static int priority = 0;
 
 char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) is used to know which handle of the task has to be registered in StarPU (in fact to avoid  handle twice)*/
 
-static int device;
-
 /* Record all tasks, hashed by jobid. */
 static struct task
 {
@@ -151,6 +149,7 @@ unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_nod
 struct task_arg
 {
 	uint32_t footprint;
+	unsigned narch;
 	double perf[];
 };
 
@@ -161,15 +160,19 @@ uint32_t get_footprint(struct starpu_task * task)
 
 double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 {
-	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	int device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(device != -1);
 	(void) nimpl;
 
 	/* Then, get the pointer to the value of the expected time */
-	double * val = (double *) ((struct task_arg *) (task->cl_arg))->perf+device;
+	struct task_arg *arg = task->cl_arg;
+	if (device < (int) arg->narch)
+	{
+		double val = arg->perf[device];
 
-	if (!(*val == 0 || isnan(*val)))
-		return *val;
+		if (!(val == 0 || isnan(val)))
+			return val;
+	}
 
 	fprintf(stderr, "[starpu] Error, expected_time is 0 or lower (replay.c line : %d)", __LINE__- 6);
 
@@ -194,11 +197,20 @@ void dumb_kernel(void *buffers[], void *args) {
 static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
-	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];
+	int device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if (device == -1)
+		/* Doesn't exist yet, thus unknown, assuming it can not work there. */
+		return 0;
 	(void) nimpl;
-	if (!(expected_time == 0 || isnan(expected_time)))
+
+	/* Then, get the pointer to the value of the expected time */
+	struct task_arg *arg = task->cl_arg;
+	if (device < (int) arg->narch)
 	{
-		return 1;
+		double val = arg->perf[device];
+
+		if (!(val == 0 || isnan(val)))
+			return 1;
 	}
 
 	return 0;
@@ -413,7 +425,10 @@ int submit_tasks(void)
 
 			if (ret_val != 0)
 			{
-				printf("\nWhile submitting task %ld: return %d\n", currentTask->submit_order, ret_val);
+				printf("\nWhile submitting task %ld (%s): return %d\n",
+						currentTask->submit_order,
+						currentTask->task.name? currentTask->task.name : "unknown",
+						ret_val);
 				return -1;
 			}
 
@@ -626,15 +641,20 @@ int main(int argc, char **argv)
 
 						starpu_perfmodel_init(&realmodel->perfmodel);
 
-						HASH_ADD_STR(model_hash, model_name, realmodel);
-
 						int error = starpu_perfmodel_load_symbol(model, &realmodel->perfmodel);
 
-						if (error)
+						if (!error)
+						{
+							HASH_ADD_STR(model_hash, model_name, realmodel);
+						}
+						else
 						{
 
 							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
-							exit(EXIT_FAILURE);
+							fprintf(stderr, "[starpu][Warning] Taking only measurements from the given execution, and forcing execution on worker %d\n", workerid);
+							free(realmodel->model_name);
+							free(realmodel);
+							realmodel = NULL;
 						}
 
 					}
@@ -644,12 +664,40 @@ int main(int argc, char **argv)
 					struct task_arg *arg;
 					_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
 					arg->footprint = footprint;
+					arg->narch = narch;
 					double * perfTime  = arg->perf;
 
-					for (i = 0; i < narch ; i++)
+					if (realmodel == NULL)
 					{
-						struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
-						perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
+						struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
+
+						unsigned comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+						/* Erf, do without perfmodel, for execution there */
+						task->task.workerid = workerid;
+						task->task.execute_on_a_specific_worker = 1;
+						for (i = 0; i < narch ; i++)
+						{
+							if (i == comb)
+								perfTime[i] = endTime - startTime;
+							else
+								perfTime[i] = NAN;
+						}
+					}
+					else
+					{
+						int one = 0;
+						for (i = 0; i < narch ; i++)
+						{
+							struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
+							perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
+							if (!(perfTime[i] == 0 || isnan(perfTime[i])))
+								one = 1;
+						}
+						if (!one)
+						{
+							fprintf(stderr, "We do not have any performance measurement for symbol '%s' for footprint %x, we can not execute this", model, footprint);
+							exit(EXIT_FAILURE);
+						}
 					}
 
 					task->task.cl_arg = arg;
