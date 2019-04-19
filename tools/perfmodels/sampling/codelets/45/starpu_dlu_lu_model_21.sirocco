@@ -12,7 +12,7 @@
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
 0
 ####################
 # DEV_0
@@ -47,7 +47,7 @@ d39bff17	6553600        	0.000000e+00   	1.762919e+04   	3.396463e+03   	6.17021
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
 1
 ####################
 # DEV_0
@@ -82,7 +82,7 @@ d39bff17	6553600        	0.000000e+00   	9.089165e+02   	1.570596e+02   	1.59060
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
 1
 ####################
 # DEV_0
@@ -117,7 +117,7 @@ d39bff17	6553600        	0.000000e+00   	9.441529e+02   	1.527244e+02   	2.39814
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
 1
 ####################
 # DEV_0
@@ -152,7 +152,7 @@ d39bff17	6553600        	0.000000e+00   	9.018562e+02   	1.587421e+02   	1.47002
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
 1
 ####################
 # DEV_0

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016,2019                           Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
- * Copyright (C) 2011-2013,2015-2018                      CNRS
+ * Copyright (C) 2011-2013,2015-2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -210,7 +210,6 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.nmic = 0;
 	conf.nmpi_ms = 0;
-	conf.nscc = 0;
 
 	variable = INIT_VALUE;
 

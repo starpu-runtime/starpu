@@ -196,10 +196,6 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	starpu_scc_get_offset_in_shared_memory((void*)matrix_interface.ptr, (void**)&(matrix_interface.dev_handle), &(matrix_interface.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
 }
 

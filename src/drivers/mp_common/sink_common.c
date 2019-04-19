@@ -46,8 +46,6 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 
 	if (!strcmp(node_kind, "STARPU_MIC"))
 		return STARPU_NODE_MIC_SINK;
-	else if (!strcmp(node_kind, "STARPU_SCC"))
-		return STARPU_NODE_SCC_SINK;
 	else if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_NODE_MPI_SINK;
 	else

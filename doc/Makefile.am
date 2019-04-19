@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011,2012,2015                           Inria
 # Copyright (C) 2009,2011,2012,2015                      Université de Bordeaux
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,6 @@ DIST_SUBDIRS = doxygen
 DIST_SUBDIRS += doxygen_dev
 
 EXTRA_DIST =    tutorial/hello_world.c \
-		tutorial/hello_world_plugin.c \
 		tutorial/hello_world_msvc.c \
 		tutorial/Makefile \
 		tutorial/README \
@@ -29,9 +28,7 @@ EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/vector_scal_cpu.c \
 		tutorial/vector_scal_cuda.cu \
 		tutorial/vector_scal_opencl.c \
-		tutorial/vector_scal_opencl_kernel.cl \
-		tutorial/vector_scal_plugin.c \
-		tutorial/vector_scal_plugin_cuda.cu
+		tutorial/vector_scal_opencl_kernel.cl
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)

@@ -3,7 +3,6 @@
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
- * Copyright (C) 2015                                     Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -555,8 +554,6 @@ struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_data_to[STARPU_DISK_RAM] = NULL,
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_SCC_RAM] = NULL,
-	.copy_data_to[STARPU_SCC_SHM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_mpi_to_mpi,
 
 	.copy_interface_to[STARPU_UNUSED] = NULL,
@@ -565,8 +562,6 @@ struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_interface_to[STARPU_DISK_RAM] = NULL,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_SCC_RAM] = NULL,
-	.copy_interface_to[STARPU_SCC_SHM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_mpi_to_mpi,
 
 	.wait_request_completion = _starpu_mpi_common_wait_request_completion,

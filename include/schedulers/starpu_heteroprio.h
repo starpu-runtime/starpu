@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015-2017                                Inria
- * Copyright (C) 2015,2017                                CNRS
+ * Copyright (C) 2015,2017,2019                           CNRS
  * Copyright (C) 2015-2017                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -44,7 +44,6 @@ enum starpu_heteroprio_types
 	STARPU_CUDA_IDX,
 	STARPU_OPENCL_IDX,
 	STARPU_MIC_IDX,
-	STARPU_SCC_IDX,
 	STARPU_MPI_MS_IDX,
 // This will be the number of archs
 	STARPU_NB_TYPES
@@ -56,7 +55,6 @@ static const unsigned starpu_heteroprio_types_to_arch[STARPU_NB_TYPES+1] =
 	STARPU_CUDA,
 	STARPU_OPENCL,
 	STARPU_MIC,
-	STARPU_SCC,
         STARPU_MPI_MS,
 	0
 };

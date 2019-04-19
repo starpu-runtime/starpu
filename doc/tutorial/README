@@ -1,8 +1,8 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2013  CNRS
+# Copyright (C) 2009-2011                                 Université de Bordeaux
+# Copyright (C) 2010, 2011, 2013, 2019                    CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,5 @@ Instructions on how to compile and run StarPU examples
 
 % STARPU_NCPU=0 ./vector_scal
 % STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal
-
-% make hello_world_plugin
-% ./hello_world_plugin
-
-% make vector_scal_plugin
-% STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal_plugin
-% STARPU_NCPU=0 STARPU_NOPENCL=0 ./vector_scal_plugin
-% STARPU_NOPENCL=0 STARPU_NCUDA=0 ./vector_scal_plugin
+% STARPU_NCPU=0 STARPU_NOPENCL=0 ./vector_scal
+% STARPU_NOPENCL=0 STARPU_NCUDA=0 ./vector_scal

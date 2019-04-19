@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015                                     Inria
- * Copyright (C) 2010-2013,2016,2017                      CNRS
- * Copyright (C) 2010-2012,2015-2017, 2019                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2016,2017,2019                 CNRS
+ * Copyright (C) 2010-2012,2015-2017, 2019                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,7 +166,6 @@ int main(void)
 	setenv("STARPU_NCUDA","0",1);
 	setenv("STARPU_NOPENCL","0",1);
 	setenv("STARPU_NMIC","0",1);
-	setenv("STARPU_NSCC","0",1);
 	setenv("STARPU_NMPI_MS","0",1);
 	unsetenv("STARPU_NCPUS");
 

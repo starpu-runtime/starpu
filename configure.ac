@@ -1912,99 +1912,6 @@ fi
 
 ###############################################################################
 #                                                                             #
-#                                 SCC settings                                #
-#                                                                             #
-###############################################################################
-
-AC_ARG_ENABLE([rcce], [AS_HELP_STRING([--disable-rcce],
-			  [do not use SCC device(s)])], [], enable_rcce=maybe)
-
-nmaxsccdev=47
-AC_DEFINE_UNQUOTED(STARPU_MAXSCCDEVS, [$nmaxsccdev], [maximum number of SCC devices])
-
-AC_ARG_WITH(rcce-dir,
-			[AS_HELP_STRING([--with-rcce-dir=<path>],
-							[specify RCCE installation directory])],
-			[
-				rcce_dir="$withval"
-				enable_rcce=yes
-			],
-			rcce_dir=no)
-
-AC_ARG_WITH(rcce-include-dir,
-			[AS_HELP_STRING([--with-rcce-include-dir=<path>],
-							[specify where RCCE headers are installed])],
-			[
-				rcce_include_dir="$withval"
-				enable_rcce=yes
-			],
-			rcce_include_dir=no)
-
-AC_ARG_WITH(rcce-lib-dir,
-			[AS_HELP_STRING([--with-rcce-lib-dir=<path>],
-							[specify where RCCE libraries are installed])],
-			[
-			 	rcce_lib_dir="$withval"
-			 	enable_rcce=yes
-			],
-			rcce_lib_dir=no)
-
-if test x$enable_rcce = xyes -o x$enable_rcce = xmaybe ; then
-	have_valid_rcce=yes
-
-	SAVED_LDFLAGS="${LDFLAGS}"
-	SAVED_CPPFLAGS="${CPPFLAGS}"
-	SAVED_LIBS="${LIBS}"
-
-	if test x$rcce_include_dir != xno ; then
-		STARPU_RCCE_CPPFLAGS="-I${rcce_include_dir}"
-	elif test x$rcce_dir != xno ; then
-		STARPU_RCCE_CPPFLAGS="-I${rcce_dir}/include"
-	fi
-
-	CPPFLAGS="${CPPFLAGS} ${STARPU_RCCE_CPPFLAGS}"
-	AC_CHECK_HEADER([RCCE.h], [], [have_valid_rcce=no])
-
-	if test x$rcce_lib_dir != xno ; then
-		STARPU_RCCE_LDFLAGS="-L${rcce_lib_dir}"
-	elif test x$rcce_dir != xno ; then
-		STARPU_RCCE_LDFLAGS="-L${rcce_lib}/lib"
-	fi
-
-	LDFLAGS="${LDFLAGS} ${STARPU_RCCE_LDFLAGS}"
-	AC_CHECK_LIB([RCCE_bigflags_nongory_nopwrmgmt], [RCCE_init], [], [have_valid_rcce=no])
-
-	# in case RCCE was explicitely required, but is not available, this is an error
-	if test x$enable_rcce = xyes -a x$have_valid_rcce = xno ; then
-		AC_MSG_ERROR([cannot find RCCE library])
-	fi
-
-	if test x$have_valid_rcce = xyes ; then
-		STARPU_RCCE_CPPFLAGS="${STARPU_RCCE_CPPFLAGS} -DSCC"
-		STARPU_RCCE_LDFLAGS="${STARPU_RCCE_LDFLAGS} -lRCCE_bigflags_nongory_nopwrmgmt -ldl"
-
-		AC_DEFINE(STARPU_USE_SCC, [1], [SCC support is enabled])
-
-		AC_SUBST(STARPU_RCCE_CFLAGS)
-		AC_SUBST(STARPU_RCCE_CPPFLAGS)
-		AC_SUBST(STARPU_RCCE_LDFLAGS)
-	fi
-
-	LDFLAGS="${SAVED_LDFLAGS}"
-	CPPFLAGS="${SAVED_CPPFLAGS}"
-	LIBS="${SAVED_LIBS}"
-
-	enable_rcce=$have_valid_rcce
-fi
-
-AM_CONDITIONAL(STARPU_USE_SCC, test x$enable_rcce = xyes)
-
-AC_MSG_CHECKING(whether RCCE should be used)
-AC_MSG_RESULT($enable_rcce)
-
-
-###############################################################################
-#                                                                             #
 #                   Debug and Performance analysis tools                      #
 #                                                                             #
 ###############################################################################
@@ -2412,16 +2319,13 @@ if test x$enable_simgrid != xyes; then
 	if test x$enable_mic != xyes; then
 		nmaxmicthreads=0
 	fi
-	if test x$enable_rcce != xyes; then
-		nmaxsccdev=0
-	fi
     #By default, if we cannot build mpi master-slave nmaxmpidev is set to zero.
     #But with the multiplication with maxcpus, we need to put it to one.
     if test x$build_mpi_master_slave != xyes; then
         nmaxmpidev=1
     fi
 fi
-nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -2498,83 +2402,6 @@ AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
 AC_MSG_RESULT($maxmpkernels)
 AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
 		[maximum number of message-passing kernels])
-
-###############################################################################
-
-
-###############################################################################
-#                                                                             #
-#                               StarPU-Top                                    #
-#                                                                             #
-###############################################################################
-
-AC_ARG_ENABLE([starpu-top],
-  [AS_HELP_STRING([--disable-starpu-top],
-    [disable StarPU-Top])],
-  [enable_starpu_top="$enableval"],
-  [enable_starpu_top="maybe"])
-
-# Check whether StarPU-Top can be built
-AC_MSG_CHECKING(for StarPU-Top)
-
-if test "x$enable_starpu_top" != "xno" ; then
-	can_build_starpu_top=no
-	AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
-	if test x$QMAKE != xnot-found; then
-		QMAKE_VERSION=`$QMAKE --version 2>/dev/null | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
-		QT_VERSION=`$QMAKE --version 2>/dev/null | tail -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 4`
-		if test 0$QT_VERSION -ge 5 ; then
-			can_build_starpu_top=yes
-		elif test 0$QMAKE_VERSION -ge 2 ; then
-			PKG_CHECK_EXISTS([QtGui QtOpenGL QtSql], [
-				QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
-				QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
-				if test 0$QT_MAJVERSION -gt 4 -o \( 0$QT_MAJVERSION -eq 4 -a 0$QT_MINVERSION -ge 7 \) ; then
-					can_build_starpu_top=yes
-				fi
-			])
-		fi
-		if test x$can_build_starpu_top = xyes; then
-			QWT_PRI=embed
-			AC_ARG_WITH(qwt-include-dir,
-				[AS_HELP_STRING([--with-qwt-include-dir=<path>],
-				[specify installed libqwt include path])],
-				[
-					STARPU_QWT_INCLUDE="$withval"
-					AC_SUBST(STARPU_QWT_INCLUDE)
-					QWT_PRI=system
-				])
-			AC_ARG_WITH(qwt-lib-dir,
-				[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
-				[specify installed libqwt library path])],
-				[
-					STARPU_QWT_LDFLAGS="-L$withval"
-					QWT_PRI=system
-				])
-			AC_ARG_WITH(qwt-lib,
-				[AS_HELP_STRING([--with-qwt-lib=<name>],
-				[specify installed libqwt library name])],
-				[
-					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
-					QWT_PRI=system
-				])
-			AC_SUBST(STARPU_QWT_LDFLAGS)
-			AC_SUBST(QWT_PRI)
-		fi
-	fi
-fi
-
-if test "x$enable_starpu_top" != "xno" ; then
-  build_starpu_top=$can_build_starpu_top
-else
-  build_starpu_top=no
-fi
-
-AC_SUBST(STARPU_USE_TOP, $build_starpu_top)
-AM_CONDITIONAL(BUILD_STARPU_TOP, test "x$build_starpu_top" = "xyes")
-if test "x$build_starpu_top" = "xyes"; then
-	AC_DEFINE(STARPU_USE_TOP, [1], [StarPU-Top is activated])
-fi
 
 ###############################################################################
 #                                                                             #
@@ -2766,77 +2593,6 @@ fi
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
-
-###############################################################################
-#                                                                             #
-#                               GCC extensions                                #
-#                                                                             #
-###############################################################################
-
-AC_ARG_ENABLE([gcc-extensions],
-  [AS_HELP_STRING([--enable-gcc-extensions],
-    [build the GCC plug-in that provides C language extensions (experimental)])],
-  [enable_gcc_plugin="$enableval"],
-  [enable_gcc_plugin="maybe"])
-
-if test "x$enable_gcc_plugin" = "xyes" -o "x$enable_gcc_plugin" = "xmaybe" ; then
-    STARPU_GCC_PLUGIN_SUPPORT
-
-    if test "x$ac_cv_have_gcc_plugins" = "xno" ; then
-        if test "x$enable_gcc_plugin" = "xyes" ; then
-    	    # Since this was explicitly asked for, error out.
-            AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
-	else
-	    AC_MSG_WARN([GCC plug-ins not supported; StarPU's GCC plug-in will not be built])
-        fi
-    else
-        # What GCC version are we using?
-        STARPU_GCC_VERSION
-
-        # The `.so' itself cannot be called `starpu-gcc.so' (because
-	# `-fplugin-arg-' option names and such must match the `.so'
-	# name), so use a meaningful directory name.
-	gccplugindir="\${pkglibdir}/${STARPU_EFFECTIVE_VERSION}/gcc/${STARPU_GCC_VERSION_MAJOR}.${STARPU_GCC_VERSION_MINOR}"
-	AC_SUBST([gccplugindir])
-
-	# Lines to be inserted in the `.pc' file.
-	GCC_PLUGIN_DIR_PKGCONFIG="gccplugindir=$gccplugindir"
-	GCC_PLUGIN_PKGCONFIG="gccplugin=\${gccplugindir}/starpu.so"
-	AC_SUBST([GCC_PLUGIN_DIR_PKGCONFIG])
-	AC_SUBST([GCC_PLUGIN_PKGCONFIG])
-    fi
-fi
-AM_CONDITIONAL([HAVE_PTR_DEREFS_MAY_ALIAS_P],
-               [test "x$ac_cv_have_decl_ptr_derefs_may_alias_p" = "xyes"])
-
-
-if test "x$ac_cv_have_gcc_plugins" = "xyes" ; then
-    build_gcc_plugin="yes"
-
-    # GNU Guile 1.8/2.0 is used to run the test suite.
-    AC_PATH_PROG([GUILE], [guile])
-    if test "x$GUILE" != "x"; then
-        if test "x$enable_cpu" = "xyes"; then
-	   run_gcc_plugin_test_suite="yes"
-	else
-	   AC_MSG_WARN([CPU back-end disabled; GCC plug-in test suite will not be run])
-	   run_gcc_plugin_test_suite="no"
-	fi
-    else
-	run_gcc_plugin_test_suite="no"
-    fi
-else
-    build_gcc_plugin="no"
-    run_gcc_plugin_test_suite="no"
-fi
-
-# Bison is used to generate the C expression parser.  The generated
-# parser is part of the distribution, though.
-AM_MISSING_PROG([YACC], [bison])
-
-AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
-AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
-  [test "x$run_gcc_plugin_test_suite" = "xyes"])
 
 ########################################################################
 #                                                                      #
@@ -3649,7 +3405,6 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/model-checking/starpu-mc.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
-  chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
@@ -3707,7 +3462,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h starpurm/include/starpurm_config.h)
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
@@ -3764,14 +3519,6 @@ AC_OUTPUT([
 	mpi/src/Makefile
 	mpi/tests/Makefile
 	mpi/examples/Makefile
-	starpu-top/StarPU-Top.pro
-	starpu-top/StarPU-Top-qwt-embed.pri
-	starpu-top/StarPU-Top-qwt-system.pri
-        gcc-plugin/Makefile
-	gcc-plugin/src/Makefile
-	gcc-plugin/tests/Makefile
-	gcc-plugin/tests/run-test
-	gcc-plugin/examples/Makefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
@@ -3791,7 +3538,6 @@ AC_MSG_NOTICE([
 	CPUs   enabled: $enable_cpu
 	CUDA   enabled: $enable_cuda
 	OpenCL enabled: $enable_opencl
-	SCC    enabled: $enable_rcce
 	MIC    enabled: $enable_mic
 
 	Compile-time limits
@@ -3804,7 +3550,6 @@ AC_MSG_NOTICE([
 	Maximum number of CPUs:                     $maxcpus
 	Maximum number of CUDA devices:             $nmaxcudadev
 	Maximum number of OpenCL devices:           $nmaxopencldev
-	Maximum number of SCC devices:              $nmaxsccdev
 	Maximum number of MIC threads:              $nmaxmicthreads
 	Maximum number of MPI master-slave devices: $nmaxmpidev
 	Maximum number of memory nodes:             $maxnodes
@@ -3817,7 +3562,6 @@ AC_MSG_NOTICE([
 	BLAS library:      $blas_lib
 	hwloc:             $have_valid_hwloc
 	FxT trace enabled: $use_fxt
-	StarPU-Top:        $build_starpu_top
 
         Documentation:     $enable_build_doc
         Examples:          $enable_build_examples
@@ -3829,8 +3573,6 @@ AC_MSG_NOTICE([
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
 	       Resource Management enable:                    $starpurm_support
-	       GCC plug-in:                                   $build_gcc_plugin
-	       GCC plug-in test suite (requires GNU Guile):   $run_gcc_plugin_test_suite
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
