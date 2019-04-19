@@ -1728,6 +1728,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	uint32_t key;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	if(comb == -1)
 		goto docal;
 	if (model->state->per_arch[comb] == NULL)
@@ -1736,7 +1737,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 
 	per_arch_model = &model->state->per_arch[comb][nimpl];
 
-	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
@@ -1748,26 +1748,49 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	 * We do not care about racing access to the mean, we only want
 	 * a good-enough estimation */
 
-	if (entry && entry->nsample >= _starpu_calibration_minimum)
+	if (entry && entry->nsample)
 	{
-		STARPU_ASSERT_MSG(entry->mean >= 0, "entry->mean=%lf\n", entry->mean);
-		/* TODO: report differently if we've scheduled really enough
-		 * of that task and the scheduler should perhaps put it aside */
-		/* Calibrated enough */
-		exp = entry->mean;
+#ifdef STARPU_SIMGRID
+		if (entry->nsample < _starpu_calibration_minimum)
+		{
+			char archname[STR_SHORT_LENGTH];
+			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld footprint %x (only %u measurements). Using it anyway for the simulation\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key, entry->nsample);
+		}
+#else
+		if (entry->nsample >= _starpu_calibration_minimum)
+#endif
+		{
+			STARPU_ASSERT_MSG(entry->mean >= 0, "entry->mean=%lf\n", entry->mean);
+			/* TODO: report differently if we've scheduled really enough
+			 * of that task and the scheduler should perhaps put it aside */
+			/* Calibrated enough */
+			exp = entry->mean;
+		}
 	}
 
 docal:
+#ifdef STARPU_SIMGRID
+	if (isnan(exp)) {
+		char archname[STR_SHORT_LENGTH];
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+
+		_STARPU_DISP("Warning: model %s is not calibrated at all for %s size %ld footprint %x. Assuming it can not work there\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key);
+		exp = 0.;
+	}
+#else
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
 		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld footprint %x (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key, entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
+#endif
 
 	STARPU_ASSERT_MSG(isnan(exp)||exp >= 0, "exp=%lf\n", exp);
 	return exp;
