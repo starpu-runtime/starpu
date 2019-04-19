@@ -2277,6 +2277,17 @@ static int find_platform_path_down(hwloc_obj_t parent, hwloc_obj_t obj1, hwloc_o
 			update_bandwidth_through(parent, bandwidth);
 			return 1;
 		}
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = parent->io_first_child; io; io = io->next_sibling)
+		if (io != obj1 && find_platform_path_down(io, NULL, obj2, bandwidth))
+		{
+			/* Found it down there, update bandwidth of parent */
+			update_bandwidth_down(io, bandwidth);
+			update_bandwidth_through(parent, bandwidth);
+			return 1;
+		}
+#endif
 	return 0;
 }
 
@@ -2388,6 +2399,11 @@ static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj, const char *Bps, 
 
 	for (i = 0; i < obj->arity; i++)
 		emit_topology_bandwidths(f, obj->children[i], Bps, s);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = obj->io_first_child; io; io = io->next_sibling)
+		emit_topology_bandwidths(f, io, Bps, s);
+#endif
 }
 
 /* emit_pci_link_* functions perform the third step: emitting the routes */
@@ -2502,6 +2518,17 @@ static int emit_platform_path_down(FILE *f, hwloc_obj_t parent, hwloc_obj_t obj1
 			emit_pci_link_through(f, parent);
 			return 1;
 		}
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = parent->io_first_child; io; io = io->next_sibling)
+		if (io != obj1 && emit_platform_path_down(f, io, NULL, obj2))
+		{
+			/* Found it down there, path goes through this hub */
+			emit_pci_link_down(f, io);
+			emit_pci_link_through(f, parent);
+			return 1;
+		}
+#endif
 	return 0;
 }
 
@@ -2550,9 +2577,17 @@ static void clean_topology(hwloc_obj_t obj)
 {
 	unsigned i;
 	if (obj->userdata)
+	{
 		free(obj->userdata);
+		obj->userdata = NULL;
+	}
 	for (i = 0; i < obj->arity; i++)
 		clean_topology(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = obj->io_first_child; io; io = io->next_sibling)
+		clean_topology(io);
+#endif
 }
 #endif
 
