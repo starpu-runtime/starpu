@@ -702,7 +702,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 	}
@@ -765,7 +765,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 	}
@@ -788,7 +788,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		children[i]->active_ro = 0;
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
@@ -840,7 +840,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	struct starpu_data_descr descr[nparts];
 	for (i = 0, n = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
@@ -906,7 +906,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	struct starpu_data_descr descr[nparts];
 	for (i = 0, n = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "children parameter of starpu_data_partition_submit must be the children of the parent parameter");
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
