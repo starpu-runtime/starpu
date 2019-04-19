@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011  Université de Bordeaux
-# Copyright (C) 2010-2014  CNRS
+# Copyright (C) 2009-2011                                 Université de Bordeaux
+# Copyright (C) 2010-2014, 2019                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ HAS_OPENCL	=	$(shell pkg-config --libs starpu-1.1 |grep -i opencl)
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c
 
-TARGETS = hello_world vector_scal hello_world_plugin vector_scal_plugin vector_scal_task_insert
+TARGETS = hello_world vector_scal vector_scal_task_insert
 
 all: $(TARGETS)
 
@@ -55,23 +55,6 @@ endif
 
 vector_scal_task_insert: $(VECTOR_SCAL_TASK_INSERT_PREREQUISITES)
 	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $(LDFLAGS) $^ -o $@
-
-hello_world_plugin: hello_world_plugin.c
-	$(CC) $(CFLAGS) -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` $(LDFLAGS) $^ -o $@
-
-VECTOR_SCAL_PLUGIN_PREREQUISITES	=	vector_scal_plugin.o
-ifneq ($(strip $(HAS_CUDA)),)
-VECTOR_SCAL_PLUGIN_PREREQUISITES	+=	vector_scal_plugin_cuda.o
-VECTOR_SCAL_PLUGIN_COMPILER		=	$(NVCC)
-else
-VECTOR_SCAL_PLUGIN_COMPILER		=	$(CC)
-endif
-
-vector_scal_plugin.o: vector_scal_plugin.c
-	$(CC) -c $(CFLAGS) -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` $^ -o $@
-
-vector_scal_plugin: $(VECTOR_SCAL_PLUGIN_PREREQUISITES)
-	$(CC) -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` $(LDFLAGS) $(VECTOR_SCAL_PLUGIN_PREREQUISITES) -o $@
 
 clean:
 	rm -f $(TARGETS) *.o

@@ -123,8 +123,6 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 			coef = _STARPU_OPENCL_ALPHA;
 		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
 			coef = _STARPU_MIC_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_SCC_WORKER)
-			coef = _STARPU_SCC_ALPHA;
 		else if (perf_arch->devices[dev].type == STARPU_MPI_MS_WORKER)
 			coef = _STARPU_MPI_MS_ALPHA;
 

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2015,2017, 2019                           Université de Bordeaux
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2012-2014,2016,2017                      CNRS
+ * Copyright (C) 2012-2014,2016,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -147,9 +147,6 @@ int main(int argc, char **argv)
 	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
 #ifdef STARPU_USE_MIC
 	starpu_worker_display_names(stdout, STARPU_MIC_WORKER);
-#endif
-#ifdef STARPU_USE_SCC
-	starpu_worker_display_names(stdout, STARPU_SCC_WORKER);
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);

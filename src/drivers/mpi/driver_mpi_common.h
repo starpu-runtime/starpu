@@ -2,7 +2,6 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2017,2019                                CNRS
- * Copyright (C) 2015                                     Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

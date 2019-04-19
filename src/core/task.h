@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,11 +114,6 @@ static inline starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct s
 static inline starpu_mpi_ms_func_t _starpu_task_get_mpi_ms_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->mpi_ms_funcs[nimpl];
-}
-
-static inline starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->scc_funcs[nimpl];
 }
 
 static inline const char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)

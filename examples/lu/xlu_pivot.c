@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2015,2017,2018                      Université de Bordeaux
  * Copyright (C) 2011,2013                                Inria
- * Copyright (C) 2010-2013,2015,2017,2018                 CNRS
+ * Copyright (C) 2010-2013,2015,2017,2018,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -419,7 +419,7 @@ starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, un
 int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
 	(void)ld;
-	if (starpu_mic_worker_get_count() || starpu_scc_worker_get_count() || starpu_mpi_ms_worker_get_count())
+	if (starpu_mic_worker_get_count() || starpu_mpi_ms_worker_get_count())
 		/* These won't work with pivoting: we pass a pointer in cl_args */
 		return -ENODEV;
 

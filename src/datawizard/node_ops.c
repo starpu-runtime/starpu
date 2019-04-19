@@ -24,7 +24,6 @@
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mic/driver_mic_source.h>
-#include <drivers/scc/driver_scc_source.h>
 #include <drivers/disk/driver_disk.h>
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind)
@@ -43,10 +42,6 @@ const char* _starpu_node_get_prefix(enum starpu_node_kind kind)
 			return "MIC";
 		case STARPU_MPI_MS_RAM:
 			return "MPI_MS";
-		case STARPU_SCC_RAM:
-			return "SCC_RAM";
-		case STARPU_SCC_SHM:
-			return "SCC_shared";
 		case STARPU_UNUSED:
 		default:
 			STARPU_ASSERT(0);

@@ -51,10 +51,6 @@
 #include <drivers/mic/driver_mic_source.h>
 #endif /* STARPU_USE_MIC */
 
-#ifdef STARPU_USE_SCC
-#include <drivers/scc/driver_scc_source.h>
-#endif
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #include <drivers/mpi/driver_mpi_source.h>
 #endif
@@ -223,7 +219,7 @@ struct _starpu_combined_worker
 
 /**
  * in case a single CPU worker may control multiple
- * accelerators (eg. Gordon for n SPUs)
+ * accelerators
 */
 struct _starpu_worker_set
 {
@@ -278,11 +274,6 @@ struct _starpu_machine_topology
 	 */
 	unsigned nhwopenclgpus;
 
-	/** Total number of SCC cores, as detected. May be different
-	 * from the actual number of core workers.
-	 */
-	unsigned nhwscc;
-
 	/** Total number of MPI nodes, as detected. May be different
 	 * from the actual number of node workers.
 	 */
@@ -300,9 +291,6 @@ struct _starpu_machine_topology
 	/** Actual number of OpenCL workers used by StarPU. */
 	unsigned nopenclgpus;
 
-	/** Actual number of SCC workers used by StarPU. */
-	unsigned nsccdevices;
-
 	/** Actual number of MPI workers used by StarPU. */
 	unsigned nmpidevices;
         unsigned nhwmpidevices;
@@ -310,7 +298,7 @@ struct _starpu_machine_topology
 	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; /**< Each MPI node has its set of cores. */
 	unsigned nmpicores[STARPU_MAXMPIDEVS];
 
-	/** Topology of MP nodes (mainly MIC and SCC) as well as necessary
+	/** Topology of MP nodes (MIC) as well as necessary
 	 * objects to communicate with them. */
 	unsigned nhwmicdevices;
 	unsigned nmicdevices;
@@ -351,15 +339,6 @@ struct _starpu_machine_topology
 	/** TODO */
 	/** unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
 
-	/** Which SCC(s) do we use ? */
-	/** Indicates the successive SCC devices that should be used by
-	 * the SCC driver.  It is either filled according to the
-	 * user's explicit parameters (from starpu_conf) or according
-	 * to the STARPU_WORKERS_SCCID env. variable. Otherwise, they
-	 * are taken in ID order.
-	 */
-	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
-
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 };
 
@@ -386,9 +365,6 @@ struct _starpu_machine_config
 	/** Which MIC do we use? */
 	int current_mic_deviceid;
 
-	/** Which SCC do we use? */
-	int current_scc_deviceid;
-
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
@@ -400,8 +376,6 @@ struct _starpu_machine_config
 	int opencl_nodeid;
 	/** Memory node for MIC, if only one */
 	int mic_nodeid;
-	/** Memory node for SCC, if only one */
-	int scc_nodeid;
 	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
@@ -495,9 +469,6 @@ uint32_t _starpu_can_submit_cpu_task(void);
 
 /** Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_can_submit_opencl_task(void);
-
-/** Is there a worker that can execute OpenCL code ? */
-uint32_t _starpu_can_submit_scc_task(void);
 
 /** Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */

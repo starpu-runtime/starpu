@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2016                                Université de Bordeaux
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,6 @@ static void unset_env_variables(void)
 	(void) unsetenv("STARPU_NCUDA");
 	(void) unsetenv("STARPU_NOPENCL");
 	(void) unsetenv("STARPU_NMIC");
-	(void) unsetenv("STARPU_NSCC");
 }
 
 int main(int argc, char **argv)
@@ -57,7 +56,6 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
-	conf.nscc = 0;
         conf.nmpi_ms = 0;
 
 	/* starpu_init should return -ENODEV */

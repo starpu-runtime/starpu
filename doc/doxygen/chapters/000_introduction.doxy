@@ -60,8 +60,7 @@ and processing units.
 At the core of StarPU is its runtime support library, which is
 responsible for scheduling application-provided tasks on heterogeneous
 CPU/GPU machines.  In addition, StarPU comes with programming language
-support, in the form of extensions to languages of the C family
-(\ref cExtensions), as well as an OpenCL front-end (\ref SOCLOpenclExtensions).
+support, in the form of an OpenCL front-end (\ref SOCLOpenclExtensions).
 
 StarPU's runtime and programming language extensions support a
 task-based programming model. Applications submit computational
@@ -292,8 +291,7 @@ The documentation chapters include
 <li> \ref OutOfCore
 <li> \ref MPISupport
 <li> \ref FFTSupport
-<li> \ref MICSCCSupport
-<li> \ref cExtensions
+<li> \ref MICSupport
 <li> \ref NativeFortranSupport
 <li> \ref SOCLOpenclExtensions
 <li> \ref SimGridSupport

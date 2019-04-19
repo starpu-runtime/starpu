@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011,2012,2015,2017                      CNRS
+# Copyright (C) 2011,2012,2015,2017,2019                 CNRS
 # Copyright (C) 2011,2012                                Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -76,5 +76,5 @@ test_()
     fi
 }
 
-test_ include examples tests mpi/src starpufft gcc-plugin tools src/sched_policies
+test_ include examples tests mpi/src starpufft tools src/sched_policies
 test_ mpi/include mpi/src mpi/examples

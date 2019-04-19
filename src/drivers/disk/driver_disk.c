@@ -258,8 +258,6 @@ struct _starpu_node_ops _starpu_driver_disk_node_ops =
 	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_SCC_RAM] = NULL,
-	.copy_data_to[STARPU_SCC_SHM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.copy_interface_to[STARPU_UNUSED] = NULL,
@@ -268,8 +266,6 @@ struct _starpu_node_ops _starpu_driver_disk_node_ops =
 	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_SCC_RAM] = NULL,
-	.copy_interface_to[STARPU_SCC_SHM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = _starpu_disk_wait_request_completion,

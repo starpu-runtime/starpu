@@ -442,22 +442,6 @@ Disable the SOCL extension (\ref SOCLOpenclExtensions).  By
 default, it is enabled when an OpenCL implementation is found.
 </dd>
 
-<dt>--disable-starpu-top</dt>
-<dd>
-\anchor disable-starpu-top
-\addindex __configure__--disable-starpu-top
-Disable the StarPU-Top interface (\ref StarPU-TopInterface).  By default, it
-is enabled when the required dependencies are found.
-</dd>
-
-<dt>--disable-gcc-extensions</dt>
-<dd>
-\anchor disable-gcc-extensions
-\addindex __configure__--disable-gcc-extensions
-Disable the GCC plug-in (\ref cExtensions).  By default, it is
-enabled when the GCC compiler provides a plug-in support.
-</dd>
-
 <dt>--with-coi-dir</dt>
 <dd>
 \anchor with-coi-dir

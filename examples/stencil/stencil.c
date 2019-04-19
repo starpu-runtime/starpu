@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2017,2019                 CNRS
  * Copyright (C) 2010-2012,2014,2017                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,10 +40,6 @@ static unsigned sizez = 64*SIZE;
 
 /* Number of blocks (scattered over the different MPI processes) */
 unsigned nbz = 64;
-
-/* StarPU top variables */
-struct starpu_top_data* starpu_top_init_loop;
-struct starpu_top_data* starpu_top_achieved_loop;
 
 /*
  *	Initialization
@@ -128,12 +124,6 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 {
 	parse_args(argc, argv);
 
-	if (getenv("STARPU_TOP"))
-	{
-		starpu_top_init_loop = starpu_top_add_data_integer("Task creation iter", 0, niter, 1);
-		starpu_top_achieved_loop = starpu_top_add_data_integer("Task achieved iter", 0, niter, 1);
-		starpu_top_init_and_wait("stencil_top example");
-	}
 	create_blocks_array(sizex, sizey, sizez, nbz);
 
 	/* Select the MPI process which should compute the different blocks */

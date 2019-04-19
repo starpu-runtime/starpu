@@ -12,7 +12,7 @@
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
 0
 ####################
 # DEV_0
@@ -44,7 +44,7 @@ a3d3725e	1024           	0.000000e+00   	8.457435e+01   	8.456846e+01   	6.08089
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
 1
 ####################
 # DEV_0
@@ -76,7 +76,7 @@ a3d3725e	1024           	0.000000e+00   	8.959785e+01   	8.957735e+01   	1.95950
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
 1
 ####################
 # DEV_0
@@ -108,7 +108,7 @@ a3d3725e	1024           	0.000000e+00   	9.097446e+01   	8.933429e+01   	2.54728
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
 1
 ####################
 # DEV_0
@@ -140,7 +140,7 @@ a3d3725e	1024           	0.000000e+00   	9.082936e+01   	9.075245e+01   	5.36801
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
 1
 ####################
 # DEV_0

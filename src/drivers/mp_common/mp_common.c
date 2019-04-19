@@ -25,9 +25,6 @@
 #include <drivers/mic/driver_mic_common.h>
 #include <drivers/mic/driver_mic_source.h>
 #include <drivers/mic/driver_mic_sink.h>
-#include <drivers/scc/driver_scc_common.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/scc/driver_scc_sink.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_sink.h>
@@ -120,10 +117,6 @@ const char *_starpu_mp_common_node_kind_to_string(const int kind)
 			return "MIC_SINK";
 		case STARPU_NODE_MIC_SOURCE:
 			return "MIC_SOURCE";
-		case STARPU_NODE_SCC_SINK:
-			return "SCC_SINK";
-		case STARPU_NODE_SCC_SOURCE:
-			return "SCC_SOURCE";
 		case STARPU_NODE_MPI_SINK:
 			return "MPI_SINK";
 		case STARPU_NODE_MPI_SOURCE:
@@ -202,57 +195,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		}
 		break;
 #endif /* STARPU_USE_MIC */
-
-#ifdef STARPU_USE_SCC
-		case STARPU_NODE_SCC_SOURCE:
-		{
-			node->init = _starpu_scc_src_init;
-			node->deinit = NULL;
-			node->report_error = _starpu_scc_common_report_rcce_error;
-
-			node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
-			node->mp_send = _starpu_scc_common_send;
-			node->mp_recv = _starpu_scc_common_recv;
-			node->dt_send = _starpu_scc_common_send;
-			node->dt_recv = _starpu_scc_common_recv;
-			node->dt_send_to_device = NULL;
-			node->dt_recv_from_device = NULL;
-
-			node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
-			node->lookup = NULL;
-			node->bind_thread = NULL;
-			node->execute = NULL;
-			node->allocate = NULL;
-			node->free = NULL;
-		}
-		break;
-
-		case STARPU_NODE_SCC_SINK:
-		{
-			node->init = _starpu_scc_sink_init;
-			node->launch_workers = _starpu_scc_sink_launch_workers;
-			node->deinit = _starpu_scc_sink_deinit;
-			node->report_error = _starpu_scc_common_report_rcce_error;
-
-			node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
-			node->mp_send = _starpu_scc_common_send;
-			node->mp_recv = _starpu_scc_common_recv;
-			node->dt_send = _starpu_scc_common_send;
-			node->dt_recv = _starpu_scc_common_recv;
-			node->dt_send_to_device = _starpu_scc_sink_send_to_device;
-			node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
-
-			node->dt_test = NULL /* not used now */
-
-				node->get_kernel_from_job = NULL;
-			node->lookup = _starpu_scc_sink_lookup;
-			node->bind_thread = _starpu_scc_sink_bind_thread;
-			node->execute = _starpu_scc_sink_execute;
-			node->allocate = _starpu_sink_common_allocate;
-			node->free = _starpu_sink_common_free;
-		}
-		break;
-#endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_NODE_MPI_SOURCE:
@@ -338,7 +280,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         _starpu_mp_event_list_init(&node->event_list);
 
 	/* If the node is a sink then we must initialize some field */
-	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_SCC_SINK || node->kind == STARPU_NODE_MPI_SINK)
+	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_MPI_SINK)
 	{
 		int i;
 		node->is_running = 1;
@@ -371,7 +313,7 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
 
 	/* If the node is a sink then we must destroy some field */
-	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_SCC_SINK || node->kind == STARPU_NODE_MPI_SINK)
+	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_MPI_SINK)
 	{
 		int i;
 		for(i=0; i<node->nb_cores; i++)

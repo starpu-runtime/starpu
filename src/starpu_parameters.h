@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2011,2013,2017                           CNRS
+ * Copyright (C) 2011,2013,2017,2019                      CNRS
  * Copyright (C) 2011,2014,2015                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
@@ -29,6 +29,5 @@
 #define _STARPU_CUDA_ALPHA	13.33f
 #define _STARPU_OPENCL_ALPHA	12.22f
 #define _STARPU_MIC_ALPHA	0.5f
-#define _STARPU_SCC_ALPHA	1.0f
 #define _STARPU_MPI_MS_ALPHA	1.0f
 #endif /* _STARPU_PARAMETERS_H */

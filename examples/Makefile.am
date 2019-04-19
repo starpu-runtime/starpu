@@ -1019,16 +1019,6 @@ examplebin_PROGRAMS +=				\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
 
-################
-# Top Examples #
-################
-
-examplebin_PROGRAMS +=				\
-	top/hello_world_top
-
-top_hello_world_top_SOURCES =			\
-	top/hello_world_top.c
-
 ######
 # Pi #
 ######

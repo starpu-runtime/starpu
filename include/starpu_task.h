@@ -80,13 +80,6 @@ extern "C"
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
-   executed on a SCC processing unit.
-*/
-#define STARPU_SCC	((1ULL)<<8)
-
-/**
-   To be used when setting the field starpu_codelet::where (or
-   starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
 #define STARPU_MPI_MS	((1ULL)<<9)
@@ -200,16 +193,6 @@ typedef void (*starpu_mpi_ms_kernel_t)(void **, void*);
    MPI Master Slave implementation of a codelet.
 */
 typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
-
-/**
-   SCC kernel for a codelet
-*/
-typedef void (*starpu_scc_kernel_t)(void **, void*);
-
-/**
-   SCC implementation of a codelet.
-*/
-typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 
 /**
    @deprecated
@@ -419,26 +402,10 @@ struct starpu_codelet
 	starpu_mpi_ms_func_t mpi_ms_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
-	   Optional array of function pointers to a function which
-	   returns the SCC implementation of the codelet. The
-	   functions prototype must be:
-	   \code{.c}
-	   starpu_scc_kernel_t scc_func(struct starpu_codelet *cl, unsigned nimpl)
-	   \endcode
-	   If the field starpu_codelet::where is set, then the field
-	   starpu_codelet::scc_funcs is ignored if ::STARPU_SCC does
-	   not appear in the field starpu_codelet::where. It can be
-	   <c>NULL</c> if starpu_codelet::cpu_funcs_name is
-	   non-<c>NULL</c>, in which case StarPU will simply make a
-	   symbol lookup to get the implementation.
-	*/
-	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
-
-	/**
 	   Optional array of strings which provide the name of the CPU
 	   functions referenced in the array
 	   starpu_codelet::cpu_funcs. This can be used when running on
-	   MIC devices or the SCC platform, for StarPU to simply look
+	   MIC devices for StarPU to simply look
 	   up the MIC function implementation through its name.
 	*/
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
@@ -760,7 +727,7 @@ struct starpu_task
 	   starpu_task::cl_arg_free to 1 makes StarPU automatically
 	   call <c>free(cl_arg)</c> when destroying the task. This
 	   saves the user from defining a callback just for that. This
-	   is mostly useful when targetting MIC or SCC, where the
+	   is mostly useful when targetting MIC, where the
 	   codelet does not execute in the same memory space as the
 	   main thread.
 	*/
