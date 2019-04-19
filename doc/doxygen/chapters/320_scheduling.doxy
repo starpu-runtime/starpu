@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011-2012,2016                           Inria
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -188,6 +188,12 @@ instance, to force execution of a task on CUDA0:
 \code{.c}
 task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+\endcode
+
+or equivalently
+
+\code{.c}
+starpu_task_insert(&cl, ..., STARPU_EXECUTE_ON_WORKER, starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), ...);
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the
