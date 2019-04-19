@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -550,6 +550,9 @@ struct starpu_task
 	/**
 	   Optional name of the task. This can be useful for debugging
 	   purposes.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_NAME followed by the const char *.
 	*/
 	const char *name;
 
@@ -565,12 +568,18 @@ struct starpu_task
 	/**
 	   When set, specify where the task is allowed to be executed.
 	   When unset, take the value of starpu_codelet::where.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_EXECUTE_WHERE followed by an unsigned long long.
 	*/
 	int32_t where;
 
 	/**
 	   Specify the number of buffers. This is only used when
 	   starpu_codelet::nbuffers is \ref STARPU_VARIABLE_NBUFFERS.
+
+	   With starpu_task_insert() and alike this is automatically computed
+	   when using ::STARPU_DATA_ARRAY and alike.
 	*/
 	int nbuffers;
 
@@ -588,12 +597,17 @@ struct starpu_task
 	   STARPU_NMAXBUFS (see \ref SettingManyDataHandlesForATask).
 	   When defining a task, one should either define this field
 	   or the field starpu_task::handles defined below.
+
+	   With starpu_task_insert() and alike this is automatically filled
+	   when using ::STARPU_DATA_ARRAY and alike.
 	*/
 	starpu_data_handle_t *dyn_handles;
 	/**
 	   Array of data pointers to the memory node where execution
 	   will happen, managed by the DSM. Is used when the field
 	   starpu_task::dyn_handles is defined.
+
+	   This is filled by StarPU.
 	*/
 	void **dyn_interfaces;
 	/**
@@ -608,6 +622,9 @@ struct starpu_task
 	   SettingManyDataHandlesForATask).
 	   When defining a codelet, one should either define this
 	   field or the field starpu_task::modes defined below.
+
+	   With starpu_task_insert() and alike this is automatically filled
+	   when using ::STARPU_DATA_MODE_ARRAY and alike.
 	*/
 	enum starpu_data_access_mode *dyn_modes;
 
@@ -619,11 +636,16 @@ struct starpu_task
 	   \ref STARPU_NMAXBUFS. If unsufficient, this value can be
 	   set with the configure option \ref enable-maxbuffers
 	   "--enable-maxbuffers".
+
+	   With starpu_task_insert() and alike this is automatically filled
+	   when using ::STARPU_R and alike.
 	*/
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	/**
 	   Array of Data pointers to the memory node where execution
 	   will happen, managed by the DSM.
+
+	   This is filled by StarPU.
 	*/
 	void *interfaces[STARPU_NMAXBUFS];
 	/**
@@ -636,6 +658,9 @@ struct starpu_task
 	   should not exceed \ref STARPU_NMAXBUFS. If unsufficient,
 	   this value can be set with the configure option
 	   \ref enable-maxbuffers "--enable-maxbuffers".
+
+	   With starpu_task_insert() and alike this is automatically filled
+	   when using ::STARPU_DATA_MODE_ARRAY and alike.
 	*/
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 
@@ -643,6 +668,9 @@ struct starpu_task
 	   Optional pointer to an array of characters which allows to
 	   define the sequential consistency for each handle for the
 	   current task.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_HANDLES_SEQUENTIAL_CONSISTENCY followed by an unsigned char *
 	*/
 	unsigned char *handles_sequential_consistency;
 
@@ -656,6 +684,9 @@ struct starpu_task
 	   it, but the application can manage it any way, the only
 	   requirement is that the size of the data must be set in
 	   starpu_task::cl_arg_size .
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_CL_ARGS followed by a void* and a size_t.
 	*/
 	void *cl_arg;
 	/**
@@ -670,6 +701,9 @@ struct starpu_task
 	   in local store (LS) instead. This field is ignored for CPU,
 	   CUDA and OpenCL codelets, where the starpu_task::cl_arg
 	   pointer is given as such.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_CL_ARGS followed by a void* and a size_t.
 	*/
 	size_t cl_arg_size;
 
@@ -682,6 +716,10 @@ struct starpu_task
 	   it might already be executing. The callback is passed the
 	   value contained in the starpu_task::callback_arg field. No
 	   callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_CALLBACK followed by the function pointer, or thanks to
+	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
 	*/
 	void (*callback_func)(void *);
 	/**
@@ -689,6 +727,10 @@ struct starpu_task
 	   the pointer passed to the callback function. This field is
 	   ignored if the field starpu_task::callback_func is set to
 	   <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_CALLBACK_ARG followed by the function pointer, or thanks to
+	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
 	*/
 	void *callback_arg;
 
@@ -701,6 +743,9 @@ struct starpu_task
 	   getting scheduled. The callback is passed the value
 	   contained in the starpu_task::prologue_callback_arg field.
 	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*prologue_callback_func)(void *);
 	/**
@@ -708,6 +753,9 @@ struct starpu_task
 	   the pointer passed to the prologue callback function. This
 	   field is ignored if the field
 	   starpu_task::prologue_callback_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
 	*/
 	void *prologue_callback_arg;
 
@@ -718,6 +766,9 @@ struct starpu_task
 	    Optional field. Contain the tag associated to the task if
 	    the field starpu_task::use_tag is set, ignored
 	    otherwise.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_TAG followed by a starpu_tag_t.
 	*/
 	starpu_tag_t tag_id;
 
@@ -730,6 +781,9 @@ struct starpu_task
 	   is mostly useful when targetting MIC, where the
 	   codelet does not execute in the same memory space as the
 	   main thread.
+
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_CL_ARGS.
 	*/
 	unsigned cl_arg_free:1;
 	/**
@@ -738,6 +792,8 @@ struct starpu_task
 	   setting starpu_task::callback_arg_free to 1 makes StarPU
 	   automatically call <c>free(callback_arg)</c> when
 	   destroying the task.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned callback_arg_free:1;
 	/**
@@ -746,6 +802,8 @@ struct starpu_task
 	   setting starpu_task::prologue_callback_arg_free to 1 makes
 	   StarPU automatically call
 	   <c>free(prologue_callback_arg)</c> when destroying the task.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned prologue_callback_arg_free:1;
 	/**
@@ -755,6 +813,8 @@ struct starpu_task
 	   StarPU automatically call
 	   <c>free(prologue_callback_pop_arg)</c> when destroying the
 	   task.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned prologue_callback_pop_arg_free:1;
 
@@ -764,6 +824,9 @@ struct starpu_task
 	   contained in the starpu_task::tag_id field. Tag allow the
 	   application to synchronize with the task and to express
 	   task dependencies easily.
+
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_TAG.
 	*/
 	unsigned use_tag:1;
 
@@ -773,6 +836,8 @@ struct starpu_task
 	   task for which sequential consistency is enabled. Clearing
 	   this flag permits to disable sequential consistency for
 	   this task, even if data have it enabled.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned sequential_consistency:1;
 
@@ -781,6 +846,9 @@ struct starpu_task
 	   blocking and returns only when the task has been executed
 	   (or if no worker is able to process the task). Otherwise,
 	   starpu_task_submit() returns immediately.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_TASK_SYNCHRONOUS followed an int.
 	*/
 	unsigned synchronous:1;
 
@@ -788,6 +856,9 @@ struct starpu_task
 	   Default value is 0. If this flag is set, StarPU will bypass
 	   the scheduler and directly affect this task to the worker
 	   specified by the field starpu_task::workerid.
+
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_EXECUTE_ON_WORKER.
 	*/
 	unsigned execute_on_a_specific_worker:1;
 
@@ -797,6 +868,8 @@ struct starpu_task
 	   of starpu_task_wait() later on. Internal data structures
 	   are only guaranteed to be freed once starpu_task_wait() is
 	   called if the flag is not set.
+
+	   With starpu_task_insert() and alike this is set to 1.
 	*/
 	unsigned detach:1;
 
@@ -812,6 +885,8 @@ struct starpu_task
 	   will result in undefined behaviour. The flag is set to 1
 	   when the task is created by calling starpu_task_create().
 	   Note that starpu_task_wait_for_all() will not free any task.
+
+	   With starpu_task_insert() and alike this is set to 1.
 	*/
 	unsigned destroy:1;
 
@@ -821,6 +896,8 @@ struct starpu_task
 	   must not be set if the flag starpu_task::destroy is set.
 	   This flag must be set before making another task depend on
 	   this one.
+
+	   With starpu_task_insert() and alike this is set to 0.
 	*/
 	unsigned regenerate:1;
 
@@ -833,11 +910,15 @@ struct starpu_task
 
 	/**
 	   do not allocate a submitorder id for this task
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned no_submitorder:1;
 
 	/**
 	   Whether the scheduler has pushed the task on some queue
+
+	   Set by StarPU.
 	*/
 	unsigned scheduled:1;
 	unsigned prefetched:1;
@@ -849,6 +930,9 @@ struct starpu_task
 	   process this task (as returned by starpu_worker_get_id()).
 	   This field is ignored if the field
 	   starpu_task::execute_on_a_specific_worker is set to 0.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_EXECUTE_ON_WORKER followed by an int.
 	*/
 	unsigned workerid;
 
@@ -862,6 +946,9 @@ struct starpu_task
 	   \ref StaticScheduling for more details. This field is
 	   ignored if the field
 	   starpu_task::execute_on_a_specific_worker is set to 0.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_WORKER_ORDER followed by an unsigned.
 	*/
 	unsigned workerorder;
 
@@ -871,12 +958,16 @@ struct starpu_task
 	   (stored as uint32_t values) which indicate the set of
 	   workers which are allowed to execute the task.
 	   starpu_task::workerid takes precedence over this.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	uint32_t *workerids;
 
 	/**
 	   Optional field. This provides the number of uint32_t values
 	   in the starpu_task::workerids array.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	unsigned workerids_len;
 
@@ -897,11 +988,16 @@ struct starpu_task
 	   strategies that take priorities into account can use this
 	   parameter to take better scheduling decisions, but the
 	   scheduling policy may also ignore it.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PRIORITY followed by an unsigned long long.
 	*/
 	int priority;
 
 	/**
-	   Optional field. Current state of the task.
+	   Current state of the task.
+
+	   Set by StarPU.
 	*/
 	enum starpu_task_status status;
 
@@ -915,29 +1011,46 @@ struct starpu_task
 	int magic;
 
 	/**
-	   allow to specify the type of task, for filtering out tasks
+	   Allow to get the type of task, for filtering out tasks
 	   in profiling outputs, whether it is really internal to
 	   StarPU (::STARPU_TASK_TYPE_INTERNAL), a data acquisition
 	   synchronization task (::STARPU_TASK_TYPE_DATA_ACQUIRE), or
 	   a normal task (::STARPU_TASK_TYPE_NORMAL)
+
+	   Set by StarPU.
 	*/
 	unsigned type;
 
 	/**
 	   color of the task to be used in dag.dot.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_TASK_COLOR followed by an int.
 	*/
 	unsigned color;
 
 	/**
 	   Scheduling context.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_SCHED_CTX followed by an unsigned.
 	*/
 	unsigned sched_ctx;
 
 	/**
 	   Help the hypervisor monitor the execution of this task.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_HYPERVISOR_TAG followed by an int.
 	*/
 	int hypervisor_tag;
 
+	/**
+	   TODO: related with sched contexts and parallel tasks
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_POSSIBLY_PARALLEL followed by an unsigned.
+	 */
 	unsigned possibly_parallel;
 
 	/**
@@ -948,6 +1061,8 @@ struct starpu_task
 
 	/**
 	   Optional field. Profiling information for the task.
+
+	   TODO: does not have a starpu_task_insert() equivalent
 	*/
 	struct starpu_profiling_task_info *profiling_info;
 
@@ -957,6 +1072,9 @@ struct starpu_task
 	   easily getting GFlops curves from the tool
 	   <c>starpu_perfmodel_plot</c>, and for the hypervisor load
 	   balancing.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_FLOPS followed by a double.
 	*/
 
 	double flops;
@@ -964,13 +1082,17 @@ struct starpu_task
 	   Output field. Predicted duration of the task. This field is
 	   only set if the scheduling strategy uses performance
 	   models.
+
+	   Set by StarPU.
 	*/
 	double predicted;
 
 	/**
-	   Optional field. Predicted data transfer duration for the task in
+	   Output field. Predicted data transfer duration for the task in
 	   microseconds. This field is only valid if the scheduling
 	   strategy uses performance models.
+
+	   Set by StarPU.
 	*/
 	double predicted_transfer;
 	double predicted_start;
@@ -978,30 +1100,36 @@ struct starpu_task
 	/**
 	   @private
 	   A pointer to the previous task. This should only be used by
-	   StarPU.
+	   StarPU schedulers.
 	*/
 	struct starpu_task *prev;
 
 	/**
 	   @private
 	   A pointer to the next task. This should only be used by
-	   StarPU.
+	   StarPU schedulers.
 	*/
 	struct starpu_task *next;
 
 	/**
 	   @private
-	   This is private to StarPU, do not modify. If the task is
-	   allocated by hand (without starpu_task_create()), this
-	   field should be set to <c>NULL</c>.
+	   This is private to StarPU, do not modify.
 	*/
 	void *starpu_private;
 
 #ifdef STARPU_OPENMP
+	/**
+	   @private
+	   This is private to StarPU, do not modify.
+	 */
 	struct starpu_omp_task *omp_task;
 #else
 	void *omp_task;
 #endif
+	/**
+	   @private
+	   This is private to StarPU, do not modify.
+	  */
 	unsigned nb_termination_call_required;
 
 	/**
