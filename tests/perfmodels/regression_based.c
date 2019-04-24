@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2011-2016                                Université de Bordeaux
+ * Copyright (C) 2011-2016, 2019                                Université de Bordeaux
  * Copyright (C) 2011-2017                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -48,6 +48,19 @@ static void memset_cuda(void *descr[], void *arg)
 extern void memset_opencl(void *buffers[], void *args);
 #endif
 
+void memset0_cpu(void *descr[], void *arg)
+{
+	(void)arg;
+	STARPU_SKIP_IF_VALGRIND;
+
+	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned i;
+
+	for (i = 0; i < n; i++)
+		ptr[i] = 42;
+}
+
 void memset_cpu(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -55,6 +68,7 @@ void memset_cpu(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
+	usleep(10);
 	memset(ptr, 42, n * sizeof(*ptr));
 }
 
@@ -80,8 +94,8 @@ static struct starpu_codelet memset_cl =
 	.opencl_funcs = {memset_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {memset_cpu},
-	.cpu_funcs_name = {"memset_cpu"},
+	.cpu_funcs = {memset0_cpu, memset_cpu},
+	.cpu_funcs_name = {"memset0_cpu", "memset_cpu"},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -97,8 +111,8 @@ static struct starpu_codelet nl_memset_cl =
 	.opencl_funcs = {memset_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {memset_cpu},
-	.cpu_funcs_name = {"memset_cpu"},
+	.cpu_funcs = {memset0_cpu, memset_cpu},
+	.cpu_funcs_name = {"memset0_cpu", "memset_cpu"},
 	.model = &nl_model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -156,7 +170,7 @@ int main(int argc, char **argv)
 
 	starpu_conf_init(&conf);
 
-	conf.sched_policy_name = "eager";
+	conf.sched_policy_name = "dmda";
 	conf.calibrate = 2;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
