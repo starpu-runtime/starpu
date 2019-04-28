@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012-2014                                Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2010-2015,2018                           Université de Bordeaux
+ * Copyright (C) 2010-2015,2018-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -123,6 +123,12 @@ extern "C"
    (as specified by starpu_task::execute_on_a_specific_worker)
 */
 #define STARPU_EXECUTE_ON_WORKER (18<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by an
+   unsigned long long value specifying the mask of worker on which to execute
+   the task (as specified by starpu_task::where)
+*/
 #define STARPU_EXECUTE_WHERE     (19<<STARPU_MODE_SHIFT)
 
 /**
