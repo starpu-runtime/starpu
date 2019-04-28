@@ -396,6 +396,10 @@ If the application needs to reserve some cores for its own computations, it
 can do so with the starpu_conf::reserve_ncpus field, get the core IDs with
 starpu_get_next_bindid(), and bind to them with starpu_bind_thread_on().
 
+Another option is for the application to put the whole StarPU on pause with
+starpu_pause() before performing its own computations, and let StarPU resume
+executing tasks with starpu_resume().
+
 \subsection EnablingOpenCL Enabling OpenCL
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an
