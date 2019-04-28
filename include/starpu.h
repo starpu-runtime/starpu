@@ -131,6 +131,12 @@ struct starpu_conf
 	   (default = -1)
 	*/
 	int ncpus;
+
+	/**
+	   Number of CPU cores to that StarPU should leave aside. They can then
+	   be used by application threads, by calling starpu_get_next_bindid() to
+	   get their ID, and starpu_bind_thread_on() to bind the current thread to them.
+	  */
 	int reserve_ncpus;
 
 	/**
