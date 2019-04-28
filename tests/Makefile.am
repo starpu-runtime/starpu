@@ -145,6 +145,7 @@ XFAIL_TESTS	=				\
 myPROGRAMS =
 
 myPROGRAMS +=					\
+	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
