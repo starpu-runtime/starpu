@@ -212,6 +212,16 @@ And it is useful to get access to the StarPU tools:
 $ PATH=$PATH:$STARPU_PATH/bin
 \endverbatim
 
+It is then useful to check that StarPU executes correctly and finds your hardware:
+
+\verbatim
+$ starpu_machine_display
+\endverbatim
+
+\subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
+
+\subsubsection StarPUInMake Integrating StarPU in a Make Build System
+
 When using a Makefile, the following lines can be added to set the
 options for the compiler and the linker:
 
@@ -220,7 +230,29 @@ CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
 LDLIBS          +=      $$(pkg-config --libs starpu-1.3)
 \endverbatim
 
-\subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
+If you have a \c test-starpu.c file containing for instance:
+
+\code{.c}
+#include <starpu.h>
+#include <stdio.h>
+int main(void)
+{
+    int ret;
+    ret = starpu_init(NULL);
+    if (ret != 0)
+    {
+        return 1;
+    }
+    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
+    printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
+    starpu_shutdown();
+
+    return 0;
+}
+\endcode
+
+You can build it with <code>make test-starpu</code> and run it with <code>./test-starpu</code>
 
 \subsubsection StarPUInCMake Integrating StarPU in a CMake Build System
 
