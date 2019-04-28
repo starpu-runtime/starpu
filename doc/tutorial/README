@@ -1,7 +1,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011                                 Université de Bordeaux
+# Copyright (C) 2009-2011,2019                            Université de Bordeaux
 # Copyright (C) 2010, 2011, 2013, 2019                    CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,8 +19,11 @@ Instructions on how to compile and run StarPU examples
 ------------------------------------------------------
 
 % export STARPU_DIR=<directory where StarPU is installed>
+% export PATH=$PATH:$STARPU_DIR/bin
 % export PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
 % export LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
+
+% starpu_machine_display
 
 % make hello_world
 % ./hello_world
