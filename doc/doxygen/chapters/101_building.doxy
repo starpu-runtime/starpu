@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2018                           Inria
- * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2016,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -211,7 +211,7 @@ options for the compiler and the linker:
 
 \verbatim
 CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.3)
+LDLIBS          +=      $$(pkg-config --libs starpu-1.3)
 \endverbatim
 
 \subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System

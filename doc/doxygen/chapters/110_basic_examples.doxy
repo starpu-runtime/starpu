@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2013,2015-2019                      CNRS
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2009-2011,2014,2015                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2015,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -459,7 +459,7 @@ starpu_opencl_load_opencl_from_file().
 
 \verbatim
 CFLAGS  += $(shell pkg-config --cflags starpu-1.3)
-LDFLAGS += $(shell pkg-config --libs starpu-1.3)
+LDLIBS  += $(shell pkg-config --libs starpu-1.3)
 CC       = gcc
 
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
