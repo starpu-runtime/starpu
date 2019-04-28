@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011                                 Université de Bordeaux
+# Copyright (C) 2009-2011, 2019                                 Université de Bordeaux
 # Copyright (C) 2010-2014, 2019                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 CFLAGS          +=      $$(pkg-config --cflags starpu-1.1)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.1)
+LDLIBS          +=      $$(pkg-config --libs starpu-1.1)
 
 HAS_CUDA	=	$(shell pkg-config --libs starpu-1.1 |grep -i cuda)
 NVCC		?=	nvcc
@@ -40,7 +40,7 @@ VECTOR_SCAL_PREREQUISITES += vector_scal_opencl.o
 endif
 
 vector_scal: $(VECTOR_SCAL_PREREQUISITES)
-	$(VECTOR_SCAL_COMPILER) $(LDFLAGS) $^ -o $@
+	$(VECTOR_SCAL_COMPILER) $^ $(LDLIBS) -o $@
 
 VECTOR_SCAL_TASK_INSERT_PREREQUISITES		=	vector_scal_task_insert.o vector_scal_cpu.o
 ifneq ($(strip $(HAS_CUDA)),)
@@ -54,7 +54,7 @@ VECTOR_SCAL_TASK_INSERT_PREREQUISITES += vector_scal_opencl.o
 endif
 
 vector_scal_task_insert: $(VECTOR_SCAL_TASK_INSERT_PREREQUISITES)
-	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $(LDFLAGS) $^ -o $@
+	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $^ $(LDLIBS) -o $@
 
 clean:
 	rm -f $(TARGETS) *.o
