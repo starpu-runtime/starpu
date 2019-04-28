@@ -174,7 +174,7 @@ example if StarPU was installed in
 <c>$STARPU_PATH</c>:
 
 \verbatim
-$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
 \endverbatim
 
 The flags required to compile or link against StarPU are then
@@ -203,7 +203,13 @@ It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
 locate dynamic libraries at runtime.
 
 \verbatim
-$ LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
+$ export LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
+\endverbatim
+
+And it is useful to get access to the StarPU tools:
+
+\verbatim
+$ PATH=$PATH:$STARPU_PATH/bin
 \endverbatim
 
 When using a Makefile, the following lines can be added to set the
