@@ -218,6 +218,9 @@ It is then useful to check that StarPU executes correctly and finds your hardwar
 $ starpu_machine_display
 \endverbatim
 
+If it does not, please check the output of \c lstopo from \c hwloc and report
+the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
+
 \subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
 
 \subsubsection StarPUInMake Integrating StarPU in a Make Build System
