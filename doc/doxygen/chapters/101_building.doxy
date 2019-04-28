@@ -223,6 +223,7 @@ This section shows a minimal example integrating StarPU in an existing applicati
 Let's assume we want to build an executable from the following source code using CMake:
 \code{.c}
 #include <starpu.h>
+#include <stdio.h>
 int main(void)
 {
     int ret;
@@ -231,6 +232,9 @@ int main(void)
     {
         return 1;
     }
+    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
+    printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
     starpu_shutdown();
 
     return 0;
