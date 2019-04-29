@@ -39,10 +39,10 @@ void g_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_
 {
 	(void) listener;
 	(void) context;
-	int32_t g_total_submitted = starpu_perf_counter_sample_get_int32_value(sample, id_g_total_submitted);
-	int32_t g_peak_submitted = starpu_perf_counter_sample_get_int32_value(sample, id_g_peak_submitted);
-	int32_t g_peak_ready = starpu_perf_counter_sample_get_int32_value(sample, id_g_peak_ready);
-	printf("global: g_total_submitted = %d, g_peak_submitted = %d, g_peak_ready = %d\n", g_total_submitted, g_peak_submitted, g_peak_ready);
+	int64_t g_total_submitted = starpu_perf_counter_sample_get_int64_value(sample, id_g_total_submitted);
+	int64_t g_peak_submitted = starpu_perf_counter_sample_get_int64_value(sample, id_g_peak_submitted);
+	int64_t g_peak_ready = starpu_perf_counter_sample_get_int64_value(sample, id_g_peak_ready);
+	printf("global: g_total_submitted = %ld, g_peak_submitted = %ld, g_peak_ready = %ld\n", g_total_submitted, g_peak_submitted, g_peak_ready);
 }
 
 void w_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_perf_counter_sample *sample, void *context)
@@ -50,28 +50,28 @@ void w_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_
 	(void) listener;
 	(void) context;
 	int workerid = starpu_worker_get_id();
-	int32_t w_total_executed = starpu_perf_counter_sample_get_int32_value(sample, id_w_total_executed);
+	int64_t w_total_executed = starpu_perf_counter_sample_get_int64_value(sample, id_w_total_executed);
 	double w_cumul_execution_time = starpu_perf_counter_sample_get_double_value(sample, id_w_cumul_execution_time);
 
-	printf("worker[%d]: w_total_executed = %d, w_cumul_execution_time = %lf\n", workerid, w_total_executed, w_cumul_execution_time);
+	printf("worker[%d]: w_total_executed = %ld, w_cumul_execution_time = %lf\n", workerid, w_total_executed, w_cumul_execution_time);
 }
 
 void c_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_perf_counter_sample *sample, void *context)
 {
 	(void) listener;
 	struct starpu_codelet *cl = context;
-	int32_t c_total_submitted = starpu_perf_counter_sample_get_int32_value(sample, id_c_total_submitted);
-	int32_t c_peak_submitted = starpu_perf_counter_sample_get_int32_value(sample, id_c_peak_submitted);
-	int32_t c_peak_ready = starpu_perf_counter_sample_get_int32_value(sample, id_c_peak_ready);
-	int32_t c_total_executed = starpu_perf_counter_sample_get_int32_value(sample, id_c_total_executed);
+	int64_t c_total_submitted = starpu_perf_counter_sample_get_int64_value(sample, id_c_total_submitted);
+	int64_t c_peak_submitted = starpu_perf_counter_sample_get_int64_value(sample, id_c_peak_submitted);
+	int64_t c_peak_ready = starpu_perf_counter_sample_get_int64_value(sample, id_c_peak_ready);
+	int64_t c_total_executed = starpu_perf_counter_sample_get_int64_value(sample, id_c_total_executed);
 	double c_cumul_execution_time = starpu_perf_counter_sample_get_double_value(sample, id_c_cumul_execution_time);
 	if (cl->name == NULL)
 	{
-		printf("codelet[%s]: c_total_submitted = %d, c_peak_submitted = %d, c_peak_ready = %d, c_total_executed = %d, c_cumul_execution_time = %lf\n", cl->name, c_total_submitted, c_peak_submitted, c_peak_ready, c_total_executed, c_cumul_execution_time);
+		printf("codelet[%s]: c_total_submitted = %ld, c_peak_submitted = %ld, c_peak_ready = %ld, c_total_executed = %ld, c_cumul_execution_time = %lf\n", cl->name, c_total_submitted, c_peak_submitted, c_peak_ready, c_total_executed, c_cumul_execution_time);
 	}
 	else
 	{
-		printf("codelet[%p]: c_total_submitted = %d, c_peak_submitted = %d, c_peak_ready = %d, c_total_executed = %d, c_cumul_execution_time = %lf\n", cl, c_total_submitted, c_peak_submitted, c_peak_ready, c_total_executed, c_cumul_execution_time);
+		printf("codelet[%p]: c_total_submitted = %ld, c_peak_submitted = %ld, c_peak_ready = %ld, c_total_executed = %ld, c_cumul_execution_time = %lf\n", cl, c_total_submitted, c_peak_submitted, c_peak_ready, c_total_executed, c_cumul_execution_time);
 	}
 }
 

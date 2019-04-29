@@ -198,7 +198,7 @@ LIST_TYPE(_starpu_worker,
 #endif
 
 	struct starpu_perf_counter_sample perf_counter_sample;
-	int32_t __w_total_executed__value;
+	int64_t __w_total_executed__value;
 	double __w_cumul_execution_time__value;
 
 	int enable_knob;

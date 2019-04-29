@@ -164,12 +164,12 @@ struct starpu_perf_counter_sample_cl_values
 {
 	struct
 	{
-		int32_t total_submitted;
-		int32_t peak_submitted;
-		int32_t current_submitted;
-		int32_t peak_ready;
-		int32_t current_ready;
-		int32_t total_executed;
+		int64_t total_submitted;
+		int64_t peak_submitted;
+		int64_t current_submitted;
+		int64_t peak_ready;
+		int64_t current_ready;
+		int64_t total_executed;
 		double cumul_execution_time;
 	} task;
 };
@@ -243,11 +243,11 @@ __STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(double, double);
 	while (0)
 
 /* global counter variables */
-extern int32_t _starpu_task__g_total_submitted__value;
-extern int32_t _starpu_task__g_peak_submitted__value;
-extern int32_t _starpu_task__g_current_submitted__value;
-extern int32_t _starpu_task__g_peak_ready__value;
-extern int32_t _starpu_task__g_current_ready__value;
+extern int64_t _starpu_task__g_total_submitted__value;
+extern int64_t _starpu_task__g_peak_submitted__value;
+extern int64_t _starpu_task__g_current_submitted__value;
+extern int64_t _starpu_task__g_peak_ready__value;
+extern int64_t _starpu_task__g_current_ready__value;
 
 /* performance counter registration routines per modules */
 void _starpu__task_c__register_counters(void);	/* module: task.c */

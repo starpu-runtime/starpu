@@ -51,11 +51,11 @@ static int __g_peak_submitted;
 static int __g_peak_ready;
 
 /* global counter variables */
-int32_t _starpu_task__g_total_submitted__value;
-int32_t _starpu_task__g_peak_submitted__value;
-int32_t _starpu_task__g_current_submitted__value;
-int32_t _starpu_task__g_peak_ready__value;
-int32_t _starpu_task__g_current_ready__value;
+int64_t _starpu_task__g_total_submitted__value;
+int64_t _starpu_task__g_peak_submitted__value;
+int64_t _starpu_task__g_current_submitted__value;
+int64_t _starpu_task__g_peak_ready__value;
+int64_t _starpu_task__g_current_ready__value;
 
 /* per-worker counters */
 static int __w_total_executed;
@@ -87,9 +87,9 @@ static void global_sample_updater(struct starpu_perf_counter_sample *sample, voi
 	STARPU_ASSERT(context == NULL); /* no context for the global updater */
 	(void)context;
 
-	_starpu_perf_counter_sample_set_int32_value(sample, __g_total_submitted, _starpu_task__g_total_submitted__value);
-	_starpu_perf_counter_sample_set_int32_value(sample, __g_peak_submitted, _starpu_task__g_peak_submitted__value);
-	_starpu_perf_counter_sample_set_int32_value(sample, __g_peak_ready, _starpu_task__g_peak_ready__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_total_submitted, _starpu_task__g_total_submitted__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_peak_submitted, _starpu_task__g_peak_submitted__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_peak_ready, _starpu_task__g_peak_ready__value);
 }
 
 static void per_worker_sample_updater(struct starpu_perf_counter_sample *sample, void *context)
@@ -97,7 +97,7 @@ static void per_worker_sample_updater(struct starpu_perf_counter_sample *sample,
 	STARPU_ASSERT(context != NULL);
 	struct _starpu_worker *worker = context;
 
-	_starpu_perf_counter_sample_set_int32_value(sample, __w_total_executed, worker->__w_total_executed__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __w_total_executed, worker->__w_total_executed__value);
 	_starpu_perf_counter_sample_set_double_value(sample, __w_cumul_execution_time, worker->__w_cumul_execution_time__value);
 }
 
@@ -109,10 +109,10 @@ static void per_codelet_sample_updater(struct starpu_perf_counter_sample *sample
 	STARPU_ASSERT(context != NULL);
 	struct starpu_codelet *cl = context;
 
-	_starpu_perf_counter_sample_set_int32_value(sample, __c_total_submitted, cl->perf_counter_values->task.total_submitted);
-	_starpu_perf_counter_sample_set_int32_value(sample, __c_peak_submitted, cl->perf_counter_values->task.peak_submitted);
-	_starpu_perf_counter_sample_set_int32_value(sample, __c_peak_ready, cl->perf_counter_values->task.peak_ready);
-	_starpu_perf_counter_sample_set_int32_value(sample, __c_total_executed, cl->perf_counter_values->task.total_executed);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_total_submitted, cl->perf_counter_values->task.total_submitted);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_peak_submitted, cl->perf_counter_values->task.peak_submitted);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_peak_ready, cl->perf_counter_values->task.peak_ready);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_total_executed, cl->perf_counter_values->task.total_executed);
 	_starpu_perf_counter_sample_set_double_value(sample, __c_cumul_execution_time, cl->perf_counter_values->task.cumul_execution_time);
 }
 
@@ -120,16 +120,16 @@ void _starpu__task_c__register_counters(void)
 {
 	{
 		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_global;
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_total_submitted, int32, "number of tasks submitted globally (since StarPU initialization)");
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_submitted, int32, "maximum simultaneous number of tasks submitted and not yet ready, globally (since StarPU initialization)");
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_ready, int32, "maximum simultaneous number of tasks ready and not yet executing, globally (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_total_submitted, int64, "number of tasks submitted globally (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_submitted, int64, "maximum simultaneous number of tasks submitted and not yet ready, globally (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_ready, int64, "maximum simultaneous number of tasks ready and not yet executing, globally (since StarPU initialization)");
 
 		_starpu_perf_counter_register_updater(scope, global_sample_updater);
 	}
 
 	{
 		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_per_worker;
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, w_total_executed, int32, "number of tasks executed on this worker (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, w_total_executed, int64, "number of tasks executed on this worker (since StarPU initialization)");
 		__STARPU_PERF_COUNTER_REG("starpu.task", scope, w_cumul_execution_time, double, "cumulated execution time of tasks executed on this worker (microseconds, since StarPU initialization)");
 
 		_starpu_perf_counter_register_updater(scope, per_worker_sample_updater);
@@ -137,10 +137,10 @@ void _starpu__task_c__register_counters(void)
 
 	{
 		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_per_codelet;
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_submitted, int32, "number of codelet's task instances submitted using this codelet (since enabled)");
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_submitted, int32, "maximum simultaneous number of codelet's task instances submitted and not yet ready (since enabled)");
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_ready, int32, "maximum simultaneous number of codelet's task instances ready and not yet executing (since enabled)");
-		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_executed, int32, "number of codelet's task instances executed using this codelet (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_submitted, int64, "number of codelet's task instances submitted using this codelet (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_submitted, int64, "maximum simultaneous number of codelet's task instances submitted and not yet ready (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_ready, int64, "maximum simultaneous number of codelet's task instances ready and not yet executing (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_executed, int64, "number of codelet's task instances executed using this codelet (since enabled)");
 		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_cumul_execution_time, double, "cumulated execution time of codelet's task instances (since enabled)");
 
 		_starpu_perf_counter_register_updater(scope, per_codelet_sample_updater);
@@ -839,9 +839,9 @@ int starpu_task_submit(struct starpu_task *task)
 		;
 	if (!j->internal && !continuation)
 	{
-		(void) STARPU_ATOMIC_ADD(&_starpu_task__g_total_submitted__value, 1);
-		int32_t value = STARPU_ATOMIC_ADD(&_starpu_task__g_current_submitted__value, 1);
-		_starpu_perf_counter_update_max_int32(&_starpu_task__g_peak_submitted__value, value);
+		(void) STARPU_ATOMIC_ADDL(&_starpu_task__g_total_submitted__value, 1);
+		int64_t value = STARPU_ATOMIC_ADDL(&_starpu_task__g_current_submitted__value, 1);
+		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_submitted__value, value);
 		_starpu_perf_counter_update_global_sample();
 
 		if (task->cl && task->cl->perf_counter_values)
@@ -849,8 +849,8 @@ int starpu_task_submit(struct starpu_task *task)
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
 			(void) STARPU_ATOMIC_ADD(&pcv->task.total_submitted, 1);
-			int32_t value = STARPU_ATOMIC_ADD(&pcv->task.current_submitted, 1);
-			_starpu_perf_counter_update_max_int32(&pcv->task.peak_submitted, value);
+			int64_t value = STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, 1);
+			_starpu_perf_counter_update_max_int64(&pcv->task.peak_submitted, value);
 			_starpu_perf_counter_update_per_codelet_sample(task->cl);
 		}
 	}

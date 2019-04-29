@@ -444,16 +444,16 @@ int _starpu_repush_task(struct _starpu_job *j)
 		;
 	if (!j->internal && !continuation)
 	{
-		(void) STARPU_ATOMIC_ADD(& _starpu_task__g_current_submitted__value, -1);
-		int32_t value = STARPU_ATOMIC_ADD(& _starpu_task__g_current_ready__value, 1);
-		_starpu_perf_counter_update_max_int32(&_starpu_task__g_peak_ready__value, value);
+		(void) STARPU_ATOMIC_ADDL(& _starpu_task__g_current_submitted__value, -1);
+		int64_t value = STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, 1);
+		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_ready__value, value);
 		if (task->cl && task->cl->perf_counter_values)
 		{
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
-			(void)STARPU_ATOMIC_ADD(&pcv->task.current_submitted, -1);
-			int32_t value = STARPU_ATOMIC_ADD(&pcv->task.current_ready, 1);
-			_starpu_perf_counter_update_max_int32(&pcv->task.peak_ready, value);
+			(void)STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, -1);
+			int64_t value = STARPU_ATOMIC_ADDL(&pcv->task.current_ready, 1);
+			_starpu_perf_counter_update_max_int64(&pcv->task.peak_ready, value);
 		}
 	}
 	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
@@ -492,11 +492,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		if (!j->internal)
 		{
-			(void)STARPU_ATOMIC_ADD(& _starpu_task__g_current_ready__value, -1);
+			(void)STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)
 			{
 				struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
-				(void)STARPU_ATOMIC_ADD(&pcv->task.current_ready, -1);
+				(void)STARPU_ATOMIC_ADDL(&pcv->task.current_ready, -1);
 			}
 		}
 		task->status = STARPU_TASK_RUNNING;

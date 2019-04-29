@@ -70,11 +70,11 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		STARPU_ASSERT(task->status == STARPU_TASK_READY);
 		if (!j->internal)
 		{
-			(void)STARPU_ATOMIC_ADD(& _starpu_task__g_current_ready__value, -1);
+			(void)STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)
 			{
 				struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
-				(void)STARPU_ATOMIC_ADD(&pcv->task.current_ready, -1);
+				(void)STARPU_ATOMIC_ADDL(&pcv->task.current_ready, -1);
 			}
 		}
 		task->status = STARPU_TASK_RUNNING;
