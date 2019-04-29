@@ -742,7 +742,7 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED  || model->type == STARPU_REGRESSION_BASED)
 	{
 		/* Dump the list of all entries in the history */
 		ptr = per_arch_model->list;
@@ -760,7 +760,7 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	check_reg_model(model, comb, impl);
 
 	/* Dump the history into the model file in case it is necessary */
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		ptr = per_arch_model->list;
 		while (ptr)
@@ -779,7 +779,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		/* Dump the list of all entries in the history */
 		ptr = per_arch_model->list;
@@ -800,7 +800,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	dump_reg_model(f, model, comb, impl);
 
 	/* Dump the history into the model file in case it is necessary */
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
@@ -1859,7 +1859,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			model->state->per_arch_is_set[comb][impl] = 1;
 		}
 
-		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 		{
 			struct starpu_perfmodel_history_entry *entry;
 			struct starpu_perfmodel_history_table *elt;
