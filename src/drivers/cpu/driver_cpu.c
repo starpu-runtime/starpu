@@ -528,12 +528,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #else
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
 #endif
-#ifdef STARPU_USE_SCC
-	.copy_data_to[STARPU_SCC_RAM] = _starpu_scc_copy_data_from_cpu_to_scc,
-#else
-	.copy_data_to[STARPU_SCC_RAM] = NULL,
-#endif
-	.copy_data_to[STARPU_SCC_SHM] = NULL,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
 #else
@@ -558,12 +552,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #else
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 #endif
-#ifdef STARPU_USE_SCC
-	.copy_interface_to[STARPU_SCC_RAM] = _starpu_scc_copy_interface_from_cpu_to_scc,
-#else
-	.copy_interface_to[STARPU_SCC_RAM] = NULL,
-#endif
-	.copy_interface_to[STARPU_SCC_SHM] = NULL,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
 #else

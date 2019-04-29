@@ -185,10 +185,6 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.mic_to_ram = NULL,
 
-	.scc_src_to_sink = NULL,
-	.scc_sink_to_src = NULL,
-	.scc_sink_to_sink = NULL,
-
 	.ram_to_mpi_ms = NULL,
 	.mpi_ms_to_ram = NULL,
 	.mpi_ms_to_mpi_ms = NULL,
@@ -580,7 +576,6 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.nmic = 0;
-	conf.nscc = 0;
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

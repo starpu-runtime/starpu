@@ -4,7 +4,7 @@
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,6 @@
 #define _STARPU_FUT_CUDA_KEY	0x102
 #define _STARPU_FUT_OPENCL_KEY	0x103
 #define _STARPU_FUT_MIC_KEY	0x104
-#define _STARPU_FUT_SCC_KEY	0x105
 #define _STARPU_FUT_MPI_KEY	0x106
 
 #define _STARPU_FUT_WORKER_INIT_START	0x5100

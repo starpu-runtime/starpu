@@ -18,15 +18,6 @@
 #
 include $(top_srcdir)/starpu.mk
 
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
-
 CC=$(MPICC)
 CCLD=$(MPICC)
 FC=$(MPIFORT)

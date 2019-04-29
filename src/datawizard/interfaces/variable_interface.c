@@ -119,10 +119,6 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_nod
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	starpu_scc_get_offset_in_shared_memory((void*)variable.ptr, (void**)&(variable.dev_handle), &(variable.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
 }
 

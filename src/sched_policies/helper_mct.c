@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014-2017, 2019                          CNRS
  * Copyright (C) 2013,2014,2016,2017                      Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
@@ -29,25 +29,6 @@
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
 #define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
 
-#ifdef STARPU_USE_TOP
-static void param_modified(struct starpu_top_param* d)
-{
-	/* Just to show parameter modification. */
-	_STARPU_MSG("%s has been modified : %f\n", d->name, *(double*) d->value);
-}
-#endif /* !STARPU_USE_TOP */
-
-#ifdef STARPU_USE_TOP
-static const float alpha_minimum=0;
-static const float alpha_maximum=10.0;
-static const float beta_minimum=0;
-static const float beta_maximum=10.0;
-static const float gamma_minimum=0;
-static const float gamma_maximum=10000.0;
-static const float idle_power_minimum=0;
-static const float idle_power_maximum=10000.0;
-#endif /* !STARPU_USE_TOP */
-
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params)
 {
 	struct _starpu_mct_data *data;
@@ -66,17 +47,6 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 		data->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
 		data->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 	}
-
-#ifdef STARPU_USE_TOP
-	starpu_top_register_parameter_float("MCT_ALPHA", &data->alpha,
-					    alpha_minimum, alpha_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_BETA", &data->beta,
-					    beta_minimum, beta_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_GAMMA", &data->_gamma,
-					    gamma_minimum, gamma_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_IDLE_POWER", &data->idle_power,
-					    idle_power_minimum, idle_power_maximum, param_modified);
-#endif /* !STARPU_USE_TOP */
 
 	return data;
 }

@@ -48,23 +48,24 @@ enum starpu_node_kind
 	STARPU_OPENCL_RAM=3,
 	STARPU_DISK_RAM=4,
 	STARPU_MIC_RAM=5,
-	STARPU_SCC_RAM=6,
-	STARPU_SCC_SHM=7,
-	STARPU_MPI_MS_RAM=8
+	STARPU_MPI_MS_RAM=6
 };
 
 /**
    Worker Architecture Type
+
+   The value 4 which was used by the driver SCC is no longer used as
+   renumbering workers would make unusable old performance model
+   files.
 */
 enum starpu_worker_archtype
 {
-	STARPU_CPU_WORKER,        /**< CPU core */
-	STARPU_CUDA_WORKER,       /**< NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER,     /**< OpenCL device */
-	STARPU_MIC_WORKER,        /**< Intel MIC device */
-	STARPU_SCC_WORKER,        /**< Intel SCC device */
-	STARPU_MPI_MS_WORKER,     /**< MPI Slave device */
-	STARPU_ANY_WORKER         /**< any worker, used in the hypervisor */
+	STARPU_CPU_WORKER=0,        /**< CPU core */
+	STARPU_CUDA_WORKER=1,       /**< NVIDIA CUDA device */
+	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
+	STARPU_MIC_WORKER=3,        /**< Intel MIC device */
+	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
+	STARPU_ANY_WORKER=6         /**< any worker, used in the hypervisor */
 };
 
 /**
@@ -184,12 +185,6 @@ unsigned starpu_opencl_worker_get_count(void);
    Return the number of MIC workers controlled by StarPU.
 */
 unsigned starpu_mic_worker_get_count(void);
-
-/**
-   Return the number of SCC devices controlled by StarPU. The return
-   value should be at most \ref STARPU_MAXSCCDEVS.
-*/
-unsigned starpu_scc_worker_get_count(void);
 
 /**
    Return the number of MPI Master Slave workers controlled by StarPU.

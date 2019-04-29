@@ -89,8 +89,6 @@ enum _starpu_mp_node_kind
 {
 	STARPU_NODE_MIC_SINK,
 	STARPU_NODE_MIC_SOURCE,
-	STARPU_NODE_SCC_SINK,
-	STARPU_NODE_SCC_SOURCE,
 	STARPU_NODE_MPI_SINK,
 	STARPU_NODE_MPI_SOURCE,
 	STARPU_NODE_INVALID_KIND
@@ -102,9 +100,6 @@ union _starpu_mp_connection
 {
 #ifdef STARPU_USE_MIC
 	scif_epd_t mic_endpoint;
-#endif
-#ifdef STARPU_USE_SCC
-	int scc_nodeid;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	int mpi_remote_nodeid;

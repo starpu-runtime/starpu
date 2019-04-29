@@ -1,7 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017,2019                           Inria
-# Copyright (C) 2012                                     Benjamin Lorendeau
 # Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2013                                     Simon Archipoff
@@ -142,9 +141,6 @@ noinst_HEADERS = 						\
 	drivers/mic/driver_mic_common.h				\
 	drivers/mic/driver_mic_source.h				\
 	drivers/mic/driver_mic_sink.h				\
-	drivers/scc/driver_scc_common.h				\
-	drivers/scc/driver_scc_source.h				\
-	drivers/scc/driver_scc_sink.h				\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
 	drivers/mpi/driver_mpi_sink.h				\
@@ -157,9 +153,6 @@ noinst_HEADERS = 						\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
-	top/starpu_top_message_queue.h				\
-	top/starpu_top_connection.h				\
-	top/starpu_top_core.h					\
 	sched_policies/prio_deque.h				\
 	sched_policies/sched_component.h
 
@@ -280,10 +273,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	profiling/profiling.c					\
 	profiling/bound.c					\
 	profiling/profiling_helpers.c				\
-	top/starpu_top.c					\
-	top/starpu_top_task.c					\
-	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
 	worker_collection/worker_tree.c				\
 	sched_policies/component_worker.c				\
@@ -345,13 +334,6 @@ else
 if STARPU_SIMGRID
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 endif
-endif
-
-if STARPU_USE_SCC
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_common.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_source.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_sink.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_utils.c
 endif
 
 if STARPU_LINUX_SYS

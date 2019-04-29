@@ -26,7 +26,6 @@ missingInclude
 
 *:starpufft/*
 *:min-dgels/*
-*:starpu-top/*
 *:socl/src/CL/*
 *:tools/*
 
@@ -70,18 +69,8 @@ clarifyCondition:src/drivers/opencl/driver_opencl.c:945
 unreadVariable:src/drivers/opencl/driver_opencl.c:767
 redundantAssignment:src/drivers/opencl/driver_opencl.c:831
 clarifyCondition:src/drivers/cuda/driver_cuda.c:498
-arithOperationsOnVoidPointer:src/drivers/scc/*
 nullPointerRedundantCheck:src/sched_policies/deque_modeling_policy_data_aware.c:207
 sizeofDereferencedVoidPointer:src/util/fstarpu.c
-
-allocaCalled:gcc-plugin/src/*
-unusedVariable:gcc-plugin/tests/*
-unreadVariable:gcc-plugin/tests/*
-//cppcheck complaints it does not find duplicate expressions
-//duplicateExpression:gcc-plugin/src/*
-negativeIndex:gcc-plugin/src/*
-uninitvar:gcc-plugin/src/warn-unregistered.c:126
-uninitvar:gcc-plugin/src/warn-unregistered.c:126
 
 pointerSize:socl/src/cl_getcontextinfo.c:33
 unreadVariable:socl/src/gc.c:193

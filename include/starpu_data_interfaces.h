@@ -181,35 +181,6 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*scc_src_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the core.
-	*/
-	int (*scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
 	   dst_node MPI Slave node. Return 0 on success.
 	*/

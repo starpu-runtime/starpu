@@ -20,15 +20,6 @@
 #
 include $(top_srcdir)/starpu.mk
 
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
-
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
@@ -1032,16 +1023,6 @@ endif
 examplebin_PROGRAMS +=				\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
-
-################
-# Top Examples #
-################
-
-examplebin_PROGRAMS +=				\
-	top/hello_world_top
-
-top_hello_world_top_SOURCES =			\
-	top/hello_world_top.c
 
 ######
 # Pi #

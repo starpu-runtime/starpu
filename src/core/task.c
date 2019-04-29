@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2019                                Inria
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -688,18 +688,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-		if (cl->scc_funcs[i])
-		{
-			some_impl = 1;
-			break;
-		}
-	if (some_impl && is_where_unset)
-	{
-		where |= STARPU_SCC;
-	}
-
-	some_impl = 0;
-	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->cpu_funcs_name[i])
 		{
 			some_impl = 1;
@@ -707,7 +695,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		where |= STARPU_MIC|STARPU_SCC|STARPU_MPI_MS;
+		where |= STARPU_MIC|STARPU_MPI_MS;
 	}
 	cl->where = where;
 }
@@ -1447,7 +1435,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
-				case STARPU_SCC_RAM:
 					return 1;
 				default:
 					STARPU_ABORT();
@@ -1457,7 +1444,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 		case STARPU_OPENCL_RAM:
 		case STARPU_MIC_RAM:
 		case STARPU_MPI_MS_RAM:
-		case STARPU_SCC_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
@@ -1466,7 +1452,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
-				case STARPU_SCC_RAM:
 					return 0;
 				default:
 					STARPU_ABORT();

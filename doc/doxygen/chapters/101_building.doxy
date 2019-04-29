@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2018                           Inria
- * Copyright (C) 2009-2011,2013-2016                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2016,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -174,7 +174,7 @@ example if StarPU was installed in
 <c>$STARPU_PATH</c>:
 
 \verbatim
-$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
 \endverbatim
 
 The flags required to compile or link against StarPU are then
@@ -203,26 +203,41 @@ It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
 locate dynamic libraries at runtime.
 
 \verbatim
-$ LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
+$ export LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 \endverbatim
+
+And it is useful to get access to the StarPU tools:
+
+\verbatim
+$ PATH=$PATH:$STARPU_PATH/bin
+\endverbatim
+
+It is then useful to check that StarPU executes correctly and finds your hardware:
+
+\verbatim
+$ starpu_machine_display
+\endverbatim
+
+If it does not, please check the output of \c lstopo from \c hwloc and report
+the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
+
+\subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
+
+\subsubsection StarPUInMake Integrating StarPU in a Make Build System
 
 When using a Makefile, the following lines can be added to set the
 options for the compiler and the linker:
 
 \verbatim
 CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.3)
+LDLIBS          +=      $$(pkg-config --libs starpu-1.3)
 \endverbatim
 
-\subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
+If you have a \c test-starpu.c file containing for instance:
 
-\subsubsection StarPUInCMake Integrating StarPU in a CMake Build System
-
-This section shows a minimal example integrating StarPU in an existing application's CMake build system.
-
-Let's assume we want to build an executable from the following source code using CMake:
 \code{.c}
 #include <starpu.h>
+#include <stdio.h>
 int main(void)
 {
     int ret;
@@ -231,6 +246,36 @@ int main(void)
     {
         return 1;
     }
+    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
+    printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
+    starpu_shutdown();
+
+    return 0;
+}
+\endcode
+
+You can build it with <code>make test-starpu</code> and run it with <code>./test-starpu</code>
+
+\subsubsection StarPUInCMake Integrating StarPU in a CMake Build System
+
+This section shows a minimal example integrating StarPU in an existing application's CMake build system.
+
+Let's assume we want to build an executable from the following source code using CMake:
+\code{.c}
+#include <starpu.h>
+#include <stdio.h>
+int main(void)
+{
+    int ret;
+    ret = starpu_init(NULL);
+    if (ret != 0)
+    {
+        return 1;
+    }
+    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
+    printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
     starpu_shutdown();
 
     return 0;
@@ -382,8 +427,13 @@ per GPU.
 While StarPU tasks are executing, the application is not supposed to do
 computations in the threads it starts itself, tasks should be used instead.
 
-TODO: add a StarPU function to bind an application thread (e.g. the main thread)
-to a dedicated core (and thus disable the corresponding StarPU CPU worker).
+If the application needs to reserve some cores for its own computations, it
+can do so with the starpu_conf::reserve_ncpus field, get the core IDs with
+starpu_get_next_bindid(), and bind to them with starpu_bind_thread_on().
+
+Another option is for the application to put the whole StarPU on pause with
+starpu_pause() before performing its own computations, and let StarPU resume
+executing tasks with starpu_resume().
 
 \subsection EnablingOpenCL Enabling OpenCL
 

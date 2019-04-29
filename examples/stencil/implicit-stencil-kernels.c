@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2012,2013,2016,2017                      CNRS
+ * Copyright (C) 2012,2013,2016,2017,2019                 CNRS
  * Copyright (C) 2010-2015                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -239,9 +239,6 @@ static void update_func_cuda(void *descr[], void *arg)
 		cudaMemcpyAsync(newer, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 #endif /* LIFE */
 	}
-
-	if (block->bz == 0)
-		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -335,9 +332,6 @@ static void update_func_opencl(void *descr[], void *arg)
 
 #endif /* LIFE */
 	}
-
-	if (block->bz == 0)
-		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -413,9 +407,6 @@ void update_func_cpu(void *descr[], void *arg)
 		memcpy(newer, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer));
 #endif /* LIFE */
 	}
-
-	if (block->bz == 0)
-		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
 
 /* Performance model and codelet structure */

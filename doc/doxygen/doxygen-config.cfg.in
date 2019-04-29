@@ -45,7 +45,6 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_perfmodel.h \
 			 @top_srcdir@/include/starpu_profiling.h \
 			 @top_srcdir@/include/starpu_rand.h \
-			 @top_srcdir@/include/starpu_scc.h \
 			 @top_srcdir@/include/starpu_sched_component.h \
 			 @top_srcdir@/include/starpu_sched_ctx.h \
 			 @top_srcdir@/include/starpu_sched_ctx_hypervisor.h \
@@ -60,7 +59,6 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_task_util.h \
 			 @top_srcdir@/include/starpu_thread.h \
 			 @top_srcdir@/include/starpu_thread_util.h \
-			 @top_srcdir@/include/starpu_top.h \
 			 @top_srcdir@/include/starpu_tree.h \
 			 @top_srcdir@/include/starpu_util.h \
 			 @top_srcdir@/include/starpu_worker.h \

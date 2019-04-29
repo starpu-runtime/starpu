@@ -236,7 +236,7 @@ starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp, unsig
 
 int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
-	if (starpu_mic_worker_get_count() || starpu_scc_worker_get_count() || starpu_mpi_ms_worker_get_count())
+	if (starpu_mic_worker_get_count() || starpu_mpi_ms_worker_get_count())
 		/* These won't work with pivoting: we pass a pointer in cl_args */
 		return -ENODEV;
 

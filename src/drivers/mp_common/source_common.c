@@ -744,8 +744,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         return -EAGAIN;
 }
 
-/* 5 functions to determine the executable to run on the device (MIC, SCC,
- * MPI).
+/* 5 functions to determine the executable to run on the device (MIC, MPI).
  */
 static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first, const char *second, const char *third)
 {

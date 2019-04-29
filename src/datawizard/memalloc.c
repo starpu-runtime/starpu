@@ -1551,8 +1551,8 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 	if (replicate->relaxed_coherency == 0 && (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM))
 	{
-		/* We are allocating the buffer in main memory, also register it
-		 * for the gcc plugin.  */
+		/* We are allocating the buffer in main memory, also
+		 * register it for starpu_data_handle_to_pointer() */
 		void *ptr = starpu_data_handle_to_pointer(handle, dst_node);
 		if (ptr != NULL)
 		{

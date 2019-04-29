@@ -652,28 +652,6 @@ static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model
 		parse_per_arch_model_file(f, path, &dummy, 0, NULL);
 }
 
-static enum starpu_worker_archtype _get_enum_type(int type)
-{
-	switch(type)
-	{
-	        case 0:
-			return STARPU_CPU_WORKER;
-        	case 1:
-			return STARPU_CUDA_WORKER;
-	        case 2:
-			return STARPU_OPENCL_WORKER;
-        	case 3:
-			return STARPU_MIC_WORKER;
-        	case 4:
-			return STARPU_SCC_WORKER;
-        	case 5:
-			return STARPU_MPI_MS_WORKER;
-		default:
-			STARPU_ABORT();
-	}
-
-}
-
 static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history, int comb)
 {
 	int ndevices = 0;
@@ -686,12 +664,10 @@ static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model
 	int dev;
 	for(dev = 0; dev < ndevices; dev++)
 	{
-		enum starpu_worker_archtype dev_type;
 		_starpu_drop_comments(f);
 		int type;
 		ret = fscanf(f, "%d\n", &type);
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
-		dev_type = _get_enum_type(type);
 		int dev_id;
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &dev_id);
@@ -700,7 +676,7 @@ static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &ncores);
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
-		devices[dev].type = dev_type;
+		devices[dev].type = type;
 		devices[dev].devid = dev_id;
 		devices[dev].ncores = ncores;
 	}
@@ -898,7 +874,8 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
-			fprintf(f, "# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4, MPI_MS - 5)\n");
+			fprintf(f, "# device type (CPU - %d, CUDA - %d, OPENCL - %d, MIC - %d, MPI_MS - %d)\n",
+				STARPU_CPU_WORKER, STARPU_CUDA_WORKER, STARPU_OPENCL_WORKER, STARPU_MIC_WORKER, STARPU_MPI_MS_WORKER);
 			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].type);
 
 			fprintf(f, "####################\n");
@@ -1055,7 +1032,6 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 				case STARPU_CUDA_WORKER: type = "CUDA"; break;
 				case STARPU_OPENCL_WORKER: type = "OpenCL"; break;
 				case STARPU_MIC_WORKER: type = "MIC"; break;
-				case STARPU_SCC_WORKER: type = "SCC"; break;
 				case STARPU_MPI_MS_WORKER: type = "MPI_MS"; break;
 				default: STARPU_ASSERT(0);
 			}
@@ -1254,11 +1230,10 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned nmpi = 0;
 	for(i = 0; i < conf->topology.nhwmpidevices; i++)
 		nmpi += conf->topology.nhwmpicores[i];
-	unsigned nscc = conf->topology.nhwscc;
 
-	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc + nmpi), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
-	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc + nmpi);
+	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
+	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nmpi);
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
@@ -1268,7 +1243,6 @@ void _starpu_initialize_registered_performance_models(void)
 	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
 	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
 	ignore_devid[STARPU_MPI_MS_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
-	ignore_devid[STARPU_SCC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_SCC", 0);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1564,9 +1538,6 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 		case(STARPU_MIC_WORKER):
 			return "mic";
 			break;
-		case(STARPU_SCC_WORKER):
-			return "scc";
-			break;
 		case(STARPU_MPI_MS_WORKER):
 			return "mpi_ms";
 			break;
@@ -1757,6 +1728,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	uint32_t key;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	if(comb == -1)
 		goto docal;
 	if (model->state->per_arch[comb] == NULL)
@@ -1765,7 +1737,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 
 	per_arch_model = &model->state->per_arch[comb][nimpl];
 
-	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
@@ -1777,26 +1748,49 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	 * We do not care about racing access to the mean, we only want
 	 * a good-enough estimation */
 
-	if (entry && entry->nsample >= _starpu_calibration_minimum)
+	if (entry && entry->nsample)
 	{
-		STARPU_ASSERT_MSG(entry->mean >= 0, "entry->mean=%lf\n", entry->mean);
-		/* TODO: report differently if we've scheduled really enough
-		 * of that task and the scheduler should perhaps put it aside */
-		/* Calibrated enough */
-		exp = entry->mean;
+#ifdef STARPU_SIMGRID
+		if (entry->nsample < _starpu_calibration_minimum)
+		{
+			char archname[STR_SHORT_LENGTH];
+			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld footprint %x (only %u measurements). Using it anyway for the simulation\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key, entry->nsample);
+		}
+#else
+		if (entry->nsample >= _starpu_calibration_minimum)
+#endif
+		{
+			STARPU_ASSERT_MSG(entry->mean >= 0, "entry->mean=%lf\n", entry->mean);
+			/* TODO: report differently if we've scheduled really enough
+			 * of that task and the scheduler should perhaps put it aside */
+			/* Calibrated enough */
+			exp = entry->mean;
+		}
 	}
 
 docal:
+#ifdef STARPU_SIMGRID
+	if (isnan(exp)) {
+		char archname[STR_SHORT_LENGTH];
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+
+		_STARPU_DISP("Warning: model %s is not calibrated at all for %s size %ld footprint %x. Assuming it can not work there\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key);
+		exp = 0.;
+	}
+#else
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
 		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, entry ? entry->nsample : 0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld footprint %x (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key, entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
+#endif
 
 	STARPU_ASSERT_MSG(isnan(exp)||exp >= 0, "exp=%lf\n", exp);
 	return exp;

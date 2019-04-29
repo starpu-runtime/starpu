@@ -68,7 +68,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CUDA_WORKER
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_WORKER
         type(c_ptr), bind(C) :: FSTARPU_MIC_WORKER
-        type(c_ptr), bind(C) :: FSTARPU_SCC_WORKER
         type(c_ptr), bind(C) :: FSTARPU_ANY_WORKER
 
         integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
@@ -88,7 +87,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CUDA
         type(c_ptr), bind(C) :: FSTARPU_OPENCL
         type(c_ptr), bind(C) :: FSTARPU_MIC
-        type(c_ptr), bind(C) :: FSTARPU_SCC
 
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
@@ -185,12 +183,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: conf
                         integer(c_int), value, intent(in) :: nmic
                 end subroutine fstarpu_conf_set_nmic
-
-                subroutine fstarpu_conf_set_nscc (conf, nscc) bind(C)
-                        use iso_c_binding, only: c_ptr, c_int
-                        type(c_ptr), value, intent(in) :: conf
-                        integer(c_int), value, intent(in) :: nscc
-                end subroutine fstarpu_conf_set_nscc
 
                 ! starpu_init: see fstarpu_init
                 ! starpu_initialize: see fstarpu_init
@@ -290,12 +282,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_int
                         integer(c_int)              :: fstarpu_mic_worker_get_count
                 end function fstarpu_mic_worker_get_count
-
-                ! unsigned starpu_scc_worker_get_count(void);
-                function fstarpu_scc_worker_get_count() bind(C,name="starpu_scc_worker_get_count")
-                        use iso_c_binding, only: c_int
-                        integer(c_int)              :: fstarpu_scc_worker_get_count
-                end function fstarpu_scc_worker_get_count
 
                 ! int starpu_worker_get_id(void);
                 function fstarpu_worker_get_id() bind(C,name="starpu_worker_get_id")
@@ -699,12 +685,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_funptr), value, intent(in) :: f_ptr
                 end subroutine fstarpu_codelet_add_mic_func
-
-                subroutine fstarpu_codelet_add_scc_func (cl, f_ptr) bind(C)
-                        use iso_c_binding, only: c_ptr, c_funptr
-                        type(c_ptr), value, intent(in) :: cl
-                        type(c_funptr), value, intent(in) :: f_ptr
-                end subroutine fstarpu_codelet_add_scc_func
 
                 subroutine fstarpu_codelet_add_buffer (cl, mode) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -2306,7 +2286,6 @@ module fstarpu_mod
                         FSTARPU_CUDA_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_WORKER"//C_NULL_CHAR)
                         FSTARPU_OPENCL_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_WORKER"//C_NULL_CHAR)
                         FSTARPU_MIC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_MIC_WORKER"//C_NULL_CHAR)
-                        FSTARPU_SCC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCC_WORKER"//C_NULL_CHAR)
                         FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
 
                         FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
@@ -2340,8 +2319,6 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL"//C_NULL_CHAR)
                         FSTARPU_MIC = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_MIC"//C_NULL_CHAR)
-                        FSTARPU_SCC = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_SCC"//C_NULL_CHAR)
 
                         FSTARPU_CODELET_SIMGRID_EXECUTE = &
                              fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)

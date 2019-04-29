@@ -340,14 +340,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		}
 #endif
 	}
-	else
 #endif
-	if (_starpu_can_submit_scc_task())
-	{
-#ifdef STARPU_USE_SCC
-		_starpu_scc_allocate_shared_memory(A, dim);
-#endif
-	}
 #ifdef STARPU_HAVE_HWLOC
 	if (starpu_memory_nodes_get_numa_count() > 1)
 	{
@@ -471,8 +464,8 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 			if (!starpu_is_initialized())
 			{
 #endif
-				/* This is especially useful when starpu_free is called from
-				 * the GCC-plugin. starpu_shutdown will probably have already
+				/* This is especially useful when starpu_free is called even
+				 * though starpu_shutdown has already
 				 * been called, so we will not be able to submit a task. */
 				cudaError_t err = cudaFreeHost(A);
 				if (STARPU_UNLIKELY(err))
@@ -540,14 +533,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 		munmap(A, dim);
 #endif
 	}
-	else
 #endif
-	if (_starpu_can_submit_scc_task())
-	{
-#ifdef STARPU_USE_SCC
-		_starpu_scc_free_shared_memory(A);
-#endif
-	}
 #ifdef STARPU_HAVE_HWLOC
 	else if (starpu_memory_nodes_get_numa_count() > 1)
 	{

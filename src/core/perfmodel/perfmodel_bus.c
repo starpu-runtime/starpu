@@ -1815,47 +1815,23 @@ void starpu_bus_print_filenames(FILE *output)
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
-	unsigned src, dst, maxnode;
-
-	maxnode = nnumas;
-#ifdef STARPU_USE_CUDA
-	maxnode += ncuda;
-#endif
-#ifdef STARPU_USE_OPENCL
-	maxnode += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	maxnode += nmpi_ms;
-#endif
+	unsigned src, dst, maxnode = starpu_memory_nodes_get_count();
 
 	fprintf(f, "from/to\t");
-	for (dst = 0; dst < nnumas; dst++)
-		fprintf(f, "NUMA_%u\t", dst);
-	for (dst = 0; dst < ncuda; dst++)
-		fprintf(f, "CUDA_%u\t", dst);
-	for (dst = 0; dst < nopencl; dst++)
-		fprintf(f, "OpenCL%u\t", dst);
-	for (dst = 0; dst < nmic; dst++)
-		fprintf(f, "MIC_%u\t", dst);
-	for (dst = 0; dst < nmpi_ms; dst++)
-		fprintf(f, "MPI_MS%u\t", dst);
+	for (dst = 0; dst < maxnode; dst++)
+	{
+		char name[128];
+		starpu_memory_node_get_name(dst, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+	}
 	fprintf(f, "\n");
 
 	for (src = 0; src < maxnode; src++)
 	{
-		if (src < nnumas)
-			fprintf(f, "NUMA_%u\t", src);
-		else if (src < nnumas + ncuda)
-			fprintf(f, "CUDA_%u\t", src-nnumas);
-		else if (src < nnumas + ncuda + nopencl)
-			fprintf(f, "OpenCL%u\t", src-nnumas-ncuda);
-		else if (src < nnumas + ncuda + nopencl + nmic)
-			fprintf(f, "MIC_%u\t", src-nnumas-ncuda-nopencl);
-		else
-			fprintf(f, "MPI_MS%u\t", src-nnumas-ncuda-nopencl-nmic);
+		char name[128];
+		starpu_memory_node_get_name(src, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+
 		for (dst = 0; dst < maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1865,16 +1841,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 
 	for (src = 0; src < maxnode; src++)
 	{
-		if (src < nnumas)
-			fprintf(f, "NUMA_%u\t", src);
-		else if (src < nnumas + ncuda)
-			fprintf(f, "CUDA_%u\t", src-nnumas);
-		else if (src < nnumas + ncuda + nopencl)
-			fprintf(f, "OpenCL%u\t", src-nnumas-ncuda);
-		else if (src < nnumas + ncuda + nopencl + nmic)
-			fprintf(f, "MIC_%u\t", src-nnumas-ncuda-nopencl);
-		else
-			fprintf(f, "MPI_MS%u\t", src-nnumas-ncuda-nopencl-nmic);
+		char name[128];
+		starpu_memory_node_get_name(src, name, sizeof(name));
+		fprintf(f, "%s\t", name);
+
 		for (dst = 0; dst < maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
@@ -2307,6 +2277,17 @@ static int find_platform_path_down(hwloc_obj_t parent, hwloc_obj_t obj1, hwloc_o
 			update_bandwidth_through(parent, bandwidth);
 			return 1;
 		}
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = parent->io_first_child; io; io = io->next_sibling)
+		if (io != obj1 && find_platform_path_down(io, NULL, obj2, bandwidth))
+		{
+			/* Found it down there, update bandwidth of parent */
+			update_bandwidth_down(io, bandwidth);
+			update_bandwidth_through(parent, bandwidth);
+			return 1;
+		}
+#endif
 	return 0;
 }
 
@@ -2418,6 +2399,11 @@ static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj, const char *Bps, 
 
 	for (i = 0; i < obj->arity; i++)
 		emit_topology_bandwidths(f, obj->children[i], Bps, s);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = obj->io_first_child; io; io = io->next_sibling)
+		emit_topology_bandwidths(f, io, Bps, s);
+#endif
 }
 
 /* emit_pci_link_* functions perform the third step: emitting the routes */
@@ -2532,6 +2518,17 @@ static int emit_platform_path_down(FILE *f, hwloc_obj_t parent, hwloc_obj_t obj1
 			emit_pci_link_through(f, parent);
 			return 1;
 		}
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = parent->io_first_child; io; io = io->next_sibling)
+		if (io != obj1 && emit_platform_path_down(f, io, NULL, obj2))
+		{
+			/* Found it down there, path goes through this hub */
+			emit_pci_link_down(f, io);
+			emit_pci_link_through(f, parent);
+			return 1;
+		}
+#endif
 	return 0;
 }
 
@@ -2580,9 +2577,17 @@ static void clean_topology(hwloc_obj_t obj)
 {
 	unsigned i;
 	if (obj->userdata)
+	{
 		free(obj->userdata);
+		obj->userdata = NULL;
+	}
 	for (i = 0; i < obj->arity; i++)
 		clean_topology(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t io;
+	for (io = obj->io_first_child; io; io = io->next_sibling)
+		clean_topology(io);
+#endif
 }
 #endif
 
@@ -2770,6 +2775,9 @@ static void write_bus_platform_file_content(int version)
 #endif
 
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+#ifdef STARPU_DEVEL
+#warning TODO: use libnvml to get NVLink links, otherwise numbers will be bogusly propagated through PCI topology
+#endif
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
 	{
@@ -3105,14 +3113,14 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
 
 				if (!isnan(latency_matrix[i][j]) && print_stats)
-					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
+					fprintf(stderr,"%u -> %u: %.0f us\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j == node) /* destination == disk */
 			{
 				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
 
 				if (!isnan(latency_matrix[i][j]) && print_stats)
-					fprintf(stderr,"%u -> %u: %.0f µs\n", i, j, latency_matrix[i][j]);
+					fprintf(stderr,"%u -> %u: %.0f us\n", i, j, latency_matrix[i][j]);
 			}
 			else if (j > node || i > node) /* not affected by the node */
 			{

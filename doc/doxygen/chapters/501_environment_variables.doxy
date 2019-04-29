@@ -178,13 +178,6 @@ Number of threads to use on the MPI Slave devices.
 This variable allows to chose which MPI node (with the MPI ID) will be the master.
 </dd>
 
-<dt>STARPU_NSCC</dt>
-<dd>
-\anchor STARPU_NSCC
-\addindex __env__STARPU_NSCC
-SCC equivalent of the environment variable \ref STARPU_NCUDA.
-</dd>
-
 <dt>STARPU_WORKERS_NOBIND</dt>
 <dd>
 \anchor STARPU_WORKERS_NOBIND
@@ -288,17 +281,6 @@ MIC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
 
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_mic_deviceid passed to starpu_init()
-is set.
-</dd>
-
-<dt>STARPU_WORKERS_SCCID</dt>
-<dd>
-\anchor STARPU_WORKERS_SCCID
-\addindex __env__STARPU_WORKERS_SCCID
-SCC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
-
-This variable is ignored if the field
-starpu_conf::use_explicit_workers_scc_deviceid passed to starpu_init()
 is set.
 </dd>
 
@@ -816,16 +798,6 @@ When this is set to 1, StarPU will assume that all MPI Slave devices have the sa
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 MPI Slaves.
-</dd>
-
-<dt>STARPU_PERF_MODEL_HOMOGENEOUS_SCC</dt>
-<dd>
-\anchor STARPU_PERF_MODEL_HOMOGENEOUS_SCC
-\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_SCC
-When this is set to 1, StarPU will assume that all SCC devices have the same
-performance, and thus share performance models for them, thus allowing kernel
-calibration to be much faster, since measurements only have to be once for all
-SCC GPUs.
 </dd>
 
 <dt>STARPU_HOSTNAME</dt>

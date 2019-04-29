@@ -143,10 +143,6 @@ void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	starpu_scc_get_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
 

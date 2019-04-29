@@ -167,10 +167,6 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	starpu_scc_get_offset_in_shared_memory((void*)block_interface.ptr, (void**)&(block_interface.dev_handle), &(block_interface.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &block_interface, &starpu_interface_block_ops);
 }
 

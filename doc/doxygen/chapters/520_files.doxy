@@ -43,7 +43,6 @@
 \file starpu_perfmodel.h
 \file starpu_profiling.h
 \file starpu_rand.h
-\file starpu_scc.h
 \file starpu_sched_component.h
 \file starpu_sched_ctx.h
 \file starpu_sched_ctx_hypervisor.h
@@ -57,7 +56,6 @@
 \file starpu_task_util.h
 \file starpu_thread.h
 \file starpu_thread_util.h
-\file starpu_top.h
 \file starpu_tree.h
 \file starpu_util.h
 \file starpu_worker.h

@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2017                                Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -165,21 +165,6 @@ void _starpu__dmda_c__register_knobs(void)
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
 #define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
 
-#ifdef STARPU_USE_TOP
-static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
-static double beta = _STARPU_SCHED_BETA_DEFAULT;
-static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
-static double idle_power = 0.0;
-static const float alpha_minimum=0;
-static const float alpha_maximum=10.0;
-static const float beta_minimum=0;
-static const float beta_maximum=10.0;
-static const float gamma_minimum=0;
-static const float gamma_maximum=10000.0;
-static const float idle_power_minimum=0;
-static const float idle_power_maximum=10000.0;
-#endif /* !STARPU_USE_TOP */
-
 static int count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 {
 	int cnt = 0;
@@ -202,19 +187,6 @@ static int count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 
 	return cnt;
 }
-
-#ifdef STARPU_USE_TOP
-static void param_modified(struct starpu_top_param* d)
-{
-#ifdef STARPU_DEVEL
-#warning FIXME: get sched ctx to get alpha/beta/gamma/idle values
-#endif
-	/* Just to show parameter modification. */
-	_STARPU_MSG("%s has been modified : "
-		    "alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
-		    d->name, alpha,beta,_gamma, idle_power);
-}
-#endif /* !STARPU_USE_TOP */
 
 static int _normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id)
 {
@@ -513,12 +485,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	task->predicted = predicted;
 	task->predicted_transfer = predicted_transfer;
-
-#ifdef STARPU_USE_TOP
-	starpu_top_task_prevision(task, best_workerid,
-				  (unsigned long long)(fifo->exp_end-predicted)/1000,
-				  (unsigned long long)fifo->exp_end/1000);
-#endif /* !STARPU_USE_TOP */
 
 	if (starpu_get_prefetch_flag())
 		starpu_prefetch_task_input_for(task, best_workerid);
@@ -1171,19 +1137,6 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 		dt->num_priorities = starpu_sched_ctx_get_max_priority(sched_ctx_id) - starpu_sched_ctx_get_min_priority(sched_ctx_id) + 1;
 	else
 		dt->num_priorities = -1;
-
-
-#ifdef STARPU_USE_TOP
-	/* FIXME: broken, needs to access context variable */
-	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
-					    alpha_minimum, alpha_maximum, param_modified);
-	starpu_top_register_parameter_float("DMDA_BETA", &beta,
-					    beta_minimum, beta_maximum, param_modified);
-	starpu_top_register_parameter_float("DMDA_GAMMA", &_gamma,
-					    gamma_minimum, gamma_maximum, param_modified);
-	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
-					    idle_power_minimum, idle_power_maximum, param_modified);
-#endif /* !STARPU_USE_TOP */
 
 #ifdef NOTIFY_READY_SOON
 	starpu_task_notify_ready_soon_register(dmda_notify_ready_soon, dt);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2015,2017                           CNRS
+ * Copyright (C) 2013-2015,2017,2019                      CNRS
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2013-2017,2019                           Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
@@ -66,7 +66,6 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	unsetenv("STARPU_NCUDA");
 	unsetenv("STARPU_NOPENCL");
 	unsetenv("STARPU_NMIC");
-	unsetenv("STARPU_NSCC");
 	struct starpu_conf conf;
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
@@ -74,7 +73,6 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
-	conf.nscc = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
