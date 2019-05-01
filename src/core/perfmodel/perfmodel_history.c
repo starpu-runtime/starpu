@@ -1410,25 +1410,27 @@ int starpu_perfmodel_list(FILE *output)
 {
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
         char *path;
-        DIR *dp;
+	struct dirent **list;
+	int n;
 
 	path = _starpu_get_perf_model_dir_codelet();
-        dp = opendir(path);
-        if (dp != NULL)
-	{
-		struct dirent *ep;
-                while ((ep = readdir(dp)))
-		{
-                        if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
-                                fprintf(output, "file: <%s>\n", ep->d_name);
-                }
-                closedir (dp);
-        }
-        else
+	n = scandir(path, &list, NULL, alphasort);
+	if (n < 0)
 	{
 		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
-        }
-	return 0;
+		return 1;
+	}
+	else
+	{
+		int i;
+		for (i = 0; i < n; i++) {
+			if (strcmp(list[i]->d_name, ".") && strcmp(list[i]->d_name, ".."))
+				fprintf(output, "file: <%s>\n", list[i]->d_name);
+			free(list[i]);
+		}
+		free(list);
+		return 0;
+	}
 #else
 	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
