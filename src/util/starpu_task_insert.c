@@ -142,7 +142,7 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+		_STARPU_MSG("submission of task %p with codelet %p failed (symbol `%s') (err: ENODEV)\n",
 			    task, task->cl,
 			    (cl == NULL) ? "none" :
 			    task->cl->name ? task->cl->name :
