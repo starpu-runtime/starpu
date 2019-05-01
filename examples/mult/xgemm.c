@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013                                Inria
- * Copyright (C) 2009-2017                                Université de Bordeaux
+ * Copyright (C) 2009-2017, 2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -266,6 +266,12 @@ static void parse_args(int argc, char **argv)
 			xdim = strtol(argv[++i], &argptr, 10);
 		}
 
+		else if (strcmp(argv[i], "-xy") == 0)
+		{
+			char *argptr;
+			xdim = ydim = strtol(argv[++i], &argptr, 10);
+		}
+
 		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
@@ -307,7 +313,7 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
 			exit(EXIT_SUCCESS);
 		}
