@@ -1046,7 +1046,7 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 		int nimpls = model->state->nimpls[comb];
 		for (impl = 0; impl < nimpls; impl++)
 		{
-			fprintf(f, "    <implementation id=\"%u\">\n", impl);
+			fprintf(f, "    <implementation id=\"%d\">\n", impl);
 			char archname[STR_SHORT_LENGTH];
 			starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  sizeof(archname), impl);
 			fprintf(f, "      <!-- %s -->\n", archname);
