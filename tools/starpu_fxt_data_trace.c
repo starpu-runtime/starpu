@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2014,2015,2017                           CNRS
- * Copyright (C) 2011-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2011-2014,2016,2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <starpu.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <common/config.h>
 
 #define PROGNAME "starpu_fxt_data_trace"
@@ -75,7 +76,8 @@ static void write_gp(int argc, char **argv)
 		exit(-1);
 	}
 	char codelet_name[MAX_LINE_SIZE];
-	FILE *plt = fopen("data_trace.gp", "w+");
+	const char *file_name = "data_trace.gp";
+	FILE *plt = fopen(file_name, "w+");
 	if(!plt)
 	{
 		perror("Error while creating data_trace.gp:");
@@ -129,7 +131,6 @@ static void write_gp(int argc, char **argv)
 	}
 	fprintf(plt, "\n");
 
-	fprintf(stdout, "Gnuplot file <data_trace.gp> has been successfully created.\n");
 	if(fclose(codelet_list))
 	{
 		perror("close failed :");
@@ -141,6 +142,23 @@ static void write_gp(int argc, char **argv)
 		perror("close failed :");
 		exit(-1);
 	}
+
+	struct stat sb;
+	int ret = stat(file_name, &sb);
+	if (ret)
+	{
+		perror("stat");
+		STARPU_ABORT();
+	}
+
+	/* Make the gnuplot scrit executable for the owner */
+	ret = chmod(file_name, sb.st_mode|S_IXUSR);
+	if (ret)
+	{
+		perror("chmod");
+		STARPU_ABORT();
+	}
+	fprintf(stdout, "Gnuplot file <data_trace.gp> has been successfully created.\n");
 }
 
 int main(int argc, char **argv)
