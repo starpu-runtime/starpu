@@ -504,8 +504,10 @@ multiplication using BLAS and cuBLAS. They output the obtained GFlops.
 It can also be convenient to try simulated benchmarks, if you want to give a try
 at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the simgrid version of StarPU: first install the simgrid simulator from
-http://simgrid.gforge.inria.fr/ (we tested with simgrid 3.11, 3.12 and 3.13, other versions
-may have compatibility issues), then configure StarPU with \ref enable-simgrid
+http://simgrid.gforge.inria.fr/ (we tested with simgrid from 3.11 to 3.16, and
+3.18 to 3.22, other versions may have compatibility issues, 3.17 notably does
+not build at all. MPI simulation does not work with version 3.22),
+then configure StarPU with \ref enable-simgrid
 "--enable-simgrid" and rebuild and install it, and then you can simulate the performance for a
 few virtualized systems shipped along StarPU: attila, mirage, idgraf, and sirocco.
 

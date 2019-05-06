@@ -166,20 +166,34 @@ be obtained from the machine power supplier.
 The energy actually consumed by the total execution can be displayed by setting
 <c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> .
 
-On-line task consumption measurement is currently only supported through the
+For OpenCL devices, on-line task consumption measurement is currently supported through the
 <c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
-simulator. Applications can however provide explicit measurements by
-using the function starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
-with the <c>energy_model</c> performance model). Fine-grain
-measurement is often not feasible with the feedback provided by the hardware, so
-the user can for instance run a given task a thousand times, measure the global
+simulator.
+
+For CUDA devices, on-line task consumption measurement is supported on V100
+cards and beyond. This however only works for quite long tasks, since the
+measurement granularity is about 10ms.
+
+Applications can however provide explicit measurements by using the function
+starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
+with the <c>energy_model</c> performance model). Fine-grain measurement
+is often not feasible with the feedback provided by the hardware, so the
+user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
-varying kinds of tasks and task sizes, and eventually feed StarPU
-with these manual measurements through starpu_perfmodel_update_history().
-For instance, for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get
-the current consumption in Watt. Multiplying this value by the average duration
-of a single task gives the consumption of the task in Joules, which can be given
-to starpu_perfmodel_update_history().
+varying kinds of tasks and task sizes, and eventually feed StarPU with these
+manual measurements through starpu_perfmodel_update_history().  For instance,
+for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get the current
+consumption in Watt. Multiplying this value by the average duration of a
+single task gives the consumption of the task in Joules, which can be given to
+starpu_perfmodel_update_history().
+
+Another way to provide the energy performance is to define a
+perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH, and set the
+starpu_perfmodel::arch_cost_function field to a function which shall return the
+estimated consumption of the task in Joules. Such a function can for instance
+use starpu_task_expected_length() on the task (in µs), multiplied by the
+typical power consumption of the device, e.g. in W, and divided by 1000000. to
+get Joules.
 
 \section ExistingModularizedSchedulers Modularized Schedulers
 

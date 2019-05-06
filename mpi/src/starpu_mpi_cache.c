@@ -98,7 +98,6 @@ void _starpu_mpi_cache_shutdown()
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&_cache_mutex);
-	free(_cache_data);
 	_starpu_mpi_cache_stats_shutdown();
 }
 

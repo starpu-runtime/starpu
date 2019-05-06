@@ -742,7 +742,7 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED  || model->type == STARPU_REGRESSION_BASED)
 	{
 		/* Dump the list of all entries in the history */
 		ptr = per_arch_model->list;
@@ -760,7 +760,7 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	check_reg_model(model, comb, impl);
 
 	/* Dump the history into the model file in case it is necessary */
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		ptr = per_arch_model->list;
 		while (ptr)
@@ -779,7 +779,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		/* Dump the list of all entries in the history */
 		ptr = per_arch_model->list;
@@ -800,7 +800,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	dump_reg_model(f, model, comb, impl);
 
 	/* Dump the history into the model file in case it is necessary */
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
@@ -1046,7 +1046,7 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 		int nimpls = model->state->nimpls[comb];
 		for (impl = 0; impl < nimpls; impl++)
 		{
-			fprintf(f, "    <implementation id=\"%u\">\n", impl);
+			fprintf(f, "    <implementation id=\"%d\">\n", impl);
 			char archname[STR_SHORT_LENGTH];
 			starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  sizeof(archname), impl);
 			fprintf(f, "      <!-- %s -->\n", archname);
@@ -1410,25 +1410,27 @@ int starpu_perfmodel_list(FILE *output)
 {
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
         char *path;
-        DIR *dp;
+	struct dirent **list;
+	int n;
 
 	path = _starpu_get_perf_model_dir_codelet();
-        dp = opendir(path);
-        if (dp != NULL)
-	{
-		struct dirent *ep;
-                while ((ep = readdir(dp)))
-		{
-                        if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
-                                fprintf(output, "file: <%s>\n", ep->d_name);
-                }
-                closedir (dp);
-        }
-        else
+	n = scandir(path, &list, NULL, alphasort);
+	if (n < 0)
 	{
 		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
-        }
-	return 0;
+		return 1;
+	}
+	else
+	{
+		int i;
+		for (i = 0; i < n; i++) {
+			if (strcmp(list[i]->d_name, ".") && strcmp(list[i]->d_name, ".."))
+				fprintf(output, "file: <%s>\n", list[i]->d_name);
+			free(list[i]);
+		}
+		free(list);
+		return 0;
+	}
 #else
 	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
@@ -1859,7 +1861,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			model->state->per_arch_is_set[comb][impl] = 1;
 		}
 
-		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
+		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 		{
 			struct starpu_perfmodel_history_entry *entry;
 			struct starpu_perfmodel_history_table *elt;
