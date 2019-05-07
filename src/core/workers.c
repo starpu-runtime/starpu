@@ -546,6 +546,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->pipeline_stuck = 0;
 	workerarg->worker_is_running = 0;
 	workerarg->worker_is_initialized = 0;
+	workerarg->wait_for_worker_initialization = 0;
 	workerarg->status = STATUS_INITIALIZING;
 	workerarg->state_keep_awake = 0;
 	/* name initialized by driver */
@@ -669,9 +670,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		unsigned devid = workerarg->devid;
-#if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 		struct _starpu_worker_set *worker_set = workerarg->set;
-#endif
+		worker_set->wait_for_set_initialization = 0;
+		workerarg->wait_for_worker_initialization = 0;
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 
@@ -685,6 +686,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_CPU_WORKER:
 				driver.id.cpu_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cpu_ops;
+				workerarg->wait_for_worker_initialization = 1;
+
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -694,17 +697,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						_starpu_cpu_worker,
 						workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
-#ifdef STARPU_USE_FXT
-					/* In tracing mode, make sure the
-					 * thread is really started before
-					 * starting another one, to make sure
-					 * they appear in order in the trace.
-					 */
-					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-					while (!workerarg->worker_is_running)
-						STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
 				}
 				else
 				{
@@ -712,6 +704,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 				break;
 #endif
+
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
@@ -723,55 +716,51 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 
 				worker_set->set_is_initialized = 0;
+				worker_set->wait_for_set_initialization = 1;
+				workerarg->wait_for_worker_initialization = 0;
 
-				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					STARPU_PTHREAD_CREATE_ON(
+						"CUDA",
+						&worker_set->worker_thread,
+						NULL,
+						_starpu_cuda_worker,
+						worker_set,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+				}
+				else
 				{
 					workerarg->run_by_starpu = 0;
-					break;
 				}
-
-
-				STARPU_PTHREAD_CREATE_ON(
-					"CUDA",
-					&worker_set->worker_thread,
-					NULL,
-					_starpu_cuda_worker,
-					worker_set,
-					_starpu_simgrid_get_host_by_worker(workerarg));
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
 				break;
 #endif
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(devid, &driver.id.opencl_id);
 				workerarg->driver_ops = &_starpu_driver_opencl_ops;
-				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+				workerarg->wait_for_worker_initialization = 1;
+
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					STARPU_PTHREAD_CREATE_ON(
+						"OpenCL",
+						&workerarg->worker_thread,
+						NULL,
+						_starpu_opencl_worker,
+						workerarg,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+				}
+				else
 				{
 					workerarg->run_by_starpu = 0;
-					break;
 				}
-#endif
-				STARPU_PTHREAD_CREATE_ON(
-					"OpenCL",
-					&workerarg->worker_thread,
-					NULL,
-					_starpu_opencl_worker,
-					workerarg,
-					_starpu_simgrid_get_host_by_worker(workerarg));
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 				break;
 #endif
+
 #ifdef STARPU_USE_MIC
 			case STARPU_MIC_WORKER:
 				/* We spawn only one thread
@@ -781,6 +770,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 
 				worker_set->set_is_initialized = 0;
+				worker_set->wait_for_set_initialization = 1;
+				workerarg->wait_for_worker_initialization = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
 						"MIC",
@@ -790,23 +781,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						worker_set,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
-
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								  &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-
-				worker_set->started = 1;
-
 				break;
 #endif /* STARPU_USE_MIC */
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 				/* We spawn only one thread
@@ -816,13 +793,15 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 
 				worker_set->set_is_initialized = 0;
+				worker_set->wait_for_set_initialization = 1;
+				workerarg->wait_for_worker_initialization = 0;
 
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-                /* if MPI has multiple threads supports
-                 * we launch 1 thread per device
-                 * else
-                 * we launch one thread for all devices
-                 */
+				/* if MPI has multiple threads supports
+				 * we launch 1 thread per device
+				 * else
+				 * we launch one thread for all devices
+				 */
 				STARPU_PTHREAD_CREATE_ON(
 						"MPI MS",
 						&worker_set->worker_thread,
@@ -831,28 +810,27 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						worker_set,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
-
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-				while (!worker_set->set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
-								  &worker_set->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-
-				worker_set->started = 1;
 #endif /* STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD */
-
 				break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 			default:
 				STARPU_ABORT();
 		}
+
+#ifdef STARPU_USE_FXT
+		/* In tracing mode, make sure the thread is really started
+		 * before starting another one, to make sure they appear in
+		 * order in the trace.
+		 */
+		if (workerarg->run_by_starpu == 1)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+			while (!workerarg->worker_is_running)
+				STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+		}
+#endif
 	}
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
@@ -894,25 +872,26 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 		if (!workerarg->run_by_starpu)
 			break;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-		if (workerarg->arch == STARPU_CUDA_WORKER)
+
+		struct _starpu_worker_set *worker_set = workerarg->set;
+
+		if (worker_set->wait_for_set_initialization == 1)
 		{
-			struct _starpu_worker_set *worker_set = workerarg->set;
 			STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
 			while (!worker_set->set_is_initialized)
 				STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
 							 &worker_set->mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 			worker_set->started = 1;
+			worker_set->wait_for_set_initialization = 0;
 		}
-		else
-#endif
-		if (workerarg->arch != STARPU_CUDA_WORKER && workerarg->arch != STARPU_MPI_MS_WORKER && workerarg->arch != STARPU_MIC_WORKER)
+		else if (workerarg->wait_for_worker_initialization == 1)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 			while (!workerarg->worker_is_initialized)
 				STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+			workerarg->wait_for_worker_initialization = 0;
 		}
 	}
 
