@@ -27,7 +27,7 @@ void my_func(void *buffers[], void *cl_arg)
 	for(i=0 ; i<nb ; i++)
 	{
 		v[i] = i+42;
-		FPRINTF(stderr, "setting v[%d] to %d\n",i, v[i]);
+		FPRINTF(stderr, "setting v[%u] to %d\n",i, v[i]);
 	}
 }
 
@@ -44,7 +44,7 @@ void display_func(void *buffers[], void *cl_arg)
         int *v = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	unsigned i;
-	for(i=0 ; i<nb ; i++) FPRINTF(stderr, "v[%d] = %d\n", i, v[i]);
+	for(i=0 ; i<nb ; i++) FPRINTF(stderr, "v[%u] = %d\n", i, v[i]);
 }
 
 struct starpu_codelet display_codelet =

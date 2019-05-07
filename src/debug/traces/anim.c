@@ -409,10 +409,13 @@ void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options
 	}
 	else
 		nflowing++;
-	if (prio)
-		to_p->npriotasks++;
-	else
-		to_p->ntasks++;
+	if (to_p)
+	{
+		if (prio)
+			to_p->npriotasks++;
+		else
+			to_p->ntasks++;
+	}
 
 	// fprintf(stderr,"push from %s to %s\n", from_p?from_p->name:"none", to_p?to_p->name:"none");
 	fxt_component_print_step(output, options, timestamp, workerid, 1, from_p, to_p);
@@ -435,10 +438,13 @@ void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options
 		COMPONENT_FIND(components, to, to_p);
 		STARPU_ASSERT(to_p);
 	}
-	if (prio)
-		from_p->npriotasks--;
-	else
-		from_p->ntasks--;
+	if (from_p)
+	{
+		if (prio)
+			from_p->npriotasks--;
+		else
+			from_p->ntasks--;
+	}
 	if (to_p)
 	{
 		if (prio)
