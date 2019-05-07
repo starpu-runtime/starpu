@@ -823,7 +823,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-		if (workerarg->run_by_starpu == 1)
+		if (workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 			while (!workerarg->worker_is_running)
