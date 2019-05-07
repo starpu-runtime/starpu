@@ -486,12 +486,10 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
 				return 0;
 			break;
-#ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_WORKER:
 			if (d->id.opencl_id == conf->not_launched_drivers[i].id.opencl_id)
 				return 0;
 			break;
-#endif
 		default:
 			STARPU_ABORT();
 		}
@@ -566,7 +564,6 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 		workerarg->removed_from_ctx[ctx] = 0;
 
 	workerarg->spinning_backoff = 1;
-
 
 	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
 	{
