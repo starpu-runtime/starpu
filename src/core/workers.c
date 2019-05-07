@@ -670,8 +670,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		unsigned devid = workerarg->devid;
-		struct _starpu_worker_set *worker_set = workerarg->set;
-		worker_set->wait_for_set_initialization = 0;
 		workerarg->wait_for_worker_initialization = 0;
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
@@ -709,6 +707,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cuda_ops;
+				struct _starpu_worker_set *worker_set = workerarg->set;
 
 				if (worker_set->workers != workerarg)
 					/* We are not the first worker of the
@@ -766,6 +765,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				/* We spawn only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
+				struct _starpu_worker_set *worker_set = workerarg->set;
 				if (worker_set->workers != workerarg)
 					break;
 
@@ -789,6 +789,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				/* We spawn only one thread
 				 * per MPI device, which will control all MPI
 				 * workers of this device. (by using a worker set). */
+				struct _starpu_worker_set *worker_set = workerarg->set;
 				if (worker_set->workers != workerarg)
 					break;
 
@@ -875,7 +876,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		struct _starpu_worker_set *worker_set = workerarg->set;
 
-		if (worker_set->wait_for_set_initialization == 1)
+		if (worker_set && worker_set->wait_for_set_initialization == 1)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
 			while (!worker_set->set_is_initialized)
