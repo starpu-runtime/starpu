@@ -148,12 +148,15 @@ LIST_TYPE(_starpu_worker,
 	struct _starpu_worker_set *set; /**< in case this worker belongs to a set */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
+	unsigned wait_for_worker_initialization;
 	enum _starpu_worker_status status; /**< what is the worker doing now ? (eg. CALLBACK) */
 	unsigned state_keep_awake; /**< !0 if a task has been pushed to the worker and the task has not yet been seen by the worker, the worker should no go to sleep before processing this task*/
 	char name[128];
 	char short_name[32];
 	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;
+	struct starpu_driver driver;
+	unsigned may_launch_driver;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
@@ -239,6 +242,7 @@ struct _starpu_worker_set
 	struct _starpu_worker *workers;
         starpu_pthread_cond_t ready_cond; /**< indicate when the set is ready */
 	unsigned set_is_initialized;
+	unsigned wait_for_set_initialization;
 };
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
