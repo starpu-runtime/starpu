@@ -673,17 +673,18 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		_starpu_init_worker_queue(workerarg);
 
-		struct starpu_driver driver;
-		driver.type = workerarg->arch;
+		struct starpu_driver *driver = &(workerarg->driver);
+		driver->type = workerarg->arch;
 		switch (workerarg->arch)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = devid;
+				driver->id.cpu_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cpu_ops;
 				workerarg->wait_for_worker_initialization = 1;
+				workerarg->may_launch_driver = _starpu_may_launch_driver(&pconfig->conf, driver);
 
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				if (workerarg->may_launch_driver)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						"CPU",
@@ -702,7 +703,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-				driver.id.cuda_id = devid;
+				driver->id.cuda_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cuda_ops;
 				struct _starpu_worker_set *worker_set = workerarg->set;
 
@@ -714,8 +715,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				worker_set->set_is_initialized = 0;
 				worker_set->wait_for_set_initialization = 1;
 				workerarg->wait_for_worker_initialization = 0;
+				workerarg->may_launch_driver = _starpu_may_launch_driver(&pconfig->conf, driver);
 
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				if (workerarg->may_launch_driver)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						"CUDA",
@@ -735,11 +737,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 #ifndef STARPU_SIMGRID
-				starpu_opencl_get_device(devid, &driver.id.opencl_id);
+				starpu_opencl_get_device(devid, &driver->id.opencl_id);
 				workerarg->driver_ops = &_starpu_driver_opencl_ops;
 				workerarg->wait_for_worker_initialization = 1;
+				workerarg->may_launch_driver = _starpu_may_launch_driver(&pconfig->conf, driver);
 
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				if (workerarg->may_launch_driver)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						"OpenCL",
@@ -1547,43 +1550,24 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 	if (worker->state_changing_ctx_notice)
 		return 0;
 
-	unsigned can_block = 1;
-
-	struct starpu_driver driver;
-	driver.type = worker->arch;
-	switch (driver.type)
+	if (worker->driver.type == STARPU_CPU_WORKER || worker->driver.type == STARPU_CUDA_WORKER || worker->driver.type == STARPU_OPENCL_WORKER)
 	{
-	case STARPU_CPU_WORKER:
-		driver.id.cpu_id = worker->devid;
-		break;
-	case STARPU_CUDA_WORKER:
-		driver.id.cuda_id = worker->devid;
-		break;
-#ifdef STARPU_USE_OPENCL
-	case STARPU_OPENCL_WORKER:
-		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
-		break;
-#endif
-	default:
-		goto always_launch;
+		if (worker->may_launch_driver == 0)
+			return 0;
 	}
-	if (!_starpu_may_launch_driver(&_starpu_config.conf, &driver))
-		return 0;
-
-always_launch:
-
+	else
+	{
 #ifndef STARPU_SIMGRID
-	if (!_starpu_check_that_no_data_request_exists(memnode))
-		can_block = 0;
+		if (!_starpu_check_that_no_data_request_exists(memnode))
+			return 0;
 #endif
+		if (!_starpu_machine_is_running())
+			return 0;
 
-	if (!_starpu_machine_is_running())
-		can_block = 0;
-
-	if (!_starpu_execute_registered_progression_hooks())
-		can_block = 0;
-
-	return can_block;
+		if (!_starpu_execute_registered_progression_hooks())
+			return 0;
+	}
+	return 1;
 #endif
 }
 

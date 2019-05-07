@@ -154,6 +154,8 @@ LIST_TYPE(_starpu_worker,
 	char short_name[32];
 	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
 	struct _starpu_driver_ops *driver_ops;
+	struct starpu_driver driver;
+	unsigned may_launch_driver;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
