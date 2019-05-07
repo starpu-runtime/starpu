@@ -103,6 +103,8 @@ chapters =	\
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
+	chapters/api/perf_monitoring.doxy \
+	chapters/api/perf_steering.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
@@ -212,6 +214,8 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\
+	$(top_srcdir)/include/starpu_perf_monitoring.h	\
+	$(top_srcdir)/include/starpu_perf_steering.h	\
 	$(top_srcdir)/include/starpu_perfmodel.h	\
 	$(top_srcdir)/include/starpu_profiling.h	\
 	$(top_srcdir)/include/starpu_rand.h		\
