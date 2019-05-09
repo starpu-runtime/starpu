@@ -103,8 +103,6 @@ chapters =	\
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
-	chapters/api/perf_monitoring.doxy \
-	chapters/api/perf_steering.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
