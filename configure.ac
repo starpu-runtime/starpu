@@ -789,6 +789,7 @@ AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_HAVE_LIBRARY([ws2_32])
 AC_CHECK_FUNCS([sysconf])
 AC_CHECK_FUNCS([getrlimit])
+AC_CHECK_FUNCS([scandir])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
