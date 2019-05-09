@@ -679,6 +679,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
+			{
 				driver.id.cpu_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cpu_ops;
 				workerarg->wait_for_worker_initialization = 1;
@@ -698,10 +699,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->run_by_starpu = 0;
 				}
 				break;
+			}
 #endif
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
+			{
 				driver.id.cuda_id = devid;
 				workerarg->driver_ops = &_starpu_driver_cuda_ops;
 				struct _starpu_worker_set *worker_set = workerarg->set;
@@ -730,10 +733,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->run_by_starpu = 0;
 				}
 				break;
+			}
 #endif
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
+			{
 #ifndef STARPU_SIMGRID
 				starpu_opencl_get_device(devid, &driver.id.opencl_id);
 				workerarg->driver_ops = &_starpu_driver_opencl_ops;
@@ -755,10 +760,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				break;
+			}
 #endif
 
 #ifdef STARPU_USE_MIC
 			case STARPU_MIC_WORKER:
+			{
 				/* We spawn only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
@@ -779,10 +786,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						_starpu_simgrid_get_host_by_worker(workerarg));
 
 				break;
+			}
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
+			{
 				/* We spawn only one thread
 				 * per MPI device, which will control all MPI
 				 * workers of this device. (by using a worker set). */
@@ -810,6 +819,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 #endif /* STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD */
 				break;
+			}
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 			default:
