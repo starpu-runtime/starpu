@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2011-2016, 2019                                Université de Bordeaux
- * Copyright (C) 2011-2017                                CNRS
+ * Copyright (C) 2011,2012,2014                           Inria
+ * Copyright (C) 2011-2016,2019                           Université de Bordeaux
+ * Copyright (C) 2011-2017, 2019                          CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,7 +68,7 @@ void memset_cpu(void *descr[], void *arg)
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	usleep(10);
+	starpu_usleep(10);
 	memset(ptr, 42, n * sizeof(*ptr));
 }
 

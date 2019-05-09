@@ -67,6 +67,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags);
 void starpu_memory_deallocate(unsigned node, size_t size);
 
 void starpu_sleep(float nb_sec);
+void starpu_usleep(float nb_micro_sec);
 
 #ifdef __cplusplus
 }
