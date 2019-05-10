@@ -2,7 +2,7 @@
 !
 ! Copyright (C) 2017                                     CNRS
 ! Copyright (C) 2015,2016                                Inria
-! Copyright (C) 2016                                     Université de Bordeaux
+! Copyright (C) 2016,2019                                Université de Bordeaux
 ! Copyright (C) 2015                                     ONERA
 !
 ! StarPU is free software; you can redistribute it and/or modify
@@ -36,6 +36,7 @@ PROGRAM f90_example
   INTEGER(KIND=C_INT)            :: starpu_maj,starpu_min,starpu_rev
   INTEGER(KIND=C_INT)            :: neq,ng,nb,it,it_tot
   REAL(KIND=C_DOUBLE)            :: r, coeff2
+  REAL(KIND=C_DOUBLE),TARGET     :: flops
 
   TYPE(C_PTR) :: cl_loop_element = C_NULL_PTR ! loop codelet
   TYPE(C_PTR) :: cl_copy_element = C_NULL_PTR ! copy codelet
@@ -95,11 +96,13 @@ PROGRAM f90_example
      ! compute new dro for each element
      DO i = 1,Nelt
         elt => mesh%elt(i)
+        flops = elt%Ng * ( (elt%Np * numpar%Neq_max * 2) + 1 + elt%Np * numpar%Neq_max)
         CALL fstarpu_insert_task((/ cl_loop_element,    &
                 FSTARPU_VALUE, c_loc(numpar%coeff), FSTARPU_SZ_C_DOUBLE, &
                 FSTARPU_R, elt%ro_h,                 &
                 FSTARPU_RW, elt%dro_h,                &
                 FSTARPU_R, elt%basis_h,              &
+                FSTARPU_FLOPS, c_loc(flops),         &
                 C_NULL_PTR /))
      ENDDO
      ! sync (if needed by the algorithm)
