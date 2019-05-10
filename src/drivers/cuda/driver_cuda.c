@@ -85,6 +85,16 @@ static int cuda_device_users[STARPU_MAXCUDADEVS];
 static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
+void _starpu_cuda_init(void)
+{
+	unsigned i;
+	for (i = 0; i < STARPU_MAXCUDADEVS; i++)
+	{
+		STARPU_PTHREAD_MUTEX_INIT(&cuda_device_init_mutex[i], NULL);
+		STARPU_PTHREAD_COND_INIT(&cuda_device_init_cond[i], NULL);
+	}
+}
+
 static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 {
 	return global_mem[devid];
@@ -465,14 +475,8 @@ unsigned _starpu_get_cuda_device_count(void)
 }
 
 /* This is run from initialize to determine the number of CUDA devices */
-void _starpu_cuda_init(void)
+void _starpu_init_cuda(void)
 {
-	unsigned i;
-	for (i = 0; i < STARPU_MAXCUDADEVS; i++)
-	{
-		STARPU_PTHREAD_MUTEX_INIT(&cuda_device_init_mutex[i], NULL);
-		STARPU_PTHREAD_COND_INIT(&cuda_device_init_cond[i], NULL);
-	}
 	if (ncudagpus < 0)
 	{
 		ncudagpus = _starpu_get_cuda_device_count();

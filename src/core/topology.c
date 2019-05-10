@@ -491,7 +491,9 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = &config->conf;
 
-        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0 ? NULL : (int *)uconf->workers_cuda_gpuid,
+        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
+					    ? NULL
+					    : (int *)uconf->workers_cuda_gpuid,
 					    &(config->current_cuda_gpuid),
 					    (int *)topology->workers_cuda_gpuid,
 					    "STARPU_WORKERS_CUDAID",
@@ -1080,7 +1082,7 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -1095,7 +1097,7 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -1110,7 +1112,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
         _starpu_init_topology(config);
 
@@ -1463,7 +1465,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -1501,7 +1503,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	{
 		/* The user did not disable CUDA. We need to initialize CUDA
  		 * early to count the number of devices */
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
 		STARPU_ASSERT_MSG(ncuda >= -1, "ncuda can not be negative and different from -1 (is is %d)", ncuda);
@@ -1895,7 +1897,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 #endif
 #ifdef STARPU_USE_CUDA
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
@@ -2012,7 +2014,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 #endif
 #ifdef STARPU_USE_CUDA
 	if (config->conf.ncuda != 0)
-		_starpu_cuda_init();
+		_starpu_init_cuda();
 #endif
 	_starpu_init_topology(config);
 
