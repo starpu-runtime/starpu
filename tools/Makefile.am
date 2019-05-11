@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2017  Université de Bordeaux
+# Copyright (C) 2009-2017, 2019  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2017 CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -37,6 +37,18 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.latency	\
 	perfmodels/sampling/bus/attila.platform.xml	\
 	perfmodels/sampling/bus/attila.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal.affinity	\
+	perfmodels/sampling/bus/hannibal.bandwidth	\
+	perfmodels/sampling/bus/hannibal.config	\
+	perfmodels/sampling/bus/hannibal.latency	\
+	perfmodels/sampling/bus/hannibal.platform.xml	\
+	perfmodels/sampling/bus/hannibal.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.affinity	\
+	perfmodels/sampling/bus/hannibal-pitch.bandwidth	\
+	perfmodels/sampling/bus/hannibal-pitch.config	\
+	perfmodels/sampling/bus/hannibal-pitch.latency	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.v4.xml	\
 	perfmodels/sampling/bus/mirage.affinity	\
 	perfmodels/sampling/bus/mirage.bandwidth	\
 	perfmodels/sampling/bus/mirage.config	\
@@ -61,6 +73,20 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_12.attila	\
 	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/42/chol_model_11.hannibal	\
+	perfmodels/sampling/codelets/42/chol_model_21.hannibal	\
+	perfmodels/sampling/codelets/42/chol_model_22.hannibal	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_11.hannibal	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_12.hannibal	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_21.hannibal	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_22.hannibal	\
+	perfmodels/sampling/codelets/42/chol_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/chol_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/chol_model_22.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_12.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_22.hannibal-pitch	\
 	perfmodels/sampling/codelets/42/chol_model_11.mirage	\
 	perfmodels/sampling/codelets/42/chol_model_21.mirage	\
 	perfmodels/sampling/codelets/42/chol_model_22.mirage	\
