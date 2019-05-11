@@ -176,7 +176,11 @@ void copy_matrix_into_blocks(void)
 static void init_matrix(void)
 {
 	/* allocate matrix */
+#ifdef STARPU_SIMGRID
+	A = (void*) 1;
+#else
 	starpu_malloc_flags((void **)&A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+#endif
 	STARPU_ASSERT(A);
 
 	starpu_srand48((long int)time(NULL));
