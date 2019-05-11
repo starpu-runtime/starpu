@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+ <!DOCTYPE platform SYSTEM "http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd">
+ <platform version="4">
+ <config id="General">
+   <prop id="network/TCP-gamma" value="-1"></prop>
+   <prop id="network/latency-factor" value="1"></prop>
+   <prop id="network/bandwidth-factor" value="1"></prop>
+ </config>
+ <AS  id="AS0"  routing="Full">
+   <host id="MAIN" speed="1f"/>
+   <host id="CPU0" speed="2000000000f"/>
+   <host id="CPU1" speed="2000000000f"/>
+   <host id="CPU2" speed="2000000000f"/>
+   <host id="CPU3" speed="2000000000f"/>
+   <host id="CPU4" speed="2000000000f"/>
+   <host id="CPU5" speed="2000000000f"/>
+   <host id="CPU6" speed="2000000000f"/>
+   <host id="CPU7" speed="2000000000f"/>
+   <host id="CUDA0" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+     <prop id="memcpy_peer" value="0"/>
+   </host>
+   <host id="CUDA1" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+     <prop id="memcpy_peer" value="0"/>
+   </host>
+   <host id="CUDA2" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+     <prop id="memcpy_peer" value="0"/>
+   </host>
+   <host id="OpenCL0" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+   </host>
+   <host id="OpenCL1" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+   </host>
+   <host id="OpenCL2" speed="2000000000f">
+     <prop id="memsize" value="3145728000"/>
+   </host>
+
+   <host id="RAM" speed="1f"/>
+
+   <link id="Share" bandwidth="5988779905.433726Bps" latency="0.000000s"/>
+
+   <link id="RAM-CUDA0" bandwidth="1653658596.433726Bps" latency="0.000012s"/>
+   <link id="CUDA0-RAM" bandwidth="993981963.299022Bps" latency="0.000012s"/>
+   <link id="RAM-CUDA1" bandwidth="869707794.319062Bps" latency="0.000013s"/>
+   <link id="CUDA1-RAM" bandwidth="925610046.160954Bps" latency="0.000013s"/>
+   <link id="RAM-CUDA2" bandwidth="1653711631.023217Bps" latency="0.000012s"/>
+   <link id="CUDA2-RAM" bandwidth="981498659.805904Bps" latency="0.000013s"/>
+   <link id="RAM-OpenCL0" bandwidth="3975378655.154796Bps" latency="0.000020s"/>
+   <link id="OpenCL0-RAM" bandwidth="2937163571.508681Bps" latency="0.000064s"/>
+   <link id="RAM-OpenCL1" bandwidth="2636838726.154693Bps" latency="0.000020s"/>
+   <link id="OpenCL1-RAM" bandwidth="2610203570.688437Bps" latency="0.000036s"/>
+   <link id="RAM-OpenCL2" bandwidth="3992447566.540525Bps" latency="0.000020s"/>
+   <link id="OpenCL2-RAM" bandwidth="2812550617.128727Bps" latency="0.000037s"/>
+   <route src="RAM" dst="CUDA0" symmetrical="NO"><link_ctn id="RAM-CUDA0"/><link_ctn id="Share"/></route>
+   <route src="CUDA0" dst="RAM" symmetrical="NO"><link_ctn id="CUDA0-RAM"/><link_ctn id="Share"/></route>
+   <route src="RAM" dst="CUDA1" symmetrical="NO"><link_ctn id="RAM-CUDA1"/><link_ctn id="Share"/></route>
+   <route src="CUDA1" dst="RAM" symmetrical="NO"><link_ctn id="CUDA1-RAM"/><link_ctn id="Share"/></route>
+   <route src="RAM" dst="CUDA2" symmetrical="NO"><link_ctn id="RAM-CUDA2"/><link_ctn id="Share"/></route>
+   <route src="CUDA2" dst="RAM" symmetrical="NO"><link_ctn id="CUDA2-RAM"/><link_ctn id="Share"/></route>
+   <route src="RAM" dst="OpenCL0" symmetrical="NO"><link_ctn id="RAM-OpenCL0"/><link_ctn id="Share"/></route>
+   <route src="OpenCL0" dst="RAM" symmetrical="NO"><link_ctn id="OpenCL0-RAM"/><link_ctn id="Share"/></route>
+   <route src="RAM" dst="OpenCL1" symmetrical="NO"><link_ctn id="RAM-OpenCL1"/><link_ctn id="Share"/></route>
+   <route src="OpenCL1" dst="RAM" symmetrical="NO"><link_ctn id="OpenCL1-RAM"/><link_ctn id="Share"/></route>
+   <route src="RAM" dst="OpenCL2" symmetrical="NO"><link_ctn id="RAM-OpenCL2"/><link_ctn id="Share"/></route>
+   <route src="OpenCL2" dst="RAM" symmetrical="NO"><link_ctn id="OpenCL2-RAM"/><link_ctn id="Share"/></route>
+ </AS>
+ </platform>
