@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2015  Université de Bordeaux
+ * Copyright (C) 2009-2015, 2019  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -175,12 +175,17 @@ void copy_matrix_into_blocks(void)
 static void init_matrix(void)
 {
 	/* allocate matrix */
+#ifdef STARPU_SIMGRID
+	A = (void*) 1;
+#else
 	starpu_malloc((void **)&A, (size_t)size*size*sizeof(TYPE));
 	STARPU_ASSERT(A);
+#endif
 
 	starpu_srand48((long int)time(NULL));
 	/* starpu_srand48(0); */
 
+#ifndef STARPU_SIMGRID
 	/* initialize matrix content */
 	unsigned long i,j;
 	for (j = 0; j < size; j++)
@@ -196,6 +201,7 @@ static void init_matrix(void)
 				A[i + j*size] *= 100;
 		}
 	}
+#endif
 
 }
 
