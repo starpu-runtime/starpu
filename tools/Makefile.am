@@ -49,6 +49,18 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.latency	\
 	perfmodels/sampling/bus/attila.platform.xml	\
 	perfmodels/sampling/bus/attila.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal.affinity	\
+	perfmodels/sampling/bus/hannibal.bandwidth	\
+	perfmodels/sampling/bus/hannibal.config	\
+	perfmodels/sampling/bus/hannibal.latency	\
+	perfmodels/sampling/bus/hannibal.platform.xml	\
+	perfmodels/sampling/bus/hannibal.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.affinity	\
+	perfmodels/sampling/bus/hannibal-pitch.bandwidth	\
+	perfmodels/sampling/bus/hannibal-pitch.config	\
+	perfmodels/sampling/bus/hannibal-pitch.latency	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.v4.xml	\
 	perfmodels/sampling/bus/idgraf.affinity	\
 	perfmodels/sampling/bus/idgraf.bandwidth	\
 	perfmodels/sampling/bus/idgraf.config	\
@@ -86,6 +98,20 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.attila	\
 	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.attila	\
+	perfmodels/sampling/codelets/44/chol_model_11.hannibal	\
+	perfmodels/sampling/codelets/44/chol_model_21.hannibal	\
+	perfmodels/sampling/codelets/44/chol_model_22.hannibal	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.hannibal	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.hannibal	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.hannibal	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.hannibal	\
+	perfmodels/sampling/codelets/44/chol_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/chol_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/chol_model_22.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22.hannibal-pitch	\
 	perfmodels/sampling/codelets/44/chol_model_11.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_21.idgraf	\
 	perfmodels/sampling/codelets/44/chol_model_22.idgraf	\
