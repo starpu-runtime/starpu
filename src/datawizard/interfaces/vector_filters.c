@@ -3,7 +3,7 @@
  * Copyright (C) 2008-2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010,2011,2013,2015-2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015-2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,12 +29,11 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, S
 	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
 
 	uint32_t child_nx;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
-						     &child_nx, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_father->id;
@@ -64,12 +63,11 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 	uint32_t nx = vector_father->nx - 2 * shadow_size;
 	size_t elemsize = vector_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
 
 	uint32_t child_nx;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
-						     &child_nx, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 	child_nx += 2*shadow_size;
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
@@ -155,7 +153,7 @@ void starpu_vector_filter_list_long(void *father_interface, void *child_interfac
 	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
-	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcomed");
 	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
@@ -188,7 +186,7 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
-	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
+	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcomed");
 	vector_child->allocsize = vector_child->nx * elemsize;
 
 	if (vector_father->dev_handle)
