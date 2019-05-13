@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
- * Copyright (C) 2011-2014,2016, 2019                           Université de Bordeaux
+ * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
+ * Copyright (C) 2011-2014,2016, 2019                     Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 #include <datawizard/filters.h>
 
 void starpu_block_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+			       unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -31,12 +31,11 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nx, "%u parts for %u elements", nparts, nx);
+	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts, nx);
 
 	uint32_t chunk_size;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
-				       &chunk_size, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1, &chunk_size, &offset);
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
@@ -57,7 +56,7 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
 }
 
 void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+				      unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -70,13 +69,11 @@ void starpu_block_filter_block_shadow(void *father_interface, void *child_interf
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nx, "%u parts for %u elements", nparts, nx);
+	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts);
 
 	uint32_t child_nx;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
-						     &child_nx, &offset);
-	
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1, &child_nx, &offset);
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
@@ -97,7 +94,7 @@ void starpu_block_filter_block_shadow(void *father_interface, void *child_interf
 }
 
 void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+					unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -107,12 +104,11 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= ny, "%u parts for %u elements", nparts, ny);
+	STARPU_ASSERT_MSG(nparts <= ny, "cannot split %u elements in %u parts", ny, nparts);
 
 	uint32_t child_ny;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy,
-				       &child_ny, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy, &child_ny, &offset);
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
@@ -133,7 +129,7 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
 }
 
 void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+					       unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -146,14 +142,12 @@ void starpu_block_filter_vertical_block_shadow(void *father_interface, void *chi
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= ny, "%u parts for %u elements", nparts, ny);
+	STARPU_ASSERT_MSG(nparts <= ny, "cannot split %u elements in %u parts", ny, nparts);
 
 	uint32_t child_ny;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id,
-						     block_father->ldy,
-						     &child_ny, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy, &child_ny, &offset);
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
@@ -174,7 +168,7 @@ void starpu_block_filter_vertical_block_shadow(void *father_interface, void *chi
 }
 
 void starpu_block_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+				     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -184,7 +178,7 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nz, "%u parts for %u elements", nparts, nz);
+	STARPU_ASSERT_MSG(nparts <= nz, "cannot split %u elements in %u parts", nz, nparts);
 
 	uint32_t child_nz;
 	size_t offset;
@@ -211,7 +205,7 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 }
 
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                                    unsigned id, unsigned nparts)
+					    unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -224,14 +218,12 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
         uint32_t nz = block_father->nz - 2 * shadow_size;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nz, "%u parts for %u elements", nparts, nz);
+	STARPU_ASSERT_MSG(nparts <= nz, "cannot split %u elements into %u parts", nz, nparts);
 
 	uint32_t child_nz;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
-						     block_father->ldz,
-						     &child_nz, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id, block_father->ldz, &child_nz, &offset);
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;

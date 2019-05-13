@@ -3,7 +3,7 @@
  * Copyright (C) 2008-2014,2016,2019                      Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,13 +33,12 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, S
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
 
 	uint32_t child_nx;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
-						     &child_nx, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 
 	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
 
@@ -77,13 +76,12 @@ void starpu_matrix_filter_block_shadow(void *father_interface, void *child_inter
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
 
 	uint32_t child_nx;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
-						     &child_nx, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 
 	child_nx += 2 * shadow_size;
 
@@ -117,14 +115,12 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= ny, "%u parts for %u elements", nchunks, ny);
+	STARPU_ASSERT_MSG(nchunks <= ny, "cannot split %u elements in %u parts", ny, nchunks);
 
 	uint32_t child_ny;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
-						     matrix_father->ld,
-						     &child_ny, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id, matrix_father->ld, &child_ny, &offset);
 
 	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
 	matrix_child->id = matrix_father->id;
@@ -157,14 +153,12 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 	uint32_t ny = matrix_father->ny - 2 * shadow_size;
 	size_t elemsize = matrix_father->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= ny, "%u parts for %u elements", nchunks, ny);
+	STARPU_ASSERT_MSG(nchunks <= ny, "cannot split %u elements in %u parts", ny, nchunks);
 
 	uint32_t child_ny;
 	size_t offset;
 
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id,
-						     matrix_father->ld,
-						     &child_ny, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nchunks, elemsize, id, matrix_father->ld, &child_ny, &offset);
 	child_ny += 2 * shadow_size;
 
 	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
@@ -172,7 +166,7 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
 	matrix_child->elemsize = elemsize;
-	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
+	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcomed");
 	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
