@@ -14,6 +14,14 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.1.8 (git tag 1.1.8)
+==============================================
+The scheduling context release
+
+Small changes:
+  * Fix compatibility with simgrid 3.14
+  * Fix lock ordering for memory reclaiming
+
 StarPU 1.1.7 (svn revision 20398)
 ==============================================
 The scheduling context release
