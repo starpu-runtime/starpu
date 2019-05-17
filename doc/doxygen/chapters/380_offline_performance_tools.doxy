@@ -60,18 +60,7 @@ StarPU can use the FxT library (see
 https://savannah.nongnu.org/projects/fkt/) to generate traces
 with a limited runtime overhead.
 
-You can either get a tarball:
-
-\verbatim
-$ wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.11.tar.gz
-\endverbatim
-
-or use the FxT library from CVS (autotools are required):
-
-\verbatim
-$ cvs -d :pserver:anonymous\@cvs.sv.gnu.org:/sources/fkt co FxT
-$ ./bootstrap
-\endverbatim
+You can get a tarball from http://download.savannah.gnu.org/releases/fkt/
 
 Compiling and installing the FxT library in the <c>$FXTDIR</c> path is
 done following the standard procedure:
