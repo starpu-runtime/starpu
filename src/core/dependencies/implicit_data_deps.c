@@ -324,6 +324,24 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					l->prev = NULL;
 					handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
 					handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
+
+					{
+						/* Declare all dependencies with ghost accessors */
+						struct _starpu_jobid_list *ghost_accessors_id = handle->last_submitted_ghost_accessors_id;
+						while (ghost_accessors_id)
+						{
+							unsigned long id = ghost_accessors_id->id;
+							_STARPU_TRACE_GHOST_TASK_DEPS(id,
+																						_starpu_get_job_associated_to_task(pre_sync_task));
+							_starpu_add_ghost_dependency(handle, id, pre_sync_task);
+							_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
+
+							struct _starpu_jobid_list *prev = ghost_accessors_id;
+							ghost_accessors_id = ghost_accessors_id->next;
+							free(prev);
+						}
+						handle->last_submitted_ghost_accessors_id = NULL;
+					}
 				}
 				else if (handle->last_submitted_ghost_accessors_id)
 				{
