@@ -31,7 +31,7 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
         uint32_t nz = block_father->nz;
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts, nx);
+	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts);
 
 	uint32_t chunk_size;
 	size_t offset;
