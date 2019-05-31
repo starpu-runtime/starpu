@@ -1,0 +1,48 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2019                                     Université de Bordeaux
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page FaultTolerance Fault Tolerance
+
+\section Introduction Introduction
+
+Due to e.g. hardware error, some tasks may fail, or even complete nodes may
+fail.  For now, StarPU provides some support for failure of tasks.
+
+\section TaskRetry Retrying tasks
+
+In case a task implementation notices that it fail to compute properly, it can
+call starpu_task_failed() to notify StarPU of the failure.
+
+<c>tests/fault-tolerance/retry.c</c> is an example of coping with such failure:
+the principle is that when submitting the task, one sets its prologue callback
+to starpu_task_ft_prologue(). That prologue will turn the task into a meta
+task which will manage the repeated submission of try-tasks to perform the
+computation until one of the computations succeeds.
+
+By default, try-tasks will be just retried until one of them succeeds (i.e. the
+task implementation does not call starpu_task_failed()). One can change the
+behavior by passing a <c>check_failsafe</c> function as prologue parameter,
+which will be called at the end of the try-task attempt. It can look at
+<c>starpu_task_get_current()->failed</c> to determine whether the try-task
+suceeded, in which case it can call starpu_task_ft_success() on the meta-task to
+notify success, or if it failed, in which case it can call
+starpu_task_failsafe_create_retry() to create another try-task, and submit it
+with starpu_task_submit_nodeps().
+
+This can however only work if the task input are not modified, and is thus not
+supported for tasks with data access mode ::STARPU_RW.
+
+*/
