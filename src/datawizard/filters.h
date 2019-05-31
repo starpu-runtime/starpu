@@ -26,12 +26,6 @@
 #include <starpu.h>
 #include <common/config.h>
 
-void
-_starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
-					     size_t elemsize, unsigned id,
-					     unsigned ld, unsigned *chunk_size,
-					     size_t *offset);
-
 
 /* submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
 void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write);
