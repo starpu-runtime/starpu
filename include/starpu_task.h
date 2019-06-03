@@ -916,6 +916,13 @@ struct starpu_task
 	unsigned no_submitorder:1;
 
 	/**
+	   Whether this task has failed and will thus have to be retried
+
+	   Set by StarPU.
+	*/
+	unsigned failed:1;
+
+	/**
 	   Whether the scheduler has pushed the task on some queue
 
 	   Set by StarPU.
@@ -1345,6 +1352,15 @@ void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 /**
+   Submit \p task to StarPU with dependency bypass.
+
+   This can only be called on behalf of another task which has already taken the
+   proper dependencies, e.g. this task is just an attempt of doing the actual
+   computation of that task.
+*/
+int starpu_task_submit_nodeps(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+
+/**
    Submit \p task to the context \p sched_ctx_id. By default,
    starpu_task_submit() submits the task to a global context that is
    created automatically by StarPU.
@@ -1500,6 +1516,57 @@ unsigned starpu_task_get_implementation(struct starpu_task *task);
    dependencies are fulfilled.
  */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
+
+
+
+
+/**
+   Function to be used as a prologue callback to enable fault tolerance for the
+   task. This prologue will create a try-task, i.e a duplicate of the task,
+   which will to the actual computation.
+
+   The prologue argument can be set to a check_ft function that will be
+   called on termination of the duplicate, which can check the result of the
+   task, and either confirm success, or resubmit another attempt.
+   If it is not set, the default implementation is to just resubmit a new
+   try-task.
+ */
+void starpu_task_ft_prologue(void *check_ft);
+
+
+/**
+   Create a try-task for a \p meta_task, given a \p template_task task
+   template. The meta task can be passed as template on the first call, but
+   since it is mangled by starpu_task_ft_create_retry(), further calls
+   (typically made by the check_ft callback) need to be passed the previous
+   try-task as template task.
+
+   \p check_ft is similar to the prologue argument of
+   starpu_task_ft_prologue(), and is typicall set to the very function calling
+   starpu_task_ft_create_retry().
+
+   The try-task is returned, and can be modified (e.g. to change scheduling
+   parameters) before being submitted with starpu_task_submit_nodeps().
+ */
+struct starpu_task * starpu_task_ft_create_retry(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void*));
+
+/**
+   Record that this task failed, and should thus be retried.
+   This is usually called from the task codelet function itself, after checking
+   the result and noticing that the computation went wrong, and thus the task
+   should be retried. The performance of this task execution will not be
+   recorded for performance models.
+
+   This can only be called for a task whose data access modes are either
+   STARPU_R and STARPU_W.
+ */
+void starpu_task_ft_failed(struct starpu_task *task);
+
+/**
+   Notify that the try-task was successful and thus the meta-task was
+   successful.
+ */
+void starpu_task_ft_success(struct starpu_task *meta_task);
 
 /** @} */
 

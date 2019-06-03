@@ -327,6 +327,7 @@ myPROGRAMS +=				\
 	disk/mem_reclaim			\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/workers_cpuid		\
+	fault-tolerance/retry			\
 	helper/starpu_data_cpy			\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
