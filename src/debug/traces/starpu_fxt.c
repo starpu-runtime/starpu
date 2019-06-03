@@ -4484,6 +4484,7 @@ struct parse_task
 {
 	unsigned exec_time;
 	unsigned data_total;
+	unsigned workerid;
 	char *codelet_name;
 };
 
@@ -4521,7 +4522,7 @@ static void write_task(struct parse_task pt)
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %u\n", time, pt.data_total);
+	fprintf(kernel->file, "%lf %u %u\n", time, pt.data_total, pt.workerid);
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)
@@ -4576,6 +4577,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = ev.param[2];
+			tasks[workerid].workerid = (unsigned)workerid;
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[4];
 			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
