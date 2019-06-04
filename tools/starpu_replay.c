@@ -671,6 +671,7 @@ int main(int argc, char **argv)
 
 							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
 							fprintf(stderr, "[starpu][Warning] Taking only measurements from the given execution, and forcing execution on worker %d\n", workerid);
+							starpu_perfmodel_unload_model(&realmodel->perfmodel);
 							free(realmodel->model_name);
 							free(realmodel);
 							realmodel = NULL;
