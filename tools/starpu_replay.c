@@ -795,19 +795,19 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Parameters"))
 		{
-			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
+			/* Parameters line format is PARAM1 PARAM2 (...)PARAMi (...)PARAMn */
 			char * param_str = s + 12;
 			int count = 0;
 
 			for (i = 0 ; param_str[i] != '\n'; i++)
 			{
-				if (param_str[i] == '_') /* Checking the number of '_' (underscore), assuming that the file is not corrupted */
+				if (param_str[i] == ' ') /* Checking the number of ' ' (space), assuming that the file is not corrupted */
 				{
 					count++;
 				}
 			}
 
-			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
+			nb_parameters = count + 1; /* There is one space per paramater except for the last one, that's why we have to add +1 (dirty programming) */
 
 			/* This part of the algorithm will determine if it needs static or dynamic arrays */
 			alloc_mode = set_alloc_mode(nb_parameters);

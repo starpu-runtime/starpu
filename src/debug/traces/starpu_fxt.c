@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2017,2018                                Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2011-2019                                CNRS
@@ -1609,7 +1609,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		int i;
 		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 		{
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?" ":"", last_codelet_parameter_description[worker][i]);
 		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
@@ -1640,6 +1640,12 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	{
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
+
+		/* Paje won't like spaces, replace with underscores */
+		char *c;
+		for (c = parameters; *c; c++)
+			if (*c == ' ')
+				*c = '_';
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], options);
 		if (sched_ctx != 0)
