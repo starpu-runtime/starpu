@@ -969,9 +969,9 @@ eof:
         }
 
 	starpu_shutdown();
-
 	return 0;
 
 enodev:
+	starpu_shutdown();
 	return 77;
 }
