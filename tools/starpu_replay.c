@@ -268,7 +268,10 @@ static void arrays_managing(int mode)
 /* Check if a handle hasn't been registered yet */
 static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 {
-	int h;
+	int h, i;
+	starpu_data_handle_t orig_handles[nb_handles];
+
+	ARRAY_DUP(handles_ptr, orig_handles, nb_handles);
 
 	for (h = 0 ; h < nb_handles ; h++)
 	{
@@ -276,16 +279,29 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 		{
 			struct handle * handles_cell;
 
-			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
-			STARPU_ASSERT(handles_cell != NULL);
+			for (i = 0; i < h; i++)
+			{
+				/* Maybe we just registered it in this very h loop */
+				if (handles_ptr[h] == orig_handles[i])
+				{
+					handles_ptr[h] = handles_ptr[i];
+					break;
+				}
+			}
 
-			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
+			if (i == h)
+			{
+				_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
+				STARPU_ASSERT(handles_cell != NULL);
 
-			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
+				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
-			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+				starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
-			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+				handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+
+				HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+			}
 		}
 	}
 }
