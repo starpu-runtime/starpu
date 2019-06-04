@@ -679,6 +679,9 @@ int main(int argc, char **argv)
 
 					}
 
+					struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
+
+					unsigned comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
 					unsigned narch = starpu_perfmodel_get_narch_combs();
 
 					struct task_arg *arg;
@@ -689,9 +692,6 @@ int main(int argc, char **argv)
 
 					if (realmodel == NULL)
 					{
-						struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
-
-						unsigned comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 						/* Erf, do without perfmodel, for execution there */
 						task->task.workerid = workerid;
 						task->task.execute_on_a_specific_worker = 1;
