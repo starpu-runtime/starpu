@@ -548,6 +548,7 @@ int main(int argc, char **argv)
 	reset();
 
 	double start = starpu_timing_now();
+	int linenum = 0;
 
 	while(1)
 	{
@@ -586,6 +587,8 @@ int main(int argc, char **argv)
 
 			s_allocated *= 2;
 		}
+
+		linenum++;
 
 		if (ln == s)
 		{
