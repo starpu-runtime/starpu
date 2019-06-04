@@ -840,30 +840,28 @@ int main(int argc, char **argv)
 			const char *delim = " ";
 			char *token = strtok(buffer, delim);
 
-			while (token != NULL)
+			for (i = 0 ; i < nb_parameters ; i++)
 			{
-				for (i = 0 ; i < nb_parameters ; i++)
+				STARPU_ASSERT(token);
+				struct handle *handles_cell; /* A cell of the hash table for the handles */
+				starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
+
+				HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
+
+				/* If it wasn't, then add it to the hash table */
+				if (handles_cell == NULL)
 				{
-					struct handle *handles_cell; /* A cell of the hash table for the handles */
-					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
-
-					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
-
-					/* If it wasn't, then add it to the hash table */
-					if (handles_cell == NULL)
-					{
-						/* Hide the initial handle from the file into the handles array to find it when necessary */
-						handles_ptr[i] = handle_value;
-						reg_signal[i] = 1;
-					}
-					else
-					{
-						handles_ptr[i] = handles_cell->mem_ptr;
-						reg_signal[i] = 0;
-					}
-
-					token = strtok(NULL, delim);
+					/* Hide the initial handle from the file into the handles array to find it when necessary */
+					handles_ptr[i] = handle_value;
+					reg_signal[i] = 1;
 				}
+				else
+				{
+					handles_ptr[i] = handles_cell->mem_ptr;
+					reg_signal[i] = 0;
+				}
+
+				token = strtok(NULL, delim);
 			}
 		}
 		else if (TEST("Modes"))
@@ -873,7 +871,7 @@ int main(int argc, char **argv)
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
-			while (token != NULL)
+			while (token != NULL && mode_i < nb_parameters)
 			{
 				/* Subject to the names of starpu modes enumerator are not modified */
 				if (!strncmp(token, "RW", 2))
@@ -908,7 +906,7 @@ int main(int argc, char **argv)
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
-			while (token != NULL)
+			while (token != NULL && k < nb_parameters)
 			{
 				sizes_set[k] = strtol(token, NULL, 10);
 				token = strtok(NULL, delim);
