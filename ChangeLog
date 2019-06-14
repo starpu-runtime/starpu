@@ -19,6 +19,16 @@
 StarPU 1.3.2 (git revision xxx)
 ==============================================
 
+Small changes:
+  * Improve OpenMP support to detect the environment is valid before
+    launching OpenMP
+  * Delete old code (drivers gordon, scc, starpu-top, and plugin gcc)
+    and update authors file accordingly
+  * Add Heteroprio documentation (including a simple example)
+  * Add a progression hook, to be called when workers are idle, which
+    is used in the NewMadeleine implementation of StarPU-MPI to ensure
+    communications progress.
+
 StarPU 1.3.1 (git revision 01949488b4f8e6fe26d2c200293b8aae5876b038)
 ==============================================
 
