@@ -268,7 +268,10 @@ static void arrays_managing(int mode)
 /* Check if a handle hasn't been registered yet */
 static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 {
-	int h;
+	int h, i;
+	starpu_data_handle_t orig_handles[nb_handles];
+
+	ARRAY_DUP(handles_ptr, orig_handles, nb_handles);
 
 	for (h = 0 ; h < nb_handles ; h++)
 	{
@@ -276,16 +279,29 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 		{
 			struct handle * handles_cell;
 
-			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
-			STARPU_ASSERT(handles_cell != NULL);
+			for (i = 0; i < h; i++)
+			{
+				/* Maybe we just registered it in this very h loop */
+				if (handles_ptr[h] == orig_handles[i])
+				{
+					handles_ptr[h] = handles_ptr[i];
+					break;
+				}
+			}
 
-			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
+			if (i == h)
+			{
+				_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
+				STARPU_ASSERT(handles_cell != NULL);
 
-			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
+				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
-			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+				starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
-			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+				handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+
+				HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+			}
 		}
 	}
 }
@@ -532,6 +548,7 @@ int main(int argc, char **argv)
 	reset();
 
 	double start = starpu_timing_now();
+	int linenum = 0;
 
 	while(1)
 	{
@@ -570,6 +587,8 @@ int main(int argc, char **argv)
 
 			s_allocated *= 2;
 		}
+
+		linenum++;
 
 		if (ln == s)
 		{
@@ -652,6 +671,7 @@ int main(int argc, char **argv)
 
 							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
 							fprintf(stderr, "[starpu][Warning] Taking only measurements from the given execution, and forcing execution on worker %d\n", workerid);
+							starpu_perfmodel_unload_model(&realmodel->perfmodel);
 							free(realmodel->model_name);
 							free(realmodel);
 							realmodel = NULL;
@@ -659,6 +679,9 @@ int main(int argc, char **argv)
 
 					}
 
+					struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
+
+					unsigned comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
 					unsigned narch = starpu_perfmodel_get_narch_combs();
 
 					struct task_arg *arg;
@@ -669,9 +692,6 @@ int main(int argc, char **argv)
 
 					if (realmodel == NULL)
 					{
-						struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
-
-						unsigned comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 						/* Erf, do without perfmodel, for execution there */
 						task->task.workerid = workerid;
 						task->task.execute_on_a_specific_worker = 1;
@@ -795,19 +815,19 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Parameters"))
 		{
-			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
+			/* Parameters line format is PARAM1 PARAM2 (...)PARAMi (...)PARAMn */
 			char * param_str = s + 12;
 			int count = 0;
 
 			for (i = 0 ; param_str[i] != '\n'; i++)
 			{
-				if (param_str[i] == '_') /* Checking the number of '_' (underscore), assuming that the file is not corrupted */
+				if (param_str[i] == ' ') /* Checking the number of ' ' (space), assuming that the file is not corrupted */
 				{
 					count++;
 				}
 			}
 
-			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
+			nb_parameters = count + 1; /* There is one space per paramater except for the last one, that's why we have to add +1 (dirty programming) */
 
 			/* This part of the algorithm will determine if it needs static or dynamic arrays */
 			alloc_mode = set_alloc_mode(nb_parameters);
@@ -820,30 +840,28 @@ int main(int argc, char **argv)
 			const char *delim = " ";
 			char *token = strtok(buffer, delim);
 
-			while (token != NULL)
+			for (i = 0 ; i < nb_parameters ; i++)
 			{
-				for (i = 0 ; i < nb_parameters ; i++)
+				STARPU_ASSERT(token);
+				struct handle *handles_cell; /* A cell of the hash table for the handles */
+				starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
+
+				HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
+
+				/* If it wasn't, then add it to the hash table */
+				if (handles_cell == NULL)
 				{
-					struct handle *handles_cell; /* A cell of the hash table for the handles */
-					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
-
-					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
-
-					/* If it wasn't, then add it to the hash table */
-					if (handles_cell == NULL)
-					{
-						/* Hide the initial handle from the file into the handles array to find it when necessary */
-						handles_ptr[i] = handle_value;
-						reg_signal[i] = 1;
-					}
-					else
-					{
-						handles_ptr[i] = handles_cell->mem_ptr;
-						reg_signal[i] = 0;
-					}
-
-					token = strtok(NULL, delim);
+					/* Hide the initial handle from the file into the handles array to find it when necessary */
+					handles_ptr[i] = handle_value;
+					reg_signal[i] = 1;
 				}
+				else
+				{
+					handles_ptr[i] = handles_cell->mem_ptr;
+					reg_signal[i] = 0;
+				}
+
+				token = strtok(NULL, delim);
 			}
 		}
 		else if (TEST("Modes"))
@@ -853,7 +871,7 @@ int main(int argc, char **argv)
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
-			while (token != NULL)
+			while (token != NULL && mode_i < nb_parameters)
 			{
 				/* Subject to the names of starpu modes enumerator are not modified */
 				if (!strncmp(token, "RW", 2))
@@ -888,7 +906,7 @@ int main(int argc, char **argv)
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
-			while (token != NULL)
+			while (token != NULL && k < nb_parameters)
 			{
 				sizes_set[k] = strtol(token, NULL, 10);
 				token = strtok(NULL, delim);
@@ -969,9 +987,9 @@ eof:
         }
 
 	starpu_shutdown();
-
 	return 0;
 
 enodev:
+	starpu_shutdown();
 	return 77;
 }

@@ -242,6 +242,7 @@ void starpu_memory_deallocate(unsigned node, size_t size);
 void starpu_memory_wait_available(unsigned node, size_t size);
 
 void starpu_sleep(float nb_sec);
+void starpu_usleep(float nb_micro_sec);
 
 /** @} */
 

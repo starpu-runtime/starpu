@@ -353,32 +353,38 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		struct _starpu_worker *worker;
-		worker = _starpu_get_worker_struct(workerid);
-
 		if (starpu_worker_get_type(workerid) == d->type)
 		{
+			struct _starpu_worker *worker;
+			worker = _starpu_get_worker_struct(workerid);
 			switch (d->type)
 			{
+#ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
-			{
-				if (worker->driver.id.cpu_id == d->id.cpu_id)
+				if (worker->devid == d->id.cpu_id)
 					return worker;
 				break;
-			}
+#endif
+#ifdef STARPU_USE_OPENCL
 			case STARPU_OPENCL_WORKER:
 			{
-				if (worker->driver.id.opencl_id == d->id.opencl_id)
+				cl_device_id device;
+				starpu_opencl_get_device(worker->devid, &device);
+				if (device == d->id.opencl_id)
 					return worker;
 				break;
 			}
+#endif
+#ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_WORKER:
 			{
-				if (worker->driver.id.cuda_id == d->id.cuda_id)
+				if (worker->devid == d->id.cuda_id)
 					return worker;
 				break;
 
 			}
+#endif
+
 			default:
 				(void) worker;
 				_STARPU_DEBUG("Invalid device type\n");

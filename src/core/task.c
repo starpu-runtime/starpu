@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2019                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -478,7 +478,7 @@ int _starpu_task_test_termination(struct starpu_task *task)
 
 /* NB in case we have a regenerable task, it is possible that the job was
  * already counted. */
-int _starpu_submit_job(struct _starpu_job *j)
+int _starpu_submit_job(struct _starpu_job *j, int nodeps)
 {
 	struct starpu_task *task = j->task;
 	int ret;
@@ -552,15 +552,22 @@ int _starpu_submit_job(struct _starpu_job *j)
 	}
 #endif
 
-#ifdef STARPU_OPENMP
-	if (continuation)
+	if (nodeps)
 	{
-		ret = _starpu_reenforce_task_deps_and_schedule(j);
+		ret = _starpu_take_deps_and_schedule(j);
 	}
 	else
-#endif
 	{
-		ret = _starpu_enforce_deps_and_schedule(j);
+#ifdef STARPU_OPENMP
+		if (continuation)
+		{
+			ret = _starpu_reenforce_task_deps_and_schedule(j);
+		}
+		else
+#endif
+		{
+			ret = _starpu_enforce_deps_and_schedule(j);
+		}
 	}
 
 	_STARPU_LOG_OUT();
@@ -810,7 +817,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 }
 
 /* application should submit new tasks to StarPU through this function */
-int starpu_task_submit(struct starpu_task *task)
+int _starpu_task_submit(struct starpu_task *task, int nodeps)
 {
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
@@ -826,6 +833,7 @@ int starpu_task_submit(struct starpu_task *task)
 	}
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
+	STARPU_ASSERT_MSG(!(nodeps && bundle), "not supported\n");
 	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated. */
@@ -854,6 +862,7 @@ int starpu_task_submit(struct starpu_task *task)
 			_starpu_perf_counter_update_per_codelet_sample(task->cl);
 		}
 	}
+	STARPU_ASSERT_MSG(!(nodeps && continuation), "not supported\n");
 
 	if (!j->internal)
 	{
@@ -889,7 +898,8 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl && !continuation)
 	{
 		_starpu_job_set_ordered_buffers(j);
-		_starpu_detect_implicit_data_deps(task);
+		if (!nodeps)
+			_starpu_detect_implicit_data_deps(task);
 	}
 
 	if (bundle)
@@ -930,7 +940,7 @@ int starpu_task_submit(struct starpu_task *task)
 	if (profiling)
 		_starpu_clock_gettime(&info->submit_time);
 
-	ret = _starpu_submit_job(j);
+	ret = _starpu_submit_job(j, nodeps);
 #ifdef STARPU_SIMGRID
 	if (_starpu_simgrid_task_submit_cost())
 		MSG_process_sleep(0.000001);
@@ -949,6 +959,11 @@ int starpu_task_submit(struct starpu_task *task)
 	return ret;
 }
 
+int starpu_task_submit(struct starpu_task *task)
+{
+	return _starpu_task_submit(task, 0);
+}
+
 int _starpu_task_submit_internally(struct starpu_task *task)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -965,27 +980,9 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
 
 /* The StarPU core can submit tasks directly to the scheduler or a worker,
  * skipping dependencies completely (when it knows what it is doing).  */
-int _starpu_task_submit_nodeps(struct starpu_task *task)
+int starpu_task_submit_nodeps(struct starpu_task *task)
 {
-	int ret = _starpu_task_submit_head(task);
-	STARPU_ASSERT(ret == 0);
-
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-
-	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-	_starpu_sched_task_submit(task);
-
-	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-	_starpu_handle_job_submission(j);
-	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
-	if (task->cl)
-		/* This would be done by data dependencies checking */
-		_starpu_job_set_ordered_buffers(j);
-	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED);
-	task->status = STARPU_TASK_READY;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-	return _starpu_push_task(j);
+	return _starpu_task_submit(task, 1);
 }
 
 /*
@@ -1569,4 +1566,103 @@ void _starpu_watchdog_shutdown(void)
 		return;
 
 	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
+}
+
+static void _starpu_ft_check_support(const struct starpu_task *task)
+{
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned i;
+
+	for (i = 0; i < nbuffers; i++)
+	{
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+		STARPU_ASSERT_MSG (mode == STARPU_R || mode == STARPU_W,
+				"starpu_task_failed is only supported for tasks with access modes STARPU_R and STARPU_W");
+	}
+}
+
+struct starpu_task *starpu_task_ft_create_retry
+(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void *))
+{
+	/* Create a new task to actually perform the result */
+	struct starpu_task *new_task = starpu_task_create();
+
+	*new_task = *template_task;
+	new_task->prologue_callback_func = NULL;
+	/* XXX: cl_arg needs to be duplicated */
+	STARPU_ASSERT_MSG(!meta_task->cl_arg_free || !meta_task->cl_arg, "not supported yet");
+	STARPU_ASSERT_MSG(!meta_task->callback_func, "not supported");
+	new_task->callback_func = check_ft;
+	new_task->callback_arg = (void*) meta_task;
+	new_task->callback_arg_free = 0;
+	new_task->prologue_callback_arg_free = 0;
+	STARPU_ASSERT_MSG(!new_task->prologue_callback_pop_arg_free, "not supported");
+	new_task->use_tag = 0;
+	new_task->synchronous = 0;
+	new_task->destroy = 1;
+	new_task->regenerate = 0;
+	new_task->no_submitorder = 1;
+	new_task->failed = 0;
+	new_task->status = STARPU_TASK_INVALID;
+	new_task->profiling_info = NULL;
+	new_task->prev = NULL;
+	new_task->next = NULL;
+	new_task->starpu_private = NULL;
+	new_task->omp_task = NULL;
+
+	return new_task;
+}
+
+static void _starpu_default_check_ft(void *arg)
+{
+	struct starpu_task *meta_task = arg;
+	struct starpu_task *current_task = starpu_task_get_current();
+	struct starpu_task *new_task;
+	int ret;
+
+	if (!current_task->failed)
+	{
+		starpu_task_ft_success(meta_task);
+		return;
+	}
+
+	new_task = starpu_task_ft_create_retry
+(meta_task, current_task, _starpu_default_check_ft);
+
+	ret = starpu_task_submit_nodeps(new_task);
+	STARPU_ASSERT(!ret);
+}
+
+void starpu_task_ft_prologue(void *arg)
+{
+	struct starpu_task *meta_task = starpu_task_get_current();
+	struct starpu_task *new_task;
+	void (*check_ft)(void*) = arg;
+	int ret;
+
+	if (!check_ft)
+		check_ft = _starpu_default_check_ft;
+
+	/* Create a task which will do the actual computation */
+	new_task = starpu_task_ft_create_retry
+(meta_task, meta_task, check_ft);
+
+	ret = starpu_task_submit_nodeps(new_task);
+	STARPU_ASSERT(!ret);
+
+	/* Make the parent task wait for the result getting correct */
+	starpu_task_end_dep_add(meta_task, 1);
+	meta_task->where = STARPU_NOWHERE;
+}
+
+void starpu_task_ft_failed(struct starpu_task *task)
+{
+	_starpu_ft_check_support(task);
+
+	task->failed = 1;
+}
+
+void starpu_task_ft_success(struct starpu_task *meta_task)
+{
+	starpu_task_end_dep_release(meta_task);
 }

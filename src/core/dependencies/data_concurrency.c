@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2015-2017                           Inria
- * Copyright (C) 2009-2015,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2009-2015,2017,2018-2019                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015,2017,2018,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -241,6 +241,60 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 }
 
+/* Take a data, without waiting for it to be available (it is assumed to be).
+ * This is typicall used for nodeps tasks, for which a previous task has already
+ * waited for the proper conditions, and we just need to take another reference
+ * for overall reference coherency.
+/* No lock is held, this acquires and releases the handle header lock */
+static void _starpu_take_data(unsigned request_from_codelet,
+						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
+						       struct _starpu_job *j)
+{
+	STARPU_ASSERT_MSG(!handle->arbiter, "TODO");
+
+	/* Do not care about some flags */
+	mode &= ~STARPU_COMMUTE;
+	mode &= ~STARPU_SSEND;
+	mode &= ~STARPU_LOCALITY;
+	if (mode == STARPU_RW)
+		mode = STARPU_W;
+
+	/* Take the lock protecting the header. We try to do some progression
+	 * in case this is called from a worker, otherwise we just wait for the
+	 * lock to be available. */
+	if (request_from_codelet)
+	{
+		int cpt = 0;
+		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+		{
+			cpt++;
+			_starpu_datawizard_progress(0);
+		}
+		if (cpt == STARPU_SPIN_MAXTRY)
+			_starpu_spin_lock(&handle->header_lock);
+	}
+	else
+	{
+		_starpu_spin_lock(&handle->header_lock);
+	}
+
+	/* If we are currently performing a reduction, we freeze any request
+	 * that is not explicitely a reduction task. */
+	unsigned is_a_reduction_task = (request_from_codelet && j && j->reduction_task);
+
+	STARPU_ASSERT_MSG(!is_a_reduction_task, "TODO");
+
+	enum starpu_data_access_mode previous_mode = handle->current_mode;
+
+	STARPU_ASSERT_MSG(mode == previous_mode, "mode was %d, but requested %d", previous_mode, mode);
+
+	handle->refcnt++;
+	handle->busy_count++;
+
+	_starpu_spin_unlock(&handle->header_lock);
+}
+
+
 /* No lock is held */
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb)
@@ -260,7 +314,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }
 
-/* Acquire all data of the given job, one by one in handle pointer value order
+/* Try to acquire all data of the given job, one by one in handle pointer value order
  */
 /* No lock is held */
 static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
@@ -299,6 +353,50 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	}
 
 	return 0;
+}
+
+static void take_data_from_job(struct _starpu_job *j, unsigned buffer_index)
+{
+	/* Note that we do not access j->task->handles, but j->ordered_buffers
+	 * which is a sorted copy of it. */
+	struct _starpu_data_descr *buffer = &(_STARPU_JOB_GET_ORDERED_BUFFERS(j)[buffer_index]);
+	starpu_data_handle_t handle = buffer->handle;
+	enum starpu_data_access_mode mode = buffer->mode & ~STARPU_COMMUTE;
+
+	_starpu_take_data(1, handle, mode, j);
+}
+
+/* Immediately acquire all data of the given job, one by one in handle pointer value order
+ */
+/* No lock is held */
+static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
+{
+	unsigned buf;
+
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	for (buf = start_buffer_index; buf < nbuffers; buf++)
+	{
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+		if (buf)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
+			if (handle_m1 == handle)
+				/* We have already requested this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles.  */
+				continue;
+		}
+
+		if(handle->arbiter)
+		{
+			/* We arrived on an arbitered data, we stop and proceed
+			 * with the arbiter second step.  */
+			STARPU_ASSERT_MSG(0, "TODO");
+			//_starpu_submit_job_take_arbitered_deps(j, buf, nbuffers);
+		}
+
+                take_data_from_job(j, buf);
+	}
 }
 
 /* This is called when the tag+task dependencies are to be finished releasing.  */
@@ -363,7 +461,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 }
 
 /* Sort the data used by the given job by handle pointer value order, and
- * acquire them in that order */
+ * try to acquire them in that order */
 /* No  lock is held */
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
@@ -389,6 +487,19 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 		return _submit_job_enforce_data_deps(j, buffer_index + 1);
 	else
 		return 0;
+}
+
+/* Sort the data used by the given job by handle pointer value order, and
+ * immediately acquire them in that order */
+/* No  lock is held */
+void _starpu_submit_job_take_data_deps(struct _starpu_job *j)
+{
+	struct starpu_codelet *cl = j->task->cl;
+
+	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
+		return;
+
+	_submit_job_take_data_deps(j, 0);
 }
 
 /* This is called when a task is finished with a piece of data

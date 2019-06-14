@@ -1408,7 +1408,7 @@ void starpu_perfmodel_directory(FILE *output)
  * the performance model files */
 int starpu_perfmodel_list(FILE *output)
 {
-#if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
+#ifdef HAVE_SCANDIR
         char *path;
 	struct dirent **list;
 	int n;

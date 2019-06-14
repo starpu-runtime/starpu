@@ -549,6 +549,19 @@ void starpu_sleep(float nb_sec)
 #endif
 }
 
+void starpu_usleep(float nb_micro_sec)
+{
+#ifdef STARPU_SIMGRID
+	MSG_process_sleep(nb_micro_sec / 1000000);
+#elif defined(STARPU_HAVE_WINDOWS)
+	Sleep(nb_micro_sec / 1000);
+#elif HAVE_UNISTD_H
+	usleep(nb_micro_sec);
+#else
+#error no implementation of usleep
+#endif
+}
+
 char *starpu_getenv(const char *str)
 {
 #ifndef STARPU_SIMGRID

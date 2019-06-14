@@ -209,7 +209,7 @@ $ export LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 And it is useful to get access to the StarPU tools:
 
 \verbatim
-$ PATH=$PATH:$STARPU_PATH/bin
+$ export PATH=$PATH:$STARPU_PATH/bin
 \endverbatim
 
 It is then useful to check that StarPU executes correctly and finds your hardware:

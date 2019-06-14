@@ -304,6 +304,10 @@ if !NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
+	lu/lu_example_float			\
+	lu/lu_example_double			\
+	lu/lu_implicit_example_float		\
+	lu/lu_implicit_example_double		\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
 	cholesky/cholesky_implicit		\
@@ -313,10 +317,6 @@ if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	axpy/axpy				\
 	cholesky/cholesky_grain_tag		\
-	lu/lu_example_float			\
-	lu/lu_example_double			\
-	lu/lu_implicit_example_float		\
-	lu/lu_implicit_example_double		\
 	heat/heat				\
 	cg/cg					\
 	pipeline/pipeline
