@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
- * Copyright (C) 2011-2013,2015-2017                      CNRS
+ * Copyright (C) 2011-2013,2015-2017,2019                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,7 +87,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			init_func = _starpu_mpi_ms_src_get_kernel_from_codelet(init_cl, 0); 
 			break;
 #endif
-			/* TODO: SCC */
 		default:
 			STARPU_ABORT();
 			break;

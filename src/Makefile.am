@@ -1,9 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017                                Inria
-# Copyright (C) 2012                                     Benjamin Lorendeau
 # Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017,2018                      CNRS
+# Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2013                                     Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -98,6 +97,7 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
+	datawizard/node_ops.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -140,9 +140,6 @@ noinst_HEADERS = 						\
 	drivers/mic/driver_mic_common.h				\
 	drivers/mic/driver_mic_source.h				\
 	drivers/mic/driver_mic_sink.h				\
-	drivers/scc/driver_scc_common.h				\
-	drivers/scc/driver_scc_source.h				\
-	drivers/scc/driver_scc_sink.h				\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
 	drivers/mpi/driver_mpi_sink.h				\
@@ -155,9 +152,6 @@ noinst_HEADERS = 						\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
-	top/starpu_top_message_queue.h				\
-	top/starpu_top_connection.h				\
-	top/starpu_top_core.h					\
 	sched_policies/prio_deque.h				\
 	sched_policies/sched_component.h
 
@@ -224,6 +218,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/graph_test_policy.c			\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
+	datawizard/node_ops.c					\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
@@ -276,10 +271,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	profiling/profiling.c					\
 	profiling/bound.c					\
 	profiling/profiling_helpers.c				\
-	top/starpu_top.c					\
-	top/starpu_top_task.c					\
-	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
 	worker_collection/worker_tree.c				\
 	sched_policies/component_worker.c				\
@@ -321,9 +312,7 @@ if STARPU_HAVE_HDF5
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_hdf5.c
 endif
 
-if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
-endif
 
 if STARPU_USE_CUDA
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
@@ -343,13 +332,6 @@ else
 if STARPU_SIMGRID
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 endif
-endif
-
-if STARPU_USE_SCC
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_common.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_source.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_sink.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_utils.c
 endif
 
 if STARPU_LINUX_SYS

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014,2015,2017,2019                      CNRS
  * Copyright (C) 2014,2016                                Inria
  * Copyright (C) 2017                                     Université de Bordeaux
  *
@@ -38,6 +38,7 @@ __attribute__((constructor))
 static void omp_constructor(void)
 {
 	int ret = starpu_omp_init();
+	if (ret == -EINVAL) exit(STARPU_TEST_SKIPPED);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_omp_init");
 }
 
@@ -72,7 +73,7 @@ void task_region_g(void *buffers[], void *args)
 	int nx = STARPU_VECTOR_GET_NX(_vector);
 	int *v = (int *)STARPU_VECTOR_GET_PTR(_vector);
 	int f = (int)(intptr_t)args;
-	
+
 	printf("depth 1 task, entry: vector ptr = %p\n", v);
 
 	{

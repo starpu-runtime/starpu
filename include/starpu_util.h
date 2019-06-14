@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2017, 2019                          CNRS
  *
@@ -283,7 +283,7 @@ extern "C"
 		{ \
 			if (_user_buflen > 0) \
 			{ \
-				strncpy(_user_buf, _tmp_buf, _user_buflen); \
+				strncpy(_user_buf, _tmp_buf, _user_buflen-1); \
 				_user_buf[_user_buflen-1] = '\0'; \
 			} \
 		} \

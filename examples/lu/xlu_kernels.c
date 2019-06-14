@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2010-2012,2015,2017                      CNRS
+ * Copyright (C) 2010-2012,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,7 +120,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	(void)task;
 	(void)nimpl;
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
-	if (type == STARPU_CPU_WORKER || type == STARPU_MIC_WORKER || type == STARPU_SCC_WORKER)
+	if (type == STARPU_CPU_WORKER || type == STARPU_MIC_WORKER)
 		return 1;
 
 #ifdef STARPU_SIMGRID

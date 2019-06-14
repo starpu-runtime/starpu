@@ -46,8 +46,6 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 
 	if (!strcmp(node_kind, "STARPU_MIC"))
 		return STARPU_NODE_MIC_SINK;
-	else if (!strcmp(node_kind, "STARPU_SCC"))
-		return STARPU_NODE_SCC_SINK;
 	else if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_NODE_MPI_SINK;
 	else
@@ -126,7 +124,7 @@ static void _starpu_sink_common_copy_from_host_async(struct _starpu_mp_node *mp_
 
         /* Set the sender (host) ready because we don't want to wait its ack */
         struct _starpu_async_channel * async_channel = &sink_event->event;
-        async_channel->type = STARPU_UNUSED;
+	async_channel->node_ops = NULL;
         async_channel->starpu_mp_common_finished_sender = -1;
         async_channel->starpu_mp_common_finished_receiver = 0;
         async_channel->polling_node_receiver = NULL;
@@ -168,7 +166,7 @@ static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_no
 
         /* Set the receiver (host) ready because we don't want to wait its ack */
         struct _starpu_async_channel * async_channel = &sink_event->event;
-        async_channel->type = STARPU_UNUSED;
+	async_channel->node_ops = NULL;
         async_channel->starpu_mp_common_finished_sender = 0;
         async_channel->starpu_mp_common_finished_receiver = -1;
         async_channel->polling_node_receiver = NULL;
@@ -204,7 +202,7 @@ static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_
 
         /* Set the sender ready because we don't want to wait its ack */
         struct _starpu_async_channel * async_channel = &sink_event->event;
-        async_channel->type = STARPU_UNUSED;
+	async_channel->node_ops = NULL;
         async_channel->starpu_mp_common_finished_sender = -1;
         async_channel->starpu_mp_common_finished_receiver = 0;
         async_channel->polling_node_receiver = NULL;
@@ -240,7 +238,7 @@ static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_no
 
         /* Set the receiver ready because we don't want to wait its ack */
         struct _starpu_async_channel * async_channel = &sink_event->event;
-        async_channel->type = STARPU_UNUSED;
+	async_channel->node_ops = NULL;
         async_channel->starpu_mp_common_finished_sender = 0;
         async_channel->starpu_mp_common_finished_receiver = -1;
         async_channel->polling_node_receiver = NULL;

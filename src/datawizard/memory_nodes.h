@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012,2014-2017,2019                 Université de Bordeaux
  * Copyright (C) 2012,2016,2017                           Inria
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,16 +23,13 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
+#include <datawizard/node_ops.h>
 #include <common/utils.h>
 #include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
 #endif
-
-#define _STARPU_MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
-#define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
-#define _STARPU_MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
 
 extern char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
@@ -46,6 +43,7 @@ struct _starpu_memory_node_descr
 {
 	unsigned nnodes;
 	enum starpu_node_kind nodes[STARPU_MAXNODES];
+	struct _starpu_node_ops *node_ops[STARPU_MAXNODES];
 
 	/* Get the device id associated to this node, or -1 if not applicable */
 	int devid[STARPU_MAXNODES];
@@ -68,7 +66,6 @@ struct _starpu_memory_node_descr
 	/* the number of queues attached to each node */
 	unsigned total_condition_count;
 	unsigned condition_count[STARPU_MAXNODES];
-
 	unsigned mapped[STARPU_MAXNODES];
 };
 
@@ -77,14 +74,6 @@ extern struct _starpu_memory_node_descr _starpu_descr;
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
 
-static inline unsigned _starpu_memory_node_get_local_key(void)
-{
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-	if (!worker)
-		return STARPU_MAIN_RAM;
-	return worker->memory_node;
-}
-
 static inline void _starpu_memory_node_add_nworkers(unsigned node)
 {
 	_starpu_descr.nworkers[node]++;
@@ -92,6 +81,11 @@ static inline void _starpu_memory_node_add_nworkers(unsigned node)
 
 /* same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode);
+
+static inline struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
+{
+	return _starpu_descr.node_ops[node];
+}
 
 static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
 {
@@ -111,14 +105,9 @@ static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 #endif
 void _starpu_memory_node_set_mapped(unsigned node);
 unsigned _starpu_memory_node_get_mapped(unsigned node);
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
-
-static inline int _starpu_memory_node_get_devid(unsigned node)
-{
-	return _starpu_descr.devid[node];
-}
 
 static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {

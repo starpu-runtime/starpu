@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2012,2013,2015-2018                      CNRS
- * Copyright (C) 2012-2018                                Université de Bordeaux
+ * Copyright (C) 2012,2013,2015-2019                      CNRS
+ * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,6 +38,7 @@
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
+#include <smpi/smpi.h>
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
@@ -48,9 +49,16 @@ extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *a
 #pragma weak _starpu_mpi_simgrid_init
 extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
+#pragma weak smpi_process_set_user_data
+#if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA && !defined(smpi_process_set_user_data)
+extern void smpi_process_set_user_data(void *);
+#endif
+
 /* 1 when MSG_init was done, 2 when initialized through redirected main, 3 when
  * initialized through MSG_process_attach */
 static int simgrid_started;
+
+static int simgrid_transfer_cost = 1;
 
 static int runners_running;
 starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
@@ -267,6 +275,8 @@ void _starpu_start_simgrid(int *argc, char **argv)
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 #endif
 	MSG_create_environment(path);
+
+	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
 
 static int main_ret;
@@ -387,9 +397,12 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
+#ifdef HAVE_MSG_PROCESS_USERDATA_INIT
+		MSG_process_userdata_init();
+#endif
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		MSG_process_set_data(MSG_process_self(), tsd);
+		smpi_process_set_user_data(tsd);
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -914,6 +927,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!size)
 		return 0;
 
+	/* Explicitly disabled by user? */
+	if (!simgrid_transfer_cost)
+		return 0;
+
 	msg_task_t task;
 	msg_host_t *hosts;
 	double *computation;
@@ -939,7 +956,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->task = task;
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;
-	transfer->run_node = _starpu_memory_node_get_local_key();
+	transfer->run_node = starpu_worker_get_local_memory_node();
 
 	if (req)
 		event = &req->async_channel.event;
@@ -966,7 +983,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (req)
 	{
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
-		_STARPU_TRACE_DATA_COPY(src_node, dst_node, size);
+		starpu_interface_data_copy(src_node, dst_node, size);
 		return -EAGAIN;
 	}
 	else
@@ -1021,7 +1038,7 @@ _starpu_simgrid_get_memnode_host(unsigned node)
 			STARPU_ABORT();
 			break;
 	}
-	snprintf(name, sizeof(name), fmt, _starpu_memory_node_get_devid(node));
+	snprintf(name, sizeof(name), fmt, starpu_memory_node_get_devid(node));
 
 	return _starpu_simgrid_get_host_by_name(name);
 }

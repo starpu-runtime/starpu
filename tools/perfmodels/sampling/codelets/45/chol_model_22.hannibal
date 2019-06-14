@@ -1,0 +1,104 @@
+##################
+#	Performance	Model	Version
+45
+
+####################
+# COMBs
+# number of combinations
+3
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
+1
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda0_impl0 (Comb1)
+#	number	of	entries
+1
+#	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
+0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
+#	a	b	c
+nan	nan	nan
+# not multiple-regression-base
+0
+#	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
+24c84a50	11059200	1.769472e+09	5.763709e+03	3.768350e+03	4.501024e+09	3.703209e+13	780925
+
+####################
+# COMB_2
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb2)
+#	number	of	entries
+1
+#	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
+0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
+#	a	b	c
+nan	nan	nan
+# not multiple-regression-base
+0
+#	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
+24c84a50	11059200	1.769472e+09	5.889910e+03	4.485232e+03	4.352661e+09	4.050353e+13	739003
+
+####################
+# COMB_3
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3)
+1
+####################
+# DEV_0
+# device id 
+2
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda2_impl0 (Comb3)
+#	number	of	entries
+1
+#	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
+0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
+#	a	b	c
+nan	nan	nan
+# not multiple-regression-base
+0
+#	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
+24c84a50	11059200	1.769472e+09	5.782569e+03	3.939612e+03	4.412291e+09	3.735706e+13	763033
+

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2014,2016-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2014,2016-2019                      Université de Bordeaux
  * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -76,7 +76,6 @@ typedef INT_PTR intptr_t;
 #include <starpu_bound.h>
 #include <starpu_hash.h>
 #include <starpu_profiling.h>
-#include <starpu_top.h>
 #include <starpu_fxt.h>
 #include <starpu_driver.h>
 #include <starpu_tree.h>
@@ -132,6 +131,12 @@ struct starpu_conf
 	   (default = -1)
 	*/
 	int ncpus;
+
+	/**
+	   Number of CPU cores to that StarPU should leave aside. They can then
+	   be used by application threads, by calling starpu_get_next_bindid() to
+	   get their ID, and starpu_bind_thread_on() to bind the current thread to them.
+	  */
 	int reserve_ncpus;
 
 	/**
@@ -156,13 +161,6 @@ struct starpu_conf
 	   (default = -1)
 	*/
 	int nmic;
-
-	/**
-	   Number of SCC devices that StarPU can use. This can also be
-	   specified with the environment variable \ref STARPU_NSCC.
-	   (default = -1)
-	*/
-	int nscc;
 
 	/**
 	   Number of MPI Master Slave devices that StarPU can use.
@@ -242,23 +240,6 @@ struct starpu_conf
 	   MIC devices to be used.
 	*/
 	unsigned workers_mic_deviceid[STARPU_NMAXWORKERS];
-
-	/**
-	   If this flag is set, the SCC workers will be attached to
-	   the SCC devices specified in the array
-	   starpu_conf::workers_scc_deviceid.
-	   (default = 0)
-	*/
-	unsigned use_explicit_workers_scc_deviceid;
-	/**
-	   If the flag starpu_conf::use_explicit_workers_scc_deviceid
-	   is set, the array contains the logical identifiers of the
-	   SCC devices to be used. Otherwise, StarPU affects the SCC
-	   devices in a round-robin fashion. This can also be
-	   specified with the environment variable \ref
-	   STARPU_WORKERS_SCCID.
-	*/
-	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
 
 	/**
 	   If this flag is set, the MPI Master Slave workers will be
@@ -475,8 +456,7 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
 /**
    Similar to starpu_init(), but also take the \p argc and \p argv as
-   defined by the application. This is needed for SCC execution to
-   initialize the communication library.
+   defined by the application.
    Do not call starpu_init() and starpu_initialize() in the same
    program.
 */
@@ -582,7 +562,7 @@ int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
 int starpu_map_disabled(void);
 
-void starpu_display_stats();
+void starpu_display_stats(void);
 
 void starpu_get_version(int *major, int *minor, int *release);
 

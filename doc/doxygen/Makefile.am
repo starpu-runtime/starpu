@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2013-2018                                Inria
 # Copyright (C) 2010-2019                                CNRS
-# Copyright (C) 2009,2011,2013,2014,2017                 Université de Bordeaux
+# Copyright (C) 2009,2011,2013,2014,2017,2019            Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -72,9 +72,9 @@ chapters =	\
 	chapters/390_faq.doxy		\
 	chapters/401_out_of_core.doxy		\
 	chapters/410_mpi_support.doxy		\
+	chapters/415_fault_tolerance.doxy	\
 	chapters/420_fft_support.doxy		\
-	chapters/430_mic_scc_support.doxy		\
-	chapters/440_c_extensions.doxy		\
+	chapters/430_mic_support.doxy		\
 	chapters/450_native_fortran_support.doxy		\
 	chapters/460_socl_opencl_extensions.doxy		\
 	chapters/470_simgrid.doxy		\
@@ -86,12 +86,6 @@ chapters =	\
 	chapters/520_files.doxy		\
 	chapters/601_scaling_vector_example.doxy		\
 	chapters/610_fdl_1_3.doxy		\
-	chapters/code/hello_pragma2.c \
-	chapters/code/hello_pragma.c \
-	chapters/code/scal_pragma.cu \
-	chapters/code/matmul_pragma.c \
-	chapters/code/matmul_pragma2.c \
-	chapters/code/cholesky_pragma.c \
 	chapters/code/forkmode.c \
 	chapters/code/multiformat.c \
 	chapters/code/complex.c \
@@ -110,7 +104,6 @@ chapters =	\
 	chapters/api/opencl_extensions.doxy \
 	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
-	chapters/api/scc_extensions.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
@@ -223,7 +216,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_perfmodel.h	\
 	$(top_srcdir)/include/starpu_profiling.h	\
 	$(top_srcdir)/include/starpu_rand.h		\
-	$(top_srcdir)/include/starpu_scc.h		\
 	$(top_srcdir)/include/starpu_sched_component.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\
 	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h	\
@@ -238,7 +230,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_task_util.h	\
 	$(top_srcdir)/include/starpu_thread.h		\
 	$(top_srcdir)/include/starpu_thread_util.h	\
-	$(top_srcdir)/include/starpu_top.h		\
 	$(top_srcdir)/include/starpu_tree.h		\
 	$(top_srcdir)/include/starpu_util.h		\
 	$(top_srcdir)/include/starpu_worker.h		\

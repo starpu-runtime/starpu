@@ -94,8 +94,6 @@ int main(void)
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
 	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
-	unsigned nworker = starpu_worker_get_count() + starpu_combined_worker_get_count();
-
 	/* First submit a sequential task */
 	ret = starpu_task_insert(&cl_seq, STARPU_R, v_handle, 0);
 	if (ret == -ENODEV) goto enodev;

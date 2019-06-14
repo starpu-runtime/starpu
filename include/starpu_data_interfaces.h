@@ -181,35 +181,6 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*scc_src_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the core.
-	*/
-	int (*scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node node to the \p dst_interface interface on the \p
-	   dst_node node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
 	   dst_node MPI Slave node. Return 0 on success.
 	*/
@@ -361,6 +332,13 @@ struct starpu_data_copy_methods
 	   must return <c>-EAGAIN</c> if any of the starpu_interface_copy()
 	   calls has returned <c>-EAGAIN</c> (i.e. at least some transfer is
 	   still ongoing), and return 0 otherwise.
+
+	   This can only be implemented if the interface has ready-to-send
+	   data blocks. If the interface is more involved than
+	   this, i.e. it needs to collect pieces of data before
+	   transferring, starpu_data_interface_ops::pack_data and
+	   starpu_data_interface_ops::unpack_data should be implemented instead,
+	   and the core will just transfer the resulting data buffer.
 	*/
 	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 };
@@ -401,19 +379,30 @@ struct starpu_data_interface_ops
 	   home node, pointers should be left as NULL except on the \p home_node, for
 	   which the pointers should be copied from the given \p data_interface, which
 	   was filled with the application's pointers.
+
+	   This method is mandatory.
 	*/
 	void		 (*register_data_handle)	(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 
 	/**
 	   Allocate data for the interface on a given node. This should use
-	   starpu_malloc_on_node to perform the allocation(s), and fill the pointers
+	   starpu_malloc_on_node() to perform the allocation(s), and fill the pointers
 	   in the data interface. It should return the size of the allocated memory, or
 	   -ENOMEM if memory could not be allocated.
+
+	   Note that the memory node can be CPU memory, GPU memory, or even disk
+	   area. The result returned by starpu_malloc_on_node() should be just
+	   stored as uintptr_t without trying to interpret it since it may be a
+	   GPU pointer, a disk descriptor, etc.
+
+	   This method is mandatory to be able to support memory nodes.
 	*/
 	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
 
 	/**
 	   Free data of the interface on a given node.
+
+	   This method is mandatory to be able to support memory nodes.
 	*/
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 
@@ -433,7 +422,19 @@ struct starpu_data_interface_ops
 	int		 (*update_map)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
+	   Initialize the interface.
+	   This method is optional. It is called when initializing the
+	   handler on all the memory nodes.
+	*/
+	void             (*init)                        (void *data_interface);
+
+	/**
 	   Struct with pointer to functions for performing ram/cuda/opencl synchronous and asynchronous transfers.
+
+	   This field is mandatory to be able to support memory
+	   nodes, except disk nodes which can be supported by just
+	   implementing starpu_data_interface_ops::pack_data and
+	   starpu_data_interface_ops::unpack_data.
 	*/
 	const struct starpu_data_copy_methods *copy_methods;
 
@@ -441,11 +442,17 @@ struct starpu_data_interface_ops
 	   @deprecated
 	   Use starpu_data_interface_ops::to_pointer instead.
 	   Return the current pointer (if any) for the handle on the given node.
+
+	   This method is only required if starpu_data_interface_ops::to_pointer
+	   is not implemented.
 	*/
 	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
 
 	/**
 	   Return the current pointer (if any) for the given interface on the given node.
+
+	   This method is only required for starpu_data_handle_to_pointer()
+	   and starpu_data_get_local_ptr(), and for disk support.
 	*/
 	void * 		 (*to_pointer)			(void *data_interface, unsigned node);
 
@@ -456,7 +463,7 @@ struct starpu_data_interface_ops
 	int 		 (*pointer_is_inside)		(void *data_interface, unsigned node, void *ptr);
 
 	/**
-	   Return an estimation of the size of data, for performance models.
+	   Return an estimation of the size of data, for performance models and tracing feedback.
 	*/
 	size_t 		 (*get_size)			(starpu_data_handle_t handle);
 
@@ -469,7 +476,9 @@ struct starpu_data_interface_ops
 	size_t 		 (*get_alloc_size)		(starpu_data_handle_t handle);
 
 	/**
-	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), to be used for indexing performance models.
+	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), required for indexing performance models.
+
+	  starpu_hash_crc32c_be() and alike can be used to produce this 32bit value from various types of values.
 	*/
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 
@@ -483,15 +492,15 @@ struct starpu_data_interface_ops
 
 	/**
 	   Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
-	   etc.), to be used for indexing performance models.. It should return 1 if
-	   the two interfaces size and layout match, and 0 otherwise.
+	   etc.), to be used for indexing performance models. It should return 1 if
+	   the two interfaces size and layout match computation-wise, and 0 otherwise.
 	*/
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
 
 	/**
 	   Compare the data allocation of two interfaces etc.), to be used for indexing
 	   allocation cache. It should return
-	   1 if the two interfaces are allocation-compatible, and 0 otherwise.
+	   1 if the two interfaces are allocation-compatible, i.e. basically have the same alloc_size, and 0 otherwise.
 	   If not specified, the starpu_data_interface_ops::compare method is
 	   used instead.
 	*/
@@ -499,6 +508,7 @@ struct starpu_data_interface_ops
 
 	/**
 	   Dump the sizes of a handle to a file.
+	   This is required for performance models
 	*/
 	void 		 (*display)			(starpu_data_handle_t handle, FILE *f);
 
@@ -506,6 +516,7 @@ struct starpu_data_interface_ops
 	   Describe the data into a string in a brief way, such as one
 	   letter to describe the type of data, and the data
 	   dimensions.
+	   This is required for tracing feedback.
 	*/
 	starpu_ssize_t	 (*describe)			(void *data_interface, char *buf, size_t size);
 
@@ -544,12 +555,20 @@ struct starpu_data_interface_ops
 	   copy the data in the buffer but just set count to the size of the
 	   buffer which would have been allocated. The special value -1
 	   indicates the size is yet unknown.
+
+	   This method (and starpu_data_interface_ops::unpack_data) is required
+	   for disk support if the starpu_data_copy_methods::any_to_any method
+	   is not implemented (because the in-memory data layout is too
+	   complex).
+
+	   This is also required for MPI support if there is no registered MPI data type.
 	*/
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 	/**
 	   Unpack the data handle from the contiguous buffer at the address
-	   \p ptr of size \p count
+	   \p ptr of size \p count.
+	   The memory at the address \p ptr should be freed after the data unpacking operation.
 	*/
 	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
@@ -642,8 +661,7 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
    Unpack in handle the data located at \p ptr of size \p count as
    described by the interface of the data. The interface registered at
    \p handle must define a unpacking operation (see
-   starpu_data_interface_ops). The memory at the address \p ptr is freed
-   after calling the data unpacking operation.
+   starpu_data_interface_ops).
 */
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 
@@ -694,6 +712,12 @@ void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_no
    See starpu_interface_start_driver_copy_async().
 */
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
+
+/**
+   Record in offline execution traces the copy of \p size bytes from
+   node \p src_node to node \p dst_node
+ */
+void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size);
 
 /**
    Allocate \p size bytes on node \p dst_node with the given allocation \p flags. This returns 0 if

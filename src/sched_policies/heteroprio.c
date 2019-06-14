@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2015-2017                                Inria
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017, 2019                          CNRS
  * Copyright (C) 2015-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -179,10 +179,6 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	if (starpu_mic_worker_get_count() > 0)
 		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
 #endif
-#ifdef STARPU_USE_SCC
-	if (starpu_scc_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_SCC_IDX, max_prio-min_prio+1);
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	if (starpu_mpi_ms_worker_get_count() > 0)
 		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MPI_MS_IDX, max_prio-min_prio+1);
@@ -207,10 +203,6 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 #ifdef STARPU_USE_MIC
 		if (starpu_mic_worker_get_count() > 0)
 			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_SCC
-		if (starpu_scc_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_SCC_IDX, prio, prio);
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		if (starpu_mpi_ms_worker_get_count() > 0)
@@ -340,10 +332,6 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 			case STARPU_MIC_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_MIC;
 				hp->workers_heteroprio[workerid].arch_index = STARPU_MIC_IDX;
-				break;
-			case STARPU_SCC_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_SCC;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_SCC_IDX;
 				break;
 			case STARPU_MPI_MS_WORKER:
 				hp->workers_heteroprio[workerid].arch_type = STARPU_MPI_MS;

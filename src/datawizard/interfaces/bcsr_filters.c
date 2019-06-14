@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013,2014,2016                 Université de Bordeaux
+ * Copyright (C) 2008-2011,2013,2014,2016,2019            Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
+ * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,10 +42,16 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 	matrix_child->ny = r;
 	matrix_child->ld = c;
 	matrix_child->elemsize = elemsize;
+	matrix_child->allocsize = c*r*elemsize;
 
 	if (bcsr_father->nzval)
 	{
 		uint8_t *nzval = (uint8_t *)(bcsr_father->nzval);
 		matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 	}
+}
+
+struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_matrix_ops;
 }

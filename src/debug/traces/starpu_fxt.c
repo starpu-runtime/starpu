@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2017,2018                                Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2011-2019                                CNRS
@@ -40,7 +40,6 @@
 #define OPENCL_WORKER_COLORS_NB 9
 #define MIC_WORKER_COLORS_NB	9
 #define MPI_MS_WORKER_COLORS_NB	9
-#define SCC_WORKER_COLORS_NB	9
 #define OTHER_WORKER_COLORS_NB	4
 
 /* How many times longer an idle period has to be before the smoothing
@@ -52,7 +51,6 @@ static char *cuda_worker_colors[CUDA_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd
 static char *opencl_worker_colors[OPENCL_WORKER_COLORS_NB] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
 static char *mic_worker_colors[MIC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
 static char *mpi_ms_worker_colors[MPI_MS_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *scc_worker_colors[SCC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
 static char *other_worker_colors[OTHER_WORKER_COLORS_NB] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[STARPU_NMAXWORKERS];
 
@@ -61,7 +59,6 @@ static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
 static unsigned mic_index = 0;
 static unsigned mpi_ms_index = 0;
-static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
 static unsigned long fut_keymask;
@@ -393,14 +390,6 @@ static void set_next_mpi_ms_worker_color(int workerid)
 		return;
 	worker_colors[workerid] = mpi_ms_worker_colors[mpi_ms_index++];
 	if (mpi_ms_index == MPI_MS_WORKER_COLORS_NB) mpi_ms_index = 0;
-}
-
-static void set_next_scc_worker_color(int workerid)
-{
-	if (workerid >= STARPU_NMAXWORKERS)
-		return;
-	worker_colors[workerid] = scc_worker_colors[scc_index++];
-	if (scc_index == SCC_WORKER_COLORS_NB) scc_index = 0;
 }
 
 static const char *get_worker_color(int workerid)
@@ -1214,14 +1203,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			arch.devices[0].devid = devid;
 			arch.devices[0].ncores = 1;
 			break;
-			
-		case _STARPU_FUT_SCC_KEY:
-			set_next_scc_worker_color(workerid);
-			kindstr = "scc";
-			arch.devices[0].type = STARPU_SCC_WORKER;
-			arch.devices[0].devid = devid;
-			arch.devices[0].ncores = 1;
-			break;
+
 		default:
 			STARPU_ABORT();
 	}
@@ -1627,7 +1609,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		int i;
 		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 		{
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?" ":"", last_codelet_parameter_description[worker][i]);
 		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
@@ -1658,6 +1640,12 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	{
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
+
+		/* Paje won't like spaces, replace with underscores */
+		char *c;
+		for (c = parameters; *c; c++)
+			if (*c == ' ')
+				*c = '_';
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], options);
 		if (sched_ctx != 0)
@@ -4496,6 +4484,7 @@ struct parse_task
 {
 	unsigned exec_time;
 	unsigned data_total;
+	unsigned workerid;
 	char *codelet_name;
 };
 
@@ -4533,7 +4522,7 @@ static void write_task(struct parse_task pt)
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %u\n", time, pt.data_total);
+	fprintf(kernel->file, "%lf %u %u\n", time, pt.data_total, pt.workerid);
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)
@@ -4588,6 +4577,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = ev.param[2];
+			tasks[workerid].workerid = (unsigned)workerid;
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[4];
 			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");

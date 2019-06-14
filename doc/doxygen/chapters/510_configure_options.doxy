@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -442,22 +442,6 @@ Disable the SOCL extension (\ref SOCLOpenclExtensions).  By
 default, it is enabled when an OpenCL implementation is found.
 </dd>
 
-<dt>--disable-starpu-top</dt>
-<dd>
-\anchor disable-starpu-top
-\addindex __configure__--disable-starpu-top
-Disable the StarPU-Top interface (\ref StarPU-TopInterface).  By default, it
-is enabled when the required dependencies are found.
-</dd>
-
-<dt>--disable-gcc-extensions</dt>
-<dd>
-\anchor disable-gcc-extensions
-\addindex __configure__--disable-gcc-extensions
-Disable the GCC plug-in (\ref cExtensions).  By default, it is
-enabled when the GCC compiler provides a plug-in support.
-</dd>
-
 <dt>--with-coi-dir</dt>
 <dd>
 \anchor with-coi-dir
@@ -479,6 +463,13 @@ The default value is <c>x86_64-k1om-linux</c>
 \anchor enable-openmp
 \addindex __configure__--enable-openmp
 Enable OpenMP Support (\ref OpenMPRuntimeSupport)
+</dd>
+
+<dt>--enable-cluster</dt>
+<dd>
+\anchor enable-cluster
+\addindex __configure__--enable-cluster
+Enable cluster Support (\ref ClusteringAMachine)
 </dd>
 
 </dl>

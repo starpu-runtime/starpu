@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2017                                Inria
 # Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2017                                     Erwan Leria
-# Copyright (C) 2010-2015,2017,2018                      CNRS
+# Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2011                                     Télécom-SudParis
 # Copyright (C) 2016                                     Uppsala University
 #
@@ -19,15 +19,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
-
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
@@ -81,6 +72,7 @@ EXTRA_DIST = 					\
 	sched_ctx/axpy_partition_gpu.cu			\
 	heat/heat.sh					\
 	cholesky/cholesky.sh				\
+	cholesky/cholesky_compiled.c			\
 	lu/lu.sh
 
 
@@ -205,7 +197,16 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
 	scheduler/dummy_sched			\
 	scheduler/dummy_modular_sched		\
-	worker_collections/worker_list_example
+	worker_collections/worker_list_example  \
+	api/bcsr_data_interface			\
+	api/block_data_interface		\
+	api/coo_data_interface			\
+	api/csr_data_interface			\
+	api/matrix_data_interface		\
+	api/multiformat_data_interface		\
+	api/variable_data_interface		\
+	api/vector_data_interface		\
+	api/void_data_interface
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
@@ -298,18 +299,19 @@ if !NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
+	lu/lu_example_float			\
+	lu/lu_example_double			\
+	lu/lu_implicit_example_float		\
+	lu/lu_implicit_example_double		\
 	cholesky/cholesky_tag			\
 	cholesky/cholesky_tile_tag		\
-	cholesky/cholesky_implicit
+	cholesky/cholesky_implicit		\
+	cholesky/cholesky_compil
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	axpy/axpy				\
 	cholesky/cholesky_grain_tag		\
-	lu/lu_example_float			\
-	lu/lu_example_double			\
-	lu/lu_implicit_example_float		\
-	lu/lu_implicit_example_double		\
 	heat/heat				\
 	cg/cg					\
 	pipeline/pipeline
@@ -715,6 +717,16 @@ cholesky_cholesky_implicit_SOURCES =		\
 cholesky_cholesky_implicit_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 
+cholesky_cholesky_compil_SOURCES =		\
+	cholesky/cholesky_compil.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
+	sched_ctx_utils/sched_ctx_utils.c	\
+	common/blas.c
+
+cholesky_cholesky_compil_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
+
 endif
 
 ##############
@@ -948,7 +960,8 @@ endif
 
 interface_complex_SOURCES	=	\
 	interface/complex.c		\
-	interface/complex_interface.c
+	interface/complex_interface.c	\
+	interface/complex_filters.c
 if STARPU_USE_CUDA
 interface_complex_SOURCES	+=	\
 	interface/complex_kernels.cu
@@ -1005,16 +1018,6 @@ endif
 examplebin_PROGRAMS +=				\
 	ppm_downscaler/ppm_downscaler		\
 	ppm_downscaler/yuv_downscaler
-
-################
-# Top Examples #
-################
-
-examplebin_PROGRAMS +=				\
-	top/hello_world_top
-
-top_hello_world_top_SOURCES =			\
-	top/hello_world_top.c
 
 ######
 # Pi #

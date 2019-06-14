@@ -3,7 +3,6 @@
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Université de Bordeaux
- * Copyright (C) 2015                                     Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +20,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <drivers/mp_common/source_common.h>
-#include "driver_mpi_common.h"
+#include <drivers/mpi/driver_mpi_common.h>
 
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
@@ -174,7 +173,7 @@ void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int 
                 channel->event.mpi_ms_event.is_sender = 1;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -221,7 +220,7 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
                 channel->event.mpi_ms_event.is_sender = 0;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -271,7 +270,7 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU
                 channel->event.mpi_ms_event.is_sender = 1;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -313,7 +312,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
                 channel->event.mpi_ms_event.is_sender = 0;
 
                 /* call by sink, we need to initialize some parts, for host it's done in data_request.c */
-                if (channel->type == STARPU_UNUSED)
+                if (channel->node_ops == NULL)
                         channel->event.mpi_ms_event.requests = NULL;
 
                 /* Initialize the list */
@@ -366,7 +365,7 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
+unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -411,7 +410,7 @@ int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-void _starpu_mpi_common_wait_event(struct _starpu_async_channel * event)
+void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {
@@ -550,3 +549,4 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
         }
         free(buf);
 }
+

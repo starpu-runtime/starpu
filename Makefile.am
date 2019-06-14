@@ -47,10 +47,6 @@ if BUILD_SOCL
 SUBDIRS += socl
 endif
 
-if BUILD_GCC_PLUGIN
-SUBDIRS += gcc-plugin
-endif
-
 if BUILD_STARPUFFT
 SUBDIRS += starpufft
 endif
@@ -89,7 +85,6 @@ versinclude_HEADERS = 				\
 	include/starpu_sink.h			\
 	include/starpu_mic.h			\
 	include/starpu_mpi_ms.h			\
-	include/starpu_scc.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
@@ -98,7 +93,6 @@ versinclude_HEADERS = 				\
 	include/starpu_sched_component.h	\
 	include/starpu_sched_ctx.h		\
 	include/starpu_sched_ctx_hypervisor.h	\
-	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
 	include/starpu_rand.h			\
@@ -123,12 +117,8 @@ noinst_HEADERS = \
 	include/pthread_win32/pthread.h		\
 	include/pthread_win32/semaphore.h
 
-if BUILD_STARPU_TOP
-all-local: starpu-top/starpu_top$(EXEEXT)
-else
-all-local:
-endif
 if STARPU_DEVEL
+all-local:
 	@if $(GREP) -r sys/time.h $$( find $(srcdir)/examples $(srcdir)/tests $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name timer.h -a \! -name loader.c ) ; \
 	then \
 		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
@@ -156,29 +146,6 @@ if STARPU_DEVEL
 	fi
 endif
 
-if BUILD_STARPU_TOP
-starpu-top/starpu_top$(EXEEXT):
-	cd starpu-top ; $(QMAKE) ; $(MAKE)
-clean-local:
-	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
-	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top$(EXEEXT)
-# TODO: resources
-install-exec-local:
-	$(MKDIR_P) $(DESTDIR)$(bindir)
-	-$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top$(EXEEXT) $(DESTDIR)$(bindir)
-uninstall-local:
-	$(RM) $(DESTDIR)$(bindir)/starpu_top$(EXEEXT)
-	$(RM) starpu-top/starpu_top$(EXEEXT)
-	$(RM) starpu-top/Makefile
-
-if STARPU_HAVE_HELP2MAN
-starpu-top/starpu_top.1: starpu-top/starpu_top$(EXEEXT)
-	help2man --no-discard-stderr -N --output=$@ starpu-top/starpu_top$(EXEEXT)
-dist_man1_MANS =\
-	starpu-top/starpu_top.1
-endif
-endif
-
 if STARPU_HAVE_WINDOWS
 txtdir = ${prefix}
 else
@@ -188,9 +155,6 @@ txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
-
-
-include starpu-top/extradist
 
 recheck:
 	RET=0 ; \

@@ -21,6 +21,8 @@
 
 #include <util/starpu_clusters_create.h>
 
+#ifdef STARPU_CLUSTER
+
 starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type)
 {
 	starpu_binding_function prologue_func;
@@ -210,6 +212,12 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 		else if (arg_type == STARPU_CLUSTER_NCORES)
 		{
 			struct _starpu_cluster_group *group = _starpu_cluster_group_list_back(machine->groups);
+			if (group == NULL)
+			{
+				group = _starpu_cluster_group_new();
+				_starpu_cluster_group_init(group, machine);
+				_starpu_cluster_group_list_push_back(machine->groups, group);
+			}
 			struct _starpu_cluster *cluster =_starpu_cluster_list_back(group->clusters);
 			cluster->ncores = va_arg(varg_list, unsigned);
 		}
@@ -717,10 +725,10 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 		int size = 0, j;
 		struct _starpu_hwloc_userdata *data = pu->userdata;
 		struct _starpu_worker_list *list = data->worker_list;
-		struct _starpu_worker *worker_str = _starpu_worker_list_front(list);
+		struct _starpu_worker *worker_str;
 		for (worker_str = _starpu_worker_list_begin(list);
-			worker_str != _starpu_worker_list_end(list);
-			worker_str = _starpu_worker_list_next(worker_str))
+		     worker_str != _starpu_worker_list_end(list);
+		     worker_str = _starpu_worker_list_next(worker_str))
 		{
 			if (worker_str->arch == STARPU_CPU_WORKER)
 				size++;
@@ -768,3 +776,5 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 
 	return;
 }
+
+#endif

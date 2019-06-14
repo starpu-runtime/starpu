@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -26,9 +26,7 @@
 #include <core/debug.h>
 #include <core/sched_ctx.h>
 #include <drivers/driver_common/driver_common.h>
-#include <starpu_top.h>
 #include <core/sched_policy.h>
-#include <top/starpu_top_core.h>
 #include <core/debug.h>
 #include <core/task.h>
 
@@ -39,7 +37,6 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
@@ -64,17 +61,13 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 
-		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+		if ((profiling && profiling_info) || calibrate_model)
 		{
 			_starpu_clock_gettime(&worker->cl_start);
 			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
 		_starpu_job_notify_start(j, perf_arch);
 	}
-
-	if (starpu_top)
-		_starpu_top_task_started(task,workerid,&worker->cl_start);
-
 
 	// Find out if the worker is the master of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
@@ -118,7 +111,6 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	int starpu_top=_starpu_top_status_get();
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
@@ -144,16 +136,13 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if (rank == 0)
 	{
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+		if ((profiling && profiling_info) || calibrate_model)
 		{
 			_starpu_clock_gettime(&worker->cl_end);
 			_starpu_worker_register_executing_end(workerid);
 		}
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
-
-	if (starpu_top)
-		_starpu_top_task_ended(task,workerid,&worker->cl_end);
 
 	_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 
@@ -247,9 +236,12 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 				do_update_time_model = 1;
 			}
 #else
-			const unsigned do_update_time_model = 1;
+			unsigned do_update_time_model = 1;
 			const double time_consumed = measured;
 #endif
+			if (j->task->failed)
+				/* Do not record perfmodel for failed tasks, they may terminate earlier */
+				do_update_time_model = 0;
 			if (do_update_time_model)
 			{
 				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker->devid, time_consumed, j->nimpl);
@@ -280,9 +272,12 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		}
 #else
 		const double energy_consumed = profiling_info->energy_consumed;
-		const unsigned do_update_energy_model = 1;
+		unsigned do_update_energy_model = 1;
 #endif
 
+		if (j->task->failed)
+			/* Do not record perfmodel for failed tasks, they may terminate earlier */
+			do_update_energy_model = 0;
 		if (do_update_energy_model)
 		{
 			_starpu_update_perfmodel_history(j, j->task->cl->energy_model, perf_arch, worker->devid, energy_consumed, j->nimpl);

@@ -2,8 +2,7 @@
  *
  * Copyright (C) 2008-2014,2016,2017                      Université de Bordeaux
  * Copyright (C) 2012,2017                                Inria
- * Copyright (C) 2015                                     Mathieu Lirzin
- * Copyright (C) 2010,2012,2015,2017                      CNRS
+ * Copyright (C) 2010,2012,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,8 +28,11 @@
 #endif
 
 #include <starpu.h>
+#include <core/workers.h>
+#include <datawizard/node_ops.h>
 
 extern struct _starpu_driver_ops _starpu_driver_cuda_ops;
+extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 
 void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
@@ -56,6 +58,21 @@ uintptr_t _starpu_cuda_map_ram(void *src_ptr, unsigned src_node, unsigned dst_no
 int _starpu_cuda_unmap_ram(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t size);
 #endif
 #endif
+
+unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *async_channel);
+void _starpu_cuda_wait_request_completion(struct _starpu_async_channel *async_channel);
+
+int _starpu_cuda_copy_data_from_cpu_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_cuda_copy_data_from_cuda_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+int _starpu_cuda_copy_data_from_cuda_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
+
+int _starpu_cuda_copy_interface_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_cuda_copy_interface_from_cuda_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_cuda_copy_interface_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+
+int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node);
+uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags);
+void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 #endif //  __DRIVER_CUDA_H__
 

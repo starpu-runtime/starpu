@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012                                Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
- * Copyright (C) 2011-2013,2016,2017                      CNRS
+ * Copyright (C) 2011-2013,2016,2017,2019                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@
 #include <datawizard/datawizard.h>
 #include <util/starpu_data_cpy.h>
 #include <starpu_mic.h>
-#include <starpu_scc.h>
 
 static void common_data_cpy_func(void *descr[], void *cl_arg)
 {
@@ -114,20 +113,6 @@ static starpu_mic_kernel_t mic_cpy_func()
 #endif
 }
 
-static starpu_scc_kernel_t scc_cpy_func()
-{
-#ifdef STARPU_USE_SCC
-	static starpu_scc_func_symbol_t scc_symbol = NULL;
-	if (scc_symbol == NULL)
-		starpu_scc_register_kernel(&scc_symbol, "mp_cpy_kernel");
-
-	return starpu_scc_get_kernel(scc_symbol);
-#else
-	STARPU_ABORT();
-	return NULL;
-#endif
-}
-
 struct starpu_perfmodel copy_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -136,12 +121,11 @@ struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_MIC|STARPU_SCC,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_MIC,
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
 	.mic_funcs = {mic_cpy_func},
-	.scc_funcs = {scc_cpy_func},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model

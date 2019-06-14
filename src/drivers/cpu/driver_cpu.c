@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014-2017                      Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -31,11 +31,19 @@
 #include <core/drivers.h>
 #include <core/idle_hook.h>
 #include <drivers/cpu/driver_cpu.h>
+#include <drivers/disk/driver_disk.h>
+#include <drivers/opencl/driver_opencl.h>
+#include <drivers/cuda/driver_cuda.h>
+#include <drivers/mic/driver_mic_source.h>
+#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/disk/driver_disk.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <core/simgrid.h>
 #include <core/task.h>
+#include <core/disk.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -52,6 +60,7 @@
 #endif
 
 
+#ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.
  * Handle binding CPUs on cores.
  * In the case of a combined worker WORKER_TASK != J->TASK */
@@ -206,7 +215,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 		{
 			struct _starpu_combined_worker *combined_worker;
 			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
-			
+
 			cpu_worker->combined_workerid = j->combined_workerid;
 			cpu_worker->worker_size = combined_worker->worker_size;
 			perf_arch = &combined_worker->perf_arch;
@@ -432,4 +441,126 @@ struct _starpu_driver_ops _starpu_driver_cpu_ops =
 	.run = _starpu_cpu_driver_run,
 	.run_once = _starpu_cpu_driver_run_once,
 	.deinit = _starpu_cpu_driver_deinit
+};
+#endif /* STARPU_USE_CPU */
+
+int _starpu_cpu_copy_data(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->ram_to_ram)
+		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
+	else
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+	return ret;
+}
+
+int _starpu_cpu_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
+
+	(void) async_channel;
+
+	memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
+	return 0;
+}
+
+int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	(void) node;
+	(void) handling_node;
+	return 1;
+}
+
+uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	uintptr_t addr = 0;
+	_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+				     /* without memcpy_peer, we can not
+				      * allocated pinned memory, since it
+				      * requires waiting for a task, and we
+				      * may be called with a spinlock held
+				      */
+				     flags & ~STARPU_MALLOC_PINNED
+#else
+				     flags
+#endif
+				     );
+	return addr;
+}
+
+void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	_starpu_free_flags_on_node(dst_node, (void*)addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+				   flags & ~STARPU_MALLOC_PINNED
+#else
+				   flags
+#endif
+				   );
+}
+
+struct _starpu_node_ops _starpu_driver_cpu_node_ops =
+{
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
+#ifdef STARPU_USE_CUDA
+	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
+#else
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
+#else
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
+#ifdef STARPU_USE_MIC
+	.copy_data_to[STARPU_MIC_RAM] = _starpu_mic_copy_data_from_cpu_to_mic,
+#else
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
+#else
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.copy_interface_to[STARPU_UNUSED] = NULL,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
+#ifdef STARPU_USE_CUDA
+	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
+#else
+	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl,
+#else
+	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
+#ifdef STARPU_USE_MIC
+	.copy_interface_to[STARPU_MIC_RAM] = _starpu_mic_copy_interface_from_cpu_to_mic,
+#else
+	.copy_interface_to[STARPU_MIC_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
+#else
+	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.wait_request_completion = NULL,
+	.test_request_completion = NULL,
+	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
+	.malloc_on_node = _starpu_cpu_malloc_on_node,
+	.free_on_node = _starpu_cpu_free_on_node,
+	.name = "cpu driver"
 };

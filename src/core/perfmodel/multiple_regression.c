@@ -283,7 +283,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 	snprintf(directory, sizeof(directory), "%s/.starpu/sampling/codelets/tmp", _starpu_get_home_path());
 	_starpu_mkpath_and_check(directory, S_IRWXU);
 
-	char filepath[300];
+	char filepath[400];
 	snprintf(filepath, sizeof(filepath), "%s/%s.out", directory,codelet_name);
 
 	unsigned long old_lines=0;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
  * Copyright (C) 2012,2013,2017                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -180,7 +180,7 @@ test_bcsr_cpu_func(void *buffers[], void *args)
 int
 main(int argc, char **argv)
 {
-	data_interface_test_summary *summary;
+	struct data_interface_test_summary summary;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
@@ -193,15 +193,13 @@ main(int argc, char **argv)
 
 	register_data();
 
-	summary = run_tests(&bcsr_config);
-	if (!summary)
-		exit(EXIT_FAILURE);
+	run_tests(&bcsr_config, &summary);
 
 	unregister_data();
 
 	starpu_shutdown();
 
-	data_interface_test_summary_print(stderr, summary);
+	data_interface_test_summary_print(stderr, &summary);
 
-	return data_interface_test_summary_success(summary);
+	return data_interface_test_summary_success(&summary);
 }

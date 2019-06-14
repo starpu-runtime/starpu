@@ -38,8 +38,8 @@
 #define _STARPU_INITIAL_THREAD_STACKSIZE 2097152
 
 static struct starpu_omp_global _global_state;
-static starpu_pthread_key_t omp_thread_key;
-static starpu_pthread_key_t omp_task_key;
+starpu_pthread_key_t omp_thread_key;
+starpu_pthread_key_t omp_task_key;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
@@ -731,7 +731,7 @@ static void destroy_omp_task_struct(struct starpu_omp_task *task)
 /*
  * setup the main application thread to handle the possible preemption of the initial task
  */
-static void omp_initial_thread_setup(void)
+static int omp_initial_thread_setup(void)
 {
 	struct starpu_omp_thread *initial_thread = _global_state.initial_thread;
 	struct starpu_omp_task *initial_task = _global_state.initial_task;
@@ -766,22 +766,27 @@ static void omp_initial_thread_setup(void)
 	omp_starpu_conf.n_not_launched_drivers = 1;
 	/* we are now ready to start StarPU */
 	ret = starpu_init(&omp_starpu_conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_driver_init(&initial_thread->starpu_driver);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
-	_starpu_omp_set_task(initial_task);
+	int check = _starpu_omp_environment_check();
+	if (check == 0)
+	{
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+		ret = starpu_driver_init(&initial_thread->starpu_driver);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
+		_starpu_omp_set_task(initial_task);
 
-	_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
-	_STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
-	if (_global_state.starpu_cpu_worker_ids == NULL)
-		_STARPU_ERROR("memory allocation failed");
-	ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
-	STARPU_ASSERT(ret == _global_state.nb_starpu_cpu_workers);
-	initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
-	STARPU_ASSERT(initial_thread->worker);
-	STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
-	_starpu_omp_set_thread(initial_thread);
-	register_thread_worker(initial_thread);
+		_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+		_STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
+		if (_global_state.starpu_cpu_worker_ids == NULL)
+			_STARPU_ERROR("memory allocation failed");
+		ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
+		STARPU_ASSERT(ret == _global_state.nb_starpu_cpu_workers);
+		initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
+		STARPU_ASSERT(initial_thread->worker);
+		STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
+		_starpu_omp_set_thread(initial_thread);
+		register_thread_worker(initial_thread);
+	}
+	return check;
 }
 
 static void omp_initial_thread_exit()
@@ -802,12 +807,14 @@ static void omp_initial_thread_exit()
 	initial_thread->current_task = NULL;
 }
 
-static void omp_initial_region_setup(void)
+static int omp_initial_region_setup(void)
 {
-	omp_initial_thread_setup();
+	int ret = omp_initial_thread_setup();
+	if (ret != 0) return ret;
+
 	const int max_active_levels = _starpu_omp_initial_icv_values->max_active_levels_var;
 	const int max_threads = (int)starpu_cpu_worker_get_count();
-	
+
 	/* implementation specific initial ICV values override */
 	if (_starpu_omp_initial_icv_values->nthreads_var[0] == 0)
 	{
@@ -881,6 +888,7 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.default_device_var = _starpu_omp_initial_icv_values->default_device_var;
 	_global_state.initial_region->icvs.max_task_priority_var = _starpu_omp_initial_icv_values->max_task_priority_var;
 	_global_state.initial_region->implicit_task_array = &_global_state.initial_task;
+	return 0;
 }
 
 static void omp_initial_region_exit(void)
@@ -955,16 +963,18 @@ int starpu_omp_init(void)
 
 	_starpu_omp_environment_init();
 	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
-	omp_initial_region_setup();
+	_global_state.environment_valid = omp_initial_region_setup();
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
 
-	return 0;
+	return _global_state.environment_valid;
 }
 
 void starpu_omp_shutdown(void)
 {
+	if (_global_state.environment_valid != 0) return;
+
 	omp_initial_region_exit();
 	/* TODO: free ICV variables */
 	/* TODO: free task/thread/region/device structures */

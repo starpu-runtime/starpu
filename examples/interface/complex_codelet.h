@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2015,2017                      CNRS
+ * Copyright (C) 2012,2013,2015,2017,2019                 CNRS
  * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
@@ -70,7 +70,7 @@ void compare_complex_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_compare =
 {
 	.cpu_funcs = {compare_complex_codelet},
-	/* dereferencing compare won't work on MIC/SCC */
+	/* dereferencing compare won't work on MIC */
 	/* .cpu_funcs_name = {"compare_complex_codelet"}, */
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},

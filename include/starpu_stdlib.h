@@ -194,14 +194,14 @@ starpu_ssize_t starpu_memory_get_available(unsigned node);
    Return the amount of total memory on all memory nodes for whose a
    memory limit is defined (see Section \ref HowToLimitMemoryPerNode).
 */
-starpu_ssize_t starpu_memory_get_total_all_nodes();
+starpu_ssize_t starpu_memory_get_total_all_nodes(void);
 
 /**
    Return the amount of available memory on all memory nodes for whose
    a memory limit is defined (see Section \ref
    HowToLimitMemoryPerNode).
 */
-starpu_ssize_t starpu_memory_get_available_all_nodes();
+starpu_ssize_t starpu_memory_get_available_all_nodes(void);
 
 /**
    If a memory limit is defined on the given node (see Section \ref
@@ -242,6 +242,7 @@ void starpu_memory_deallocate(unsigned node, size_t size);
 void starpu_memory_wait_available(unsigned node, size_t size);
 
 void starpu_sleep(float nb_sec);
+void starpu_usleep(float nb_micro_sec);
 
 /** @} */
 

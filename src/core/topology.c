@@ -27,7 +27,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/mic/driver_mic_source.h>
-#include <drivers/scc/driver_scc_source.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mp_common/source_common.h>
@@ -37,6 +36,7 @@
 #include <datawizard/datastats.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memory_manager.h>
+
 #include <common/uthash.h>
 
 #ifdef STARPU_HAVE_HWLOC
@@ -82,7 +82,7 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid);
 #define STARPU_NUMA_UNINITIALIZED (-2)
 #define STARPU_NUMA_MAIN_RAM (-1)
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 
 struct handle_entry
 {
@@ -401,7 +401,7 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC)  || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 static void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 						int *current, int *workers_gpuid,
 						const char *varname, unsigned nhwgpus,
@@ -609,23 +609,6 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 #endif
 #endif
 
-#ifdef STARPU_USE_SCC
-static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_config *config)
-{
-	struct _starpu_machine_topology *topology = &config->topology;
-	struct starpu_conf *uconf = &config->conf;
-
-	_starpu_initialize_workers_deviceid(uconf->use_explicit_workers_scc_deviceid == 0
-					    ? NULL
-					    : (int *) uconf->workers_scc_deviceid,
-					    &(config->current_scc_deviceid),
-					    (int *)topology->workers_scc_deviceid,
-					    "STARPU_WORKERS_SCCID",
-					    topology->nhwscc,
-					    STARPU_SCC_WORKER);
-}
-#endif /* STARPU_USE_SCC */
-
 #if 0
 #ifdef STARPU_USE_MIC
 static inline int _starpu_get_next_mic_deviceid(struct _starpu_machine_config *config)
@@ -635,15 +618,6 @@ static inline int _starpu_get_next_mic_deviceid(struct _starpu_machine_config *c
 	return (int)config->topology.workers_mic_deviceid[i];
 }
 #endif
-#endif
-
-#ifdef STARPU_USE_SCC
-static inline int _starpu_get_next_scc_deviceid(struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_scc_deviceid++) % config->topology.nsccdevices);
-
-	return (int)config->topology.workers_scc_deviceid[i];
-}
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -864,9 +838,6 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_cuda_discover_devices(config);
 	if (config->conf.nopencl != 0)
 		_starpu_opencl_discover_devices(config);
-#ifdef STARPU_USE_SCC
-	config->topology.nhwscc = _starpu_scc_src_get_device_count();
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         config->topology.nhwmpi = _starpu_mpi_src_get_device_count();
 #endif
@@ -1734,75 +1705,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	topology->nworkers += topology->nopenclgpus;
 #endif
 
-#ifdef STARPU_USE_SCC
-	int nscc = config->conf.nscc;
-
-	unsigned nb_scc_nodes = _starpu_scc_src_get_device_count();
-
-	if (nscc != 0)
-	{
-		/* The user did not disable SCC. We need to count
-		 * the number of devices */
-		int nb_devices = nb_scc_nodes;
-
-		STARPU_ASSERT_MSG(nscc >= -1, "nscc can not be negative and different from -1 (is is %d)", nscc);
-		if (nscc == -1)
-		{
-			/* Nothing was specified, so let's choose ! */
-			nscc = nb_devices;
-			if (nscc > STARPU_MAXSCCDEVS)
-			{
-				_STARPU_DISP("Warning: %d SCC devices available. Only %d enabled. Use configuration option --enable-maxsccdev=xxx to update the maximum value of supported SCC devices.\n", nb_devices, STARPU_MAXSCCDEVS);
-				nscc = STARPU_MAXSCCDEVS;
-			}
-		}
-		else
-		{
-			/* Let's make sure this value is OK. */
-			if (nscc > nb_devices)
-			{
-				/* The user requires more SCC devices than there is available */
-				_STARPU_DISP("Warning: %d SCC devices requested. Only %d available.\n", nscc, nb_devices);
-				nscc = nb_devices;
-			}
-			/* Let's make sure this value is OK. */
-			if (nscc > STARPU_MAXSCCDEVS)
-			{
-				_STARPU_DISP("Warning: %d SCC devices requested. Only %d enabled. Use configure option --enable-maxsccdev=xxx to update the maximum value of supported SCC devices.\n", nscc, STARPU_MAXSCCDEVS);
-				nscc = STARPU_MAXSCCDEVS;
-			}
-		}
-	}
-
-	/* Now we know how many SCC devices will be used */
-	topology->nsccdevices = nscc;
-	STARPU_ASSERT(topology->nsccdevices + topology->nworkers <= STARPU_NMAXWORKERS);
-
-	_starpu_initialize_workers_scc_deviceid(config);
-
-	unsigned sccdev;
-	for (sccdev = 0; sccdev < topology->nsccdevices; sccdev++)
-	{
-		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
-		int devid = _starpu_get_next_scc_deviceid(config);
-		_STARPU_MALLOC(config->workers[topology->nworkers + sccdev].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
-		config->workers[topology->nworkers + sccdev].perf_arch.ndevices = 1;
-
-		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].type = STARPU_SCC_WORKER;
-		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].devid = sccdev;
-		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].ncores = 1;
-		config->workers[topology->nworkers + sccdev].subworkerid = 0;
-		config->workers[topology->nworkers + sccdev].devid = devid;
-		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
-		config->worker_mask |= STARPU_SCC;
-	}
-
-	for (; sccdev < nb_scc_nodes; ++sccdev)
-		_starpu_scc_exit_useless_node(sccdev);
-
-	topology->nworkers += topology->nsccdevices;
-#endif /* STARPU_USE_SCC */
-
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 	    _starpu_init_mp_config(config, &config->conf, no_mp_config);
 #endif
@@ -1839,7 +1741,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 			unsigned already_busy_cpus = mpi_ms_busy_cpus + mic_busy_cpus
 				+ cuda_busy_cpus
-				+ topology->nopenclgpus + topology->nsccdevices;
+				+ topology->nopenclgpus;
 
 			long avail_cpus = (long) topology->nhwcpus - (long) already_busy_cpus;
 			if (avail_cpus < 0)
@@ -2270,7 +2172,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				if (numa_starpu_id == -1)
 				{
 					int devid = numa_logical_id == STARPU_NUMA_MAIN_RAM ? 0 : numa_logical_id;
-					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid);
+					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid, &_starpu_driver_cpu_node_ops);
 					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(devid, config));
 					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 					numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
@@ -2317,7 +2219,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 			if (numa_starpu_id == -1)
 			{
-				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 				_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 				numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
@@ -2377,7 +2279,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 					if (numa_starpu_id == -1)
 					{
-						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
+						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 						_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 						STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 						numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
@@ -2434,7 +2336,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			numa_logical_id = 0;
 			numa_physical_id = 0;
 		}
-		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
+		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id, &_starpu_driver_cpu_node_ops);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
 
 		numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
@@ -2628,7 +2530,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					}
 					else
 						workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
+					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid, &_starpu_driver_cuda_node_ops);
 
 #ifdef STARPU_USE_CUDA_MAP
 					/* TODO: check node capabilities */
@@ -2730,7 +2632,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					opencl_init[devid] = 1;
 					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
+					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid, &_starpu_driver_opencl_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2778,7 +2680,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					//	npreferred = config->topology.nhwpus;
 					//}
 					mic_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
+					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid, &_starpu_driver_mic_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2799,26 +2701,6 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 			}
 #endif /* STARPU_USE_MIC */
 
-#ifdef STARPU_USE_SCC
-			case STARPU_SCC_WORKER:
-			{
-				unsigned numa;
-				/* Node 0 represents the SCC shared memory when we're on SCC. */
-				struct _starpu_memory_node_descr *descr = _starpu_memory_node_get_description();
-				descr->nodes[ram_memory_node] = STARPU_SCC_SHM;
-
-				memory_node = ram_memory_node;
-				_starpu_memory_node_add_nworkers(memory_node);
-
-				//This worker can manage transfers on NUMA nodes
-				for (numa = 0; numa < nb_numa_nodes; numa++)
-						_starpu_worker_drives_memory_node(workerarg, numa);
-
-				_starpu_worker_drives_memory_node(workerarg, memory_node);
-			}
-				break;
-#endif /* STARPU_USE_SCC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
@@ -2831,7 +2713,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					mpi_init[devid] = 1;
 					mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
+					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid, &_starpu_driver_mpi_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{
@@ -2985,7 +2867,6 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 	config->cuda_nodeid = -1;
 	config->opencl_nodeid = -1;
 	config->mic_nodeid = -1;
-	config->scc_nodeid = -1;
         config->mpi_nodeid = -1;
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
@@ -3014,12 +2895,6 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 					config->mic_nodeid = starpu_worker_get_memory_node(i);
 				else if (config->mic_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->mic_nodeid = -2;
-				break;
-			case STARPU_SCC_WORKER:
-				if (config->scc_nodeid == -1)
-					config->scc_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->scc_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->scc_nodeid = -2;
 				break;
 			case STARPU_MPI_MS_WORKER:
 				if (config->mpi_nodeid == -1)

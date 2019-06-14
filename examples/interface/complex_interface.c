@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2012-2015,2017,2018                      CNRS
+ * Copyright (C) 2012-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2012-2015,2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -160,6 +160,8 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 	STARPU_ASSERT(count == 2 * complex_interface->nx * sizeof(double));
 	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
 	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+
+	starpu_free_flags(ptr, count, 0);
 
 	return 0;
 }

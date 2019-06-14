@@ -19,8 +19,33 @@
 StarPU 1.4.0 (svn revision xxxx)
 ==============================================
 New features:
+  * Fault tolerance support with starpu_task_ft_failed().
 
-StarPU 1.3.0 (svn revision xxxx)
+StarPU 1.3.2 (git revision xxx)
+==============================================
+
+Small changes:
+  * Improve OpenMP support to detect the environment is valid before
+    launching OpenMP
+  * Delete old code (drivers gordon, scc, starpu-top, and plugin gcc)
+    and update authors file accordingly
+  * Add Heteroprio documentation (including a simple example)
+  * Add a progression hook, to be called when workers are idle, which
+    is used in the NewMadeleine implementation of StarPU-MPI to ensure
+    communications progress.
+
+StarPU 1.3.1 (git revision 01949488b4f8e6fe26d2c200293b8aae5876b038)
+==============================================
+
+Small features:
+  * Add starpu_filter_nparts_compute_chunk_size_and_offset helper.
+  * Add starpu_bcsr_filter_canonical_block_child_ops.
+
+Small changes:
+  * Improve detection of NVML availability. Do not only check the
+    library is available, also check the compiled code can be run.
+
+StarPU 1.3.0 (git revision 24ca83c6dbb102e1cfc41db3bb21c49662067062)
 ==============================================
 
 New features:
@@ -139,6 +164,8 @@ Small features:
     starpu_conf::catch_signals or through the environment variable
     STARPU_CATCH_SIGNALS
   * Support for OpenMP Taskloop directive
+  * Optional data interface init function (used by the vector and
+    matrix interfaces)
 
 Changes:
   * Vastly improve simgrid simulation time.
@@ -149,6 +176,14 @@ Changes:
     operation in favor of new starpu_data_interface_ops::to_pointer
     operation.
   * Sort data access requests by priority.
+  * Cluster support is disabled by default, unless the configure
+    option --enable-cluster is specified
+  * For unpack operations, move the memory deallocation from
+    starpu_data_unpack() to the interface function
+    starpu_data_interface_ops::unpack_data(). Pack and unpack
+    functions of predefined interfaces
+    use public API starpu_malloc_on_node_flags() and
+    starpu_free_on_node_flags() to allocate and de-allocate memory
 
 Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
@@ -157,8 +192,20 @@ Small changes:
   * Fonction starpu_is_initialized() is moved to the public API.
   * Fix code to allow to submit tasks to empty contexts
   * STARPU_COMM_STATS also displays the bandwidth
+  * Update data interfaces implementations to only use public API
 
-StarPU 1.2.7 (git revision xxx)
+StarPU 1.2.9 (git revision xxx)
+==============================================
+  * Add STARPU_SIMGRID_TRANSFER_COST environment variable to easily disable
+    data transfer costs.
+
+StarPU 1.2.8 (git revision f66374c9ad39aefb7cf5dfc31f9ab3d756bcdc3c)
+==============================================
+
+Small features:
+  * Minor fixes
+
+StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
 ==============================================
 
 Small features:

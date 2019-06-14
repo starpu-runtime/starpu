@@ -185,10 +185,6 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.mic_to_ram = NULL,
 
-	.scc_src_to_sink = NULL,
-	.scc_sink_to_src = NULL,
-	.scc_sink_to_sink = NULL,
-
 	.ram_to_mpi_ms = NULL,
 	.mpi_ms_to_ram = NULL,
 	.mpi_ms_to_mpi_ms = NULL,
@@ -277,6 +273,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.register_data_handle = register_vector_cpp_handle,
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
+	.init = NULL,
 	.copy_methods = &vector_cpp_copy_data_methods_s,
 	.handle_to_pointer = NULL,
 	.to_pointer = vector_cpp_to_pointer,
@@ -304,6 +301,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	register_vector_cpp_handle,
 	allocate_vector_cpp_buffer_on_node,
 	free_vector_cpp_buffer_on_node,
+	NULL,
 	&vector_cpp_copy_data_methods_s,
 	vector_cpp_to_pointer,
 	vector_cpp_pointer_is_inside,
@@ -578,7 +576,6 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.nmic = 0;
-	conf.nscc = 0;
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

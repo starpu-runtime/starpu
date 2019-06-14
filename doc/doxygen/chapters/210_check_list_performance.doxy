@@ -342,8 +342,7 @@ devices for instance, the model can be shared by setting
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA),
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL),
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_MIC=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MIC),
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS), or
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_SCC=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_SCC), depending on your GPU device type.
+<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS) depending on your GPU device type.
 
 To force continuing calibration,
 use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application

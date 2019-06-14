@@ -165,6 +165,12 @@ extern struct starpu_perfmodel chol_model_22;
 extern struct starpu_codelet cl11;
 extern struct starpu_codelet cl21;
 extern struct starpu_codelet cl22;
+extern struct starpu_codelet cl11_gpu;
+extern struct starpu_codelet cl21_gpu;
+extern struct starpu_codelet cl22_gpu;
+extern struct starpu_codelet cl11_cpu;
+extern struct starpu_codelet cl21_cpu;
+extern struct starpu_codelet cl22_cpu;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);

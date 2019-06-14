@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2017                                Inria
- * Copyright (C) 2015-2017                                CNRS
+ * Copyright (C) 2015-2017, 2019                          CNRS
  * Copyright (C) 2013-2015,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
@@ -37,6 +37,7 @@
 
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/disk/driver_disk.h>
 #include <profiling/profiling.h>
 #include <common/uthash.h>
 
@@ -76,7 +77,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN, "Minimum disk size is %d Bytes ! (Here %d) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
-	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
+	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0, &_starpu_driver_disk_node_ops);
 
         /* Connect the disk memory node to all numa memory nodes */
         int nb_numa_nodes = starpu_memory_nodes_get_numa_count();
@@ -451,13 +452,12 @@ static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *
 
 int _starpu_disk_can_copy(unsigned node1, unsigned node2)
 {
-	if (starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
-	{
-		if (disk_register_list[node1]->functions == disk_register_list[node2]->functions)
-			/* they must have a copy function */
-			if (disk_register_list[node1]->functions->copy != NULL)
-				return 1;
-	}
+	STARPU_ASSERT(starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM);
+
+	if (disk_register_list[node1]->functions == disk_register_list[node2]->functions)
+		/* they must have a copy function */
+		if (disk_register_list[node1]->functions->copy != NULL)
+			return 1;
 	return 0;
 }
 

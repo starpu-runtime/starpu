@@ -3,7 +3,7 @@
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2018                                     Inria
  * Copyright (C) 2017,2018,2019                           CNRS
- * Copyright (C) 2016-2018                                Université de Bordeaux
+ * Copyright (C) 2016-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,8 +93,6 @@ static int priority = 0;
 
 char * reg_signal = NULL; /* The register signal (0 or 1 coded on 8 bit) is used to know which handle of the task has to be registered in StarPU (in fact to avoid  handle twice)*/
 
-static int device;
-
 /* Record all tasks, hashed by jobid. */
 static struct task
 {
@@ -151,6 +149,7 @@ unsigned int diff(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_nod
 struct task_arg
 {
 	uint32_t footprint;
+	unsigned narch;
 	double perf[];
 };
 
@@ -161,15 +160,19 @@ uint32_t get_footprint(struct starpu_task * task)
 
 double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 {
-	device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	int device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(device != -1);
 	(void) nimpl;
 
 	/* Then, get the pointer to the value of the expected time */
-	double * val = (double *) ((struct task_arg *) (task->cl_arg))->perf+device;
+	struct task_arg *arg = task->cl_arg;
+	if (device < (int) arg->narch)
+	{
+		double val = arg->perf[device];
 
-	if (!(*val == 0 || isnan(*val)))
-		return *val;
+		if (!(val == 0 || isnan(val)))
+			return val;
+	}
 
 	fprintf(stderr, "[starpu] Error, expected_time is 0 or lower (replay.c line : %d)", __LINE__- 6);
 
@@ -194,11 +197,20 @@ void dumb_kernel(void *buffers[], void *args) {
 static int can_execute(unsigned worker_id, struct starpu_task *task, unsigned nimpl)
 {
 	struct starpu_perfmodel_arch * arch = starpu_worker_get_perf_archtype(worker_id, STARPU_NMAX_SCHED_CTXS);
-	double expected_time = ((struct task_arg *) (task->cl_arg))->perf[starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices)];
+	int device = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if (device == -1)
+		/* Doesn't exist yet, thus unknown, assuming it can not work there. */
+		return 0;
 	(void) nimpl;
-	if (!(expected_time == 0 || isnan(expected_time)))
+
+	/* Then, get the pointer to the value of the expected time */
+	struct task_arg *arg = task->cl_arg;
+	if (device < (int) arg->narch)
 	{
-		return 1;
+		double val = arg->perf[device];
+
+		if (!(val == 0 || isnan(val)))
+			return 1;
 	}
 
 	return 0;
@@ -256,7 +268,10 @@ static void arrays_managing(int mode)
 /* Check if a handle hasn't been registered yet */
 static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 {
-	int h;
+	int h, i;
+	starpu_data_handle_t orig_handles[nb_handles];
+
+	ARRAY_DUP(handles_ptr, orig_handles, nb_handles);
 
 	for (h = 0 ; h < nb_handles ; h++)
 	{
@@ -264,16 +279,29 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 		{
 			struct handle * handles_cell;
 
-			_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
-			STARPU_ASSERT(handles_cell != NULL);
+			for (i = 0; i < h; i++)
+			{
+				/* Maybe we just registered it in this very h loop */
+				if (handles_ptr[h] == orig_handles[i])
+				{
+					handles_ptr[h] = handles_ptr[i];
+					break;
+				}
+			}
 
-			handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
+			if (i == h)
+			{
+				_STARPU_MALLOC(handles_cell, sizeof(*handles_cell));
+				STARPU_ASSERT(handles_cell != NULL);
 
-			starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
+				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
-			handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+				starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
 
-			HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+				handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
+
+				HASH_ADD(hh, handles_hash, handle, sizeof(handles_ptr[h]), handles_cell);
+			}
 		}
 	}
 }
@@ -413,7 +441,10 @@ int submit_tasks(void)
 
 			if (ret_val != 0)
 			{
-				printf("\nWhile submitting task %ld: return %d\n", currentTask->submit_order, ret_val);
+				printf("\nWhile submitting task %ld (%s): return %d\n",
+						currentTask->submit_order,
+						currentTask->task.name? currentTask->task.name : "unknown",
+						ret_val);
 				return -1;
 			}
 
@@ -517,6 +548,7 @@ int main(int argc, char **argv)
 	reset();
 
 	double start = starpu_timing_now();
+	int linenum = 0;
 
 	while(1)
 	{
@@ -555,6 +587,8 @@ int main(int argc, char **argv)
 
 			s_allocated *= 2;
 		}
+
+		linenum++;
 
 		if (ln == s)
 		{
@@ -626,30 +660,64 @@ int main(int argc, char **argv)
 
 						starpu_perfmodel_init(&realmodel->perfmodel);
 
-						HASH_ADD_STR(model_hash, model_name, realmodel);
-
 						int error = starpu_perfmodel_load_symbol(model, &realmodel->perfmodel);
 
-						if (error)
+						if (!error)
+						{
+							HASH_ADD_STR(model_hash, model_name, realmodel);
+						}
+						else
 						{
 
 							fprintf(stderr, "[starpu][Warning] Error loading perfmodel symbol %s\n", model);
-							exit(EXIT_FAILURE);
+							fprintf(stderr, "[starpu][Warning] Taking only measurements from the given execution, and forcing execution on worker %d\n", workerid);
+							starpu_perfmodel_unload_model(&realmodel->perfmodel);
+							free(realmodel->model_name);
+							free(realmodel);
+							realmodel = NULL;
 						}
 
 					}
 
+					struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, 0);
+
+					unsigned comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
 					unsigned narch = starpu_perfmodel_get_narch_combs();
 
 					struct task_arg *arg;
 					_STARPU_MALLOC(arg, sizeof(struct task_arg) + sizeof(double) * narch);
 					arg->footprint = footprint;
+					arg->narch = narch;
 					double * perfTime  = arg->perf;
 
-					for (i = 0; i < narch ; i++)
+					if (realmodel == NULL)
 					{
-						struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
-						perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
+						/* Erf, do without perfmodel, for execution there */
+						task->task.workerid = workerid;
+						task->task.execute_on_a_specific_worker = 1;
+						for (i = 0; i < narch ; i++)
+						{
+							if (i == comb)
+								perfTime[i] = endTime - startTime;
+							else
+								perfTime[i] = NAN;
+						}
+					}
+					else
+					{
+						int one = 0;
+						for (i = 0; i < narch ; i++)
+						{
+							struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
+							perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
+							if (!(perfTime[i] == 0 || isnan(perfTime[i])))
+								one = 1;
+						}
+						if (!one)
+						{
+							fprintf(stderr, "We do not have any performance measurement for symbol '%s' for footprint %x, we can not execute this", model, footprint);
+							exit(EXIT_FAILURE);
+						}
 					}
 
 					task->task.cl_arg = arg;
@@ -747,19 +815,19 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Parameters"))
 		{
-			/* Parameters line format is PARAM1_PARAM2_(...)PARAMi_(...)PARAMn */
+			/* Parameters line format is PARAM1 PARAM2 (...)PARAMi (...)PARAMn */
 			char * param_str = s + 12;
 			int count = 0;
 
 			for (i = 0 ; param_str[i] != '\n'; i++)
 			{
-				if (param_str[i] == '_') /* Checking the number of '_' (underscore), assuming that the file is not corrupted */
+				if (param_str[i] == ' ') /* Checking the number of ' ' (space), assuming that the file is not corrupted */
 				{
 					count++;
 				}
 			}
 
-			nb_parameters = count + 1; /* There is one underscore per paramater execept for the last one, that's why we have to add +1 (dirty programming) */
+			nb_parameters = count + 1; /* There is one space per paramater except for the last one, that's why we have to add +1 (dirty programming) */
 
 			/* This part of the algorithm will determine if it needs static or dynamic arrays */
 			alloc_mode = set_alloc_mode(nb_parameters);
@@ -772,30 +840,28 @@ int main(int argc, char **argv)
 			const char *delim = " ";
 			char *token = strtok(buffer, delim);
 
-			while (token != NULL)
+			for (i = 0 ; i < nb_parameters ; i++)
 			{
-				for (i = 0 ; i < nb_parameters ; i++)
+				STARPU_ASSERT(token);
+				struct handle *handles_cell; /* A cell of the hash table for the handles */
+				starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
+
+				HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
+
+				/* If it wasn't, then add it to the hash table */
+				if (handles_cell == NULL)
 				{
-					struct handle *handles_cell; /* A cell of the hash table for the handles */
-					starpu_data_handle_t  handle_value = (starpu_data_handle_t) strtol(token, NULL, 16); /* Get the ith handle on the line (in the file) */
-
-					HASH_FIND(hh, handles_hash, &handle_value, sizeof(handle_value), handles_cell); /* Find if the handle_value was already registered as a key in the hash table */
-
-					/* If it wasn't, then add it to the hash table */
-					if (handles_cell == NULL)
-					{
-						/* Hide the initial handle from the file into the handles array to find it when necessary */
-						handles_ptr[i] = handle_value;
-						reg_signal[i] = 1;
-					}
-					else
-					{
-						handles_ptr[i] = handles_cell->mem_ptr;
-						reg_signal[i] = 0;
-					}
-
-					token = strtok(NULL, delim);
+					/* Hide the initial handle from the file into the handles array to find it when necessary */
+					handles_ptr[i] = handle_value;
+					reg_signal[i] = 1;
 				}
+				else
+				{
+					handles_ptr[i] = handles_cell->mem_ptr;
+					reg_signal[i] = 0;
+				}
+
+				token = strtok(NULL, delim);
 			}
 		}
 		else if (TEST("Modes"))
@@ -805,7 +871,7 @@ int main(int argc, char **argv)
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
-			while (token != NULL)
+			while (token != NULL && mode_i < nb_parameters)
 			{
 				/* Subject to the names of starpu modes enumerator are not modified */
 				if (!strncmp(token, "RW", 2))
@@ -840,7 +906,7 @@ int main(int argc, char **argv)
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
-			while (token != NULL)
+			while (token != NULL && k < nb_parameters)
 			{
 				sizes_set[k] = strtol(token, NULL, 10);
 				token = strtok(NULL, delim);
@@ -921,9 +987,9 @@ eof:
         }
 
 	starpu_shutdown();
-
 	return 0;
 
 enodev:
+	starpu_shutdown();
 	return 77;
 }

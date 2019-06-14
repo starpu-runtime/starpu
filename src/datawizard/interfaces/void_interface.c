@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2014,2018                           Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2011-2015,2017                           CNRS
+ * Copyright (C) 2011-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,14 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
 
 static int dummy_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 

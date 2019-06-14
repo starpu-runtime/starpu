@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2014                                Inria
- * Copyright (C) 2010,2011,2013-2015,2017,2018            CNRS
+ * Copyright (C) 2010,2011,2013-2015,2017,2018,2019       CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -56,7 +56,6 @@ typedef void (*_starpu_cl_func_t)(void **, void *);
 #define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->where & STARPU_CUDA)
 #define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->where & STARPU_OPENCL)
 #define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->where & STARPU_MIC)
-#define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->where & STARPU_SCC)
 
 struct _starpu_data_descr
 {
@@ -256,6 +255,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 /* When waking up a continuation, we only enforce new task dependencies */
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j);
 #endif
+unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j);
 void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag);
 
 /* Called at the submission of the job */

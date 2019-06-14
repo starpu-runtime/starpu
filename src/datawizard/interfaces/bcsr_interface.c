@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2018                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,18 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-#include <starpu_hash.h>
-
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
 
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)
@@ -259,7 +247,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -275,9 +263,8 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 {
-	int node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
+	int node;
+	node = starpu_worker_get_local_memory_node();
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
@@ -292,9 +279,8 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 
 uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 {
-	int node = handle->home_node;
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
+	int node;
+	node = starpu_worker_get_local_memory_node();
 
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
@@ -408,7 +394,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	if (starpu_interface_copy((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, 0, dst_node, (nrow+1)*sizeof(uint32_t), async_data))
 		ret = -EAGAIN;
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
+	starpu_interface_data_copy(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return ret;
 }
@@ -439,7 +425,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 
 	if (ptr != NULL)
 	{
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		char *tmp = *ptr;
 		memcpy(tmp, (void*)bcsr->colind, bcsr->nnz * sizeof(bcsr->colind[0]));
 		tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
@@ -465,6 +451,9 @@ static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, si
 	memcpy((void*)bcsr->rowptr, tmp, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
 	tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
 	memcpy((void*)bcsr->nzval, tmp, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
+
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
+
 	return 0;
 }
 

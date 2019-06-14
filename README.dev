@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011,2012                                Inria
-# Copyright (C) 2010-2012,2015-2017                      CNRS
+# Copyright (C) 2010-2012,2015-2017,2019                 CNRS
 # Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -39,10 +39,8 @@ StarPU extensions have their own directory (src/include/tests/examples) structur
 
 - mpi           : The MPI support
 - socl          : the StarPU OpenCL-compatible interface
-- gcc-plugin    : the GCC plug-in that extends the C programming language with pragmas and attributes
 - sc_hypervisor : The Scheduling Context Hypervisor
 - starpufft     : The FFT support
-- starpu-top    : StarPU-Top Interface
 
 Some directories contain only build system details:
 - build-aux

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2014,2017                      Inria
- * Copyright (C) 2010-2015,2017                           CNRS
+ * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,18 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-#include <starpu_hash.h>
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/mic/driver_mic_source.h>
-#include <drivers/scc/driver_scc_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 static int map_vector(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
@@ -40,6 +28,7 @@ static const struct starpu_data_copy_methods vector_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
+static void vector_init(void *data_interface);
 static void register_vector_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_to_pointer(void *data_interface, unsigned node);
@@ -58,6 +47,7 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_vector_ops =
 {
+	.init = vector_init,
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.to_pointer = vector_to_pointer,
@@ -81,6 +71,12 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.describe = describe,
 	.name = "STARPU_VECTOR_INTERFACE"
 };
+
+static void vector_init(void *data_interface)
+{
+	struct starpu_vector_interface *vector_interface = data_interface;
+	vector_interface->allocsize = -1;
+}
 
 static void *vector_to_pointer(void *data_interface, unsigned node)
 {
@@ -132,7 +128,7 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
 
 /* declare a new data with the vector interface */
 void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int home_node,
-		uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize)
+					   uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize)
 {
 	struct starpu_vector_interface vector =
 	{
@@ -153,15 +149,11 @@ void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
 
 void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize)
+				 uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	starpu_vector_data_register_allocsize(handleptr, home_node, ptr, nx, elemsize, nx * elemsize);
 }
@@ -225,7 +217,7 @@ static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void *
 
 	if (ptr != NULL)
 	{
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, (void*)vector_interface->ptr, vector_interface->elemsize*vector_interface->nx);
 	}
 
@@ -241,6 +233,8 @@ static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
+
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }
@@ -271,6 +265,7 @@ static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle)
 #endif
 
 	size = vector_interface->allocsize;
+	STARPU_ASSERT_MSG(size != (size_t)-1, "The vector allocation size needs to be defined");
 
 	return size;
 }
@@ -291,7 +286,7 @@ uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -412,7 +407,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 				    dst_vector->dev_handle, dst_vector->offset, dst_node,
 				    src_vector->nx*src_vector->elemsize, async_data);
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 	return ret;
 }
 

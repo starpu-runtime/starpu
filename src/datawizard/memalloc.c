@@ -391,7 +391,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the free method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_get_devid(node));
+			starpu_cuda_set_device(starpu_memory_node_get_devid(node));
 		}
 #endif
 
@@ -1433,7 +1433,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			 * proper CUDA device in case it is needed. This avoids
 			 * having to set it again in the malloc method of each
 			 * interface. */
-			starpu_cuda_set_device(_starpu_memory_node_get_devid(dst_node));
+			starpu_cuda_set_device(starpu_memory_node_get_devid(dst_node));
 		}
 #endif
 
@@ -1562,8 +1562,8 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 	if (replicate->relaxed_coherency == 0 && (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM))
 	{
-		/* We are allocating the buffer in main memory, also register it
-		 * for the gcc plugin.  */
+		/* We are allocating the buffer in main memory, also
+		 * register it for starpu_data_handle_to_pointer() */
 		void *ptr = starpu_data_handle_to_pointer(handle, dst_node);
 		if (ptr != NULL)
 		{
@@ -1711,7 +1711,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 		     _starpu_memory_manager_test_allocate_size(i, _starpu_data_get_alloc_size(handle)) == 1))
 		{
 			/* if we can write on the disk */
-			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
+			if ((_starpu_get_disk_flag(i) & STARPU_DISK_NO_RECLAIM) == 0)
 			{
 				unsigned numa;
 				unsigned nnumas = starpu_memory_nodes_get_numa_count();
@@ -1796,7 +1796,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 	}
 	/* we haven't the right to write on the disk */
-	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && (_starpu_get_disk_flag(target) & STARPU_DISK_NO_RECLAIM))
 		target = -1;
 
 	return target;

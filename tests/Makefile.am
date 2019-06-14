@@ -17,15 +17,6 @@
 #
 include $(top_srcdir)/starpu.mk
 
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
-
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
 LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
@@ -60,7 +51,7 @@ EXTRA_DIST =					\
 	datawizard/interfaces/coo/coo_opencl_kernel.cl \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl \
 	datawizard/interfaces/variable/variable_opencl_kernel.cl \
-	datawizard/interfaces/vector/test_vector_opencl_kernel.cl \
+	datawizard/interfaces/vector/vector_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_types.h \
 	datawizard/interfaces/multiformat/multiformat_opencl_kernel.cl \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets_kernel.cl \
@@ -145,6 +136,7 @@ XFAIL_TESTS	=				\
 myPROGRAMS =
 
 myPROGRAMS +=					\
+	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\
 	main/insert_task_pack			\
@@ -308,7 +300,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/variable/variable_interface    \
-	datawizard/interfaces/vector/test_vector_interface   \
+	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
 	datawizard/in_place_partition   	\
 	datawizard/partition_dep   		\
@@ -335,6 +327,7 @@ myPROGRAMS +=				\
 	disk/mem_reclaim			\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/workers_cpuid		\
+	fault-tolerance/retry			\
 	helper/starpu_data_cpy			\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
@@ -843,20 +836,20 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 endif
 
 
-datawizard_interfaces_vector_test_vector_interface_SOURCES =               \
-	datawizard/interfaces/vector/test_vector_interface.c               \
+datawizard_interfaces_vector_vector_interface_SOURCES =               \
+	datawizard/interfaces/vector/vector_interface.c               \
 	datawizard/interfaces/test_interfaces.c
 
 if STARPU_USE_CUDA
-datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/vector/test_vector_cuda.cu
+datawizard_interfaces_vector_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/vector_cuda.cu
 endif
 
 if STARPU_USE_OPENCL
-datawizard_interfaces_vector_test_vector_interface_SOURCES +=               \
-	datawizard/interfaces/vector/test_vector_opencl.c
+datawizard_interfaces_vector_vector_interface_SOURCES +=               \
+	datawizard/interfaces/vector/vector_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	datawizard/interfaces/vector/test_vector_opencl_kernel.cl
+	datawizard/interfaces/vector/vector_opencl_kernel.cl
 endif
 
 ####################

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2012,2013,2015,2017                      CNRS
- * Copyright (C) 2013,2014                                Université de Bordeaux
+ * Copyright (C) 2013,2014,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -83,6 +83,7 @@ int main(void)
 	int ret = 0;
 	starpu_data_handle_t handle1;
 	starpu_data_handle_t handle2;
+	starpu_data_handle_t handle3;
 
 	double real = 45.0;
 	double imaginary = 12.0;
@@ -91,6 +92,10 @@ int main(void)
 
 	int compare;
 	int *compare_ptr = &compare;
+
+	starpu_data_handle_t vectorh;
+	struct starpu_vector_interface *vectori;
+	double *vector;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
@@ -112,6 +117,7 @@ int main(void)
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
+	/* Compare two different complexs.  */
 	ret = starpu_task_insert(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
@@ -126,6 +132,7 @@ int main(void)
 	     goto end;
 	}
 
+	/* Copy one into the other.  */
 	ret = starpu_task_insert(&cl_copy,
 				 STARPU_R, handle1,
 				 STARPU_W, handle2,
@@ -141,6 +148,7 @@ int main(void)
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
+	/* And compare again.  */
 	ret = starpu_task_insert(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
@@ -155,6 +163,71 @@ int main(void)
 	{
 	     FPRINTF(stderr, "Complex numbers should be similar\n");
 	}
+
+	/* Put another value again */
+	starpu_data_acquire(handle2, STARPU_W);
+	copy_real = 78.0;
+	copy_imaginary = 77.0;
+	starpu_data_release(handle2);
+
+	/* Create a vector of two complexs.  */
+	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
+
+	/* Split it in two pieces (thus one complex each).  */
+	struct starpu_data_filter f =
+	{
+		.filter_func = starpu_complex_filter_block,
+		.nchildren = 2,
+	};
+	starpu_data_partition(handle3, &f);
+
+	/* Copy the two complexs into each part */
+	ret = starpu_task_insert(&cl_copy,
+				 STARPU_R, handle1,
+				 STARPU_W, starpu_data_get_sub_data(handle3, 1, 0),
+				 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(&cl_copy,
+				 STARPU_R, handle2,
+				 STARPU_W, starpu_data_get_sub_data(handle3, 1, 1),
+				 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	/* Gather the two pieces.  */
+	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
+
+	/* Show it.  */
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, 0);
+
+	/* Get the real and imaginary vectors.  */
+	struct starpu_data_filter fcanon =
+	{
+		.filter_func = starpu_complex_filter_canonical,
+		.nchildren = 2,
+		.get_child_ops = starpu_complex_filter_canonical_child_ops,
+	};
+	starpu_data_partition(handle3, &fcanon);
+
+	/* Check the corresponding data.  */
+	vectorh = starpu_data_get_sub_data(handle3, 1, 0);
+	starpu_data_acquire(vectorh, STARPU_R);
+	vectori = starpu_data_get_interface_on_node(vectorh, STARPU_MAIN_RAM);
+	vector = (double*) vectori->ptr;
+	STARPU_ASSERT_MSG(vector[0] == 45., "Bogus value: %f instead of %f", vector[0], 45.);
+	STARPU_ASSERT_MSG(vector[1] == 78., "Bogus value: %f instead of %f", vector[1], 78.);
+	starpu_data_release(vectorh);
+
+	vectorh = starpu_data_get_sub_data(handle3, 1, 1);
+	starpu_data_acquire(vectorh, STARPU_R);
+	vectori = starpu_data_get_interface_on_node(vectorh, STARPU_MAIN_RAM);
+	vector = (double*) vectori->ptr;
+	STARPU_ASSERT_MSG(vector[0] == 12., "Bogus value: %f instead of %f", vector[0], 12.);
+	STARPU_ASSERT_MSG(vector[1] == 77., "Bogus value: %f instead of %f", vector[1], 77.);
+	starpu_data_release(vectorh);
+
+	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
 
 end:
 #ifdef STARPU_USE_OPENCL

@@ -4,7 +4,7 @@
 # Copyright (C) 2011,2012,2016,2017                      Inria
 # Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2013                                     Joris Pablo
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2019                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,15 +19,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
-
-if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
-endif
 
 SUBDIRS =
 
@@ -51,6 +42,18 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.latency	\
 	perfmodels/sampling/bus/attila.platform.xml	\
 	perfmodels/sampling/bus/attila.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal.affinity	\
+	perfmodels/sampling/bus/hannibal.bandwidth	\
+	perfmodels/sampling/bus/hannibal.config	\
+	perfmodels/sampling/bus/hannibal.latency	\
+	perfmodels/sampling/bus/hannibal.platform.xml	\
+	perfmodels/sampling/bus/hannibal.platform.v4.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.affinity	\
+	perfmodels/sampling/bus/hannibal-pitch.bandwidth	\
+	perfmodels/sampling/bus/hannibal-pitch.config	\
+	perfmodels/sampling/bus/hannibal-pitch.latency	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.xml	\
+	perfmodels/sampling/bus/hannibal-pitch.platform.v4.xml	\
 	perfmodels/sampling/bus/idgraf.affinity	\
 	perfmodels/sampling/bus/idgraf.bandwidth	\
 	perfmodels/sampling/bus/idgraf.config	\
@@ -88,6 +91,20 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.attila	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.attila	\
+	perfmodels/sampling/codelets/45/chol_model_11.hannibal	\
+	perfmodels/sampling/codelets/45/chol_model_21.hannibal	\
+	perfmodels/sampling/codelets/45/chol_model_22.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.hannibal	\
+	perfmodels/sampling/codelets/45/chol_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/chol_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/chol_model_22.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/chol_model_11.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_21.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_22.idgraf	\

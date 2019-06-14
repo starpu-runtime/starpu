@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2017,2019                           Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,9 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
 #include <common/fxt.h>
-#include "copy_driver.h"
-#include "memalloc.h"
+#include <datawizard/copy_driver.h>
+#include <datawizard/memalloc.h>
+#include <datawizard/node_ops.h>
 
 char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
@@ -42,6 +43,7 @@ void _starpu_memory_nodes_init(void)
 		_starpu_descr.nodes[i] = STARPU_UNUSED;
 		_starpu_descr.nworkers[i] = 0;
 	}
+	memset(&_starpu_worker_drives_memory, 0, sizeof(_starpu_worker_drives_memory));
 	STARPU_HG_DISABLE_CHECKING(_starpu_worker_drives_memory);
 
 	_starpu_init_mem_chunk_lists();
@@ -74,42 +76,11 @@ unsigned starpu_memory_nodes_get_count(void)
 
 int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 {
-	const char *prefix;
-	switch (_starpu_descr.nodes[node])
-	{
-	case STARPU_CPU_RAM:
-		prefix = "NUMA";
-		break;
-	case STARPU_CUDA_RAM:
-		prefix = "CUDA";
-		break;
-	case STARPU_OPENCL_RAM:
-		prefix = "OpenCL";
-		break;
-	case STARPU_DISK_RAM:
-		prefix = "Disk";
-		break;
-	case STARPU_MIC_RAM:
-		prefix = "MIC";
-		break;
-	case STARPU_MPI_MS_RAM:
-		prefix = "MPI_MS";
-		break;
-	case STARPU_SCC_RAM:
-		prefix = "SCC_RAM";
-		break;
-	case STARPU_SCC_SHM:
-		prefix = "SCC_shared";
-		break;
-	case STARPU_UNUSED:
-	default:
-		prefix = "unknown";
-		STARPU_ASSERT(0);
-	}
+	const char *prefix = _starpu_node_get_prefix(_starpu_descr.nodes[node]);
 	return snprintf(name, size, "%s %d", prefix, _starpu_descr.devid[node]);
 }
 
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops)
 {
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
@@ -120,6 +91,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	_STARPU_TRACE_NEW_MEM_NODE(node);
 
 	_starpu_descr.devid[node] = devid;
+	_starpu_descr.node_ops[node] = node_ops;
 
 	/* for now, there is no condition associated to that newly created node */
 	_starpu_descr.condition_count[node] = 0;
@@ -208,6 +180,19 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 #ifdef STARPU_SIMGRID
 		starpu_pthread_queue_register(&worker->wait, &_starpu_simgrid_transfer_queue[memnode]);
 #endif
+		_starpu_memory_node_register_condition(worker, &worker->sched_cond, memnode);
 	}
 }
 
+unsigned starpu_worker_get_local_memory_node(void)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker)
+		return STARPU_MAIN_RAM;
+	return worker->memory_node;
+}
+
+int starpu_memory_node_get_devid(unsigned node)
+{
+	return _starpu_descr.devid[node];
+}

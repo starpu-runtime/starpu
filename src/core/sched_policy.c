@@ -560,8 +560,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
 			else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
-			else if (task->where == STARPU_SCC && config->scc_nodeid >= 0)
-				starpu_prefetch_task_input_on_node(task, config->scc_nodeid);
 		}
 
 		if(!sched_ctx->sched_policy)
@@ -671,18 +669,16 @@ int _starpu_pop_task_end(struct starpu_task *task)
  * Given a handle that needs to be converted in order to be used on the given
  * node, returns a task that takes care of the conversion.
  */
-struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
-						   unsigned int node)
+struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle, unsigned int node)
 {
 	return _starpu_create_conversion_task_for_arch(handle, starpu_node_get_kind(node));
 }
 
-struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle,
-						   enum starpu_node_kind node_kind)
+struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t handle, enum starpu_node_kind node_kind)
 {
 	struct starpu_task *conversion_task;
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 	struct starpu_multiformat_interface *format_interface;
 #endif
 
@@ -691,7 +687,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	conversion_task->synchronous = 0;
 	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 #endif
@@ -704,13 +700,9 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:
-	case STARPU_SCC_RAM:
-	case STARPU_SCC_SHM:
 		switch (starpu_node_get_kind(handle->mf_node))
 		{
 		case STARPU_CPU_RAM:
-		case STARPU_SCC_RAM:
-		case STARPU_SCC_SHM:
 			STARPU_ABORT();
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -774,6 +766,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		STARPU_ABORT();
 	}
 
+	_starpu_codelet_check_deprecated_fields(conversion_task->cl);
 	STARPU_TASK_SET_MODE(conversion_task, STARPU_RW, 0);
 	return conversion_task;
 }

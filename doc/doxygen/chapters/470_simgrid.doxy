@@ -2,8 +2,7 @@
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux
- * Copyright (C) 2009-2011,2014-2018                      Université de Bordeaux,
+ * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,12 +16,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * NOTE: XXX: also update simgrid versions in 101_building.doxy !!
+ */
+
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid from 3.11 to 3.16, and 3.18 to 3.20.
+platform. This was tested with simgrid from 3.11 to 3.16, and 3.18 to 3.22.
 Other versions may have compatibility issues. 3.17 notably does not build at
-all.
+all. MPI simulation does not work with version 3.22.
 
 \section Preparing Preparing Your Application For Simulation
 
@@ -155,7 +158,7 @@ be extended as well), change the available GPU memory size, PCI memory bandwidth
 
 The simulation can be tweaked, to be able to tune it between a very accurate
 simulation and a very simple simulation (which is thus close to scheduling
-theory results), see the \ref STARPU_SIMGRID_CUDA_MALLOC_COST,
+theory results), see the \ref STARPU_SIMGRID_TRANSFER_COST, \ref STARPU_SIMGRID_CUDA_MALLOC_COST,
 \ref STARPU_SIMGRID_CUDA_QUEUE_COST, \ref STARPU_SIMGRID_TASK_SUBMIT_COST,
 \ref STARPU_SIMGRID_FETCHING_INPUT_COST and \ref STARPU_SIMGRID_SCHED_COST environment variables.
 

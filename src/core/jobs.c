@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -28,8 +28,6 @@
 #include <common/graph.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
-#include <starpu_top.h>
-#include <top/starpu_top_core.h>
 #include <core/debug.h>
 #include <limits.h>
 
@@ -87,9 +85,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording || _starpu_top_status_get() ||
-		_starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1
-		|| STARPU_AYU_EVENT)
+	if (_starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT)
 #endif
 	{
 		job->job_id = _starpu_fxt_get_job_id();
@@ -523,7 +519,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			{
 				/* We reuse the same job structure */
 				task->status = STARPU_TASK_BLOCKED;
-				int ret = _starpu_submit_job(j);
+				int ret = _starpu_submit_job(j, 0);
 				STARPU_ASSERT(!ret);
 			}
 #ifdef STARPU_OPENMP
@@ -703,6 +699,20 @@ unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j)
 	return ret;
 }
 #endif
+
+unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j)
+{
+	unsigned ret;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	/* Take references */
+	_starpu_submit_job_take_data_deps(j);
+
+	/* And immediately push task */
+	ret = _starpu_push_task(j);
+
+	return ret;
+}
 
 /* This is called when a tag or task dependency is to be released.  */
 void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag)

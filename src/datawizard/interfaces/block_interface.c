@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,20 +17,6 @@
  */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
-#include <datawizard/copy_driver.h>
-#include <datawizard/filters.h>
-#include <datawizard/memory_nodes.h>
-#include <datawizard/malloc.h>
-
-#include <starpu_hash.h>
-
-#include <starpu_cuda.h>
-#include <starpu_opencl.h>
-#include <drivers/opencl/driver_opencl.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/mic/driver_mic_source.h>
 
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
@@ -157,8 +143,8 @@ static void register_block_handle(starpu_data_handle_t handle, unsigned home_nod
 
 /* declare a new data with the BLAS interface */
 void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
-			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
-			uint32_t ny, uint32_t nz, size_t elemsize)
+				uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
+				uint32_t ny, uint32_t nz, size_t elemsize)
 {
 	struct starpu_block_interface block_interface =
 	{
@@ -181,16 +167,11 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 	}
 #endif
 
-#ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)block_interface.ptr,
-			(void**)&(block_interface.dev_handle), &(block_interface.offset));
-#endif
-
 	starpu_data_register(handleptr, home_node, &block_interface, &starpu_interface_block_ops);
 }
 
 void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node,
-			uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz)
+			       uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz)
 {
 	struct starpu_block_interface *block_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
@@ -247,7 +228,7 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		uint32_t z, y;
 		char *block = (void *)block_interface->ptr;
 
-		_starpu_malloc_flags_on_node(node, ptr, *count, 0);
+		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
 		for(z=0 ; z<block_interface->nz ; z++)
@@ -289,6 +270,8 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 		}
 		block = block_z + block_interface->ldz * block_interface->elemsize;
 	}
+
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }
@@ -350,7 +333,7 @@ uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -367,7 +350,7 @@ uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
 uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -384,7 +367,7 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
 uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 {
 	unsigned node;
-	node = _starpu_memory_node_get_local_key();
+	node = starpu_worker_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -511,7 +494,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		}
 	}
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
 
 	return 0;
 }
@@ -595,7 +578,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 
 	}
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return ret;
 
@@ -618,7 +601,7 @@ no_async_default:
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 	return 0;
 	}
 }
@@ -699,7 +682,7 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
                 }
         }
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return ret;
 }
@@ -794,7 +777,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 		}
 	}
 
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+	starpu_interface_data_copy(src_node, dst_node, nx*ny*nz*elemsize);
 
 	return ret;
 }

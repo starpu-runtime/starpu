@@ -471,6 +471,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 		replicate->handle = handle;
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
+		if (handle->ops->init) handle->ops->init(replicate->data_interface);
 	}
 
 	return 0;
@@ -544,8 +545,7 @@ int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, vo
 
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
-	return starpu_data_handle_to_pointer(handle,
-					_starpu_memory_node_get_local_key());
+	return starpu_data_handle_to_pointer(handle, starpu_worker_get_local_memory_node());
 }
 
 struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle)
@@ -556,7 +556,6 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 /*
  * Stop monitoring a piece of data
  */
-
 void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
@@ -794,11 +793,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 * this piece of data back into the CPU format.
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
-		if (_starpu_data_is_multiformat_handle(handle) &&
-			(  starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM
-			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_RAM
-			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_SHM
-			 ))
+		if (_starpu_data_is_multiformat_handle(handle) && (starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM))
 		{
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
@@ -840,8 +835,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 				}
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
-				case STARPU_SCC_RAM:      /* Impossible ! */
-				case STARPU_SCC_SHM:      /* Impossible ! */
 				default:
 					STARPU_ABORT();
 			}
@@ -898,6 +891,7 @@ retry_busy:
 	if (handle->unregister_hook)
 	{
 		handle->unregister_hook(handle);
+		handle->unregister_hook = NULL;
 	}
 
 	/* Wait for finished requests to release the handle */
@@ -1097,15 +1091,14 @@ int starpu_data_interface_get_next_id(void)
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
-	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
+	return handle->ops->pack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
-	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
-	_starpu_free_flags_on_node(_starpu_memory_node_get_local_key(), ptr, count, 0);
+	ret = handle->ops->unpack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
 	return ret;
 }
 

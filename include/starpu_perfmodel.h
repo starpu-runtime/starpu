@@ -352,7 +352,7 @@ void starpu_perfmodel_free_sampling_directories(void);
 */
 struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
 
-int starpu_perfmodel_get_narch_combs();
+int starpu_perfmodel_get_narch_combs(void);
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
 struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb);
