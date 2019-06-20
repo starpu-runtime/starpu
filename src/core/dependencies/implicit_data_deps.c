@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -314,10 +314,12 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			}
 			else
 			{
-				/* One previous accessor, make it the sync
-				 * task, and start depending on it. */
+				struct _starpu_jobid_list *ghost_accessors_id = handle->last_submitted_ghost_accessors_id;
+				/* At most one previous accessor and one ghost */
 				if (l != &handle->last_submitted_accessors)
 				{
+					/* One accessor, make it the sync task,
+					 * and start depending on it. */
 					_STARPU_DEP_DEBUG("One previous accessor, depending on it\n");
 					handle->last_sync_task = l->task;
 					l->next = NULL;
@@ -325,31 +327,31 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
 					handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
 
+#ifndef STARPU_USE_FXT
+					if (_starpu_bound_recording)
+#endif
+					if (ghost_accessors_id)
 					{
-						/* Declare all dependencies with ghost accessors */
-						struct _starpu_jobid_list *ghost_accessors_id = handle->last_submitted_ghost_accessors_id;
-						while (ghost_accessors_id)
-						{
-							unsigned long id = ghost_accessors_id->id;
-							_STARPU_TRACE_GHOST_TASK_DEPS(id,
-																						_starpu_get_job_associated_to_task(pre_sync_task));
-							_starpu_add_ghost_dependency(handle, id, pre_sync_task);
-							_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
+						/* And add a dependency for the ghost */
+						unsigned long id = ghost_accessors_id->id;
+						_STARPU_TRACE_GHOST_TASK_DEPS(id, _starpu_get_job_associated_to_task(pre_sync_task));
+						_starpu_add_ghost_dependency(handle, id, pre_sync_task);
+						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
-							struct _starpu_jobid_list *prev = ghost_accessors_id;
-							ghost_accessors_id = ghost_accessors_id->next;
-							free(prev);
-						}
+						STARPU_ASSERT(!ghost_accessors_id->next);
 						handle->last_submitted_ghost_accessors_id = NULL;
+						free(ghost_accessors_id);
 					}
 				}
-				else if (handle->last_submitted_ghost_accessors_id)
+				else if (ghost_accessors_id)
 				{
+					/* One ghost, just remember its id */
 					_STARPU_DEP_DEBUG("No more currently running accessor, but a ghost id, taking it.\n");
-					handle->last_submitted_ghost_sync_id = handle->last_submitted_ghost_accessors_id->id;
+					handle->last_submitted_ghost_sync_id = ghost_accessors_id->id;
 					handle->last_submitted_ghost_sync_id_is_valid = 1;
-					free(handle->last_submitted_ghost_accessors_id);
+					STARPU_ASSERT(!ghost_accessors_id->next);
 					handle->last_submitted_ghost_accessors_id = NULL;
+					free(ghost_accessors_id);
 				}
 				else
 				{
