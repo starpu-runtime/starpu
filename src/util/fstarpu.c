@@ -63,6 +63,7 @@ static const intptr_t fstarpu_handles_sequential_consistency	= STARPU_HANDLES_SE
 static const intptr_t fstarpu_task_end_dep	= STARPU_TASK_END_DEP;
 static const intptr_t fstarpu_task_synchronous	= STARPU_TASK_SYNCHRONOUS;
 static const intptr_t fstarpu_node_selection_policy	= STARPU_NODE_SELECTION_POLICY;
+static const intptr_t fstarpu_task_workerids = STARPU_TASK_WORKERIDS;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
@@ -140,6 +141,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_TASK_COLOR"))	{ return fstarpu_task_color; }
 	else if (!strcmp(s, "FSTARPU_HANDLES_SEQUENTIAL_CONSISTENCY"))	{ return fstarpu_handles_sequential_consistency; }
 	else if (!strcmp(s, "FSTARPU_TASK_END_DEP"))	{ return fstarpu_task_end_dep; }
+	else if (!strcmp(s, "FSTARPU_TASK_WORKERIDS"))	{ return fstarpu_task_workerids; }
 	else if (!strcmp(s, "FSTARPU_TASK_SYNCHRONOUS"))	{ return fstarpu_task_synchronous; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }

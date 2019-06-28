@@ -320,6 +320,13 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* int */
 		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			arg_i++;
+			/* unsigned */
+			arg_i++;
+			/* uint32_t* */
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);

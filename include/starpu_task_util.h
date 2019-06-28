@@ -220,7 +220,15 @@ extern "C"
 */
 #define STARPU_TASK_END_DEP	(32<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (33<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert(), must be followed by an
+   unsigned being a number of workers, and an array of bits which size
+   is the number of workers, the array indicates the set of workers
+   which are allowed to execute the task.
+*/
+#define STARPU_TASK_WORKERIDS (33<<STARPU_MODE_SHIFT)
+
+#define STARPU_SHIFTED_MODE_MAX (34<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

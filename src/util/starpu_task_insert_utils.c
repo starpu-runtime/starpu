@@ -213,6 +213,11 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			(void)va_arg(varg_list, unsigned);
+			(void)va_arg(varg_list, uint32_t*);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -528,6 +533,11 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			int end_dep = va_arg(varg_list, int);
 			starpu_task_end_dep_add(task, end_dep);
 		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			task->workerids_len = va_arg(varg_list, unsigned);
+			task->workerids = va_arg(varg_list, uint32_t*);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -795,6 +805,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			starpu_task_end_dep_add(task, *(int*)arglist[arg_i]);
+		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			arg_i++;
+			task->workerids_len = (unsigned)arglist[arg_i];
+			arg_i++;
+			task->workerids = (uint32_t *)arglist[arg_i];
 		}
 		else
 		{

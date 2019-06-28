@@ -966,7 +966,10 @@ struct starpu_task
 	   workers which are allowed to execute the task.
 	   starpu_task::workerid takes precedence over this.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike, this can be specified
+	   along the field workerids_len thanks to ::STARPU_TASK_WORKERIDS
+	   followed by a number of workers and an array of bits which
+	   size is the number of workers.
 	*/
 	uint32_t *workerids;
 
@@ -974,7 +977,10 @@ struct starpu_task
 	   Optional field. This provides the number of uint32_t values
 	   in the starpu_task::workerids array.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike, this can be specified
+	   along the field workerids thanks to ::STARPU_TASK_WORKERIDS
+	   followed by a number of workers and an array of bits which
+	   size is the number of workers.
 	*/
 	unsigned workerids_len;
 
