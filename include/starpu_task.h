@@ -787,6 +787,7 @@ struct starpu_task
 	   ::STARPU_CL_ARGS.
 	*/
 	unsigned cl_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::callback_arg was
 	   allocated by the application through <c>malloc()</c>,
@@ -794,9 +795,11 @@ struct starpu_task
 	   automatically call <c>free(callback_arg)</c> when
 	   destroying the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG
 	*/
 	unsigned callback_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
 	   was allocated by the application through <c>malloc()</c>,
@@ -804,9 +807,11 @@ struct starpu_task
 	   StarPU automatically call
 	   <c>free(prologue_callback_arg)</c> when destroying the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_PROLOGUE_CALLBACK_ARG.
 	*/
 	unsigned prologue_callback_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::prologue_callback_pop_arg
 	   was allocated by the application through <c>malloc()</c>,
@@ -815,7 +820,8 @@ struct starpu_task
 	   <c>free(prologue_callback_pop_arg)</c> when destroying the
 	   task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG.
 	*/
 	unsigned prologue_callback_pop_arg_free:1;
 
