@@ -569,6 +569,9 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
 
 		va_copy(varg_list_copy, varg_list);
 		_starpu_task_insert_create(codelet, *task, varg_list_copy);

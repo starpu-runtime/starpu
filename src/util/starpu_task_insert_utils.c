@@ -431,10 +431,12 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->callback_func = va_arg(varg_list, _starpu_callback_func_t);
 			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 1;
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 1;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
@@ -443,6 +445,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
 			task->prologue_callback_arg = va_arg(varg_list, void *);
+			task->prologue_callback_arg_free = 1;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
 		{
@@ -451,6 +454,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
 		{
 			task->prologue_callback_pop_arg = va_arg(varg_list, void *);
+			task->prologue_callback_pop_arg_free = 1;
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
@@ -702,11 +706,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			task->callback_func = (_starpu_callback_func_t)arglist[arg_i];
 			arg_i++;
 			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 1;
 		}
 		else if (arg_type == STARPU_CALLBACK_ARG)
 		{
 			arg_i++;
 			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 1;
 		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK)
 		{
@@ -717,6 +723,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->prologue_callback_arg = arglist[arg_i];
+			task->prologue_callback_arg_free = 1;
 		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK_POP)
 		{
@@ -727,6 +734,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->prologue_callback_pop_arg = arglist[arg_i];
+			task->prologue_callback_pop_arg_free = 1;
 		}
 		else if (arg_type == STARPU_PRIORITY)
 		{

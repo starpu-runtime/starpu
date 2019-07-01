@@ -422,6 +422,9 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
 
 		_fstarpu_task_insert_create(codelet, *task, arglist);
 		return 0;
