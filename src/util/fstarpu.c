@@ -64,6 +64,9 @@ static const intptr_t fstarpu_task_end_dep	= STARPU_TASK_END_DEP;
 static const intptr_t fstarpu_task_synchronous	= STARPU_TASK_SYNCHRONOUS;
 static const intptr_t fstarpu_node_selection_policy	= STARPU_NODE_SELECTION_POLICY;
 static const intptr_t fstarpu_task_workerids = STARPU_TASK_WORKERIDS;
+static const intptr_t fstarpu_sequential_consistency = STARPU_SEQUENTIAL_CONSISTENCY;
+static const intptr_t fstarpu_task_profiling_info = STARPU_TASK_PROFILING_INFO;
+static const intptr_t fstarpu_task_no_submitorder = STARPU_TASK_NO_SUBMITORDER;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
@@ -143,6 +146,9 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_TASK_END_DEP"))	{ return fstarpu_task_end_dep; }
 	else if (!strcmp(s, "FSTARPU_TASK_WORKERIDS"))	{ return fstarpu_task_workerids; }
 	else if (!strcmp(s, "FSTARPU_TASK_SYNCHRONOUS"))	{ return fstarpu_task_synchronous; }
+	else if (!strcmp(s, "FSTARPU_SEQUENTIAL_CONSISTENCY"))	{ return fstarpu_sequential_consistency; }
+	else if (!strcmp(s, "FSTARPU_TASK_PROFILING_INFO"))	{ return fstarpu_task_profiling_info; }
+	else if (!strcmp(s, "FSTARPU_TASK_NO_SUBMITORDER"))	{ return fstarpu_task_no_submitorder; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
 	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }

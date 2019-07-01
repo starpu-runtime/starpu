@@ -837,7 +837,8 @@ struct starpu_task
 	   this flag permits to disable sequential consistency for
 	   this task, even if data have it enabled.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_SEQUENTIAL_CONSISTENCY followed by an unsigned.
 	*/
 	unsigned sequential_consistency:1;
 
@@ -911,7 +912,9 @@ struct starpu_task
 	/**
 	   do not allocate a submitorder id for this task
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified
+	   thanks to ::STARPU_TASK_NO_SUBMITORDER followed by
+	   an unsigned.
 	*/
 	unsigned no_submitorder:1;
 
@@ -1068,7 +1071,9 @@ struct starpu_task
 	/**
 	   Optional field. Profiling information for the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_TASK_PROFILING_INFO followed by a pointer to the
+	   appropriate struct.
 	*/
 	struct starpu_profiling_task_info *profiling_info;
 

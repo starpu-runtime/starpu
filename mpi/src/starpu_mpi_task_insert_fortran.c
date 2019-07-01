@@ -327,6 +327,21 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* uint32_t* */
 		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			arg_i++;
+			/* unsigned */
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			arg_i++;
+			/* struct starpu_profiling_task_info * */
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			arg_i++;
+			/* unsigned */
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);

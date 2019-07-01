@@ -228,7 +228,26 @@ extern "C"
 */
 #define STARPU_TASK_WORKERIDS (33<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (34<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert(), must be followed by an
+   unsigned which sets the sequential consistency for the data
+   parameters of the task.
+*/
+#define STARPU_SEQUENTIAL_CONSISTENCY (34<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert() and alike, must be followed
+   by a pointer to a struct starpu_profiling_task_info
+ */
+#define STARPU_TASK_PROFILING_INFO (35<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert() and alike, must be followed
+   by an unsigned specifying not to allocate a submitorder id for the task
+ */
+#define STARPU_TASK_NO_SUBMITORDER (36<<STARPU_MODE_SHIFT)
+
+#define STARPU_SHIFTED_MODE_MAX (37<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

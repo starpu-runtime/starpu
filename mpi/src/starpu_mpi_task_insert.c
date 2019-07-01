@@ -474,6 +474,18 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, unsigned);
 			(void)va_arg(varg_list_copy, uint32_t*);
 		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			(void)va_arg(varg_list_copy, struct starpu_profiling_task_info *);
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
