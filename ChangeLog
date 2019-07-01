@@ -31,6 +31,8 @@ Small features:
   * New starpu_task_insert() and alike parameters
     STARPU_SEQUENTIAL_CONSISTENCY, STARPU_TASK_NO_SUBMITORDER and
     STARPU_TASK_PROFILING_INFO
+  * New function starpu_create_callback_task() which creates and
+    submits an empty task with the specified callback
 
 Small changes:
   * Update starpu_task_insert() and alike to set

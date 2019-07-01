@@ -1530,10 +1530,15 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl);
 unsigned starpu_task_get_implementation(struct starpu_task *task);
 
 /**
-   Create (and submit) an empty task that unlocks a tag once all its
+   Create and submit an empty task that unlocks a tag once all its
    dependencies are fulfilled.
  */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
+
+/**
+   Create and submit an empty task with the given callback
+ */
+void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
 
 /**
    Function to be used as a prologue callback to enable fault tolerance for the
