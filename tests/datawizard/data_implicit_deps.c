@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010,2011,2013-2016,2019                 Université de Bordeaux
  * Copyright (C) 2011-2013                                Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,6 +82,24 @@ void g_cuda(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void g_opencl(void *descr[], void *arg)
+{
+	(void)arg;
+	STARPU_SKIP_IF_VALGRIND;
+
+	cl_mem val = (cl_mem) STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned value = 42;
+
+	usleep(100000);
+	cl_command_queue queue;
+	starpu_opencl_get_current_queue(&queue);
+
+	clEnqueueWriteBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	clFinish(queue);
+}
+#endif
+
 static struct starpu_codelet cl_g =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
@@ -89,8 +107,9 @@ static struct starpu_codelet cl_g =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {g_cuda},
 #endif
-	// TODO
-	//.opencl_funcs = {g},
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {g_opencl},
+#endif
 	.cpu_funcs_name = {"g"},
 	.nbuffers = 3,
 };
@@ -122,6 +141,26 @@ void h_cuda(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void h_opencl(void *descr[], void *arg)
+{
+	(void)arg;
+	STARPU_SKIP_IF_VALGRIND;
+
+	cl_mem val = (cl_mem) STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned value = 0;
+
+	cl_command_queue queue;
+	starpu_opencl_get_current_queue(&queue);
+
+	clEnqueueReadBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	clFinish(queue);
+
+	FPRINTF(stderr, "VAR %u (should be 42)\n", value);
+	STARPU_ASSERT(value == 42);
+}
+#endif
+
 static struct starpu_codelet cl_h =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
@@ -129,8 +168,9 @@ static struct starpu_codelet cl_h =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {h_cuda},
 #endif
-	// TODO
-	//.opencl_funcs = {h},
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {h_opencl},
+#endif
 	.cpu_funcs_name = {"h"},
 	.nbuffers = 3
 };
