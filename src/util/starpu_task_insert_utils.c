@@ -218,6 +218,18 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			(void)va_arg(varg_list, unsigned);
 			(void)va_arg(varg_list, uint32_t*);
 		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			(void)va_arg(varg_list, struct starpu_profiling_task_info *);
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -538,6 +550,18 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			task->workerids_len = va_arg(varg_list, unsigned);
 			task->workerids = va_arg(varg_list, uint32_t*);
 		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			task->sequential_consistency = va_arg(varg_list, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			task->profiling_info = va_arg(varg_list, struct starpu_profiling_task_info *);
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			task->no_submitorder = va_arg(varg_list, unsigned);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -812,6 +836,21 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			task->workerids_len = (unsigned)arglist[arg_i];
 			arg_i++;
 			task->workerids = (uint32_t *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			arg_i++;
+			task->sequential_consistency = (unsigned)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			arg_i++;
+			task->profiling_info = (struct starpu_profiling_task_info *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			arg_i++;
+			task->no_submitorder = (unsigned)arglist[arg_i];
 		}
 		else
 		{
