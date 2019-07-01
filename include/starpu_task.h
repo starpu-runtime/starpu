@@ -748,6 +748,7 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*prologue_callback_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the prologue callback function. This
@@ -755,7 +756,7 @@ struct starpu_task
 	   starpu_task::prologue_callback_func is set to <c>NULL</c>.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
+	   ::STARPU_PROLOGUE_CALLBACK_ARG followed by the argument
 	*/
 	void *prologue_callback_arg;
 

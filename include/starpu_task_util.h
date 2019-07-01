@@ -112,9 +112,30 @@ extern "C"
 */
 #define STARPU_SCHED_CTX	 (13<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to a prologue callback function
+*/
 #define STARPU_PROLOGUE_CALLBACK   (14<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to be given as an argument to the prologue callback
+   function
+*/
 #define STARPU_PROLOGUE_CALLBACK_ARG (15<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to a prologue callback pop function
+*/
 #define STARPU_PROLOGUE_CALLBACK_POP   (16<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to be given as an argument to the prologue callback pop
+   function
+*/
 #define STARPU_PROLOGUE_CALLBACK_POP_ARG (17<<STARPU_MODE_SHIFT)
 
 /**
