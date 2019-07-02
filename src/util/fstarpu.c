@@ -41,11 +41,15 @@ static const intptr_t fstarpu_task_deps_array	= STARPU_TASK_DEPS_ARRAY;
 static const intptr_t fstarpu_task_end_deps_array	= STARPU_TASK_END_DEPS_ARRAY;
 static const intptr_t fstarpu_callback	= STARPU_CALLBACK;
 static const intptr_t fstarpu_callback_with_arg	= STARPU_CALLBACK_WITH_ARG;
+static const intptr_t fstarpu_callback_with_arg_nfree	= STARPU_CALLBACK_WITH_ARG_NFREE;
 static const intptr_t fstarpu_callback_arg	= STARPU_CALLBACK_ARG;
+static const intptr_t fstarpu_callback_arg_nfree= STARPU_CALLBACK_ARG_NFREE;
 static const intptr_t fstarpu_prologue_callback	= STARPU_PROLOGUE_CALLBACK;
-static const intptr_t fstarpu_prologue_callback_arg	= STARPU_PROLOGUE_CALLBACK_ARG;
-static const intptr_t fstarpu_prologue_callback_pop	= STARPU_PROLOGUE_CALLBACK_POP;
-static const intptr_t fstarpu_prologue_callback_pop_arg	= STARPU_PROLOGUE_CALLBACK_POP_ARG;
+static const intptr_t fstarpu_prologue_callback_arg	  = STARPU_PROLOGUE_CALLBACK_ARG;
+static const intptr_t fstarpu_prologue_callback_arg_nfree = STARPU_PROLOGUE_CALLBACK_ARG_NFREE;
+static const intptr_t fstarpu_prologue_callback_pop	  	= STARPU_PROLOGUE_CALLBACK_POP;
+static const intptr_t fstarpu_prologue_callback_pop_arg	  	= STARPU_PROLOGUE_CALLBACK_POP_ARG;
+static const intptr_t fstarpu_prologue_callback_pop_arg_nfree	 = STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE;
 static const intptr_t fstarpu_priority	= STARPU_PRIORITY;
 static const intptr_t fstarpu_execute_on_node	= STARPU_EXECUTE_ON_NODE;
 static const intptr_t fstarpu_execute_on_data	= STARPU_EXECUTE_ON_DATA;
@@ -121,11 +125,15 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_TASK_END_DEPS_ARRAY"))	{ return fstarpu_task_end_deps_array; }
 	else if	(!strcmp(s, "FSTARPU_CALLBACK"))	{ return fstarpu_callback; }
 	else if	(!strcmp(s, "FSTARPU_CALLBACK_WITH_ARG"))	{ return fstarpu_callback_with_arg; }
-	else if	(!strcmp(s, "FSTARPU_CALLBACK_ARG"))	{ return fstarpu_callback_arg; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK_WITH_ARG_NFREE"))	{ return fstarpu_callback_with_arg_nfree; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK_ARG"))		{ return fstarpu_callback_arg; }
+	else if	(!strcmp(s, "FSTARPU_CALLBACK_ARG_NFREE"))	{ return fstarpu_callback_arg_nfree; }
 	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK"))	{ return fstarpu_prologue_callback; }
 	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_ARG"))	{ return fstarpu_prologue_callback_arg; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE"))	{ return fstarpu_prologue_callback_arg_nfree; }
 	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_POP"))	{ return fstarpu_prologue_callback_pop; }
 	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_POP_ARG"))	{ return fstarpu_prologue_callback_pop_arg; }
+	else if	(!strcmp(s, "FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE"))	{ return fstarpu_prologue_callback_pop_arg_nfree; }
 	else if	(!strcmp(s, "FSTARPU_PRIORITY"))	{ return fstarpu_priority; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_NODE"))	{ return fstarpu_execute_on_node; }
 	else if	(!strcmp(s, "FSTARPU_EXECUTE_ON_DATA"))	{ return fstarpu_execute_on_data; }

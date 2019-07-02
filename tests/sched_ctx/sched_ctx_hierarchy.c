@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     CNRS
+ * Copyright (C) 2017, 2019                               CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2017                                     Université de Bordeaux
  *
@@ -21,7 +21,8 @@
 
 void free_codelet(void *arg)
 {
-	free(arg);
+	// The argument of the function is automatically freed by StarPU
+	//	free(arg);
 }
 
 void func_cpu_bis(void *descr[], void *_args)
