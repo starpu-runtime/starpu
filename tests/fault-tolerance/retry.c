@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013,2015,2017                      CNRS
+ * Copyright (C) 2011-2013,2015,2017,2019                 CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2019                                     Université de Bordeaux
  *
@@ -96,7 +96,7 @@ int main(void)
 	retry = 0;
 	ret1 = starpu_task_insert(&my_codelet,
 				  STARPU_PROLOGUE_CALLBACK, starpu_task_ft_prologue,
-				  STARPU_PROLOGUE_CALLBACK_ARG, check_ft,
+				  STARPU_PROLOGUE_CALLBACK_ARG_NFREE, check_ft,
 				  STARPU_R, h_x,
 				  STARPU_W, h_y,
 				  0);
