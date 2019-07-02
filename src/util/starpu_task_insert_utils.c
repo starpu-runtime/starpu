@@ -905,14 +905,14 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		else if (arg_type==STARPU_TASK_WORKERIDS)
 		{
 			arg_i++;
-			task->workerids_len = (unsigned)arglist[arg_i];
+			task->workerids_len = *(unsigned *)arglist[arg_i];
 			arg_i++;
 			task->workerids = (uint32_t *)arglist[arg_i];
 		}
 		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
 		{
 			arg_i++;
-			task->sequential_consistency = (unsigned)arglist[arg_i];
+			task->sequential_consistency = *(unsigned *)arglist[arg_i];
 		}
 		else if (arg_type==STARPU_TASK_PROFILING_INFO)
 		{
@@ -922,7 +922,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
 		{
 			arg_i++;
-			task->no_submitorder = (unsigned)arglist[arg_i];
+			task->no_submitorder = *(unsigned *)arglist[arg_i];
 		}
 		else
 		{
