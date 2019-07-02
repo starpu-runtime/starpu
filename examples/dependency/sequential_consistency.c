@@ -69,7 +69,7 @@ void cpu_codeletA(void *descr[], void *args)
 
 	ret = starpu_task_insert(&clB,
 				 STARPU_RW, value_handle,
-				 STARPU_CALLBACK_WITH_ARG, starpu_tag_notify_from_apps, tagHoldC,
+				 STARPU_CALLBACK_WITH_ARG_NFREE, starpu_tag_notify_from_apps, tagHoldC,
 				 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handle_sequential_consistency,
 				 STARPU_NAME, "taskB",
 				 0);

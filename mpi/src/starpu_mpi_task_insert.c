@@ -375,7 +375,16 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 			(void)va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
 		{
 			(void)va_arg(varg_list_copy, void *);
 		}
@@ -411,11 +420,19 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
                 {
                         (void)va_arg(varg_list_copy, void *);
                 }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+                {
+                        (void)va_arg(varg_list_copy, void *);
+                }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
                 {
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
                 }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+                        (void)va_arg(varg_list_copy, void *);
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
                 {
                         (void)va_arg(varg_list_copy, void *);
 		}
@@ -844,7 +861,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				// Submit taskA
 				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,
 						   STARPU_R, data_handle,
-						   STARPU_CALLBACK_WITH_ARG, _starpu_mpi_redux_data_recv_callback, args,
+						   STARPU_CALLBACK_WITH_ARG_NFREE, _starpu_mpi_redux_data_recv_callback, args,
 						   0);
 			}
 		}

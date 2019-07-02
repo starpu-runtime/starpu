@@ -719,7 +719,9 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_CALLBACK followed by the function pointer, or thanks to
-	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
+	   ::STARPU_CALLBACK_WITH_ARG (or
+	   ::STARPU_CALLBACK_WITH_ARG_NFREE) followed by the function
+	   pointer and the argument.
 	*/
 	void (*callback_func)(void *);
 	/**
@@ -730,7 +732,9 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_CALLBACK_ARG followed by the function pointer, or thanks to
-	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
+	   ::STARPU_CALLBACK_WITH_ARG or
+	   ::STARPU_CALLBACK_WITH_ARG_NFREE followed by the function
+	   pointer and the argument.
 	*/
 	void *callback_arg;
 
@@ -795,8 +799,9 @@ struct starpu_task
 	   automatically call <c>free(callback_arg)</c> when
 	   destroying the task.
 
-	   With starpu_task_insert() and alike this is set to 1 when using
-	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG
+	   With starpu_task_insert() and alike, this is set to 1 when using
+	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG, or set
+	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
 	unsigned callback_arg_free:1;
 
@@ -808,7 +813,8 @@ struct starpu_task
 	   <c>free(prologue_callback_arg)</c> when destroying the task.
 
 	   With starpu_task_insert() and alike this is set to 1 when using
-	   ::STARPU_PROLOGUE_CALLBACK_ARG.
+	   ::STARPU_PROLOGUE_CALLBACK_ARG, or set to 0 when using
+	   ::STARPU_PROLOGUE_CALLBACK_ARG_NFREE
 	*/
 	unsigned prologue_callback_arg_free:1;
 
@@ -821,7 +827,8 @@ struct starpu_task
 	   task.
 
 	   With starpu_task_insert() and alike this is set to 1 when using
-	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG.
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG, or set to 0 when using
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
 	*/
 	unsigned prologue_callback_pop_arg_free:1;
 

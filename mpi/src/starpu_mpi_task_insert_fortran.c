@@ -210,7 +210,19 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			arg_i++;
+			/* _starpu_callback_func_t */
+			arg_i++;
+			/* void* */
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			arg_i++;
+			/* void* */
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
 		{
 			arg_i++;
 			/* void* */
@@ -255,12 +267,22 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
                 }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+                {
+			arg_i++;
+			/* void* */
+                }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
                 {
 			arg_i++;
 			/* _starpu_callback_func_t */
                 }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+			arg_i++;
+			/* void* */
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
                 {
 			arg_i++;
 			/* void* */

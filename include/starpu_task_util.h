@@ -57,7 +57,7 @@ extern "C"
    Used when calling starpu_task_insert(), must be followed by two
    pointers: one to a callback function, and the other to be given as
    an argument to the callback function; this is equivalent to using
-   both ::STARPU_CALLBACK and ::STARPU_CALLBACK_WITH_ARG.
+   both ::STARPU_CALLBACK and ::STARPU_CALLBACK_ARG.
 */
 #define STARPU_CALLBACK_WITH_ARG (3<<STARPU_MODE_SHIFT)
 
@@ -268,7 +268,42 @@ extern "C"
  */
 #define STARPU_TASK_NO_SUBMITORDER (36<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (37<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert(), similarly to
+   ::STARPU_CALLBACK_ARG, must be followed by a pointer to be given as
+   an argument to the callback function, the argument will not be
+   freed, i.e starpu_task::callback_arg_free will be set to 0
+*/
+#define STARPU_CALLBACK_ARG_NFREE	 (37<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), similarly to
+   ::STARPU_CALLBACK_WITH_ARG, must be followed by two pointers: one
+   to a callback function, and the other to be given as an argument to
+   the callback function; this is equivalent to using both
+   ::STARPU_CALLBACK and ::STARPU_CALLBACK_ARG_NFREE.
+*/
+#define STARPU_CALLBACK_WITH_ARG_NFREE	 (38<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), similarly to
+   ::STARPU_PROLOGUE_CALLBACK_ARG, must be followed by a
+   pointer to be given as an argument to the prologue callback
+   function, the argument will not be
+   freed, i.e starpu_task::prologue_callback_arg_free will be set to 0
+*/
+#define STARPU_PROLOGUE_CALLBACK_ARG_NFREE (39<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), similarly to
+   ::STARPU_PROLOGUE_CALLBACK_POP_ARG, must be followed by a pointer
+   to be given as an argument to the prologue callback pop function,
+   the argument will not be freed, i.e
+   starpu_task::prologue_callback_pop_arg_free will be set to 0
+*/
+#define STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE (40<<STARPU_MODE_SHIFT)
+
+#define STARPU_SHIFTED_MODE_MAX (41<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.
