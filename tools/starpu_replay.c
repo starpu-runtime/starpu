@@ -448,7 +448,7 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
 				replay_data_register(handles_ptr+h,
-						modes_ptr[h] & STARPU_W ? STARPU_MAIN_RAM : -1,
+						modes_ptr[h] & STARPU_R ? STARPU_MAIN_RAM : -1,
 						array_of_size[h], array_of_size[h], array_of_size[h]);
 
 				handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
