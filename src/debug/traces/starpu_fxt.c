@@ -274,6 +274,7 @@ struct data_info
 	unsigned long handle;
 	char *name;
 	size_t size;
+	starpu_ssize_t max_size;
 	char *description;
 	unsigned dimensions;
 	unsigned long *dims;
@@ -295,6 +296,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->handle = handle;
 		data->name = NULL;
 		data->size = 0;
+		data->max_size = -1;
 		data->description = 0;
 		data->dimensions = 0;
 		data->dims = NULL;
@@ -323,6 +325,8 @@ static void data_dump(struct data_info *data)
 		free(data->name);
 	}
 	fprintf(data_file, "Size: %lu\n", (unsigned long) data->size);
+	if (data->max_size != -1)
+		fprintf(data_file, "MaxSize: %lu\n", (unsigned long) data->max_size);
 	if (data->description)
 	{
 		fprintf(data_file, "Description: %s\n", data->description);
@@ -2083,10 +2087,11 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
 	struct data_info *data = get_data(handle, options->file_rank);
-	char *description = get_fxt_string(ev, 3);
+	char *description = get_fxt_string(ev, 4);
 
 	data->size = ev->param[1];
-	data->home_node = ev->param[2];
+	data->max_size = ev->param[2];
+	data->home_node = ev->param[3];
 	if (description[0])
 		data->description = strdup(description);
 

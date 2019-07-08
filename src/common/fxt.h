@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2019                                CNRS
@@ -1106,13 +1106,14 @@ do {										\
 
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {	\
 	const size_t __data_size = handle->ops->get_size(handle); \
-	char __buf[(FXT_MAX_PARAMS-2)*sizeof(long)]; \
+	const starpu_ssize_t __max_data_size = _starpu_data_get_max_size(handle); \
+	char __buf[(FXT_MAX_PARAMS-4)*sizeof(long)]; \
 	void *__interface = handle->per_node[0].data_interface; \
 	if (handle->ops->describe) \
 		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
 	else \
 		__buf[0] = 0; \
-	FUT_DO_PROBE3STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, handle->home_node, __buf); \
+	FUT_DO_PROBE4STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\

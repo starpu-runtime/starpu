@@ -814,6 +814,14 @@ size_t _starpu_data_get_alloc_size(starpu_data_handle_t handle)
 		return handle->ops->get_size(handle);
 }
 
+starpu_ssize_t _starpu_data_get_max_size(starpu_data_handle_t handle)
+{
+	if (handle->ops->get_max_size)
+		return handle->ops->get_max_size(handle);
+	else
+		return -1;
+}
+
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 {
 	return handle->footprint;
