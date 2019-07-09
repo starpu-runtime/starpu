@@ -33,6 +33,9 @@
 #ifdef STARPU_HAVE_SIMGRID_ACTOR_H
 #include <simgrid/actor.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+#include <simgrid/semaphore.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
@@ -422,7 +425,11 @@ int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+typedef sg_sem_t starpu_sem_t;
+#else
 typedef msg_sem_t starpu_sem_t;
+#endif
 int starpu_sem_destroy(starpu_sem_t *);
 int starpu_sem_getvalue(starpu_sem_t *, int *);
 int starpu_sem_init(starpu_sem_t *, int, unsigned);

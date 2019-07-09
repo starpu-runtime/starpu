@@ -929,32 +929,52 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 
 int starpu_sem_destroy(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_destroy(*sem);
+#else
 	MSG_sem_destroy(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value)
 {
 	STARPU_ASSERT_MSG(pshared == 0, "pshared semaphores not supported under simgrid");
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	*sem = sg_sem_init(value);
+#else
 	*sem = MSG_sem_init(value);
+#endif
 	return 0;
 }
 
 int starpu_sem_post(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_release(*sem);
+#else
 	MSG_sem_release(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_wait(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_acquire(*sem);
+#else
 	MSG_sem_acquire(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_trywait(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	if (sg_sem_would_block(*sem))
+#else
 	if (MSG_sem_would_block(*sem))
+#endif
 		return EAGAIN;
 	starpu_sem_wait(sem);
 	return 0;
@@ -963,7 +983,11 @@ int starpu_sem_trywait(starpu_sem_t *sem)
 int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
 {
 #if SIMGRID_VERSION > 31300
+#  ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
 	*sval = MSG_sem_get_capacity(*sem);
+#  else
+	*sval = sg_sem_get_capacity(*sem);
+#  endif
 	return 0;
 #else
 	(void) sem;
