@@ -68,7 +68,7 @@ starpu_pthread_t starpu_pthread_self(void)
 	return MSG_process_self();
 }
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
 {
 	char **_args;
 	_STARPU_MALLOC(_args, 3*sizeof(char*));

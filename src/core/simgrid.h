@@ -62,10 +62,10 @@ void _starpu_simgrid_sync_gpus(void);
 /* Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
-msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
-msg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
+starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name);
+starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
 struct _starpu_worker;
-msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
+starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
 #pragma weak starpu_mpi_world_rank
