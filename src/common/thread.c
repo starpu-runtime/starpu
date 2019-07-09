@@ -984,9 +984,9 @@ int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
 {
 #if SIMGRID_VERSION > 31300
 #  ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
-	*sval = MSG_sem_get_capacity(*sem);
-#  else
 	*sval = sg_sem_get_capacity(*sem);
+#  else
+	*sval = MSG_sem_get_capacity(*sem);
 #  endif
 	return 0;
 #else
