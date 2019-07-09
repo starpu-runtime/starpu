@@ -40,7 +40,7 @@ void _starpu_timing_init(void)
 
 void _starpu_clock_gettime(struct timespec *ts)
 {
-#ifdef HAVE_SIMGRID_ENGINE_H
+#ifdef HAVE_SIMGRID_GET_CLOCK
 	double now = simgrid_get_clock();
 #else
 	double now = MSG_get_clock();
@@ -253,7 +253,7 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 double starpu_timing_now(void)
 {
 #ifdef STARPU_SIMGRID
-#  ifdef HAVE_SIMGRID_ENGINE_H
+#  ifdef HAVE_SIMGRID_GET_CLOCK
 	return simgrid_get_clock()*1000000;
 #  else
 	return MSG_get_clock()*1000000;
