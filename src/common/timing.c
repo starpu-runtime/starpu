@@ -253,7 +253,11 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 double starpu_timing_now(void)
 {
 #ifdef STARPU_SIMGRID
+#  ifdef HAVE_SIMGRID_ENGINE_H
 	return MSG_get_clock()*1000000;
+#  else
+	return simgrid_get_clock()*1000000;
+#  endif
 #else
 	struct timespec now;
 	_starpu_clock_gettime(&now);
