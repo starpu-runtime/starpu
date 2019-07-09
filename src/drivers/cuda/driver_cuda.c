@@ -1438,7 +1438,7 @@ int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_nod
 	(void) node;
 	if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
 	{
-		msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+		starpu_sg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
 		const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
 		return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
 	}

@@ -2143,7 +2143,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 #ifdef STARPU_SIMGRID
 	char name[16];
-	msg_host_t host;
+	starpu_sg_host_t host;
 #endif
 
 	numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
@@ -2540,7 +2540,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					const char* cuda_memcpy_peer;
 					char name[16];
 					snprintf(name, sizeof(name), "CUDA%u", devid);
-					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+					starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 					cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
@@ -2636,7 +2636,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 #ifdef STARPU_SIMGRID
 					char name[16];
 					snprintf(name, sizeof(name), "OpenCL%u", devid);
-					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+					starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */

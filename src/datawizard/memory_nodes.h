@@ -51,7 +51,7 @@ struct _starpu_memory_node_descr
 	unsigned nworkers[STARPU_MAXNODES];
 
 #ifdef STARPU_SIMGRID
-	msg_host_t host[STARPU_MAXNODES];
+	starpu_sg_host_t host[STARPU_MAXNODES];
 #endif
 
 	// TODO move this 2 lists outside struct _starpu_memory_node_descr
@@ -92,12 +92,12 @@ static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
 }
 
 #ifdef STARPU_SIMGRID
-static inline void _starpu_simgrid_memory_node_set_host(unsigned node, msg_host_t host)
+static inline void _starpu_simgrid_memory_node_set_host(unsigned node, starpu_sg_host_t host)
 {
 	_starpu_descr.host[node] = host;
 }
 
-static inline msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
+static inline starpu_sg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 {
 	return _starpu_descr.host[node];
 }
