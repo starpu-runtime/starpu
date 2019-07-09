@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsi
 
 #ifdef STARPU_SIMGRID
 	/* XXX */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 #endif
 	STARPU_UYIELD();
 

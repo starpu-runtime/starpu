@@ -328,7 +328,7 @@ static int main_ret;
 int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	if (!starpu_main)
 	{
@@ -529,7 +529,7 @@ void _starpu_simgrid_deinit(void)
 #elif SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
-				MSG_process_sleep(1);
+				starpu_sleep(1);
 #endif
 				STARPU_ASSERT(t->first_transfer == NULL);
 				STARPU_ASSERT(t->last_transfer == NULL);
@@ -548,7 +548,7 @@ void _starpu_simgrid_deinit(void)
 #elif SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
-		MSG_process_sleep(1);
+		starpu_sleep(1);
 #endif
 		STARPU_ASSERT(w->first_task == NULL);
 		STARPU_ASSERT(w->last_task == NULL);
@@ -720,7 +720,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		task->next = NULL;
 		/* Sleep 10µs for the GPU task queueing */
 		if (_starpu_simgrid_queue_malloc_cost())
-			MSG_process_sleep(0.000010);
+			starpu_sleep(0.000010);
 		if (w->last_task)
 		{
 			/* Already running a task, queue */
@@ -1096,7 +1096,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	/* Sleep 10µs for the GPU transfer queueing */
 	if (_starpu_simgrid_queue_malloc_cost())
-		MSG_process_sleep(0.000010);
+		starpu_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 
@@ -1127,7 +1127,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
 
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	/* _args is freed with process context */
 	f(arg);

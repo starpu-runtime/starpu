@@ -44,7 +44,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 #endif
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t

@@ -116,7 +116,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 #define _SIMGRID_TIMER_END		\
 		if (__timer) {		\
 			xbt_os_threadtimer_stop(__timer);		\
-			MSG_process_sleep(xbt_os_timer_elapsed(__timer));\
+			starpu_sleep(xbt_os_timer_elapsed(__timer));\
 			xbt_os_timer_free(__timer);		\
 		}	\
 	}

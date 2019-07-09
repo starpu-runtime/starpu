@@ -131,7 +131,7 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 #  endif
 #endif
 #else
-	MSG_process_sleep(1);
+	starpu_sleep(1);
 #endif
 	return 0;
 }

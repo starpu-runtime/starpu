@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017, 2019                                Université de Bordeaux
  * Copyright (C) 2011,2016,2017                           Inria
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2010-2019                                CNRS
@@ -664,7 +664,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			 * rather have the caller block, and explicitly wait
 			 * for eviction to happen.
 			 */
-			MSG_process_sleep(0.000001);
+			starpu_sleep(0.000001);
 			_starpu_wake_all_blocked_workers_on_node(src_node);
 		}
 #elif !defined(STARPU_NON_BLOCKING_DRIVERS)
