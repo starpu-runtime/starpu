@@ -536,7 +536,11 @@ void _starpu_gethostname(char *hostname, size_t size)
 void starpu_sleep(float nb_sec)
 {
 #ifdef STARPU_SIMGRID
+#  ifdef HAVE_SG_ACTOR_SLEEP_FOR
+	sg_actor_sleep_for(nb_sec);
+#  else
 	MSG_process_sleep(nb_sec);
+#  endif
 #elif defined(STARPU_HAVE_WINDOWS)
 	Sleep(nb_sec * 1000);
 #else
@@ -552,7 +556,11 @@ void starpu_sleep(float nb_sec)
 void starpu_usleep(float nb_micro_sec)
 {
 #ifdef STARPU_SIMGRID
+#  ifdef HAVE_SG_ACTOR_SLEEP_FOR
+	sg_actor_sleep_for(nb_micro_sec / 1000000);
+#  else
 	MSG_process_sleep(nb_micro_sec / 1000000);
+#  endif
 #elif defined(STARPU_HAVE_WINDOWS)
 	Sleep(nb_micro_sec / 1000);
 #elif HAVE_UNISTD_H

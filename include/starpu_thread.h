@@ -30,6 +30,9 @@
 #else
 #include <xbt/synchro_core.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+#include <simgrid/actor.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
