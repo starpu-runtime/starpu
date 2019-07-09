@@ -151,14 +151,22 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 #endif /* HAVE_STARPU_SIMGRID_GET_AS_BY_NAME */
 	}
 	else
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		hosts = sg_hosts_as_dynar();
+#else
 		hosts = MSG_hosts_as_dynar();
+#endif
 	nb = xbt_dynar_length(hosts);
 
 	ret = 0;
 	for (i = 0; i < nb; i++)
 	{
 		const char *name;
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		name = sg_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+#else
 		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+#endif
 		if (!strncmp(name, prefix, len))
 			ret++;
 	}
@@ -178,10 +186,18 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	if (!host)
 		return 0;
 
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	if (!sg_host_get_properties(host))
+#else
 	if (!MSG_host_get_properties(host))
+#endif
 		return 0;
 
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	memsize = sg_host_get_property_value(host, "memsize");
+#else
 	memsize = MSG_host_get_property_value(host, "memsize");
+#endif
 	if (!memsize)
 		return 0;
 
@@ -195,10 +211,18 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 		char mpiname[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(mpiname, sizeof(mpiname), STARPU_MPI_AS_PREFIX"%d-%s", starpu_mpi_world_rank(), name);
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		return sg_host_by_name(mpiname);
+#else
 		return MSG_get_host_by_name(mpiname);
+#endif
 	}
 	else
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		return sg_host_by_name(name);
+#else
 		return MSG_get_host_by_name(name);
+#endif
 }
 
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
