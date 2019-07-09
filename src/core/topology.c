@@ -2538,7 +2538,11 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+					cuda_memcpy_peer = sg_host_get_property_value(host, "memcpy_peer");
+#  else
 					cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+#  endif
 #endif /* SIMGRID */
 					if (
 #ifdef STARPU_SIMGRID
