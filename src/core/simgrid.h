@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2013,2017                                CNRS
- * Copyright (C) 2012-2018                                Université de Bordeaux
+ * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,7 +99,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 #define _SIMGRID_TIMER_END		\
 		if (__timer) {		\
 			xbt_os_threadtimer_stop(__timer);		\
-			MSG_process_sleep(xbt_os_timer_elapsed(__timer));\
+			starpu_sleep(xbt_os_timer_elapsed(__timer));\
 			xbt_os_timer_free(__timer);		\
 		}	\
 	}

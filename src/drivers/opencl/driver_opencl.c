@@ -1293,7 +1293,7 @@ uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flag
 	/* Sleep for the allocation */
 	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000175);
+		starpu_sleep(0.000175);
 	if (!last[dst_node])
 		last[dst_node] = 1<<10;
 	addr = last[dst_node];
@@ -1326,7 +1326,7 @@ void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size,
 	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 	/* Sleep for the free */
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000750);
+		starpu_sleep(0.000750);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 	cl_int err;
