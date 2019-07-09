@@ -966,7 +966,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
-			length = ((double) profiling_info->used_cycles)/sg_host_speed(MSG_host_self());
+			length = ((double) profiling_info->used_cycles)/sg_host_speed(sg_host_self());
 #elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
 			length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
 #else
