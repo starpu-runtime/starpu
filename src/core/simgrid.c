@@ -65,7 +65,7 @@ starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 static struct transfer_runner
 {
 	struct transfer *first_transfer, *last_transfer;
-	msg_sem_t sem;
+	starpu_sem_t sem;
 	msg_process_t runner;
 } transfer_runner[STARPU_MAXNODES][STARPU_MAXNODES];
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
@@ -74,7 +74,7 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 static struct worker_runner
 {
 	struct task *first_task, *last_task;
-	msg_sem_t sem;
+	starpu_sem_t sem;
 	msg_process_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
@@ -422,7 +422,7 @@ void _starpu_simgrid_init(void)
 		snprintf(s, sizeof(s), "worker %u runner", i);
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		worker_runner[i].sem = MSG_sem_init(0);
+		starpu_sem_init(&worker_runner[i].sem, 0, 0);
 		tsd[0] = (void*)(uintptr_t) i;
 		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
 	}
@@ -451,7 +451,7 @@ void _starpu_simgrid_deinit(void)
 			struct transfer_runner *t = &transfer_runner[i][j];
 			if (t->runner)
 			{
-				MSG_sem_release(t->sem);
+				starpu_sem_post(&t->sem);
 #if SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
@@ -459,7 +459,7 @@ void _starpu_simgrid_deinit(void)
 #endif
 				STARPU_ASSERT(t->first_transfer == NULL);
 				STARPU_ASSERT(t->last_transfer == NULL);
-				MSG_sem_destroy(t->sem);
+				starpu_sem_destroy(&t->sem);
 			}
 		}
 		/* FIXME: queue not empty at this point, needs proper unregistration */
@@ -468,7 +468,7 @@ void _starpu_simgrid_deinit(void)
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
 		struct worker_runner *w = &worker_runner[i];
-		MSG_sem_release(w->sem);
+		starpu_sem_post(&w->sem);
 #if SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
@@ -476,7 +476,7 @@ void _starpu_simgrid_deinit(void)
 #endif
 		STARPU_ASSERT(w->first_task == NULL);
 		STARPU_ASSERT(w->last_task == NULL);
-		MSG_sem_destroy(w->sem);
+		starpu_sem_destroy(&w->sem);
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
 
@@ -522,7 +522,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	{
 		struct task *task;
 
-		MSG_sem_acquire(w->sem);
+		starpu_sem_wait(&w->sem);
 		if (!runners_running)
 			break;
 
@@ -633,7 +633,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 			w->first_task = task;
 			w->last_task = task;
 		}
-		MSG_sem_release(w->sem);
+		starpu_sem_post(&w->sem);
 	}
 }
 
@@ -734,7 +734,7 @@ static void transfer_queue(struct transfer *transfer)
 			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
 			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
-			t->sem = MSG_sem_init(0);
+			starpu_sem_init(&t->sem, 0, 0);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
@@ -751,7 +751,7 @@ static void transfer_queue(struct transfer *transfer)
 		t->first_transfer = transfer;
 		t->last_transfer = transfer;
 	}
-	MSG_sem_release(t->sem);
+	starpu_sem_post(&t->sem);
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
@@ -770,7 +770,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	{
 		struct transfer *transfer;
 
-		MSG_sem_acquire(t->sem);
+		starpu_sem_wait(&t->sem);
 		if (!runners_running)
 			break;
 		transfer = t->first_transfer;
