@@ -36,6 +36,12 @@
 #ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
 #include <simgrid/semaphore.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+#include <simgrid/mutex.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+#include <simgrid/cond.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_BARRIER_H
 #include <simgrid/barrier.h>
 #endif
@@ -115,7 +121,11 @@ typedef pthread_attr_t starpu_pthread_attr_t;
  */
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+typedef sg_mutex_t starpu_pthread_mutex_t;
+#else
 typedef xbt_mutex_t starpu_pthread_mutex_t;
+#endif
 typedef int starpu_pthread_mutexattr_t;
 
 #define STARPU_PTHREAD_MUTEX_INITIALIZER NULL
@@ -191,7 +201,11 @@ typedef pthread_key_t starpu_pthread_key_t;
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+typedef sg_cond_t starpu_pthread_cond_t;
+#else
 typedef xbt_cond_t starpu_pthread_cond_t;
+#endif
 typedef int starpu_pthread_condattr_t;
 #define STARPU_PTHREAD_COND_INITIALIZER NULL
 
@@ -229,7 +243,11 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+typedef sg_mutex_t starpu_pthread_rwlock_t;
+#else
 typedef xbt_mutex_t starpu_pthread_rwlock_t;
+#endif
 typedef int starpu_pthread_rwlockattr_t;
 
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr);
