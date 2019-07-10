@@ -454,7 +454,32 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	return p_ret;
 }
 
-#if defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
+{
+	*barrier = sg_barrier_init(count);
+	return 0;
+}
+
+int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
+{
+	if (*barrier)
+		sg_barrier_destroy(*barrier);
+	return 0;
+}
+
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+{
+	int ret;
+
+	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+
+	ret = sg_barrier_wait(*barrier);
+
+	_STARPU_TRACE_BARRIER_WAIT_END();
+	return ret;
+}
+#elif defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	*barrier = xbt_barrier_init(count);
@@ -470,12 +495,14 @@ int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
+	int ret;
+
 	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
 
-	xbt_barrier_wait(*barrier);
+	ret = xbt_barrier_wait(*barrier);
 
 	_STARPU_TRACE_BARRIER_WAIT_END();
-	return 0;
+	return ret;
 }
 #endif /* defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) */
 
@@ -618,7 +645,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 
 #endif /* STARPU_SIMGRID */
 
-#if (defined(STARPU_SIMGRID) && (!defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) && !defined(xbt_barrier_init)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
+#if (defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_SIMGRID_BARRIER_H) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) && !defined(xbt_barrier_init)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
