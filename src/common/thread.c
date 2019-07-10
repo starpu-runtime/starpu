@@ -144,14 +144,22 @@ int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr STARPU_ATTRIB
 
 int starpu_pthread_mutex_init(starpu_pthread_mutex_t *mutex, const starpu_pthread_mutexattr_t *mutexattr STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	*mutex = sg_mutex_init();
+#else
 	*mutex = xbt_mutex_init();
+#endif
 	return 0;
 }
 
 int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 {
 	if (*mutex)
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+		sg_mutex_destroy(*mutex);
+#else
 		xbt_mutex_destroy(*mutex);
+#endif
 	return 0;
 }
 
@@ -164,16 +172,28 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	if (!*mutex)
 	{
 		/* Here we may get preempted */
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+		sg_mutex_t new_mutex = sg_mutex_init();
+#else
 		xbt_mutex_t new_mutex = xbt_mutex_init();
+#endif
 		if (!*mutex)
 			*mutex = new_mutex;
 		else
 			/* Somebody already initialized it while we were
-			 * calling xbt_mutex_init, this one is now useless */
+			 * calling sg_mutex_init, this one is now useless */
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+			sg_mutex_destroy(new_mutex);
+#else
 			xbt_mutex_destroy(new_mutex);
+#endif
 	}
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	sg_mutex_lock(*mutex);
+#else
 	xbt_mutex_acquire(*mutex);
+#endif
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -184,7 +204,11 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	sg_mutex_unlock(*mutex);
+#else
 	xbt_mutex_release(*mutex);
+#endif
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -196,7 +220,9 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	int ret;
 	_STARPU_TRACE_TRYLOCK_MUTEX();
 
-#if defined(HAVE_XBT_MUTEX_TRY_ACQUIRE) || defined(xbt_mutex_try_acquire)
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	ret = sg_mutex_try_lock(*mutex);
+#elif defined(HAVE_XBT_MUTEX_TRY_ACQUIRE) || defined(xbt_mutex_try_acquire)
 	ret = xbt_mutex_try_acquire(*mutex);
 #else
 	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
@@ -312,7 +338,11 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 
 int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	*cond = sg_cond_init();
+#else
 	*cond = xbt_cond_init();
+#endif
 	return 0;
 }
 
@@ -323,27 +353,43 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 	if (!*cond)
 	{
 		/* Here we may get preempted */
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+		sg_cond_t new_cond = sg_cond_init();
+#else
 		xbt_cond_t new_cond = xbt_cond_init();
+#endif
 		if (!*cond)
 			*cond = new_cond;
 		else
 			/* Somebody already initialized it while we were
 			 * calling xbt_cond_init, this one is now useless */
+#ifdef STARPU_HAVE_SIMGRID_COND_H
 			xbt_cond_destroy(new_cond);
+#else
+			xbt_cond_destroy(new_cond);
+#endif
 	}
 }
 
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_notify_one(*cond);
+#else
 	xbt_cond_signal(*cond);
+#endif
 	return 0;
 }
 
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_notify_all(*cond);
+#else
 	xbt_cond_broadcast(*cond);
+#endif
 	return 0;
 }
 
@@ -352,7 +398,11 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_wait(*cond, *mutex);
+#else
 	xbt_cond_wait(*cond, *mutex);
+#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
@@ -373,7 +423,11 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	ret = sg_cond_wait_for(*cond, *mutex, delay) ? ETIMEDOUT : 0;
+#else
 	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? ETIMEDOUT : 0;
+#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
@@ -386,10 +440,17 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 {
 	if (*cond)
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+		sg_cond_destroy(*cond);
+#else
 		xbt_cond_destroy(*cond);
+#endif
 	return 0;
 }
 
+/* TODO: use rwlocks
+ * https://gforge.inria.fr/tracker/index.php?func=detail&aid=17213&group_id=12&atid=165
+ */
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return starpu_pthread_mutex_init(rwlock, NULL);

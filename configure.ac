@@ -178,6 +178,8 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
 	AC_CHECK_HEADERS([simgrid/actor.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ACTOR_H], [1], [Define to 1 if you have actor.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/semaphore.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_SEMAPHORE_H], [1], [Define to 1 if you have semaphore.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/mutex.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MUTEX_H], [1], [Define to 1 if you have mutex.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/cond.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_COND_H], [1], [Define to 1 if you have cond.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/barrier.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_BARRIER_H], [1], [Define to 1 if you have barrier.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/engine.h])
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
