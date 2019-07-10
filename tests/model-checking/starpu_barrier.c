@@ -19,6 +19,10 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
+#define STARPU_HG_DISABLE_CHECKING(v) ((void) 0)
+#define STARPU_HG_ENABLE_CHECKING(v) ((void) 0)
+#define ANNOTATE_HAPPENS_AFTER(v) ((void) 0)
+#define ANNOTATE_HAPPENS_BEFORE(v) ((void) 0)
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
