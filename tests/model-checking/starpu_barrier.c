@@ -42,6 +42,8 @@
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
+#define HAVE_SIMGRID_GET_CLOCK
+#define HAVE_SG_ACTOR_SLEEP_FOR
 #define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
@@ -70,7 +72,11 @@ _starpu_simgrid_thread_start(int argc, char *argv[])
 
 static void _starpu_clock_gettime(struct timespec *ts)
 {
+#ifdef HAVE_SIMGRID_GET_CLOCK
+	double now = simgrid_get_clock();
+#else
 	double now = MSG_get_clock();
+#endif
 	ts->tv_sec = floor(now);
 	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
 }
