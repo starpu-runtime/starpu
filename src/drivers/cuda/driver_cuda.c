@@ -1512,6 +1512,8 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 
 void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	(void) dst_node;
+	(void) addr;
 	(void) size;
 	(void) flags;
 

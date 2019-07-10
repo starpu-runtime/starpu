@@ -1323,9 +1323,10 @@ uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flag
 
 void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
-	(void)flags;
-	(void)size;
 	(void)dst_node;
+	(void)addr;
+	(void)size;
+	(void)flags;
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 	/* Sleep for the free */

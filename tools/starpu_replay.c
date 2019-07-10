@@ -144,6 +144,7 @@ struct replay_interface
 static struct starpu_data_interface_ops replay_interface_ops;
 static void register_replay(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
+	(void) home_node;
 	struct replay_interface *replay_interface = data_interface;
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -243,6 +244,7 @@ static void free_replay_on_node(void *data_interface, unsigned dst_node)
 
 static int replay_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
+	(void) dst_interface;
 	struct replay_interface *src = src_interface;
 
 	/* We don't care about pointers */
@@ -861,7 +863,7 @@ int main(int argc, char **argv)
 						int one = 0;
 						for (i = 0; i < narch ; i++)
 						{
-							struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
+							arch = starpu_perfmodel_arch_comb_fetch(i);
 							perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
 							if (!(perfTime[i] == 0 || isnan(perfTime[i])))
 								one = 1;
@@ -1020,7 +1022,7 @@ int main(int argc, char **argv)
 		else if (TEST("Modes"))
 		{
 			char * buffer = s + 7;
-			int mode_i = 0;
+			unsigned mode_i = 0;
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
@@ -1055,7 +1057,7 @@ int main(int argc, char **argv)
 			char *  buffer = s + 7;
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
-			int k = 0;
+			unsigned k = 0;
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 

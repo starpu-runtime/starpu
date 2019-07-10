@@ -1876,7 +1876,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 #endif
 }
 
-int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name)
+int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret = 0;
 #ifdef STARPU_SIMGRID
