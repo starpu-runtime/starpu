@@ -19,7 +19,6 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
-#define starpu_sleep(d) MSG_process_sleep(d)
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
@@ -69,6 +68,15 @@ static void _starpu_clock_gettime(struct timespec *ts)
 	double now = MSG_get_clock();
 	ts->tv_sec = floor(now);
 	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
+}
+
+void starpu_sleep(float nb_sec)
+{
+#ifdef HAVE_SG_ACTOR_SLEEP_FOR
+	sg_actor_sleep_for(nb_sec);
+#else
+	MSG_process_sleep(nb_sec);
+#endif
 }
 
 #include <common/barrier.c>
