@@ -16,7 +16,7 @@
 STARPU=../../
 CPPFLAGS=-I$(STARPU)/src -I$(STARPU)/include -I.
 CFLAGS+=-Wall -Wextra -g -DNOCONFIG
-LDFLAGS+=-lsimgrid
+LDFLAGS+=-lsimgrid -lm
 
 MC_FLAGS=--cfg=model-check/reduction:none
 
