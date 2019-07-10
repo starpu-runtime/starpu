@@ -65,7 +65,11 @@ int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
 
 starpu_pthread_t starpu_pthread_self(void)
 {
+#ifdef HAVE_SG_ACTOR_SELF
+	return sg_actor_self();
+#else
 	return MSG_process_self();
+#endif
 }
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
