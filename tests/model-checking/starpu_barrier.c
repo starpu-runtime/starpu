@@ -84,6 +84,9 @@ void starpu_sleep(float nb_sec)
 }
 
 #include <common/barrier.c>
+#undef STARPU_DEBUG
+int starpu_worker_get_id(void) { return 0; }
+static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex) { return 0; }
 #include <common/thread.c>
 
 #ifndef NTHREADS
