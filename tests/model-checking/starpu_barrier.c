@@ -42,6 +42,7 @@
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
+#define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -141,7 +142,9 @@ int main(int argc, char *argv[])
 	}
 	srand48(0);
 	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", 128);
+#elif SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
 #else

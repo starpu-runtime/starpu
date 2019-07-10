@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,7 @@
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
+#define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -177,7 +178,9 @@ int main(int argc, char *argv[])
 	}
 	srand48(0);
 	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", 128);
+#elif SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
 #else
