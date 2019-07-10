@@ -364,7 +364,7 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 			/* Somebody already initialized it while we were
 			 * calling xbt_cond_init, this one is now useless */
 #ifdef STARPU_HAVE_SIMGRID_COND_H
-			xbt_cond_destroy(new_cond);
+			sg_cond_destroy(new_cond);
 #else
 			xbt_cond_destroy(new_cond);
 #endif
