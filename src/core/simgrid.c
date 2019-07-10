@@ -285,7 +285,9 @@ void _starpu_start_simgrid(int *argc, char **argv)
 		stack_size = rlim.rlim_cur / 1024;
 #endif
 
-#if SIMGRID_VERSION < 31300
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", stack_size);
+#elif SIMGRID_VERSION < 31300
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
@@ -393,8 +395,12 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		 * Try using --cfg=contexts/factory:thread instead."
 		 * See https://github.com/simgrid/simgrid/issues/141 */
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
+#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting sg_cfg_set_string before starting simgrid */
+#  ifdef HAVE_SG_CFG_SET_INT
+		sg_cfg_set_string("contexts/factory", "thread");
+#  else
 		xbt_cfg_set_string("contexts/factory", "thread");
+#  endif
 #endif
 		/* We didn't catch application's main. */
 		/* Start maestro as a separate thread */
@@ -506,7 +512,9 @@ void _starpu_simgrid_deinit(void)
 
 #if SIMGRID_VERSION >= 31300
 	/* clean-atexit introduced in simgrid 3.13 */
-#  if SIMGRID_VERSION >= 32300
+#  ifdef HAVE_SG_CFG_SET_INT
+	if ( sg_cfg_get_boolean("debug/clean-atexit"))
+#  elif SIMGRID_VERSION >= 32300
 	if ( xbt_cfg_get_boolean("debug/clean-atexit"))
 #  else
 	if ( xbt_cfg_get_boolean("clean-atexit"))
