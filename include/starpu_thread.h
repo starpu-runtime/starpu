@@ -36,6 +36,9 @@
 #ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
 #include <simgrid/semaphore.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+#include <simgrid/barrier.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
@@ -267,10 +270,14 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
-#if defined(STARPU_SIMGRID) && (defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init))
+#if defined(STARPU_SIMGRID) && (defined(STARPU_HAVE_SIMGRID_BARRIER_H) || defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init))
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+typedef sg_bar_t starpu_pthread_barrier_t;
+#else
 typedef xbt_bar_t starpu_pthread_barrier_t;
+#endif
 typedef int starpu_pthread_barrierattr_t;
-#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD XBT_BARRIER_SERIAL_PROCESS
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
 #else
 typedef struct {
 	starpu_pthread_mutex_t mutex;
