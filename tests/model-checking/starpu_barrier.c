@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
+#define starpu_sleep(d) MSG_process_sleep(d)
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
