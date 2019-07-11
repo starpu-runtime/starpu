@@ -136,6 +136,7 @@ static struct perfmodel
 struct replay_interface
 {
 	enum starpu_data_interface_id id;
+	starpu_data_handle_t orig_handle;
 	size_t size;
 	size_t alloc_size;
 	size_t max_size;
@@ -152,13 +153,15 @@ static void register_replay(starpu_data_handle_t handle, unsigned home_node, voi
 		struct replay_interface *local_interface =
 			starpu_data_get_interface_on_node(handle, node);
 
+		local_interface->id = replay_interface->id;
+		local_interface->orig_handle = replay_interface->orig_handle;
 		local_interface->size = replay_interface->size;
 		local_interface->alloc_size = replay_interface->alloc_size;
 		local_interface->max_size = replay_interface->max_size;
 	}
 }
 
-static void replay_data_register(starpu_data_handle_t *handleptr, int home_node, size_t size, size_t alloc_size, size_t max_size)
+static void replay_data_register(starpu_data_handle_t *handleptr, starpu_data_handle_t orig_handle, int home_node, size_t size, size_t alloc_size, size_t max_size)
 {
 	if (replay_interface_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
@@ -166,6 +169,7 @@ static void replay_data_register(starpu_data_handle_t *handleptr, int home_node,
 	}
 	struct replay_interface interface = {
 		.id = replay_interface_ops.interfaceid,
+		.orig_handle = orig_handle,
 		.size = size,
 		.alloc_size = alloc_size,
 		.max_size = max_size,
@@ -449,7 +453,7 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 
 				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
-				replay_data_register(handles_ptr+h,
+				replay_data_register(handles_ptr+h, handles_ptr[h],
 						modes_ptr[h] & STARPU_R ? STARPU_MAIN_RAM : -1,
 						array_of_size[h], array_of_size[h], array_of_size[h]);
 
