@@ -126,7 +126,7 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 
 int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
-#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+#ifdef HAVE_SG_ACTOR_SELF
 	sg_actor_kill(sg_actor_self());
 #else
 	MSG_process_kill(MSG_process_self());
