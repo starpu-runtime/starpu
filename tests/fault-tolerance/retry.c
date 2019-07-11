@@ -86,6 +86,10 @@ int main(void)
         starpu_data_handle_t h_x, h_y;
 	int ret, ret1;
 
+	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+		/* TODO _submit_job_take_data_deps */
+		return STARPU_TEST_SKIPPED;
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
