@@ -539,7 +539,11 @@ void _starpu_simgrid_deinit(void)
 
 struct task
 {
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+	double flops;
+#else
 	msg_task_t task;
+#endif
 
 	/* communication termination signalization */
 	unsigned *finished;
@@ -572,8 +576,12 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 			w->last_task = NULL;
 
 		_STARPU_DEBUG("task %p started\n", task);
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		sg_actor_self_execute(task->flops);
+#else
 		MSG_task_execute(task->task);
 		MSG_task_destroy(task->task);
+#endif
 		_STARPU_DEBUG("task %p finished\n", task);
 
 		*task->finished = 1;
@@ -613,7 +621,10 @@ void _starpu_simgrid_wait_tasks(int workerid)
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished)
 {
 	struct starpu_task *starpu_task = j->task;
+	double flops;
+#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
 	msg_task_t simgrid_task;
+#endif
 
 	if (j->internal)
 		/* This is not useful to include in simulation (and probably
@@ -630,27 +641,33 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
                  * to be able to easily check scheduling robustness */
 	}
 
-	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
 #  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
-			length/1000000.0*sg_host_speed(sg_host_self()),
+	flops = length/1000000.0*sg_host_speed(sg_host_self());
 #  else
-			length/1000000.0*sg_host_speed(MSG_host_self()),
+	flops = length/1000000.0*sg_host_speed(MSG_host_self());
 #  endif
 #elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
-			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+	flops = length/1000000.0*MSG_host_get_speed(MSG_host_self());
 #else
-			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
+	flops = length/1000000.0*MSG_get_host_speed(MSG_host_self());
 #endif
-			0, NULL);
+
+#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
+	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j), flops, 0, NULL);
+#endif
 
 	if (finished == NULL)
 	{
 		/* Synchronous execution */
 		/* First wait for previous tasks */
 		_starpu_simgrid_wait_tasks(workerid);
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		sg_actor_self_execute(flops);
+#else
 		MSG_task_execute(simgrid_task);
 		MSG_task_destroy(simgrid_task);
+#endif
 	}
 	else
 	{
@@ -658,7 +675,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		struct task *task;
 		struct worker_runner *w = &worker_runner[workerid];
 		_STARPU_MALLOC(task, sizeof(*task));
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		task->flops = flops;
+#else
 		task->task = simgrid_task;
+#endif
 		task->finished = finished;
 		*finished = 0;
 		task->next = NULL;

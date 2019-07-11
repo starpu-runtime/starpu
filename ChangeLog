@@ -23,6 +23,9 @@ New features:
   * Add get_max_size method to data interfaces for applications using data with
     variable size to express their maximal potential size.
 
+Small changes:
+  * Use the S4U interface of Simgrid instead of xbt and MSG.
+
 StarPU 1.3.3 (git revision xxx)
 ==============================================
 
