@@ -106,7 +106,11 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if SIMGRID_VERSION >= 31400
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+	sg_actor_join(thread, 1000000);
+#  else
 	MSG_process_join(thread, 1000000);
+#  endif
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
 #  ifdef HAVE_SG_ACTOR_REF
 	sg_actor_unref(thread);
@@ -122,7 +126,11 @@ int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **
 
 int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+	sg_actor_kill(sg_actor_self());
+#else
 	MSG_process_kill(MSG_process_self());
+#endif
 	STARPU_ABORT_MSG("MSG_process_kill(MSG_process_self()) returned?!");
 }
 
