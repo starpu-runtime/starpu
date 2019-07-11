@@ -139,7 +139,11 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
 #if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
+#  if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+		sg_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#  else
 		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#  endif
 #else
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 #endif
@@ -368,7 +372,7 @@ int main(int argc, char **argv)
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
 	/* Run the application in a separate thread */
-	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
+	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, _starpu_simgrid_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in the main thread */
 	MSG_main();
@@ -410,7 +414,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
+		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 		/* We initialized through MSG_process_attach */
 		simgrid_started = 3;
 	}
@@ -482,7 +486,9 @@ void _starpu_simgrid_deinit(void)
 			if (t->runner)
 			{
 				starpu_sem_post(&t->sem);
-#if SIMGRID_VERSION >= 31400
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+				sg_actor_join(t->runner, 1000000);
+#elif SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
 				MSG_process_sleep(1);
@@ -499,7 +505,9 @@ void _starpu_simgrid_deinit(void)
 	{
 		struct worker_runner *w = &worker_runner[i];
 		starpu_sem_post(&w->sem);
-#if SIMGRID_VERSION >= 31400
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+		sg_actor_join(w->runner, 1000000);
+#elif SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
 		MSG_process_sleep(1);
