@@ -708,7 +708,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 
 /* Note: simgrid is not parallel, so there is no need to hold locks for management of transfers.  */
 LIST_TYPE(transfer,
+#ifdef HAVE_SG_HOST_SEND_TO
+	size_t size;
+#else
 	msg_task_t task;
+#endif
 	int src_node;
 	int dst_node;
 	int run_node;
@@ -843,11 +847,21 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
+#ifdef HAVE_SG_HOST_SEND_TO
+		if (transfer->size)
+#else
 		if (transfer->task)
+#endif
 		{
 			_STARPU_DEBUG("transfer %p started\n", transfer);
+#ifdef HAVE_SG_HOST_SEND_TO
+			sg_host_send_to(_starpu_simgrid_memory_node_get_host(transfer->src_node),
+					_starpu_simgrid_memory_node_get_host(transfer->dst_node),
+					transfer->size);
+#else
 			MSG_task_execute(transfer->task);
 			MSG_task_destroy(transfer->task);
+#endif
 			_STARPU_DEBUG("transfer %p finished\n", transfer);
 		}
 
@@ -942,7 +956,11 @@ static void _starpu_simgrid_wait_transfers(void)
 	struct transfer *sync = transfer_new();
 	struct transfer *cur;
 
+#ifdef HAVE_SG_HOST_SEND_TO
+	sync->size = 0;
+#else
 	sync->task = NULL;
+#endif
 	sync->finished = &finished;
 
 	sync->src_node = STARPU_MAIN_RAM;
@@ -1000,12 +1018,19 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!simgrid_transfer_cost)
 		return 0;
 
+	union _starpu_async_channel_event *event, myevent;
+	double start = 0.;
+	struct transfer *transfer = transfer_new();
+
+	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
+
+#ifdef HAVE_SG_HOST_SEND_TO
+	transfer->size = size;
+#else
 	msg_task_t task;
 	msg_host_t *hosts;
 	double *computation;
 	double *communication;
-	union _starpu_async_channel_event *event, myevent;
-	double start = 0.;
 
 	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
 	_STARPU_CALLOC(computation, 2, sizeof(*computation));
@@ -1018,11 +1043,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	task = MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
 
-	struct transfer *transfer = transfer_new();
-
-	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
-
 	transfer->task = task;
+#endif
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;
 	transfer->run_node = starpu_worker_get_local_memory_node();
