@@ -28,6 +28,7 @@ EXTRA_DIST =			\
 	starpufftx.c		\
 	starpufftx1d.c		\
 	starpufftx2d.c		\
+	starpufftx3d.c		\
 	cuda_kernels.cu		\
 	cudaf_kernels.cu	\
 	cudax_kernels.cu

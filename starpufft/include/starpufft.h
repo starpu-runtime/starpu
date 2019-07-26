@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2012,2014,2015,2017,2019            CNRS
- * Copyright (C) 2009,2011,2014                           Université de Bordeaux
+ * Copyright (C) 2009,2011,2014,2019                      Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ typedef struct starpufft(plan) *starpufft(plan); \
 \
 starpufft(plan) starpufft(plan_dft_1d)(int n, int sign, unsigned flags); \
 starpufft(plan) starpufft(plan_dft_2d)(int n, int m, int sign, unsigned flags); \
+starpufft(plan) starpufft(plan_dft_3d)(int n, int m, int p, int sign, unsigned flags); \
 starpufft(plan) starpufft(plan_dft_r2c_1d)(int n, unsigned flags); \
 starpufft(plan) starpufft(plan_dft_c2r_1d)(int n, unsigned flags); \
 \
