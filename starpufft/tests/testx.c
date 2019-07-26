@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 {
 	int i, ret;
 	int size;
-	int n = 0, m = 0;
+	int n = 0, m = 0, p = 0;
 	STARPUFFT(plan) plan;
 	starpu_data_handle_t in_handle, out_handle;
 #ifdef STARPU_HAVE_FFTW
@@ -156,6 +156,15 @@ int main(int argc, char *argv[])
 
 		/* 2D */
 		size = n * m;
+	}
+	else if (argc == 4)
+	{
+		n = atoi(argv[1]);
+		m = atoi(argv[2]);
+		p = atoi(argv[3]);
+
+		/* 3D */
+		size = n * m * p;
 	}
 	else
 	{
@@ -203,6 +212,16 @@ int main(int argc, char *argv[])
 #endif
 #ifdef STARPU_USE_CUDA
 		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, _CUFFT_C2C) == CUFFT_SUCCESS);
+#endif
+	}
+	else if (argc == 4)
+	{
+		plan = STARPUFFT(plan_dft_3d)(n, m, p, SIGN, 0);
+#ifdef STARPU_HAVE_FFTW
+		fftw_plan = _FFTW(plan_dft_3d)(n, m, p, NULL, (void*) 1, SIGN, FFTW_ESTIMATE);
+#endif
+#ifdef STARPU_USE_CUDA
+		STARPU_ASSERT(cufftPlan3d(&cuda_plan, n, m, p, _CUFFT_C2C) == CUFFT_SUCCESS);
 #endif
 	}
 	else

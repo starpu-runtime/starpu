@@ -30,6 +30,7 @@ New features:
     STARPU_CALLBACK_WITH_ARG_NFREE, STARPU_PROLOGUE_CALLBACK_ARG_NFREE, and
     STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE which set the corresponding
     fields of starpu_task to 0.
+  * starpufft: Support 3D.
 
 Small features:
   * New starpu_task_insert() and alike parameter STARPU_TASK_WORKERIDS
