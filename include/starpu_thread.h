@@ -295,7 +295,11 @@ typedef sg_bar_t starpu_pthread_barrier_t;
 typedef xbt_bar_t starpu_pthread_barrier_t;
 #endif
 typedef int starpu_pthread_barrierattr_t;
-#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#ifdef SG_BARRIER_SERIAL_THREAD
+#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD SG_BARRIER_SERIAL_THREAD
+#else
+#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#endif
 #else
 typedef struct {
 	starpu_pthread_mutex_t mutex;
