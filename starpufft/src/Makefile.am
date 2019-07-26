@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2018                                CNRS
-# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2009-2017,2019                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -45,13 +45,13 @@ NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
 cudaf_kernels.o: cudaf_kernels.cu
 	$(V_nvcc) $(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cudaf_kernels.cu
+libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cudaf_kernels.o
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
-	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cuda_kernels.cu
+libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cuda_kernels.o
 endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
