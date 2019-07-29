@@ -55,7 +55,7 @@ location.
 
 If <c>libhwloc</c> is not available on your system, the option
 \ref without-hwloc "--without-hwloc" should be explicitely given when calling the
-<c>configure</c> script.
+script <c>configure</c>.
 
 
 \subsection GettingSources Getting Sources
@@ -88,8 +88,8 @@ $ git clone https://scm.gforge.inria.fr/anonscm/git/starpu/starpu.git
 
 Running <c>autogen.sh</c> is not necessary when using the tarball
 releases of StarPU.  However when using the source code from the git
-repository, you first need to generate the configure scripts and the
-Makefiles. This requires the availability of <c>autoconf</c> and
+repository, you first need to generate the script <c>configure</c> and the
+different Makefiles. This requires the availability of <c>autoconf</c> and
 <c>automake</c> >= 2.60.
 
 \verbatim
@@ -113,7 +113,7 @@ is advised to put them all in a separate directory. It is then
 easier to cleanup, and this allows to compile several configurations
 out of the same source tree. To do so, simply enter the directory
 where you want the compilation to produce its files, and invoke the
-<c>configure</c> script located in the StarPU source directory.
+script <c>configure</c> located in the StarPU source directory.
 
 \verbatim
 $ mkdir build
@@ -139,7 +139,7 @@ $ make
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
 tests is done by calling <c>make check</c>. These tests are run every night
-and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/).
+and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/master/).
 
 \verbatim
 $ make check
@@ -246,7 +246,7 @@ int main(void)
     {
         return 1;
     }
-    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CPU cores\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
     printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
     printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
     starpu_shutdown();
@@ -273,7 +273,7 @@ int main(void)
     {
         return 1;
     }
-    printf("%d CPU coress\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+    printf("%d CPU cores\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
     printf("%d CUDA GPUs\n", starpu_worker_get_count_by_type(STARPU_CUDA_WORKER));
     printf("%d OpenCL GPUs\n", starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER));
     starpu_shutdown();
@@ -428,12 +428,13 @@ While StarPU tasks are executing, the application is not supposed to do
 computations in the threads it starts itself, tasks should be used instead.
 
 If the application needs to reserve some cores for its own computations, it
-can do so with the starpu_conf::reserve_ncpus field, get the core IDs with
+can do so with the field starpu_conf::reserve_ncpus, get the core IDs with
 starpu_get_next_bindid(), and bind to them with starpu_bind_thread_on().
 
-Another option is for the application to put the whole StarPU on pause with
-starpu_pause() before performing its own computations, and let StarPU resume
-executing tasks with starpu_resume().
+Another option is for the application to pause StarPU by calling
+starpu_pause(), then to perform its own computations, and then to
+resume StarPU by calling starpu_resume() so that StarPU can execute
+tasks.
 
 \subsection EnablingOpenCL Enabling OpenCL
 
@@ -499,12 +500,12 @@ multiplication using BLAS and cuBLAS. They output the obtained GFlops.
 
 <c>lu_*</c> perform an LU factorization. They use different dependency primitives.
 
-\subsection SimulatedBenchmarks Simulated benchmarks
+\subsection SimulatedBenchmarks Simulated Benchmarks
 
 It can also be convenient to try simulated benchmarks, if you want to give a try
 at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
-using the simgrid version of StarPU: first install the simgrid simulator from
-http://simgrid.gforge.inria.fr/ (we tested with simgrid from 3.11 to 3.16, and
+using the SimGrid version of StarPU: first install the SimGrid simulator from
+http://simgrid.gforge.inria.fr/ (we tested with SimGrid from 3.11 to 3.16, and
 3.18 to 3.22, other versions may have compatibility issues, 3.17 notably does
 not build at all. MPI simulation does not work with version 3.22),
 then configure StarPU with \ref enable-simgrid
@@ -526,5 +527,7 @@ schedulers.
 Performance models are available for <c>cholesky_*</c>, <c>lu_*</c>, <c>*gemm</c>, with block sizes
 320, 640, or 960 (plus 1440 for sirocco), and for <c>stencil</c> with block size 128x128x128, 192x192x192, and
 256x256x256.
+
+Read the chapter \ref SimGridSupport for more information on the SimGrid support.
 
 */

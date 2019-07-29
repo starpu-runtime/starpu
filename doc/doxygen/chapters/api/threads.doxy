@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2011,2014,2016                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
@@ -20,7 +20,7 @@
 
 \brief This section describes the thread facilities provided
 by StarPU. The thread function are either implemented on top of the
-pthread library or the Simgrid library when the simulated performance
+pthread library or the SimGrid library when the simulated performance
 mode is enabled (\ref SimGridSupport).
 
 \def STARPU_PTHREAD_CREATE_ON
@@ -359,8 +359,8 @@ todo
 \fn void starpu_sleep(float nb_sec)
 \ingroup API_Threads
 Similar to calling Unix' \c sleep function, except that it takes a float
-to allow sub-second sleeping, and when StarPU is compiled in simgrid mode it
-does not really sleep but just makes simgrid record that the thread has taken
+to allow sub-second sleeping, and when StarPU is compiled in SimGrid mode it
+does not really sleep but just makes SimGrid record that the thread has taken
 some time to sleep.
 
 */

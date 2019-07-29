@@ -154,7 +154,7 @@ chapters/version.sty: $(chapters)
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_sty
 	@if test -s timestamp_sty ; then \
-		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%d %B %Y" > timestamp_sty_updated ;\
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%F" > timestamp_sty_updated ;\
 		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
 	fi
 	@if test -s timestamp_sty_updated ; then \
@@ -173,7 +173,7 @@ chapters/version.html: $(chapters)
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_html
 	@if test -s timestamp_html ; then \
-		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%d %B %Y" > timestamp_html_updated ;\
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%F" > timestamp_html_updated ;\
 		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
 	fi
 	@echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
