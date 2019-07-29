@@ -65,7 +65,7 @@ starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 static struct transfer_runner
 {
 	struct transfer *first_transfer, *last_transfer;
-	msg_sem_t sem;
+	starpu_sem_t sem;
 	msg_process_t runner;
 } transfer_runner[STARPU_MAXNODES][STARPU_MAXNODES];
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
@@ -74,7 +74,7 @@ starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 static struct worker_runner
 {
 	struct task *first_task, *last_task;
-	msg_sem_t sem;
+	starpu_sem_t sem;
 	msg_process_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
@@ -139,7 +139,11 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
 #if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
+#  if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+		sg_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#  else
 		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
+#  endif
 #else
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 #endif
@@ -151,14 +155,22 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 #endif /* HAVE_STARPU_SIMGRID_GET_AS_BY_NAME */
 	}
 	else
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		hosts = sg_hosts_as_dynar();
+#else
 		hosts = MSG_hosts_as_dynar();
+#endif
 	nb = xbt_dynar_length(hosts);
 
 	ret = 0;
 	for (i = 0; i < nb; i++)
 	{
 		const char *name;
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		name = sg_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+#else
 		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+#endif
 		if (!strncmp(name, prefix, len))
 			ret++;
 	}
@@ -178,10 +190,18 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	if (!host)
 		return 0;
 
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	if (!sg_host_get_properties(host))
+#else
 	if (!MSG_host_get_properties(host))
+#endif
 		return 0;
 
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	memsize = sg_host_get_property_value(host, "memsize");
+#else
 	memsize = MSG_host_get_property_value(host, "memsize");
+#endif
 	if (!memsize)
 		return 0;
 
@@ -195,10 +215,18 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 		char mpiname[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(mpiname, sizeof(mpiname), STARPU_MPI_AS_PREFIX"%d-%s", starpu_mpi_world_rank(), name);
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		return sg_host_by_name(mpiname);
+#else
 		return MSG_get_host_by_name(mpiname);
+#endif
 	}
 	else
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		return sg_host_by_name(name);
+#else
 		return MSG_get_host_by_name(name);
+#endif
 }
 
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
@@ -261,7 +289,9 @@ void _starpu_start_simgrid(int *argc, char **argv)
 		stack_size = rlim.rlim_cur / 1024;
 #endif
 
-#if SIMGRID_VERSION < 31300
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", stack_size);
+#elif SIMGRID_VERSION < 31300
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 #else
@@ -284,7 +314,7 @@ static int main_ret;
 int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	main_ret = starpu_main(argc, argv);
 	return main_ret;
@@ -342,7 +372,7 @@ int main(int argc, char **argv)
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
 	/* Run the application in a separate thread */
-	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, MSG_get_host_by_name("MAIN"), argc, argv_cpy);
+	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, _starpu_simgrid_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in the main thread */
 	MSG_main();
@@ -369,8 +399,12 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		 * Try using --cfg=contexts/factory:thread instead."
 		 * See https://github.com/simgrid/simgrid/issues/141 */
 		_STARPU_DISP("Warning: In simgrid mode, the file containing the main() function of this application should to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main to avoid having to use --cfg=contexts/factory:thread which reduces performance\n");
-#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting xbt_cfg_set_string before starting simgrid */
+#if SIMGRID_VERSION >= 31400 /* Only recent versions of simgrid support setting sg_cfg_set_string before starting simgrid */
+#  ifdef HAVE_SG_CFG_SET_INT
+		sg_cfg_set_string("contexts/factory", "thread");
+#  else
 		xbt_cfg_set_string("contexts/factory", "thread");
+#  endif
 #endif
 		/* We didn't catch application's main. */
 		/* Start maestro as a separate thread */
@@ -380,7 +414,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		MSG_process_attach("main", tsd, MSG_get_host_by_name("MAIN"), NULL);
+		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 		/* We initialized through MSG_process_attach */
 		simgrid_started = 3;
 	}
@@ -422,7 +456,7 @@ void _starpu_simgrid_init(void)
 		snprintf(s, sizeof(s), "worker %u runner", i);
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-		worker_runner[i].sem = MSG_sem_init(0);
+		starpu_sem_init(&worker_runner[i].sem, 0, 0);
 		tsd[0] = (void*)(uintptr_t) i;
 		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
 	}
@@ -451,15 +485,17 @@ void _starpu_simgrid_deinit(void)
 			struct transfer_runner *t = &transfer_runner[i][j];
 			if (t->runner)
 			{
-				MSG_sem_release(t->sem);
-#if SIMGRID_VERSION >= 31400
+				starpu_sem_post(&t->sem);
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+				sg_actor_join(t->runner, 1000000);
+#elif SIMGRID_VERSION >= 31400
 				MSG_process_join(t->runner, 1000000);
 #else
-				MSG_process_sleep(1);
+				starpu_sleep(1);
 #endif
 				STARPU_ASSERT(t->first_transfer == NULL);
 				STARPU_ASSERT(t->last_transfer == NULL);
-				MSG_sem_destroy(t->sem);
+				starpu_sem_destroy(&t->sem);
 			}
 		}
 		/* FIXME: queue not empty at this point, needs proper unregistration */
@@ -468,21 +504,29 @@ void _starpu_simgrid_deinit(void)
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
 		struct worker_runner *w = &worker_runner[i];
-		MSG_sem_release(w->sem);
-#if SIMGRID_VERSION >= 31400
+		starpu_sem_post(&w->sem);
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+		sg_actor_join(w->runner, 1000000);
+#elif SIMGRID_VERSION >= 31400
 		MSG_process_join(w->runner, 1000000);
 #else
-		MSG_process_sleep(1);
+		starpu_sleep(1);
 #endif
 		STARPU_ASSERT(w->first_task == NULL);
 		STARPU_ASSERT(w->last_task == NULL);
-		MSG_sem_destroy(w->sem);
+		starpu_sem_destroy(&w->sem);
 		starpu_pthread_queue_destroy(&_starpu_simgrid_task_queue[i]);
 	}
 
 #if SIMGRID_VERSION >= 31300
 	/* clean-atexit introduced in simgrid 3.13 */
+#  ifdef HAVE_SG_CFG_SET_INT
+	if ( sg_cfg_get_boolean("debug/clean-atexit"))
+#  elif SIMGRID_VERSION >= 32300
+	if ( xbt_cfg_get_boolean("debug/clean-atexit"))
+#  else
 	if ( xbt_cfg_get_boolean("clean-atexit"))
+#  endif
 	{
 		_starpu_simgrid_deinit_late();
 	}
@@ -495,7 +539,11 @@ void _starpu_simgrid_deinit(void)
 
 struct task
 {
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+	double flops;
+#else
 	msg_task_t task;
+#endif
 
 	/* communication termination signalization */
 	unsigned *finished;
@@ -508,7 +556,7 @@ struct task
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	unsigned workerid = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	struct worker_runner *w = &worker_runner[workerid];
@@ -518,7 +566,7 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 	{
 		struct task *task;
 
-		MSG_sem_acquire(w->sem);
+		starpu_sem_wait(&w->sem);
 		if (!runners_running)
 			break;
 
@@ -528,8 +576,12 @@ static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_AT
 			w->last_task = NULL;
 
 		_STARPU_DEBUG("task %p started\n", task);
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		sg_actor_self_execute(task->flops);
+#else
 		MSG_task_execute(task->task);
 		MSG_task_destroy(task->task);
+#endif
 		_STARPU_DEBUG("task %p finished\n", task);
 
 		*task->finished = 1;
@@ -569,7 +621,10 @@ void _starpu_simgrid_wait_tasks(int workerid)
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished)
 {
 	struct starpu_task *starpu_task = j->task;
+	double flops;
+#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
 	msg_task_t simgrid_task;
+#endif
 
 	if (j->internal)
 		/* This is not useful to include in simulation (and probably
@@ -586,23 +641,33 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
                  * to be able to easily check scheduling robustness */
 	}
 
-	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
-			length/1000000.0*sg_host_speed(MSG_host_self()),
+#  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
+	flops = length/1000000.0*sg_host_speed(sg_host_self());
+#  else
+	flops = length/1000000.0*sg_host_speed(MSG_host_self());
+#  endif
 #elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
-			length/1000000.0*MSG_host_get_speed(MSG_host_self()),
+	flops = length/1000000.0*MSG_host_get_speed(MSG_host_self());
 #else
-			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
+	flops = length/1000000.0*MSG_get_host_speed(MSG_host_self());
 #endif
-			0, NULL);
+
+#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
+	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j), flops, 0, NULL);
+#endif
 
 	if (finished == NULL)
 	{
 		/* Synchronous execution */
 		/* First wait for previous tasks */
 		_starpu_simgrid_wait_tasks(workerid);
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		sg_actor_self_execute(flops);
+#else
 		MSG_task_execute(simgrid_task);
 		MSG_task_destroy(simgrid_task);
+#endif
 	}
 	else
 	{
@@ -610,13 +675,17 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		struct task *task;
 		struct worker_runner *w = &worker_runner[workerid];
 		_STARPU_MALLOC(task, sizeof(*task));
+#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+		task->flops = flops;
+#else
 		task->task = simgrid_task;
+#endif
 		task->finished = finished;
 		*finished = 0;
 		task->next = NULL;
 		/* Sleep 10µs for the GPU task queueing */
 		if (_starpu_simgrid_queue_malloc_cost())
-			MSG_process_sleep(0.000010);
+			starpu_sleep(0.000010);
 		if (w->last_task)
 		{
 			/* Already running a task, queue */
@@ -629,7 +698,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 			w->first_task = task;
 			w->last_task = task;
 		}
-		MSG_sem_release(w->sem);
+		starpu_sem_post(&w->sem);
 	}
 }
 
@@ -639,7 +708,11 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 
 /* Note: simgrid is not parallel, so there is no need to hold locks for management of transfers.  */
 LIST_TYPE(transfer,
+#ifdef HAVE_SG_HOST_SEND_TO
+	size_t size;
+#else
 	msg_task_t task;
+#endif
 	int src_node;
 	int dst_node;
 	int run_node;
@@ -730,7 +803,7 @@ static void transfer_queue(struct transfer *transfer)
 			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
 			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
-			t->sem = MSG_sem_init(0);
+			starpu_sem_init(&t->sem, 0, 0);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
@@ -747,14 +820,14 @@ static void transfer_queue(struct transfer *transfer)
 		t->first_transfer = transfer;
 		t->last_transfer = transfer;
 	}
-	MSG_sem_release(t->sem);
+	starpu_sem_post(&t->sem);
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	unsigned src_dst = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
 	unsigned src = src_dst >> 16;
@@ -766,7 +839,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	{
 		struct transfer *transfer;
 
-		MSG_sem_acquire(t->sem);
+		starpu_sem_wait(&t->sem);
 		if (!runners_running)
 			break;
 		transfer = t->first_transfer;
@@ -774,11 +847,21 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
+#ifdef HAVE_SG_HOST_SEND_TO
+		if (transfer->size)
+#else
 		if (transfer->task)
+#endif
 		{
 			_STARPU_DEBUG("transfer %p started\n", transfer);
+#ifdef HAVE_SG_HOST_SEND_TO
+			sg_host_send_to(_starpu_simgrid_memory_node_get_host(transfer->src_node),
+					_starpu_simgrid_memory_node_get_host(transfer->dst_node),
+					transfer->size);
+#else
 			MSG_task_execute(transfer->task);
 			MSG_task_destroy(transfer->task);
+#endif
 			_STARPU_DEBUG("transfer %p finished\n", transfer);
 		}
 
@@ -873,7 +956,11 @@ static void _starpu_simgrid_wait_transfers(void)
 	struct transfer *sync = transfer_new();
 	struct transfer *cur;
 
+#ifdef HAVE_SG_HOST_SEND_TO
+	sync->size = 0;
+#else
 	sync->task = NULL;
+#endif
 	sync->finished = &finished;
 
 	sync->src_node = STARPU_MAIN_RAM;
@@ -931,12 +1018,19 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!simgrid_transfer_cost)
 		return 0;
 
+	union _starpu_async_channel_event *event, myevent;
+	double start = 0.;
+	struct transfer *transfer = transfer_new();
+
+	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
+
+#ifdef HAVE_SG_HOST_SEND_TO
+	transfer->size = size;
+#else
 	msg_task_t task;
 	msg_host_t *hosts;
 	double *computation;
 	double *communication;
-	union _starpu_async_channel_event *event, myevent;
-	double start = 0.;
 
 	_STARPU_CALLOC(hosts, 2, sizeof(*hosts));
 	_STARPU_CALLOC(computation, 2, sizeof(*computation));
@@ -949,11 +1043,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	task = MSG_parallel_task_create("copy", 2, hosts, computation, communication, NULL);
 
-	struct transfer *transfer = transfer_new();
-
-	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
-
 	transfer->task = task;
+#endif
 	transfer->src_node = src_node;
 	transfer->dst_node = dst_node;
 	transfer->run_node = starpu_worker_get_local_memory_node();
@@ -976,7 +1067,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	/* Sleep 10µs for the GPU transfer queueing */
 	if (_starpu_simgrid_queue_malloc_cost())
-		MSG_process_sleep(0.000010);
+		starpu_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 
@@ -1007,7 +1098,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	void *arg = (void*) (uintptr_t) strtol(argv[1], NULL, 16);
 
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 	/* _args is freed with process context */
 	f(arg);

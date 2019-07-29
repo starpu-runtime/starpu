@@ -1439,8 +1439,12 @@ int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_nod
 	(void) node;
 	if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
 	{
-		msg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+		starpu_sg_host_t host = _starpu_simgrid_get_memnode_host(handling_node);
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+		const char* cuda_memcpy_peer = sg_host_get_property_value(host, "memcpy_peer");
+#  else
 		const char* cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+#  endif
 		return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
 	}
 	else
@@ -1472,7 +1476,7 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	/* Sleep for the allocation */
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000175);
+		starpu_sleep(0.000175);
 	if (!last[dst_node])
 		last[dst_node] = 1<<10;
 	addr = last[dst_node];
@@ -1513,6 +1517,8 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 
 void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	(void) dst_node;
+	(void) addr;
 	(void) size;
 	(void) flags;
 
@@ -1521,7 +1527,7 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 	/* Sleep for the free */
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000750);
+		starpu_sleep(0.000750);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 	/* CUDA also synchronizes roughly everything on cudaFree */
 	_starpu_simgrid_sync_gpus();

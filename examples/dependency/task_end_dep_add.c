@@ -47,7 +47,7 @@ void cpu_codelet(void *descr[], void *args)
 	starpu_task_end_dep_add(task, 1);
 
 	starpu_task_insert(&cl2,
-			   STARPU_CALLBACK_WITH_ARG, starpu_task_end_dep_release, task,
+			   STARPU_CALLBACK_WITH_ARG_NFREE, starpu_task_end_dep_release, task,
 			   0);
 	STARPU_ASSERT(*val == INIT);
 	*val *= 2;

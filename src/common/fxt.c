@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013,2015                           Inria
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2018                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,7 +69,11 @@ long _starpu_gettid(void)
 	 * Don't use the TSD, this is getting called before we would have the
 	 * time to allocate it.  */
 #ifdef STARPU_SIMGRID
+#  ifdef HAVE_SG_ACTOR_SELF
+	return (uintptr_t) sg_actor_self();
+#  else
 	return (uintptr_t) MSG_process_self();
+#  endif
 #else
 #if defined(__linux__)
 	return syscall(SYS_gettid);

@@ -116,6 +116,11 @@ static size_t variable_size_get_size(starpu_data_handle_t handle)
 	return interface->size;
 }
 
+static size_t variable_size_get_max_size(starpu_data_handle_t handle)
+{
+	return FULLSIZE;
+}
+
 static uint32_t variable_size_footprint(starpu_data_handle_t handle)
 {
 	return starpu_hash_crc32c_be(variable_size_get_size(handle), 0);
@@ -195,6 +200,7 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	.free_data_on_node = free_variable_size_on_node,
 	.copy_methods = &variable_size_copy_data_methods,
 	.get_size = variable_size_get_size,
+	.get_max_size = variable_size_get_max_size,
 	.footprint = variable_size_footprint,
 	.compare = variable_size_compare,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,

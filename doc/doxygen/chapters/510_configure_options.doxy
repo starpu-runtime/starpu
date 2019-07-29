@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2017, 2019                                CNRS
+ * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -281,7 +281,7 @@ contain the OpenCL shared libraries---e.g. <c>libOpenCL.so</c>. This defaults to
 \addindex __configure__--enable-opencl-simulator
 Enable considering the provided OpenCL implementation as a simulator, i.e. use
 the kernel duration returned by OpenCL profiling information as wallclock time
-instead of the actual measured real time. This requires simgrid support.
+instead of the actual measured real time. This requires the SimGrid support.
 </dd>
 
 <dt>--enable-maximplementations=<c>count</c></dt>
@@ -679,10 +679,10 @@ Enable memory statistics (\ref MemoryFeedback).
 <dd>
 \anchor enable-simgrid
 \addindex __configure__--enable-simgrid
-Enable simulation of execution in simgrid, to allow easy experimentation with
+Enable simulation of execution in SimGrid, to allow easy experimentation with
 various numbers of cores and GPUs, or amount of memory, etc. Experimental.
 
-The path to simgrid can be specified through the <c>SIMGRID_CFLAGS</c> and
+The path to SimGrid can be specified through the <c>SIMGRID_CFLAGS</c> and
 <c>SIMGRID_LIBS</c> environment variables, for instance:
 
 \verbatim
@@ -727,7 +727,7 @@ Use the smpirun at <c>path</c>
 <dd>
 \anchor enable-simgrid-mc
 \addindex __configure__--enable-simgrid-mc
-Enable the Model Checker in simulation of execution in simgrid, to allow
+Enable the Model Checker in simulation of execution in SimGrid, to allow
 exploring various execution paths.
 </dd>
 

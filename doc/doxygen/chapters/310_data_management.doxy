@@ -22,11 +22,16 @@ TODO: intro which mentions consistency among other things
 
 \section DataInterface Data Interface
 
-StarPU provides several data interfaces for programmers to describe the data layout of their application. There are predefined interfaces already available in StarPU. Users can define new data interfaces as explained in \ref DefiningANewDataInterface. All functions provided by StarPU are documented in \ref API_Data_Interfaces. You will find a short list below.
+StarPU provides several data interfaces for programmers to describe
+the data layout of their application. There are predefined interfaces
+already available in StarPU. Users can define new data interfaces as
+explained in \ref DefiningANewDataInterface. All functions provided by
+StarPU are documented in \ref API_Data_Interfaces. You will find a
+short list below.
 
 \subsection VariableDataInterface Variable Data Interface
 
-A variable is a given size byte element, typically a scalar. Here an
+A variable is a given-size byte element, typically a scalar. Here an
 example of how to register a variable data to StarPU by using
 starpu_variable_data_register().
 

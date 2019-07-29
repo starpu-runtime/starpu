@@ -126,6 +126,163 @@ static struct perfmodel
 	char * model_name;
 } * model_hash;
 
+
+
+/*
+ * Replay data interface
+ * We don't care about many things anyway, essentially only sizes.
+ */
+
+struct replay_interface
+{
+	enum starpu_data_interface_id id;
+	starpu_data_handle_t orig_handle;
+	size_t size;
+	size_t alloc_size;
+	size_t max_size;
+};
+
+static struct starpu_data_interface_ops replay_interface_ops;
+static void register_replay(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+{
+	(void) home_node;
+	struct replay_interface *replay_interface = data_interface;
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct replay_interface *local_interface =
+			starpu_data_get_interface_on_node(handle, node);
+
+		local_interface->id = replay_interface->id;
+		local_interface->orig_handle = replay_interface->orig_handle;
+		local_interface->size = replay_interface->size;
+		local_interface->alloc_size = replay_interface->alloc_size;
+		local_interface->max_size = replay_interface->max_size;
+	}
+}
+
+static void replay_data_register(starpu_data_handle_t *handleptr, starpu_data_handle_t orig_handle, int home_node, size_t size, size_t alloc_size, size_t max_size)
+{
+	if (replay_interface_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	{
+		replay_interface_ops.interfaceid = starpu_data_interface_get_next_id();
+	}
+	struct replay_interface interface = {
+		.id = replay_interface_ops.interfaceid,
+		.orig_handle = orig_handle,
+		.size = size,
+		.alloc_size = alloc_size,
+		.max_size = max_size,
+	};
+
+	starpu_data_register(handleptr, home_node, &interface, &replay_interface_ops);
+}
+
+static size_t replay_get_size(starpu_data_handle_t handle)
+{
+	struct replay_interface *interface =
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	return interface->size;
+}
+
+static size_t replay_get_alloc_size(starpu_data_handle_t handle)
+{
+	struct replay_interface *interface =
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	return interface->alloc_size;
+}
+
+static size_t replay_get_max_size(starpu_data_handle_t handle)
+{
+	struct replay_interface *interface =
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	return interface->max_size;
+}
+
+static uint32_t replay_footprint(starpu_data_handle_t handle)
+{
+	return starpu_hash_crc32c_be(replay_get_size(handle), 0);
+}
+
+static int replay_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct replay_interface *replay_a = data_interface_a;
+	struct replay_interface *replay_b = data_interface_b;
+
+	/* Two variables are considered compatible if they have the same size */
+	return replay_a->size == replay_b->size;
+}
+
+static void display_replay(starpu_data_handle_t handle, FILE *f)
+{
+	struct replay_interface *replay_interface =
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+	fprintf(f, "%lu/%lu/%lu\t",
+			(unsigned long) replay_interface->size,
+			(unsigned long) replay_interface->alloc_size,
+			(unsigned long) replay_interface->max_size);
+}
+
+static starpu_ssize_t describe_replay(void *data_interface, char *buf, size_t size)
+{
+	struct replay_interface *replay_interface = data_interface;
+	return snprintf(buf, size, "r%lu/%lu/%lu\t",
+			(unsigned long) replay_interface->size,
+			(unsigned long) replay_interface->alloc_size,
+			(unsigned long) replay_interface->max_size);
+}
+
+static starpu_ssize_t allocate_replay_on_node(void *data_interface, unsigned dst_node)
+{
+	struct replay_interface *replay_interface = data_interface;
+	starpu_memory_allocate(dst_node, replay_interface->alloc_size, STARPU_MEMORY_OVERFLOW);
+	return 0;
+}
+
+static void free_replay_on_node(void *data_interface, unsigned dst_node)
+{
+	struct replay_interface *replay_interface = data_interface;
+	starpu_memory_deallocate(dst_node, replay_interface->alloc_size);
+}
+
+static int replay_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
+{
+	(void) dst_interface;
+	struct replay_interface *src = src_interface;
+
+	/* We don't care about pointers */
+	return starpu_interface_copy(1, 0, src_node, 1, 0, dst_node, src->size, async_data);
+}
+
+static const struct starpu_data_copy_methods replay_copy_data_methods =
+{
+	.any_to_any = replay_copy,
+};
+
+static struct starpu_data_interface_ops replay_interface_ops =
+{
+	.register_data_handle = register_replay,
+	.allocate_data_on_node = allocate_replay_on_node,
+	.free_data_on_node = free_replay_on_node,
+	.copy_methods = &replay_copy_data_methods,
+	.get_size = replay_get_size,
+	.get_alloc_size = replay_get_alloc_size,
+	.get_max_size = replay_get_max_size,
+	.footprint = replay_footprint,
+	.compare = replay_compare,
+	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
+	.interface_size = sizeof(struct replay_interface),
+	.display = display_replay,
+	.pack_data = NULL,
+	.unpack_data = NULL,
+	.describe = describe_replay,
+
+	/* We want to observe actual allocations/deallocations */
+	.dontcache = 1,
+};
+
+
 /* [SUBMITORDER] The tree of the submit order */
 
 static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
@@ -296,7 +453,9 @@ static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 
 				handles_cell->handle = handles_ptr[h]; /* Get the hidden key (initial handle from the file) to store it as a key*/
 
-				starpu_variable_data_register(handles_ptr+h, STARPU_MAIN_RAM, (uintptr_t) 1, array_of_size[h]);
+				replay_data_register(handles_ptr+h, handles_ptr[h],
+						modes_ptr[h] & STARPU_R ? STARPU_MAIN_RAM : -1,
+						array_of_size[h], array_of_size[h], array_of_size[h]);
 
 				handles_cell->mem_ptr = handles_ptr[h]; /* Store the new value of the handle into the hash table */
 
@@ -708,7 +867,7 @@ int main(int argc, char **argv)
 						int one = 0;
 						for (i = 0; i < narch ; i++)
 						{
-							struct starpu_perfmodel_arch *arch = starpu_perfmodel_arch_comb_fetch(i);
+							arch = starpu_perfmodel_arch_comb_fetch(i);
 							perfTime[i] = starpu_perfmodel_history_based_expected_perf(&realmodel->perfmodel, arch, footprint);
 							if (!(perfTime[i] == 0 || isnan(perfTime[i])))
 								one = 1;
@@ -867,7 +1026,7 @@ int main(int argc, char **argv)
 		else if (TEST("Modes"))
 		{
 			char * buffer = s + 7;
-			int mode_i = 0;
+			unsigned mode_i = 0;
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
 
@@ -902,7 +1061,7 @@ int main(int argc, char **argv)
 			char *  buffer = s + 7;
 			const char * delim = " ";
 			char * token = strtok(buffer, delim);
-			int k = 0;
+			unsigned k = 0;
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 

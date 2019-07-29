@@ -814,6 +814,14 @@ size_t _starpu_data_get_alloc_size(starpu_data_handle_t handle)
 		return handle->ops->get_size(handle);
 }
 
+starpu_ssize_t _starpu_data_get_max_size(starpu_data_handle_t handle)
+{
+	if (handle->ops->get_max_size)
+		return handle->ops->get_max_size(handle);
+	else
+		return -1;
+}
+
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 {
 	return handle->footprint;
@@ -1130,7 +1138,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 					_starpu_fetch_task_input_cb, worker, 0, "_starpu_fetch_task_input");
 #ifdef STARPU_SIMGRID
 			if (_starpu_simgrid_fetching_input_cost())
-				MSG_process_sleep(0.000001);
+				starpu_sleep(0.000001);
 #endif
 			if (STARPU_UNLIKELY(ret))
 			{
@@ -1145,7 +1153,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			ret = fetch_data(handle, node, local_replicate, mode, 0);
 #ifdef STARPU_SIMGRID
 			if (_starpu_simgrid_fetching_input_cost())
-				MSG_process_sleep(0.000001);
+				starpu_sleep(0.000001);
 #endif
 			if (STARPU_UNLIKELY(ret))
 				goto enomem;

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2015,2017                           CNRS
  * Copyright (C) 2012,2013,2017                           Inria
- * Copyright (C) 2009-2012,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2009-2012,2014,2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -199,6 +199,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task STARPU_ATTRIB
 
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"
+#include "starpufftx3d.c"
 
 struct starpu_task *
 STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
@@ -242,6 +243,17 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 					plan->twist1_tasks[z]->handles[0] = plan->in_handle;
 			}
 			task = STARPUFFT(start2dC2C)(plan, plan->in_handle, plan->out_handle);
+			break;
+		case 3:
+			starpu_vector_data_register(&plan->in_handle, STARPU_MAIN_RAM, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+			if (!PARALLEL)
+				starpu_vector_data_register(&plan->out_handle, STARPU_MAIN_RAM, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+			if (PARALLEL)
+			{
+				for (z = 0; z < plan->totsize1; z++)
+					plan->twist1_tasks[z]->handles[0] = plan->in_handle;
+			}
+			task = STARPUFFT(start3dC2C)(plan, plan->in_handle, plan->out_handle);
 			break;
 		default:
 			STARPU_ABORT();

@@ -162,12 +162,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 
 	return _starpu_simgrid_transfer(handle->ops->get_size(handle), src_node, dst_node, req);
 #else /* !SIMGRID */
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		unsigned devid;

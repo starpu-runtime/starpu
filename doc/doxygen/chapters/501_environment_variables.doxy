@@ -647,7 +647,7 @@ STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 \anchor STARPU_SIMGRID_TRANSFER_COST
 \addindex __env__STARPU_SIMGRID_TRANSFER_COST
 When set to 1 (which is the default), data transfers (over PCI bus, typically) are taken into account
-in simgrid mode.
+in SimGrid mode.
 </dd>
 
 <dt>STARPU_SIMGRID_CUDA_MALLOC_COST</dt>
@@ -655,7 +655,7 @@ in simgrid mode.
 \anchor STARPU_SIMGRID_CUDA_MALLOC_COST
 \addindex __env__STARPU_SIMGRID_CUDA_MALLOC_COST
 When set to 1 (which is the default), CUDA malloc costs are taken into account
-in simgrid mode.
+in SimGrid mode.
 </dd>
 
 <dt>STARPU_SIMGRID_CUDA_QUEUE_COST</dt>
@@ -663,14 +663,14 @@ in simgrid mode.
 \anchor STARPU_SIMGRID_CUDA_QUEUE_COST
 \addindex __env__STARPU_SIMGRID_CUDA_QUEUE_COST
 When set to 1 (which is the default), CUDA task and transfer queueing costs are
-taken into account in simgrid mode.
+taken into account in SimGrid mode.
 </dd>
 
 <dt>STARPU_PCI_FLAT</dt>
 <dd>
 \anchor STARPU_PCI_FLAT
 \addindex __env__STARPU_PCI_FLAT
-When unset or set to 0, the platform file created for simgrid will
+When unset or set to 0, the platform file created for SimGrid will
 contain PCI bandwidths and routes.
 </dd>
 
@@ -678,7 +678,7 @@ contain PCI bandwidths and routes.
 <dd>
 \anchor STARPU_SIMGRID_QUEUE_MALLOC_COST
 \addindex __env__STARPU_SIMGRID_QUEUE_MALLOC_COST
-When unset or set to 1, simulate within simgrid the GPU transfer queueing.
+When unset or set to 1, simulate within SimGrid the GPU transfer queueing.
 </dd>
 
 <dt>STARPU_MALLOC_SIMULATION_FOLD</dt>
@@ -695,7 +695,7 @@ MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
 \anchor STARPU_SIMGRID_TASK_SUBMIT_COST
 \addindex __env__STARPU_SIMGRID_TASK_SUBMIT_COST
 When set to 1 (which is the default), task submission costs are taken into
-account in simgrid mode. This provides more accurate simgrid predictions,
+account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially for the beginning of the execution.
 </dd>
 
@@ -704,7 +704,7 @@ especially for the beginning of the execution.
 \anchor STARPU_SIMGRID_FETCHING_INPUT_COST
 \addindex __env__STARPU_SIMGRID_FETCHING_INPUT_COST
 When set to 1 (which is the default), fetching input costs are taken into
-account in simgrid mode. This provides more accurate simgrid predictions,
+account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially regarding data transfers.
 </dd>
 
@@ -713,7 +713,7 @@ especially regarding data transfers.
 \anchor STARPU_SIMGRID_SCHED_COST
 \addindex __env__STARPU_SIMGRID_SCHED_COST
 When set to 1 (0 is the default), scheduling costs are taken into
-account in simgrid mode. This provides more accurate simgrid predictions,
+account in SimGrid mode. This provides more accurate SimGrid predictions,
 and allows studying scheduling overhead of the runtime system. However,
 it also makes simulation non-deterministic.
 </dd>
@@ -1174,7 +1174,7 @@ average.
 \addindex __env__STARPU_RAND_SEED
 The random scheduler and some examples use random numbers for their own
 working. Depending on the examples, the seed is by default juste always 0 or
-the current time() (unless simgrid mode is enabled, in which case it is always
+the current time() (unless SimGrid mode is enabled, in which case it is always
 0). \ref STARPU_RAND_SEED allows to set the seed to a specific value.
 </dd>
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,10 @@
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
 #define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_REALLOC(p, s) do {p = realloc(p, s);} while (0)
+#define STARPU_HG_DISABLE_CHECKING(v) ((void) 0)
+#define STARPU_HG_ENABLE_CHECKING(v) ((void) 0)
+#define ANNOTATE_HAPPENS_AFTER(v) ((void) 0)
+#define ANNOTATE_HAPPENS_BEFORE(v) ((void) 0)
 
 #define STARPU_DEBUG_PREFIX "[starpu]"
 #ifdef STARPU_VERBOSE
@@ -37,7 +41,14 @@
 #endif
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
+#define STARPU_HAVE_SIMGRID_SEMAPHORE_H
+#define STARPU_HAVE_SIMGRID_MUTEX_H
+#define STARPU_HAVE_SIMGRID_COND_H
+#define STARPU_HAVE_SIMGRID_BARRIER_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
+#define HAVE_SIMGRID_GET_CLOCK
+#define HAVE_SG_ACTOR_SLEEP_FOR
+#define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -65,12 +76,28 @@ _starpu_simgrid_thread_start(int argc, char *argv[])
 
 static void _starpu_clock_gettime(struct timespec *ts)
 {
+#ifdef HAVE_SIMGRID_GET_CLOCK
+	double now = simgrid_get_clock();
+#else
 	double now = MSG_get_clock();
+#endif
 	ts->tv_sec = floor(now);
 	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
 }
 
+void starpu_sleep(float nb_sec)
+{
+#ifdef HAVE_SG_ACTOR_SLEEP_FOR
+	sg_actor_sleep_for(nb_sec);
+#else
+	MSG_process_sleep(nb_sec);
+#endif
+}
+
 #include <common/barrier.c>
+#undef STARPU_DEBUG
+int starpu_worker_get_id(void) { return 0; }
+static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex) { return 0; }
 #include <common/thread.c>
 
 #ifndef NTHREADS
@@ -125,7 +152,9 @@ int main(int argc, char *argv[])
 	}
 	srand48(0);
 	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", 128);
+#elif SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
 #else

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2014-2018                                Inria
  * Copyright (C) 2014-2017,2019                           CNRS
- * Copyright (C) 2015,2017                                Université de Bordeaux
+ * Copyright (C) 2015,2017,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -938,7 +938,11 @@ int starpu_omp_init(void)
 #ifdef STARPU_SIMGRID
 	/* XXX: ideally we'd pass the real argc/argv.  */
 	/* We have to tell simgrid to avoid cleaning up at exit, since that's before our destructor :/ */
+#  if SIMGRID_VERSION >= 32300
+	char *argv[] = { "program", "--cfg=debug/clean-atexit:0", NULL };
+#  else
 	char *argv[] = { "program", "--cfg=clean-atexit:0", NULL };
+#  endif
 	int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 	char **_argv = argv;
 	/* Initialize simgrid before anything else.  */

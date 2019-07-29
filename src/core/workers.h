@@ -31,6 +31,7 @@
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <common/thread.h>
+#include <common/utils.h>
 #include <core/jobs.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/sched_policy.h>

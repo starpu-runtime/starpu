@@ -488,7 +488,7 @@ int starpu_combined_worker_get_size(void);
 
 /**
    Return the rank of the current thread within the combined worker.
-   Can only be used in ::STARPU_FORKJOIN parallel tasks, to know which
+   Can only be used in ::STARPU_SPMD parallel tasks, to know which
    part of the task to work on.
 */
 int starpu_combined_worker_get_rank(void);

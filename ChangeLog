@@ -20,8 +20,40 @@ StarPU 1.4.0 (svn revision xxxx)
 ==============================================
 New features:
   * Fault tolerance support with starpu_task_ft_failed().
+  * Add get_max_size method to data interfaces for applications using data with
+    variable size to express their maximal potential size.
 
-StarPU 1.3.2 (git revision xxx)
+Small changes:
+  * Use the S4U interface of Simgrid instead of xbt and MSG.
+
+StarPU 1.3.3 (git revision xxx)
+==============================================
+
+New features:
+  * New semantic for starpu_task_insert() and alike parameters
+    STARPU_CALLBACK_ARG, STARPU_PROLOGUE_CALLBACK_ARG, and
+    STARPU_PROLOGUE_CALLBACK_POP_ARG which set respectively
+    starpu_task::callback_arg_free,
+    starpu_task::prologue_callback_arg_free and
+    starpu_task::prologue_callback_pop_arg_free to 1 when used.
+    New parameters STARPU_CALLBACK_ARG_NFREE,
+    STARPU_CALLBACK_WITH_ARG_NFREE, STARPU_PROLOGUE_CALLBACK_ARG_NFREE, and
+    STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE which set the corresponding
+    fields of starpu_task to 0.
+  * starpufft: Support 3D.
+
+Small features:
+  * New starpu_task_insert() and alike parameter STARPU_TASK_WORKERIDS
+    allowing to set the fields starpu_task::workerids_len and
+    starpu_task::workerids
+  * New starpu_task_insert() and alike parameters
+    STARPU_SEQUENTIAL_CONSISTENCY, STARPU_TASK_NO_SUBMITORDER and
+    STARPU_TASK_PROFILING_INFO
+  * New function starpu_create_callback_task() which creates and
+    submits an empty task with the specified callback
+
+
+StarPU 1.3.2 (git revision af22a20fc00a37addf3cc6506305f89feed940b0)
 ==============================================
 
 Small changes:
