@@ -40,7 +40,7 @@ impact that has on the target machine.
 \section TaskSubmission Task Submission
 
 To let StarPU make online optimizations, tasks should be submitted
-asynchronously as much as possible. Ideally, all the tasks should be
+asynchronously as much as possible. Ideally, all tasks should be
 submitted, and mere calls to starpu_task_wait_for_all() or
 starpu_data_unregister() be done to wait for
 termination. StarPU will then be able to rework the whole schedule, overlap
@@ -52,7 +52,7 @@ By default, StarPU will consider the tasks in the order they are submitted by
 the application. If the application programmer knows that some tasks should
 be performed in priority (for instance because their output is needed by many
 other tasks and may thus be a bottleneck if not executed early
-enough), the field starpu_task::priority should be set to transmit the
+enough), the field starpu_task::priority should be set to provide the
 priority information to StarPU.
 
 \section TaskDependencies Task Dependencies
@@ -165,14 +165,14 @@ starpu_task_insert(&dummy_big_cl,
 \endcode
 
 The whole code for this complex data interface is available in the
-directory <c>examples/basic_examples/dynamic_handles.c</c>.
+file <c>examples/basic_examples/dynamic_handles.c</c>.
 
 \section SettingVariableDataHandlesForATask Setting a Variable Number Of Data Handles For a Task
 
-Normally, the number of data handles given to a task is fixed in the
-starpu_codelet::nbuffers codelet field. This field can however be set to
-\ref STARPU_VARIABLE_NBUFFERS, in which case the starpu_task::nbuffers task field
-must be set, and the starpu_task::modes field (or starpu_task::dyn_modes field,
+Normally, the number of data handles given to a task is set with
+starpu_codelet::nbuffers. This field can however be set to
+\ref STARPU_VARIABLE_NBUFFERS, in which case starpu_task::nbuffers
+must be set, and starpu_task::modes (or starpu_task::dyn_modes,
 see \ref SettingManyDataHandlesForATask) should be used to specify the modes for
 the handles.
 
@@ -215,7 +215,7 @@ struct starpu_codelet cl =
 
 Schedulers which are multi-implementation aware (only <c>dmda</c> and
 <c>pheft</c> for now) will use the performance models of all the
-implementations it was given, and pick the one which seems to be the fastest.
+provided implementations, and pick the one which seems to be the fastest.
 
 \section EnablingImplementationAccordingToCapabilities Enabling Implementation According To Capabilities
 
@@ -333,7 +333,7 @@ struct starpu_codelet cl =
 };
 \endcode
 
-Note: the most generic variant should be provided first, as some schedulers are
+Note that the most generic variant should be provided first, as some schedulers are
 not able to try the different variants.
 
 \section InsertTaskUtility Insert Task Utility
@@ -341,7 +341,7 @@ not able to try the different variants.
 StarPU provides the wrapper function starpu_task_insert() to ease
 the creation and submission of tasks.
 
-Here the implementation of the codelet:
+Here the implementation of a codelet:
 
 \code{.c}
 void func_cpu(void *descr[], void *_args)
@@ -477,7 +477,7 @@ ret = starpu_task_get_task_succs(task, sizeof(tasks)/sizeof(*tasks), tasks);
 \section ParallelTasks Parallel Tasks
 
 StarPU can leverage existing parallel computation libraries by the means of
-parallel tasks. A parallel task is a task which gets worked on by a set of CPUs
+parallel tasks. A parallel task is a task which is run by a set of CPUs
 (called a parallel or combined worker) at the same time, by using an existing
 parallel CPU implementation of the computation to be achieved. This can also be
 useful to improve the load balance between slow CPUs and fast GPUs: since CPUs

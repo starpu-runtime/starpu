@@ -23,14 +23,14 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with simgrid from 3.11 to 3.16, and 3.18 to 3.23.
+platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to 3.23.
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
 \section Preparing Preparing Your Application For Simulation
 
 There are a few technical details which need to be handled for an application to
-be simulated through Simgrid.
+be simulated through SimGrid.
 
 If the application uses <c>gettimeofday</c> to make its
 performance measurements, the real time will be used, which will be bogus. To
@@ -38,19 +38,19 @@ get the simulated time, it has to use starpu_timing_now() which returns the
 virtual timestamp in us.
 
 For some technical reason, the application's .c file which contains \c main() has
-to be recompiled with \c starpu_simgrid_wrap.h, which in the simgrid case will <c># define main()</c>
+to be recompiled with \c starpu_simgrid_wrap.h, which in the SimGrid case will <c># define main()</c>
 into <c>starpu_main()</c>, and it is \c libstarpu which will provide the real \c main() and
 will call the application's \c main().
 
 To be able to test with crazy data sizes, one may want to only allocate
 application data if the macro \c STARPU_SIMGRID is not defined.  Passing a <c>NULL</c> pointer to
 \c starpu_data_register functions is fine, data will never be read/written to by
-StarPU in Simgrid mode anyway.
+StarPU in SimGrid mode anyway.
 
 To be able to run the application with e.g. CUDA simulation on a system which
 does not have CUDA installed, one can fill the starpu_codelet::cuda_funcs with \c (void*)1, to
 express that there is a CUDA implementation, even if one does not actually
-provide it. StarPU will not actually run it in Simgrid mode anyway by default
+provide it. StarPU will not actually run it in SimGrid mode anyway by default
 (unless the ::STARPU_CODELET_SIMGRID_EXECUTE or ::STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
 flags are set in the codelet)
 
