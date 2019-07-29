@@ -370,7 +370,9 @@ struct starpu_conf
 	int disable_asynchronous_mpi_ms_copy;
 
 	/**
-	   this flag is set when support for memory mapping between memory nodes is disabled
+	   This flag should be set to 1 to disable memory mapping
+	   support between memory nodes. This can also be specified
+	   with the environment variable \ref STARPU_DISABLE_MAP.
 	*/
 	int disable_map;
 
@@ -560,6 +562,10 @@ int starpu_asynchronous_mic_copy_disabled(void);
 */
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
+/**
+   Return 1 if memory mapping support between memory nodes is
+   disabled.
+*/
 int starpu_map_disabled(void);
 
 void starpu_display_stats(void);
