@@ -30,6 +30,21 @@
 #else
 #include <xbt/synchro_core.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+#include <simgrid/actor.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+#include <simgrid/semaphore.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+#include <simgrid/mutex.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+#include <simgrid/cond.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+#include <simgrid/barrier.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #else
@@ -52,12 +67,21 @@ extern "C"
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+typedef sg_actor_t starpu_pthread_t;
+#else
 typedef msg_process_t starpu_pthread_t;
+#endif
 typedef int starpu_pthread_attr_t;
 
+#ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+typedef sg_host_t starpu_sg_host_t;
+#else
+typedef msg_host_t starpu_sg_host_t;
+#endif
 int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2);
 starpu_pthread_t starpu_pthread_self(void);
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host);
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
@@ -97,7 +121,11 @@ typedef pthread_attr_t starpu_pthread_attr_t;
  */
 
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+typedef sg_mutex_t starpu_pthread_mutex_t;
+#else
 typedef xbt_mutex_t starpu_pthread_mutex_t;
+#endif
 typedef int starpu_pthread_mutexattr_t;
 
 #define STARPU_PTHREAD_MUTEX_INITIALIZER NULL
@@ -173,7 +201,11 @@ typedef pthread_key_t starpu_pthread_key_t;
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+typedef sg_cond_t starpu_pthread_cond_t;
+#else
 typedef xbt_cond_t starpu_pthread_cond_t;
+#endif
 typedef int starpu_pthread_condattr_t;
 #define STARPU_PTHREAD_COND_INITIALIZER NULL
 
@@ -211,7 +243,11 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+typedef sg_mutex_t starpu_pthread_rwlock_t;
+#else
 typedef xbt_mutex_t starpu_pthread_rwlock_t;
+#endif
 typedef int starpu_pthread_rwlockattr_t;
 
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr);
@@ -252,10 +288,18 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
-#if defined(STARPU_SIMGRID) && (defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init))
+#if defined(STARPU_SIMGRID) && (defined(STARPU_HAVE_SIMGRID_BARRIER_H) || defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init))
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+typedef sg_bar_t starpu_pthread_barrier_t;
+#else
 typedef xbt_bar_t starpu_pthread_barrier_t;
+#endif
 typedef int starpu_pthread_barrierattr_t;
-#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD XBT_BARRIER_SERIAL_PROCESS
+#ifdef SG_BARRIER_SERIAL_THREAD
+#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD SG_BARRIER_SERIAL_THREAD
+#else
+#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#endif
 #else
 typedef struct {
 	starpu_pthread_mutex_t mutex;
@@ -419,7 +463,11 @@ int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
 
 #ifdef STARPU_SIMGRID
 
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+typedef sg_sem_t starpu_sem_t;
+#else
 typedef msg_sem_t starpu_sem_t;
+#endif
 int starpu_sem_destroy(starpu_sem_t *);
 int starpu_sem_getvalue(starpu_sem_t *, int *);
 int starpu_sem_init(starpu_sem_t *, int, unsigned);

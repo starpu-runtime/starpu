@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                CNRS
- * Copyright (C) 2012-2018                                Université de Bordeaux
+ * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2016,2017                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 #endif
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	MSG_process_sleep(0.000001);
+	starpu_sleep(0.000001);
 
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t

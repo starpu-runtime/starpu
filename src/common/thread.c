@@ -65,10 +65,14 @@ int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
 
 starpu_pthread_t starpu_pthread_self(void)
 {
+#ifdef HAVE_SG_ACTOR_SELF
+	return sg_actor_self();
+#else
 	return MSG_process_self();
+#endif
 }
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
 {
 	char **_args;
 	_STARPU_MALLOC(_args, 3*sizeof(char*));
@@ -76,12 +80,20 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	asprintf(&_args[1], "%p", arg);
 	_args[2] = NULL;
 	if (!host)
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+		host = sg_host_by_name("MAIN");
+#else
 		host = MSG_get_host_by_name("MAIN");
+#endif
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
+#  ifdef HAVE_SG_ACTOR_REF
+	sg_actor_ref(*thread);
+#  else
 	MSG_process_ref(*thread);
+#  endif
 #endif
 	return 0;
 }
@@ -94,19 +106,31 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if SIMGRID_VERSION >= 31400
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+	sg_actor_join(thread, 1000000);
+#  else
 	MSG_process_join(thread, 1000000);
+#  endif
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
+#  ifdef HAVE_SG_ACTOR_REF
+	sg_actor_unref(thread);
+#  else
 	MSG_process_unref(thread);
+#  endif
 #endif
 #else
-	MSG_process_sleep(1);
+	starpu_sleep(1);
 #endif
 	return 0;
 }
 
 int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef HAVE_SG_ACTOR_SELF
+	sg_actor_kill(sg_actor_self());
+#else
 	MSG_process_kill(MSG_process_self());
+#endif
 	STARPU_ABORT_MSG("MSG_process_kill(MSG_process_self()) returned?!");
 }
 
@@ -128,14 +152,22 @@ int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr STARPU_ATTRIB
 
 int starpu_pthread_mutex_init(starpu_pthread_mutex_t *mutex, const starpu_pthread_mutexattr_t *mutexattr STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	*mutex = sg_mutex_init();
+#else
 	*mutex = xbt_mutex_init();
+#endif
 	return 0;
 }
 
 int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 {
 	if (*mutex)
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+		sg_mutex_destroy(*mutex);
+#else
 		xbt_mutex_destroy(*mutex);
+#endif
 	return 0;
 }
 
@@ -148,16 +180,28 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	if (!*mutex)
 	{
 		/* Here we may get preempted */
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+		sg_mutex_t new_mutex = sg_mutex_init();
+#else
 		xbt_mutex_t new_mutex = xbt_mutex_init();
+#endif
 		if (!*mutex)
 			*mutex = new_mutex;
 		else
 			/* Somebody already initialized it while we were
-			 * calling xbt_mutex_init, this one is now useless */
+			 * calling sg_mutex_init, this one is now useless */
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+			sg_mutex_destroy(new_mutex);
+#else
 			xbt_mutex_destroy(new_mutex);
+#endif
 	}
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	sg_mutex_lock(*mutex);
+#else
 	xbt_mutex_acquire(*mutex);
+#endif
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -168,7 +212,11 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	sg_mutex_unlock(*mutex);
+#else
 	xbt_mutex_release(*mutex);
+#endif
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -180,7 +228,9 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	int ret;
 	_STARPU_TRACE_TRYLOCK_MUTEX();
 
-#if defined(HAVE_XBT_MUTEX_TRY_ACQUIRE) || defined(xbt_mutex_try_acquire)
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+	ret = sg_mutex_try_lock(*mutex);
+#elif defined(HAVE_XBT_MUTEX_TRY_ACQUIRE) || defined(xbt_mutex_try_acquire)
 	ret = xbt_mutex_try_acquire(*mutex);
 #else
 	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
@@ -296,7 +346,11 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 
 int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr STARPU_ATTRIBUTE_UNUSED)
 {
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	*cond = sg_cond_init();
+#else
 	*cond = xbt_cond_init();
+#endif
 	return 0;
 }
 
@@ -307,27 +361,43 @@ static void _starpu_pthread_cond_auto_init(starpu_pthread_cond_t *cond)
 	if (!*cond)
 	{
 		/* Here we may get preempted */
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+		sg_cond_t new_cond = sg_cond_init();
+#else
 		xbt_cond_t new_cond = xbt_cond_init();
+#endif
 		if (!*cond)
 			*cond = new_cond;
 		else
 			/* Somebody already initialized it while we were
 			 * calling xbt_cond_init, this one is now useless */
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+			sg_cond_destroy(new_cond);
+#else
 			xbt_cond_destroy(new_cond);
+#endif
 	}
 }
 
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_notify_one(*cond);
+#else
 	xbt_cond_signal(*cond);
+#endif
 	return 0;
 }
 
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_notify_all(*cond);
+#else
 	xbt_cond_broadcast(*cond);
+#endif
 	return 0;
 }
 
@@ -336,7 +406,11 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	sg_cond_wait(*cond, *mutex);
+#else
 	xbt_cond_wait(*cond, *mutex);
+#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
@@ -357,7 +431,11 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
 	_starpu_pthread_cond_auto_init(cond);
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+	ret = sg_cond_wait_for(*cond, *mutex, delay) ? ETIMEDOUT : 0;
+#else
 	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? ETIMEDOUT : 0;
+#endif
 
 	_STARPU_TRACE_COND_WAIT_END();
 
@@ -370,10 +448,17 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 {
 	if (*cond)
+#ifdef STARPU_HAVE_SIMGRID_COND_H
+		sg_cond_destroy(*cond);
+#else
 		xbt_cond_destroy(*cond);
+#endif
 	return 0;
 }
 
+/* TODO: use rwlocks
+ * https://gforge.inria.fr/tracker/index.php?func=detail&aid=17213&group_id=12&atid=165
+ */
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return starpu_pthread_mutex_init(rwlock, NULL);
@@ -438,7 +523,32 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	return p_ret;
 }
 
-#if defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
+#ifdef STARPU_HAVE_SIMGRID_BARRIER_H
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
+{
+	*barrier = sg_barrier_init(count);
+	return 0;
+}
+
+int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
+{
+	if (*barrier)
+		sg_barrier_destroy(*barrier);
+	return 0;
+}
+
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+{
+	int ret;
+
+	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+
+	ret = sg_barrier_wait(*barrier);
+
+	_STARPU_TRACE_BARRIER_WAIT_END();
+	return ret;
+}
+#elif defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	*barrier = xbt_barrier_init(count);
@@ -454,12 +564,14 @@ int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
+	int ret;
+
 	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
 
-	xbt_barrier_wait(*barrier);
+	ret = xbt_barrier_wait(*barrier);
 
 	_STARPU_TRACE_BARRIER_WAIT_END();
-	return 0;
+	return ret;
 }
 #endif /* defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) */
 
@@ -602,7 +714,7 @@ int starpu_pthread_queue_destroy(starpu_pthread_queue_t *q)
 
 #endif /* STARPU_SIMGRID */
 
-#if (defined(STARPU_SIMGRID) && (!defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)) && !defined(xbt_barrier_init)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
+#if (defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_SIMGRID_BARRIER_H) && !defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) && !defined(xbt_barrier_init)) || (!defined(STARPU_SIMGRID) && !defined(STARPU_HAVE_PTHREAD_BARRIER))
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
@@ -929,32 +1041,52 @@ void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock)
 
 int starpu_sem_destroy(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_destroy(*sem);
+#else
 	MSG_sem_destroy(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value)
 {
 	STARPU_ASSERT_MSG(pshared == 0, "pshared semaphores not supported under simgrid");
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	*sem = sg_sem_init(value);
+#else
 	*sem = MSG_sem_init(value);
+#endif
 	return 0;
 }
 
 int starpu_sem_post(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_release(*sem);
+#else
 	MSG_sem_release(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_wait(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	sg_sem_acquire(*sem);
+#else
 	MSG_sem_acquire(*sem);
+#endif
 	return 0;
 }
 
 int starpu_sem_trywait(starpu_sem_t *sem)
 {
+#ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	if (sg_sem_would_block(*sem))
+#else
 	if (MSG_sem_would_block(*sem))
+#endif
 		return EAGAIN;
 	starpu_sem_wait(sem);
 	return 0;
@@ -963,7 +1095,11 @@ int starpu_sem_trywait(starpu_sem_t *sem)
 int starpu_sem_getvalue(starpu_sem_t *sem, int *sval)
 {
 #if SIMGRID_VERSION > 31300
+#  ifdef STARPU_HAVE_SIMGRID_SEMAPHORE_H
+	*sval = sg_sem_get_capacity(*sem);
+#  else
 	*sval = MSG_sem_get_capacity(*sem);
+#  endif
 	return 0;
 #else
 	(void) sem;

@@ -139,7 +139,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		{
 			/* Wait for other threads to exit barrier_wait so we
 			 * can safely drop the job structure */
-			MSG_process_sleep(0.0000001);
+			starpu_sleep(0.0000001);
 			j->after_work_busy_barrier = 0;
 		}
 #else
@@ -331,7 +331,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	}
   #else
 	/* Previous simgrid versions don't really permit to use wait_timedwait in C */
-	MSG_process_sleep(0.001);
+	starpu_sleep(0.001);
   #endif
  #endif
 #endif

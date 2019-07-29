@@ -26,6 +26,7 @@
 #include <starpu_scheduler.h>
 #include <common/config.h>
 #include <common/barrier_counter.h>
+#include <common/utils.h>
 #include <profiling/profiling.h>
 #include <semaphore.h>
 #include <core/task.h>

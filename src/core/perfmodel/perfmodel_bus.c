@@ -91,6 +91,7 @@ static unsigned ncpus = 0;
 static unsigned nnumas = 0;
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
+#ifndef STARPU_SIMGRID
 static unsigned nmic = 0;
 static unsigned nmpi_ms = 0;
 
@@ -99,7 +100,6 @@ static unsigned nmpi_ms = 0;
 static double numa_latency[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 
-#ifndef STARPU_SIMGRID
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_CUDA
@@ -675,6 +675,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 }
 #endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
+#if !defined(STARPU_SIMGRID)
 static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 {
 #if defined(STARPU_HAVE_HWLOC)
@@ -733,6 +734,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		numa_latency[numa_src][numa_dst] = 0;
 	}
 }
+#endif
 
 static void benchmark_all_gpu_devices(void)
 {

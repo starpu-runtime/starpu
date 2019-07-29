@@ -868,12 +868,12 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
 					 STARPU_NAME, "unpartition",
 					 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
-					 STARPU_CALLBACK_WITH_ARG, callback_func, callback_arg,
+					 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
 					 0);
 	else
 		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
 					 STARPU_NAME, "unpartition",
-					 STARPU_CALLBACK_WITH_ARG, callback_func, callback_arg,
+					 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
 					 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 

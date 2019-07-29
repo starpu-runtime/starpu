@@ -245,7 +245,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
  * This is typicall used for nodeps tasks, for which a previous task has already
  * waited for the proper conditions, and we just need to take another reference
  * for overall reference coherency.
-/* No lock is held, this acquires and releases the handle header lock */
+ * No lock is held, this acquires and releases the handle header lock */
 static void _starpu_take_data(unsigned request_from_codelet,
 						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 						       struct _starpu_job *j)

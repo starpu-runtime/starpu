@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013,2014                                Inria
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2009,2010,2013-2015                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -92,9 +92,9 @@ int main(void)
 	ret = starpu_task_insert(&cl,
 				 STARPU_RW, handle,
 				 STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
-				 STARPU_PROLOGUE_CALLBACK_ARG, &x,
+				 STARPU_PROLOGUE_CALLBACK_ARG_NFREE, &x,
 				 STARPU_PROLOGUE_CALLBACK_POP, pop_prologue_callback_func,
-				 STARPU_PROLOGUE_CALLBACK_POP_ARG, 5,
+				 STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE, 5,
 				 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");

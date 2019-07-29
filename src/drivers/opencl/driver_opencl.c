@@ -1064,7 +1064,11 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 			STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
+#  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
+			length = ((double) profiling_info->used_cycles)/sg_host_speed(sg_host_self());
+#  else
 			length = ((double) profiling_info->used_cycles)/sg_host_speed(MSG_host_self());
+#  endif
 #elif defined HAVE_MSG_HOST_GET_SPEED || defined(MSG_host_get_speed)
 			length = ((double) profiling_info->used_cycles)/MSG_host_get_speed(MSG_host_self());
 #else
@@ -1072,7 +1076,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 #endif
 			/* And give the simulated time to simgrid */
 			simulate = 1;
-		#endif
+#endif
 		}
 		else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT && !async)
 			{
@@ -1391,7 +1395,7 @@ uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flag
 	/* Sleep for the allocation */
 	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000175);
+		starpu_sleep(0.000175);
 	if (!last[dst_node])
 		last[dst_node] = 1<<10;
 	addr = last[dst_node];
@@ -1417,14 +1421,15 @@ uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flag
 
 void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
-	(void)flags;
-	(void)size;
 	(void)dst_node;
+	(void)addr;
+	(void)size;
+	(void)flags;
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 	/* Sleep for the free */
 	if (_starpu_simgrid_cuda_malloc_cost())
-		MSG_process_sleep(0.000750);
+		starpu_sleep(0.000750);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 	cl_int err;

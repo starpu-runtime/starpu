@@ -438,7 +438,7 @@ histogram of the codelet execution time distribution.
 
 More than just codelet performance, it is interesting to get statistics over all
 kinds of StarPU states (allocations, data transfers, etc.). This is particularly
-useful to check what may have gone wrong in the accurracy of the simgrid
+useful to check what may have gone wrong in the accurracy of the SimGrid
 simulation.
 
 This requires the <c>R</c> statistical tool, with the <c>plyr</c>,

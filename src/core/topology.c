@@ -1876,7 +1876,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 #endif
 }
 
-int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name)
+int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret = 0;
 #ifdef STARPU_SIMGRID
@@ -2143,7 +2143,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 #ifdef STARPU_SIMGRID
 	char name[16];
-	msg_host_t host;
+	starpu_sg_host_t host;
 #endif
 
 	numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
@@ -2546,10 +2546,14 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					const char* cuda_memcpy_peer;
 					char name[16];
 					snprintf(name, sizeof(name), "CUDA%u", devid);
-					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+					starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+					cuda_memcpy_peer = sg_host_get_property_value(host, "memcpy_peer");
+#  else
 					cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+#  endif
 #endif /* SIMGRID */
 					if (
 #ifdef STARPU_SIMGRID
@@ -2642,7 +2646,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 #ifdef STARPU_SIMGRID
 					char name[16];
 					snprintf(name, sizeof(name), "OpenCL%u", devid);
-					msg_host_t host = _starpu_simgrid_get_host_by_name(name);
+					starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #else

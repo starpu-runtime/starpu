@@ -719,7 +719,9 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_CALLBACK followed by the function pointer, or thanks to
-	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
+	   ::STARPU_CALLBACK_WITH_ARG (or
+	   ::STARPU_CALLBACK_WITH_ARG_NFREE) followed by the function
+	   pointer and the argument.
 	*/
 	void (*callback_func)(void *);
 	/**
@@ -730,7 +732,9 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_CALLBACK_ARG followed by the function pointer, or thanks to
-	   ::STARPU_CALLBACK_WITH_ARG followed by the function pointer and the argument.
+	   ::STARPU_CALLBACK_WITH_ARG or
+	   ::STARPU_CALLBACK_WITH_ARG_NFREE followed by the function
+	   pointer and the argument.
 	*/
 	void *callback_arg;
 
@@ -748,6 +752,7 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*prologue_callback_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the prologue callback function. This
@@ -755,7 +760,7 @@ struct starpu_task
 	   starpu_task::prologue_callback_func is set to <c>NULL</c>.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
+	   ::STARPU_PROLOGUE_CALLBACK_ARG followed by the argument
 	*/
 	void *prologue_callback_arg;
 
@@ -786,6 +791,7 @@ struct starpu_task
 	   ::STARPU_CL_ARGS.
 	*/
 	unsigned cl_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::callback_arg was
 	   allocated by the application through <c>malloc()</c>,
@@ -793,9 +799,12 @@ struct starpu_task
 	   automatically call <c>free(callback_arg)</c> when
 	   destroying the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike, this is set to 1 when using
+	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG, or set
+	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
 	unsigned callback_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
 	   was allocated by the application through <c>malloc()</c>,
@@ -803,9 +812,12 @@ struct starpu_task
 	   StarPU automatically call
 	   <c>free(prologue_callback_arg)</c> when destroying the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_PROLOGUE_CALLBACK_ARG, or set to 0 when using
+	   ::STARPU_PROLOGUE_CALLBACK_ARG_NFREE
 	*/
 	unsigned prologue_callback_arg_free:1;
+
 	/**
 	   Optional field. In case starpu_task::prologue_callback_pop_arg
 	   was allocated by the application through <c>malloc()</c>,
@@ -814,7 +826,9 @@ struct starpu_task
 	   <c>free(prologue_callback_pop_arg)</c> when destroying the
 	   task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG, or set to 0 when using
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
 	*/
 	unsigned prologue_callback_pop_arg_free:1;
 
@@ -837,7 +851,8 @@ struct starpu_task
 	   this flag permits to disable sequential consistency for
 	   this task, even if data have it enabled.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_SEQUENTIAL_CONSISTENCY followed by an unsigned.
 	*/
 	unsigned sequential_consistency:1;
 
@@ -911,7 +926,9 @@ struct starpu_task
 	/**
 	   do not allocate a submitorder id for this task
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified
+	   thanks to ::STARPU_TASK_NO_SUBMITORDER followed by
+	   an unsigned.
 	*/
 	unsigned no_submitorder:1;
 
@@ -966,7 +983,10 @@ struct starpu_task
 	   workers which are allowed to execute the task.
 	   starpu_task::workerid takes precedence over this.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike, this can be specified
+	   along the field workerids_len thanks to ::STARPU_TASK_WORKERIDS
+	   followed by a number of workers and an array of bits which
+	   size is the number of workers.
 	*/
 	uint32_t *workerids;
 
@@ -974,7 +994,10 @@ struct starpu_task
 	   Optional field. This provides the number of uint32_t values
 	   in the starpu_task::workerids array.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike, this can be specified
+	   along the field workerids thanks to ::STARPU_TASK_WORKERIDS
+	   followed by a number of workers and an array of bits which
+	   size is the number of workers.
 	*/
 	unsigned workerids_len;
 
@@ -1069,7 +1092,9 @@ struct starpu_task
 	/**
 	   Optional field. Profiling information for the task.
 
-	   TODO: does not have a starpu_task_insert() equivalent
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_TASK_PROFILING_INFO followed by a pointer to the
+	   appropriate struct.
 	*/
 	struct starpu_profiling_task_info *profiling_info;
 
@@ -1512,13 +1537,15 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl);
 unsigned starpu_task_get_implementation(struct starpu_task *task);
 
 /**
-   Create (and submit) an empty task that unlocks a tag once all its
+   Create and submit an empty task that unlocks a tag once all its
    dependencies are fulfilled.
  */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
-
-
+/**
+   Create and submit an empty task with the given callback
+ */
+void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
 
 /**
    Function to be used as a prologue callback to enable fault tolerance for the
@@ -1532,7 +1559,6 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
    try-task.
  */
 void starpu_task_ft_prologue(void *check_ft);
-
 
 /**
    Create a try-task for a \p meta_task, given a \p template_task task

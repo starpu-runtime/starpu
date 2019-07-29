@@ -476,6 +476,14 @@ struct starpu_data_interface_ops
 	size_t 		 (*get_alloc_size)		(starpu_data_handle_t handle);
 
 	/**
+	   Return the maximum size that the data may need to increase to. For
+	   instance, in the case of compressed matrix tiles this is the size
+	   when the block is fully dense.
+	   This is currently only used for feedback tools.
+	*/
+	size_t 		 (*get_max_size)		(starpu_data_handle_t handle);
+
+	/**
 	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), required for indexing performance models.
 
 	  starpu_hash_crc32c_be() and alike can be used to produce this 32bit value from various types of values.
@@ -674,6 +682,11 @@ size_t starpu_data_get_size(starpu_data_handle_t handle);
    Return the size of the allocated data associated with \p handle.
 */
 size_t starpu_data_get_alloc_size(starpu_data_handle_t handle);
+
+/**
+   Return the maximum size that the \p handle data may need to increase to.
+*/
+starpu_ssize_t starpu_data_get_max_size(starpu_data_handle_t handle);
 
 /**
    Return the handle corresponding to the data pointed to by the \p ptr host pointer.

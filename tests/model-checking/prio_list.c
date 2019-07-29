@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2017                                     Université de Bordeaux
+ * Copyright (C) 2017,2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,14 @@
 #define _GNU_SOURCE 1
 // Assuming recent simgrid
 #define STARPU_HAVE_SIMGRID_MSG_H
+#define STARPU_HAVE_SIMGRID_SEMAPHORE_H
+#define STARPU_HAVE_SIMGRID_MUTEX_H
+#define STARPU_HAVE_SIMGRID_COND_H
+#define STARPU_HAVE_SIMGRID_BARRIER_H
 #define STARPU_HAVE_XBT_SYNCHRO_H
+#define HAVE_SIMGRID_GET_CLOCK
+#define HAVE_SG_ACTOR_SLEEP_FOR
+#define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -62,7 +69,15 @@
 
 // MC_ignore
 
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+sg_mutex_t mutex[NLISTS];
+#define mutex_lock(l) sg_mutex_lock(l)
+#define mutex_unlock(l) sg_mutex_unlock(l)
+#else
 xbt_mutex_t mutex[NLISTS];
+#define mutex_lock(l) xbt_mutex_acquire(l)
+#define mutex_unlock(l) xbt_mutex_release(l)
+#endif
 
 
 LIST_TYPE(foo,
@@ -114,13 +129,13 @@ int worker(int argc, char *argv[])
 			elem->prio = res%10;
 			lrand48_r(&buffer, &res);
 			elem->back = res%2;
-			xbt_mutex_acquire(mutex[l]);
+			mutex_lock(mutex[l]);
 			if (elem->back)
 				foo_prio_list_push_back(&mylist[l], elem);
 			else
 				foo_prio_list_push_front(&mylist[l], elem);
 			check_list_prio(&mylist[l]);
-			xbt_mutex_release(mutex[l]);
+			mutex_unlock(mutex[l]);
 		}
 
 		for (i = 0; i < NELEMENTS; i++)
@@ -128,18 +143,22 @@ int worker(int argc, char *argv[])
 			lrand48_r(&buffer, &res);
 			n = res%(NELEMENTS-i);
 
-			xbt_mutex_acquire(mutex[l]);
+			mutex_lock(mutex[l]);
 			for (elem  = foo_prio_list_begin(&mylist[l]);
 			     n--;
 			     elem  = foo_prio_list_next(&mylist[l], elem))
 				;
 			foo_prio_list_erase(&mylist[l], elem);
 			check_list_prio(&mylist[l]);
-			xbt_mutex_release(mutex[l]);
+			mutex_unlock(mutex[l]);
 		}
 
 		/* horrible way to wait for list getting empty */
+#ifdef HAVE_SG_ACTOR_SLEEP_FOR
+		sg_actor_sleep_for(1000);
+#else
 		MSG_process_sleep(1000);
+#endif
 	}
 
 	return 0;
@@ -151,7 +170,11 @@ int master(int argc, char *argv[])
 
 	for (l = 0; l < NLISTS; l++)
 	{
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+		mutex[l] = sg_mutex_init();
+#else
 		mutex[l] = xbt_mutex_init();
+#endif
 		foo_prio_list_init(&mylist[l]);
 	}
 
@@ -177,7 +200,9 @@ int main(int argc, char *argv[])
 	}
 	srand48(0);
 	MSG_init(&argc, argv);
-#if SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", 128);
+#elif SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
 #else

@@ -125,7 +125,16 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
+			va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
 		{
 			(void)va_arg(varg_list, void *);
 		}
@@ -137,11 +146,19 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
 		{
 			va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
 		{
 			(void)va_arg(varg_list, void *);
 		}
@@ -212,6 +229,23 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			(void)va_arg(varg_list, unsigned);
+			(void)va_arg(varg_list, uint32_t*);
+		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			(void)va_arg(varg_list, struct starpu_profiling_task_info *);
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			(void)va_arg(varg_list, unsigned);
 		}
 		else
 		{
@@ -414,10 +448,23 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->callback_func = va_arg(varg_list, _starpu_callback_func_t);
 			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 1;
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			task->callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 0;
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 1;
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
+		{
+			task->callback_arg = va_arg(varg_list, void *);
+			task->callback_arg_free = 0;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
@@ -426,6 +473,12 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
 			task->prologue_callback_arg = va_arg(varg_list, void *);
+			task->prologue_callback_arg_free = 1;
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			task->prologue_callback_arg = va_arg(varg_list, void *);
+			task->prologue_callback_arg_free = 0;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
 		{
@@ -434,6 +487,12 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
 		{
 			task->prologue_callback_pop_arg = va_arg(varg_list, void *);
+			task->prologue_callback_pop_arg_free = 1;
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+		{
+			task->prologue_callback_pop_arg = va_arg(varg_list, void *);
+			task->prologue_callback_pop_arg_free = 0;
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
@@ -527,6 +586,23 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			int end_dep = va_arg(varg_list, int);
 			starpu_task_end_dep_add(task, end_dep);
+		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			task->workerids_len = va_arg(varg_list, unsigned);
+			task->workerids = va_arg(varg_list, uint32_t*);
+		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			task->sequential_consistency = va_arg(varg_list, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			task->profiling_info = va_arg(varg_list, struct starpu_profiling_task_info *);
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			task->no_submitorder = va_arg(varg_list, unsigned);
 		}
 		else
 		{
@@ -668,11 +744,27 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			task->callback_func = (_starpu_callback_func_t)arglist[arg_i];
 			arg_i++;
 			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 1;
+		}
+		else if (arg_type == STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			arg_i++;
+			task->callback_func = (_starpu_callback_func_t)arglist[arg_i];
+			arg_i++;
+			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 0;
 		}
 		else if (arg_type == STARPU_CALLBACK_ARG)
 		{
 			arg_i++;
 			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 1;
+		}
+		else if (arg_type == STARPU_CALLBACK_ARG_NFREE)
+		{
+			arg_i++;
+			task->callback_arg = arglist[arg_i];
+			task->callback_arg_free = 0;
 		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK)
 		{
@@ -683,6 +775,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->prologue_callback_arg = arglist[arg_i];
+			task->prologue_callback_arg_free = 1;
+		}
+		else if (arg_type == STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			arg_i++;
+			task->prologue_callback_arg = arglist[arg_i];
+			task->prologue_callback_arg_free = 0;
 		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK_POP)
 		{
@@ -693,6 +792,13 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->prologue_callback_pop_arg = arglist[arg_i];
+			task->prologue_callback_pop_arg_free = 1;
+		}
+		else if (arg_type == STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+		{
+			arg_i++;
+			task->prologue_callback_pop_arg = arglist[arg_i];
+			task->prologue_callback_pop_arg_free = 0;
 		}
 		else if (arg_type == STARPU_PRIORITY)
 		{
@@ -795,6 +901,28 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			starpu_task_end_dep_add(task, *(int*)arglist[arg_i]);
+		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			arg_i++;
+			task->workerids_len = *(unsigned *)arglist[arg_i];
+			arg_i++;
+			task->workerids = (uint32_t *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			arg_i++;
+			task->sequential_consistency = *(unsigned *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			arg_i++;
+			task->profiling_info = (struct starpu_profiling_task_info *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			arg_i++;
+			task->no_submitorder = *(unsigned *)arglist[arg_i];
 		}
 		else
 		{

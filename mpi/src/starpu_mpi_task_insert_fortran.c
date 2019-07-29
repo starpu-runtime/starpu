@@ -210,7 +210,19 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
+		{
+			arg_i++;
+			/* _starpu_callback_func_t */
+			arg_i++;
+			/* void* */
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			arg_i++;
+			/* void* */
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
 		{
 			arg_i++;
 			/* void* */
@@ -255,12 +267,22 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
                 }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+                {
+			arg_i++;
+			/* void* */
+                }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
                 {
 			arg_i++;
 			/* _starpu_callback_func_t */
                 }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+			arg_i++;
+			/* void* */
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
                 {
 			arg_i++;
 			/* void* */
@@ -319,6 +341,28 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		{
 			arg_i++;
 			/* int */
+		}
+		else if (arg_type==STARPU_TASK_WORKERIDS)
+		{
+			arg_i++;
+			/* unsigned */
+			arg_i++;
+			/* uint32_t* */
+		}
+		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		{
+			arg_i++;
+			/* unsigned */
+		}
+		else if (arg_type==STARPU_TASK_PROFILING_INFO)
+		{
+			arg_i++;
+			/* struct starpu_profiling_task_info * */
+		}
+		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
+		{
+			arg_i++;
+			/* unsigned */
 		}
 		else
 		{
@@ -400,6 +444,9 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
 
 		_fstarpu_task_insert_create(codelet, *task, arglist);
 		return 0;

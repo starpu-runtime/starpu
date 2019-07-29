@@ -317,6 +317,7 @@ uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, unsigned node
 
 size_t _starpu_data_get_size(starpu_data_handle_t handle);
 size_t _starpu_data_get_alloc_size(starpu_data_handle_t handle);
+starpu_ssize_t _starpu_data_get_max_size(starpu_data_handle_t handle);
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 

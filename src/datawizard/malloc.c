@@ -209,7 +209,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		 * instead of computing an average value.
 		 */
 			if (_starpu_simgrid_cuda_malloc_cost())
-				MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+				starpu_sleep((float) dim * 0.000650 / 1048576.);
 #else /* STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
