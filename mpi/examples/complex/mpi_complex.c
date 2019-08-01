@@ -112,11 +112,12 @@ int main(int argc, char **argv)
 	}
 	else if (rank == 1)
 	{
+		MPI_Status status;
 		starpu_data_handle_t xhandle;
 		double xreal = 14.0;
 		double ximaginary = 18.0;
 		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
-		starpu_mpi_recv(xhandle, 0, 10, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(xhandle, 0, 10, MPI_COMM_WORLD, &status);
 		starpu_data_unregister(xhandle);
 		FPRINTF(stderr, "[received] real %f imaginary %f\n", xreal, ximaginary);
 		STARPU_ASSERT_MSG(xreal == 4 && ximaginary == 8, "Incorrect received value\n");
