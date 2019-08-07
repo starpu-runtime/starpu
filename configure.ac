@@ -1358,7 +1358,7 @@ if test x$enable_cuda = xyes; then
 		])
 	    ],
 	    [
-	    AC_MSG_ERROR([NVML found, but nvml.h could not be compiled])
+	    AC_MSG_WARN([NVML found, but nvml.h could not be compiled])
 	    have_valid_nvml="no"
 	    ]
 	)
