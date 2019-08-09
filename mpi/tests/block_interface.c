@@ -20,7 +20,11 @@
 #include <stdlib.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 
 #define BIGSIZE	128
 #define SIZE	64

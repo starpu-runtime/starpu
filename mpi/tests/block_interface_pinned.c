@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2010-2012,2015,2017                      CNRS
+ * Copyright (C) 2010-2012,2015,2017,2019                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,9 +20,13 @@
 #include <stdlib.h>
 #include "helper.h"
 
-#define NITER	2048
+#ifdef STARPU_QUICK_CHECK
+#  define NITER	16
+#else
+#  define NITER	2048
+#endif
 
-#define BIGSIZE	64
+#define BIGSIZE	128
 #define SIZE	64
 
 int main(int argc, char **argv)
