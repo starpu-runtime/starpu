@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2010-2012,2014,2015,2017                 CNRS
+ * Copyright (C) 2010-2012,2014,2015,2017,2019            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,8 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
 
