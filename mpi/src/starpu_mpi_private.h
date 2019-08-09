@@ -169,12 +169,15 @@ extern int _starpu_mpi_tag;
 #define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
 #define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2
 
-#define _STARPU_MPI_ENVELOPE_DATA       0
-#define _STARPU_MPI_ENVELOPE_SYNC_READY 1
+enum _starpu_envelope_mode
+{
+	_STARPU_MPI_ENVELOPE_DATA=0,
+	_STARPU_MPI_ENVELOPE_SYNC_READY=1
+};
 
 struct _starpu_mpi_envelope
 {
-	int mode;
+	enum _starpu_envelope_mode mode;
 	starpu_ssize_t size;
 	starpu_mpi_tag_t data_tag;
 	unsigned sync;
