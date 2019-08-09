@@ -406,7 +406,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 
 	if (req->registered_datatype == 1)
 	{
-		int size;
+		int size, ret;
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 
@@ -414,7 +414,8 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		req->envelope->size = (starpu_ssize_t)req->count * size;
 		_STARPU_MPI_DEBUG(20, "Post MPI isend count (%ld) datatype_size %ld request to %d\n",req->count,starpu_data_get_size(req->data_handle), req->node_tag.rank);
 		_STARPU_MPI_COMM_TO_DEBUG(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->envelope->data_tag, req->node_tag.comm);
-		MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+		ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+		STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending envelope, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
 	}
 	else
 	{
