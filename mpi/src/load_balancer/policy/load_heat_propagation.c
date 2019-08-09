@@ -290,12 +290,12 @@ static void update_data_ranks()
 				//        fprintf(stderr,"Bring back data %p (tag %d) from node %d on node %d\n", handle, (data_movements_get_tags_table(data_movements_handles[i]))[j], starpu_mpi_data_get_rank(handle), my_rank);
 				//}
 
-				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%"PRIi64"d,%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
+				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%"PRIi64",%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
 
 				/* Migrate the data handle */
 				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handle, dst_rank, NULL, NULL);
 
-				_STARPU_DEBUG("New rank (%d) of data %"PRIi64"d upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
+				_STARPU_DEBUG("New rank (%d) of data %"PRIi64" upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
 				starpu_mpi_data_set_rank_comm(handle, dst_rank, MPI_COMM_WORLD);
 			}
 		}
