@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2010,2011,2013-2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2012,2013                                Inria
@@ -34,8 +34,8 @@
 static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
-static int p = 1;
-static int q = 1;
+static int p = -1;
+static int q = -1;
 static unsigned display = 0;
 static unsigned no_prio = 0;
 
@@ -252,7 +252,14 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
-	STARPU_ASSERT(p*q == world_size);
+	if (p == -1 && q==-1)
+	{
+		fprintf(stderr, "Setting default values for p and q\n");
+		p = (q % 2 == 0) ? 2 : 1;
+		q = world_size / p;
+
+	}
+	STARPU_ASSERT_MSG(p*q == world_size, "p=%d, q=%d, world_size=%d\n", p, q, world_size);
 
 	starpu_cublas_init();
 
