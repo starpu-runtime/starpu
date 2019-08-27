@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012                                     Inria
-# Copyright (C) 2012,2017                                CNRS
+# Copyright (C) 2012,2017,2019                           CNRS
 # Copyright (C) 2013                                     Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -38,4 +38,9 @@
    fun:my_memcmp
    fun:pthread_mutex_destroy
    ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/x86_64-linux-gnu/libpthread-2.28.so
 }
