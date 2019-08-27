@@ -1,0 +1,84 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2019                                     CNRS
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   ...
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   readlink(path)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   lstat(file_name)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/nvidia/current/libnvidia-opencl.so.390.87
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/usr/lib/x86_64-linux-gnu/libOpenCL.so.1.0.0
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
