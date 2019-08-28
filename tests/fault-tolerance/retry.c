@@ -47,7 +47,7 @@ void cpu_increment(void *descr[], void *arg)
 static struct starpu_codelet my_codelet =
 {
 	.cpu_funcs = {cpu_increment},
-	.cpu_funcs_name = {"cpu_increment"},
+	//.cpu_funcs_name = {"cpu_increment"},
 	.modes = { STARPU_R, STARPU_W },
 	.nbuffers = 2
 };
