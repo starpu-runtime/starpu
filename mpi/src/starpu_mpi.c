@@ -49,10 +49,7 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
 }
 
-static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
-							int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm,
-							unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
-							int sequential_consistency)
+static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	if (_starpu_mpi_fake_world_size != -1)
 	{
@@ -66,9 +63,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 	enum starpu_data_access_mode mode = STARPU_R;
 #endif
 
-	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(
-	                                      data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
-					      sequential_consistency, 0, 0);
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, sequential_consistency, 0, 0);
 	_starpu_mpi_req_willpost(req);
 
 	if (_starpu_mpi_use_coop_sends && detached == 1 && sync == 0 && callback == NULL)
