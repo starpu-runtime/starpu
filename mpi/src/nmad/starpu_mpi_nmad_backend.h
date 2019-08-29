@@ -1,6 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2017, 2019                          CNRS
+ * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
+ * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,32 +16,36 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_COMM_H__
-#define __STARPU_MPI_COMM_H__
+#ifndef __STARPU_MPI_NMAD_BACKEND_H__
+#define __STARPU_MPI_NMAD_BACKEND_H__
 
-#include <starpu.h>
-#include <stdlib.h>
-#include <mpi.h>
-
-#ifdef STARPU_USE_MPI_MPI
-
-#include <mpi/starpu_mpi_mpi_backend.h>
+#include <common/config.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void _starpu_mpi_comm_init(MPI_Comm comm);
-void _starpu_mpi_comm_shutdown();
-void _starpu_mpi_comm_register(MPI_Comm comm);
-void _starpu_mpi_comm_post_recv();
-int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm);
-void _starpu_mpi_comm_cancel_recv();
+#ifdef STARPU_USE_MPI_NMAD
+
+#include <nm_sendrecv_interface.h>
+#include <nm_session_interface.h>
+#include <nm_mpi_nmad.h>
+
+struct _starpu_mpi_req_backend
+{
+	nm_gate_t gate;
+	nm_session_t session;
+	nm_sr_request_t data_request;
+	int waited;
+	piom_cond_t req_cond;
+	nm_sr_request_t size_req;
+};
+
+#endif // STARPU_USE_MPI_NMAD
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // STARPU_USE_MPI_MPI
-#endif // __STARPU_MPI_COMM_H__
+#endif // __STARPU_MPI_NMAD_BACKEND_H__
