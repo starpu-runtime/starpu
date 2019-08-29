@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
@@ -19,13 +19,6 @@
 
 #include <starpu.h>
 #include <starpu_mpi_private.h>
-#if defined(STARPU_USE_MPI_MPI)
-#include <mpi/starpu_mpi_comm.h>
-#endif
-#if defined(STARPU_USE_MPI_NMAD)
-#include <pioman.h>
-#include <nm_mpi_nmad.h>
-#endif
 
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
@@ -48,21 +41,10 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->func = NULL;
 
 	(*req)->status = NULL;
-#ifdef STARPU_USE_MPI_MPI
-	(*req)->data_request = 0;
-#endif
 	(*req)->flag = NULL;
 	_starpu_mpi_req_multilist_init_coop_sends(*req);
 
 	(*req)->ret = -1;
-#ifdef STARPU_USE_MPI_NMAD
-	piom_cond_init(&((*req)->req_cond), 0);
-#elif defined(STARPU_USE_MPI_MPI)
-	STARPU_PTHREAD_MUTEX_INIT(&((*req)->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&((*req)->req_cond), NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&((*req)->posted_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&((*req)->posted_cond), NULL);
-#endif
 
 	(*req)->request_type = UNKNOWN_REQ;
 
@@ -70,23 +52,11 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->completed = 0;
 	(*req)->posted = 0;
 
-#ifdef STARPU_USE_MPI_MPI
-	(*req)->other_request = NULL;
-#endif
-
 	(*req)->sync = 0;
 	(*req)->detached = -1;
 	(*req)->callback = NULL;
 	(*req)->callback_arg = NULL;
 
-#ifdef STARPU_USE_MPI_MPI
-	(*req)->size_req = 0;
-	(*req)->internal_req = NULL;
-	(*req)->is_internal_req = 0;
-	(*req)->to_destroy = 1;
-	(*req)->early_data_handle = NULL;
-	(*req)->envelope = NULL;
-#endif
 	(*req)->sequential_consistency = 1;
 	(*req)->pre_sync_jobid = -1;
 	(*req)->post_sync_jobid = -1;
@@ -96,6 +66,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	starpu_pthread_queue_register(&_starpu_mpi_thread_wait, &((*req)->queue));
 	(*req)->done = 0;
 #endif
+	_mpi_backend._starpu_mpi_backend_request_init(*req);
 }
 
 struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handle,
@@ -107,10 +78,6 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 						 starpu_ssize_t count)
 {
 	struct _starpu_mpi_req *req;
-
-#ifdef STARPU_USE_MPI_MPI
-	_starpu_mpi_comm_register(comm);
-#endif
 
 	/* Initialize the request structure */
 	_starpu_mpi_request_init(&req);
@@ -128,30 +95,18 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	req->callback_arg = arg;
 	req->func = func;
 	req->sequential_consistency = sequential_consistency;
-#ifdef STARPU_USE_MPI_NMAD
-	nm_mpi_nmad_dest(&req->session, &req->gate, comm, req->node_tag.rank);
-#elif defined(STARPU_USE_MPI_MPI)
-	req->is_internal_req = is_internal_req;
-	/* For internal requests, we wait for both the request completion and the matching application request completion */
-	req->to_destroy = !is_internal_req;
 	req->count = count;
-#endif
+
+	_mpi_backend._starpu_mpi_backend_request_fill(req, comm, is_internal_req);
 
 	return req;
 }
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 {
-#ifdef STARPU_USE_MPI_NMAD
-	piom_cond_destroy(&(req->req_cond));
-#elif defined(STARPU_USE_MPI_MPI)
-	STARPU_PTHREAD_MUTEX_DESTROY(&req->req_mutex);
-	STARPU_PTHREAD_COND_DESTROY(&req->req_cond);
-	STARPU_PTHREAD_MUTEX_DESTROY(&req->posted_mutex);
-	STARPU_PTHREAD_COND_DESTROY(&req->posted_cond);
+	_mpi_backend._starpu_mpi_backend_request_destroy(req);
 	free(req->datatype_name);
 	req->datatype_name = NULL;
-#endif
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_unregister(&_starpu_mpi_thread_wait, &req->queue);
 	starpu_pthread_queue_destroy(&req->queue);

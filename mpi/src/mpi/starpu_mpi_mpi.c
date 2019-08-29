@@ -166,7 +166,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
 
-	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64" and type %s %d\n", req, req->node_tag.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->is_internal_req);
+	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64" and type %s %d\n", req, req->node_tag.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
@@ -178,7 +178,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 		 * pointer associated to the data_handle, and push it into the
 		 * ready_requests list, so as the real MPI request can be submitted
 		 * before the next submission of the envelope-catching request. */
-		if (req->is_internal_req)
+		if (req->backend->is_internal_req)
 		{
 			_starpu_mpi_datatype_allocate(req->data_handle, req);
 			if (req->registered_datatype == 1)
@@ -200,10 +200,10 @@ void _starpu_mpi_submit_ready_request(void *arg)
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-			STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&req->backend->posted_mutex);
 			req->posted = 1;
-			STARPU_PTHREAD_COND_BROADCAST(&req->posted_cond);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&req->posted_mutex);
+			STARPU_PTHREAD_COND_BROADCAST(&req->backend->posted_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->posted_mutex);
 			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		}
 		else
@@ -227,8 +227,8 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				_STARPU_MPI_DEBUG(3, "The RECV request %p with tag %"PRIi64" has already been received, copying previously received data into handle's pointer..\n", req, req->node_tag.data_tag);
 				STARPU_ASSERT(req->data_handle != early_data_handle->handle);
 
-				req->internal_req = early_data_handle->req;
-				req->early_data_handle = early_data_handle;
+				req->backend->internal_req = early_data_handle->req;
+				req->backend->early_data_handle = early_data_handle;
 
 				struct _starpu_mpi_early_data_cb_args *cb_args;
 				_STARPU_MPI_MALLOC(cb_args, sizeof(struct _starpu_mpi_early_data_cb_args));
@@ -368,27 +368,27 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	if (req->sync == 0)
 	{
 		_STARPU_MPI_COMM_TO_DEBUG(req, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->data_request);
+		req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->backend->data_request);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 	}
 	else
 	{
 		_STARPU_MPI_COMM_TO_DEBUG(req, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Issend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.comm, &req->data_request);
+		req->ret = MPI_Issend(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.comm, &req->backend->data_request);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Issend returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 	}
 
 #ifdef STARPU_SIMGRID
-	_starpu_mpi_simgrid_wait_req(&req->data_request, &req->status_store, &req->queue, &req->done);
+	_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
-	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
-	STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
 	_starpu_mpi_handle_detached_request(req);
 
@@ -399,10 +399,10 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
-	_STARPU_MPI_CALLOC(req->envelope, 1,sizeof(struct _starpu_mpi_envelope));
-	req->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
-	req->envelope->data_tag = req->node_tag.data_tag;
-	req->envelope->sync = req->sync;
+	_STARPU_MPI_CALLOC(req->backend->envelope, 1,sizeof(struct _starpu_mpi_envelope));
+	req->backend->envelope->mode = _STARPU_MPI_ENVELOPE_DATA;
+	req->backend->envelope->data_tag = req->node_tag.data_tag;
+	req->backend->envelope->sync = req->sync;
 
 	if (req->registered_datatype == 1)
 	{
@@ -411,10 +411,10 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 
 		MPI_Type_size(req->datatype, &size);
-		req->envelope->size = (starpu_ssize_t)req->count * size;
+		req->backend->envelope->size = (starpu_ssize_t)req->count * size;
 		_STARPU_MPI_DEBUG(20, "Post MPI isend count (%ld) datatype_size %ld request to %d\n",req->count,starpu_data_get_size(req->data_handle), req->node_tag.rank);
-		_STARPU_MPI_COMM_TO_DEBUG(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->envelope->data_tag, req->node_tag.comm);
-		ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+		_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.comm);
+		ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->backend->size_req);
 		STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending envelope, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
 	}
 	else
@@ -422,32 +422,32 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		int ret;
 
  		// Do not pack the data, just try to find out the size
-		starpu_data_pack(req->data_handle, NULL, &(req->envelope->size));
+		starpu_data_pack(req->data_handle, NULL, &(req->backend->envelope->size));
 
-		if (req->envelope->size != -1)
+		if (req->backend->envelope->size != -1)
  		{
  			// We already know the size of the data, let's send it to overlap with the packing of the data
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
-			req->count = req->envelope->size;
-			_STARPU_MPI_COMM_TO_DEBUG(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->envelope->data_tag, req->node_tag.comm);
-			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
+			req->count = req->backend->envelope->size;
+			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.comm);
+			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->backend->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
  		}
 
  		// Pack the data
  		starpu_data_pack(req->data_handle, &req->ptr, &req->count);
-		if (req->envelope->size == -1)
+		if (req->backend->envelope->size == -1)
  		{
  			// We know the size now, let's send it
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
-			_STARPU_MPI_COMM_TO_DEBUG(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->envelope->data_tag, req->node_tag.comm);
-			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->size_req);
+			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
+			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.comm);
+			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.comm, &req->backend->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
  		}
  		else
  		{
  			// We check the size returned with the 2 calls to pack is the same
-			STARPU_MPI_ASSERT_MSG(req->count == req->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->envelope->size);
+			STARPU_MPI_ASSERT_MSG(req->count == req->backend->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->backend->envelope->size);
  		}
 		// We can send the data now
 	}
@@ -495,14 +495,14 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	if (req->sync)
 	{
 		_STARPU_MPI_COMM_FROM_DEBUG(req, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.comm, &req->data_request);
+		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_SYNC_DATA, req->node_tag.comm, &req->backend->data_request);
 	}
 	else
 	{
 		_STARPU_MPI_COMM_FROM_DEBUG(req, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.data_tag, req->node_tag.comm);
-		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->data_request);
+		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.rank, _STARPU_MPI_TAG_DATA, req->node_tag.comm, &req->backend->data_request);
 #ifdef STARPU_SIMGRID
-		_starpu_mpi_simgrid_wait_req(&req->data_request, &req->status_store, &req->queue, &req->done);
+		_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 	}
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
@@ -510,10 +510,10 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
-	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
-	STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
 	_starpu_mpi_handle_detached_request(req);
 
@@ -530,16 +530,16 @@ void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 {
 	_STARPU_MPI_LOG_IN();
 	/* Which is the mpi request we are waiting for ? */
-	struct _starpu_mpi_req *req = waiting_req->other_request;
+	struct _starpu_mpi_req *req = waiting_req->backend->other_request;
 
 	_STARPU_MPI_TRACE_UWAIT_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
-	if (req->data_request != MPI_REQUEST_NULL)
+	if (req->backend->data_request != MPI_REQUEST_NULL)
 	{
 		// TODO: Fix for STARPU_SIMGRID
 #ifdef STARPU_SIMGRID
 		STARPU_MPI_ASSERT_MSG(0, "Implement this in STARPU_SIMGRID");
 #endif
-		req->ret = MPI_Wait(&req->data_request, waiting_req->status);
+		req->ret = MPI_Wait(&req->backend->data_request, waiting_req->status);
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 	}
 	_STARPU_MPI_TRACE_UWAIT_END(req->node_tag.rank, req->node_tag.data_tag);
@@ -559,34 +559,34 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 
 	/* We cannot try to complete a MPI request that was not actually posted
 	 * to MPI yet. */
-	STARPU_PTHREAD_MUTEX_LOCK(&(req->req_mutex));
+	STARPU_PTHREAD_MUTEX_LOCK(&(req->backend->req_mutex));
 	while (!(req->submitted))
-		STARPU_PTHREAD_COND_WAIT(&(req->req_cond), &(req->req_mutex));
-	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
+		STARPU_PTHREAD_COND_WAIT(&(req->backend->req_cond), &(req->backend->req_mutex));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->backend->req_mutex));
 
 	/* Initialize the request structure */
 	 _starpu_mpi_request_init(&waiting_req);
 	waiting_req->prio = INT_MAX;
 	waiting_req->status = status;
-	waiting_req->other_request = req;
+	waiting_req->backend->other_request = req;
 	waiting_req->func = _starpu_mpi_wait_func;
 	waiting_req->request_type = WAIT_REQ;
 
 	_starpu_mpi_submit_ready_request_inc(waiting_req);
 
 	/* We wait for the MPI request to finish */
-	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	while (!req->completed)
-		STARPU_PTHREAD_COND_WAIT(&req->req_cond, &req->req_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+		STARPU_PTHREAD_COND_WAIT(&req->backend->req_cond, &req->backend->req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
 	ret = req->ret;
 
 	/* The internal request structure was automatically allocated */
 	*public_req = NULL;
-	if (req->internal_req)
+	if (req->backend->internal_req)
 	{
-		_starpu_mpi_request_destroy(req->internal_req);
+		_starpu_mpi_request_destroy(req->backend->internal_req);
 	}
 	_starpu_mpi_request_destroy(req);
 	_starpu_mpi_request_destroy(waiting_req);
@@ -605,7 +605,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 {
 	_STARPU_MPI_LOG_IN();
 	/* Which is the mpi request we are testing for ? */
-	struct _starpu_mpi_req *req = testing_req->other_request;
+	struct _starpu_mpi_req *req = testing_req->backend->other_request;
 
 	_STARPU_MPI_DEBUG(0, "Test request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
@@ -617,7 +617,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, testing_req->flag);
 	memcpy(testing_req->status, &req->status_store, sizeof(*testing_req->status));
 #else
-	req->ret = MPI_Test(&req->data_request, testing_req->flag, testing_req->status);
+	req->ret = MPI_Test(&req->backend->data_request, testing_req->flag, testing_req->status);
 #endif
 
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
@@ -630,10 +630,10 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 		_starpu_mpi_handle_request_termination(req);
 	}
 
-	STARPU_PTHREAD_MUTEX_LOCK(&testing_req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&testing_req->backend->req_mutex);
 	testing_req->completed = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&testing_req->req_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&testing_req->req_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&testing_req->backend->req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&testing_req->backend->req_mutex);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -648,9 +648,9 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 
-	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	unsigned submitted = req->submitted;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
 	if (submitted)
 	{
@@ -661,7 +661,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		testing_req->prio = INT_MAX;
 		testing_req->flag = flag;
 		testing_req->status = status;
-		testing_req->other_request = req;
+		testing_req->backend->other_request = req;
 		testing_req->func = _starpu_mpi_test_func;
 		testing_req->completed = 0;
 		testing_req->request_type = TEST_REQ;
@@ -669,10 +669,10 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		_starpu_mpi_submit_ready_request_inc(testing_req);
 
 		/* We wait for the test request to finish */
-		STARPU_PTHREAD_MUTEX_LOCK(&(testing_req->req_mutex));
+		STARPU_PTHREAD_MUTEX_LOCK(&(testing_req->backend->req_mutex));
 		while (!(testing_req->completed))
-			STARPU_PTHREAD_COND_WAIT(&(testing_req->req_cond), &(testing_req->req_mutex));
-		STARPU_PTHREAD_MUTEX_UNLOCK(&(testing_req->req_mutex));
+			STARPU_PTHREAD_COND_WAIT(&(testing_req->backend->req_cond), &(testing_req->backend->req_mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(testing_req->backend->req_mutex));
 
 		ret = testing_req->ret;
 
@@ -682,9 +682,9 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			 * request structure which was automatically allocated
 			 * */
 			*public_req = NULL;
-			if (req->internal_req)
+			if (req->backend->internal_req)
 			{
-				_starpu_mpi_request_destroy(req->internal_req);
+				_starpu_mpi_request_destroy(req->backend->internal_req);
 			}
 			_starpu_mpi_request_destroy(req);
 		}
@@ -759,10 +759,10 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	_starpu_mpi_submit_ready_request(barrier_req);
 
 	/* We wait for the MPI request to finish */
-	STARPU_PTHREAD_MUTEX_LOCK(&barrier_req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&barrier_req->backend->req_mutex);
 	while (!barrier_req->completed)
-		STARPU_PTHREAD_COND_WAIT(&barrier_req->req_cond, &barrier_req->req_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier_req->req_mutex);
+		STARPU_PTHREAD_COND_WAIT(&barrier_req->backend->req_cond, &barrier_req->backend->req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier_req->backend->req_mutex);
 
 	_starpu_mpi_request_destroy(barrier_req);
 	_STARPU_MPI_LOG_OUT();
@@ -798,12 +798,12 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d internal_req %p\n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
-			  req->datatype_name, (int)req->count, req->registered_datatype, req->internal_req);
+			  req->datatype_name, (int)req->count, req->registered_datatype, req->backend->internal_req);
 
-	if (req->internal_req)
+	if (req->backend->internal_req)
 	{
-		free(req->early_data_handle);
-		req->early_data_handle = NULL;
+		free(req->backend->early_data_handle);
+		req->backend->early_data_handle = NULL;
 	}
 	else
 	{
@@ -817,7 +817,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					// has completed, as MPI can re-order messages, let's call
 					// MPI_Wait to make sure data have been sent
 					int ret;
-					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+					ret = MPI_Wait(&req->backend->size_req, MPI_STATUS_IGNORE);
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
 					free(req->ptr);
 					req->ptr = NULL;
@@ -839,10 +839,10 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	_starpu_mpi_release_req_data(req);
 
-	if (req->envelope)
+	if (req->backend->envelope)
 	{
-		free(req->envelope);
-		req->envelope = NULL;
+		free(req->backend->envelope);
+		req->backend->envelope = NULL;
 	}
 
 	/* Execute the specified callback, if any */
@@ -851,10 +851,10 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	/* tell anyone potentially waiting on the request that it is
 	 * terminated now */
-	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->completed = 1;
-	STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -903,18 +903,18 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		if (args->req->detached)
 		{
 			/* have the internal request destroyed now or when completed */
-			STARPU_PTHREAD_MUTEX_LOCK(&args->req->internal_req->req_mutex);
-			if (args->req->internal_req->to_destroy)
+			STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->internal_req->backend->req_mutex);
+			if (args->req->backend->internal_req->backend->to_destroy)
 			{
 				/* The request completed first, can now destroy it */
-				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
-				_starpu_mpi_request_destroy(args->req->internal_req);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
+				_starpu_mpi_request_destroy(args->req->backend->internal_req);
 			}
 			else
 			{
 				/* The request didn't complete yet, tell it to destroy it when it completes */
-				args->req->internal_req->to_destroy = 1;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->internal_req->req_mutex);
+				args->req->backend->internal_req->backend->to_destroy = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
 			}
 			_starpu_mpi_handle_request_termination(args->req);
 			_starpu_mpi_request_destroy(args->req);
@@ -925,11 +925,11 @@ static void _starpu_mpi_early_data_cb(void* arg)
 			// be handled when calling starpu_mpi_wait
 			// We store in the application request the internal MPI
 			// request so that it can be used by starpu_mpi_wait
-			args->req->data_request = args->req->internal_req->data_request;
-			STARPU_PTHREAD_MUTEX_LOCK(&args->req->req_mutex);
+			args->req->backend->data_request = args->req->backend->internal_req->backend->data_request;
+			STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->req_mutex);
 			args->req->submitted = 1;
-			STARPU_PTHREAD_COND_BROADCAST(&args->req->req_cond);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->req_mutex);
+			STARPU_PTHREAD_COND_BROADCAST(&args->req->backend->req_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->req_mutex);
 		}
 	}
 
@@ -959,12 +959,12 @@ static void _starpu_mpi_test_detached_requests(void)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		_STARPU_MPI_TRACE_TEST_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
-		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %"PRIi64" - TYPE %s %d\n", &req->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
+		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %"PRIi64" - TYPE %s %d\n", &req->backend->data_request, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->node_tag.rank);
 #ifdef STARPU_SIMGRID
 		req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, &flag);
 #else
-		STARPU_MPI_ASSERT_MSG(req->data_request != MPI_REQUEST_NULL, "Cannot test completion of the request MPI_REQUEST_NULL");
-		req->ret = MPI_Test(&req->data_request, &flag, MPI_STATUS_IGNORE);
+		STARPU_MPI_ASSERT_MSG(req->backend->data_request != MPI_REQUEST_NULL, "Cannot test completion of the request MPI_REQUEST_NULL");
+		req->ret = MPI_Test(&req->backend->data_request, &flag, MPI_STATUS_IGNORE);
 #endif
 
 		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
@@ -991,19 +991,19 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			_STARPU_MPI_TRACE_COMPLETE_END(req->request_type, req->node_tag.rank, req->node_tag.data_tag);
 
-			STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 			/* We don't want to free internal non-detached
 			   requests, we need to get their MPI request before
 			   destroying them */
-			if (req->is_internal_req && !req->to_destroy)
+			if (req->backend->is_internal_req && !req->backend->to_destroy)
 			{
 				/* We have completed the request, let the application request destroy it */
-				req->to_destroy = 1;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+				req->backend->to_destroy = 1;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 			}
 			else
 			{
-				STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 				_starpu_mpi_request_destroy(req);
 			}
 
@@ -1096,10 +1096,10 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	// We wait until the request is pushed in the
 	// ready_request list
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->posted_mutex));
+	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->backend->posted_mutex));
 	while (!(early_data_handle->req->posted))
-		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->posted_cond), &(early_data_handle->req->posted_mutex));
-	STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->posted_mutex));
+		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->backend->posted_cond), &(early_data_handle->req->backend->posted_mutex));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->backend->posted_mutex));
 
 #ifdef STARPU_DEVEL
 #warning check if req_ready is still necessary
@@ -1345,7 +1345,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							new_req->callback_arg = NULL;
 							new_req->func = _starpu_mpi_irecv_size_func;
 							new_req->sequential_consistency = 1;
-							new_req->is_internal_req = 0; // ????
+							new_req->backend->is_internal_req = 0; // ????
 							new_req->count = envelope->size;
 							_starpu_mpi_sync_data_add(new_req);
 						}

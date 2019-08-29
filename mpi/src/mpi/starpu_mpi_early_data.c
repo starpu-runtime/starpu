@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <starpu_mpi.h>
 #include <mpi/starpu_mpi_early_data.h>
+#include <mpi/starpu_mpi_mpi_backend.h>
 #include <starpu_mpi_private.h>
 #include <common/uthash.h>
 
