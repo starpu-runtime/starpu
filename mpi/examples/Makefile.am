@@ -315,6 +315,7 @@ native_fortran_nf_basic_ring_LDADD =					\
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	native_fortran/nf_mm			\
+	native_fortran/nf_mm_task_build		\
 	native_fortran/nf_basic_ring
 endif
 endif
@@ -409,6 +410,9 @@ nf_mm_cl.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_cl.f90 fstarpu_mpi_m
 
 nf_mm.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm.f90' || echo '$(srcdir)/'`native_fortran/nf_mm.f90
+
+nf_mm_task_build.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_task_build.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+	$(AM_V_FC)$(FC) $(native_fortran_nf_mm__task_build_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm_task_build.f90' || echo '$(srcdir)/'`native_fortran/nf_mm_task_build.f90
 
 nf_basic_ring.o: $(top_srcdir)/mpi/examples/native_fortran/nf_basic_ring.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_basic_ring_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_basic_ring.f90' || echo '$(srcdir)/'`native_fortran/nf_basic_ring.f90
