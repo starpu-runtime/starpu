@@ -283,6 +283,7 @@ if BUILD_EXAMPLES
 if !STARPU_SANITIZE
 examplebin_PROGRAMS +=		\
 	native_fortran/nf_mm	\
+	native_fortran/nf_mm_task_build	\
 	native_fortran/nf_basic_ring
 
 native_fortran_nf_mm_SOURCES	=			\
@@ -292,6 +293,15 @@ native_fortran_nf_mm_SOURCES	=			\
 	native_fortran/nf_mm.f90
 
 native_fortran_nf_mm_LDADD =					\
+	-lm
+
+native_fortran_nf_mm_task_build_SOURCES	=			\
+	native_fortran/nf_mm_cl.f90			\
+	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
+	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/nf_mm_task_build.f90
+
+native_fortran_nf_mm_task_build_LDADD =					\
 	-lm
 
 native_fortran_nf_basic_ring_SOURCES	=			\

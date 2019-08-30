@@ -42,6 +42,12 @@ New features:
     fields of starpu_task to 0.
   * starpufft: Support 3D.
 
+Changes:
+  * Modification in the Native Fortran interface of the functions
+    fstarpu_mpi_task_insert, fstarpu_mpi_task_build and
+    fstarpu_mpi_task_post_build to only take 1 parameter being the MPI
+    communicator, the codelet and the various parameters for the task.
+
 Small features:
   * New starpu_task_insert() and alike parameter STARPU_TASK_WORKERIDS
     allowing to set the fields starpu_task::workerids_len and
