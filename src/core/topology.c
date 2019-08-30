@@ -1447,6 +1447,7 @@ static unsigned _starpu_topology_count_ngpus(hwloc_obj_t obj)
 static int _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int i;
+
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 	{
 		config->workers[i].workerid = i;
@@ -1749,33 +1750,26 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
 			avail_cpus *= nth_per_core;
 
-			if (config->conf.reserve_ncpus > 0)
-			{
-				if (avail_cpus < config->conf.reserve_ncpus)
-				{
-					_STARPU_DISP("Warning: %d CPU cores were requested to be reserved, but only %ld were available,\n", config->conf.reserve_ncpus, avail_cpus);
-					avail_cpus = 0;
-				}
-				else
-				{
-					avail_cpus -= config->conf.reserve_ncpus;
-				}
-			}
-
 			ncpu = avail_cpus;
-			if (ncpu > STARPU_MAXCPUS)
+		}
+
+		if (config->conf.reserve_ncpus > 0)
+		{
+			if (ncpu < config->conf.reserve_ncpus)
 			{
-				_STARPU_DISP("Warning: %d CPU cores detected. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
-				ncpu = STARPU_MAXCPUS;
+				_STARPU_DISP("Warning: %d CPU cores were requested to be reserved, but only %d were available,\n", config->conf.reserve_ncpus, ncpu);
+				ncpu = 0;
+			}
+			else
+			{
+				ncpu -= config->conf.reserve_ncpus;
 			}
 		}
-		else
+
+		if (ncpu > STARPU_MAXCPUS)
 		{
-			if (ncpu > STARPU_MAXCPUS)
-			{
-				_STARPU_DISP("Warning: %d CPU cores requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
-				ncpu = STARPU_MAXCPUS;
-			}
+			_STARPU_DISP("Warning: %d CPU cores requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
+			ncpu = STARPU_MAXCPUS;
 		}
 	}
 
