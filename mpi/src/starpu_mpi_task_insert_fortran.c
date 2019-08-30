@@ -517,7 +517,7 @@ struct starpu_task *fstarpu_mpi_task_build(void **arglist)
 
 	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, NULL, arglist+2);
 	STARPU_ASSERT(ret >= 0);
-	return task;
+	return (ret > 0) ? NULL : task;
 }
 
 void fstarpu_mpi_task_post_build(void **arglist)
