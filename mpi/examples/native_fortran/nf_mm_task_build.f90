@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2019                                     CNRS
+! Copyright (C) 2017, 2019                               CNRS
 ! Copyright (C) 2016                                     Inria
 ! Copyright (C) 2016                                     Université de Bordeaux
 !
@@ -29,6 +29,7 @@ program nf_mm
         real(kind=c_double),allocatable,target :: A(:,:), B(:,:), C(:,:)
         type(c_ptr),allocatable :: dh_A(:), dh_B(:), dh_C(:,:)
         type(c_ptr) :: cl_mm
+        type(c_ptr) :: task
         integer(c_int) :: ncpu
         integer(c_int) :: ret
         integer(c_int) :: row, col
@@ -168,11 +169,19 @@ program nf_mm
 
         do b_col=1,NB
            do b_row=1,NB
-              call fstarpu_mpi_task_insert((/ c_loc(comm_world), cl_mm, &
-                   FSTARPU_R,  dh_A(b_row), &
-                   FSTARPU_R,  dh_B(b_col), &
-                   FSTARPU_RW, dh_C(b_row,b_col), &
-                   C_NULL_PTR /))
+              task = fstarpu_mpi_task_build((/ c_loc(comm_world), cl_mm, &
+                   				FSTARPU_R,  dh_A(b_row), &
+                                                FSTARPU_R,  dh_B(b_col), &
+                                                FSTARPU_RW, dh_C(b_row,b_col), &
+                                                C_NULL_PTR /))
+              if (c_associated(task)) then
+                 ret = fstarpu_task_submit(task)
+              endif
+              call fstarpu_mpi_task_post_build((/ c_loc(comm_world), cl_mm, &
+                   				FSTARPU_R,  dh_A(b_row), &
+                                                FSTARPU_R,  dh_B(b_col), &
+                                                FSTARPU_RW, dh_C(b_row,b_col), &
+                                                C_NULL_PTR /))
            end do
         end do
 

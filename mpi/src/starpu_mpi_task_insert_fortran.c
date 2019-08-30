@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016-2018                                CNRS
- * Copyright (C) 2017-2018                                     Université de Bordeaux
+ * Copyright (C) 2017-2019                                     Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -393,26 +393,26 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
 }
 
-int fstarpu_mpi_task_insert(MPI_Fint comm, void ***_arglist)
+void fstarpu_mpi_task_insert(void **arglist)
 {
-	void **arglist = *_arglist;
-	struct starpu_codelet *codelet = arglist[0];
+	MPI_Fint comm = *((MPI_Fint *)arglist[0]);
+	struct starpu_codelet *codelet = arglist[1];
 	if (codelet == NULL)
 	{
 		STARPU_ABORT_MSG("task without codelet");
 	}
-	int ret;
 
-	ret = _fstarpu_mpi_task_insert_v(MPI_Comm_f2c(comm), codelet, arglist+1);
-	return ret;
+	int ret;
+	ret = _fstarpu_mpi_task_insert_v(MPI_Comm_f2c(comm), codelet, arglist+2);
+	STARPU_ASSERT(ret >= 0);
 }
 
 /* fstarpu_mpi_insert_task: aliased to fstarpu_mpi_task_insert in fstarpu_mpi_mod.f90 */
 
-struct starpu_task *fstarpu_mpi_task_build(MPI_Fint comm, void ***_arglist)
+struct starpu_task *fstarpu_mpi_task_build(void **arglist)
 {
-	void **arglist = *_arglist;
-	struct starpu_codelet *codelet = arglist[0];
+	MPI_Fint comm = *((MPI_Fint *)arglist[0]);
+	struct starpu_codelet *codelet = arglist[1];
 	if (codelet == NULL)
 	{
 		STARPU_ABORT_MSG("task without codelet");
@@ -420,30 +420,29 @@ struct starpu_task *fstarpu_mpi_task_build(MPI_Fint comm, void ***_arglist)
 	struct starpu_task *task;
 	int ret;
 
-	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, arglist+1);
+	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, arglist+2);
 	STARPU_ASSERT(ret >= 0);
-	return (ret > 0) ? NULL : task;
+	return task;
 }
 
-int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
+void fstarpu_mpi_task_post_build(void **arglist)
 {
-	void **arglist = *_arglist;
-	struct starpu_codelet *codelet = arglist[0];
+	MPI_Fint comm = *((MPI_Fint *)arglist[0]);
+	struct starpu_codelet *codelet = arglist[1];
 	if (codelet == NULL)
 	{
 		STARPU_ABORT_MSG("task without codelet");
 	}
-	MPI_Comm comm = MPI_Comm_f2c(_comm);
 	int xrank, do_execute;
 	int ret, me, nb_nodes;
 	struct starpu_data_descr *descrs;
 	int nb_data;
 
-	starpu_mpi_comm_rank(comm, &me);
-	starpu_mpi_comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(MPI_Comm_f2c(comm), &me);
+	starpu_mpi_comm_size(MPI_Comm_f2c(comm), &nb_nodes);
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
-	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, arglist);
+	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, arglist+2);
 	if (ret < 0)
 		return ret;
 
@@ -451,6 +450,3 @@ int fstarpu_mpi_task_post_build(MPI_Fint _comm, void ***_arglist)
 }
 
 #endif /* HAVE_MPI_COMM_F2C */
-
-
-
