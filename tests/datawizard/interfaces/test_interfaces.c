@@ -168,7 +168,6 @@ static int create_task(struct starpu_task **taskp, enum starpu_worker_archtype t
 		n_mics = starpu_worker_get_ids_by_type(STARPU_MIC_WORKER, mic_workers, STARPU_MAXMICDEVS);
 	}
 
-	int workerid=0;
 	int *workers;
 	static struct starpu_codelet cl;
 	starpu_codelet_init(&cl);
