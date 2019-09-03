@@ -168,9 +168,4 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 
 	return ok;
-
-enodev:
-	FPRINTF(stderr, "WARNING: No one can execute this task\n");
-	starpu_shutdown();
-	return 77;
 }

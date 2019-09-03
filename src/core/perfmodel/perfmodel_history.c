@@ -993,7 +993,7 @@ static void dump_per_arch_model_xml(FILE *f, struct starpu_perfmodel *model, int
 
 	per_arch_model = &model->state->per_arch[comb][impl];
 	/* count the number of elements in the lists */
-	struct starpu_perfmodel_history_list *ptr = NULL;
+	struct starpu_perfmodel_history_list *ptr;
 
 	dump_reg_model_xml(f, model, comb, impl);
 
