@@ -956,9 +956,10 @@ eof:
 	starpu_task_wait_for_all();
 	fprintf(stderr, " done.\n");
 
-	printf("%g ms\n", (starpu_timing_now() - start) / 1000.);
+	printf("%g ms", (starpu_timing_now() - start) / 1000.);
 	if (total_flops != 0.)
-		printf("%g GF/s\n", (total_flops / (starpu_timing_now() - start)) / 1000.);
+		printf("\t%g GF/s", (total_flops / (starpu_timing_now() - start)) / 1000.);
+	printf("\n");
 
 	/* FREE allocated memory */
 
