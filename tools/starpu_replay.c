@@ -191,6 +191,20 @@ void dumb_kernel(void *buffers[], void *args) {
 		printf("\rExecuted task %lu...", nexecuted_tasks);
 		fflush(stdout);
 	}
+
+	unsigned this_worker = starpu_worker_get_id_check();
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(this_worker, STARPU_NMAX_SCHED_CTXS);
+
+	struct starpu_task *task = starpu_task_get_current();
+	unsigned impl = starpu_task_get_implementation(task);
+
+	double length = starpu_task_expected_length(task, perf_arch, impl);
+
+	STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
+			"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+		starpu_task_get_name(task));
+
+	starpu_sleep(length / 1000000);
 }
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
