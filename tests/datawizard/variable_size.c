@@ -290,7 +290,7 @@ int main(void)
 	setenv("STARPU_LIMIT_CPU_MEM", LIMIT, 1);
 	setenv("STARPU_DISK_SWAP", s, 0);
 	setenv("STARPU_DISK_SWAP_SIZE", "100000", 1);
-#ifdef STARPU_LINUX_SYS
+#if 0 //def STARPU_LINUX_SYS
 	setenv("STARPU_DISK_SWAP_BACKEND", "unistd_o_direct", 0);
 #else
 	setenv("STARPU_DISK_SWAP_BACKEND", "unistd", 0);

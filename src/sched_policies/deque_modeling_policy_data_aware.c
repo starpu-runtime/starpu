@@ -1227,6 +1227,24 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.worker_type = STARPU_WORKER_LIST,
 };
 
+struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
+{
+	.init_sched = initialize_dmda_sorted_policy,
+	.deinit_sched = deinitialize_dmda_policy,
+	.add_workers = dmda_add_workers ,
+	.remove_workers = dmda_remove_workers,
+	.push_task = dmda_push_sorted_task,
+	.simulate_push_task = dmda_simulate_push_sorted_task,
+	.push_task_notify = dmda_push_task_notify,
+	.pop_task = dmda_pop_task,
+	.pre_exec_hook = dmda_pre_exec_hook,
+	.post_exec_hook = dmda_post_exec_hook,
+	.pop_every_task = dmda_pop_every_task,
+	.policy_name = "dmdap",
+	.policy_description = "data-aware performance model (priority)",
+	.worker_type = STARPU_WORKER_LIST,
+};
+
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 {
 	.init_sched = initialize_dmda_sorted_policy,
