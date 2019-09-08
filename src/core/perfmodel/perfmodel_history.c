@@ -1470,13 +1470,16 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
 				}
 
-				if (j->task->flops != 0.)
+				if (j->task->flops != 0. && !isnan(entry->flops))
 				{
 					if (entry->flops == 0.)
 						entry->flops = j->task->flops;
-					else if (((entry->flops - j->task->flops) / entry->flops) > 0.00001)
+					else if ((fabs(entry->flops - j->task->flops) / entry->flops) > 0.00001)
+					{
 						/* Incoherent flops! forget about trying to record flops */
+						_STARPU_DISP("Incoherent flops in model %s: %f vs previous %f, stopping recording flops\n", model->symbol, j->task->flops, entry->flops);
 						entry->flops = NAN;
+					}
 				}
 			}
 
