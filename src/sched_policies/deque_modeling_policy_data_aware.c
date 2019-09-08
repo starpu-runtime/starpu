@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016  Université de Bordeaux
+ * Copyright (C) 2010-2016, 2019  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -1043,7 +1043,6 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
 	.push_task = dmda_push_sorted_task,
-	.simulate_push_task = dmda_simulate_push_sorted_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
@@ -1051,7 +1050,6 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdap",
 	.policy_description = "data-aware performance model (priority)",
-	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
