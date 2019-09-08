@@ -39,6 +39,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
+	&_starpu_sched_dmda_prio_policy,
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_parallel_heft_policy,
