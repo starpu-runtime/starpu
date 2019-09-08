@@ -96,14 +96,18 @@ become available, without taking priorities into account.
 The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
 into account data transfer time.
 
+The <b>dmdap</b> (deque model data aware prio) scheduler is similar to dmda,
+except that it sorts tasks by priority order, which allows to become even closer
+to HEFT by respecting priorities after having made the scheduling decision (but
+it still schedules tasks in the order they become available).
+
 The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
 but it also privileges tasks whose data buffers are already available
 on the target device.
 
-The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmdar,
-except that it sorts tasks by priority order, which allows to become even closer
-to HEFT by respecting priorities after having made the scheduling decision (but
-it still schedules tasks in the order they become available).
+The <b>dmdas</b> combines dmdap and dmdas: it sorts tasks by priority order,
+but for a given priority it will privilege tasks whose data buffers are already
+available on the target device.
 
 The <b>dmdasd</b> (deque model data aware sorted decision) scheduler is similar
 to dmdas, except that when scheduling a task, it takes into account its priority
