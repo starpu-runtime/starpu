@@ -540,7 +540,7 @@ static void scan_history_entry(FILE *f, const char *path, struct starpu_perfmode
 
 	if (entry)
 	{
-		STARPU_ASSERT_MSG(flops >=0, "Negative flops %lf in performance model file %s", flops, path);
+		STARPU_ASSERT_MSG(isnan(flops) || flops >=0, "Negative flops %lf in performance model file %s", flops, path);
 		STARPU_ASSERT_MSG(mean >=0, "Negative mean %lf in performance model file %s", mean, path);
 		STARPU_ASSERT_MSG(deviation >=0, "Negative deviation %lf in performance model file %s", deviation, path);
 		STARPU_ASSERT_MSG(sum >=0, "Negative sum %lf in performance model file %s", sum, path);
