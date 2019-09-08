@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2014,2016                           Inria
  * Copyright (C) 2013                                     Simon Archipoff
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2018                                CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -1237,7 +1237,6 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdap",
 	.policy_description = "data-aware performance model (priority)",
-	.worker_type = STARPU_WORKER_LIST,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
