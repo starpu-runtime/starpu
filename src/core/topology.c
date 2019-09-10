@@ -1753,6 +1753,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			ncpu = avail_cpus;
 		}
 
+		if (ncpu > STARPU_MAXCPUS)
+		{
+			_STARPU_DISP("Warning: %d CPU cores requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
+			ncpu = STARPU_MAXCPUS;
+		}
+
 		if (config->conf.reserve_ncpus > 0)
 		{
 			if (ncpu < config->conf.reserve_ncpus)
@@ -1766,11 +1772,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			}
 		}
 
-		if (ncpu > STARPU_MAXCPUS)
-		{
-			_STARPU_DISP("Warning: %d CPU cores requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
-			ncpu = STARPU_MAXCPUS;
-		}
 	}
 
 	topology->ncpus = ncpu;
