@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2016,2018                           Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,7 +68,7 @@ static struct starpu_codelet cl_seq =
 {
 	.cpu_funcs = {codelet_null},
 	.cuda_funcs = {codelet_null},
-	.cpu_funcs_name = {"codelet_null_seq"},
+	.cpu_funcs_name = {"codelet_null"},
         .opencl_funcs = {codelet_null},
 	.model = &model,
 	.nbuffers = 1,
