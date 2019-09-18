@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2018                                CNRS
+# Copyright (C) 2011-2019                                CNRS
 # Copyright (C) 2011                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,8 +15,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-# Note: expects Coccinelle's spatch command n the PATH
-# See: http://coccinelle.lip6.fr/
 
 stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
@@ -40,52 +38,81 @@ else
     fi
 fi
 
-if [ "$1" == "--func" ] || [ "$1" == "" ] ; then
-    starpu_functions=$(spatch -very_quiet -sp_file $dirname/starpu_funcs.cocci $STARPU_H_FILES)
-    sc_functions=$(spatch -very_quiet -sp_file $dirname/sc_funcs.cocci $SC_H_FILES)
-    for func in $starpu_functions $sc_functions ; do
-	fname=$(echo $func|awk -F ',' '{print $1}')
-	location=$(echo $func|awk -F ',' '{print $2}')
-	x=$(grep "$fname(" $dirname/../chapters/api/*.doxy | grep "\\fn")
-	if test "$x" == "" ; then
-	    echo "function ${redcolor}${fname}${stcolor} at location ${redcolor}$location${stcolor} is not (or incorrectly) documented"
-	    #	else
-	    #		echo "function ${greencolor}${fname}${stcolor} at location $location is correctly documented"
-	fi
+ok()
+{
+    type=$1
+    name=$2
+    echo "$type ${greencolor}${name}${stcolor} is (maybe correctly) documented"
+}
+
+ko()
+{
+    type=$1
+    name=$2
+    echo "$type ${redcolor}${name}${stcolor} is not (or incorrectly) documented"
+}
+
+if [ "$1" == "--func" ] || [ "$1" == "" ]
+then
+    for f in $STARPU_H_FILES $SC_H_FILES
+    do
+	grep "(" $f | grep ';' | grep starpu | grep '^[a-z]' | grep -v typedef | grep -v '(\*' | while read line
+	do
+	    x=$(grep -F -B1 "$line" $f | head -1)
+	    fname=$(echo $line | awk -F'(' '{print $1}' | awk '{print $NF}' | tr -d '*')
+	    if test "$x" == '*/'
+	    then
+		ok function $fname
+	    else
+		#echo $line
+		ko function $fname
+	    fi
+	done
     done
-    echo
 fi
 
 if [ "$1" == "--struct" ] || [ "$1" == "" ] ; then
-    starpu_structs=$(grep "struct starpu" $STARPU_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
-    sc_structs=$(grep "struct sc" $SC_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
-    for struct in $starpu_structs $sc_structs ; do
-	x=$(grep -F "\\struct $struct" $dirname/../chapters/api/*.doxy)
-	if test "$x" == "" ; then
-	    echo "struct ${redcolor}${struct}${stcolor} is not (or incorrectly) documented"
+    starpu=$(grep "^struct starpu_[a-z_]*$" $STARPU_H_FILES | awk '{print $NF}')
+    sc=$(grep "^struct sc_[a-z_]*$" $SC_H_FILES | awk '{print $NF}')
+    for o in $starpu $sc ; do
+	hfile=$(grep -l "^struct ${o}$" $STARPU_H_FILES $SC_H_FILES)
+	x=$(grep -B1 "^struct ${o}$" $hfile | head -1)
+	if test "$x" == '*/'
+	then
+	    ok "struct" ${o}
+	else
+	    ko "struct" ${o}
 	fi
     done
     echo
 fi
 
 if [ "$1" == "--enum" ] || [ "$1" == "" ] ; then
-    starpu_enums=$(grep "enum starpu" $STARPU_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
-    sc_enums=$(grep "enum starpu" $SC_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
-    for enum in $starpu_enums $sc_enums ; do
-	x=$(grep -F "\\enum $enum" $dirname/../chapters/api/*.doxy)
-	if test "$x" == "" ; then
-	    echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
+    starpu=$(grep "^enum starpu_[a-z_]*$" $STARPU_H_FILES | awk '{print $NF}')
+    sc=$(grep "^enum sc_[a-z_]*$" $SC_H_FILES | awk '{print $NF}')
+    for o in $starpu $sc ; do
+	hfile=$(grep -l "^enum ${o}$" $STARPU_H_FILES $SC_H_FILES)
+	x=$(grep -B1 "^enum ${o}$" $hfile | head -1)
+	if test "$x" == '*/'
+	then
+	    ok "enum" ${o}
+	else
+	    ko "enum" ${o}
 	fi
     done
     echo
 fi
 
 if [ "$1" == "--macro" ] || [ "$1" == "" ] ; then
-    macros=$(grep "define\b" $STARPU_H_FILES $SC_H_FILES |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
-    for macro in $macros ; do
-	x=$(grep -F "\\def $macro" $dirname/../chapters/api/*.doxy)
-	if test "$x" == "" ; then
-	    echo "macro ${redcolor}${macro}${stcolor} is not (or incorrectly) documented"
+    macros=$(grep "define\b" $STARPU_H_FILES $SC_H_FILES |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | grep -i starpu | sort|uniq)
+    for o in $macros ; do
+	hfile=$(grep -l "define\b ${o}" $STARPU_H_FILES $SC_H_FILES)
+	x=$(grep -B1 "define\b ${o}" $hfile | head -1)
+	if test "$x" == '*/'
+	then
+	    ok "define" ${o}
+	else
+	    ko "define" ${o}
 	fi
     done
     echo
@@ -96,8 +123,9 @@ if [ "$1" == "--var" ] || [ "$1" == "" ] ; then
     for variable in $variables ; do
 	x=$(grep "$variable" $dirname/../chapters/501_environment_variables.doxy | grep "\\anchor")
 	if test "$x" == "" ; then
-	    echo "variable ${redcolor}${variable}${stcolor} is not (or incorrectly) documented"
+	    ko "variable" $variable
+	else
+	    ok "variable" $variable
 	fi
     done
 fi
-
