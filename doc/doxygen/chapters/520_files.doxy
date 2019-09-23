@@ -25,6 +25,7 @@
 \file starpu_bound.h
 \file starpu_clusters.h
 \file starpu_cublas.h
+\file starpu_cublas_v2.h
 \file starpu_cusparse.h
 \file starpu_cuda.h
 \file starpu_data_filters.h
@@ -36,7 +37,10 @@
 \file starpu_expert.h
 \file starpu_fxt.h
 \file starpu_hash.h
+\file starpu_helper.h
+\file starpu_heteroprio.h
 \file starpu_mic.h
+\file starpu_mpi_ms.h
 \file starpu_mod.f90
 \file starpu_opencl.h
 \file starpu_openmp.h
@@ -52,6 +56,7 @@
 \file starpu_stdlib.h
 \file starpu_task_bundle.h
 \file starpu_task.h
+\file starpu_task_dep.h
 \file starpu_task_list.h
 \file starpu_task_util.h
 \file starpu_thread.h

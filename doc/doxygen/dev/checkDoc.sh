@@ -47,16 +47,24 @@ do
 	then
 	    echo Error. $f not included in doxygen-config.cfg.in
 	fi
+	x=$(grep $ff $dirname/../chapters/520_files.doxy)
+	if test -z "$x"
+	then
+	    echo Error. $f not included in 520_files.doxy
+	fi
     done
 done
+echo
 
-#ls $dirname/../../../build/doc/doxygen/latex/starpu*tex
-for f in $dirname/../../../build/doc/doxygen/latex/starpu*tex
+for p in starpu sc__hypervisor
 do
-    x=$(grep $(basename $f .tex) $dirname/../refman.tex)
-    if test -z "$x"
-    then
-	echo Error. $f not included in refman.tex
-    fi
+    for f in $dirname/../../../build/doc/doxygen/latex/${p}*tex
+    do
+	x=$(grep $(basename $f .tex) $dirname/../refman.tex)
+	if test -z "$x"
+	then
+	    echo Error. $f not included in refman.tex
+	fi
+    done
 done
 
