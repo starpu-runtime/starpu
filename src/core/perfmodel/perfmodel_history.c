@@ -540,7 +540,7 @@ static void scan_history_entry(FILE *f, const char *path, struct starpu_perfmode
 
 	if (entry)
 	{
-		STARPU_ASSERT_MSG(flops >=0, "Negative flops %lf in performance model file %s", flops, path);
+		STARPU_ASSERT_MSG(isnan(flops) || flops >=0, "Negative flops %lf in performance model file %s", flops, path);
 		STARPU_ASSERT_MSG(mean >=0, "Negative mean %lf in performance model file %s", mean, path);
 		STARPU_ASSERT_MSG(deviation >=0, "Negative deviation %lf in performance model file %s", deviation, path);
 		STARPU_ASSERT_MSG(sum >=0, "Negative sum %lf in performance model file %s", sum, path);
@@ -993,7 +993,7 @@ static void dump_per_arch_model_xml(FILE *f, struct starpu_perfmodel *model, int
 
 	per_arch_model = &model->state->per_arch[comb][impl];
 	/* count the number of elements in the lists */
-	struct starpu_perfmodel_history_list *ptr = NULL;
+	struct starpu_perfmodel_history_list *ptr;
 
 	dump_reg_model_xml(f, model, comb, impl);
 
@@ -1938,13 +1938,16 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					entry->deviation = sqrt((fabs(entry->sum2 - (entry->sum*entry->sum)/n))/n);
 				}
 
-				if (j->task->flops != 0.)
+				if (j->task->flops != 0. && !isnan(entry->flops))
 				{
 					if (entry->flops == 0.)
 						entry->flops = j->task->flops;
-					else if (((entry->flops - j->task->flops) / entry->flops) > 0.00001)
+					else if ((fabs(entry->flops - j->task->flops) / entry->flops) > 0.00001)
+					{
 						/* Incoherent flops! forget about trying to record flops */
+						_STARPU_DISP("Incoherent flops in model %s: %f vs previous %f, stopping recording flops\n", model->symbol, j->task->flops, entry->flops);
 						entry->flops = NAN;
+					}
 				}
 			}
 

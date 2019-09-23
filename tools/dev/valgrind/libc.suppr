@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014,2016-2018                           CNRS
+# Copyright (C) 2014,2016-2019                           CNRS
 # Copyright (C) 2014-2016,2019                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -155,4 +155,107 @@
    fun:call_init
    fun:_dl_init
    obj:/lib/x86_64-linux-gnu/ld-2.26.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   openat(filename)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   openat(filename)
+   obj:/lib/x86_64-linux-gnu/ld-2.28.so
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/x86_64-linux-gnu/libdl-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   read(count)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   read(buf)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   lseek(offset)
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+   obj:/lib/x86_64-linux-gnu/libc-2.28.so
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1
+   obj:*
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/lib/x86_64-linux-gnu/libltdl.so.7.3.1
 }

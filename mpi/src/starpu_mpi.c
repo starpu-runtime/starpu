@@ -36,11 +36,6 @@
 #include <core/topology.h>
 #include <core/workers.h>
 
-#if defined(STARPU_USE_MPI_MPI)
-#include <mpi/starpu_mpi_comm.h>
-#include <mpi/starpu_mpi_tag.h>
-#endif
-
 static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
 	/* Asynchronously request StarPU to fetch the data in main memory: when
@@ -49,10 +44,7 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
 }
 
-static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
-							int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm,
-							unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
-							int sequential_consistency)
+static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	if (_starpu_mpi_fake_world_size != -1)
 	{
@@ -66,9 +58,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 	enum starpu_data_access_mode mode = STARPU_R;
 #endif
 
-	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(
-	                                      data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func,
-					      sequential_consistency, 0, 0);
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, sequential_consistency, 0, 0);
 	_starpu_mpi_req_willpost(req);
 
 	if (_starpu_mpi_use_coop_sends && detached == 1 && sync == 0 && callback == NULL)
@@ -253,9 +243,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 
 void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
-#if defined(STARPU_USE_MPI_MPI)
-	_starpu_mpi_tag_data_release(data_handle);
-#endif
+	_mpi_backend._starpu_mpi_backend_data_clear(data_handle);
 	_starpu_mpi_cache_data_clear(data_handle);
 	free(data_handle->mpi_data);
 	data_handle->mpi_data = NULL;
@@ -289,9 +277,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 
 	if (data_tag != -1)
 	{
-#if defined(STARPU_USE_MPI_MPI)
-		_starpu_mpi_tag_data_register(data_handle, data_tag);
-#endif
+		_mpi_backend._starpu_mpi_backend_data_register(data_handle, data_tag);
 		mpi_data->node_tag.data_tag = data_tag;
 	}
 	if (rank != -1)
@@ -299,9 +285,6 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 		_STARPU_MPI_TRACE_DATA_SET_RANK(data_handle, rank);
 		mpi_data->node_tag.rank = rank;
 		mpi_data->node_tag.comm = comm;
-#if defined(STARPU_USE_MPI_MPI)
-		_starpu_mpi_comm_register(comm);
-#endif
 	}
 }
 

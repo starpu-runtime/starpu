@@ -83,6 +83,7 @@ extern struct starpu_sched_policy _starpu_sched_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_random_policy;
 extern struct starpu_sched_policy _starpu_sched_dm_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy;

@@ -26,6 +26,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 	 		 @top_srcdir@/include/starpu_clusters.h \
 			 @top_srcdir@/include/starpu_cusparse.h \
 			 @top_srcdir@/include/starpu_cublas.h \
+			 @top_srcdir@/include/starpu_cublas_v2.h \
 			 @top_srcdir@/include/starpu_cuda.h \
 			 @top_srcdir@/include/starpu_data_filters.h \
 			 @top_srcdir@/include/starpu_data.h \
@@ -39,6 +40,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_hash.h \
 			 @top_srcdir@/include/starpu_helper.h \
 			 @top_srcdir@/include/starpu_mic.h \
+			 @top_srcdir@/include/starpu_mpi_ms.h \
 			 @top_srcdir@/include/starpu_mod.f90 \
 			 @top_srcdir@/include/starpu_opencl.h \
 			 @top_srcdir@/include/starpu_openmp.h \
@@ -69,7 +71,13 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
 			 @top_srcdir@/starpufft/include/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include \
-			 @top_srcdir@/starpurm/include/starpurm.h
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_config.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_policy.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_lp.h  \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_monitoring.h \
+			 @top_srcdir@/starpurm/include/starpurm.h \
+			 @top_srcdir@/include/schedulers/starpu_heteroprio.h
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		       	 @top_srcdir@/doc/doxygen/chapters \

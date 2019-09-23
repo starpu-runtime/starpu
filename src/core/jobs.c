@@ -466,6 +466,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	unsigned destroy = task->destroy;
 	unsigned detach = task->detach;
 	unsigned regenerate = task->regenerate;
+	unsigned synchronous = task->synchronous;
 
 	/* we do not desallocate the job structure if some is going to
 	 * wait after the task */
@@ -501,9 +502,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* A continuation is not much different from a regenerated task. */
 	if (regenerate || continuation)
 	{
-		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
+		STARPU_ASSERT_MSG((detach && !destroy && !synchronous)
 				|| continuation
-				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, task->synchronous);
+				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, synchronous);
 		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{

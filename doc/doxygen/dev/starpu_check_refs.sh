@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2018                                CNRS
+# Copyright (C) 2016-2019                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,10 +20,6 @@ greencolor=$(tput setaf 2)
 
 dirname=$(dirname $0)
 
-STARPU_H_FILES=$(find $dirname/../../../include $dirname/../../../mpi/include -name '*.h')
-SC_H_FILES=$(find $dirname/../../../sc_hypervisor/include -name '*.h')
-SRC="$dirname/../../../src $dirname/../../../mpi/src $dirname/../../../sc_hypervisor/src"
-
 #grep --exclude-dir=.git --binary-files=without-match -rsF "\ref" $dirname/../chapters|grep -v "\\ref [a-zA-Z]"
 #echo continue && read
 
@@ -32,36 +28,35 @@ GREP="grep --exclude-dir=.git --binary-files=without-match -rsF"
 REFS=$($GREP "\ref" $dirname/../chapters| tr ':' '\012' | tr '.' '\012'  | tr ',' '\012'  | tr '(' '\012' | tr ')' '\012' | tr ' ' '\012'|grep -F '\ref' -A1 | grep -v '^--$' | sed 's/\\ref/=\\ref/' | tr '\012' ':' | tr '=' '\012' | sort | uniq)
 find $dirname/../chapters -name "*doxy" -exec cat {} \; > /tmp/DOXYGEN_$$
 cat $dirname/../refman.tex >> /tmp/DOXYGEN_$$
+find $dirname/../../../include -name "*h" -exec cat {} \; >> /tmp/DOXYGEN_$$
+find $dirname/../../../starpurm/include -name "*h" -exec cat {} \; >> /tmp/DOXYGEN_$$
+find $dirname/../../../mpi/include -name "*h" -exec cat {} \; >> /tmp/DOXYGEN_$$
+find $dirname/../../../sc_hypervisor/include -name "*h" -exec cat {} \; >> /tmp/DOXYGEN_$$
+
+stcolor=$(tput sgr0)
+redcolor=$(tput setaf 1)
+greencolor=$(tput setaf 2)
 
 for r in $REFS
 do
     ref=$(echo $r | sed 's/\\ref:\(.*\):/\1/')
-    n=$($GREP -crs "section $ref" /tmp/DOXYGEN_$$)
-    if test $n -eq 0
+    if test -n "$ref"
     then
-	n=$($GREP -crs "anchor $ref" /tmp/DOXYGEN_$$)
+	#echo "ref $ref"
+	for keyword in "section " "anchor " "ingroup " "defgroup " "def " "struct " "label{"
+	do
+	    n=$($GREP -crs "${keyword}${ref}" /tmp/DOXYGEN_$$)
+	    if test $n -ne 0
+	    then
+		break
+	    fi
+	done
 	if test $n -eq 0
 	then
-	    n=$($GREP -crs "ingroup $ref" /tmp/DOXYGEN_$$)
-	    if test $n -eq 0
-	    then
-		n=$($GREP -crs "def $ref" /tmp/DOXYGEN_$$)
-		if test $n -eq 0
-		then
-		    n=$($GREP -crs "struct $ref" /tmp/DOXYGEN_$$)
-		    if test $n -eq 0
-		    then
-			if test $n -eq 0
-			then
-			    n=$($GREP -crs "label{$ref" /tmp/DOXYGEN_$$)
-			    if test $n -eq 0
-			    then
-				echo $ref missing
-			    fi
-			fi
-		    fi
-		fi
-	    fi
+	    echo "${redcolor}$ref${stcolor} is missing"
+	else
+	    true
+	    #echo "${greencolor}$ref${stcolor} is ok"
 	fi
     fi
 done

@@ -1365,7 +1365,7 @@ if test x$enable_cuda = xyes; then
 		])
 	    ],
 	    [
-	    AC_MSG_ERROR([NVML found, but nvml.h could not be compiled])
+	    AC_MSG_WARN([NVML found, but nvml.h could not be compiled])
 	    have_valid_nvml="no"
 	    ]
 	)
@@ -2990,9 +2990,15 @@ AC_SUBST(BLAS_LIB,$blas_lib)
 #			 Multiple linear regression			      #
 #                                                                             #
 ###############################################################################
+if test x$enable_simgrid = xyes ; then
+	# There is no need for building mlr models in simgrid mode
+	default_enable_mlr=no
+else
+	default_enable_mlr=yes
+fi
 AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
-			enable_mlr=$enableval, enable_mlr=yes)
+			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
 
 AC_MSG_CHECKING(whether multiple linear regression models are disabled)
 if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then

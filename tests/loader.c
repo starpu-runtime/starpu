@@ -223,16 +223,51 @@ int main(int argc, char *argv[])
 	struct timeval start;
 	struct timeval end;
 	double timing;
+	int x=1;
 
 	test_args = NULL;
 	timeout = 0;
-	test_name = argv[1];
+
+	if (argv[x] && strcmp(argv[x], "-t") == 0)
+	{
+		timeout = strtol(argv[x+1], NULL, 10);
+		x += 2;
+	}
+	else if (getenv("STARPU_TIMEOUT_ENV"))
+	{
+		/* get user-defined iter_max value */
+		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
+	}
+	if (timeout <= 0)
+		timeout = DEFAULT_TIMEOUT;
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	/* compare values between the 2 values of timeout */
+	if (getenv("MPIEXEC_TIMEOUT"))
+	{
+		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);
+		if (mpiexec_timeout != timeout)
+			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
+	}
+#endif
+
+	if (argv[x] && strcmp(argv[x], "-p") == 0)
+	{
+		test_name = malloc(strlen(argv[x+1]) + 1 + strlen(argv[x+2]) + 1);
+		sprintf(test_name, "%s/%s", argv[x+1], argv[x+2]);
+	}
+	else
+		test_name = argv[x];
 
 	if (!test_name)
 	{
 		fprintf(stderr, "[error] Need name of program to start\n");
 		exit(EXIT_FAILURE);
 	}
+
+	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
+		/* This extensively tests various schedulers, let it run longer */
+		timeout *= 10;
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
@@ -253,26 +288,6 @@ int main(int argc, char *argv[])
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
-
-	/* get user-defined iter_max value */
-	if (getenv("STARPU_TIMEOUT_ENV"))
-		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
-	if (timeout <= 0)
-		timeout = DEFAULT_TIMEOUT;
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* compare values between the 2 values of timeout */
-	if (getenv("MPIEXEC_TIMEOUT"))
-	{
-		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);
-		if (mpiexec_timeout != timeout)
-			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
-	}
-#endif
-
-	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
-		/* This extensively tests various schedulers, let it run longer */
-		timeout *= 10;
 
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
