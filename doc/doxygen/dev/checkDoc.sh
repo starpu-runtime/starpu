@@ -16,10 +16,16 @@
 #
 dirname=$(dirname $0)
 
+DIRS="$dirname/../../../include $dirname/../../../mpi/include $dirname/../../../starpurm/include $dirname/../../../sc_hypervisor/include"
 echo "Defined groups"
-groups=$(grep -rs defgroup $dirname/../../../include | awk '{print $3}')
-echo $groups
-echo
+groups=""
+for d in $DIRS
+do
+    echo Checking $d
+    gg=$(grep -rs defgroup $d | awk '{print $3}')
+    echo $gg
+    groups=$(echo $groups $gg)
+done
 for g in $groups
 do
     gg=$(echo $g | sed 's/_/__/g')
@@ -29,17 +35,22 @@ do
 	echo "Error. Group $g not included in refman.tex"
     fi
 done
+echo
 
-for f in $(find $dirname/../../../include -name "starpu*.h")
+for d in $DIRS
 do
-    ff=$(echo $f  | awk -F'/' '{print $NF}')
-    x=$(grep $ff $dirname/../doxygen-config.cfg.in)
-    if test -z "$x"
-    then
-	echo Error. $f not included in doxygen-config.cfg.in
-    fi
+    for f in $(find $d -name "*.h")
+    do
+	ff=$(echo $f  | awk -F'/' '{print $NF}')
+	x=$(grep $ff $dirname/../doxygen-config.cfg.in)
+	if test -z "$x"
+	then
+	    echo Error. $f not included in doxygen-config.cfg.in
+	fi
+    done
 done
 
+#ls $dirname/../../../build/doc/doxygen/latex/starpu*tex
 for f in $dirname/../../../build/doc/doxygen/latex/starpu*tex
 do
     x=$(grep $(basename $f .tex) $dirname/../refman.tex)
