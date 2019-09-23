@@ -71,6 +71,11 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
 			 @top_srcdir@/starpufft/include/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_config.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_policy.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_lp.h  \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor.h \
+			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_monitoring.h \
 			 @top_srcdir@/starpurm/include/starpurm.h \
 			 @top_srcdir@/include/schedulers/starpu_heteroprio.h
 
