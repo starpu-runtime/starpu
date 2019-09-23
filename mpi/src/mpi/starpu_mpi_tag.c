@@ -89,7 +89,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t
 	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(data_tag)),
 			  "There is already a data handle %p registered with the tag %ld\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
 
-	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64"d in hashtable\n", handle, data_tag);
+	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64" in hashtable\n", handle, data_tag);
 
 	entry->handle = handle;
 	entry->data_tag = data_tag;
@@ -108,7 +108,7 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 {
 	starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(handle);
 
-	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %"PRIi64"d from hashtable\n", handle, data_tag);
+	_STARPU_MPI_DEBUG(42, "Removing handle %p with tag %"PRIi64" from hashtable\n", handle, data_tag);
 
 	if (data_tag != -1)
 	{
@@ -116,7 +116,7 @@ int _starpu_mpi_tag_data_release(starpu_data_handle_t handle)
 
 		_starpu_spin_lock(&registered_tag_handles_lock);
 		HASH_FIND(hh, registered_tag_handles, &(((struct _starpu_mpi_data *)(handle->mpi_data))->node_tag.data_tag), sizeof(tag_entry->data_tag), tag_entry);
-		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %"PRIi64"d isn't in the hashmap !", handle, data_tag);
+		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %"PRIi64" isn't in the hashmap !", handle, data_tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
 

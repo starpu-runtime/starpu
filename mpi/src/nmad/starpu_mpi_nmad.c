@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
@@ -38,7 +38,7 @@
 
 #include <nm_sendrecv_interface.h>
 #include <nm_mpi_nmad.h>
-
+#include "starpu_mpi_nmad_backend.h"
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
@@ -96,18 +96,18 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
-	nm_sr_send_init(req->session, &(req->data_request));
-	nm_sr_send_pack_data(req->session, &(req->data_request), &data);
-	nm_sr_send_set_priority(req->session, &req->data_request, req->prio);
+	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
+	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
+	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
 
 	if (req->sync == 0)
 	{
-		req->ret = nm_sr_send_isend(req->session, &(req->data_request), req->gate, req->node_tag.data_tag);
+		req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
 	}
 	else
 	{
-		req->ret = nm_sr_send_issend(req->session, &(req->data_request), req->gate, req->node_tag.data_tag);
+		req->ret = nm_sr_send_issend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
 
@@ -124,7 +124,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 
 	if (req->registered_datatype == 1)
 	{
-		req->waited = 1;
+		req->backend->waited = 1;
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
 	}
@@ -132,7 +132,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	{
 		starpu_ssize_t psize = -1;
 		int ret;
-		req->waited =2;
+		req->backend->waited =2;
 
 		// Do not pack the data, just try to find out the size
 		starpu_data_pack(req->data_handle, NULL, &psize);
@@ -142,10 +142,10 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 			// We already know the size of the data, let's send it to overlap with the packing of the data
 			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", psize, sizeof(req->count), "MPI_BYTE", req->node_tag.rank);
 			req->count = psize;
-			//ret = nm_sr_isend(nm_mpi_communicator_get_session(p_req->p_comm),nm_mpi_communicator_get_gate(p_comm,req->srcdst), req->mpi_tag,&req->count, sizeof(req->count), &req->size_req);
-			ret = nm_sr_isend(req->session,req->gate, req->node_tag.data_tag,&req->count, sizeof(req->count), &req->size_req);
+			//ret = nm_sr_isend(nm_mpi_communicator_get_session(p_req->p_comm),nm_mpi_communicator_get_gate(p_comm,req->srcdst), req->mpi_tag,&req->count, sizeof(req->count), &req->backend->size_req);
+			ret = nm_sr_isend(req->backend->session,req->backend->gate, req->node_tag.data_tag,&req->count, sizeof(req->count), &req->backend->size_req);
 
-			//	ret = MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			//	ret = MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->backend->size_req);
 			STARPU_ASSERT_MSG(ret == NM_ESUCCESS, "when sending size, nm_sr_isend returning %d", ret);
 		}
 
@@ -155,7 +155,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		{
 			// We know the size now, let's send it
 			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %ld to node %d (second call to pack)\n", req->count, sizeof(req->count), "MPI_BYTE", req->node_tag.data_tag, req->node_tag.rank);
-			ret = nm_sr_isend(req->session,req->gate, req->node_tag.data_tag,&req->count, sizeof(req->count), &req->size_req);
+			ret = nm_sr_isend(req->backend->session,req->backend->gate, req->node_tag.data_tag,&req->count, sizeof(req->count), &req->backend->size_req);
 			STARPU_ASSERT_MSG(ret == NM_ESUCCESS, "when sending size, nm_sr_isend returning %d", ret);
 		}
 		else
@@ -186,9 +186,9 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	//req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
-	nm_sr_recv_init(req->session, &(req->data_request));
-	nm_sr_recv_unpack_data(req->session, &(req->data_request), &data);
-	nm_sr_recv_irecv(req->session, &(req->data_request), req->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
+	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
+	nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
+	nm_sr_recv_irecv(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.rank, req->node_tag.data_tag);
 
@@ -259,9 +259,9 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 
 	/* we must do a test_locked to avoid race condition :
 	 * without req_cond could still be used and couldn't be freed)*/
-	while (!req->completed || ! piom_cond_test_locked(&(req->req_cond),REQ_FINALIZED))
+	while (!req->completed || ! piom_cond_test_locked(&(req->backend->req_cond),REQ_FINALIZED))
 	{
-		piom_cond_wait(&(req->req_cond),REQ_FINALIZED);
+		piom_cond_wait(&(req->backend->req_cond),REQ_FINALIZED);
 	}
 
 	if (status!=MPI_STATUS_IGNORE)
@@ -292,7 +292,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	/* we must do a test_locked to avoid race condition :
 	 * without req_cond could still be used and couldn't be freed)*/
-	*flag = req->completed && piom_cond_test_locked(&(req->req_cond),REQ_FINALIZED);
+	*flag = req->completed && piom_cond_test_locked(&(req->backend->req_cond),REQ_FINALIZED);
 	if (*flag && status!=MPI_STATUS_IGNORE)
 		_starpu_mpi_req_status(req,status);
 
@@ -358,17 +358,17 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 	{
 		if (req->registered_datatype == 0)
 		{
-			if(req->waited == 1)
+			if(req->backend->waited == 1)
 			        nm_mpi_nmad_data_release(req->datatype);
 			if (req->request_type == SEND_REQ)
 			{
-				req->waited--;
+				req->backend->waited--;
 				// We need to make sure the communication for sending the size
 				// has completed, as MPI can re-order messages, let's count
 				// recerived message.
 				// FIXME concurent access.
 				STARPU_ASSERT_MSG(event == NM_SR_EVENT_FINALIZED, "Callback with event %d", event);
-				if(req->waited>0)
+				if(req->backend->waited>0)
 					return;
 
 			}
@@ -411,7 +411,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,n
 			/* tell anyone potentially waiting on the request that it is
 			 * terminated now (should be done after the callback)*/
 			req->completed = 1;
-			piom_cond_signal(&req->req_cond, REQ_FINALIZED);
+			piom_cond_signal(&req->backend->req_cond, REQ_FINALIZED);
 		}
 		int pending_remaining = STARPU_ATOMIC_ADD(&pending_request, -1);
 		if (!running && !pending_remaining)
@@ -427,16 +427,16 @@ void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event, const 
 
 static void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 {
-	if(req->request_type == SEND_REQ && req->waited>1)
+	if(req->request_type == SEND_REQ && req->backend->waited>1)
 	{
-		nm_sr_request_set_ref(&(req->size_req), req);
-		nm_sr_request_monitor(req->session, &(req->size_req), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
+		nm_sr_request_set_ref(&(req->backend->size_req), req);
+		nm_sr_request_monitor(req->backend->session, &(req->backend->size_req), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 	}
 	/* the if must be before, because the first callback can directly free
-	* a detached request (the second callback free if req->waited>1). */
-	nm_sr_request_set_ref(&(req->data_request), req);
+	* a detached request (the second callback free if req->backend->waited>1). */
+	nm_sr_request_set_ref(&(req->backend->data_request), req);
 
-	nm_sr_request_monitor(req->session, &(req->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
+	nm_sr_request_monitor(req->backend->session, &(req->backend->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
@@ -572,7 +572,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		else
 		{
 			c->req->completed=1;
-			piom_cond_signal(&(c->req->req_cond), REQ_FINALIZED);
+			piom_cond_signal(&(c->req->backend->req_cond), REQ_FINALIZED);
 		}
 		STARPU_ATOMIC_ADD( &pending_request, -1);
 		/* we signal that the request is completed.*/
@@ -685,12 +685,12 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 			(strcmp(s_idle_hooks, "HOOK")   == 0) ? PIOM_POLL_POINT_HOOK :
 			0;
 	}
-	
+
 	if(polling_point_prog)
 	{
 		starpu_progression_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_prog);
 	}
-	
+
 	if(polling_point_idle)
 	{
 		starpu_idle_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_idle);

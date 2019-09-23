@@ -52,7 +52,8 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Make sure StarPU uses two core less */
-	STARPU_ASSERT(starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == ncpus-2);
+	STARPU_ASSERT_MSG(starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == ncpus-2, "Expected %d CPUs, got %d\n", ncpus-2, starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+	FPRINTF(stderr, "CPUS: %d as expected\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
 
 	/* Check we can grab a whole core */
 	active_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,12 +31,6 @@
 #include <datawizard/coherency.h>
 #include <core/simgrid.h>
 #include <core/task.h>
-
-#if defined(STARPU_USE_MPI_MPI)
-#include <mpi/starpu_mpi_comm.h>
-#include <mpi/starpu_mpi_tag.h>
-#include <mpi/starpu_mpi_driver.h>
-#endif
 
 #ifdef STARPU_SIMGRID
 static int _mpi_world_size;
@@ -75,10 +69,6 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	{
 		STARPU_ASSERT_MSG(argc_argv->comm == MPI_COMM_WORLD, "It does not make sense to ask StarPU-MPI to initialize MPI while a non-world communicator was given");
 		int thread_support;
-#ifdef STARPU_USE_MPI_NMAD
-		/* strat_prio is preferred for StarPU instead of default strat_aggreg */
-		setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
-#endif /* STARPU_USE_MPI_NMAD */
 		_STARPU_DEBUG("Calling MPI_Init_thread\n");
 		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
 		{
@@ -189,11 +179,9 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 		conf = &localconf;
 	}
 
-#if defined(STARPU_USE_MPI_MPI)
-	_starpu_mpi_driver_init(conf);
+	_mpi_backend._starpu_mpi_backend_init(conf);
 
-	if (starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0)
-#endif
+	if (_mpi_backend._starpu_mpi_backend_reserve_core())
 	{
 		/* Reserve a core for our progression thread */
 		if (conf->reserve_ncpus == -1)
@@ -227,11 +215,7 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();
 	_starpu_mpi_cache_shutdown(world_size);
-#if defined(STARPU_USE_MPI_MPI)
-	_starpu_mpi_tag_shutdown();
-	_starpu_mpi_comm_shutdown();
-	_starpu_mpi_driver_shutdown();
-#endif
+
 	if (_mpi_initialized_starpu)
 		starpu_shutdown();
 

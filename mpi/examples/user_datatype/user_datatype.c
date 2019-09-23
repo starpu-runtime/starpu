@@ -92,10 +92,11 @@ int main(int argc, char **argv)
 	}
 	else if (rank == 1)
 	{
+		MPI_Status status;
 		struct starpu_my_data myx = {.d = 11 , .c = 'a'};
 		starpu_data_handle_t handlex;
 		starpu_my_data_register(&handlex, STARPU_MAIN_RAM, &myx);
-		starpu_mpi_recv(handlex, 0, 10, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(handlex, 0, 10, MPI_COMM_WORLD, &status);
 		starpu_data_unregister(handlex);
 		FPRINTF(stderr, "[starpu mpi] myx.d=%d myx.c=%c\n", myx.d, myx.c);
 		STARPU_ASSERT_MSG(myx.d == 98 && myx.c == 'z', "Incorrect received value\n");

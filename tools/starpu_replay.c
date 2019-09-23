@@ -66,7 +66,7 @@ static long submitorder = -1;
 static starpu_tag_t tag;
 static int workerid;
 static uint32_t footprint;
-static double flops;
+static double flops, total_flops = 0.;
 
 static double startTime; //start time (The instant when the task starts)
 static double endTime; //end time (The instant when the task ends)
@@ -345,9 +345,23 @@ void dumb_kernel(void *buffers[], void *args) {
 	nexecuted_tasks++;
 	if (!(nexecuted_tasks % 1000))
 	{
-		printf("\rExecuted task %lu...", nexecuted_tasks);
+		fprintf(stderr, "\rExecuted task %lu...", nexecuted_tasks);
 		fflush(stdout);
 	}
+
+	unsigned this_worker = starpu_worker_get_id_check();
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(this_worker, STARPU_NMAX_SCHED_CTXS);
+
+	struct starpu_task *task = starpu_task_get_current();
+	unsigned impl = starpu_task_get_implementation(task);
+
+	double length = starpu_task_expected_length(task, perf_arch, impl);
+
+	STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
+			"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+		starpu_task_get_name(task));
+
+	starpu_sleep(length / 1000000);
 }
 
 /* [CODELET] Initialization of an unique codelet for all the tasks*/
@@ -600,7 +614,7 @@ int submit_tasks(void)
 
 			if (ret_val != 0)
 			{
-				printf("\nWhile submitting task %ld (%s): return %d\n",
+				fprintf(stderr, "\nWhile submitting task %ld (%s): return %d\n",
 						currentTask->submit_order,
 						currentTask->task.name? currentTask->task.name : "unknown",
 						ret_val);
@@ -608,10 +622,10 @@ int submit_tasks(void)
 			}
 
 
-			//printf("submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
+			//fprintf(stderr, "submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
-				printf("\rSubmitted task order %ld...", currentTask->submit_order);
+				fprintf(stderr, "\rSubmitted task order %ld...", currentTask->submit_order);
 				fflush(stdout);
 			}
 			if (currentTask->submit_order != -1)
@@ -632,7 +646,7 @@ int submit_tasks(void)
 		currentNode = starpu_rbtree_next(currentNode);
 
 	}
-	printf(" done.\n");
+	fprintf(stderr, " done.\n");
 
 	return 1;
 }
@@ -715,7 +729,7 @@ int main(int argc, char **argv)
 
 		if (!fgets(s, s_allocated, rec))
 		{
-			printf(" done.\n");
+			fprintf(stderr, " done.\n");
 			int submitted = submit_tasks();
 
 			if (submitted == -1)
@@ -733,7 +747,7 @@ int main(int argc, char **argv)
 
 			if (!fgets(s + s_allocated-1, s_allocated+1, rec))
 			{
-				printf("\n");
+				fprintf(stderr, "\n");
 				int submitted = submit_tasks();
 
 				if (submitted == -1)
@@ -881,6 +895,7 @@ int main(int argc, char **argv)
 
 					task->task.cl_arg = arg;
 					task->task.flops = flops;
+					total_flops += flops;
 				}
 
 				task->task.cl_arg_size = 0;
@@ -908,7 +923,7 @@ int main(int argc, char **argv)
 			nread_tasks++;
 			if (!(nread_tasks % 1000))
 			{
-				printf("\rRead task %lu...", nread_tasks);
+				fprintf(stderr, "\rRead task %lu...", nread_tasks);
 				fflush(stdout);
 			}
 
@@ -1098,9 +1113,12 @@ int main(int argc, char **argv)
 eof:
 
 	starpu_task_wait_for_all();
-	printf(" done.\n");
+	fprintf(stderr, " done.\n");
 
-	printf("Simulation ended. Elapsed simulated time: %g ms\n", (starpu_timing_now() - start) / 1000.);
+	printf("%g ms", (starpu_timing_now() - start) / 1000.);
+	if (total_flops != 0.)
+		printf("\t%g GF/s", (total_flops / (starpu_timing_now() - start)) / 1000.);
+	printf("\n");
 
 	/* FREE allocated memory */
 

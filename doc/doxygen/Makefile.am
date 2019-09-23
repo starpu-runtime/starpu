@@ -198,6 +198,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_bound.h		\
 	$(top_srcdir)/include/starpu_clusters.h		\
 	$(top_srcdir)/include/starpu_cublas.h		\
+	$(top_srcdir)/include/starpu_cublas_v2.h	\
 	$(top_srcdir)/include/starpu_cusparse.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
 	$(top_srcdir)/include/starpu_data_filters.h	\

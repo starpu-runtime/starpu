@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2017,2018                                CNRS
+ * Copyright (C) 2017,2018,2019                           CNRS
  * Copyright (C) 2017,2018                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,8 +33,8 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 	STARPU_ASSERT_MSG(flag == 1, "starpu_mpi_comm_get_attr was called with valid argument\n");
 
 	rvalue = *value;
-	FPRINTF(stderr, "Value: %"PRIi64"d\n", *value);
-	FPRINTF(stderr, "Value: %"PRIi64"d\n", rvalue);
+	FPRINTF(stderr, "Value: %"PRIi64"\n", *value);
+	FPRINTF(stderr, "Value: %"PRIi64"\n", rvalue);
 
 	return 0;
 }
