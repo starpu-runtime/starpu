@@ -1189,7 +1189,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 #ifdef STARPU_USE_CUDA_MAP
 uintptr_t
-_starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+_starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 		    unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 		    size_t size STARPU_ATTRIBUTE_UNUSED, int *ret STARPU_ATTRIBUTE_UNUSED)
 {
@@ -1258,14 +1258,14 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 	uintptr_t dst_addr;
 	if (cuda_pageableMemoryAccess)
 	{
-		dst_addr = (uintptr_t)src_ptr;
+		dst_addr = (uintptr_t)(src_ptr+src_offset);
 		*ret = 0;
 	}
 	else if (cuda_unifiedAddressing || cuda_managedMemory)
 	{
 		struct cudaPointerAttributes cuda_ptrattr;
 		cudaError_t cures;
-		cures = cudaPointerGetAttributes(&cuda_ptrattr, (void *)src_ptr);
+		cures = cudaPointerGetAttributes(&cuda_ptrattr, (void *)(src_ptr+src_offset));
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 		{
 			if (cures == cudaErrorInvalidValue)
@@ -1284,7 +1284,7 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 	{
 		cudaError_t cures;
 		void *pDevice;
-		cures = cudaHostGetDevicePointer(&pDevice, (void*)src_ptr, 0);
+		cures = cudaHostGetDevicePointer(&pDevice, (void*)(src_ptr+src_offset), 0);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 		{
 			STARPU_CUDA_REPORT_ERROR(cures);
@@ -1300,8 +1300,8 @@ _starpu_cuda_map_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node ST
 }
 
 int
-_starpu_cuda_unmap_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-		       void *dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+_starpu_cuda_unmap_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		       uintptr_t dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 		       size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_HAVE_CUDA_CANMAPHOST) || defined(STARPU_HAVE_CUDA_UNIFIEDADDR) || defined(STARPU_HAVE_CUDA_MNGMEM)
@@ -1311,6 +1311,22 @@ _starpu_cuda_unmap_ram(void *src_ptr STARPU_ATTRIBUTE_UNUSED, unsigned src_node 
 	return -EIO;
 #endif
 }
+
+int _starpu_cuda_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+{
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_offset;
+	(void) dst_node;
+	(void) size;
+
+	/* CUDA mappings are coherent */
+	/* FIXME: not necessarily, depends on board capabilities */
+	return 0;
+}
+
 #endif /* STARPU_USE_CUDA_MAP */
 #endif /* STARPU_USE_CUDA */
 
@@ -1711,6 +1727,8 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
+	.update_map[STARPU_CPU_RAM] = NULL,
+
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
@@ -1736,6 +1754,10 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy_interface_to[STARPU_DISK_RAM] = NULL,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+#ifdef STARPU_USE_CUDA_MAP
+	.update_map[STARPU_CPU_RAM] = _starpu_cuda_update_map,
+#endif
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,

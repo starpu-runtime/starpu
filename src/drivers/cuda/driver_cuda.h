@@ -54,8 +54,9 @@ cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node);
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA_MAP
-uintptr_t _starpu_cuda_map_ram(void *src_ptr, unsigned src_node, unsigned dst_node, size_t size, int *ret);
-int _starpu_cuda_unmap_ram(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t size);
+uintptr_t _starpu_cuda_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
+int _starpu_cuda_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, uintptr_t dst_ptr, unsigned dst_node, size_t size);
+int _starpu_cuda_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
 #endif
 #endif
 

@@ -492,17 +492,19 @@ _starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 }
 
 int
-_starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-			      uintptr_t dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-			      size_t size STARPU_ATTRIBUTE_UNUSED)
+_starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
+	(void) size;
+	(void) src_node;
+
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
+	STARPU_ASSERT(dst_offset == 0);
 	STARPU_ASSERT(dst_node == worker->memory_node);
 
 	cl_event ev;
-	err = clEnqueueUnmapMemObject(map_queues[worker->devid], (cl_mem) dst, (void*) (src + src_offset), 0, NULL, &ev);
+	err = clEnqueueUnmapMemObject(map_queues[worker->devid], (cl_mem) (dst + dst_offset), (void*) (src + src_offset), 0, NULL, &ev);
 
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
@@ -518,19 +520,20 @@ _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_
 	return 0;
 }
 
-
 int
-_starpu_opencl_update_cpu_map(uintptr_t src, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-			      uintptr_t dst STARPU_ATTRIBUTE_UNUSED, size_t dst_offset STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-			      size_t size)
+_starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
+	(void) size;
+	(void) dst_node;
+
 	cl_int err;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
+	STARPU_ASSERT(src_offset == 0);
 	STARPU_ASSERT(src_node == worker->memory_node);
 
 	cl_event ev;
-	void *ptr = clEnqueueMapBuffer(map_queues[worker->devid], (cl_mem) src, CL_FALSE, CL_MAP_READ | CL_MAP_WRITE, 0, size, 0, NULL, &ev, &err);
+	void *ptr = clEnqueueMapBuffer(map_queues[worker->devid], (cl_mem) (src + src_offset), CL_FALSE, CL_MAP_READ | CL_MAP_WRITE, 0, size, 0, NULL, &ev, &err);
 
 	if (STARPU_UNLIKELY(!ptr))
 		STARPU_OPENCL_REPORT_ERROR(err);
@@ -1490,6 +1493,8 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 	.copy_interface_to[STARPU_DISK_RAM] = NULL,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.update_map[STARPU_CPU_RAM] = _starpu_opencl_update_cpu_map,
 
 	.wait_request_completion = _starpu_opencl_wait_request_completion,
 	.test_request_completion = _starpu_opencl_test_request_completion,

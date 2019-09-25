@@ -61,21 +61,10 @@ int _starpu_opencl_init_context(int devid);
 int _starpu_opencl_deinit_context(int devid);
 cl_device_type _starpu_opencl_get_device_type(int devid);
 
-uintptr_t
-_starpu_opencl_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
-		      unsigned dst_node, size_t size, int *ret);
-int
-_starpu_opencl_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
-		      uintptr_t dst_ptr, unsigned dst_node, size_t size);
-
-int
-_starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-			      uintptr_t dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-			      size_t size);
-int
-_starpu_opencl_update_cpu_map(uintptr_t src, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-			      uintptr_t dst STARPU_ATTRIBUTE_UNUSED, size_t dst_offset STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-			      size_t size);
+uintptr_t _starpu_opencl_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
+int _starpu_opencl_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, uintptr_t dst_ptr, unsigned dst_node, size_t size);
+int _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
+int _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
 #endif
 
 #if 0

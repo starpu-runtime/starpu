@@ -507,6 +507,43 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 				   );
 }
 
+uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
+{
+	(void) src_node;
+	(void) dst_node;
+	(void) size;
+
+	*ret = 0;
+	return src + src_offset;
+}
+
+int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
+{
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_node;
+	(void) size;
+
+	return 0;
+}
+
+int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+{
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_offset;
+	(void) dst_node;
+	(void) size;
+
+	/* Memory mappings are cache-coherent */
+	/* FIXME: not on SCC */
+	return 0;
+}
+
 struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
 	.copy_data_to[STARPU_UNUSED] = NULL,
@@ -555,6 +592,30 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
 #else
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.map[STARPU_CPU_RAM] = _starpu_cpu_map,
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
+	.map[STARPU_CUDA_RAM] = _starpu_cuda_map_ram,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.map[STARPU_OPENCL_RAM] = _starpu_opencl_map_ram,
+#endif
+
+	.unmap[STARPU_CPU_RAM] = _starpu_cpu_unmap,
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
+	.unmap[STARPU_CUDA_RAM] = _starpu_cuda_unmap_ram,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.unmap[STARPU_OPENCL_RAM] = _starpu_opencl_unmap_ram,
+#endif
+
+	.update_map[STARPU_CPU_RAM] = _starpu_cpu_update_map,
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
+	.update_map[STARPU_CUDA_RAM] = _starpu_cuda_update_map,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.update_map[STARPU_OPENCL_RAM] = _starpu_opencl_update_opencl_map,
 #endif
 
 	.wait_request_completion = NULL,

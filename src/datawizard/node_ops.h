@@ -31,6 +31,10 @@ typedef int (*copy_interface_t)(uintptr_t src_ptr, size_t src_offset, unsigned s
 				uintptr_t dst_ptr, size_t dst_offset, unsigned dst_node,
 				size_t ssize, struct _starpu_async_channel *async_channel);
 
+typedef uintptr_t (*map_t)(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
+typedef int (*unmap_t)(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size);
+typedef int (*update_map_t)(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
+
 struct _starpu_node_ops
 {
 	copy_data_func_t copy_data_to[STARPU_MPI_MS_RAM+1];
@@ -40,6 +44,9 @@ struct _starpu_node_ops
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
 	uintptr_t (*malloc_on_node)(unsigned dst_node, size_t size, int flags);
 	void (*free_on_node)(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+	map_t map[STARPU_MPI_MS_RAM+1];
+	unmap_t unmap[STARPU_MPI_MS_RAM+1];
+	update_map_t update_map[STARPU_MPI_MS_RAM+1];
 	char *name;
 };
 

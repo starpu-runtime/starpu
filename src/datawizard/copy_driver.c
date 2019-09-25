@@ -408,103 +408,52 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 
 uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
 {
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	if (node_ops && node_ops->map[dst_kind])
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		return src + src_offset;
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-		return _starpu_cuda_map_ram(
-				(void*) (src + src_offset), src_node,
-				dst_node,
-				size, ret);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-		return _starpu_opencl_map_ram(
-				src, src_offset, src_node,
-				dst_node,
-				size, ret);
-#endif
-	default:
-		STARPU_ABORT();
+		return node_ops->map[dst_kind](src, src_offset, src_node, dst_node, size, ret);
+	}
+	else
+	{
+		STARPU_ABORT_MSG("No map function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 		return -1;
 	}
-	*ret = -EIO;
-	return 0;
 }
 
 int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
 {
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	if (node_ops && node_ops->unmap[dst_kind])
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		return 0;
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-		return _starpu_cuda_unmap_ram(
-				(void*) (src + src_offset), src_node,
-				(void*) dst, dst_node,
-				size);
-#endif
-#ifdef STARPU_USE_OPENCL
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-		return _starpu_opencl_unmap_ram(
-				src, src_offset, src_node,
-				dst, dst_node,
-				size);
-#endif
-	default:
-		STARPU_ABORT();
+		return node_ops->unmap[dst_kind](src, src_offset, src_node, dst, dst_node, size);
+	}
+	else
+	{
+		STARPU_ABORT_MSG("No unmap function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 		return -1;
 	}
-	return -EIO;
 }
 
 int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
-	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
-	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
+	assert(0);
+
+	if (node_ops && node_ops->update_map[dst_kind])
 	{
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		/* Memory mappings are cache-coherent */
-		/* FIXME: not on SCC */
-		return 0;
-
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
-		/* CUDA mappings are coherent */
-		/* FIXME: not necessarily, depends on board capabilities */
-		return 0;
-#endif
-#ifdef STARPU_USE_OPENCL
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-		STARPU_ASSERT(dst_offset == 0);
-		return _starpu_opencl_update_opencl_map(
-				src, src_offset, src_node,
-				dst, dst_node,
-				size);
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
-		STARPU_ASSERT(src_offset == 0);
-		return _starpu_opencl_update_cpu_map(
-				src, src_node,
-				dst, src_offset, dst_node,
-				size);
-#endif
-	default:
-		STARPU_ABORT();
+		return node_ops->update_map[dst_kind](src, src_offset, src_node, dst, dst_offset, dst_node, size);
+	}
+	else
+	{
+		STARPU_ABORT_MSG("No unmap function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 		return -1;
 	}
-	return -EIO;
 }
 
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
