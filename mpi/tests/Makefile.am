@@ -118,7 +118,8 @@ starpu_mpi_TESTS +=				\
 	policy_selection			\
 	policy_selection2			\
 	ring_async_implicit			\
-	temporary
+	temporary				\
+	early_stuff
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -183,6 +184,7 @@ noinst_PROGRAMS =				\
 	ring_async				\
 	ring_async_implicit			\
 	temporary				\
+	early_stuff				\
 	block_interface				\
 	block_interface_pinned			\
 	attr					\

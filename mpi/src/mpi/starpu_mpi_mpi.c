@@ -1327,7 +1327,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					{
 						if (envelope->sync)
 						{
-							_STARPU_MPI_DEBUG(2000, "-------------------------> adding request for tag %l"PRIi64"\n", envelope->data_tag);
+							_STARPU_MPI_DEBUG(2000, "-------------------------> adding request for tag %"PRIi64"\n", envelope->data_tag);
 							struct _starpu_mpi_req *new_req;
 #ifdef STARPU_DEVEL
 #warning creating a request is not really useful.
