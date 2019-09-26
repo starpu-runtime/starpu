@@ -169,10 +169,15 @@ enum _starpu_mpi_request_type
 	UNKNOWN_REQ=6,
 };
 
-struct _starpu_mpi_node_tag
+struct _starpu_mpi_node
 {
 	MPI_Comm comm;
 	int rank;
+};
+
+struct _starpu_mpi_node_tag
+{
+	struct _starpu_mpi_node node;
 	starpu_mpi_tag_t data_tag;
 };
 

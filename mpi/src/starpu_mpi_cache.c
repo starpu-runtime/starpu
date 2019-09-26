@@ -260,7 +260,7 @@ void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data_handle)
 		return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
-	starpu_mpi_comm_size(mpi_data->node_tag.comm, &size);
+	starpu_mpi_comm_size(mpi_data->node_tag.node.comm, &size);
 	for(n=0 ; n<size ; n++)
 	{
 		if (mpi_data->cache_sent[n] == 1)
@@ -326,7 +326,7 @@ static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
 	if (_starpu_cache_enabled == 0)
 		return;
 
-	starpu_mpi_comm_size(mpi_data->node_tag.comm, &nb_nodes);
+	starpu_mpi_comm_size(mpi_data->node_tag.node.comm, &nb_nodes);
 	for(i=0 ; i<nb_nodes ; i++)
 	{
 		if (mpi_data->cache_sent[i] == 1)
