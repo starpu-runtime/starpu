@@ -1005,7 +1005,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 			}
 			else
 			{
-				_STARPU_DEBUG("Performance model file %s does not exist or is not readable\n", path);
+				_STARPU_DEBUG("Performance model file %s does not exist or is not readable: %s\n", path, strerror(errno));
 			}
 		}
 
