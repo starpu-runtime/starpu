@@ -477,4 +477,9 @@ task, and each color corresponds to a codelet.
 \image html data_trace.png
 \image latex data_trace.eps "" width=\textwidth
 
+\section Performance Monitoring Counters
+
+\section Performance Steering Knobs
+
+
 */
