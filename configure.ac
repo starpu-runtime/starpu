@@ -218,7 +218,7 @@ if test x$enable_simgrid = xyes ; then
 	fi
 
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifdef HAVE_SIMGRID_MSG_H
+			  #ifdef STARPU_HAVE_SIMGRID_MSG_H
 			  #include <simgrid/msg.h>
 			  #include <simgrid/host.h>
 			  #else
