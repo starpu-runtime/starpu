@@ -1134,7 +1134,7 @@ if test x$enable_simgrid = xyes ; then
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifdef HAVE_SIMGRID_MSG_H
+			  #ifdef STARPU_HAVE_SIMGRID_MSG_H
 			  #include <simgrid/msg.h>
 			  #include <simgrid/host.h>
 			  #else
