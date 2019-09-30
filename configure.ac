@@ -596,8 +596,14 @@ if test x$enable_simgrid = xno ; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
-if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes -a x$enable_shared = xyes ; then
-    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes ; then
+    if test x$enable_shared = xyes ; then
+	AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+    else
+	CFLAGS="$CFLAGS -fPIC"
+	CXXFLAGS="$CXXFLAGS -fPIC"
+	NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
+    fi
 fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
