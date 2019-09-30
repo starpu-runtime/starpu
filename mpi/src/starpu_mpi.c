@@ -261,8 +261,8 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle)
 		_STARPU_CALLOC(mpi_data, 1, sizeof(struct _starpu_mpi_data));
 		mpi_data->magic = 42;
 		mpi_data->node_tag.data_tag = -1;
-		mpi_data->node_tag.rank = -1;
-		mpi_data->node_tag.comm = MPI_COMM_WORLD;
+		mpi_data->node_tag.node.rank = -1;
+		mpi_data->node_tag.node.comm = MPI_COMM_WORLD;
 		_starpu_spin_init(&mpi_data->coop_lock);
 		data_handle->mpi_data = mpi_data;
 		_starpu_mpi_cache_data_init(data_handle);
@@ -283,8 +283,8 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 	if (rank != -1)
 	{
 		_STARPU_MPI_TRACE_DATA_SET_RANK(data_handle, rank);
-		mpi_data->node_tag.rank = rank;
-		mpi_data->node_tag.comm = comm;
+		mpi_data->node_tag.node.rank = rank;
+		mpi_data->node_tag.node.comm = comm;
 	}
 }
 
@@ -301,7 +301,7 @@ void starpu_mpi_data_set_tag(starpu_data_handle_t handle, starpu_mpi_tag_t data_
 int starpu_mpi_data_get_rank(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
-	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.rank;
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.node.rank;
 }
 
 starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t data)

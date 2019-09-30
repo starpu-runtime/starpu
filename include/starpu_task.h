@@ -1183,7 +1183,8 @@ struct starpu_task
    equivalent to initializing a structure starpu_task
    with the function starpu_task_init().
 */
-/* Note: remember to update starpu_task_init as well */
+/* Note: remember to update starpu_task_init and starpu_task_ft_create_retry
+ * as well */
 #define STARPU_TASK_INITIALIZER 			\
 {							\
 	.cl = NULL,					\

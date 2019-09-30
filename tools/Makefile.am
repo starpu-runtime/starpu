@@ -90,7 +90,32 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.attila	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.attila	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_atlas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_goto.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.attila	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.attila	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.attila	\
+\
 	perfmodels/sampling/codelets/45/chol_model_11.hannibal	\
 	perfmodels/sampling/codelets/45/chol_model_21.hannibal	\
 	perfmodels/sampling/codelets/45/chol_model_22.hannibal	\
@@ -98,6 +123,19 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.hannibal	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.hannibal	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.hannibal	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.hannibal	\
+\
 	perfmodels/sampling/codelets/45/chol_model_11.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/chol_model_21.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/chol_model_22.hannibal-pitch	\
@@ -105,6 +143,19 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.hannibal-pitch	\
+\
 	perfmodels/sampling/codelets/45/chol_model_11.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_21.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_22.idgraf	\
@@ -121,6 +172,31 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_goto.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.idgraf	\
+\
 	perfmodels/sampling/codelets/45/chol_model_11.mirage	\
 	perfmodels/sampling/codelets/45/chol_model_21.mirage	\
 	perfmodels/sampling/codelets/45/chol_model_22.mirage	\
@@ -137,7 +213,32 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.mirage	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_atlas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_goto.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.mirage	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.mirage	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
+\
 	perfmodels/sampling/codelets/45/chol_model_11.sirocco	\
 	perfmodels/sampling/codelets/45/chol_model_21.sirocco	\
 	perfmodels/sampling/codelets/45/chol_model_22.sirocco	\
@@ -154,6 +255,30 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_atlas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_goto.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_11_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_12_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_21_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_slu_lu_model_22_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_11_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.sirocco	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.sirocco	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco
 
 EXTRA_DIST =				\
