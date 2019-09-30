@@ -1394,6 +1394,8 @@ struct starpu_task *starpu_task_ft_create_retry
 	new_task->regenerate = 0;
 	new_task->no_submitorder = 1;
 	new_task->failed = 0;
+	new_task->scheduled = 0;
+	new_task->prefetched = 0;
 	new_task->status = STARPU_TASK_INVALID;
 	new_task->profiling_info = NULL;
 	new_task->prev = NULL;
