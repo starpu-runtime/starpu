@@ -214,7 +214,7 @@ if test x$enable_simgrid = xyes ; then
 	if test x$enable_shared = xno ; then
 		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
 		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
-		LDFLAGS="$LDFLAGS -lstdc++"
+		LIBS="$LIBS -lstdc++"
 	fi
 
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
