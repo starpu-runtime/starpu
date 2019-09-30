@@ -831,9 +831,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-				struct _starpu_worker_set *worker_set = workerarg->set;
-
-				if (worker_set->workers != workerarg)
 		if ((!workerarg->set || workerarg->set->workers == workerarg)
 			&& workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
