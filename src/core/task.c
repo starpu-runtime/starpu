@@ -857,7 +857,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
 			(void) STARPU_ATOMIC_ADD(&pcv->task.total_submitted, 1);
-			int64_t value = STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, 1);
+			value = STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, 1);
 			_starpu_perf_counter_update_max_int64(&pcv->task.peak_submitted, value);
 			_starpu_perf_counter_update_per_codelet_sample(task->cl);
 		}

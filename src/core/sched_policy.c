@@ -453,7 +453,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
 			(void)STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, -1);
-			int64_t value = STARPU_ATOMIC_ADDL(&pcv->task.current_ready, 1);
+			value = STARPU_ATOMIC_ADDL(&pcv->task.current_ready, 1);
 			_starpu_perf_counter_update_max_int64(&pcv->task.peak_ready, value);
 		}
 	}
