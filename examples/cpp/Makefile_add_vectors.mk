@@ -18,9 +18,9 @@ PROG = add_vectors
 
 SRCCXX = add_vectors.cpp
 
-CC = g++
+CXX = g++
 
-CFLAGS = -g -DPRINT_OUTPUT $(shell pkg-config --cflags starpu-1.3)
+CXXFLAGS = -g -DPRINT_OUTPUT $(shell pkg-config --cflags starpu-1.3)
 LDLIBS =  $(shell pkg-config --libs starpu-1.3)
 
 OBJS = $(SRCCXX:%.cpp=%.o)
@@ -29,10 +29,7 @@ OBJS = $(SRCCXX:%.cpp=%.o)
 all: $(PROG)
 
 $(PROG): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-%.o: %.cpp
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:
 	rm -fv *.o $(PROG)
