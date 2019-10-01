@@ -38,6 +38,10 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
+	conf.nmic = 0;
+	conf.nmpi_ms = 0;
 	conf.sched_policy_name = "prio";
 
 	ret = starpu_initialize(&conf, &argc, &argv);
