@@ -224,15 +224,20 @@ if test x$enable_simgrid = xyes ; then
 		LIBS="$LIBS -lstdc++"
 	fi
 
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifdef STARPU_HAVE_SIMGRID_MSG_H
-			  #include <simgrid/msg.h>
-			  #include <simgrid/host.h>
-			  #else
-			  #include <msg/msg.h>
-			  #endif
-			  ]])],,
-			  CXXFLAGS="-std=c++11 $CXXFLAGS")
+	case \ $CXXFLAGS\  in 
+	*\ -std=*\ *) ;;
+	*) 
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
+				  #include <simgrid/msg.h>
+				  #include <simgrid/host.h>
+				  #else
+				  #include <msg/msg.h>
+				  #endif
+				  ]])],,
+				  CXXFLAGS="-std=c++11 $CXXFLAGS")
+		;;
+	esac
 	AC_LANG_POP([C++])
 	AC_ARG_ENABLE(simgrid-mc, [AS_HELP_STRING([--enable-simgrid-mc],
 				[Enable using Model Checker of simgrid])],
@@ -1329,18 +1334,22 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
-	SAVED_CXX="$CXX"
-	CXX="$NVCC"
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifdef STARPU_HAVE_SIMGRID_MSG_H
-			  #include <simgrid/msg.h>
-			  #include <simgrid/host.h>
-			  #else
-			  #include <msg/msg.h>
-			  #endif
-			  ]])],,
-			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
-	CXX="$SAVED_CXX"
+	case \ $NVCCFLAGS\  in 
+	*\ -std=*\ *) ;;
+	*) 
+		SAVED_CXX="$CXX"
+		CXX="$NVCC"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
+				  #include <simgrid/msg.h>
+				  #include <simgrid/host.h>
+				  #else
+				  #include <msg/msg.h>
+				  #endif
+				  ]])],,
+				  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
+		CXX="$SAVED_CXX"
+	esac
 	AC_LANG_POP([C++])
 
         if test "$F77" = "gfortran" -o "$FC" = "gfortran" ; then
