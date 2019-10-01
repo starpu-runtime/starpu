@@ -21,6 +21,12 @@
 #ifndef STARPU_USE_MPI_MPI
 int main(int argc, char **argv)
 {
+	int mpi_init;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	if (!mpi_init)
+		MPI_Finalize();
+
 	return STARPU_TEST_SKIPPED;
 }
 
