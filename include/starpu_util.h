@@ -322,8 +322,13 @@ extern "C"
 			STARPU_ABORT(); }}
 #endif
 
-#if defined(__i386__) || defined(__x86_64__)
+/* Note: do not use starpu_cmpxchg / starpu_xchg / starpu_cmpxchgl /
+ * starpu_xchgl / starpu_cmpxchg64 / starpu_xchg64, which only
+ * assembly-hand-written fallbacks used when building with an old gcc.
+ * Rather use STARPU_VAL_COMPARE_AND_SWAP available on all platforms with a
+ * recent-enough gcc */
 
+#if defined(__i386__) || defined(__x86_64__)
 static __starpu_inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
@@ -365,6 +370,21 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 	return next;
 }
 #define STARPU_HAVE_XCHGL
+#endif
+
+#if defined(__x86_64__)
+static __starpu_inline uint64_t starpu_cmpxchg64(uint64_t *ptr, uint64_t old, uint64_t next)
+{
+	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline uint64_t starpu_xchg64(uint64_t *ptr, uint64_t next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHG64
 #endif
 
 #endif
