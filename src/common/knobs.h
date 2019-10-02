@@ -43,7 +43,7 @@
 struct starpu_perf_counter_sample;
 struct _starpu_worker;
 
-#ifdef STARPU_HAVE_XCHG
+#if defined(STARPU_HAVE_XCHG) && defined(STARPU_HAVE_XCHG64)
 #define __STARPU_PERF_COUNTER_UPDATE_32BIT(OPNAME,OP,TYPENAME,TYPE) \
 static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, TYPE value) \
 { \
@@ -52,6 +52,7 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
 	while(1) \
 	{ \
+		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */ \
 		uint32_t raw_old = starpu_xchg((uint32_t *)ptr, *(alias_uint32_t*)&value); \
 		if (value OP *(alias_##TYPE*)&raw_old) \
 			break; \
@@ -67,7 +68,8 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
 	while(1) \
 	{ \
-		uint64_t raw_old = starpu_xchgl((uint64_t *)ptr, *(alias_uint64_t*)&value); \
+		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */ \
+		uint64_t raw_old = starpu_xchg64((uint64_t *)ptr, *(alias_uint64_t*)&value); \
 		if (value OP *(alias_##TYPE*)&raw_old) \
 			break; \
 		value = *(alias_##TYPE*)&raw_old; \
@@ -99,6 +101,7 @@ static inline void _starpu_perf_counter_update_acc_float(float *ptr, float acc_v
 	while(1)
 	{
 		float value = acc_value + *(alias_float*)&raw_old;
+		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */
 		raw_old = starpu_xchg((alias_uint32_t *)ptr, *(alias_uint32_t*)&value);
 		if (value == acc_value + *(alias_float*)&raw_old)
 			break;
@@ -113,7 +116,8 @@ static inline void _starpu_perf_counter_update_acc_double(double *ptr, double ac
 	while(1)
 	{
 		double value = acc_value + *(alias_double*)&raw_old;
-		raw_old = starpu_xchgl((alias_uint64_t *)ptr, *(alias_uint64_t*)&value);
+		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */
+		raw_old = starpu_xchg64((alias_uint64_t *)ptr, *(alias_uint64_t*)&value);
 		if (value == acc_value + *(alias_double*)&raw_old)
 			break;
 	}
