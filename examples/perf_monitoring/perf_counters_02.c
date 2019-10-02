@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	int v;
 	for (v=0; v<NVECTORS; v++)
 	{
-		vector[v] = calloc(VECTOR_LEN, sizeof(*vector));
+		vector[v] = calloc(VECTOR_LEN, sizeof(*(vector[v])));
 		STARPU_ASSERT(vector[v] != NULL);
 
 		{
