@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011,2016,2017                           Inria
 # Copyright (C) 2011-2019                                CNRS
-# Copyright (C) 2010-2017                                Université de Bordeaux
+# Copyright (C) 2010-2017,2019                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@ LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
 if STARPU_SIMGRID
 MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+NVCCFLAGS		+= --compiler-options -fPIC
 else
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
