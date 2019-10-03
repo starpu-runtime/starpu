@@ -46,7 +46,8 @@
  * The current value of the ntasks_threshold is the best we found
  * so far across several types of applications (cholesky, LU, stencil).
  */
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 30
+#define _STARPU_SCHED_NTASKS_THRESHOLD_HEFT 30
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 
 void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id)
@@ -77,19 +78,6 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 		if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 			starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 	}
-
-	struct starpu_sched_component_prio_data prio_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
-
-	struct starpu_sched_component_fifo_data fifo_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
-
 
 	/* See what the component will decide */
 	unsigned nbelow;
@@ -209,6 +197,34 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 			/* Plug decision_component to fifo */
 			starpu_sched_component_connect(last, decision_component);
 	}
+
+	/* Take default ntasks_threshold */
+	unsigned ntasks_threshold;
+	if (starpu_sched_component_is_heft(decision_component) ||
+	    starpu_sched_component_is_mct(decision_component)) {
+		/* These need more queueing to allow CPUs to take some share of the work */
+		ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_HEFT;
+	} else {
+		ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	}
+	/* But let user tune it */
+	ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", ntasks_threshold);
+
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+	exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
+
+	struct starpu_sched_component_prio_data prio_data =
+		{
+			.ntasks_threshold = ntasks_threshold,
+			.exp_len_threshold = exp_len_threshold,
+		};
+
+	struct starpu_sched_component_fifo_data fifo_data =
+		{
+			.ntasks_threshold = ntasks_threshold,
+			.exp_len_threshold = exp_len_threshold,
+		};
+
 
 	/* Create one fifo+eager component pair per choice, below scheduling decision */
 	struct starpu_sched_component *last_below[nbelow];
