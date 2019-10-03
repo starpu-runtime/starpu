@@ -43,20 +43,21 @@
 struct starpu_perf_counter_sample;
 struct _starpu_worker;
 
-#if defined(STARPU_HAVE_XCHG) && defined(STARPU_HAVE_XCHG64)
 #define __STARPU_PERF_COUNTER_UPDATE_32BIT(OPNAME,OP,TYPENAME,TYPE) \
 static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, TYPE value) \
 { \
 	STARPU_ASSERT(sizeof(TYPE) == sizeof(uint32_t)); \
 	typedef uint32_t __attribute__((__may_alias__)) alias_uint32_t; \
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
-	while(1) \
+ \
+	uint32_t raw_old = *(uint32_t *)ptr; \
+ \
+	while(value OP *(alias_##TYPE*)&raw_old) \
 	{ \
-		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */ \
-		uint32_t raw_old = starpu_xchg((uint32_t *)ptr, *(alias_uint32_t*)&value); \
-		if (value OP *(alias_##TYPE*)&raw_old) \
+		uint32_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP32((uint32_t *)ptr, raw_old, *(alias_uint32_t*)&value); \
+		if (raw_old_check == raw_old) \
 			break; \
-		value = *(alias_##TYPE*)&raw_old; \
+		raw_old = raw_old_check; \
 	} \
 }
 
@@ -66,13 +67,15 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	STARPU_ASSERT(sizeof(TYPE) == sizeof(uint64_t)); \
 	typedef uint64_t __attribute__((__may_alias__)) alias_uint64_t; \
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
-	while(1) \
+ \
+	uint64_t raw_old = *(uint64_t *)ptr; \
+ \
+	while(value OP *(alias_##TYPE*)&raw_old) \
 	{ \
-		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */ \
-		uint64_t raw_old = starpu_xchg64((uint64_t *)ptr, *(alias_uint64_t*)&value); \
-		if (value OP *(alias_##TYPE*)&raw_old) \
+		uint64_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP64((uint64_t *)ptr, raw_old, *(alias_uint64_t*)&value); \
+		if (raw_old_check == raw_old) \
 			break; \
-		value = *(alias_##TYPE*)&raw_old; \
+		raw_old = raw_old_check; \
 	} \
 }
 
@@ -97,14 +100,14 @@ static inline void _starpu_perf_counter_update_acc_float(float *ptr, float acc_v
 	STARPU_ASSERT(sizeof(float) == sizeof(uint32_t));
 	typedef uint32_t __attribute__((__may_alias__)) alias_uint32_t;
 	typedef float    __attribute__((__may_alias__)) alias_float;
-	alias_uint32_t raw_old = STARPU_ATOMIC_ADD((alias_uint32_t*)ptr, 0);
-	while(1)
+	uint32_t raw_old = *(uint32_t *)ptr;
+	while (1)
 	{
 		float value = acc_value + *(alias_float*)&raw_old;
-		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */
-		raw_old = starpu_xchg((alias_uint32_t *)ptr, *(alias_uint32_t*)&value);
-		if (value == acc_value + *(alias_float*)&raw_old)
+		uint32_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP32((uint32_t *)ptr, raw_old, *(alias_uint32_t*)&value);
+		if (raw_old_check == raw_old)
 			break;
+		raw_old = raw_old_check;
 	}
 }
 static inline void _starpu_perf_counter_update_acc_double(double *ptr, double acc_value)
@@ -112,19 +115,16 @@ static inline void _starpu_perf_counter_update_acc_double(double *ptr, double ac
 	STARPU_ASSERT(sizeof(double) == sizeof(uint64_t));
 	typedef uint64_t __attribute__((__may_alias__)) alias_uint64_t;
 	typedef double   __attribute__((__may_alias__)) alias_double;
-	alias_uint64_t raw_old = STARPU_ATOMIC_ADDL((alias_uint64_t*)ptr, 0);
-	while(1)
+	uint64_t raw_old = *(uint64_t *)ptr;
+	while (1)
 	{
 		double value = acc_value + *(alias_double*)&raw_old;
-		/* FIXME: rather use STARPU_VAL_COMPARE_AND_SWAP, always available */
-		raw_old = starpu_xchg64((alias_uint64_t *)ptr, *(alias_uint64_t*)&value);
-		if (value == acc_value + *(alias_double*)&raw_old)
+		uint64_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP64((uint64_t *)ptr, raw_old, *(alias_uint64_t*)&value);
+		if (raw_old_check == raw_old)
 			break;
+		raw_old = raw_old_check;
 	}
 }
-#else
-#error TODO: implement fallback when locked exchange is not available
-#endif
 
 struct starpu_perf_counter
 {
