@@ -143,7 +143,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 #warning FIXME: take energy consumption into account
 #endif
 			double tmp = starpu_mct_compute_fitness(d,
-						     estimated_ends_with_task[offset + icomponent] - estimated_transfer_length[offset + icomponent],
+						     estimated_ends_with_task[offset + icomponent],
 						     min_exp_end_with_task[best_task],
 						     max_exp_end_with_task[best_task],
 						     estimated_transfer_length[offset + icomponent],
