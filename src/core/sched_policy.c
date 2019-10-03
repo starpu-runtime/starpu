@@ -56,6 +56,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
+	&_starpu_sched_modular_eager_prio_policy,
 	&_starpu_sched_modular_gemm_policy,
 	&_starpu_sched_modular_prio_policy,
 	&_starpu_sched_modular_prio_prefetching_policy,
