@@ -42,6 +42,15 @@ int main(int argc, char **argv)
 	conf.nopencl = 0;
 	conf.nmic = 0;
 	conf.nmpi_ms = 0;
+	{
+		const char *sched_pol_name = starpu_getenv("STARPU_SCHED");
+		if (sched_pol_name != NULL && strcmp(sched_pol_name, "prio") != 0)
+		{
+			fprintf(stderr, "example uses 'prio' scheduling policy.\n");
+			return 77;
+		}
+	}
+
 	conf.sched_policy_name = "prio";
 
 	ret = starpu_initialize(&conf, &argc, &argv);
