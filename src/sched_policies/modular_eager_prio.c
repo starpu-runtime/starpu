@@ -28,6 +28,7 @@ static void initialize_eager_prio_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 

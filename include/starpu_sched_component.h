@@ -416,6 +416,7 @@ struct starpu_sched_component_fifo_data
 {
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 
 /**
@@ -441,6 +442,7 @@ struct starpu_sched_component_prio_data
 {
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_prio(struct starpu_sched_component *component);
@@ -721,14 +723,19 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
 
 /**
+   Request that the fifos below be pulled rather ready tasks
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY	(1<<10)
+
+/**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
-#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
+#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<11)
 
 /**
    Request to not only choose between simple workers, but also choose between combined workers.
 */
-#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<11)
+#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<12)
 
 /**
    Create a simple modular scheduler tree around a scheduling decision-making

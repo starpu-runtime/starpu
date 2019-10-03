@@ -42,6 +42,7 @@ New features:
     fields of starpu_task to 0.
   * starpufft: Support 3D.
   * New modular-eager-prio scheduler.
+  * Add 'ready' heuristic to modular schedulers.
 
 Changes:
   * Modification in the Native Fortran interface of the functions

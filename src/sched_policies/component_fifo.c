@@ -29,6 +29,7 @@ struct _starpu_fifo_data
 	starpu_pthread_mutex_t mutex;
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 
 static void fifo_component_deinit_data(struct starpu_sched_component * component)
@@ -154,7 +155,7 @@ static int fifo_push_task(struct starpu_sched_component * component, struct star
 	return fifo_push_local_task(component, task, 0);
 }
 
-static struct starpu_task * fifo_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_task * fifo_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
@@ -162,7 +163,11 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
+	struct starpu_task * task;
+	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
+		task = _starpu_fifo_pop_first_ready_task(fifo, starpu_bitmap_first(to->workers_in_ctx), -1);
+	else
+		task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
 	if(task)
 	{
 		if(!isnan(task->predicted))
@@ -261,11 +266,13 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	{
 		data->ntasks_threshold=params->ntasks_threshold;
 		data->exp_len_threshold=params->exp_len_threshold;
+		data->ready=params->ready;
 	}
 	else
 	{
 		data->ntasks_threshold=0;
 		data->exp_len_threshold=0.0;
+		data->ready=0;
 	}
 
 	return component;
