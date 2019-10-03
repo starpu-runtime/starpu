@@ -213,16 +213,20 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 	exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
+	int ready = starpu_get_env_number_default("STARPU_SCHED_READY", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY ? 1 : 0);
+
 	struct starpu_sched_component_prio_data prio_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
 			.exp_len_threshold = exp_len_threshold,
+			.ready = ready,
 		};
 
 	struct starpu_sched_component_fifo_data fifo_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
 			.exp_len_threshold = exp_len_threshold,
+			.ready = ready,
 		};
 
 

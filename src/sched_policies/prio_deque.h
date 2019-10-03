@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2018                                Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014,2017,2018                           Université de Bordeaux
+ * Copyright (C) 2014,2017,2018-2019                      Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -133,5 +133,7 @@ static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_
 /* return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
+
+struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_prio_deque *, unsigned workerid);
 
 #endif /* __PRIO_DEQUE_H__ */
