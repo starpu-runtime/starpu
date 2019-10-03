@@ -147,8 +147,9 @@ int starpu_sched_component_is_eager_prio(struct starpu_sched_component * compone
 	return component->push_task == eager_prio_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_eager_prio_create(struct starpu_sched_tree *tree)
+struct starpu_sched_component * starpu_sched_component_eager_prio_create(struct starpu_sched_tree *tree, void *arg)
 {
+	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "eager_prio");
 	struct _starpu_eager_prio_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
