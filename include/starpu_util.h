@@ -342,6 +342,19 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 }
 #define STARPU_HAVE_XCHG
 
+static __starpu_inline uint32_t starpu_cmpxchg32(uint32_t *ptr, uint32_t old, uint32_t next)
+{
+	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
+}
+static __starpu_inline uint32_t starpu_xchg32(uint32_t *ptr, uint32_t next)
+{
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHG32
+
 #if defined(__i386__)
 static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
@@ -447,14 +460,34 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
+#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
+#else
+#ifdef STARPU_HAVE_XCHG
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
+#endif
+#ifdef STARPU_HAVE_XCHG32
+#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) (starpu_cmpxchg32((ptr), (old), (value)) == (old))
+#endif
+#ifdef STARPU_HAVE_XCHG64
+#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) (starpu_cmpxchg64((ptr), (old), (value)) == (old))
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_val_compare_and_swap ((ptr), (old), (value)))
-#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
+#else
+#ifdef defined(STARPU_HAVE_XCHG)
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
+#endif
+#ifdef defined(STARPU_HAVE_XCHG32)
+#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (starpu_cmpxchg32((ptr), (old), (value)))
+#endif
+#ifdef defined(STARPU_HAVE_XCHG64)
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (starpu_cmpxchg64((ptr), (old), (value)))
+#endif
 #endif
 
 /* Returns the previous value */
