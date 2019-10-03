@@ -385,11 +385,9 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		int first_task_priority = task->priority;
 
-		current = task;
-
 		int non_ready_best = INT_MAX;
 
-		while (current)
+		for (current = task; current; current = current->next)
 		{
 			int priority = current->priority;
 
@@ -405,8 +403,6 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 						break;
 				}
 			}
-
-			current = current->next;
 		}
 
 		if(num_priorities != -1)
