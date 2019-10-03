@@ -281,6 +281,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_prio.c 				\
 	sched_policies/component_random.c				\
 	sched_policies/component_eager.c				\
+	sched_policies/component_eager_prio.c				\
 	sched_policies/component_eager_calibration.c				\
 	sched_policies/component_mct.c				\
 	sched_policies/component_heft.c				\
@@ -289,6 +290,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_composed.c				\
 	sched_policies/component_work_stealing.c				\
 	sched_policies/modular_eager.c				\
+	sched_policies/modular_eager_prio.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
 	sched_policies/modular_prio.c				\

@@ -494,6 +494,18 @@ int starpu_sched_component_is_random(struct starpu_sched_component *);
 struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager(struct starpu_sched_component *);
 
+/** @} */
+
+/**
+   @name Resource-mapping Eager Prio Component API
+   @{
+*/
+
+struct starpu_sched_component *starpu_sched_component_eager_prio_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_eager_prio(struct starpu_sched_component *);
+
+/** @} */
+
 /**
    @name Resource-mapping Eager-Calibration Component API
    @{
