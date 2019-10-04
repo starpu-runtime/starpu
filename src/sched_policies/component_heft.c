@@ -93,9 +93,6 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		{
 			unsigned offset = component->nchildren * n;
 
-			min_exp_end_with_task[n] = DBL_MAX;
-			max_exp_end_with_task[n] = 0.0;
-
 			nsuitable_components[n] = starpu_mct_compute_execution_times(component, tasks[n],
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,

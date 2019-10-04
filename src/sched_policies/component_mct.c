@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014,2015,2017                           CNRS
- * Copyright (C) 2013-2018                                Université de Bordeaux
+ * Copyright (C) 2013-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,15 +40,13 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	unsigned i;
 	for(i=0; i < component->nchildren; i++)
 	{
-		estimated_lengths[i] = 0.0;
-		estimated_transfer_length[i] = 0.0;
 		estimated_ends_with_task[i] = 0.0;
 
 	}
 	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task = DBL_MAX;
+	double min_exp_end_with_task;
 	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task = 0.0;
+	double max_exp_end_with_task;
 
 	unsigned suitable_components[component->nchildren];
 	unsigned nsuitable_components = 0;

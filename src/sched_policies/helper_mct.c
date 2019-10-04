@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017, 2019                          CNRS
- * Copyright (C) 2013,2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2013,2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 #include <starpu_sched_component.h>
 #include "helper_mct.h"
+#include <float.h>
 
 /* Alpha, Beta and Gamma are MCT-specific values, which allows the
  * user to set more precisely the weight of each computing value.
@@ -99,6 +100,11 @@ unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *compo
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];
+
+		/* Silence static analysis warnings */
+		estimated_lengths[i] = NAN;
+		estimated_transfer_length[i] = NAN;
+
 		if(starpu_sched_component_execute_preds(c, task, estimated_lengths + i))
 		{
 			if(isnan(estimated_lengths[i]))
@@ -120,6 +126,8 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 {
 	unsigned i;
 	double now = starpu_timing_now();
+	*min_exp_end_with_task = DBL_MAX;
+	*max_exp_end_with_task = 0.0;
 	for(i = 0; i < nsuitable_components; i++)
 	{
 		unsigned icomponent = suitable_components[i];
