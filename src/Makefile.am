@@ -285,6 +285,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_eager_calibration.c				\
 	sched_policies/component_mct.c				\
 	sched_policies/component_heft.c				\
+	sched_policies/component_heteroprio.c				\
 	sched_policies/component_best_implementation.c		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
@@ -301,6 +302,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_parallel_heft.c			\
 	sched_policies/modular_heft.c				\
 	sched_policies/modular_heft_prio.c			\
+	sched_policies/modular_heteroprio.c			\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c				\
 	sched_policies/modular_ez.c

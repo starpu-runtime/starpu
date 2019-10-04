@@ -238,6 +238,10 @@ modular-heft-prio is similar to \c modular-heft, but only decides the memory
 node, not the exact worker, just pushing tasks to one central queue per memory
 node.
 
+- Heteroprio Scheduler: \n
+Maps tasks to worker similarly to HEFT, but first attribute accelerated tasks to
+GPUs, then not-so-accelerated tasks to CPUs.
+
 To use one of these schedulers, one can set the environment variable \ref STARPU_SCHED.
 
 \section StaticScheduling Static Scheduling

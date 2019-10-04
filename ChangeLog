@@ -33,6 +33,7 @@ New features:
   * starpufft: Support 3D.
   * New modular-eager-prio scheduler.
   * Add 'ready' heuristic to modular schedulers.
+  * New modular-heteroprio scheduler.
 
 Changes:
   * Modification in the Native Fortran interface of the functions

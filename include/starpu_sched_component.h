@@ -553,6 +553,16 @@ int starpu_sched_component_is_heft(struct starpu_sched_component *component);
 /** @} */
 
 /**
+   @name Resource-mapping Heteroprio Component API
+   @{
+*/
+
+struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_heteroprio(struct starpu_sched_component *component);
+
+/** @} */
+
+/**
    @name Special-purpose Best_Implementation Component API
    @{
 */

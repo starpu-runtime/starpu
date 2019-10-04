@@ -201,7 +201,8 @@ void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_c
 	/* Take default ntasks_threshold */
 	unsigned ntasks_threshold;
 	if (starpu_sched_component_is_heft(decision_component) ||
-	    starpu_sched_component_is_mct(decision_component)) {
+	    starpu_sched_component_is_mct(decision_component) ||
+	    starpu_sched_component_is_heteroprio(decision_component)) {
 		/* These need more queueing to allow CPUs to take some share of the work */
 		ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_HEFT;
 	} else {
