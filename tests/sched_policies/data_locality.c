@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2012-2015,2017                           CNRS
- * Copyright (C) 2014,2016                                Université de Bordeaux
+ * Copyright (C) 2014,2016,2019                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -200,13 +200,16 @@ int main(void)
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
 	int global_ret = 0;
 
-#ifdef STARPU_HAVE_UNSETENV
-	unsetenv("STARPU_SCHED");
-#endif
+	char *sched = getenv("STARPU_SCHED");
 
 	for (i = 0; i < n_policies; ++i)
 	{
 		struct starpu_sched_policy *policy = policies[i];
+
+		if (sched && strcmp(sched, policy->policy_name))
+			/* Testing another specific scheduler, no need to run this */
+			continue;
+
 		FPRINTF(stdout, "Running with policy %s.\n", policy->policy_name);
 		int ret = run(policy);
 		if (ret == -ENODEV && global_ret == 0)

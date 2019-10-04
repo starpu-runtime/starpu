@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015                           Inria
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2019                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -158,9 +158,10 @@ int main(void)
 	int ret;
 	struct starpu_conf conf;
 
-#ifdef STARPU_HAVE_UNSETENV
-	unsetenv("STARPU_SCHED");
-#endif
+	char *sched = getenv("STARPU_SCHED");
+	if (sched && sched[0])
+		/* Testing a specific scheduler, no need to run this */
+		return 77;
 
 	starpu_conf_init(&conf);
 	conf.sched_policy = &dummy_sched_policy,

@@ -19,6 +19,9 @@
 #
 # Test parsing of FxT traces
 
+# Testing another specific scheduler, no need to run this
+[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != dmdas ] || exit 77
+
 set -e
 
 PREFIX=$(dirname $0)

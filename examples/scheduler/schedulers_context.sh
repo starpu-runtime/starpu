@@ -29,7 +29,12 @@ then
     exit 77
 fi
 
-SCHEDULERS=`../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
+if [ -n "$STARPU_SCHED" ]
+then
+	SCHEDULERS="$STARPU_SCHED"
+else
+	SCHEDULERS=`../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
+fi
 
 for sched in $SCHEDULERS
 do

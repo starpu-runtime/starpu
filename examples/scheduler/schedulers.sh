@@ -30,7 +30,12 @@ then
     exit 77
 fi
 
-SCHEDULERS=`../tools/starpu_sched_display | grep -v heteroprio`
+if [ -n "$STARPU_SCHED" ]
+then
+	SCHEDULERS=$STARPU_SCHED
+else
+	SCHEDULERS=`../tools/starpu_sched_display | grep -v heteroprio`
+fi
 
 for sched in $SCHEDULERS
 do

@@ -23,7 +23,13 @@
 
 set -e
 
-SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
+# Testing a specific scheduler
+if [ -n "$STARPU_SCHED" ]
+then
+	SCHEDS=$STARPU_SCHED
+else
+	SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
+fi
 
 test_scheds()
 {
