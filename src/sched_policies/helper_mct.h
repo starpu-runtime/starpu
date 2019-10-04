@@ -50,3 +50,13 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d,
 				  double max_exp_end,
 				  double transfer_len,
 				  double local_energy);
+
+int starpu_mct_get_best_component(struct _starpu_mct_data *d,
+				  struct starpu_task *task,
+				  double *estimated_lengths,
+				  double *estimated_transfer_length,
+				  double *estimated_ends_with_task,
+				  double min_exp_end_with_task,
+				  double max_exp_end_with_task,
+				  unsigned *suitable_components,
+				  unsigned nsuitable_components);

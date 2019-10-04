@@ -146,3 +146,38 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 			*max_exp_end_with_task = estimated_ends_with_task[icomponent];
 	}
 }
+
+int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task *task, double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task, double min_exp_end_with_task, double max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components)
+{
+	double best_fitness = DBL_MAX;
+	int best_icomponent = -1;
+	unsigned i;
+
+	for(i = 0; i < nsuitable_components; i++)
+	{
+		int icomponent = suitable_components[i];
+#ifdef STARPU_DEVEL
+#warning FIXME: take energy consumption into account
+#endif
+		double tmp = starpu_mct_compute_fitness(d,
+					     estimated_ends_with_task[icomponent],
+					     min_exp_end_with_task,
+					     max_exp_end_with_task,
+					     estimated_transfer_length[icomponent],
+					     0.0);
+
+		if(tmp < best_fitness)
+		{
+			best_fitness = tmp;
+			best_icomponent = icomponent;
+		}
+	}
+
+	if (best_icomponent != -1)
+	{
+		task->predicted = estimated_lengths[best_icomponent];
+		task->predicted_transfer = estimated_transfer_length[best_icomponent];
+	}
+
+	return best_icomponent;
+}

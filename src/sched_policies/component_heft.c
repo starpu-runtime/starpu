@@ -70,7 +70,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 	{
 		struct _starpu_mct_data * d = data->mct_data;
 		struct starpu_sched_component * best_component = NULL;
-		unsigned n, i;
+		unsigned n;
 
 		/* Estimated task duration for each child */
 		double estimated_lengths[component->nchildren * ntasks];
@@ -120,8 +120,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			}
 		}
 
-		double best_fitness = DBL_MAX;
-		int best_icomponent = -1;
+		STARPU_ASSERT(best_task >= 0);
 
 		/* Push back the other tasks */
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
@@ -132,34 +131,10 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 		unsigned offset = component->nchildren * best_task;
 
-		/* And now find out which worker suits best for this task,
-		 * including data transfer */
-		for(i = 0; i < nsuitable_components[best_task]; i++)
-		{
-			unsigned icomponent = suitable_components[offset + i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take energy consumption into account
-#endif
-			double tmp = starpu_mct_compute_fitness(d,
-						     estimated_ends_with_task[offset + icomponent],
-						     min_exp_end_with_task[best_task],
-						     max_exp_end_with_task[best_task],
-						     estimated_transfer_length[offset + icomponent],
-						     0.0);
-
-			if(tmp < best_fitness)
-			{
-				best_fitness = tmp;
-				best_icomponent = icomponent;
-			}
-		}
+		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, min_exp_end_with_task[best_task], max_exp_end_with_task[best_task], suitable_components + offset, nsuitable_components[best_task]);
 
 		STARPU_ASSERT(best_icomponent != -1);
-		STARPU_ASSERT(best_task >= 0);
 		best_component = component->children[best_icomponent];
-
-		tasks[best_task]->predicted = estimated_lengths[offset + best_icomponent];
-		tasks[best_task]->predicted_transfer = estimated_transfer_length[offset + best_icomponent];
 
 		if(starpu_sched_component_is_worker(best_component))
 		{
