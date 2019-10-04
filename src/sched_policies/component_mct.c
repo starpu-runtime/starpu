@@ -28,7 +28,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 {
 	STARPU_ASSERT(component && task && starpu_sched_component_is_mct(component));
 	struct _starpu_mct_data * d = component->data;
-	struct starpu_sched_component * best_component = NULL;
+	struct starpu_sched_component * best_component;
 
 	/* Estimated task duration for each child */
 	double estimated_lengths[component->nchildren];
@@ -43,7 +43,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	double max_exp_end_with_task;
 
 	unsigned suitable_components[component->nchildren];
-	unsigned nsuitable_components = 0;
+	unsigned nsuitable_components;
 
 	nsuitable_components = starpu_mct_compute_execution_times(component, task,
 								  estimated_lengths, estimated_transfer_length, suitable_components);

@@ -69,7 +69,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 	{
 		struct _starpu_mct_data * d = data->mct_data;
-		struct starpu_sched_component * best_component = NULL;
+		struct starpu_sched_component * best_component;
 		unsigned n;
 
 		/* Estimated task duration for each child */
