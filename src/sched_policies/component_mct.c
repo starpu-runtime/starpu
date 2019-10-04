@@ -37,8 +37,6 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* Estimated transfer+task termination for each child */
 	double estimated_ends_with_task[component->nchildren];
 
-	unsigned i;
-
 	/* Minimum transfer+task termination on all children */
 	double min_exp_end_with_task;
 	/* Maximum transfer+task termination on all children */
@@ -66,27 +64,8 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
 					  estimated_ends_with_task, &min_exp_end_with_task, &max_exp_end_with_task, suitable_components, nsuitable_components);
 
-	double best_fitness = DBL_MAX;
-	int best_icomponent = -1;
-	for(i = 0; i < nsuitable_components; i++)
-	{
-		int icomponent = suitable_components[i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take energy consumption into account
-#endif
-		double tmp = starpu_mct_compute_fitness(d,
-					     estimated_ends_with_task[icomponent],
-					     min_exp_end_with_task,
-					     max_exp_end_with_task,
-					     estimated_transfer_length[icomponent],
-					     0.0);
-
-		if(tmp < best_fitness)
-		{
-			best_fitness = tmp;
-			best_icomponent = icomponent;
-		}
-	}
+	int best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
+					  estimated_ends_with_task, min_exp_end_with_task, max_exp_end_with_task, suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.
@@ -99,9 +78,6 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	}
 
 	best_component = component->children[best_icomponent];
-
-	task->predicted = estimated_lengths[best_icomponent];
-	task->predicted_transfer = estimated_transfer_length[best_icomponent];
 
 	if(starpu_sched_component_is_worker(best_component))
 	{
