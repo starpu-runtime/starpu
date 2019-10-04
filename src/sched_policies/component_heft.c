@@ -130,11 +130,12 @@ static int heft_progress_one(struct starpu_sched_component *component)
 				_starpu_prio_deque_push_front_task(prio, tasks[n]);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
+		unsigned offset = component->nchildren * best_task;
+
 		/* And now find out which worker suits best for this task,
 		 * including data transfer */
 		for(i = 0; i < nsuitable_components[best_task]; i++)
 		{
-			unsigned offset = component->nchildren * best_task;
 			unsigned icomponent = suitable_components[offset + i];
 #ifdef STARPU_DEVEL
 #warning FIXME: take energy consumption into account
@@ -157,8 +158,8 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		STARPU_ASSERT(best_task >= 0);
 		best_component = component->children[best_icomponent];
 
-		tasks[best_task]->predicted = estimated_lengths[best_icomponent];
-		tasks[best_task]->predicted_transfer = estimated_transfer_length[best_icomponent];
+		tasks[best_task]->predicted = estimated_lengths[offset + best_icomponent];
+		tasks[best_task]->predicted_transfer = estimated_transfer_length[offset + best_icomponent];
 
 		if(starpu_sched_component_is_worker(best_component))
 		{
