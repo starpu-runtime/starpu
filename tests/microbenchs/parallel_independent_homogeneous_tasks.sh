@@ -17,6 +17,6 @@
 #
 source $(dirname $0)/microbench.sh
 
-XFAIL="modular-eager-prefetching modular-prio-prefetching modular-random-prefetching modular-random-prio-prefetching modular-prandom modular-prandom-prio modular-ws modular-heft modular-heft-prio modular-heft2 modular-gemm random peager heteroprio graph_test"
+XFAIL="modular-eager-prefetching modular-prio-prefetching modular-random-prefetching modular-random-prio-prefetching modular-prandom modular-prandom-prio modular-ws modular-heft modular-heft-prio modular-heft2 modular-heteroprio modular-gemm random peager heteroprio graph_test"
 
 test_scheds parallel_independent_homogeneous_tasks

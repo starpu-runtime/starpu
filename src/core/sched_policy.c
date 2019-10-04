@@ -70,6 +70,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_heft_policy,
 	&_starpu_sched_modular_heft_prio_policy,
 	&_starpu_sched_modular_heft2_policy,
+	&_starpu_sched_modular_heteroprio_policy,
 	&_starpu_sched_modular_parallel_heft_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
