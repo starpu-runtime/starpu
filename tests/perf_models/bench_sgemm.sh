@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011,2014                           Université de Bordeaux
+# Copyright (C) 2009-2011,2014,2019                      Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,9 @@ ROOTDIR=$DIR/../..
 BUILDDIR=$PWD/build/
 INSTALLDIR=$PWD/local/
 PERFDIR=$DIR/sampling/
+
+# Testing another specific scheduler, no need to run this
+[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != dm ] || exit 77
 
 make -C ../../ distclean
 

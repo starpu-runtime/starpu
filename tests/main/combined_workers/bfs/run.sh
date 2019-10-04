@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2012,2016,2017                           CNRS
 # Copyright (C) 2012                                     Inria
-# Copyright (C) 2014                                     Université de Bordeaux
+# Copyright (C) 2014,2019                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+# Testing another specific scheduler, no need to run this
+[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != pheft ] || exit 77
+
 #export STARPU_GENERATE_TRACE=1
 #export GOMP_CPU_AFFINITY="0 6 1 7 2 8 3 9 4 10 5 11"
 #export OMP_WAIT_POLICY=PASSIVE
