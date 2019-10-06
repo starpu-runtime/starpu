@@ -328,9 +328,18 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 			if (!(impl_mask & (1U << nimpl)))
 				continue;
 			double expected = starpu_task_expected_length(task, perf_arch, nimpl);
+			if (isnan(expected) || expected == 0.)
+			{
+				min_arch = expected;
+				break;
+			}
 			if (expected < min_arch)
 				min_arch = expected;
 		}
+		if (isnan(min_arch) || min_arch == 0.)
+			/* No known execution time, can't do anything here */
+			break;
+
 		STARPU_ASSERT(min_arch != INFINITY);
 		if (min_arch < min_expected)
 			min_expected = min_arch;
@@ -340,9 +349,12 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 
 	if (workerid == -1) {
 		/* All archs can run it */
+		STARPU_ASSERT(!isnan(min_expected));
+		STARPU_ASSERT(!isnan(max_expected));
 		STARPU_ASSERT(min_expected != INFINITY);
 		STARPU_ASSERT(max_expected != -INFINITY);
 		acceleration = max_expected / min_expected;
+		STARPU_ASSERT(!isnan(acceleration));
 
 		//fprintf(stderr,"%s: acceleration %f\n", starpu_task_get_name(task), acceleration);
 
