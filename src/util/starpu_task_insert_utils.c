@@ -247,6 +247,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, unsigned);
 		}
+		else if (arg_type==STARPU_TASK_SCHED_DATA)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -604,6 +608,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->no_submitorder = va_arg(varg_list, unsigned);
 		}
+		else if (arg_type==STARPU_TASK_SCHED_DATA)
+		{
+			task->sched_data = va_arg(varg_list, void *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -923,6 +931,11 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->no_submitorder = *(unsigned *)arglist[arg_i];
+		}
+		else if (arg_type == STARPU_TASK_SCHED_DATA)
+		{
+			arg_i++;
+			task->sched_data = (void*)arglist[arg_i];
 		}
 		else
 		{

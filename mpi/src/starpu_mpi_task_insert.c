@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2014,2016,2017                      Inria
  * Copyright (C) 2011-2019                                CNRS
- * Copyright (C) 2011-2018                                Université de Bordeaux
+ * Copyright (C) 2011-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -502,6 +502,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
 		{
 			(void)va_arg(varg_list_copy, unsigned);
+		}
+		else if (arg_type==STARPU_TASK_SCHED_DATA)
+		{
+			(void)va_arg(varg_list_copy, void *);
 		}
 		else
 		{

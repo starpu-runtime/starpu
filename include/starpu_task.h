@@ -1160,6 +1160,9 @@ struct starpu_task
 	/**
 	   This field is managed by the scheduler, is it allowed to do
 	   whatever with it.  Typically, some area would be allocated on push, and released on pop.
+
+	   With starpu_task_insert() and alike this is set when using
+	   ::STARPU_TASK_SCHED_DATA.
 	*/
 	void *sched_data;
 };
