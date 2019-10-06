@@ -562,7 +562,7 @@ static void starpu_sched_component_remove_parent(struct starpu_sched_component *
 /* default implementation for component->pull_task()
  * just perform a recursive call on parent
  */
-static struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;

@@ -47,13 +47,15 @@ struct _starpu_heteroprio_data
 	starpu_pthread_mutex_t mutex;
 
 	struct _starpu_mct_data *mct_data;
+
+	unsigned batch;
 };
 
 static int heteroprio_progress_accel(struct starpu_sched_component *component, struct _starpu_heteroprio_data *data, enum starpu_worker_archtype archtype, int front)
 {
 	struct starpu_task *task = NULL;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	int j, ret;
+	int j, ret = 1;
 	double acceleration = INFINITY;
 
 	struct _starpu_mct_data * d = data->mct_data;
@@ -71,7 +73,10 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 		/* Pick up accelerated tasks last */
 		for (j = (int) data->naccel-1; j >= 0; j--)
 		{
-			task = _starpu_prio_deque_pop_task(data->bucket[j]);
+			if (data->batch && 0)
+				task = _starpu_prio_deque_pop_back_task(data->bucket[j]);
+			else
+				task = _starpu_prio_deque_pop_task(data->bucket[j]);
 			if (task)
 				break;
 		}
@@ -86,6 +91,11 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 
 	if (!task)
 		return 1;
+
+	if (data->batch)
+		/* In batch mode the fifos below do not use priorities. Do not
+		 * leak a priority for the data prefetches either */
+		task->priority = INT_MAX;
 
 	/* TODO: we might want to prefer to pick up a task whose data is already on some GPU */
 
@@ -111,6 +121,34 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 			estimated_transfer_length,
 			suitable_components);
 
+	if (data->batch && 0)
+	{
+		/* In batch mode, we may want to insist on filling workers with tasks
+		 * by ignoring when other workers would finish this. */
+
+		unsigned i;
+		for (i = 0; i < component->nchildren; i++)
+		{
+			int idworker;
+			for(idworker = starpu_bitmap_first(component->children[i]->workers);
+				idworker != -1;
+				idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
+			{
+				if (starpu_worker_get_type(idworker) == archtype)
+					break;
+			}
+
+			if (idworker == -1)
+			{
+				/* Not the targetted arch, avoid it */
+
+				/* XXX: INFINITY doesn't seem to be working properly */
+				estimated_lengths[i] = 1000000000;
+				estimated_transfer_length[i] = 1000000000;
+			}
+		}
+	}
+
 	/* Entering critical section to make sure no two workers
 	   make scheduling decisions at the same time */
 	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
@@ -131,6 +169,9 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 			min_exp_end_with_task, max_exp_end_with_task,
 			suitable_components, nsuitable_components);
 
+	if (best_icomponent == -1)
+		goto out;
+
 	best_component = component->children[best_icomponent];
 
 	int idworker;
@@ -143,27 +184,25 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 	}
 
 	if (idworker == -1)
+		goto out;
+
+	/* Ok, we do have a worker there of that type, try to push it there. */
+	STARPU_ASSERT(!starpu_sched_component_is_worker(best_component));
+	starpu_sched_task_break(task);
+	ret = starpu_sched_component_push_task(component,best_component,task);
+
+	/* I can now exit the critical section: Pushing the task above ensures that its execution
+	   time will be taken into account for subsequent scheduling decisions */
+	if (!ret)
 	{
 		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
-	}
-	else
-	{
-		/* Ok, we do have a worker there of that type, try to push it there. */
-		STARPU_ASSERT(!starpu_sched_component_is_worker(best_component));
-		starpu_sched_task_break(task);
-		ret = starpu_sched_component_push_task(component,best_component,task);
-
-		/* I can now exit the critical section: Pushing the task above ensures that its execution
-		   time will be taken into account for subsequent scheduling decisions */
-		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
-		if (!ret)
-		{
-			//fprintf(stderr, "pushed %p to %d\n", task, best_icomponent);
-			/* Great! */
-			return 0;
-		}
+		//fprintf(stderr, "pushed %p to %d\n", task, best_icomponent);
+		/* Great! */
+		return 0;
 	}
 
+out:
+	STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 	/* No such kind of worker there, or it refused our task, abort */
 
 	//fprintf(stderr, "could not push %p to %d actually\n", task, best_icomponent);
@@ -310,6 +349,10 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 
 	double min_expected = INFINITY, max_expected = -INFINITY;
 	double acceleration;
+
+	if (data->batch && 0)
+		/* Batch mode, we may want to ignore priorities completely */
+		task->priority = INT_MAX;
 
 	/* Compute acceleration between best-performing arch and least-performing arch */
 	int workerid;
@@ -466,10 +509,10 @@ int starpu_sched_component_is_heteroprio(struct starpu_sched_component * compone
 	return component->push_task == heteroprio_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params)
+struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_heteroprio_data * params)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "heteroprio");
-	struct _starpu_mct_data *mct_data = starpu_mct_init_parameters(params);
+	struct _starpu_mct_data *mct_data = starpu_mct_init_parameters(params ? params->mct : NULL);
 	struct _starpu_heteroprio_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
 
@@ -480,6 +523,10 @@ struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct 
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	data->mct_data = mct_data;
 	STARPU_PTHREAD_MUTEX_INIT(&mct_data->scheduling_mutex,NULL);
+	if (params)
+		data->batch = params->batch;
+	else
+		data->batch = 1;
 	component->data = data;
 
 	component->push_task = heteroprio_push_task;

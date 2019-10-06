@@ -290,6 +290,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
 	sched_policies/component_work_stealing.c				\
+	sched_policies/component_stage.c				\
+	sched_policies/component_userchoice.c				\
 	sched_policies/modular_eager.c				\
 	sched_policies/modular_eager_prio.c				\
 	sched_policies/modular_eager_prefetching.c				\
@@ -303,6 +305,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_heft.c				\
 	sched_policies/modular_heft_prio.c			\
 	sched_policies/modular_heteroprio.c			\
+	sched_policies/modular_heteroprio_heft.c		\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c				\
 	sched_policies/modular_ez.c
