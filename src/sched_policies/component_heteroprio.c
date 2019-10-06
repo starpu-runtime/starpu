@@ -49,7 +49,7 @@ struct _starpu_heteroprio_data
 	struct _starpu_mct_data *mct_data;
 };
 
-static int heteroprio_push(struct starpu_sched_component *component, struct _starpu_heteroprio_data *data, enum starpu_worker_archtype archtype, int front)
+static int heteroprio_progress_accel(struct starpu_sched_component *component, struct _starpu_heteroprio_data *data, enum starpu_worker_archtype archtype, int front)
 {
 	struct starpu_task *task = NULL;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
@@ -184,7 +184,7 @@ static int heteroprio_push(struct starpu_sched_component *component, struct _sta
 	return 1;
 }
 
-static int heteroprio_push_heft(struct starpu_sched_component *component, struct _starpu_heteroprio_data *data, struct starpu_task *task)
+static int heteroprio_progress_noaccel(struct starpu_sched_component *component, struct _starpu_heteroprio_data *data, struct starpu_task *task)
 {
 	struct _starpu_mct_data * d = data->mct_data;
 	int ret;
@@ -269,7 +269,7 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	if (task) {
-		if (heteroprio_push_heft(component, data, task))
+		if (heteroprio_progress_noaccel(component, data, task))
 		{
 			/* Could not push to child actually, push that one back */
 			STARPU_COMPONENT_MUTEX_LOCK(mutex);
@@ -279,15 +279,15 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 	}
 
 	/* Note: this hardcodes acceleration order */
-	if (!heteroprio_push(component, data, STARPU_CUDA_WORKER, 1))
+	if (!heteroprio_progress_accel(component, data, STARPU_CUDA_WORKER, 1))
 		return 0;
-	if (!heteroprio_push(component, data, STARPU_OPENCL_WORKER, 1))
+	if (!heteroprio_progress_accel(component, data, STARPU_OPENCL_WORKER, 1))
 		return 0;
-	if (!heteroprio_push(component, data, STARPU_MIC_WORKER, 1))
+	if (!heteroprio_progress_accel(component, data, STARPU_MIC_WORKER, 1))
 		return 0;
-	if (!heteroprio_push(component, data, STARPU_MPI_MS_WORKER, 0))
+	if (!heteroprio_progress_accel(component, data, STARPU_MPI_MS_WORKER, 0))
 		return 0;
-	if (!heteroprio_push(component, data, STARPU_CPU_WORKER, 0))
+	if (!heteroprio_progress_accel(component, data, STARPU_CPU_WORKER, 0))
 		return 0;
 
 	return 1;
