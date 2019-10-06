@@ -153,7 +153,7 @@ double starpu_sched_component_transfer_length(struct starpu_sched_component * co
 void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	if (starpu_get_prefetch_flag() && (!task->prefetched)
-		&& (component->properties >= STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE))
+		&& (component->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE))
 	{
 		int worker = starpu_bitmap_first(component->workers_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
