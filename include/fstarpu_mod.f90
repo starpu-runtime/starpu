@@ -2,7 +2,7 @@
 !
 ! Copyright (C) 2016,2017                                Inria
 ! Copyright (C) 2017,2018,2019                           CNRS
-! Copyright (C) 2016-2018                                Université de Bordeaux
+! Copyright (C) 2016-2019                                Université de Bordeaux
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +60,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_HANDLES_SEQUENTIAL_CONSISTENCY
         type(c_ptr), bind(C) :: FSTARPU_TASK_END_DEP
         type(c_ptr), bind(C) :: FSTARPU_NODE_SELECTION_POLICY
+        type(c_ptr), bind(C) :: FSTARPU_TASK_SCHED_DATA
 
         type(c_ptr), bind(C) :: FSTARPU_VALUE
         type(c_ptr), bind(C) :: FSTARPU_SCHED_CTX
@@ -2279,6 +2280,7 @@ module fstarpu_mod
                         FSTARPU_TAG_ONLY        = fstarpu_get_constant(C_CHAR_"FSTARPU_TAG_ONLY"//C_NULL_CHAR)
                         FSTARPU_NAME    = fstarpu_get_constant(C_CHAR_"FSTARPU_NAME"//C_NULL_CHAR)
                         FSTARPU_NODE_SELECTION_POLICY   = fstarpu_get_constant(C_CHAR_"FSTARPU_NODE_SELECTION_POLICY"//C_NULL_CHAR)
+                        FSTARPU_TASK_SCHED_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_SCHED_DATA"//C_NULL_CHAR)
 
                         FSTARPU_VALUE   = fstarpu_get_constant(C_CHAR_"FSTARPU_VALUE"//C_NULL_CHAR)
                         FSTARPU_SCHED_CTX   = fstarpu_get_constant(C_CHAR_"FSTARPU_SCHED_CTX"//C_NULL_CHAR)

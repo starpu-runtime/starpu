@@ -303,7 +303,14 @@ extern "C"
 */
 #define STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE (40<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (41<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert() and alike, must be followed
+   by a void* specifying the value to be set in the sched_data field of the
+   task.
+ */
+#define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
+
+#define STARPU_SHIFTED_MODE_MAX (42<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

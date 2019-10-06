@@ -44,6 +44,7 @@ New features:
   * New modular-eager-prio scheduler.
   * Add 'ready' heuristic to modular schedulers.
   * New modular-heteroprio scheduler.
+  * Add STARPU_TASK_SCHED_DATA
 
 Changes:
   * Modification in the Native Fortran interface of the functions
