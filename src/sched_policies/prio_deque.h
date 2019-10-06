@@ -97,6 +97,16 @@ static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_pr
 	return task;
 }
 
+static inline struct starpu_task * _starpu_prio_deque_pop_back_task(struct _starpu_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_back_lowest(&pdeque->list);
+	pdeque->ntasks--;
+	return task;
+}
+
 static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pdeque, int workerid, struct starpu_task *task)
 {
 	unsigned nimpl = 0;
