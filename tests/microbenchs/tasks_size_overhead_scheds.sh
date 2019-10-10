@@ -19,4 +19,9 @@
 
 XFAIL="heteroprio"
 
-test_scheds tasks_size_overhead_sched.sh -i 8
+if [ -z "$STARPU_BENCH_DIR" ]
+then
+	FAST="-i 8"
+fi
+
+test_scheds tasks_size_overhead_sched.sh $FAST
