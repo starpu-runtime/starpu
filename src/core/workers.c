@@ -2182,7 +2182,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
 	{
 		_starpu_config.workers[workerid].state_keep_awake = 1;
 		return 0;
@@ -2491,7 +2491,8 @@ int starpu_wake_worker_relax_light(int workerid)
 		while (!worker->state_relax_refcnt)
 		{
 			/* Attempt a fast path if the worker is not really asleep */
-			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING
+			 || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
 			{
 				_starpu_config.workers[workerid].state_keep_awake = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);

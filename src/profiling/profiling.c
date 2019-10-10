@@ -197,7 +197,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	 * computation */
 	enum _starpu_worker_status status = _starpu_worker_get_status(workerid);
 
-	if (status == STATUS_SLEEPING)
+	if (status == STATUS_SLEEPING || status == STATUS_SLEEPING_SCHEDULING)
 	{
 		worker_registered_sleeping_start[workerid] = 1;
 		_starpu_clock_gettime(&sleeping_start_date[workerid]);

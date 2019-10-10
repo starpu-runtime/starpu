@@ -281,8 +281,11 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 static void _starpu_worker_set_status_scheduling(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING
-		&& _starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	{
+		_starpu_worker_set_status(workerid, STATUS_SLEEPING_SCHEDULING);
+	}
+	else if (_starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
 	{
 		_STARPU_TRACE_WORKER_SCHEDULING_START;
 		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
@@ -291,7 +294,11 @@ static void _starpu_worker_set_status_scheduling(int workerid)
 
 static void _starpu_worker_set_status_scheduling_done(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) == STATUS_SCHEDULING)
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING_SCHEDULING)
+	{
+		_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+	}
+	else if (_starpu_worker_get_status(workerid) == STATUS_SCHEDULING)
 	{
 		_STARPU_TRACE_WORKER_SCHEDULING_END;
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
