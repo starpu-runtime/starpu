@@ -197,6 +197,8 @@ static void _unregister_counter_scope(enum starpu_perf_counter_scope scope)
 	struct perf_counter_array * const counters = _get_counters(scope);
 	free(counters->array);
 	counters->array = NULL;
+	free(counters->updater_array);
+	counters->updater_array = NULL;
 	counters->size  = 0;
 }
 
