@@ -56,6 +56,13 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV)
 		return 77;
+	if (conf.ncpus != 2
+		|| conf.ncuda != 0
+		|| conf.nopencl != 0
+		|| conf.nmic != 0
+		|| conf.nmpi_ms != 0)
+		/* Environment variables forced otherwise, refuse it */
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned int ncpu  = starpu_cpu_worker_get_count();
