@@ -234,18 +234,18 @@ static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
 		hwloc_obj_t obj;
 		switch(worker->arch)
 		{
-			case STARPU_CPU_WORKER:
+			default:
 				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
 				break;
 #ifndef STARPU_SIMGRID
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 			case STARPU_CUDA_WORKER:
 				obj = hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, worker->devid);
+				if (!obj)
+					obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
 				break;
 #endif
 #endif
-			default:
-				return 0;
 		}
 
 		return numa_get_logical_id(obj);
