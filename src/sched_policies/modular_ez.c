@@ -257,6 +257,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 				/* Plug decision_component to fifo */
 				starpu_sched_component_connect(last, decision_component);
 		}
+		/* Silence static analysis warnings */
+		(void) last;
 
 		/* Take default ntasks_threshold */
 		unsigned ntasks_threshold;
