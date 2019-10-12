@@ -66,7 +66,7 @@ static struct transfer_runner
 {
 	struct transfer *first_transfer, *last_transfer;
 	starpu_sem_t sem;
-	msg_process_t runner;
+	starpu_pthread_t runner;
 } transfer_runner[STARPU_MAXNODES][STARPU_MAXNODES];
 static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
@@ -75,13 +75,13 @@ static struct worker_runner
 {
 	struct task *first_task, *last_task;
 	starpu_sem_t sem;
-	msg_process_t runner;
+	starpu_pthread_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
 
 #if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
-msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+sg_netzone_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return sg_zone_get_by_name(name);
 }
@@ -167,7 +167,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	{
 		const char *name;
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
-		name = sg_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+		name = sg_host_get_name(xbt_dynar_get_as(hosts, i, sg_host_t));
 #else
 		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
 #endif
@@ -181,7 +181,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid)
 {
 	char name[32];
-	msg_host_t host;
+	starpu_sg_host_t host;
 	const char *memsize;
 
 	snprintf(name, sizeof(name), "%s%u", prefix, devid);
@@ -208,7 +208,7 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	return atoll(memsize);
 }
 
-msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
+starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 {
 	if (_starpu_simgrid_running_smpi())
 	{
@@ -229,11 +229,11 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 #endif
 }
 
-msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
+starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 {
 	char *prefix;
 	char name[16];
-	msg_host_t host;
+	starpu_sg_host_t host;
 	switch (worker->arch)
 	{
 		case STARPU_CPU_WORKER:
@@ -1028,7 +1028,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->size = size;
 #else
 	msg_task_t task;
-	msg_host_t *hosts;
+	starpu_sg_host_t *hosts;
 	double *computation;
 	double *communication;
 
@@ -1105,8 +1105,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	return 0;
 }
 
-msg_host_t
-_starpu_simgrid_get_memnode_host(unsigned node)
+starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
 {
 	const char *fmt;
 	char name[16];
@@ -1138,14 +1137,14 @@ void _starpu_simgrid_count_ngpus(void)
 {
 #if (defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION >= 31300)
 	unsigned src, dst;
-	msg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
+	starpu_sg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
 
 	/* For each pair of memory nodes, get the route */
 	for (src = 1; src < STARPU_MAXNODES; src++)
 		for (dst = 1; dst < STARPU_MAXNODES; dst++)
 		{
 			int busid;
-			msg_host_t srchost, dsthost;
+			starpu_sg_host_t srchost, dsthost;
 #if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
 			SD_link_t *route;
@@ -1222,7 +1221,7 @@ void _starpu_simgrid_count_ngpus(void)
 				if (!found)
 					continue;
 
-				msg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
+				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
 #if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
