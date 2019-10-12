@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013,2016                           Inria
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1606,7 +1606,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		}
 #ifdef STARPU_SIMGRID
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-		MSG_process_sleep(0.000010);
+		starpu_sleep(0.000010);
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 #endif
 	}
@@ -1812,7 +1812,7 @@ int starpu_mpi_shutdown(void)
 	starpu_pthread_join(progress_thread, &value);
 #else
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
-	MSG_process_sleep(1);
+	starpu_sleep(1);
 #endif
 
 #ifdef STARPU_MPI_ACTIVITY

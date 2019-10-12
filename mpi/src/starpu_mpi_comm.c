@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2011-2017                                Université de Bordeaux
+ * Copyright (C) 2011-2017,2019                           Université de Bordeaux
  * Copyright (C) 2014                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -154,7 +154,7 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 			int flag, res;
 			/* test whether an envelope has arrived. */
 #ifdef STARPU_SIMGRID
-			MSG_process_sleep(0.000001);
+			starpu_sleep(0.000001);
 #endif
 			res = MPI_Test(&_comm->request, &flag, status);
 			STARPU_ASSERT(res == MPI_SUCCESS);
