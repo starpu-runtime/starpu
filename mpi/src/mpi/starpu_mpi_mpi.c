@@ -1573,7 +1573,7 @@ void _starpu_mpi_progress_shutdown(void **value)
 #ifdef STARPU_SIMGRID
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
 	(void) value;
-	MSG_process_sleep(1);
+	starpu_sleep(1);
 #else
 	STARPU_PTHREAD_JOIN(progress_thread, value);
 #endif
