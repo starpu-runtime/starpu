@@ -392,8 +392,12 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 #if defined(__i386__)
 static __starpu_inline uint64_t starpu_cmpxchg64(uint64_t *ptr, uint64_t old, uint64_t next)
 {
-	__asm__ __volatile__("lock cmpxchg8b %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
-	return old;
+	uint32_t old_hi = old >> 32;
+	uint32_t old_lo = old & 0xfffffffful;
+	uint32_t next_hi = next >> 32;
+	uint32_t next_lo = next & 0xfffffffful;
+	__asm__ __volatile__("lock cmpxchg8b %2": "+d" (old_hi), "+a" (old_lo), "+m" (*ptr) : "c" (next_hi), "b" (next_lo) : "memory");
+	return ((uint64_t) old_hi << 32) | old_lo;
 }
 #define STARPU_HAVE_CMPXCHG64
 #endif
