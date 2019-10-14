@@ -445,7 +445,7 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 	return expr; \
 }
 #define STARPU_ATOMIC_SOMETHING64(name,expr) \
-static __starpu_inline unsigned long starpu_atomic_##name##64(uint64_t *ptr, uint64_t value) \
+static __starpu_inline uint64_t starpu_atomic_##name##64(uint64_t *ptr, uint64_t value) \
 { \
 	uint64_t old, next; \
 	while (1) \
