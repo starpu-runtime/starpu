@@ -222,6 +222,12 @@ void _starpu__task_c__register_knobs(void)
 	}
 }
 
+void _starpu__task_c__unregister_knobs(void)
+{
+	_starpu_perf_knob_group_unregister(__kg_starpu_task__per_scheduler);
+	__kg_starpu_task__per_scheduler = NULL;
+}
+
 /* - */
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make

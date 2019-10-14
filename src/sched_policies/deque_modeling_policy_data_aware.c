@@ -154,6 +154,12 @@ void _starpu__dmda_c__register_knobs(void)
 	}
 }
 
+void _starpu__dmda_c__unregister_knobs(void)
+{
+	_starpu_perf_knob_group_unregister(__kg_starpu_dmda__per_scheduler);
+	__kg_starpu_dmda__per_scheduler = NULL;
+}
+
 /* The dmda scheduling policy uses
  *
  * alpha * T_computation + beta * T_communication + gamma * Consumption

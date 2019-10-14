@@ -547,6 +547,9 @@ void _starpu_perf_knob_exit(void)
 	STARPU_ASSERT(!_starpu_machine_is_running());
 
 	_starpu_perf_knob_unregister_all_scopes();
+	_starpu__workers_c__unregister_knobs();
+	_starpu__task_c__unregister_knobs();
+	_starpu__dmda_c__unregister_knobs();
 }
 
 /* - */
@@ -663,6 +666,7 @@ void _starpu_perf_knob_group_unregister(struct starpu_perf_knob_group *group)
 		free(group->array);
 	}
 	memset(group, 0, sizeof(*group));
+	free(group);
 }
 
 /* - */
