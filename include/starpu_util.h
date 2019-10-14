@@ -444,11 +444,25 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 	}; \
 	return expr; \
 }
+#define STARPU_ATOMIC_SOMETHING64(name,expr) \
+static __starpu_inline unsigned long starpu_atomic_##name##64(uint64_t *ptr, uint64_t value) \
+{ \
+	uint64_t old, next; \
+	while (1) \
+	{ \
+		old = *ptr; \
+		next = expr; \
+		if (starpu_cmpxchg64(ptr, old, next) == old) \
+			break; \
+	}; \
+	return expr; \
+}
 
 /* Returns the new value */
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #define STARPU_ATOMIC_ADDL(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
+#define STARPU_ATOMIC_ADD64(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #else
 #if defined(STARPU_HAVE_CMPXCHG)
 STARPU_ATOMIC_SOMETHING(add, old + value)
@@ -458,11 +472,16 @@ STARPU_ATOMIC_SOMETHING(add, old + value)
 STARPU_ATOMIC_SOMETHINGL(add, old + value)
 #define STARPU_ATOMIC_ADDL(ptr, value) starpu_atomic_addl(ptr, value)
 #endif
+#if defined(STARPU_HAVE_CMPXCHG64)
+STARPU_ATOMIC_SOMETHING64(add, old + value)
+#define STARPU_ATOMIC_ADD64(ptr, value) starpu_atomic_add64(ptr, value)
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 #define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#define STARPU_ATOMIC_OR64(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 #else
 #if defined(STARPU_HAVE_CMPXCHG)
 STARPU_ATOMIC_SOMETHING(or, old | value)
@@ -471,6 +490,10 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #if defined(STARPU_HAVE_CMPXCHGL)
 STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_ATOMIC_ORL(ptr, value) starpu_atomic_orl(ptr, value)
+#endif
+#if defined(STARPU_HAVE_CMPXCHG64)
+STARPU_ATOMIC_SOMETHING64(or, old | value)
+#define STARPU_ATOMIC_OR64(ptr, value) starpu_atomic_or64(ptr, value)
 #endif
 #endif
 
