@@ -118,8 +118,7 @@ pipeline
 					emailext(body: '${DEFAULT_CONTENT}',
 						 subject: '${DEFAULT_SUBJECT}',
 						 replyTo: '$DEFAULT_REPLYTO',
-						 to: '$DEFAULT_RECIPIENTS',
-						 recipientProviders: [[$class: 'CulpritsRecipientProvider'],[$class: 'RequesterRecipientProvider']])
+						 to: '$DEFAULT_RECIPIENTS')
 				}
 			}
 		}
