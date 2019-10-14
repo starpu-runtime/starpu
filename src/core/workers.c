@@ -169,6 +169,14 @@ void _starpu__workers_c__register_knobs(void)
 #endif
 }
 
+void _starpu__workers_c__unregister_knobs(void)
+{
+	_starpu_perf_knob_group_unregister(__kg_starpu_global);
+	_starpu_perf_knob_group_unregister(__kg_starpu_worker__per_worker);
+	__kg_starpu_global = NULL;
+	__kg_starpu_worker__per_worker = NULL;
+}
+
 /* acquire/release semantic for concurrent initialization/de-initialization */
 static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
