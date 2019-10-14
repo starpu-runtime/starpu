@@ -479,13 +479,13 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
 #else
-#ifdef defined(STARPU_HAVE_XCHG)
+#ifdef STARPU_HAVE_XCHG
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
 #endif
-#ifdef defined(STARPU_HAVE_XCHG32)
+#ifdef STARPU_HAVE_XCHG32
 #define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (starpu_cmpxchg32((ptr), (old), (value)))
 #endif
-#ifdef defined(STARPU_HAVE_XCHG64)
+#ifdef STARPU_HAVE_XCHG64
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (starpu_cmpxchg64((ptr), (old), (value)))
 #endif
 #endif
