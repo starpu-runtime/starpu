@@ -56,22 +56,17 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV)
 		return 77;
-	if (conf.ncpus != 2
-		|| conf.ncuda != 0
-		|| conf.nopencl != 0
-		|| conf.nmic != 0
-		|| conf.nmpi_ms != 0)
-		/* Environment variables forced otherwise, refuse it */
-		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned int ncpu  = starpu_cpu_worker_get_count();
-	if (ncpu < 2)
+	if (starpu_cpu_worker_get_count() != 2
+		|| starpu_cuda_worker_get_count() != 0
+		|| starpu_opencl_worker_get_count() != 0
+		|| starpu_mic_worker_get_count() != 0
+		|| starpu_mpi_ms_worker_get_count() != 0)
 	{
-		fprintf(stderr, "example needs two cpu cores.\n");
+		fprintf(stderr, "example needs exactly two cpu cores.\n");
 		return 77;
 	}
-	STARPU_ASSERT(ncpu == 2);
 
 	{
 		const char * const max_prio_knob_name       = "starpu.task.s_max_priority_cap_knob";
