@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                Inria
+ * Copyright (C) 2010-2019                                Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -38,6 +38,7 @@
 #include <profiling/profiling.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
+#include <common/knobs.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
 
@@ -52,6 +53,129 @@
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
+
+
+/* global knobs */
+static int __g_calibrate_knob;
+static int __g_enable_catch_signal_knob;
+
+/* per-worker knobs */
+static int __w_bind_to_pu_knob;
+static int __w_enable_worker_knob;
+
+static struct starpu_perf_knob_group * __kg_starpu_global;
+static struct starpu_perf_knob_group * __kg_starpu_worker__per_worker;
+
+static void global_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+{
+	/* context is not used for global knobs */
+	STARPU_ASSERT(context == NULL);
+	(void)context;
+
+	if (knob->id == __g_calibrate_knob)
+	{
+		_starpu_set_calibrate_flag((unsigned)value->val_int32_t);
+	}
+	else if (knob->id == __g_enable_catch_signal_knob)
+	{
+		_starpu_set_catch_signals(!!value->val_int32_t);
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+static void global_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+{
+	/* context is not used for global knobs */
+	STARPU_ASSERT(context == NULL);
+	(void)context;
+
+	if (knob->id == __g_calibrate_knob)
+	{
+		value->val_int32_t = (int32_t)_starpu_get_calibrate_flag();
+	}
+	else if (knob->id == __g_enable_catch_signal_knob)
+	{
+		value->val_int32_t = _starpu_get_catch_signals();
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void worker_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+{
+	const unsigned workerid = *(unsigned *)context;
+	struct _starpu_worker * const worker = _starpu_get_worker_struct(workerid);
+	if (knob->id == __w_bind_to_pu_knob)
+	{
+		STARPU_ASSERT(value->val_int32_t >= 0);
+		worker->bindid_requested = value->val_int32_t;
+	}
+	else if (knob->id == __w_enable_worker_knob)
+	{
+		worker->enable_knob = !!value->val_int32_t;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+void worker_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+{
+	const unsigned workerid = *(unsigned *)context;
+	struct _starpu_worker * const worker = _starpu_get_worker_struct(workerid);
+	if (knob->id == __w_bind_to_pu_knob)
+	{
+		value->val_int32_t = worker->bindid;
+	}
+	else if (knob->id == __w_enable_worker_knob)
+	{
+		value->val_int32_t = worker->enable_knob;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void _starpu__workers_c__register_knobs(void)
+{
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_global;
+		__kg_starpu_global = _starpu_perf_knob_group_register(scope, global_knobs__set, global_knobs__get);
+		__STARPU_PERF_KNOB_REG("starpu.global", __kg_starpu_global, g_calibrate_knob, int32, "enable or disable performance models calibration (override STARPU_CALIBRATE env var)");
+		__STARPU_PERF_KNOB_REG("starpu.global", __kg_starpu_global, g_enable_catch_signal_knob, int32, "enable or disable signal catching (override STARPU_CATCH_SIGNALS env var)");
+	}
+
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_worker;
+		__kg_starpu_worker__per_worker = _starpu_perf_knob_group_register(scope, worker_knobs__set, worker_knobs__get);
+		__STARPU_PERF_KNOB_REG("starpu.worker", __kg_starpu_worker__per_worker, w_bind_to_pu_knob, int32, "bind worker to PU (PU logical number, override StarPU binding env vars)");
+		__STARPU_PERF_KNOB_REG("starpu.worker", __kg_starpu_worker__per_worker, w_enable_worker_knob, int32, "enable assigning task to that worker (1:Enabled | [0:Disabled])");
+	}
+
+#if 0
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_scheduler;
+		__kg_starpu_worker__per_scheduler = _starpu_perf_knob_group_register(scope, sched_knobs__set, sched_knobs__get);
+	}
+#endif
+}
+
+void _starpu__workers_c__unregister_knobs(void)
+{
+	_starpu_perf_knob_group_unregister(__kg_starpu_global);
+	_starpu_perf_knob_group_unregister(__kg_starpu_worker__per_worker);
+	__kg_starpu_global = NULL;
+	__kg_starpu_worker__per_worker = NULL;
+}
 
 /* acquire/release semantic for concurrent initialization/de-initialization */
 static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -73,6 +197,11 @@ int _starpu_worker_parallel_blocks;
  */
 static int *my_argc = 0;
 static char ***my_argv = NULL;
+
+void _starpu__workers_c__register_kobs(void)
+{
+	/* TODO */
+}
 
 /* Initialize value of static argc and argv, called when the process begins
  */
@@ -301,6 +430,9 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	if (!_starpu_config.workers[workerid].enable_knob)
+		return 0;
+
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 #ifdef STARPU_DEVEL
 #warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
@@ -317,6 +449,9 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
 {
+	if (!_starpu_config.workers[workerid].enable_knob)
+		return 0;
+
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
@@ -368,6 +503,9 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 /* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
+	if (!_starpu_config.workers[workerid].enable_knob)
+		return 0;
+
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 	if(starpu_worker_is_blocked_in_parallel(workerid))
 		return 0;
@@ -408,6 +546,9 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	if (!_starpu_config.workers[workerid].enable_knob)
+		return 0;
+
 	/* TODO: check that the task operand sizes will fit on that device */
 
 	struct starpu_codelet *cl = task->cl;
@@ -594,6 +735,9 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->state_unblock_in_parallel_req = 0;
 	workerarg->state_unblock_in_parallel_ack = 0;
 	workerarg->block_in_parallel_ref_count = 0;
+	_starpu_perf_counter_sample_init(&workerarg->perf_counter_sample, starpu_perf_counter_scope_per_worker);
+	workerarg->enable_knob = 1;
+	workerarg->bindid_requested = -1;
 
 	/* cpu_set/hwloc_cpu_set/hwloc_obj initialized in topology.c */
 }
@@ -606,6 +750,7 @@ static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 	starpu_pthread_queue_unregister(&workerarg->wait, &_starpu_simgrid_task_queue[workerarg->workerid]);
 	starpu_pthread_wait_destroy(&workerarg->wait);
 #endif
+	_starpu_perf_counter_sample_exit(&workerarg->perf_counter_sample);
 }
 
 #ifdef STARPU_USE_FXT
@@ -831,7 +976,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-		if (workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
+		if ((!workerarg->set || workerarg->set->workers == workerarg)
+			&& workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 			while (!workerarg->worker_is_running)
@@ -1116,6 +1262,7 @@ static void _starpu_build_tree(void)
 #endif
 }
 
+static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
 static void (*act_sigtrap)(int);
@@ -1130,16 +1277,25 @@ void _starpu_handler(int sig)
 #endif
 	if (sig == SIGINT)
 	{
-		signal(SIGINT, act_sigint);
+		void (*sig_act)(int) = act_sigint;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGINT, sig_act);
 	}
 	if (sig == SIGSEGV)
 	{
-		signal(SIGSEGV, act_sigsegv);
+		void (*sig_act)(int) = act_sigsegv;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGSEGV, sig_act);
 	}
 #ifdef SIGTRAP
 	if (sig == SIGTRAP)
 	{
-		signal(SIGTRAP, act_sigtrap);
+		void (*sig_act)(int) = act_sigtrap;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGTRAP, sig_act);
 	}
 #endif
 #ifdef STARPU_VERBOSE
@@ -1152,12 +1308,54 @@ void _starpu_catch_signals(void)
 {
 	if (_starpu_config.conf.catch_signals == 1)
 	{
-		act_sigint  = signal(SIGINT, _starpu_handler);
-		act_sigsegv = signal(SIGSEGV, _starpu_handler);
+		static void (*old_sig_act)(int);
+		old_sig_act  = signal(SIGINT, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigint  = old_sig_act;
+
+		old_sig_act = signal(SIGSEGV, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigsegv  = old_sig_act;
 #ifdef SIGTRAP
-		act_sigtrap = signal(SIGTRAP, _starpu_handler);
+		old_sig_act = signal(SIGTRAP, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigtrap  = old_sig_act;
 #endif
 	}
+	else
+	{
+		if (act_sigint != NULL)
+		{
+			signal(SIGINT, act_sigint);
+			act_sigint = NULL;
+		}
+
+		if (act_sigsegv != NULL)
+		{
+			signal(SIGSEGV, act_sigsegv);
+			act_sigsegv = NULL;
+		}
+#ifdef SIGTRAP
+		if (act_sigtrap != NULL)
+		{
+			signal(SIGTRAP, act_sigtrap);
+			act_sigtrap = NULL;
+		}
+#endif
+	}
+}
+
+void _starpu_set_catch_signals(int do_catch_signal)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&sig_handlers_mutex);
+	_starpu_config.conf.catch_signals = do_catch_signal;
+	_starpu_catch_signals();
+	STARPU_PTHREAD_MUTEX_UNLOCK(&sig_handlers_mutex);
+}
+
+int _starpu_get_catch_signals(void)
+{
+	return _starpu_config.conf.catch_signals;
 }
 
 int starpu_init(struct starpu_conf *user_conf)
@@ -1397,6 +1595,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 	_starpu_initialize_registered_performance_models();
+	_starpu_perf_counter_init();
+	_starpu_perf_knob_init();
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_cuda_init();
@@ -1708,6 +1908,8 @@ void starpu_shutdown(void)
 #ifdef STARPU_OPENMP
 	_starpu_omp_dummy_shutdown();
 #endif
+	_starpu_perf_knob_exit();
+	_starpu_perf_counter_exit();
 	_starpu_close_debug_logfile();
 
 	_starpu_keys_initialized = 0;
@@ -2181,7 +2383,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
 	{
 		_starpu_config.workers[workerid].state_keep_awake = 1;
 		return 0;
@@ -2490,7 +2692,8 @@ int starpu_wake_worker_relax_light(int workerid)
 		while (!worker->state_relax_refcnt)
 		{
 			/* Attempt a fast path if the worker is not really asleep */
-			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING)
+			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING
+			 || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
 			{
 				_starpu_config.workers[workerid].state_keep_awake = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);

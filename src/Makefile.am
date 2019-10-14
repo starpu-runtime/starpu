@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017                                Inria
+# Copyright (C) 2011-2017,2019                           Inria
 # Copyright (C) 2009-2019                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2013                                     Simon Archipoff
@@ -128,6 +128,7 @@ noinst_HEADERS = 						\
 	common/rbtree_i.h					\
 	common/prio_list.h					\
 	common/graph.h						\
+	common/knobs.h						\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -169,6 +170,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/rbtree.c						\
 	common/graph.c						\
 	common/inlines.c					\
+	common/knobs.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
@@ -281,14 +283,19 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_prio.c 				\
 	sched_policies/component_random.c				\
 	sched_policies/component_eager.c				\
+	sched_policies/component_eager_prio.c				\
 	sched_policies/component_eager_calibration.c				\
 	sched_policies/component_mct.c				\
 	sched_policies/component_heft.c				\
+	sched_policies/component_heteroprio.c				\
 	sched_policies/component_best_implementation.c		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
 	sched_policies/component_work_stealing.c				\
+	sched_policies/component_stage.c				\
+	sched_policies/component_userchoice.c				\
 	sched_policies/modular_eager.c				\
+	sched_policies/modular_eager_prio.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
 	sched_policies/modular_prio.c				\
@@ -299,6 +306,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_parallel_heft.c			\
 	sched_policies/modular_heft.c				\
 	sched_policies/modular_heft_prio.c			\
+	sched_policies/modular_heteroprio.c			\
+	sched_policies/modular_heteroprio_heft.c		\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c				\
 	sched_policies/modular_ez.c

@@ -44,6 +44,8 @@
 \file starpu_mod.f90
 \file starpu_opencl.h
 \file starpu_openmp.h
+\file starpu_perf_monitoring.h
+\file starpu_perf_steering.h
 \file starpu_perfmodel.h
 \file starpu_profiling.h
 \file starpu_rand.h

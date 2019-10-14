@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2013,2014,2017                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2013,2014,2017,2019            Université de Bordeaux
  * Copyright (C) 2010,2011,2015,2017                      CNRS
  * Copyright (C) 2017                                     Inria
  *
@@ -39,7 +39,9 @@ enum _starpu_worker_status
 	STATUS_SCHEDULING,
 	/* while waiting for a data transfer */
 	STATUS_WAITING,
-	/* while sleeping because there is nothing to do */
+	/* while sleeping because there is nothing to do, but looking for tasks to do */
+	STATUS_SLEEPING_SCHEDULING,
+	/* while sleeping because there is nothing to do, and not even scheduling */
 	STATUS_SLEEPING
 };
 

@@ -41,6 +41,12 @@ New features:
     STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE which set the corresponding
     fields of starpu_task to 0.
   * starpufft: Support 3D.
+  * New modular-eager-prio scheduler.
+  * Add 'ready' heuristic to modular schedulers.
+  * New modular-heteroprio scheduler.
+  * Add STARPU_TASK_SCHED_DATA
+  * Add support for staging schedulers.
+  * New modular-heteroprio-heft scheduler.
 
 Changes:
   * Modification in the Native Fortran interface of the functions

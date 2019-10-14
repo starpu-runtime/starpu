@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2016-2019                                CNRS
- * Copyright (C) 2016-2018                                Université de Bordeaux
+ * Copyright (C) 2016-2019                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,6 +71,7 @@ static const intptr_t fstarpu_task_workerids = STARPU_TASK_WORKERIDS;
 static const intptr_t fstarpu_sequential_consistency = STARPU_SEQUENTIAL_CONSISTENCY;
 static const intptr_t fstarpu_task_profiling_info = STARPU_TASK_PROFILING_INFO;
 static const intptr_t fstarpu_task_no_submitorder = STARPU_TASK_NO_SUBMITORDER;
+static const intptr_t fstarpu_task_sched_data = STARPU_TASK_SCHED_DATA;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
@@ -157,6 +158,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SEQUENTIAL_CONSISTENCY"))	{ return fstarpu_sequential_consistency; }
 	else if (!strcmp(s, "FSTARPU_TASK_PROFILING_INFO"))	{ return fstarpu_task_profiling_info; }
 	else if (!strcmp(s, "FSTARPU_TASK_NO_SUBMITORDER"))	{ return fstarpu_task_no_submitorder; }
+	else if	(!strcmp(s, "FSTARPU_TASK_SCHED_DATA"))	{ return fstarpu_task_sched_data; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
 	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }

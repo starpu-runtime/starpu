@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2016,2017                           Inria
+ * Copyright (C) 2012,2016,2017,2019                      Inria
  * Copyright (C) 2013-2017,2019                           CNRS
  * Copyright (C) 2013-2015,2017                           Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -30,6 +30,7 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
+#include <common/knobs.h>
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
 struct starpu_save_thread_env

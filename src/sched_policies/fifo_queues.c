@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2016                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2019                           Université de Bordeaux
  * Copyright (C) 2010,2011,2013,2015-2017                 CNRS
  * Copyright (C) 2013                                     Simon Archipoff
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -25,6 +25,8 @@
 
 #include <sched_policies/fifo_queues.h>
 #include <common/fxt.h>
+#include <core/topology.h>
+#include <limits.h>
 /*
 static int is_sorted_task_list(struct starpu_task * task)
 {
@@ -336,3 +338,85 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 
 	return new_list;
 }
+
+int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id)
+{
+	int min = starpu_sched_ctx_get_min_priority(sched_ctx_id);
+	int max = starpu_sched_ctx_get_max_priority(sched_ctx_id);
+	return ((num_priorities-1)/(max-min)) * (priority - min);
+}
+
+int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
+{
+	int cnt = 0;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle;
+		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		handle = STARPU_TASK_GET_HANDLE(task, index);
+
+		int is_valid;
+		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
+
+		if (!is_valid)
+			cnt++;
+	}
+
+	return cnt;
+}
+
+struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
+{
+	struct starpu_task *task = NULL, *current;
+
+	if (fifo_queue->ntasks == 0)
+		return NULL;
+
+	if (fifo_queue->ntasks > 0)
+	{
+		fifo_queue->ntasks--;
+
+		task = starpu_task_list_front(&fifo_queue->taskq);
+		if (STARPU_UNLIKELY(!task))
+			return NULL;
+
+		int first_task_priority = task->priority;
+
+		int non_ready_best = INT_MAX;
+
+		for (current = task; current; current = current->next)
+		{
+			int priority = current->priority;
+
+			if (priority >= first_task_priority)
+			{
+				int non_ready = _starpu_count_non_ready_buffers(current, workerid);
+				if (non_ready < non_ready_best)
+				{
+					non_ready_best = non_ready;
+					task = current;
+
+					if (non_ready == 0)
+						break;
+				}
+			}
+		}
+
+		if(num_priorities != -1)
+		{
+			int i;
+			int task_prio = _starpu_normalize_prio(task->priority, num_priorities, task->sched_ctx);
+			for(i = 0; i <= task_prio; i++)
+				fifo_queue->ntasks_per_priority[i]--;
+		}
+
+		starpu_task_list_erase(&fifo_queue->taskq, task);
+	}
+
+	return task;
+}
+

@@ -55,6 +55,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 		}
 	}
 
+	/* FIXME: should rather just loop over children before looping over its workers */
 	int workerid;
 	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
 	    workerid != -1;
@@ -63,6 +64,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
+			/* FIXME: use starpu_worker_can_execute_task_first_impl instead */
 			if(starpu_worker_can_execute_task(workerid,task,nimpl)
 			   || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
 			{

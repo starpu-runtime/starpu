@@ -34,9 +34,9 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->count = -1;
 	(*req)->registered_datatype = -1;
 
-	(*req)->node_tag.rank = -1;
+	(*req)->node_tag.node.rank = -1;
 	(*req)->node_tag.data_tag = -1;
-	(*req)->node_tag.comm = 0;
+	(*req)->node_tag.node.comm = 0;
 
 	(*req)->func = NULL;
 
@@ -86,9 +86,9 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	if (_starpu_mpi_use_prio)
 		req->prio = prio;
 	req->data_handle = data_handle;
-	req->node_tag.rank = srcdst;
+	req->node_tag.node.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
-	req->node_tag.comm = comm;
+	req->node_tag.node.comm = comm;
 	req->detached = detached;
 	req->sync = sync;
 	req->callback = callback;

@@ -246,6 +246,11 @@ STARPU_EXAMPLES +=				\
 	interface/complex			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
+	perf_monitoring/perf_counters_01	\
+	perf_monitoring/perf_counters_02	\
+	perf_steering/perf_knobs_01		\
+	perf_steering/perf_knobs_02		\
+	perf_steering/perf_knobs_03		\
 	scheduler/heteroprio_test		\
 	sched_ctx/sched_ctx			\
 	sched_ctx/sched_ctx_empty		\

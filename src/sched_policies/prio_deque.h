@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2018                                Inria
  * Copyright (C) 2017                                     CNRS
- * Copyright (C) 2014,2017,2018                           Université de Bordeaux
+ * Copyright (C) 2014,2017,2018-2019                      Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,6 +97,16 @@ static inline struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_pr
 	return task;
 }
 
+static inline struct starpu_task * _starpu_prio_deque_pop_back_task(struct _starpu_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_back_lowest(&pdeque->list);
+	pdeque->ntasks--;
+	return task;
+}
+
 static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pdeque, int workerid, struct starpu_task *task)
 {
 	unsigned nimpl = 0;
@@ -119,19 +129,10 @@ static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pd
  */
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 
-/* deque a task of the higher priority available */
-static inline struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *pdeque)
-{
-	struct starpu_task *task;
-	if (starpu_task_prio_list_empty(&pdeque->list))
-		return NULL;
-	task = starpu_task_prio_list_pop_back_highest(&pdeque->list);
-	pdeque->ntasks--;
-	return task;
-}
-
 /* return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
+
+struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_prio_deque *, unsigned workerid);
 
 #endif /* __PRIO_DEQUE_H__ */

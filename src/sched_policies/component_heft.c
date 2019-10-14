@@ -69,8 +69,8 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 	{
 		struct _starpu_mct_data * d = data->mct_data;
-		struct starpu_sched_component * best_component = NULL;
-		unsigned n, i;
+		struct starpu_sched_component * best_component;
+		unsigned n;
 
 		/* Estimated task duration for each child */
 		double estimated_lengths[component->nchildren * ntasks];
@@ -92,9 +92,6 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		for (n = 0; n < ntasks; n++)
 		{
 			unsigned offset = component->nchildren * n;
-
-			min_exp_end_with_task[n] = DBL_MAX;
-			max_exp_end_with_task[n] = 0.0;
 
 			nsuitable_components[n] = starpu_mct_compute_execution_times(component, tasks[n],
 					estimated_lengths + offset,
@@ -123,8 +120,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			}
 		}
 
-		double best_fitness = DBL_MAX;
-		int best_icomponent = -1;
+		STARPU_ASSERT(best_task >= 0);
 
 		/* Push back the other tasks */
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
@@ -133,35 +129,12 @@ static int heft_progress_one(struct starpu_sched_component *component)
 				_starpu_prio_deque_push_front_task(prio, tasks[n]);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
-		/* And now find out which worker suits best for this task,
-		 * including data transfer */
-		for(i = 0; i < nsuitable_components[best_task]; i++)
-		{
-			unsigned offset = component->nchildren * best_task;
-			unsigned icomponent = suitable_components[offset + i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take energy consumption into account
-#endif
-			double tmp = starpu_mct_compute_fitness(d,
-						     estimated_ends_with_task[offset + icomponent] - estimated_transfer_length[offset + icomponent],
-						     min_exp_end_with_task[best_task],
-						     max_exp_end_with_task[best_task],
-						     estimated_transfer_length[offset + icomponent],
-						     0.0);
+		unsigned offset = component->nchildren * best_task;
 
-			if(tmp < best_fitness)
-			{
-				best_fitness = tmp;
-				best_icomponent = icomponent;
-			}
-		}
+		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, min_exp_end_with_task[best_task], max_exp_end_with_task[best_task], suitable_components + offset, nsuitable_components[best_task]);
 
 		STARPU_ASSERT(best_icomponent != -1);
-		STARPU_ASSERT(best_task >= 0);
 		best_component = component->children[best_icomponent];
-
-		tasks[best_task]->predicted = estimated_lengths[best_icomponent];
-		tasks[best_task]->predicted_transfer = estimated_transfer_length[best_icomponent];
 
 		if(starpu_sched_component_is_worker(best_component))
 		{

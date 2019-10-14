@@ -63,11 +63,11 @@ void _starpu_mpi_sync_data_handle_display_hash(struct _starpu_mpi_node_tag *node
 
 	if (hashlist == NULL)
 	{
-		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %ld does not exist\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
+		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %ld does not exist\n", (long int)node_tag->node.comm, node_tag->node.rank, node_tag->data_tag);
 	}
 	else if (_starpu_mpi_req_list_empty(&hashlist->list))
 	{
-		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %ld is empty\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag);
+		_STARPU_MPI_DEBUG(60, "Hashlist for comm %ld source %d and tag %ld is empty\n", (long int)node_tag->node.comm, node_tag->node.rank, node_tag->data_tag);
 	}
 	else
 	{
@@ -76,7 +76,7 @@ void _starpu_mpi_sync_data_handle_display_hash(struct _starpu_mpi_node_tag *node
 		     cur != _starpu_mpi_req_list_end(&hashlist->list);
 		     cur = _starpu_mpi_req_list_next(cur))
 		{
-			_STARPU_MPI_DEBUG(60, "Element for comm %ld source %d and tag %ld: %p\n", (long int)node_tag->comm, node_tag->rank, node_tag->data_tag, cur);
+			_STARPU_MPI_DEBUG(60, "Element for comm %ld source %d and tag %ld: %p\n", (long int)node_tag->node.comm, node_tag->node.rank, node_tag->data_tag, cur);
 		}
 	}
 }
@@ -99,8 +99,8 @@ struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, in
 	struct _starpu_mpi_sync_data_handle_hashlist *found;
 
 	memset(&node_tag, 0, sizeof(struct _starpu_mpi_node_tag));
-	node_tag.comm = comm;
-	node_tag.rank = source;
+	node_tag.node.comm = comm;
+	node_tag.node.rank = source;
 	node_tag.data_tag = data_tag;
 
 	_STARPU_MPI_DEBUG(60, "Looking for sync_data_handle with comm %ld source %d tag %ld in the hashmap\n", (long int)comm, source, data_tag);
@@ -132,7 +132,7 @@ void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *sync_req)
 {
 	struct _starpu_mpi_sync_data_handle_hashlist *hashlist;
 
-	_STARPU_MPI_DEBUG(2000, "Adding sync_req %p with comm %ld source %d tag %ld in the hashmap\n", sync_req, (long int)sync_req->node_tag.comm, sync_req->node_tag.rank, sync_req->node_tag.data_tag);
+	_STARPU_MPI_DEBUG(2000, "Adding sync_req %p with comm %ld source %d tag %ld in the hashmap\n", sync_req, (long int)sync_req->node_tag.node.comm, sync_req->node_tag.node.rank, sync_req->node_tag.data_tag);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_sync_data_handle_mutex);
 	HASH_FIND(hh, _starpu_mpi_sync_data_handle_hashmap, &sync_req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);

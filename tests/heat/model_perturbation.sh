@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014                           Université de Bordeaux
+# Copyright (C) 2008-2011,2014, 2019                           Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #ampllist="0.0 0.1 0.2 0.25 0.3 0.4 0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
 #ampllist="1.0 0.50 0.25 0.1 0.0"
 ampllist="1.0 0.5"
+
+# Testing another specific scheduler, no need to run this
+[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != dm ] || exit 77
 
 maxiter=1
 MAXCPU=3

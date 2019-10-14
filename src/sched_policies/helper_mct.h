@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014,2015,2017                           CNRS
- * Copyright (C) 2013,2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2013,2014,2016,2017,2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,12 +27,36 @@ struct _starpu_mct_data
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params);
 
-unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
-				       double *estimated_lengths, double *estimated_transfer_length, unsigned *suitable_components);
+unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *component,
+					    struct starpu_task *task,
+					    double *estimated_lengths,
+					    double *estimated_transfer_length,
+					    unsigned *suitable_components);
 
 
-void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
-		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-				       double *min_exp_end_with_task, double *max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components);
+void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
+				       struct starpu_task *task,
+				       double *estimated_lengths,
+				       double *estimated_transfer_length,
+				       double *estimated_ends_with_task,
+				       double *min_exp_end_with_task,
+				       double *max_exp_end_with_task,
+				       unsigned *suitable_components,
+				       unsigned nsuitable_components);
 
-double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_energy);
+double starpu_mct_compute_fitness(struct _starpu_mct_data * d,
+				  double exp_end,
+				  double min_exp_end,
+				  double max_exp_end,
+				  double transfer_len,
+				  double local_energy);
+
+int starpu_mct_get_best_component(struct _starpu_mct_data *d,
+				  struct starpu_task *task,
+				  double *estimated_lengths,
+				  double *estimated_transfer_length,
+				  double *estimated_ends_with_task,
+				  double min_exp_end_with_task,
+				  double max_exp_end_with_task,
+				  unsigned *suitable_components,
+				  unsigned nsuitable_components);

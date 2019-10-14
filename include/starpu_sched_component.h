@@ -373,6 +373,11 @@ void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsi
 */
 
 /**
+   default function for the pull component method, just call pull of parents until one of them returns a task
+*/
+struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to);
+
+/**
    default function for the can_push component method, just call can_push of parents until one of them returns non-zero
 */
 int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
@@ -416,6 +421,7 @@ struct starpu_sched_component_fifo_data
 {
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 
 /**
@@ -441,6 +447,7 @@ struct starpu_sched_component_prio_data
 {
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_prio(struct starpu_sched_component *component);
@@ -494,6 +501,18 @@ int starpu_sched_component_is_random(struct starpu_sched_component *);
 struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_eager(struct starpu_sched_component *);
 
+/** @} */
+
+/**
+   @name Resource-mapping Eager Prio Component API
+   @{
+*/
+
+struct starpu_sched_component *starpu_sched_component_eager_prio_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_eager_prio(struct starpu_sched_component *);
+
+/** @} */
+
 /**
    @name Resource-mapping Eager-Calibration Component API
    @{
@@ -539,6 +558,22 @@ int starpu_sched_component_is_heft(struct starpu_sched_component *component);
 /** @} */
 
 /**
+   @name Resource-mapping Heteroprio Component API
+   @{
+*/
+
+struct starpu_sched_component_heteroprio_data
+{
+	struct starpu_sched_component_mct_data *mct;
+	unsigned batch;
+};
+
+struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_heteroprio_data * params) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_heteroprio(struct starpu_sched_component *component);
+
+/** @} */
+
+/**
    @name Special-purpose Best_Implementation Component API
    @{
 */
@@ -566,6 +601,26 @@ struct starpu_sched_component_perfmodel_select_data
 };
 struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *component);
+
+/** @} */
+
+/**
+   @name Staged pull Component API
+   @{
+*/
+
+struct starpu_sched_component * starpu_sched_component_stage_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_stage(struct starpu_sched_component *component);
+
+/** @} */
+
+/**
+   @name User-choice push Component API
+   @{
+*/
+
+struct starpu_sched_component * starpu_sched_component_userchoice_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+int starpu_sched_component_is_userchoice(struct starpu_sched_component *component);
 
 /** @} */
 
@@ -709,14 +764,19 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
 
 /**
+   Request that the fifos below be pulled rather ready tasks
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY	(1<<10)
+
+/**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
-#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<10)
+#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<11)
 
 /**
    Request to not only choose between simple workers, but also choose between combined workers.
 */
-#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<11)
+#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<12)
 
 /**
    Create a simple modular scheduler tree around a scheduling decision-making
@@ -726,6 +786,20 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    function when creating the decision component.
 */
 void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id);
+
+/**
+   Create a simple modular scheduler tree around several scheduling decision-making
+   components. The parameters are similar to
+   starpu_sched_component_initialize_simple_scheduler, but per scheduling decision, for instance:
+
+   starpu_sched_component_initialize_simple_schedulers(sched_ctx_id, 2,
+     create1, data1, flags1,
+     create2, data2, flags2);
+
+   The different flags parameters must be coherent: same decision flags. They
+   must not include the perfmodel flag (not supported yet).
+*/
+void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, unsigned ndecisions, ...);
 
 /** @} */
 

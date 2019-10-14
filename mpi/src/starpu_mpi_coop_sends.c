@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  *
@@ -184,7 +184,7 @@ static int _starpu_mpi_coop_send_compatible(struct _starpu_mpi_req *req, struct 
 
 	prevreq = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
 	return /* we can cope with tag being different */
-	          prevreq->node_tag.comm == req->node_tag.comm
+	          prevreq->node_tag.node.comm == req->node_tag.node.comm
 	       && prevreq->sequential_consistency == req->sequential_consistency;
 }
 
@@ -212,7 +212,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 					tofree = coop_sends;
 				}
 				coop_sends = mpi_data->coop_sends;
-				_STARPU_MPI_DEBUG(0, "%p: add to cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.rank);
+				_STARPU_MPI_DEBUG(0, "%p: add to cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
 				_starpu_mpi_req_multilist_push_back_coop_sends(&coop_sends->reqs, req);
 				coop_sends->n++;
 				req->coop_sends_head = coop_sends;
@@ -222,7 +222,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 			else
 			{
 				/* Nope, incompatible, put ours instead */
-				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.rank);
+				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
 				mpi_data->coop_sends = coop_sends;
 				first = 1;
 				_starpu_spin_unlock(&mpi_data->coop_lock);
@@ -234,7 +234,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 		else if (coop_sends)
 		{
 			/* Nobody else and we have allocated one, we're first! */
-			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.rank);
+			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
 			mpi_data->coop_sends = coop_sends;
 			first = 1;
 			done = 1;

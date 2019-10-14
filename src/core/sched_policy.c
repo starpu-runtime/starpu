@@ -56,6 +56,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 {
 	&_starpu_sched_modular_eager_policy,
 	&_starpu_sched_modular_eager_prefetching_policy,
+	&_starpu_sched_modular_eager_prio_policy,
 	&_starpu_sched_modular_gemm_policy,
 	&_starpu_sched_modular_prio_policy,
 	&_starpu_sched_modular_prio_prefetching_policy,
@@ -69,6 +70,8 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_heft_policy,
 	&_starpu_sched_modular_heft_prio_policy,
 	&_starpu_sched_modular_heft2_policy,
+	&_starpu_sched_modular_heteroprio_policy,
+	&_starpu_sched_modular_heteroprio_heft_policy,
 	&_starpu_sched_modular_parallel_heft_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
@@ -436,6 +439,27 @@ int _starpu_repush_task(struct _starpu_job *j)
 	unsigned can_push = _starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops, task);
 	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED || task->status == STARPU_TASK_BLOCKED_ON_TAG || task->status == STARPU_TASK_BLOCKED_ON_TASK || task->status == STARPU_TASK_BLOCKED_ON_DATA);
 	task->status = STARPU_TASK_READY;
+	const unsigned continuation =
+#ifdef STARPU_OPENMP
+		j->continuation
+#else
+		0
+#endif
+		;
+	if (!j->internal && !continuation)
+	{
+		(void) STARPU_ATOMIC_ADDL(& _starpu_task__g_current_submitted__value, -1);
+		int64_t value = STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, 1);
+		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_ready__value, value);
+		if (task->cl && task->cl->perf_counter_values)
+		{
+			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
+
+			(void)STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, -1);
+			value = STARPU_ATOMIC_ADDL(&pcv->task.current_ready, 1);
+			_starpu_perf_counter_update_max_int64(&pcv->task.peak_ready, value);
+		}
+	}
 	STARPU_AYU_ADDTOTASKQUEUE(j->job_id, -1);
 	/* if the context does not have any workers save the tasks in a temp list */
 	if ((task->cl != NULL && task->where != STARPU_NOWHERE) && (!sched_ctx->is_initial_sched))
@@ -470,6 +494,15 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
+		if (!j->internal)
+		{
+			(void)STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, -1);
+			if (task->cl && task->cl->perf_counter_values)
+			{
+				struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
+				(void)STARPU_ATOMIC_ADDL(&pcv->task.current_ready, -1);
+			}
+		}
 		task->status = STARPU_TASK_RUNNING;
 		if (task->prologue_callback_pop_func)
 		{

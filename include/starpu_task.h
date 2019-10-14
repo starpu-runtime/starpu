@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2017,2019                           Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -525,6 +525,9 @@ struct starpu_codelet
 	   Various flags for the codelet.
 	 */
 	int flags;
+
+	struct starpu_perf_counter_sample *perf_counter_sample;
+	struct starpu_perf_counter_sample_cl_values *perf_counter_values;
 };
 
 /**
@@ -1167,6 +1170,9 @@ struct starpu_task
 	/**
 	   This field is managed by the scheduler, is it allowed to do
 	   whatever with it.  Typically, some area would be allocated on push, and released on pop.
+
+	   With starpu_task_insert() and alike this is set when using
+	   ::STARPU_TASK_SCHED_DATA.
 	*/
 	void *sched_data;
 };
@@ -1180,7 +1186,8 @@ struct starpu_task
    equivalent to initializing a structure starpu_task
    with the function starpu_task_init().
 */
-/* Note: remember to update starpu_task_init as well */
+/* Note: remember to update starpu_task_init and starpu_task_ft_create_retry
+ * as well */
 #define STARPU_TASK_INITIALIZER 			\
 {							\
 	.cl = NULL,					\

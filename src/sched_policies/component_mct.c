@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014,2015,2017                           CNRS
- * Copyright (C) 2013-2018                                Université de Bordeaux
+ * Copyright (C) 2013-2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 {
 	STARPU_ASSERT(component && task && starpu_sched_component_is_mct(component));
 	struct _starpu_mct_data * d = component->data;
-	struct starpu_sched_component * best_component = NULL;
+	struct starpu_sched_component * best_component;
 
 	/* Estimated task duration for each child */
 	double estimated_lengths[component->nchildren];
@@ -37,21 +37,13 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* Estimated transfer+task termination for each child */
 	double estimated_ends_with_task[component->nchildren];
 
-	unsigned i;
-	for(i=0; i < component->nchildren; i++)
-	{
-		estimated_lengths[i] = 0.0;
-		estimated_transfer_length[i] = 0.0;
-		estimated_ends_with_task[i] = 0.0;
-
-	}
 	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task = DBL_MAX;
+	double min_exp_end_with_task;
 	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task = 0.0;
+	double max_exp_end_with_task;
 
 	unsigned suitable_components[component->nchildren];
-	unsigned nsuitable_components = 0;
+	unsigned nsuitable_components;
 
 	nsuitable_components = starpu_mct_compute_execution_times(component, task,
 								  estimated_lengths, estimated_transfer_length, suitable_components);
@@ -72,27 +64,8 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
 					  estimated_ends_with_task, &min_exp_end_with_task, &max_exp_end_with_task, suitable_components, nsuitable_components);
 
-	double best_fitness = DBL_MAX;
-	int best_icomponent = -1;
-	for(i = 0; i < nsuitable_components; i++)
-	{
-		int icomponent = suitable_components[i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take energy consumption into account
-#endif
-		double tmp = starpu_mct_compute_fitness(d,
-					     estimated_ends_with_task[icomponent],
-					     min_exp_end_with_task,
-					     max_exp_end_with_task,
-					     estimated_transfer_length[icomponent],
-					     0.0);
-
-		if(tmp < best_fitness)
-		{
-			best_fitness = tmp;
-			best_icomponent = icomponent;
-		}
-	}
+	int best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
+					  estimated_ends_with_task, min_exp_end_with_task, max_exp_end_with_task, suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.
@@ -105,9 +78,6 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	}
 
 	best_component = component->children[best_icomponent];
-
-	task->predicted = estimated_lengths[best_icomponent];
-	task->predicted_transfer = estimated_transfer_length[best_icomponent];
 
 	if(starpu_sched_component_is_worker(best_component))
 	{

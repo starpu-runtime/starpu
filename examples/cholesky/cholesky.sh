@@ -16,8 +16,9 @@
 #
 
 ROOT=${0%.sh}
+[ -z "$STARPU_SCHED" ] || STARPU_SCHEDS="$STARPU_SCHED"
 #[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
-[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS="dmdas modular-heft modular-heft-prio dmdap dmdar dmda dmdasd prio lws"
+[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS="dmdas modular-heft2 modular-heft modular-heft-prio modular-heteroprio dmdap dmdar dmda dmdasd prio lws"
 [ -n "$STARPU_HOSTNAME" ] || export STARPU_HOSTNAME=mirage
 unset MALLOC_PERTURB_
 

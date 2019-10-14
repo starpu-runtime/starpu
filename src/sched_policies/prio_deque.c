@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2014                                Inria
  * Copyright (C) 2016,2017                                CNRS
- * Copyright (C) 2014,2017                                Université de Bordeaux
+ * Copyright (C) 2014,2017, 2019                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 #include <core/workers.h>
 
 #include "prio_deque.h"
+#include "fifo_queues.h"
 
 
 /* a little dirty code factorization */
@@ -78,3 +79,48 @@ struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_pri
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, _tail, next, pred_can_execute, &workerid);
 }
+
+struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_prio_deque * pdeque, unsigned workerid)
+{
+	struct starpu_task *task = NULL, *current;
+
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+
+	if (pdeque->ntasks > 0)
+	{
+		pdeque->ntasks--;
+
+		task = starpu_task_prio_list_front_highest(&pdeque->list);
+		if (STARPU_UNLIKELY(!task))
+			return NULL;
+
+		int first_task_priority = task->priority;
+		int non_ready_best = INT_MAX;
+
+		for (current = starpu_task_prio_list_begin(&pdeque->list);
+		     current != starpu_task_prio_list_end(&pdeque->list);
+		     current = starpu_task_prio_list_next(&pdeque->list, current))
+		{
+			int priority = current->priority;
+
+			if (priority >= first_task_priority)
+			{
+				int non_ready = _starpu_count_non_ready_buffers(current, workerid);
+				if (non_ready < non_ready_best)
+				{
+					non_ready_best = non_ready;
+					task = current;
+
+					if (non_ready == 0)
+						break;
+				}
+			}
+		}
+
+		starpu_task_prio_list_erase(&pdeque->list, task);
+	}
+
+	return task;
+}
+

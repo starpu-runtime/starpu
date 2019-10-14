@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017                                CNRS
- * Copyright (C) 2014,2015,2017,2018                      Université de Bordeaux
+ * Copyright (C) 2014,2015,2017,2018-2019                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,6 +48,7 @@ struct _starpu_prio_data
 	starpu_pthread_mutex_t mutex;
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
+	int ready;
 };
 
 static void prio_component_deinit_data(struct starpu_sched_component * component)
@@ -117,11 +118,10 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	else
 		exp_len = prio->exp_len;
 
-	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) &&
-			((prio->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
+	if ((data->ntasks_threshold != 0 && prio->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
 	{
 		static int warned;
-		if(task->predicted > data->exp_len_threshold && !warned)
+		if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
 		{
 			_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
 			warned = 1;
@@ -174,7 +174,7 @@ static int prio_push_task(struct starpu_sched_component * component, struct star
 	return ret;
 }
 
-static struct starpu_task * prio_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_task * prio_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
@@ -182,7 +182,11 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	struct starpu_task * task = _starpu_prio_deque_pop_task(prio);
+	struct starpu_task * task;
+	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
+		task = _starpu_prio_deque_deque_first_ready_task(prio, starpu_bitmap_first(to->workers_in_ctx));
+	else
+		task = _starpu_prio_deque_pop_task(prio);
 	if(task)
 	{
 		if(!isnan(task->predicted))
@@ -282,11 +286,13 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 	{
 		data->ntasks_threshold=params->ntasks_threshold;
 		data->exp_len_threshold=params->exp_len_threshold;
+		data->ready=params->ready;
 	}
 	else
 	{
 		data->ntasks_threshold=0;
 		data->exp_len_threshold=0.0;
+		data->ready=0;
 	}
 
 	return component;

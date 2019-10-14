@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2018                                Inria
+ * Copyright (C) 2011-2019                                Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2010-2019                                CNRS
@@ -31,6 +31,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/fxt.h>
+#include <common/knobs.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <math.h>
@@ -43,6 +44,191 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+
+/* global counters */
+static int __g_total_submitted;
+static int __g_peak_submitted;
+static int __g_peak_ready;
+
+/* global counter variables */
+int64_t _starpu_task__g_total_submitted__value;
+int64_t _starpu_task__g_peak_submitted__value;
+int64_t _starpu_task__g_current_submitted__value;
+int64_t _starpu_task__g_peak_ready__value;
+int64_t _starpu_task__g_current_ready__value;
+
+/* per-worker counters */
+static int __w_total_executed;
+static int __w_cumul_execution_time;
+
+/* per-codelet counters */
+static int __c_total_submitted;
+static int __c_peak_submitted;
+static int __c_peak_ready;
+static int __c_total_executed;
+static int __c_cumul_execution_time;
+
+/* - */
+
+/* per-scheduler knobs */
+static int __s_max_priority_cap_knob;
+static int __s_min_priority_cap_knob;
+
+/* knob variables */
+static int __s_max_priority_cap__value;
+static int __s_min_priority_cap__value;
+
+static struct starpu_perf_knob_group * __kg_starpu_task__per_scheduler;
+
+/* - */
+
+static void global_sample_updater(struct starpu_perf_counter_sample *sample, void *context)
+{
+	STARPU_ASSERT(context == NULL); /* no context for the global updater */
+	(void)context;
+
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_total_submitted, _starpu_task__g_total_submitted__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_peak_submitted, _starpu_task__g_peak_submitted__value);
+	_starpu_perf_counter_sample_set_int64_value(sample, __g_peak_ready, _starpu_task__g_peak_ready__value);
+}
+
+static void per_worker_sample_updater(struct starpu_perf_counter_sample *sample, void *context)
+{
+	STARPU_ASSERT(context != NULL);
+	struct _starpu_worker *worker = context;
+
+	_starpu_perf_counter_sample_set_int64_value(sample, __w_total_executed, worker->__w_total_executed__value);
+	_starpu_perf_counter_sample_set_double_value(sample, __w_cumul_execution_time, worker->__w_cumul_execution_time__value);
+}
+
+static void per_codelet_sample_updater(struct starpu_perf_counter_sample *sample, void *context)
+{
+	STARPU_ASSERT(sample->listener != NULL && sample->listener->set != NULL);
+	struct starpu_perf_counter_set *set = sample->listener->set;
+	STARPU_ASSERT(set->scope == starpu_perf_counter_scope_per_codelet);
+	STARPU_ASSERT(context != NULL);
+	struct starpu_codelet *cl = context;
+
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_total_submitted, cl->perf_counter_values->task.total_submitted);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_peak_submitted, cl->perf_counter_values->task.peak_submitted);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_peak_ready, cl->perf_counter_values->task.peak_ready);
+	_starpu_perf_counter_sample_set_int64_value(sample, __c_total_executed, cl->perf_counter_values->task.total_executed);
+	_starpu_perf_counter_sample_set_double_value(sample, __c_cumul_execution_time, cl->perf_counter_values->task.cumul_execution_time);
+}
+
+void _starpu__task_c__register_counters(void)
+{
+	{
+		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_global;
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_total_submitted, int64, "number of tasks submitted globally (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_submitted, int64, "maximum simultaneous number of tasks submitted and not yet ready, globally (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, g_peak_ready, int64, "maximum simultaneous number of tasks ready and not yet executing, globally (since StarPU initialization)");
+
+		_starpu_perf_counter_register_updater(scope, global_sample_updater);
+	}
+
+	{
+		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_per_worker;
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, w_total_executed, int64, "number of tasks executed on this worker (since StarPU initialization)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, w_cumul_execution_time, double, "cumulated execution time of tasks executed on this worker (microseconds, since StarPU initialization)");
+
+		_starpu_perf_counter_register_updater(scope, per_worker_sample_updater);
+	}
+
+	{
+		const enum starpu_perf_counter_scope scope = starpu_perf_counter_scope_per_codelet;
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_submitted, int64, "number of codelet's task instances submitted using this codelet (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_submitted, int64, "maximum simultaneous number of codelet's task instances submitted and not yet ready (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_peak_ready, int64, "maximum simultaneous number of codelet's task instances ready and not yet executing (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_total_executed, int64, "number of codelet's task instances executed using this codelet (since enabled)");
+		__STARPU_PERF_COUNTER_REG("starpu.task", scope, c_cumul_execution_time, double, "cumulated execution time of codelet's task instances (since enabled)");
+
+		_starpu_perf_counter_register_updater(scope, per_codelet_sample_updater);
+	}
+}
+
+/* - */
+
+static void sched_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_max_priority_cap_knob)
+	{
+		STARPU_ASSERT(value->val_int32_t <= STARPU_MAX_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= STARPU_MIN_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= __s_min_priority_cap__value);
+		__s_max_priority_cap__value = value->val_int32_t;
+	}
+	else if (knob->id == __s_min_priority_cap_knob)
+	{
+		STARPU_ASSERT(value->val_int32_t <= STARPU_MAX_PRIO);
+		STARPU_ASSERT(value->val_int32_t >= STARPU_MIN_PRIO);
+		STARPU_ASSERT(value->val_int32_t <= __s_max_priority_cap__value);
+		__s_min_priority_cap__value = value->val_int32_t;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+static void sched_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+{
+	const char * const sched_policy_name = *(const char **)context;
+	(void) sched_policy_name;
+	if (knob->id == __s_max_priority_cap_knob)
+	{
+		value->val_int32_t = __s_max_priority_cap__value;
+	}
+	else if (knob->id == __s_min_priority_cap_knob)
+	{
+		value->val_int32_t = __s_min_priority_cap__value;
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+		abort();
+	}
+}
+
+void _starpu__task_c__register_knobs(void)
+{
+#if 0
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_global;
+		__kg_starpu_global = _starpu_perf_knob_group_register(scope, global_knobs__set, global_knobs__get);
+	}
+#endif
+
+#if 0
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_worker;
+		__kg_starpu_worker__per_worker = _starpu_perf_knob_group_register(scope, worker_knobs__set, worker_knobs__get);
+	}
+#endif
+
+	{
+		const enum starpu_perf_knob_scope scope = starpu_perf_knob_scope_per_scheduler;
+		__kg_starpu_task__per_scheduler = _starpu_perf_knob_group_register(scope, sched_knobs__set, sched_knobs__get);
+
+		/* TODO: priority capping knobs actually work globally for now, the sched policy name is ignored */
+		__STARPU_PERF_KNOB_REG("starpu.task", __kg_starpu_task__per_scheduler, s_max_priority_cap_knob, int32, "force task priority to this value or below (priority value)");
+		__s_max_priority_cap__value = STARPU_MAX_PRIO;
+
+		__STARPU_PERF_KNOB_REG("starpu.task", __kg_starpu_task__per_scheduler, s_min_priority_cap_knob, int32, "force task priority to this value or above (priority value)");
+		__s_min_priority_cap__value = STARPU_MIN_PRIO;
+	}
+}
+
+void _starpu__task_c__unregister_knobs(void)
+{
+	_starpu_perf_knob_group_unregister(__kg_starpu_task__per_scheduler);
+	__kg_starpu_task__per_scheduler = NULL;
+}
+
+/* - */
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -250,6 +436,7 @@ int starpu_task_wait(struct starpu_task *task)
 	if (task->destroy)
 		_starpu_task_destroy(task);
 
+	_starpu_perf_counter_update_global_sample();
 	_STARPU_TRACE_TASK_WAIT_END();
         _STARPU_LOG_OUT();
 	return 0;
@@ -643,6 +830,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
 
 	int ret;
+	{
+		/* task knobs */
+		if (task->priority > __s_max_priority_cap__value)
+			task->priority = __s_max_priority_cap__value;
+		if (task->priority < __s_min_priority_cap__value)
+			task->priority = __s_min_priority_cap__value;
+	}
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
 	STARPU_ASSERT_MSG(!(nodeps && bundle), "not supported\n");
@@ -657,6 +851,23 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		0
 #endif
 		;
+	if (!j->internal && !continuation)
+	{
+		(void) STARPU_ATOMIC_ADDL(&_starpu_task__g_total_submitted__value, 1);
+		int64_t value = STARPU_ATOMIC_ADDL(&_starpu_task__g_current_submitted__value, 1);
+		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_submitted__value, value);
+		_starpu_perf_counter_update_global_sample();
+
+		if (task->cl && task->cl->perf_counter_values)
+		{
+			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
+
+			(void) STARPU_ATOMIC_ADD(&pcv->task.total_submitted, 1);
+			value = STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, 1);
+			_starpu_perf_counter_update_max_int64(&pcv->task.peak_submitted, value);
+			_starpu_perf_counter_update_per_codelet_sample(task->cl);
+		}
+	}
 	STARPU_ASSERT_MSG(!(nodeps && continuation), "not supported\n");
 
 	if (!j->internal)
@@ -918,6 +1129,7 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 int starpu_task_wait_for_all(void)
 {
 	_starpu_task_wait_for_all_and_return_nb_waited_tasks();
+	_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -934,6 +1146,7 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
 	_starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx);
+	_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -969,13 +1182,13 @@ int starpu_task_wait_for_n_submitted(unsigned n)
 			}
 		}
 
-		return 0;
 	}
 	else
 	{
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
 		_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx_id, n);
 	}
+	_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -983,6 +1196,7 @@ int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n)
 {
 	_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx, n);
 
+	_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 /*
@@ -1018,6 +1232,7 @@ int starpu_task_wait_for_no_ready(void)
 		}
 	}
 
+	_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1394,6 +1609,8 @@ struct starpu_task *starpu_task_ft_create_retry
 	new_task->regenerate = 0;
 	new_task->no_submitorder = 1;
 	new_task->failed = 0;
+	new_task->scheduled = 0;
+	new_task->prefetched = 0;
 	new_task->status = STARPU_TASK_INVALID;
 	new_task->profiling_info = NULL;
 	new_task->prev = NULL;

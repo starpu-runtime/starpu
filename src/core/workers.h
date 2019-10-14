@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2017,2019                           Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -43,6 +43,7 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
+#include <common/knobs.h>
 
 #include <core/drivers.h>
 #include <drivers/cuda/driver_cuda.h>
@@ -197,6 +198,13 @@ LIST_TYPE(_starpu_worker,
 	hwloc_bitmap_t hwloc_cpu_set;
 	hwloc_obj_t hwloc_obj;
 #endif
+
+	struct starpu_perf_counter_sample perf_counter_sample;
+	int64_t __w_total_executed__value;
+	double __w_cumul_execution_time__value;
+
+	int enable_knob;
+	int bindid_requested;
 );
 
 struct _starpu_combined_worker
@@ -343,6 +351,7 @@ struct _starpu_machine_topology
 	/** unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
 
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
+
 };
 
 struct _starpu_machine_config
@@ -1167,6 +1176,9 @@ int starpu_wake_worker_relax_light(int workerid);
  *  send it back to the scheduler.
  */
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task);
+
+void _starpu_set_catch_signals(int do_catch_signal);
+int _starpu_get_catch_signals(void);
 
 /* @}*/
 

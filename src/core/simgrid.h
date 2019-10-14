@@ -67,7 +67,11 @@ starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
 struct _starpu_worker;
 starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
+#if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+sg_netzone_t _starpu_simgrid_get_as_by_name(const char *name);
+#else
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
+#endif
 #pragma weak starpu_mpi_world_rank
 extern int starpu_mpi_world_rank(void);
 #pragma weak _starpu_mpi_simgrid_init

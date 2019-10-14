@@ -221,19 +221,23 @@ if test x$enable_simgrid = xyes ; then
 	if test x$enable_shared = xno ; then
 		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
 		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
-		LDFLAGS="$LDFLAGS -lstdc++"
+		LIBS="$LIBS -lstdc++"
 	fi
 
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifdef HAVE_SIMGRID_MSG_H
-			  #include <simgrid/msg.h>
-			  #include <simgrid/host.h>
-			  #else
-			  #include <msg/msg.h>
-			  #endif
-			  ]])],,
-			  CXXFLAGS="-std=c++11 $CXXFLAGS"
-			  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
+	case \ $CXXFLAGS\  in 
+	*\ -std=*\ *) ;;
+	*) 
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
+				  #include <simgrid/msg.h>
+				  #include <simgrid/host.h>
+				  #else
+				  #include <msg/msg.h>
+				  #endif
+				  ]])],,
+				  CXXFLAGS="-std=c++11 $CXXFLAGS")
+		;;
+	esac
 	AC_LANG_POP([C++])
 	AC_ARG_ENABLE(simgrid-mc, [AS_HELP_STRING([--enable-simgrid-mc],
 				[Enable using Model Checker of simgrid])],
@@ -604,8 +608,14 @@ if test x$enable_simgrid = xno ; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
-if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes -a x$enable_shared = xyes ; then
-    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes ; then
+    if test x$enable_shared = xyes ; then
+	AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+    else
+	CFLAGS="$CFLAGS -fPIC"
+	CXXFLAGS="$CXXFLAGS -fPIC"
+	NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
+    fi
 fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
@@ -1322,6 +1332,25 @@ if test x$enable_cuda = xyes; then
 #	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
+
+	AC_LANG_PUSH([C++])
+	case \ $NVCCFLAGS\  in 
+	*\ -std=*\ *) ;;
+	*) 
+		SAVED_CXX="$CXX"
+		CXX="$NVCC"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
+				  #include <simgrid/msg.h>
+				  #include <simgrid/host.h>
+				  #else
+				  #include <msg/msg.h>
+				  #endif
+				  ]])],,
+				  NVCCFLAGS="-std=c++11 $NVCCFLAGS")
+		CXX="$SAVED_CXX"
+	esac
+	AC_LANG_POP([C++])
 
         if test "$F77" = "gfortran" -o "$FC" = "gfortran" ; then
             STARPU_CUDA_FORTRAN_LDFLAGS="-lgfortran"

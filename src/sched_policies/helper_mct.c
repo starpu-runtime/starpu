@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2014-2017, 2019                          CNRS
- * Copyright (C) 2013,2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2013,2014,2016,2017,2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 #include <starpu_sched_component.h>
 #include "helper_mct.h"
+#include <float.h>
 
 /* Alpha, Beta and Gamma are MCT-specific values, which allows the
  * user to set more precisely the weight of each computing value.
@@ -99,6 +100,11 @@ unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *compo
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];
+
+		/* Silence static analysis warnings */
+		estimated_lengths[i] = NAN;
+		estimated_transfer_length[i] = NAN;
+
 		if(starpu_sched_component_execute_preds(c, task, estimated_lengths + i))
 		{
 			if(isnan(estimated_lengths[i]))
@@ -120,6 +126,8 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 {
 	unsigned i;
 	double now = starpu_timing_now();
+	*min_exp_end_with_task = DBL_MAX;
+	*max_exp_end_with_task = 0.0;
 	for(i = 0; i < nsuitable_components; i++)
 	{
 		unsigned icomponent = suitable_components[i];
@@ -137,4 +145,39 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		if(estimated_ends_with_task[icomponent] > *max_exp_end_with_task)
 			*max_exp_end_with_task = estimated_ends_with_task[icomponent];
 	}
+}
+
+int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task *task, double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task, double min_exp_end_with_task, double max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components)
+{
+	double best_fitness = DBL_MAX;
+	int best_icomponent = -1;
+	unsigned i;
+
+	for(i = 0; i < nsuitable_components; i++)
+	{
+		int icomponent = suitable_components[i];
+#ifdef STARPU_DEVEL
+#warning FIXME: take energy consumption into account
+#endif
+		double tmp = starpu_mct_compute_fitness(d,
+					     estimated_ends_with_task[icomponent],
+					     min_exp_end_with_task,
+					     max_exp_end_with_task,
+					     estimated_transfer_length[icomponent],
+					     0.0);
+
+		if(tmp < best_fitness)
+		{
+			best_fitness = tmp;
+			best_icomponent = icomponent;
+		}
+	}
+
+	if (best_icomponent != -1)
+	{
+		task->predicted = estimated_lengths[best_icomponent];
+		task->predicted_transfer = estimated_transfer_length[best_icomponent];
+	}
+
+	return best_icomponent;
 }

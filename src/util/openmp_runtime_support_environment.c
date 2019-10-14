@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2014-2017, 2019                          CNRS
  * Copyright (C) 2014,2016                                Inria
- * Copyright (C) 2015-2017                                Université de Bordeaux
+ * Copyright (C) 2015-2017, 2019                          Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,16 +127,22 @@ static int read_int_var(const char *str, int *dst)
 {
 	char *endptr;
 	int val;
+	long lval;
 
 	if (!str)
 		return 0;
 
 	errno = 0; /* To distinguish success/failure after call */
-	val = (int)strtol(str, &endptr, 10);
+	lval = strtol(str, &endptr, 10);
 
 	/* Check for various possible errors */
-	if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
+	if ((errno == ERANGE && (lval == LONG_MAX || lval == LONG_MIN)) || (errno != 0 && lval == 0))
 		return 0;
+
+	if (lval < INT_MIN || lval > INT_MAX)
+		return 0;
+
+	val = (int) lval;
 
 	/* No digits were found. */
 	if (str == endptr)

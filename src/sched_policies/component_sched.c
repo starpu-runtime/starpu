@@ -153,7 +153,7 @@ double starpu_sched_component_transfer_length(struct starpu_sched_component * co
 void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	if (starpu_get_prefetch_flag() && (!task->prefetched)
-		&& (component->properties >= STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE))
+		&& (component->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE))
 	{
 		int worker = starpu_bitmap_first(component->workers_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -562,7 +562,7 @@ static void starpu_sched_component_remove_parent(struct starpu_sched_component *
 /* default implementation for component->pull_task()
  * just perform a recursive call on parent
  */
-static struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;

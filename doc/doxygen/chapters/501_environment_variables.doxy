@@ -520,6 +520,15 @@ the coefficient to be applied to it before adding it to the computation part.
 Define the execution time penalty of a joule (\ref Energy-basedScheduling).
 </dd>
 
+<dt>STARPU_SCHED_READY</dt>
+<dd>
+\anchor STARPU_SCHED_READY
+\addindex __env__STARPU_SCHED_READY
+For a modular scheduler with sorted queues below the decision component, workers
+pick up a task which has most of its data already available. Setting this to 0
+disables this.
+</dd>
+
 <dt>STARPU_IDLE_POWER</dt>
 <dd>
 \anchor STARPU_IDLE_POWER
