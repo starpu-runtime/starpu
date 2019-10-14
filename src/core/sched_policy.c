@@ -448,15 +448,15 @@ int _starpu_repush_task(struct _starpu_job *j)
 		;
 	if (!j->internal && !continuation)
 	{
-		(void) STARPU_ATOMIC_ADDL(& _starpu_task__g_current_submitted__value, -1);
-		int64_t value = STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, 1);
+		(void) STARPU_ATOMIC_ADD64(& _starpu_task__g_current_submitted__value, -1);
+		int64_t value = STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, 1);
 		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_ready__value, value);
 		if (task->cl && task->cl->perf_counter_values)
 		{
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
-			(void)STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, -1);
-			value = STARPU_ATOMIC_ADDL(&pcv->task.current_ready, 1);
+			(void)STARPU_ATOMIC_ADD64(&pcv->task.current_submitted, -1);
+			value = STARPU_ATOMIC_ADD64(&pcv->task.current_ready, 1);
 			_starpu_perf_counter_update_max_int64(&pcv->task.peak_ready, value);
 		}
 	}
@@ -496,11 +496,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		if (!j->internal)
 		{
-			(void)STARPU_ATOMIC_ADDL(& _starpu_task__g_current_ready__value, -1);
+			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)
 			{
 				struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
-				(void)STARPU_ATOMIC_ADDL(&pcv->task.current_ready, -1);
+				(void)STARPU_ATOMIC_ADD64(&pcv->task.current_ready, -1);
 			}
 		}
 		task->status = STARPU_TASK_RUNNING;
