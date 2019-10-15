@@ -251,7 +251,10 @@ static starpu_ssize_t data_describe(void *data_interface, char *buf, size_t size
 {
 	struct starpu_my_data_interface *my_data = (struct starpu_my_data_interface *) data_interface;
 	struct starpu_my_data *data = (struct starpu_my_data *)my_data->ptr;
-	return snprintf(buf, size, "Data%d-%c", data->d, data->c);
+	if (data)
+		return snprintf(buf, size, "Data%d-%c", data->d, data->c);
+	else
+		return snprintf(buf, size, "DataUNKNOWN");
 }
 
 static void *data_to_pointer(void *data_interface, unsigned node)
