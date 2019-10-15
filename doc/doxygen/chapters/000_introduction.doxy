@@ -79,6 +79,11 @@ policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
 
 The remainder of this section describes the main concepts used in StarPU.
 
+A video is available on the StarPU website
+http://starpu.gforge.inria.fr/ that presents these concepts in 26 minutes.
+
+Some tutorials are also available on http://starpu.gforge.inria.fr/tutorials/
+
 // explain the notion of codelet and task (i.e. g(A, B)
 
 \subsection CodeletAndTasks Codelet and Tasks
