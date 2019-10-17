@@ -226,6 +226,7 @@ void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned co
 	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
 	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
 	j->job_successors.ndeps = 0;
+	j->job_successors.ndeps_completed = 0;
 }
 /* Prepare a currently running job for accepting a new set of
  * dependencies in anticipation of becoming a continuation. */
@@ -348,6 +349,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif
 	{
 		task->status = STARPU_TASK_FINISHED;
+
+		/* already prepare for next run */
+		struct _starpu_cg_list *job_successors = &j->job_successors;
+		job_successors->ndeps_completed = 0;
 
 		/* We must have set the j->terminated flag early, so that it is
 		 * possible to express task dependencies within the callback
@@ -652,8 +657,6 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	else
 	{
 		/* existing deps (if any) are fulfilled */
-		/* already prepare for next run */
-		job_successors->ndeps_completed = 0;
 		ret = 0;
 	}
 
