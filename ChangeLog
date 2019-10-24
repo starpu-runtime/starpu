@@ -47,6 +47,7 @@ New features:
   * Add STARPU_TASK_SCHED_DATA
   * Add support for staging schedulers.
   * New modular-heteroprio-heft scheduler.
+  * New dmdap "data-aware performance model (priority)" scheduler
 
 Changes:
   * Modification in the Native Fortran interface of the functions
@@ -64,6 +65,15 @@ Small features:
   * New function starpu_create_callback_task() which creates and
     submits an empty task with the specified callback
 
+
+Small changes:
+   * Default modular worker queues to 2 tasks unless it's an heft
+     scheduler
+   * Separate out STATUS_SLEEPING_SCHEDULING state from
+     STATUS_SLEEPING state
+     When running the scheduler while being idle, workers do not go in
+     the STATUS_SCHEDULING state, so that that time is considered as
+     idle time instead of overhead.
 
 StarPU 1.3.2 (git revision af22a20fc00a37addf3cc6506305f89feed940b0)
 ==============================================
