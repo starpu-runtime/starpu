@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014                                     Inria
- * Copyright (C) 2014-2017                                CNRS
+ * Copyright (C) 2014,2015                                Inria
+ * Copyright (C) 2014-2017, 2019                          CNRS
  * Copyright (C) 2014,2016                                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -108,6 +108,8 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 	struct starpu_tree *father = node == NULL ? tree : node->father;
 
 	int st, n;
+
+	if (father == NULL) return NULL;
 
 	for(st = 0; st < father->arity; st++)
 	{
