@@ -29,6 +29,8 @@ distdir:
 
 check:
 	echo "No checks are implemented for min-dgels"
+recheck:
+	echo "No checks are implemented for min-dgels"
 
 showcheck: check
 
