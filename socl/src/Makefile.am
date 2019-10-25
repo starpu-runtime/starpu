@@ -15,7 +15,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
 
 CLEANFILES = *.gcno *.gcda
 
@@ -136,3 +135,10 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_geteventprofilinginfo.c \
   cl_getextensionfunctionaddress.c \
   cl_icdgetplatformidskhr.c
+
+recheck:
+	-cat /dev/null
+showcheck:
+	-cat /dev/null
+showsuite:
+	-cat /dev/null
