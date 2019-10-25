@@ -109,8 +109,9 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	load_balancer/policy/load_heat_propagation.c	\
 	load_balancer/load_balancer.c
 
+recheck:
+	-cat /dev/null
 showcheck:
 	-cat /dev/null
-
 showsuite:
 	-cat /dev/null

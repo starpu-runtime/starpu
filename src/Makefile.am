@@ -410,6 +410,8 @@ dist-hook:
 	done ; \
 	[ $$failed == 0 ]
 
+recheck:
+	-cat /dev/null
 showcheck:
 	-cat /dev/null
 showsuite:
