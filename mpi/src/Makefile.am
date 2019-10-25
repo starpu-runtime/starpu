@@ -91,8 +91,9 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_fortran.c				\
 	starpu_mpi_task_insert_fortran.c
 
+recheck:
+	-cat /dev/null
 showcheck:
 	-cat /dev/null
-
 showsuite:
 	-cat /dev/null

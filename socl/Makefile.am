@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2012                                Inria
-# Copyright (C) 2012-2013,2015,2017,2018                 CNRS
+# Copyright (C) 2012-2013,2015,2017,2018,2019            CNRS
 # Copyright (C) 2013,2015                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+include $(top_srcdir)/starpu.mk
+
 SUBDIRS = src examples
 
 EXTRA_DIST = README
@@ -22,16 +24,9 @@ EXTRA_DIST = README
 SOCL_vendorsdir = @datarootdir@/starpu/opencl/vendors
 dist_SOCL_vendors_DATA = @SOCL_VENDORS@
 
-showcheck:
+recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
+		make -C $$i recheck || RET=1 ; \
 	done ; \
 	exit $$RET

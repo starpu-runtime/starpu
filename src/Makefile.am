@@ -352,6 +352,8 @@ endif
 
 #########################################
 
+recheck:
+	-cat /dev/null
 showcheck:
 	-cat /dev/null
 showsuite:
