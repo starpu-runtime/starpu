@@ -1197,6 +1197,12 @@ struct starpu_tree* starpu_workers_get_tree(void)
 	return _starpu_config.topology.tree;
 }
 
+#if HWLOC_API_VERSION >= 0x20000
+#define NORMAL_CHILD(obj) 1
+#else
+#define NORMAL_CHILD(obj) ((obj)->type < HWLOC_OBJ_BRIDGE)
+#endif
+
 #ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
@@ -1209,23 +1215,26 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 		return;
 	}
 	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
+#if HWLOC_API_VERSION >= 0x20000
+	arity = curr_obj->arity;
+#else
 	arity = 0;
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-		hwloc_obj_t child = curr_obj->children[i];
-		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
+		if (!NORMAL_CHILD(curr_obj->children[i]))
 			/* I/O stuff, stop caring */
-			continue;
+			break;
 		arity++;
 	}
+#endif
 	starpu_tree_prepare_children(arity, tree);
 	j = 0;
 	for(i = 0; i < arity; i++)
 	{
 		hwloc_obj_t child = curr_obj->children[i];
-		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
+		if (!NORMAL_CHILD(child))
 			/* I/O stuff, stop caring */
-			continue;
+			break;
 #if 0
 		char string[128];
 		hwloc_obj_snprintf(string, sizeof(string), topology, child, "#", 0);
