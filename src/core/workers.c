@@ -1034,13 +1034,6 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 {
 	unsigned i, j;
 	unsigned arity;
-	if (curr_obj->arity == 1)
-	{
-		/* Nothing interestin here, skip level */
-		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
-		return;
-	}
-	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
 #if HWLOC_API_VERSION >= 0x20000
 	arity = curr_obj->arity;
 #else
@@ -1053,13 +1046,22 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 		arity++;
 	}
 #endif
+
+	if (arity == 1)
+	{
+		/* Nothing interestin here, skip level */
+		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
+		return;
+	}
+
+	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, arity, father);
 	starpu_tree_prepare_children(arity, tree);
 	j = 0;
 	for(i = 0; i < arity; i++)
 	{
 		hwloc_obj_t child = curr_obj->children[i];
 		if (!NORMAL_CHILD(child))
-			/* I/O stuff, stop caring */
+			/* I/O stuff, stop caring (shouldn't happen, though) */
 			break;
 #if 0
 		char string[128];
