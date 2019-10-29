@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012                                     Inria
 # Copyright (C) 2012,2015                                CNRS
-# Copyright (C) 2014                                     Université de Bordeaux
+# Copyright (C) 2014,2019                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -95,6 +95,71 @@ AC_DEFUN([STARPU_CHECK_SYNC_LOCK_TEST_AND_SET], [
   if test $ac_cv_have_sync_lock_test_and_set = yes; then
     AC_DEFINE(STARPU_HAVE_SYNC_LOCK_TEST_AND_SET, 1,
 	      [Define to 1 if the target supports __sync_lock_test_and_set])
+  fi])
+
+dnl Check whether the target supports __atomic_compare_exchange_n.
+AC_DEFUN([STARPU_CHECK_ATOMIC_COMPARE_EXCHANGE_N], [
+  AC_CACHE_CHECK([whether the target supports __atomic_compare_exchange_n],
+		 ac_cv_have_atomic_compare_exchange_n, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar, baz;],
+			[baz = __atomic_compare_exchange_n(&foo, &bar, 1, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_compare_exchange_n=yes],
+			[ac_cv_have_atomic_compare_exchange_n=no])])
+  if test $ac_cv_have_atomic_compare_exchange_n = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_COMPARE_EXCHANGE_N, 1,
+	      [Define to 1 if the target supports __atomic_compare_exchange_n])
+  fi])
+
+dnl Check whether the target supports __atomic_exchange_n.
+AC_DEFUN([STARPU_CHECK_ATOMIC_EXCHANGE_N], [
+  AC_CACHE_CHECK([whether the target supports __atomic_exchange_n],
+		 ac_cv_have_atomic_exchange_n, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar;],
+			[bar = __atomic_exchange_n(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_exchange_n=yes],
+			[ac_cv_have_atomic_exchange_n=no])])
+  if test $ac_cv_have_atomic_exchange_n = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_EXCHANGE_N, 1,
+	      [Define to 1 if the target supports __atomic_exchange_n])
+  fi])
+
+dnl Check whether the target supports __atomic_fetch_add.
+AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_ADD], [
+  AC_CACHE_CHECK([whether the target supports __atomic_fetch_add],
+		 ac_cv_have_atomic_fetch_add, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar;],
+			[bar = __atomic_fetch_add(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_fetch_add=yes],
+			[ac_cv_have_atomic_fetch_add=no])])
+  if test $ac_cv_have_atomic_fetch_add = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_FETCH_ADD, 1,
+	      [Define to 1 if the target supports __atomic_fetch_add])
+  fi])
+
+dnl Check whether the target supports __atomic_fetch_or.
+AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_OR], [
+  AC_CACHE_CHECK([whether the target supports __atomic_fetch_or],
+		 ac_cv_have_atomic_fetch_or, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar;],
+			[bar = __atomic_fetch_or(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_fetch_or=yes],
+			[ac_cv_have_atomic_fetch_or=no])])
+  if test $ac_cv_have_atomic_fetch_or = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_FETCH_OR, 1,
+	      [Define to 1 if the target supports __atomic_fetch_or])
+  fi])
+
+dnl Check whether the target supports __atomic_test_and_set.
+AC_DEFUN([STARPU_CHECK_ATOMIC_TEST_AND_SET], [
+  AC_CACHE_CHECK([whether the target supports __atomic_test_and_set],
+		 ac_cv_have_atomic_test_and_set, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar;],
+			[bar = __atomic_test_and_set(&foo, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_test_and_set=yes],
+			[ac_cv_have_atomic_test_and_set=no])])
+  if test $ac_cv_have_atomic_test_and_set = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_TEST_AND_SET, 1,
+	      [Define to 1 if the target supports __atomic_test_and_set])
   fi])
 
 dnl Check whether the target supports __sync_synchronize.

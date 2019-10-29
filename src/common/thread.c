@@ -693,7 +693,7 @@ int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock)
 	while (1)
 	{
 		/* Tell releaser to wake us */
-		unsigned prev = starpu_xchg(&lock->taken, 2);
+		unsigned prev = STARPU_VAL_EXCHANGE(&lock->taken, 2);
 		if (prev == 0)
 			/* Ah, it just got released and we actually acquired
 			 * it!

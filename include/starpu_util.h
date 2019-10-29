@@ -199,12 +199,12 @@ extern "C"
 
 #if defined(__i386__) || defined(__x86_64__)
 
-static __starpu_inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+static __starpu_inline unsigned _starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+static __starpu_inline unsigned _starpu_xchg(unsigned *ptr, unsigned next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -213,12 +213,12 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 #define STARPU_HAVE_XCHG
 
 #if defined(__i386__)
-static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+static __starpu_inline unsigned long _starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+static __starpu_inline unsigned long _starpu_xchgl(unsigned long *ptr, unsigned long next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -228,12 +228,12 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 #endif
 
 #if defined(__x86_64__)
-static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+static __starpu_inline unsigned long _starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
 	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+static __starpu_inline unsigned long _starpu_xchgl(unsigned long *ptr, unsigned long next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -252,7 +252,7 @@ static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned val
 	{ \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchg(ptr, old, next) == old) \
+		if (_starpu_cmpxchg(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
@@ -265,7 +265,7 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 	{ \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchgl(ptr, old, next) == old) \
+		if (_starpu_cmpxchgl(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
@@ -302,21 +302,29 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
-#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
+#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)) == (old))
 #endif
 
 #ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_val_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
-#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
+#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)))
+#endif
+
+#ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
+#define STARPU_VAL_EXCHANGE(ptr, value) (__atomic_exchange_n((ptr), (value), __ATOMIC_SEQ_CST))
+#else
+#ifdef STARPU_HAVE_XCHG
+#define STARPU_VAL_EXCHANGE(ptr, value) (_starpu_xchg((ptr), (value)))
+#endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
 #define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
 #define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))
 #elif defined(STARPU_HAVE_XCHG)
-#define STARPU_TEST_AND_SET(ptr, value) (starpu_xchg((ptr), (value)))
-#define STARPU_RELEASE(ptr) (starpu_xchg((ptr), 0))
+#define STARPU_TEST_AND_SET(ptr, value) (_starpu_xchg((ptr), (value)))
+#define STARPU_RELEASE(ptr) (_starpu_xchg((ptr), 0))
 #endif
 
 #ifdef STARPU_HAVE_SYNC_SYNCHRONIZE
