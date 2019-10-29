@@ -45,7 +45,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		typedef unsigned __attribute__((__may_alias__)) alias_unsigned;
 		typedef int __attribute__((__may_alias__)) alias_int;
 
-		unsigned raw_bindid_requested = starpu_xchg((alias_unsigned *)&worker->bindid_requested, -1);
+		unsigned raw_bindid_requested = STARPU_VAL_EXCHANGE((alias_unsigned *)&worker->bindid_requested, -1);
 		int bindid_requested = *(alias_int *)&raw_bindid_requested;
 
 		if (bindid_requested != -1)
