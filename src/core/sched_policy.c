@@ -583,7 +583,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		/* When a task can only be executed on a given arch and we have
 		 * only one memory node for that arch, we can systematically
 		 * prefetch before the scheduling decision. */
-		if (starpu_get_prefetch_flag())
+		if (starpu_get_prefetch_flag() && starpu_memory_nodes_get_count() > 1)
 		{
 			if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
