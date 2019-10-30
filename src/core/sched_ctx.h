@@ -233,8 +233,8 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
  * id set by its last call, or the id of the initial context */
 unsigned _starpu_sched_ctx_get_current_context();
 
-/* verify how many workers can execute a certain task */
-int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);
+/* verify that some worker can execute a certain task */
+int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);
 
 void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 

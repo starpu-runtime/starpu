@@ -1137,8 +1137,8 @@ static void fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx)
 
 		/* if no workers are able to execute the task, it will be put
 		 * in the empty_ctx_tasks list forever again */
-		unsigned nworkers = _starpu_nworkers_able_to_execute_task(old_task, sched_ctx);
-		STARPU_ASSERT(nworkers > 0);
+		unsigned able = _starpu_workers_able_to_execute_task(old_task, sched_ctx);
+		STARPU_ASSERT(able);
 
 		int ret =  _starpu_push_task_to_workers(old_task);
 		/* if we should stop poping from empty ctx tasks */
@@ -1421,9 +1421,9 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, unsigned nworkers_t
 	}
 }
 
-int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
+int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
 {
-	unsigned nworkers = 0;
+	unsigned able = 0;
 
 	_starpu_sched_ctx_lock_read(sched_ctx->id);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
@@ -1436,11 +1436,14 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 		unsigned worker = workers->get_next(workers, &it);
 		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %u", worker);
 		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
-			nworkers++;
+		{
+			able++;
+			break;
+		}
 	}
 	_starpu_sched_ctx_unlock_read(sched_ctx->id);
 
-	return nworkers;
+	return able;
 }
 
 /* unused sched_ctx have the id STARPU_NMAX_SCHED_CTXS */
