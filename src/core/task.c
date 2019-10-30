@@ -587,7 +587,10 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	if (!cl)
 		return;
 	if (cl->checked)
+	{
+		STARPU_RMB();
 		return;
+	}
 
 	uint32_t where = cl->where;
 	int is_where_unset = where == 0;
@@ -714,6 +717,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 	cl->where = where;
 
+	STARPU_WMB();
 	cl->checked = 1;
 }
 
