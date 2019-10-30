@@ -65,7 +65,7 @@ void c_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_
 	int64_t c_peak_ready = starpu_perf_counter_sample_get_int64_value(sample, id_c_peak_ready);
 	int64_t c_total_executed = starpu_perf_counter_sample_get_int64_value(sample, id_c_total_executed);
 	double c_cumul_execution_time = starpu_perf_counter_sample_get_double_value(sample, id_c_cumul_execution_time);
-	if (cl->name == NULL)
+	if (cl->name != NULL)
 	{
 		printf("codelet[%s]: c_total_submitted = %ld, c_peak_submitted = %ld, c_peak_ready = %ld, c_total_executed = %ld, c_cumul_execution_time = %lf\n", cl->name, c_total_submitted, c_peak_submitted, c_peak_ready, c_total_executed, c_cumul_execution_time);
 	}
