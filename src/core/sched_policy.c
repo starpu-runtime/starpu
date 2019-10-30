@@ -445,9 +445,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */
-		unsigned nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+		unsigned able = _starpu_workers_able_to_execute_task(task, sched_ctx);
 
-		if(nworkers == 0)
+		if(!able)
 		{
 			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
@@ -506,7 +506,6 @@ int _starpu_repush_task(struct _starpu_job *j)
 int _starpu_push_task_to_workers(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	unsigned nworkers = 0;
 
 	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 
@@ -516,9 +515,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	{
 		/*if there are workers in the ctx that are not able to execute tasks
 		  we consider the ctx empty */
-		nworkers = _starpu_nworkers_able_to_execute_task(task, sched_ctx);
+		unsigned able = _starpu_workers_able_to_execute_task(task, sched_ctx);
 
-		if (nworkers == 0)
+		if (!able)
 		{
 			_starpu_sched_ctx_lock_write(sched_ctx->id);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
@@ -610,7 +609,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		{
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 			/* check out if there are any workers in the context */
-			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
+			unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 			if (nworkers == 0)
 				ret = -1;
 			else
