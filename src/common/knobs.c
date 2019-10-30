@@ -462,6 +462,9 @@ void _starpu_perf_counter_register_updater(enum starpu_perf_counter_scope scope,
 
 static void update_sample(struct starpu_perf_counter_sample *sample, void *context)
 {
+	if (sample->listener == NULL)
+		return;
+
 	_starpu_spin_lock(&sample->lock);
 	struct perf_counter_array *counters = _get_counters(sample->scope);
 
