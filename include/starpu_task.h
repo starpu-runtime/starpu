@@ -528,6 +528,11 @@ struct starpu_codelet
 
 	struct starpu_perf_counter_sample *perf_counter_sample;
 	struct starpu_perf_counter_sample_cl_values *perf_counter_values;
+
+	/**
+	   Whether _starpu_codelet_check_deprecated_fields was already done or not.
+	 */
+	int checked;
 };
 
 /**
