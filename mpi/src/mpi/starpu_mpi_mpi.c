@@ -1150,7 +1150,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
-	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+#ifndef HAVE_SG_ACTOR_DATA
 	/* And set TSD for us */
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
@@ -1159,6 +1160,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
 	}
 	smpi_process_set_user_data(tsd);
+#endif
         /* And wait for StarPU to get initialized, to come back to the same
          * situation as native execution where that's always the case. */
 	starpu_wait_initialized();

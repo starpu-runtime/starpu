@@ -86,7 +86,11 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 		host = MSG_get_host_by_name("MAIN");
 #endif
 	void *tsd;
+#ifdef HAVE_SG_ACTOR_DATA
+	tsd = NULL;
+#else
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+#endif
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
 #  ifdef HAVE_SG_ACTOR_REF
@@ -300,6 +304,13 @@ extern void *smpi_process_get_user_data();
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
+#ifdef HAVE_SG_ACTOR_DATA
+	array = sg_actor_data(sg_actor_self());
+	if (!array) {
+		_STARPU_CALLOC(array, MAX_TSD + 1, sizeof(void*));
+		sg_actor_data_set(sg_actor_self(), array);
+	}
+#else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
@@ -316,6 +327,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 	else
 #endif
 		array = MSG_process_get_data(MSG_process_self());
+#endif
 	array[key] = (void*) pointer;
 	return 0;
 }
@@ -323,6 +335,9 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
+#ifdef HAVE_SG_ACTOR_DATA
+	array = sg_actor_data(sg_actor_self());
+#else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
@@ -339,6 +354,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 	else
 #endif
 		array = MSG_process_get_data(MSG_process_self());
+#endif
 	if (!array)
 		return NULL;
 	return array[key];
