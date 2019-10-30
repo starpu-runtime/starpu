@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015  Université de Bordeaux
+ * Copyright (C) 2010-2015, 2019  Université de Bordeaux
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -443,7 +443,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		/* When a task can only be executed on a given arch and we have
 		 * only one memory node for that arch, we can systematically
 		 * prefetch before the scheduling decision. */
-		if (starpu_get_prefetch_flag()) {
+		if (starpu_get_prefetch_flag() && starpu_memory_nodes_get_count() > 1) {
 			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
 			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
