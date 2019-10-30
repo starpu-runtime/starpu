@@ -525,6 +525,11 @@ struct starpu_codelet
 	   Various flags for the codelet.
 	 */
 	int flags;
+
+	/**
+	   Whether _starpu_codelet_check_deprecated_fields was already done or not.
+	 */
+	int checked;
 };
 
 /**

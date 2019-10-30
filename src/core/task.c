@@ -392,6 +392,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 {
 	if (!cl)
 		return;
+	if (cl->checked)
+		return;
 
 	uint32_t where = cl->where;
 	int is_where_unset = where == 0;
@@ -517,6 +519,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		where |= STARPU_MIC|STARPU_MPI_MS;
 	}
 	cl->where = where;
+
+	cl->checked = 1;
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
