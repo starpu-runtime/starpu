@@ -1575,6 +1575,10 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	if (starpu_memory_nodes_get_count() == 1)
+		/* Don't bother */
+		return;
+	/* TODO: return also on can_evict() == 0, after making can_evict costless */
 	_starpu_spin_lock(&mc_lock[node]);
 	MC_LIST_ERASE(node, mc);
 	mc->wontuse = 0;
@@ -1589,6 +1593,10 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	if (starpu_memory_nodes_get_count() == 1)
+		/* Don't bother */
+		return;
+	/* TODO: return also on can_evict() == 0, after making can_evict costless */
 	_starpu_spin_lock(&mc_lock[node]);
 	/* Avoid preventing it from being evicted */
 	mc->diduse = 1;
@@ -1613,6 +1621,10 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 	if (mc->home)
 		/* Home is always clean */
 		return;
+	if (starpu_memory_nodes_get_count() == 1)
+		/* Don't bother */
+		return;
+	/* TODO: return also on can_evict() == 0, after making can_evict costless */
 	_starpu_spin_lock(&mc_lock[node]);
 	if (mc->relaxed_coherency == 1)
 	{
