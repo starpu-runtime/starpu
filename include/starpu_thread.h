@@ -83,6 +83,7 @@ int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2);
 starpu_pthread_t starpu_pthread_self(void);
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host);
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
+starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[]);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr);
