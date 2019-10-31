@@ -107,9 +107,14 @@ const enum starpu_perf_counter_scope c_scope = starpu_perf_counter_scope_per_cod
 
 int main(int argc, char **argv)
 {
-	int ret;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	
+	/* Start collecting perfomance counter right after initialization */
+	conf.start_perf_counter_collection = 1;
 
-	ret = starpu_init(NULL);
+	int ret;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

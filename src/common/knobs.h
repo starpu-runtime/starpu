@@ -202,7 +202,7 @@ static inline int _starpu_perf_counter_id_build(const enum starpu_perf_counter_s
 
 void _starpu_perf_counter_sample_init(struct starpu_perf_counter_sample *sample, enum starpu_perf_counter_scope scope);
 void _starpu_perf_counter_sample_exit(struct starpu_perf_counter_sample *sample);
-void _starpu_perf_counter_init(void);
+void _starpu_perf_counter_init(struct _starpu_machine_config *pconfig);
 void _starpu_perf_counter_exit(void);
 
 int _starpu_perf_counter_register(enum starpu_perf_counter_scope scope, const char *name, enum starpu_perf_counter_type type, const char *help);

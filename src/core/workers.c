@@ -1143,6 +1143,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* 64MiB by default */
 	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
+
+	/* Do not start performance counter collection by default */
+	conf->start_perf_counter_collection = 0;
 	return 0;
 }
 
@@ -1601,7 +1604,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 	_starpu_initialize_registered_performance_models();
-	_starpu_perf_counter_init();
+	_starpu_perf_counter_init(&_starpu_config);
 	_starpu_perf_knob_init();
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)

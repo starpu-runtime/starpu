@@ -432,6 +432,9 @@ struct _starpu_machine_config
 
 	int watchdog_ok;
 
+	/** When >0, StarPU should stop performance counters collection. */
+	int perf_counter_pause_depth;
+
 	starpu_pthread_mutex_t submitted_mutex;
 };
 
@@ -1179,6 +1182,13 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 
 void _starpu_set_catch_signals(int do_catch_signal);
 int _starpu_get_catch_signals(void);
+
+/* Performance Monitoring */
+static inline int _starpu_perf_counter_paused(void) 
+{
+	STARPU_RMB();
+	return _starpu_config.perf_counter_pause_depth > 0;
+}
 
 /* @}*/
 

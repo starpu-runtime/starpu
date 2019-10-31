@@ -446,7 +446,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 		0
 #endif
 		;
-	if (!j->internal && !continuation)
+	if (!_starpu_perf_counter_paused() && !j->internal && !continuation)
 	{
 		(void) STARPU_ATOMIC_ADD64(& _starpu_task__g_current_submitted__value, -1);
 		int64_t value = STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, 1);
@@ -494,7 +494,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
-		if (!j->internal)
+		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)

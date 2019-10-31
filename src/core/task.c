@@ -859,7 +859,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		0
 #endif
 		;
-	if (!j->internal && !continuation)
+	if (!_starpu_perf_counter_paused() && !j->internal && !continuation)
 	{
 		(void) STARPU_ATOMIC_ADD64(&_starpu_task__g_total_submitted__value, 1);
 		int64_t value = STARPU_ATOMIC_ADD64(&_starpu_task__g_current_submitted__value, 1);
@@ -1137,7 +1137,8 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 int starpu_task_wait_for_all(void)
 {
 	_starpu_task_wait_for_all_and_return_nb_waited_tasks();
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1154,7 +1155,8 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
 	_starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx);
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1196,7 +1198,8 @@ int starpu_task_wait_for_n_submitted(unsigned n)
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
 		_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx_id, n);
 	}
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1204,7 +1207,8 @@ int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n)
 {
 	_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx, n);
 
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 /*
@@ -1240,7 +1244,8 @@ int starpu_task_wait_for_no_ready(void)
 		}
 	}
 
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 

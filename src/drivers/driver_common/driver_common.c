@@ -68,7 +68,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	if (rank == 0)
 	{
 		STARPU_ASSERT(task->status == STARPU_TASK_READY);
-		if (!j->internal)
+		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)
@@ -211,15 +211,18 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	starpu_timespec_sub(&worker->cl_end, &worker->cl_start, &measured_ts);
 	double measured = starpu_timing_timespec_to_us(&measured_ts);
 
-	worker->__w_total_executed__value++;
-	worker->__w_cumul_execution_time__value += measured;
-	_starpu_perf_counter_update_per_worker_sample(worker->workerid);
-	if (cl->perf_counter_values)
+	if (!_starpu_perf_counter_paused())
 	{
-		struct starpu_perf_counter_sample_cl_values * const pcv = cl->perf_counter_values;
-		(void)STARPU_ATOMIC_ADD64(&pcv->task.total_executed, 1);
-		_starpu_perf_counter_update_acc_double(&pcv->task.cumul_execution_time, measured);
-		_starpu_perf_counter_update_per_codelet_sample(cl);
+		worker->__w_total_executed__value++;
+		worker->__w_cumul_execution_time__value += measured;
+		_starpu_perf_counter_update_per_worker_sample(worker->workerid);
+		if (cl->perf_counter_values)
+		{
+			struct starpu_perf_counter_sample_cl_values * const pcv = cl->perf_counter_values;
+			(void)STARPU_ATOMIC_ADD64(&pcv->task.total_executed, 1);
+			_starpu_perf_counter_update_acc_double(&pcv->task.cumul_execution_time, measured);
+			_starpu_perf_counter_update_per_codelet_sample(cl);
+		}
 	}
 
 	if ((profiling && profiling_info) || calibrate_model)
