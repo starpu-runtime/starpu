@@ -148,6 +148,9 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 		return -ENOENT;
 	if (size >= 0)
 		_starpu_memory_manager_set_global_memory_size(disk_memnode, size);
+
+	_starpu_mem_chunk_disk_register(disk_memnode);
+
 	return disk_memnode;
 }
 
