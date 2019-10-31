@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2014,2015                      Université de Bordeaux
+ * Copyright (C) 2008-2011,2014,2015,2019                 Université de Bordeaux
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2010-2012,2015-2017                      CNRS
  *
@@ -17,6 +17,7 @@
  */
 
 #include <core/perfmodel/regression.h>
+#include <float.h>
 
 #define MAXREGITER	1000
 #define EPS 1.0e-10
@@ -129,7 +130,7 @@ static unsigned find_list_size(struct starpu_perfmodel_history_list *list_histor
 
 static double find_list_min(double *y, unsigned n)
 {
-	double min = 1.0e30;
+	double min = DBL_MAX;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
