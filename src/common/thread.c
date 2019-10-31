@@ -85,13 +85,18 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 #else
 		host = MSG_get_host_by_name("MAIN");
 #endif
+
 	void *tsd;
-#ifdef HAVE_SG_ACTOR_DATA
-	tsd = NULL;
-#else
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-#endif
+
+#ifdef HAVE_SG_ACTOR_INIT
+	*thread= sg_actor_init(name, host);
+	sg_actor_data_set(*thread, tsd);
+	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
+#else
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#endif
+
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
 #  ifdef HAVE_SG_ACTOR_REF
 	sg_actor_ref(*thread);
@@ -306,10 +311,6 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 	void **array;
 #ifdef HAVE_SG_ACTOR_DATA
 	array = sg_actor_data(sg_actor_self());
-	if (!array) {
-		_STARPU_CALLOC(array, MAX_TSD + 1, sizeof(void*));
-		sg_actor_data_set(sg_actor_self(), array);
-	}
 #else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)

@@ -409,18 +409,18 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		SIMIX_set_maestro(maestro, NULL);
 		/* Initialize simgrid */
 		_starpu_start_simgrid(argc, *argv);
+
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
-#ifdef HAVE_SG_ACTOR_DATA
-		tsd = NULL;
-#else
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-#endif
+
 #ifdef HAVE_SG_ACTOR_ATTACH
-		sg_actor_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+		sg_actor_t actor = sg_actor_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+		sg_actor_data_set(actor, tsd);
 #else
 		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 #endif
+
 		/* We initialized through MSG_process_attach */
 		simgrid_started = 3;
 	}
@@ -442,7 +442,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #endif
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+#ifdef HAVE_SG_ACTOR_DATA
+		sg_actor_data_set(sg_actor_self(), tsd);
+#else
 		smpi_process_set_user_data(tsd);
+#endif
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -1106,12 +1110,15 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[])
 {
 	void **tsd;
-#ifdef HAVE_SG_ACTOR_DATA
-	tsd = NULL;
-#else
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-#endif
+#ifdef HAVE_SG_ACTOR_INIT
+	starpu_pthread_t actor = sg_actor_init(name, host);
+	sg_actor_data_set(actor, tsd);
+	sg_actor_start(actor, code, argc, argv);
+	return actor;
+#else
 	return MSG_process_create_with_arguments(name, code, tsd, host, argc, argv);
+#endif
 }
 
 starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
