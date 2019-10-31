@@ -2853,6 +2853,8 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 
 	_starpu_init_workers_binding_and_memory(config, no_mp_config);
 
+	_starpu_mem_chunk_init_last();
+
 	config->cpus_nodeid = -1;
 	config->cuda_nodeid = -1;
 	config->opencl_nodeid = -1;
