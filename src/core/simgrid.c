@@ -415,7 +415,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
 #if defined(HAVE_SG_ACTOR_ATTACH) && defined (HAVE_SG_ACTOR_DATA)
-		sg_actor_t actor = sg_actor_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 		sg_actor_data_set(actor, tsd);
 #else
 		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
