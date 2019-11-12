@@ -160,6 +160,13 @@ starpu_task::color. Colors are expressed with the following format
 <c>basic_examples/task_insert_color</c> for examples on how to assign
 colors.
 
+To get statistics on the time spend in runtime overhead, one can use the
+statistics plugin of ViTE. In Preferences, select Plugins. In "States Type",
+select "Worker State". Then click on "Reload" to update the histogram. The red
+"Idle" percentages are due to lack of parallelism, while the brown "Overhead"
+and "Scheduling" percentages are due to the overhead of the runtime and of the
+scheduler.
+
 To identify tasks precisely, the application can also set the field
 starpu_task::tag_id or setting \ref STARPU_TAG_ONLY when calling
 starpu_task_insert(). The value of the tag will then show up in the
