@@ -3154,7 +3154,7 @@ AS_IF([test "$use_hwloc" != "no"],
 AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
 # in case hwloc was explicitely required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
-      [AC_MSG_ERROR([cannot find hwloc])]
+      [AC_MSG_ERROR([cannot find hwloc or pkg-config])]
      )
 # in case hwloc is not available but was not explicitely disabled, this is an error
 AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
