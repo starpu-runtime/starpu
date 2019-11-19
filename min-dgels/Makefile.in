@@ -1,13 +1,16 @@
 CC = @CC@
 LD = @LD@
+srcdir = @srcdir@
 
 CLAPACK=base
 ADDITIONAL=additional
 
 all:
 	mkdir -p build
+	[ -d "$(CLAPACK)" || cp -a $(srcdir)/$(CLAPACK) .
 	cd $(CLAPACK) && $(MAKE) blaslib CC="$(CC)" LD="$(LD)"
 	cd $(CLAPACK) && $(MAKE) f2clib CC="$(CC)" LD="$(LD)"
+	[ -d "$(ADDITIONAL)" || cp -a $(srcdir)/$(ADDITIONAL) .
 	cd $(ADDITIONAL) && $(CC) -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
 
 install:
