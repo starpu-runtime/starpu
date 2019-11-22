@@ -763,7 +763,11 @@ A full example may be found in <c>examples/basic_examples/multiformat.c</c>.
 
 \section DefiningANewDataInterface Defining A New Data Interface
 
-Let's define a new data interface to manage complex numbers.
+This section proposes an example how to define your own interface, when the
+StarPU-provided interface do not fit your needs. Here we take a dumb example of
+an array of complex numbers represented by two arrays of double values.
+
+Let's thus define a new data interface to manage arrays of complex numbers:
 
 \code{.c}
 /* interface for complex numbers */
@@ -774,6 +778,15 @@ struct starpu_complex_interface
         int nx;
 };
 \endcode
+
+That structure stores enough to describe <b>one</b> buffer of such kind of
+data. It is used for the buffer stored in the main memory, another instance
+is used for the buffer stored in a GPU, etc. A <i>data handle</i> is thus a
+collection of such structures, to remember each buffer on each memory node.
+
+Note: one should not take pointers into such structures, because StarPU needs
+to be able to copy over the content of it to various places, for instance to
+efficiently migrate a data buffer from one data handle to another data handle.
 
 Registering such a data to StarPU is easily done using the function
 starpu_data_register(). The last
@@ -800,12 +813,41 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
 }
 \endcode
 
-The <c>starpu_complex_interface</c> structure is here used just to store the
+The <c>struct starpu_complex_interface complex</c> is here used just to store the
 parameters that the user provided to <c>starpu_complex_data_register</c>.
 starpu_data_register() will first allocate the handle, and
 then pass the <c>starpu_complex_interface</c> structure to the
 starpu_data_interface_ops::register_data_handle method, which records them
-within the data handle (it is called once per node by starpu_data_register()).
+within the data handle (it is called once per node by starpu_data_register()):
+
+\code{.c}
+static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+{
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct starpu_complex_interface *local_interface = (struct starpu_complex_interface *)
+			starpu_data_get_interface_on_node(handle, node);
+
+		local_interface->nx = complex_interface->nx;
+		if (node == home_node)
+		{
+			local_interface->real = complex_interface->real;
+			local_interface->imaginary = complex_interface->imaginary;
+		}
+		else
+		{
+			local_interface->real = NULL;
+			local_interface->imaginary = NULL;
+		}
+	}
+}
+\endcode
+
+If the application provided a home node, the corresponding pointers will be
+recorded for that node. Others have no buffer allocated yet.
 
 Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic
