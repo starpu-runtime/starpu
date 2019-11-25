@@ -279,6 +279,7 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, starpu_mpi_
 	{
 		_mpi_backend._starpu_mpi_backend_data_register(data_handle, data_tag);
 		mpi_data->node_tag.data_tag = data_tag;
+		_STARPU_MPI_TRACE_DATA_SET_TAG(data_handle, data_tag);
 	}
 	if (rank != -1)
 	{

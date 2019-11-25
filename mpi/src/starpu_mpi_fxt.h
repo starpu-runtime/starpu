@@ -58,6 +58,7 @@ extern "C"
 #define _STARPU_MPI_FUT_POLLING_END			0x5215
 #define _STARPU_MPI_FUT_DRIVER_RUN_BEGIN		0x5216
 #define _STARPU_MPI_FUT_DRIVER_RUN_END			0x5217
+#define _STARPU_MPI_FUT_DATA_SET_TAG			0x5218
 
 #ifdef STARPU_USE_FXT
 
@@ -110,6 +111,8 @@ extern "C"
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_DATA_SET_RANK(handle, rank)	\
 	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
+#define _STARPU_MPI_TRACE_DATA_SET_TAG(handle, data_tag)	\
+	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_TAG, (handle), (data_tag), _starpu_gettid());
 #if 0
 /* This is very expensive in the trace, only enable for debugging */
 #define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()	\
@@ -169,6 +172,7 @@ extern "C"
 #define _STARPU_MPI_TRACE_UWAIT_BEGIN(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_UWAIT_END(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_DATA_SET_RANK(a, b)			do {} while(0);
+#define _STARPU_MPI_TRACE_DATA_SET_TAG(a, b)			do {} while(0);
 #define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()		do {} while(0)
 #define _STARPU_MPI_TRACE_TESTING_DETACHED_END()		do {} while(0)
 #define _STARPU_MPI_TRACE_TEST_BEGIN(peer, data_tag)		do {} while(0)
