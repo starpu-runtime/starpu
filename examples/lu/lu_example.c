@@ -440,7 +440,9 @@ int main(int argc, char **argv)
 		free(ipiv);
 #endif
 
+#ifndef STARPU_SIMGRID
 	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+#endif
 
 	starpu_cublas_shutdown();
 
