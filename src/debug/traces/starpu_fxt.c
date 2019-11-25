@@ -293,6 +293,7 @@ struct data_info
 	int home_node;
 	int mpi_rank;
 	int mpi_owner;
+	long mpi_tag;
 };
 
 struct data_info *data_info;
@@ -314,6 +315,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->home_node = STARPU_MAIN_RAM;
 		data->mpi_rank = mpi_rank;
 		data->mpi_owner = mpi_rank;
+		data->mpi_tag = -1;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
 	}
 	else
@@ -351,6 +353,8 @@ static void data_dump(struct data_info *data)
 	}
 	if (data->mpi_owner >= 0)
 		fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
+	if (data->mpi_tag >= 0)
+		fprintf(data_file, "MPITag: %ld\n", data->mpi_tag);
 	fprintf(data_file, "\n");
 out:
 	HASH_DEL(data_info, data);
@@ -2226,6 +2230,15 @@ static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	data->mpi_owner = rank;
 }
 
+static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	long tag = ev->param[1];
+	struct data_info *data = get_data(handle, options->file_rank);
+
+	data->mpi_tag = tag;
+}
+
 static const char *copy_link_type(unsigned prefetch)
 {
 	switch (prefetch)
@@ -3869,6 +3882,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_DATA_SET_RANK:
 				handle_mpi_data_set_rank(&ev, options);
+				break;
+			case _STARPU_MPI_FUT_DATA_SET_TAG:
+				handle_mpi_data_set_tag(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_TESTING_DETACHED_BEGIN:
