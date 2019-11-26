@@ -337,7 +337,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 		}
 		else
 		{
-			_STARPU_DISP("Warning, could not match MPI transfer from %d to %d (tag %x) starting at %f\n", src, dst, mpi_tag, start_date);
+			_STARPU_DISP("Warning, could not match MPI transfer from %d to %d (tag %lx) starting at %f\n", src, dst, mpi_tag, start_date);
 		}
 
 		slot[src]++;
