@@ -411,7 +411,7 @@ fi
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
 AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
-				   [Enable StarPU MPI pedantic isend])],
+				   [Prevent StarPU MPI from reading buffers while being sent over MPI])],
 				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)
 if test x$enable_mpi_pedantic_isend = xyes; then
 	AC_DEFINE(STARPU_MPI_PEDANTIC_ISEND, [1], [enable StarPU MPI pedantic isend])
