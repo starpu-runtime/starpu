@@ -1203,15 +1203,6 @@ the current time() (unless SimGrid mode is enabled, in which case it is always
 0). \ref STARPU_RAND_SEED allows to set the seed to a specific value.
 </dd>
 
-<dt>STARPU_IDLE_TIME</dt>
-<dd>
-\anchor STARPU_IDLE_TIME
-\addindex __env__STARPU_IDLE_TIME
-When set to a value being a valid filename, a corresponding file
-will be created when shutting down StarPU. The file will contain the
-sum of all the workers' idle time.
-</dd>
-
 <dt>STARPU_GLOBAL_ARBITER</dt>
 <dd>
 \anchor STARPU_GLOBAL_ARBITER
