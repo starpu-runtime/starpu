@@ -36,3 +36,5 @@ check:
 showcheck: check
 
 showsuite: check
+
+recheck: check
