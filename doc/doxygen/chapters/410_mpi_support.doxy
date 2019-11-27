@@ -236,7 +236,8 @@ For send communications, data is acquired with the mode ::STARPU_R.
 When using the \c configure option
 \ref enable-mpi-pedantic-isend "--enable-mpi-pedantic-isend", the mode
 ::STARPU_RW is used to make sure there is no more than 1 concurrent
-\c MPI_Isend() call accessing a data.
+\c MPI_Isend() call accessing a data
+and StarPU does not read from it from tasks during the communication.
 
 Internally, all communication are divided in 2 communications, a first
 message is used to exchange an envelope describing the data (i.e its

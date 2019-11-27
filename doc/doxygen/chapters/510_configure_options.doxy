@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2010-2017, 2019                          CNRS
- * Copyright (C) 2009-2011,2013-2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -389,7 +389,8 @@ to be available in the main memory of the node submitting the request.
 For send communications, data is acquired with the mode ::STARPU_R.
 When enabling the pedantic mode, data are instead acquired with the
 ::STARPU_RW which thus ensures that there is not more than 1
-concurrent MPI_Isend calls accessing the data.
+concurrent MPI_Isend calls accessing the data
+and StarPU does not read from it from tasks during the communication.
 </dd>
 
 <dt>--enable-mpi-master-slave</dt>
