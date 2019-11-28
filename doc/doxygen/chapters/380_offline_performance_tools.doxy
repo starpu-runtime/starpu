@@ -266,6 +266,20 @@ and whose name start with "modular-"), the call to
 which can be viewed in a javascript-enabled web browser. It shows the
 flow of tasks between the components of the modular scheduler.
 
+\subsubsection TimeBetweenSendRecvDataUse Analyzing Time Between MPI Data Transfer and Use by Tasks
+
+<c>starpu_fxt_tool</c> produces a file called <c>comms.rec</c> which describes all 
+MPI communications. The script <c>starpu_send_recv_data_use.py</c> uses this file 
+and <c>tasks.rec</c> in order to produce two graphs: the first one shows durations 
+between the reception of data and their usage by a task and the second one plots the 
+same graph but with elapsed time between send and usage of a data by the sender.
+
+\image html trace_recv_use.png
+\image latex trace_recv_use.eps "" width=\textwidth
+
+\image html trace_send_use.png
+\image latex trace_send_use.eps "" width=\textwidth
+
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
 For computing statistics, it is useful to limit the trace to a given portion of
