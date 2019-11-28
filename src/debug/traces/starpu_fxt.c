@@ -82,6 +82,7 @@ static FILE *anim_file;
 static FILE *tasks_file;
 static FILE *data_file;
 static FILE *trace_file;
+static FILE *comms_file;
 
 struct data_parameter_info
 {
@@ -2977,6 +2978,25 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid);
 }
 
+static void handle_mpi_isend_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int dest = ev->param[0];
+	int mpi_tag = ev->param[1];
+	unsigned long handle = ev->param[3];
+	double date = get_event_time_stamp(ev, options);
+
+	if (options->file_rank < 0)
+	{
+		if (!mpi_warned)
+		{
+			_STARPU_MSG("Warning : Only one trace file is given. MPI transfers will not be displayed. Add all trace files to show them ! \n");
+			mpi_warned = 1;
+		}
+	}
+	else
+		_starpu_fxt_mpi_dump_send_comm(options->file_rank, dest, mpi_tag, date, handle, comms_file);
+}
+
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
@@ -3042,6 +3062,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
+	unsigned long handle = ev->param[4];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -3053,7 +3074,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle, comms_file);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3831,6 +3852,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_MPI_FUT_ISEND_TERMINATED:
+				handle_mpi_isend_terminated(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_IRECV_TERMINATED:
@@ -4127,6 +4149,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";
 	options->tasks_path = "tasks.rec";
+	options->comms_path = "comms.rec";
 	options->data_path = "data.rec";
 	options->anim_path = "trace.html";
 	options->states_path = "trace.rec";
@@ -4204,6 +4227,15 @@ void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
+{
+	if (options->comms_path)
+		comms_file = fopen(options->comms_path, "w+");
+	else
+		comms_file = NULL;
+}
+
+static
 void _starpu_fxt_write_trace_header(FILE *f)
 {
 	fprintf(f, "#\n");
@@ -4253,6 +4285,14 @@ void _starpu_fxt_tasks_file_close(void)
 	if (tasks_file)
 		fclose(tasks_file);
 }
+
+static
+void _starpu_fxt_comms_file_close(void)
+{
+	if (comms_file)
+		fclose(comms_file);
+}
+
 
 static
 void _starpu_fxt_data_file_close(void)
@@ -4361,6 +4401,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_anim_file_init(options);
 	_starpu_fxt_tasks_file_init(options);
 	_starpu_fxt_data_file_init(options);
+	_starpu_fxt_comms_file_init(options);
 	_starpu_fxt_trace_file_init(options);
 
 	_starpu_fxt_paje_file_init(options);
@@ -4491,6 +4532,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_anim_file_close();
 	_starpu_fxt_tasks_file_close();
 	_starpu_fxt_data_file_close();
+	_starpu_fxt_comms_file_close();
 	_starpu_fxt_trace_file_close();
 
 	_starpu_fxt_dag_terminate();

@@ -65,6 +65,7 @@ struct starpu_fxt_options
 	char *dag_path;
 	char *tasks_path;
 	char *data_path;
+	char *comms_path;
 	char *anim_path;
 	char *states_path;
 

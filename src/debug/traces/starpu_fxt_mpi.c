@@ -153,8 +153,35 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].jobid = jobid;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid)
+void _starpu_fxt_mpi_dump_send_comm(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, float date, unsigned long handle, FILE* comms_file)
 {
+	STARPU_ASSERT(src >= 0);
+
+	if (comms_file != NULL)
+	{
+		fprintf(comms_file, "Type: send\n");
+		fprintf(comms_file, "Src: %d\n", src);
+		fprintf(comms_file, "Dst: %d\n", dst);
+		fprintf(comms_file, "Tag: %d\n", mpi_tag);
+		fprintf(comms_file, "Time: %f\n", date);
+		fprintf(comms_file, "Handle: %lx\n", handle);
+		fprintf(comms_file, "\n");
+	}
+}
+
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, FILE* comms_file)
+{
+	if (comms_file != NULL)
+	{
+		fprintf(comms_file, "Type: recv\n");
+		fprintf(comms_file, "Src: %d\n", src);
+		fprintf(comms_file, "Dst: %d\n", dst);
+		fprintf(comms_file, "Tag: %ld\n", mpi_tag);
+		fprintf(comms_file, "Time: %f\n", date);
+		fprintf(comms_file, "Handle: %lx\n", handle);
+		fprintf(comms_file, "\n");
+	}
+
 	if (dst >= MAX_MPI_NODES)
 		return;
 	unsigned slot = mpi_recvs_used[dst]++;
