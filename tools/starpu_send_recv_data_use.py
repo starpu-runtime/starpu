@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019                                      INRIA
+# Copyright (C) 2019                                      Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,15 +16,23 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+import sys
+PROGNAME = sys.argv[0]
+
+def usage():
+    print("Offline tool to draw graph showing elapsed time between sent or received data and their use by tasks")
+    print("")
+    print("Usage: %s <folder containing comms.rec and tasks.rec files>" % PROGNAME)
+
+if len(sys.argv) != 2:
+    usage()
+    sys.exit(1)
+
 import re
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import sys
 import os
-
-PROGNAME = sys.argv[0]
-
 
 def convert_rec_file(filename):
     lines = []
@@ -51,17 +59,6 @@ def convert_rec_file(filename):
                         item[key] = value
 
     return lines
-
-
-def usage():
-    print("Offline tool to draw graph about elapsed between sent or received data and their use by tasks")
-    print("")
-    print("Usage: %s <folder containing comms.rec and tasks.rec files>" % PROGNAME)
-
-
-if len(sys.argv) != 2:
-    print("Provide folder where *.rec files are located !")
-    sys.exit(1)
 
 working_directory = sys.argv[1]
 
@@ -112,20 +109,18 @@ def plot_graph(comm_type, match, filename, title, xlabel):
     i = 0
     for y, x in workers.items():
         # print(y, x)
-        axs[0].broken_barh(x, [i*10, 8], facecolors=(0.1, 0.2, 0.5, 0.2)) 
+        axs[0].broken_barh(x, [i*10, 8], facecolors=(0.1, 0.2, 0.5, 0.2))
         i += 1
 
     i = 0
-    for y, x in workers.items(): 
+    for y, x in workers.items():
         for xx in x:
             axs[1].broken_barh([xx], [i, 1])
             i += 1
 
-
     axs[0].set_yticks([i*10+4 for i in range(len(workers))])
     axs[0].set_yticklabels(list(workers))
     axs[0].set(xlabel="Time (ms) - Duration: " + str(max_time - min_time) + "ms", ylabel="Worker [mpi]-[*pu]", title=title)
-
 
     axs[2].hist(durations, bins=np.logspace(np.log10(1), np.log10(max(durations)), 50), rwidth=0.8)
     axs[2].set_xscale("log")
