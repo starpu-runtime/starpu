@@ -1487,6 +1487,8 @@ static void load_bus_latency_file(void)
 	{
 		/* File does not exist yet or is bogus */
 		generate_bus_latency_file();
+		res = load_bus_latency_file_content();
+		STARPU_ASSERT(res);
 	}
 
 }
@@ -1926,6 +1928,8 @@ static void load_bus_bandwidth_file(void)
 	{
 		/* File does not exist yet or is bogus */
 		generate_bus_bandwidth_file();
+		res = load_bus_bandwidth_file_content();
+		STARPU_ASSERT(res);
 	}
 }
 
