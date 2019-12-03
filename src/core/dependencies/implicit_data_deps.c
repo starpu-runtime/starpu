@@ -327,6 +327,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					l->prev = NULL;
 					handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
 					handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
+					handle->last_submitted_ghost_sync_id_is_valid = 0;
 				}
 				else if (ghost_accessors_id)
 				{
