@@ -82,7 +82,7 @@ test_tensor_opencl_func(void *buffers[], void *args)
 					      sizeof(fail), &fail,
 					      0);
 
-	if (nargs != 8)
+	if (nargs != 10)
 	{
 		fprintf(stderr, "Failed to set argument #%d\n", nargs);
 		STARPU_OPENCL_REPORT_ERROR(err);
