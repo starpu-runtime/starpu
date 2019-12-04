@@ -15,18 +15,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 __kernel void tensor_opencl(__global int *tensor,
-			   int nx, int ny, int nz,
-			   int ldy, int ldz,
+			   int nx, int ny, int nz, int nt,
+			   int ldy, int ldz, ldt,
 			   int factor, __global int *err)
 {
         const int id = get_global_id(0);
 	if (id > 0)
 		return;
 
-	unsigned int i, j, k;
+	unsigned int i, j, k, l;
 	int val = 0;
-	for (k = 0; k < nz; k++)
+	for (l = 0; l < nt; l++)
 	{
+	    for (k = 0; k < nz; k++)
+	    {
 		for (j = 0; j < ny; j++)
 		{
 			for (i = 0; i < nx; i++)
@@ -43,5 +45,6 @@ __kernel void tensor_opencl(__global int *tensor,
 				}
 			}
 		}
+	    }
 	}
 }
