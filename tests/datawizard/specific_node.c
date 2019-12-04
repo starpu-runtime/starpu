@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017                      CNRS
- * Copyright (C) 2010,2011,2013,2014,2016-2018            Université de Bordeaux
+ * Copyright (C) 2010,2011,2013,2014,2016-2019            Université de Bordeaux
  * Copyright (C) 2012,2017                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,12 @@ void specific_kernel(void *descr[], void *arg)
 
 	if (node == STARPU_MAIN_RAM)
 		STARPU_ASSERT(dataptr == &data);
+
 	(*dataptr)++;
+
+
+	node = starpu_task_get_current_data_node(1);
+	STARPU_ASSERT(node == starpu_worker_get_local_memory_node());
 }
 
 static struct starpu_codelet specific_cl =
