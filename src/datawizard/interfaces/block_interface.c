@@ -237,16 +237,17 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
+		char *block_z = block;
 		for(z=0 ; z<block_interface->nz ; z++)
 		{
-			char *block_z = block;
+			char *block_y = block_z;
 			for(y=0 ; y<block_interface->ny ; y++)
 			{
-				memcpy(cur, block, block_interface->nx*block_interface->elemsize);
+				memcpy(cur, block_y, block_interface->nx*block_interface->elemsize);
 				cur += block_interface->nx*block_interface->elemsize;
-				block += block_interface->ldy * block_interface->elemsize;
+				block_y += block_interface->ldy * block_interface->elemsize;
 			}
-			block = block_z + block_interface->ldz * block_interface->elemsize;
+			block_z += block_interface->ldz * block_interface->elemsize;
 		}
 	}
 
@@ -265,16 +266,17 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	uint32_t z, y;
 	char *cur = ptr;
 	char *block = (void *)block_interface->ptr;
+	char *block_z = block;
 	for(z=0 ; z<block_interface->nz ; z++)
 	{
-		char *block_z = block;
+		char *block_y = block_z;
 		for(y=0 ; y<block_interface->ny ; y++)
 		{
-			memcpy(block, cur, block_interface->nx*block_interface->elemsize);
+			memcpy(block_y, cur, block_interface->nx*block_interface->elemsize);
 			cur += block_interface->nx*block_interface->elemsize;
-			block += block_interface->ldy * block_interface->elemsize;
+			block_y += block_interface->ldy * block_interface->elemsize;
 		}
-		block = block_z + block_interface->ldz * block_interface->elemsize;
+		block_z += block_interface->ldz * block_interface->elemsize;
 	}
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
