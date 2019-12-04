@@ -713,7 +713,7 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
                 }
         }
 
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->nt*src_block->elemsize);
 
 	return ret;
 }
@@ -815,7 +815,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 		}
 	}
 
-	starpu_interface_data_copy(src_node, dst_node, nx*ny*nz*elemsize);
+	starpu_interface_data_copy(src_node, dst_node, nx*ny*nz*nt*elemsize);
 
 	return ret;
 }
