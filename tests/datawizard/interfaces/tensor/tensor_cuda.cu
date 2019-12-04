@@ -22,7 +22,7 @@ extern struct test_config tensor_config;
 static __global__ void tensor_cuda(int *tensor,
 				  int nx, int ny, int nz, int nt,
 				  unsigned ldy, unsigned ldz, unsigned ldt,
-				  float factor, int *err)
+				  int factor, int *err)
 {
         int i, j, k, l;
 	int val = 0;
