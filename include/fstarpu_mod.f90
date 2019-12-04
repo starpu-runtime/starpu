@@ -784,6 +784,95 @@ module fstarpu_mod
 
                 ! void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
+                ! == starpu_data_interface.h: tensor ==
+
+                ! void starpu_tensor_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx, uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize);
+                subroutine fstarpu_tensor_data_register(dh, home_node, ptr, ldy, ldz, ldt, nx, ny, nz, nt, elt_size) &
+                                bind(C,name="starpu_tensor_data_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: home_node
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_int), value, intent(in) :: ldy
+                        integer(c_int), value, intent(in) :: ldz
+                        integer(c_int), value, intent(in) :: ldt
+                        integer(c_int), value, intent(in) :: nx
+                        integer(c_int), value, intent(in) :: ny
+                        integer(c_int), value, intent(in) :: nz
+                        integer(c_int), value, intent(in) :: nt
+                        integer(c_size_t), value, intent(in) :: elt_size
+                end subroutine fstarpu_tensor_data_register
+
+                ! void starpu_tensor_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz, uint32_t ldt);
+                subroutine fstarpu_tensor_ptr_register(dh, node, ptr, dev_handle, offset, ldy, ldz, ldt) &
+                                bind(C,name="starpu_tensor_ptr_register")
+                        use iso_c_binding, only: c_ptr, c_int, c_size_t
+                        type(c_ptr), intent(out) :: dh
+                        integer(c_int), value, intent(in) :: node
+                        type(c_ptr), value, intent(in) :: ptr
+                        type(c_ptr), value, intent(in) :: dev_handle
+                        integer(c_size_t), value, intent(in) :: offset
+                        integer(c_int), value, intent(in) :: ldy
+                        integer(c_int), value, intent(in) :: ldz
+                        integer(c_int), value, intent(in) :: ldt
+                end subroutine fstarpu_tensor_ptr_register
+
+                function fstarpu_tensor_get_ptr(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr) :: fstarpu_tensor_get_ptr
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_ptr
+
+                function fstarpu_tensor_get_ldy(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_ldy
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_ldy
+
+                function fstarpu_tensor_get_ldz(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_ldz
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_ldz
+
+                function fstarpu_tensor_get_ldt(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_ldt
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_ldt
+
+                function fstarpu_tensor_get_nx(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_nx
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_nx
+
+                function fstarpu_tensor_get_ny(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_ny
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_ny
+
+                function fstarpu_tensor_get_nz(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_nz
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_nz
+
+                function fstarpu_tensor_get_nt(buffers, i) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int) :: fstarpu_tensor_get_nt
+                        type(c_ptr), value, intent(in) :: buffers
+                        integer(c_int), value, intent(in) :: i
+                end function fstarpu_tensor_get_nt
+
                 ! == starpu_data_interface.h: block ==
 
                 ! void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);

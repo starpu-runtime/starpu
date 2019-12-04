@@ -24,6 +24,7 @@ New features:
     variable size to express their maximal potential size.
   * New offline tool to draw graph showing elapsed time between sent
     or received data and their use by tasks
+  * Add 4D tensor data interface.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.

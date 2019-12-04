@@ -299,6 +299,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_worker \
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
+	datawizard/interfaces/tensor/tensor_interface \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
@@ -776,6 +777,25 @@ datawizard_interfaces_block_block_interface_SOURCES+= \
 	datawizard/interfaces/block/block_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/block/block_opencl_kernel.cl
+endif
+
+###################
+# Tensor interface #
+###################
+datawizard_interfaces_tensor_tensor_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c  \
+	datawizard/interfaces/tensor/tensor_interface.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
+	datawizard/interfaces/tensor/tensor_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
+	datawizard/interfaces/tensor/tensor_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/tensor/tensor_opencl_kernel.cl
 endif
 
 ##################

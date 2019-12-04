@@ -245,6 +245,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	datawizard/interfaces/matrix_interface.c		\
 	datawizard/interfaces/block_filters.c			\
 	datawizard/interfaces/block_interface.c			\
+	datawizard/interfaces/tensor_interface.c		\
 	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/bcsr_filters.c			\
 	datawizard/interfaces/csr_filters.c			\
