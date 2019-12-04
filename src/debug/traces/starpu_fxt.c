@@ -115,6 +115,7 @@ struct task_info
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
+	char **dep_labels;
 	unsigned long ndata;
 	struct data_parameter_info *data;
 	int mpi_rank;
@@ -153,6 +154,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
+		task->dep_labels = NULL;
 		task->ndata = 0;
 		task->data = NULL;
 		task->mpi_rank = mpi_rank;
@@ -210,6 +212,17 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 			fprintf(tasks_file, " %s%lu", prefix, task->dependencies[i]);
 		fprintf(tasks_file, "\n");
 		free(task->dependencies);
+	}
+	if (task->dep_labels)
+	{
+		fprintf(tasks_file, "DepLabels:");
+		for (i = 0; i < task->ndeps; i++)
+		{
+			fprintf(tasks_file, " %s", task->dep_labels[i]);
+			free(task->dep_labels[i]);
+		}
+		fprintf(tasks_file, "\n");
+		free(task->dep_labels);
 	}
 	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
 	if (task->workerid >= 0)
@@ -2740,8 +2753,11 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	if (alloc)
 	{
 		_STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
+		_STARPU_REALLOC(task->dep_labels, sizeof(*task->dep_labels) * alloc);
 	}
-	task->dependencies[task->ndeps++] = dep_prev;
+	task->dependencies[task->ndeps] = dep_prev;
+	task->dep_labels[task->ndeps] = strdup(name);
+	task->ndeps++;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
 	if (show_task(task, options))
