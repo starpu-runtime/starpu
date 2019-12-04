@@ -33,14 +33,14 @@ __kernel void tensor_opencl(__global int *tensor,
 		{
 			for (i = 0; i < nx; i++)
 			{
-                                if (tensor[(k*ldz)+(j*ldy)+i] != factor * val)
+                                if (tensor[(l*ldt)+(k*ldz)+(j*ldy)+i] != factor * val)
 				{
 					*err = 1;
 					return;
 				}
 				else
 				{
-					tensor[(k*ldz)+(j*ldy)+i] *= -1;
+					tensor[(l*ldt)+(k*ldz)+(j*ldy)+i] *= -1;
 					val++;
 				}
 			}
