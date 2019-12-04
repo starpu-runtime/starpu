@@ -682,6 +682,7 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 	if (src_block->ldy == dst_block->ldy && src_block->ldz == dst_block->ldz && src_block->ldt == dst_block->ldt
 		&& nx*ny*nz == src_block->ldt)
 	{
+		/* FIXME: tests/datawizard/interfaces/tensor/tensor_interface reports this as bogus !? */
 		ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
 						    dst_block->dev_handle, dst_block->offset, dst_node,
 						    src_block->nx*src_block->ny*src_block->nz*src_block->nt*src_block->elemsize,

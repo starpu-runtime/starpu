@@ -151,7 +151,8 @@ main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
-	conf.nopencl = 1;
+	// FIXME: bogus for now !?
+	conf.nopencl = 0;
 	conf.nmic = -1;
 
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
