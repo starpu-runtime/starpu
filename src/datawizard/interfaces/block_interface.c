@@ -750,7 +750,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldy_dst = dst_block->ldy;
 	uint32_t ldz_dst = dst_block->ldz;
 
-	if (ldy_src == nx && ldy_dst == nx && ldz_src == ny && ldz_dst == ny)
+	if (ldy_src == nx && ldy_dst == nx && ldz_src == nx*ny && ldz_dst == nx*ny)
 	{
 		/* Optimise non-partitioned and z-partitioned case */
 		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
