@@ -32,6 +32,40 @@
 
 unsigned data, data2;
 
+void specific2_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+	int node = starpu_task_get_current_data_node(0);
+	STARPU_ASSERT(node >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node) == STARPU_CPU_RAM);
+	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	if (node == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data);
+
+	(*dataptr)++;
+
+	node = starpu_task_get_current_data_node(1);
+	STARPU_ASSERT(node >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node) == STARPU_CPU_RAM
+			|| node == starpu_worker_get_local_memory_node());
+	dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	if (node == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data2);
+}
+
+static struct starpu_codelet specific2_cl =
+{
+	.cpu_funcs = {specific2_kernel},
+	.cuda_funcs = {specific2_kernel},
+	.opencl_funcs = {specific2_kernel},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_CPU, STARPU_SPECIFIC_NODE_LOCAL_OR_CPU},
+};
+
 void specific_kernel(void *descr[], void *arg)
 {
 	(void)arg;
@@ -128,8 +162,10 @@ int main(void)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		if (i%2)
+		if (i%3 == 0)
 			task->cl = &specific_cl;
+		else if (i%3 == 1)
+			task->cl = &specific2_cl;
 		else
 			task->cl = &cl;
 		task->handles[0] = data_handle;

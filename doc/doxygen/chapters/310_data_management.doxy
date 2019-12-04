@@ -974,4 +974,21 @@ when the kernel does not make so many accesses to the second data, and thus data
 being remote e.g. over a PCI bus is not a performance problem, and avoids
 filling the fast local memory with data which does not need the performance.
 
+In cases where the kernel is fine with some data being either local or in the
+main memory, ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU can be used. StarPU will then
+be free to leave the data in the main memory and let the kernel access it from
+accelerators, or to move it to the accelerator before starting the kernel, for
+instance:
+
+\code{.c}
+struct starpu_codelet cl =
+{
+	.cuda_funcs = { kernel },
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_LOCAL_OR_CPU},
+};
+\endcode
+
 */

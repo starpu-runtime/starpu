@@ -318,6 +318,15 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 		// TODO: rather leave in DDR
 		node = local_node;
 		break;
+	case STARPU_SPECIFIC_NODE_LOCAL_OR_CPU:
+		if (task->handles[index]->per_node[local_node].state != STARPU_INVALID) {
+			/* It is here already, rather access it from here */
+			node = local_node;
+		} else {
+			/* It is not here already, do not bother moving it */
+			node = STARPU_MAIN_RAM;
+		}
+		break;
 	}
 	return node;
 }
@@ -341,6 +350,15 @@ int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned inde
 	case STARPU_SPECIFIC_NODE_SLOW:
 		// TODO: rather leave in DDR
 		node = local_node;
+		break;
+	case STARPU_SPECIFIC_NODE_LOCAL_OR_CPU:
+		if (task->handles[index]->per_node[local_node].state != STARPU_INVALID) {
+			/* It is here already, rather access it from here */
+			node = local_node;
+		} else {
+			/* It is not here already, do not bother moving it */
+			node = STARPU_MAIN_RAM;
+		}
 		break;
 	}
 	return node;
