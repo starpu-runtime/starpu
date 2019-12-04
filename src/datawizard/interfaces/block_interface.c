@@ -500,7 +500,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		}
 	}
 
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
+	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
 	return 0;
 }
