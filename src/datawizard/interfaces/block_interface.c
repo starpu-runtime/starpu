@@ -116,9 +116,15 @@ static int block_pointer_is_inside(void *data_interface, unsigned node, void *pt
 {
 	(void) node;
 	struct starpu_block_interface *block_interface = data_interface;
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
 
 	return (char*) ptr >= (char*) block_interface->ptr &&
-		(char*) ptr < (char*) block_interface->ptr + block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
+		(char*) ptr < (char*) block_interface->ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize;
 }
 
 static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

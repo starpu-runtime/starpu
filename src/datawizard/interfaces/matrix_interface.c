@@ -163,9 +163,13 @@ static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *p
 {
 	(void) node;
 	struct starpu_matrix_interface *matrix_interface = data_interface;
+	uint32_t ld = matrix_interface->ld;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
+	size_t elemsize = matrix_interface->elemsize;
 
 	return (char*) ptr >= (char*) matrix_interface->ptr &&
-		(char*) ptr < (char*) matrix_interface->ptr + matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
+		(char*) ptr < (char*) matrix_interface->ptr + (ny-1)*ld*elemsize + nx*elemsize;
 }
 
 
