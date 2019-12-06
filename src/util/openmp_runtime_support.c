@@ -778,8 +778,8 @@ static int omp_initial_thread_setup(void)
 		_STARPU_MALLOC(_global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers * sizeof(int));
 		if (_global_state.starpu_cpu_worker_ids == NULL)
 			_STARPU_ERROR("memory allocation failed");
-		ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
-		STARPU_ASSERT(ret == _global_state.nb_starpu_cpu_workers);
+		unsigned n = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
+		STARPU_ASSERT(n == _global_state.nb_starpu_cpu_workers);
 		initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
 		STARPU_ASSERT(initial_thread->worker);
 		STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
