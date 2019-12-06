@@ -1001,7 +1001,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		}
 
 		if (!cures)
-			cures = cudaThreadSynchronize();
+			cures = cudaDeviceSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 

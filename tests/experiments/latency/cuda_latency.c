@@ -63,7 +63,7 @@ void send_data(unsigned src, unsigned dst)
 	cures = cudaMemcpy(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost);
 	STARPU_ASSERT(!cures);
 
-	cures = cudaThreadSynchronize();
+	cures = cudaDeviceSynchronize();
 	STARPU_ASSERT(!cures);
 #endif
 #endif
@@ -101,7 +101,7 @@ void recv_data(unsigned src, unsigned dst)
 	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);
 	STARPU_ASSERT(!cures);
 
-	cures = cudaThreadSynchronize();
+	cures = cudaDeviceSynchronize();
 	STARPU_ASSERT(!cures);
 #endif
 #endif
@@ -127,7 +127,7 @@ void *launch_gpu_thread(void *arg)
 		cudaError_t cures;
 		cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
 		STARPU_ASSERT(!cures);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 
 	nready_gpu++;

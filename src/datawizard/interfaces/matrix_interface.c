@@ -445,7 +445,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 		src_matrix->nx*elemsize, src_matrix->ny, kind);
 	if (!cures)
-		cures = cudaThreadSynchronize();
+		cures = cudaDeviceSynchronize();
 	if (STARPU_UNLIKELY(cures))
 	{
 		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void*)(uintptr_t)is_async);
@@ -491,7 +491,7 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 
 	cures = cudaMemcpy3DPeer(&p);
 	if (!cures)
-		cures = cudaThreadSynchronize();
+		cures = cudaDeviceSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 

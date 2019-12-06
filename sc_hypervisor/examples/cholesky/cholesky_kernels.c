@@ -197,7 +197,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
-			cudaError_t cures = cudaThreadSynchronize();
+			cudaError_t cures = cudaDeviceSynchronize();
 			STARPU_ASSERT(!cures);
 			}
 #else
