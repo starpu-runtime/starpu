@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 	gettimeofday(&begin, NULL);
 	if (cufftExecC2C(cuda_plan, (cufftComplex*) in, (cufftComplex*) out_cuda, CUFFT_FORWARD) != CUFFT_SUCCESS)
 		printf("erf2\n");
-	if ((cures = cudaThreadSynchronize()) != cudaSuccess)
+	if ((cures = cudaDeviceSynchronize()) != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(cures);
 	gettimeofday(&end, NULL);
 	cufftDestroy(cuda_plan);

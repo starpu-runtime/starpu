@@ -216,7 +216,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* Fill them */
 	memset(h_buffer, 0, size);
 	cudaMemset(d_buffer, 0, size);
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -232,7 +232,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, size, cudaMemcpyHostToDevice);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
@@ -244,7 +244,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, size, cudaMemcpyDeviceToHost);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
@@ -256,7 +256,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
@@ -268,7 +268,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, 1, cudaMemcpyDeviceToHost);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
@@ -335,7 +335,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&s_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(s_buffer, 0, size);
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	/* Initialize CUDA context on the destination */
 	/* We do not need to enable OpenGL interoperability at this point,
@@ -361,7 +361,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cures = cudaMalloc((void **)&d_buffer, size);
 	STARPU_ASSERT(cures == cudaSuccess);
 	cudaMemset(d_buffer, 0, size);
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	unsigned iter;
 	double timing;
@@ -373,7 +373,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, size);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
@@ -385,7 +385,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, 1);
-		cudaThreadSynchronize();
+		cudaDeviceSynchronize();
 	}
 	end = starpu_timing_now();
 	timing = end - start;
