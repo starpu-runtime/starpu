@@ -48,7 +48,7 @@ void specific2_kernel(void *descr[], void *arg)
 	node = starpu_task_get_current_data_node(1);
 	STARPU_ASSERT(node >= 0);
 	STARPU_ASSERT(starpu_node_get_kind(node) == STARPU_CPU_RAM
-			|| node == starpu_worker_get_local_memory_node());
+			|| (unsigned) node == starpu_worker_get_local_memory_node());
 	dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	if (node == STARPU_MAIN_RAM)
@@ -81,7 +81,7 @@ void specific_kernel(void *descr[], void *arg)
 
 
 	node = starpu_task_get_current_data_node(1);
-	STARPU_ASSERT(node == starpu_worker_get_local_memory_node());
+	STARPU_ASSERT((unsigned) node == starpu_worker_get_local_memory_node());
 }
 
 static struct starpu_codelet specific_cl =
