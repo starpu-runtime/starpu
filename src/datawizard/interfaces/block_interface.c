@@ -474,7 +474,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
                                              (char *)src_block->ptr, src_block->ldz*elemsize,
                                              nx*ny*elemsize, nz, kind);
 			if (!cures)
-				cures = cudaThreadSynchronize();
+				cures = cudaDeviceSynchronize();
                         if (STARPU_UNLIKELY(cures))
                                 STARPU_CUDA_REPORT_ERROR(cures);
                 }
@@ -494,7 +494,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
                                              nx*elemsize, ny, kind);
 
 			if (!cures)
-				cures = cudaThreadSynchronize();
+				cures = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
 		}
@@ -543,7 +543,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 						(char *)src_block->ptr, src_block->ldz*elemsize,
 						nx*ny*elemsize, nz, kind);
 				if (!cures)
-					cures = cudaThreadSynchronize();
+					cures = cudaDeviceSynchronize();
 				if (STARPU_UNLIKELY(cures))
 					STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -602,7 +602,7 @@ no_async_default:
                                      nx*elemsize, ny, kind);
 
 		if (!cures)
-			cures = cudaThreadSynchronize();
+			cures = cudaDeviceSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}

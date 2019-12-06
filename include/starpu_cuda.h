@@ -64,7 +64,7 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
    stream by hand. Note that the application is not forced to use the
    stream provided by starpu_cuda_get_local_stream() and may also
    create its own streams. Synchronizing with
-   <c>cudaThreadSynchronize()</c> is allowed, but will reduce the
+   <c>cudaDeviceSynchronize()</c> is allowed, but will reduce the
    likelihood of having all transfers overlapped.
 */
 cudaStream_t starpu_cuda_get_local_stream(void);

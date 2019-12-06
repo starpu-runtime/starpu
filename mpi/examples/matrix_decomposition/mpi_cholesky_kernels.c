@@ -216,7 +216,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 #if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
 			cudaError_t cures = cudaStreamSynchronize(stream);
 #else
-				cudaError_t cures = cudaThreadSynchronize();
+				cudaError_t cures = cudaDeviceSynchronize();
 #endif
 				STARPU_ASSERT(!cures);
 			}
