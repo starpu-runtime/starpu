@@ -441,6 +441,21 @@ histogram of the codelet execution time distribution.
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
 
+\section DataTrace Data trace and tasks length
+
+It is possible to get statistics about tasks length and data size by using :
+\verbatim
+$ starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
+\endverbatim
+Where filename is the FxT trace file and codeletX the names of the codelets you
+want to profile (if no names are specified, <c>starpu_fxt_data_trace</c> will profile them all).
+This will create a file, <c>data_trace.gp</c> which
+can be executed to get a <c>.eps</c> image of these results. On the image, each point represents a
+task, and each color corresponds to a codelet.
+
+\image html data_trace.png
+\image latex data_trace.eps "" width=\textwidth
+
 \section TraceStatistics Trace Statistics
 
 More than just codelet performance, it is interesting to get statistics over all

@@ -463,18 +463,5 @@ The application can also request an on-the-fly XML report of the performance
 model, by calling starpu_perfmodel_dump_xml() to print the report to a
 <c>FILE*</c>.
 
-\section DataTrace Data trace and tasks length
-It is possible to get statistics about tasks length and data size by using :
-\verbatim
-$ starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
-\endverbatim
-Where filename is the FxT trace file and codeletX the names of the codelets you
-want to profile (if no names are specified, <c>starpu_fxt_data_trace</c> will profile them all).
-This will create a file, <c>data_trace.gp</c> which
-can be executed to get a <c>.eps</c> image of these results. On the image, each point represents a
-task, and each color corresponds to a codelet.
-
-\image html data_trace.png
-\image latex data_trace.eps "" width=\textwidth
 
 */
