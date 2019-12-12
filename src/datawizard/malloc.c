@@ -573,7 +573,7 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 
 	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 	if (node_ops && node_ops->malloc_on_node)
-		return node_ops->malloc_on_node(dst_node, size, flags);
+		addr = node_ops->malloc_on_node(dst_node, size, flags & ~STARPU_MALLOC_COUNT);
 	else
 		STARPU_ABORT_MSG("No malloc_on_node function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 
@@ -581,7 +581,8 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 	{
 		// Allocation failed, gives the memory back to the memory manager
 		_STARPU_TRACE_MEMORY_FULL(size);
-		starpu_memory_deallocate(dst_node, size);
+		if (flags & STARPU_MALLOC_COUNT)
+			starpu_memory_deallocate(dst_node, size);
 	}
 	return addr;
 }
