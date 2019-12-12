@@ -123,7 +123,7 @@ void starpu_fxt_autostart_profiling(int autostart)
 	if (autostart)
 		initial_key_mask = FUT_KEYMASKALL;
 	else
-		initial_key_mask = 0;
+		initial_key_mask = FUT_KEYMASK0;
 }
 
 void starpu_fxt_start_profiling()
