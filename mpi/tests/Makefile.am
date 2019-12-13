@@ -132,6 +132,7 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
+	mpi_barrier				\
 	mpi_redux				\
 	ring					\
 	ring_sync				\
@@ -174,6 +175,7 @@ noinst_PROGRAMS =				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
+	mpi_barrier				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
 	mpi_detached_tag			\
