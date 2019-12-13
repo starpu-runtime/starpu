@@ -123,21 +123,21 @@ void starpu_fxt_autostart_profiling(int autostart)
 	if (autostart)
 		initial_key_mask = FUT_KEYMASKALL;
 	else
-		initial_key_mask = FUT_KEYMASK0;
+		initial_key_mask = _STARPU_FUT_KEYMASK_META;
 }
 
 void starpu_fxt_start_profiling()
 {
 	unsigned threadid = _starpu_gettid();
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
-	_STARPU_TRACE_EVENT("start_profiling");
+	_STARPU_TRACE_META("start_profiling");
 }
 
 void starpu_fxt_stop_profiling()
 {
 	unsigned threadid = _starpu_gettid();
-	_STARPU_TRACE_EVENT("stop_profiling");
-	fut_keychange(FUT_DISABLE, FUT_KEYMASKALL, threadid);
+	_STARPU_TRACE_META("stop_profiling");
+	fut_keychange(FUT_SETMASK, _STARPU_FUT_KEYMASK_META, threadid);
 }
 
 void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
@@ -297,11 +297,6 @@ void _starpu_stop_fxt_profiling(void)
 		_starpu_written = 1;
 		_starpu_fxt_started = 0;
 	}
-}
-
-void _starpu_fxt_register_thread(unsigned cpuid)
-{
-	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, _starpu_gettid());
 }
 
 #else // STARPU_USE_FXT

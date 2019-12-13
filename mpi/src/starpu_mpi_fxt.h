@@ -63,9 +63,9 @@ extern "C"
 #ifdef STARPU_USE_FXT
 
 #define _STARPU_MPI_TRACE_START(rank, worldsize)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
+	FUT_DO_ALWAYS_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
 #define _STARPU_MPI_TRACE_STOP(rank, worldsize)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_STOP, (rank), (worldsize), _starpu_gettid());
+	FUT_DO_ALWAYS_PROBE3(_STARPU_MPI_FUT_STOP, (rank), (worldsize), _starpu_gettid());
 #define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key)	do {\
 	if (_starpu_fxt_started) \
 	FUT_DO_ALWAYS_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid()); \
@@ -139,10 +139,6 @@ extern "C"
 		trace_loop = 0;							\
 		FUT_DO_PROBE1(_STARPU_MPI_FUT_POLLING_END, _starpu_gettid());	\
 	}
-#define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
-#define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
 #define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()	\
 	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
 #define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\

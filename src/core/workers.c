@@ -769,7 +769,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	(void) devid;
 
 #ifdef STARPU_USE_FXT
-	_starpu_fxt_register_thread(worker->bindid);
+	_STARPU_TRACE_REGISTER_THREAD(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
 #endif
 	_starpu_set_local_worker_key(worker);
