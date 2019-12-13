@@ -46,6 +46,7 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 
 void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req)
 {
+	/* this function gives session and gate: */
 	nm_mpi_nmad_dest(&req->backend->session, &req->backend->gate, comm, req->node_tag.node.rank);
 }
 

@@ -75,6 +75,7 @@ noinst_HEADERS =					\
 	mpi/starpu_mpi_driver.h				\
 	mpi/starpu_mpi_mpi_backend.h			\
 	nmad/starpu_mpi_nmad_backend.h			\
+	nmad/starpu_mpi_nmad_unknown_datatype.h		\
 	load_balancer/policy/data_movements_interface.h	\
 	load_balancer/policy/load_data_interface.h	\
 	load_balancer/policy/load_balancer_policy.h
@@ -95,6 +96,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_fortran.c				\
 	starpu_mpi_task_insert_fortran.c		\
 	starpu_mpi_init.c				\
+	nmad/starpu_mpi_nmad_unknown_datatype.c		\
 	nmad/starpu_mpi_nmad.c				\
 	nmad/starpu_mpi_nmad_backend.c			\
 	mpi/starpu_mpi_mpi.c				\
