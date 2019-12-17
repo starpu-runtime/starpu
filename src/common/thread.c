@@ -95,6 +95,9 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
 #else
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#ifdef HAVE_SG_ACTOR_DATA
+	sg_actor_data_set(*thread, tsd);
+#endif
 #endif
 
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
