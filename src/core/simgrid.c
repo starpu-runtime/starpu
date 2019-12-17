@@ -1110,15 +1110,19 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[])
 {
 	void **tsd;
+	starpu_pthread_t actor;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 #ifdef HAVE_SG_ACTOR_INIT
-	starpu_pthread_t actor = sg_actor_init(name, host);
+	actor = sg_actor_init(name, host);
 	sg_actor_data_set(actor, tsd);
 	sg_actor_start(actor, code, argc, argv);
-	return actor;
 #else
-	return MSG_process_create_with_arguments(name, code, tsd, host, argc, argv);
+	actor = MSG_process_create_with_arguments(name, code, tsd, host, argc, argv);
+#ifdef HAVE_SG_ACTOR_DATA
+	sg_actor_data_set(actor, tsd);
 #endif
+#endif
+	return actor;
 }
 
 starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
