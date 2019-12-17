@@ -310,7 +310,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
 #ifdef HAVE_SG_ACTOR_DATA
-	array = sg_actor_self_data();
+	array = sg_actor_data(sg_actor_self());
 #else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
@@ -337,7 +337,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
 #ifdef HAVE_SG_ACTOR_DATA
-	array = sg_actor_self_data();
+	array = sg_actor_data(sg_actor_self());
 #else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
