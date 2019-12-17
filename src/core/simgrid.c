@@ -443,7 +443,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 #ifdef HAVE_SG_ACTOR_DATA
-		sg_actor_self_data_set(tsd);
+		sg_actor_data_set(sg_actor_self(), tsd);
 #else
 		smpi_process_set_user_data(tsd);
 #endif
