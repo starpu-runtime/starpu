@@ -2250,6 +2250,13 @@ module fstarpu_mod
                         use iso_c_binding, only: c_long
                         integer(c_long), value, intent(in) :: code
                 end subroutine fstarpu_trace_user_event
+
+                ! double starpu_timing_now(void)
+                function fstarpu_timing_now () bind(C,name="starpu_timing_now")
+                        use iso_c_binding, only: c_double
+                        real(c_double) :: fstarpu_timing_now
+                end function fstarpu_timing_now
+
         end interface
 
         contains
@@ -2466,4 +2473,11 @@ module fstarpu_mod
                         integer :: i
                         fstarpu_int_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
                 end function fstarpu_int_to_cptr
+
+                ! Note: do not add binding declarations here in 'CONTAINS'
+                ! section, because the compiler generates empty functions for
+                ! them.
+                ! Instead, put binding declarations in the 'INTERFACE' section
+                ! above.
+
 end module fstarpu_mod
