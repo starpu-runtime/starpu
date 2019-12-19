@@ -1709,8 +1709,7 @@ void _starpu_memory_display_stats_by_node(FILE *stream, int node)
 		     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
 		     mc = _starpu_mem_chunk_list_next(mc))
 		{
-			if (mc->automatically_allocated == 0)
-				_starpu_memory_display_handle_stats(stream, mc->data);
+			_starpu_memory_display_handle_stats(stream, mc->data);
 		}
 
 	}

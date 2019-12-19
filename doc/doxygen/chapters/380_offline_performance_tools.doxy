@@ -637,58 +637,50 @@ Moreover, statistics will be displayed at the end of the execution on
 data handles which have not been cleared out. This can be disabled by
 setting the environment variable \ref STARPU_MEMORY_STATS to <c>0</c>.
 
-For example, if you do not unregister data at the end of the complex
-example, you will get something similar to:
+For example, by adding a call to the function
+starpu_data_display_memory_stats() in the fblock example before
+unpartitioning the data, one will get something
+similar to:
 
 \verbatim
-$ STARPU_MEMORY_STATS=0 ./examples/interface/complex
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 78.00 + 78.00 i
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 45.00 + 12.00 i
-\endverbatim
-
-\verbatim
-$ STARPU_MEMORY_STATS=1 ./examples/interface/complex
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 78.00 + 78.00 i
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 45.00 + 12.00 i
-
+$ STARPU_MEMORY_STATS=1 ./examples/filters/fblock
+...
 #---------------------
-Memory stats:
+Memory stats :
 #-------
-Data on Node #3
+Data on Node #2
 #-----
-Data : 0x553ff40
-Size : 16
+Data : 0x5562074e8670
+Size : 144
 
 #--
 Data access stats
 /!\ Work Underway
 Node #0
-	Direct access : 4
+	Direct access : 0
 	Loaded (Owner) : 0
+	Loaded (Shared) : 0
+	Invalidated (was Owner) : 1
+
+Node #2
+	Direct access : 0
+	Loaded (Owner) : 1
 	Loaded (Shared) : 0
 	Invalidated (was Owner) : 0
 
-Node #3
-	Direct access : 0
-	Loaded (Owner) : 0
-	Loaded (Shared) : 1
-	Invalidated (was Owner) : 0
-
+#-------
+Data on Node #3
 #-----
-Data : 0x5544710
-Size : 16
+Data : 0x5562074e9338
+Size : 96
 
 #--
 Data access stats
 /!\ Work Underway
 Node #0
-	Direct access : 2
+	Direct access : 0
 	Loaded (Owner) : 0
-	Loaded (Shared) : 1
+	Loaded (Shared) : 0
 	Invalidated (was Owner) : 1
 
 Node #3
@@ -696,6 +688,10 @@ Node #3
 	Loaded (Owner) : 1
 	Loaded (Shared) : 0
 	Invalidated (was Owner) : 0
+
+
+#---------------------
+...
 \endverbatim
 
 \section DataStatistics Data Statistics
