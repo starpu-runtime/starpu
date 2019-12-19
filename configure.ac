@@ -3017,6 +3017,9 @@ if test x$enable_simgrid = xyes ; then
 else
 	default_enable_mlr=yes
 fi
+if test x$blas_lib = xnone ; then
+	default_enable_mlr=no
+fi
 AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
 			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
