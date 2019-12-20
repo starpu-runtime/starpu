@@ -3017,9 +3017,6 @@ if test x$enable_simgrid = xyes ; then
 else
 	default_enable_mlr=yes
 fi
-if test x$blas_lib = xnone ; then
-	default_enable_mlr=no
-fi
 AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
 			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
@@ -3030,6 +3027,9 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	install_min_dgels=no
 	support_mlr=yes
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$blas_lib = xnone ; then
+	   use_system_lapack=no
+	fi
 	if test x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
