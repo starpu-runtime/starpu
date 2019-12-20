@@ -745,6 +745,34 @@ not matter.
 
 The example <c>examples/pi</c> uses scratches for some temporary buffer.
 
+\section ChangingDataSize Changing the size of a data
+
+The size of the output of a task may not be known in advance. In such a case,
+a task can dynamically allocate or even reallocate the data. An example can
+be found in tests/datawizard/variable_size.c . The example uses its own data
+interface so as to contain some simulation information for data growth, but the
+principle can be applied for any data interface.
+
+The principle is to use <c>starpu_malloc_on_node_flags</c> to make the new
+allocation, and use <c>starpu_free_on_node_flags</c> to release any previous
+allocation. The flags have to be precisely like in the example:
+
+\code{.c}
+unsigned workerid = starpu_worker_get_id_check();
+unsigned dst_node = starpu_worker_get_memory_node(workerid);
+interface->ptr = starpu_malloc_on_node_flags(dst_node, size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+starpu_free_on_node_flags(dst_node, old, size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+interface->size += increase;
+\endcode
+
+so that the allocated area has the expected properties and the allocation is accounted for properly.
+
+Depending on the interface (vector, CSR, etc.) you may have to fix several
+members of the data interface: e.g. both nx and allocsize for vectors, and store
+the pointer both in ptr and dev_handle.
+
+Important note: one can not change the size of a partitioned data.
+
 \section TheMultiformatInterface The Multiformat Interface
 
 It may be interesting to represent the same piece of data using two different
