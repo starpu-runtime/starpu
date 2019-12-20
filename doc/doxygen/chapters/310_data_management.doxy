@@ -202,7 +202,39 @@ that the StarPU core knows the new data layout. The starpu_data_interface_ops
 structure however then needs to have the starpu_data_interface_ops::dontcache
 field set to 1, to prevent StarPU from trying to perform any cached allocation,
 since the allocated size will vary. An example is available in
-<c>tests/datawizard/variable_size.c</c>
+<c>tests/datawizard/variable_size.c</c>. The example uses its own data
+interface so as to contain some simulation information for data growth, but the
+principle can be applied for any data interface.
+
+The principle is to use <c>starpu_malloc_on_node_flags</c> to make the new
+allocation, and use <c>starpu_free_on_node_flags</c> to release any previous
+allocation. The flags have to be precisely like in the example:
+
+\code{.c}
+unsigned workerid = starpu_worker_get_id_check();
+unsigned dst_node = starpu_worker_get_memory_node(workerid);
+interface->ptr = starpu_malloc_on_node_flags(dst_node, size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+starpu_free_on_node_flags(dst_node, old, size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+interface->size += increase;
+\endcode
+
+so that the allocated area has the expected properties and the allocation is accounted for properly.
+
+Depending on the interface (vector, CSR, etc.) you may have to fix several
+members of the data interface: e.g. both <c>nx</c> and <c>allocsize</c> for
+vectors, and store the pointer both in <c>ptr</c> and <c>dev_handle</c>.
+
+Some interfaces make a distinction between the actual number of elements
+stored in the data and the actually allocated buffer. For instance, the vector
+interface uses the <c>nx</c> field for the former, and the <c>allocsize</c> for
+the latter. This allows for lazy reallocation to avoid reallocating the buffer
+everytime to exactly match the actual number of elements. Computations and data
+transfers will use <c>nx</c> field, while allocation functions will use the
+<c>allocsize</c>. One just has to make sure that <c>allocsize</c> is always
+bigger or equal to <c>nx</c>.
+
+Important note: one can not change the size of a partitioned data.
+
 
 \section DataManagement Data Management
 
@@ -772,43 +804,6 @@ StarPU will notice that it can free such buffers easily, since the content does
 not matter.
 
 The example <c>examples/pi</c> uses scratches for some temporary buffer.
-
-\section ChangingDataSize Changing the size of a data
-
-The size of the output of a task may not be known in advance. In such a case,
-a task can dynamically allocate or even reallocate the data. An example can
-be found in <c>tests/datawizard/variable_size.c</c>. The example uses its own data
-interface so as to contain some simulation information for data growth, but the
-principle can be applied for any data interface.
-
-The principle is to use <c>starpu_malloc_on_node_flags</c> to make the new
-allocation, and use <c>starpu_free_on_node_flags</c> to release any previous
-allocation. The flags have to be precisely like in the example:
-
-\code{.c}
-unsigned workerid = starpu_worker_get_id_check();
-unsigned dst_node = starpu_worker_get_memory_node(workerid);
-interface->ptr = starpu_malloc_on_node_flags(dst_node, size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
-starpu_free_on_node_flags(dst_node, old, size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
-interface->size += increase;
-\endcode
-
-so that the allocated area has the expected properties and the allocation is accounted for properly.
-
-Depending on the interface (vector, CSR, etc.) you may have to fix several
-members of the data interface: e.g. both <c>nx</c> and <c>allocsize</c> for
-vectors, and store the pointer both in <c>ptr</c> and <c>dev_handle</c>.
-
-Some interfaces make a distinction between the actual number of elements
-stored in the data and the actually allocated buffer. For instance, the vector
-interface uses the <c>nx</c> field for the former, and the <c>allocsize</c> for
-the latter. This allows for lazy reallocation to avoid reallocating the buffer
-everytime to exactly match the actual number of elements. Computations and data
-transfers will use <c>nx</c> field, while allocation functions will use the
-<c>allocsize</c>. One just has to make sure that <c>allocsize</c> is always
-bigger or equal to <c>nx</c>.
-
-Important note: one can not change the size of a partitioned data.
 
 \section TheMultiformatInterface The Multiformat Interface
 
