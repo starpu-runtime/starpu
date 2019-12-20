@@ -223,12 +223,16 @@ static void kernel(void *descr[], void *cl_arg)
 	size_t increase = (FULLSIZE - variable_interface->size) * (starpu_lrand48() % 1024 + 1024) / 2048. * INCREASE;
 	/* Round to page size */
 	increase -= increase & (65536-1);
+
+	/* Allocation increase */
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size + increase);
 	STARPU_ASSERT(variable_interface->ptr);
 	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */
 	starpu_free_on_node_flags(dst_node, old, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	variable_interface->size += increase;
+
+	/* These are only simulation bits */
 	if (increase)
 		_starpu_simgrid_data_increase(increase);
 	starpu_sleep(0.010);
