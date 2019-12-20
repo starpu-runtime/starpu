@@ -523,6 +523,34 @@ starpu_data_invalidate_submit(handle);
 
 And now we can start using vertical slices, etc.
 
+\section DataPointers Handles data buffer pointers
+
+A simple understanding of starpu handles is that it's a collection of buffers on
+each memory node of the machine, which contain the same data.  The picture is
+however made more complex with the OpenCL support and with partitioning.
+
+When partitioning a handle, the data buffers of the subhandles will indeed
+be inside the data buffers of the main handle (to save transferring data
+back and forth between the main handle and the subhandles). But in OpenCL,
+a <c>cl_mem</c> is not a pointer, but an opaque value on which pointer
+arithmetic can not be used. That is why data interfaces contain three members:
+<c>dev_handle</c>, <c>offset</c>, and <c>ptr</c>. The <c>dev_handle</c> member
+is what the allocation function returned, and one can not do arithmetic on
+it. The <c>offset</c> member is the offset inside the allocated area, most often
+it will be 0 because data start at the beginning of the allocated area, but
+when the handle is partitioned, the subhandles will have varying <c>offset</c>
+values, for each subpiece. The <c>ptr</c> member, in the non-OpenCL case, i.e.
+when pointer arithmetic can be used on <c>dev_handle</c>, is just the sum of
+<c>dev_handle</c> and <c>offset</c>, provided for convenience.
+
+This means that:
+<ul>
+<li>computation kernels can use <c>ptr</c> in non-OpenCL implementations.</li>
+<li>computation kernels have to use <c>dev_handle</c> and <c>offset</c> in the OpenCL implementation.</li>
+<li>allocation methods of data interfaces have to store the value returned by starpu_malloc_on_node in <c>dev_handle</c> and <c>ptr</c>, and set <c>offset</c> to 0.</li>
+<li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
+</ul>
+
 \section DefiningANewDataFilter Defining A New Data Filter
 
 StarPU provides a series of predefined filters in \ref API_Data_Partition, but
