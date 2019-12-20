@@ -764,7 +764,7 @@ The example <c>examples/pi</c> uses scratches for some temporary buffer.
 
 The size of the output of a task may not be known in advance. In such a case,
 a task can dynamically allocate or even reallocate the data. An example can
-be found in tests/datawizard/variable_size.c . The example uses its own data
+be found in <c>tests/datawizard/variable_size.c</c>. The example uses its own data
 interface so as to contain some simulation information for data growth, but the
 principle can be applied for any data interface.
 
