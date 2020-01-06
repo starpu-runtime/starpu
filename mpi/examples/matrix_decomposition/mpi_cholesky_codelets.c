@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2010-2015,2017,2018,2020                 CNRS
  * Copyright (C) 2009,2010,2014,2015,2017,2018            Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  *
@@ -20,6 +20,7 @@
 #include <common/blas.h>
 #include <sys/time.h>
 #include <limits.h>
+#include <math.h>
 
 /*
  *	Create the codelets
@@ -254,7 +255,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 						if (i <= j)
 						{
 							float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-							float err = abs(test_mat[j +i*size] - orig);
+							float err = fabsf(test_mat[j +i*size] - orig);
 							if (err > 0.00001)
 							{
 								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);

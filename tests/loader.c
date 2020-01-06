@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2011-2019                                CNRS
+ * Copyright (C) 2011-2020                                CNRS
  * Copyright (C) 2010,2014-2018                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -170,6 +170,7 @@ static void test_cleaner(int sig)
 {
 	pid_t child_gid;
 	int status;
+	(void) sig;
 
 	// send signal to all loader family members
 	fprintf(stderr, "[error] test %s has been blocked for %d seconds. Mark it as failed\n", test_name, timeout);
@@ -224,6 +225,7 @@ int main(int argc, char *argv[])
 	struct timeval end;
 	double timing;
 
+	(void) argc;
 	test_args = NULL;
 	timeout = 0;
 	test_name = argv[1];

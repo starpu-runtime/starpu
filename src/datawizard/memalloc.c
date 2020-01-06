@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
  * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2017,2019                           CNRS
+ * Copyright (C) 2010-2017,2019,2020                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -161,6 +161,7 @@ void _starpu_mem_chunk_init_last(void)
 /* A disk was registered, RAM is now evictable */
 void _starpu_mem_chunk_disk_register(unsigned disk_memnode)
 {
+	(void) disk_memnode;
 	unsigned nnodes = starpu_memory_nodes_get_count(), i;
 
 	for (i = 0; i < nnodes; i++)
