@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014,2015,2017                           CNRS
+ * Copyright (C) 2014,2015,2017,2020                      CNRS
  * Copyright (C) 2014-2016                                Inria
  * Copyright (C) 2015                                     Université de Bordeaux
  *
@@ -208,30 +208,34 @@ int starpu_omp_get_num_places(void)
 
 int starpu_omp_get_place_num_procs(int place_num)
 {
-  /* TODO */
-  return 0;
+	(void) place_num;
+	/* TODO */
+	return 0;
 }
 
 void starpu_omp_get_place_proc_ids(int place_num, int *ids)
 {
-  /* TODO */
+	(void) place_num;
+	(void) ids;
+	/* TODO */
 }
 
 int starpu_omp_get_place_num(void)
 {
-  /* TODO */
-  return -1;
+	/* TODO */
+	return -1;
 }
 
 int starpu_omp_get_partition_num_places(void)
 {
-  /* TODO */
-  return 0;
+	/* TODO */
+	return 0;
 }
 
 void starpu_omp_get_partition_place_nums(int *place_nums)
 {
-  /* TODO */
+	(void) place_nums;
+	/* TODO */
 }
 
 void starpu_omp_set_default_device(int device_num)
