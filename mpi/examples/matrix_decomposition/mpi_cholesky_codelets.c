@@ -184,7 +184,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	}
 }
 
-void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops)
+void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops, double epsilon)
 {
 	unsigned i,j,x,y;
 	float *rmat = malloc(size*size*sizeof(float));
@@ -256,9 +256,9 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 						{
 							float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
 							float err = fabsf(test_mat[j +i*size] - orig);
-							if (err > 0.00001)
+							if (err > epsilon)
 							{
-								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
+								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, i, j, test_mat[j +i*size], orig, err);
 								*correctness = 0;
 								*flops = 0;
 								break;
