@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2015,2017,2018,2020                 CNRS
- * Copyright (C) 2009,2010,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009,2010,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -255,7 +255,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 						if (i <= j)
 						{
 							float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-							float err = fabsf(test_mat[j +i*size] - orig);
+							float err = fabsf(test_mat[j +i*size] - orig) / orig;
 							if (err > epsilon)
 							{
 								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, i, j, test_mat[j +i*size], orig, err);
