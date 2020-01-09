@@ -259,6 +259,8 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
 
+#define IS_CONTIGUOUS_MATRIX(nx, ny, ld) ((nx) == (ld))
+
 static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -280,7 +282,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		char *cur = *ptr;
 
-		if (ld == nx)
+		if (IS_CONTIGUOUS_MATRIX(nx, ny, ld))
 			memcpy(cur, matrix, nx*ny*elemsize);
 		else
 		{
@@ -313,7 +315,7 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 
 	char *matrix = (void *)matrix_interface->ptr;
 
-	if (ld == nx)
+	if (IS_CONTIGUOUS_MATRIX(nx, ny, ld))
 		memcpy(matrix, ptr, nx*ny*elemsize);
 	else
 	{
@@ -669,7 +671,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ld_src = src_matrix->ld;
 	uint32_t ld_dst = dst_matrix->ld;
 
-	if (ld_src == nx && ld_dst == nx)
+	if (IS_CONTIGUOUS_MATRIX(nx, ny, ld_src) && ld_dst == ld_src)
 	{
 		/* Optimize unpartitioned and y-partitioned cases */
 		if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset, src_node,

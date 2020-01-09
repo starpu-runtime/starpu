@@ -230,6 +230,10 @@ static void display_tensor_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u\t%u\t%u\t", tensor_interface->nx, tensor_interface->ny, tensor_interface->nz, tensor_interface->nt);
 }
 
+#define IS_CONTIGUOUS_MATRIX(nx, ny, ldy) ((nx) == (ldy))
+#define IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz) ((nx) * (ny) == (ldz))
+#define IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy, ldz, ldt) ((nx) * (ny) * (nz) == (ldt))
+
 static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -256,17 +260,14 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
-		if (nx * ny * nz == ldt &&
-		    nx * ny == ldz &&
-		    nx == ldy)
+		if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy, ldz, ldt))
 			memcpy(cur, block, nx * ny * nz * nt * elemsize);
 		else
 		{
 			char *block_t = block;
 			for(t=0 ; t<nt ; t++)
 			{
-				if (nx * ny == ldz &&
-				    nx == ldy)
+				if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 				{
 					memcpy(cur, block_t, nx * ny * nz * elemsize);
 					cur += nx*ny*nz*elemsize;
@@ -276,7 +277,7 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 					char *block_z = block_t;
 					for(z=0 ; z<nz ; z++)
 					{
-						if (nx == ldy)
+						if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 						{
 							memcpy(cur, block_z, nx * ny * elemsize);
 							cur += nx*ny*elemsize;
@@ -324,17 +325,14 @@ static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void
 	char *cur = ptr;
 	char *block = (void *)tensor_interface->ptr;
 
-	if (nx * ny * nz == ldt &&
-	    nx * ny == ldz &&
-	    nx == ldy)
+	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy, ldz, ldt))
 		memcpy(block, cur, nx * ny * nz * nt * elemsize);
 	else
 	{
 		char *block_t = block;
 		for(t=0 ; t<nt ; t++)
 		{
-			if (nx * ny == ldz &&
-			    nx == ldy)
+			if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 			{
 				memcpy(block_t, cur, nx * ny * nz * elemsize);
 				cur += nx*ny*nz*elemsize;
@@ -344,7 +342,7 @@ static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void
 				char *block_z = block_t;
 				for(z=0 ; z<nz ; z++)
 				{
-					if (nx == ldy)
+					if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 					{
 						memcpy(block_z, cur, nx * ny * elemsize);
 						cur += nx*ny*elemsize;
@@ -582,8 +580,8 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 	cudaError_t cures;
 
-	if (src_block->ldy == dst_block->ldy && src_block->ldz == dst_block->ldz && src_block->ldt == dst_block->ldt
-		&& nx*ny*nz == src_block->ldt)
+	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, src_block->ldy, src_block->ldz, src_block->ldt) &&
+	    IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, dst_block->ldy, dst_block->ldz, dst_block->ldt))
 	{
 		/* Same lds on both sides, and contiguous, simple */
 		starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*nt*elemsize, NULL, kind);
@@ -635,8 +633,8 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 
 	int ret;
 
-	if (src_block->ldy == dst_block->ldy && src_block->ldz == dst_block->ldz && src_block->ldt == dst_block->ldt
-		&& nx*ny*nz == src_block->ldt)
+	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, src_block->ldy, src_block->ldz, src_block->ldt) &&
+	    IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, dst_block->ldy, dst_block->ldz, dst_block->ldt))
 	{
 		/* Same lds on both sides, and contiguous, simple */
 		ret = starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*nt*elemsize, stream, kind);
@@ -746,8 +744,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
 	 * plans within the block, we can avoid many small transfers that way */
-	if (src_block->ldy == dst_block->ldy && src_block->ldz == dst_block->ldz && src_block->ldt == dst_block->ldt
-		&& nx*ny*nz == src_block->ldt)
+	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, src_block->ldy, src_block->ldz, src_block->ldt) &&
+	    IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, dst_block->ldy, dst_block->ldz, dst_block->ldt))
 	{
 		ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
 						    dst_block->dev_handle, dst_block->offset, dst_node,
@@ -836,7 +834,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldz_dst = dst_block->ldz;
 	uint32_t ldt_dst = dst_block->ldt;
 
-	if (ldy_src == nx && ldy_dst == nx && ldz_src == nx*ny && ldz_dst == nx*ny && ldt_src == nx*ny*nz && ldt_dst == nx*ny*nz)
+	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy_src, ldz_src, ldt_src) &&
+	    IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy_dst, ldz_dst, ldt_dst))
 	{
 		/* Optimise non-partitioned and z-partitioned case */
 		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
@@ -852,7 +851,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 		    unsigned z;
 		    for (z = 0; z < nz; z++)
 		    {
-			if (ldy_src == nx && ldy_dst == nx)
+			if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy_src) &&
+			    IS_CONTIGUOUS_MATRIX(nx, ny, ldy_dst))
 			{
 				/* Optimise y-partitioned case */
 				uint32_t src_offset = t*ldt_src*elemsize + z*ldz_src*elemsize;

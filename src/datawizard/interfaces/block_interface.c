@@ -220,6 +220,9 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
 
+#define IS_CONTIGUOUS_MATRIX(nx, ny, ldy) ((nx) == (ldy))
+#define IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz) ((nx) * (ny) == (ldz))
+
 static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -245,14 +248,14 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 
 		char *cur = *ptr;
 
-		if (nx * ny == ldz && nx == ldy)
+		if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 			memcpy(cur, block, nx * ny * nz * elemsize);
 		else
 		{
 			char *block_z = block;
 			for(z=0 ; z<nz ; z++)
 			{
-				if (nx == ldy)
+				if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 				{
 					memcpy(cur, block_z, nx * ny * elemsize);
 					cur += nx*ny*elemsize;
@@ -295,14 +298,14 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	char *cur = ptr;
 	char *block = (void *)block_interface->ptr;
 
-	if (nx * ny == ldz && nx == ldy)
+	if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 		memcpy(block, cur, nx * ny * nz * elemsize);
 	else
 	{
 		char *block_z = block;
 		for(z=0 ; z<nz ; z++)
 		{
-			if (nx == ldy)
+			if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 			{
 				memcpy(block_z, cur, nx * ny * elemsize);
 				cur += nx*ny*elemsize;
@@ -504,10 +507,11 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 	cudaError_t cures;
 
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	if (IS_CONTIGUOUS_MATRIX(nx, ny, src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
 		/* Is that a single contiguous buffer ? */
-		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, src_block->ldy, src_block->ldz) &&
+		    IS_CONTIGUOUS_BLOCK(nx, ny, nz, dst_block->ldy, dst_block->ldz))
 		{
 			starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, NULL, kind);
                 }
@@ -565,10 +569,11 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
 	 * plans within the block, we can avoid many small transfers that way */
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	if (IS_CONTIGUOUS_MATRIX(nx, ny, src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
 		/* Is that a single contiguous buffer ? */
-		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, src_block->ldy, src_block->ldz) &&
+		    IS_CONTIGUOUS_BLOCK(nx, ny, nz, dst_block->ldy, dst_block->ldz))
 		{
 			ret = starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, stream, kind);
 		}
@@ -694,9 +699,9 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
 	 * plans within the block, we can avoid many small transfers that way */
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy) &&
+	if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, src_block->ldy, src_block->ldz) &&
+	    IS_CONTIGUOUS_BLOCK(nx, ny, nz, dst_block->ldy, dst_block->ldz))
 		/* Is that a single contiguous buffer ? */
-		((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 	{
 		ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
 						    dst_block->dev_handle, dst_block->offset, dst_node,
@@ -778,7 +783,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldy_dst = dst_block->ldy;
 	uint32_t ldz_dst = dst_block->ldz;
 
-	if (ldy_src == nx && ldy_dst == nx && ldz_src == nx*ny && ldz_dst == nx*ny)
+	if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy_src, ldz_src) &&
+	    IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy_dst, ldz_dst))
 	{
 		/* Optimise non-partitioned and z-partitioned case */
 		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
@@ -791,7 +797,8 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 		unsigned z;
 		for (z = 0; z < nz; z++)
 		{
-			if (ldy_src == nx && ldy_dst == nx)
+			if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy_src) &&
+			    IS_CONTIGUOUS_MATRIX(nx, ny, ldy_dst))
 			{
 				/* Optimise y-partitioned case */
 				uint32_t src_offset = z*ldz_src*elemsize;
