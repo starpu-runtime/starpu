@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	matrix_display(bmat, rank);
 
-	dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops, 0.00001);
+	dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops, 0.0001);
 #endif
 
 	matrix_free(&bmat, rank, nodes, 1);
