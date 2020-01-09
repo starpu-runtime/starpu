@@ -261,6 +261,19 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 
 #define IS_CONTIGUOUS_MATRIX(nx, ny, ld) ((nx) == (ld))
 
+//#define DYNAMIC_MATRICES
+
+struct pack_matrix_header {
+#ifdef DYNAMIC_MATRICES
+	/* Receiving matrices with different sizes from MPI */
+	/* FIXME: that would break alignment for O_DIRECT disk access...
+	 * while in the disk case, we do know the matrix size anyway */
+	uint32_t nx;
+	uint32_t ny;
+	size_t elemsize;
+#endif
+};
+
 static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -273,14 +286,22 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	uint32_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
-	*count = nx*ny*elemsize;
+	*count = nx*ny*elemsize + sizeof(struct pack_matrix_header);
 
 	if (ptr != NULL)
 	{
 		char *matrix = (void *)matrix_interface->ptr;
 
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
-		char *cur = *ptr;
+
+		struct pack_matrix_header *header = *ptr;
+#ifdef DYNAMIC_MATRICES
+		header->nx = nx;
+		header->ny = ny;
+		header->elemsize = elemsize;
+#endif
+
+		char *cur = (char*) *ptr + sizeof(*header);
 
 		if (IS_CONTIGUOUS_MATRIX(nx, ny, ld))
 			memcpy(cur, matrix, nx*ny*elemsize);
@@ -311,7 +332,45 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 	uint32_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
-	STARPU_ASSERT(count == elemsize * nx * ny);
+	struct pack_matrix_header *header = ptr;
+
+#ifdef DYNAMIC_MATRICES
+	STARPU_ASSERT(count >= sizeof(*header));
+
+	if (IS_CONTIGUOUS_MATRIX(nx, ny, ld))
+	{
+		/* We can store whatever can fit */
+
+		STARPU_ASSERT_MSG(header->elemsize == elemsize,
+				"Data element size %u needs to be same as the received data element size %u",
+				(unsigned) elemsize, (unsigned) header->elemsize);
+
+		STARPU_ASSERT_MSG(header->nx * header->ny * header->elemsize <= matrix_interface->allocsize,
+				"Initial size of data %lu needs to be big enough for received data %ux%ux%u",
+				(unsigned long) matrix_interface->allocsize,
+				(unsigned) header->nx, (unsigned) header->ny,
+				(unsigned) header->elemsize);
+
+		/* Better keep it contiguous */
+		matrix_interface->ld = ld = header->nx;
+	}
+	else
+	{
+		STARPU_ASSERT_MSG(header->nx <= nx,
+				"Initial nx %u of data needs to be big enough for received data nx %u\n",
+				nx, header->nx);
+		STARPU_ASSERT_MSG(header->ny <= ny,
+				"Initial ny %u of data needs to be big enough for received data ny %u\n",
+				ny, header->ny);
+	}
+
+	matrix_interface->nx = nx = header->nx;
+	matrix_interface->ny = ny = header->ny;
+#endif
+
+	char *cur = (char*) ptr + sizeof(*header);
+
+	STARPU_ASSERT(count == sizeof(*header) + elemsize * nx * ny);
 
 	char *matrix = (void *)matrix_interface->ptr;
 
@@ -320,7 +379,6 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 	else
 	{
 		uint32_t y;
-		char *cur = ptr;
 		for(y=0 ; y<ny ; y++)
 		{
 			memcpy(matrix, cur, nx*elemsize);

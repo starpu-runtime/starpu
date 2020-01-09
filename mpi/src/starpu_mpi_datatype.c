@@ -185,7 +185,10 @@ static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Dataty
 
 static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
 {
+//#define DYNAMIC_MATRICES
+#ifndef DYNAMIC_MATRICES
 	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_matrix,
+#endif
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_TENSOR_INTERFACE_ID]	= handle_to_datatype_tensor,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
@@ -282,7 +285,9 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 
 static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
 {
+#ifndef DYNAMIC_MATRICES
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+#endif
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
