@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2011,2012,2014,2017                      Inria
  * Copyright (C) 2010-2015,2017,2019                      CNRS
  *
@@ -188,7 +188,7 @@ static int vector_alloc_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_vector_interface *vector_a = (struct starpu_vector_interface *) data_interface_a;
 	struct starpu_vector_interface *vector_b = (struct starpu_vector_interface *) data_interface_b;
 
-	/* Two vectors are considered compatible if they have the same size */
+	/* Two vectors are considered allocation-compatible if they have the same size */
 	return (vector_a->allocsize == vector_b->allocsize);
 }
 
