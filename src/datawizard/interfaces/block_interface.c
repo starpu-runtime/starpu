@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2017,2019                           CNRS
  *
@@ -237,17 +237,31 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
-		char *block_z = block;
-		for(z=0 ; z<block_interface->nz ; z++)
+
+		if (block_interface->nx * block_interface->ny == block_interface->ldz && block_interface->nx == block_interface->ldy)
+			memcpy(cur, block, block_interface->nx * block_interface->ny * block_interface->nz * block_interface->elemsize);
+		else
 		{
-			char *block_y = block_z;
-			for(y=0 ; y<block_interface->ny ; y++)
+			char *block_z = block;
+			for(z=0 ; z<block_interface->nz ; z++)
 			{
-				memcpy(cur, block_y, block_interface->nx*block_interface->elemsize);
-				cur += block_interface->nx*block_interface->elemsize;
-				block_y += block_interface->ldy * block_interface->elemsize;
+				if (block_interface->nx == block_interface->ldy)
+				{
+					memcpy(cur, block_z, block_interface->nx * block_interface->ny * block_interface->elemsize);
+					cur += block_interface->nx*block_interface->ny*block_interface->elemsize;
+				}
+				else
+				{
+					char *block_y = block_z;
+					for(y=0 ; y<block_interface->ny ; y++)
+					{
+						memcpy(cur, block_y, block_interface->nx*block_interface->elemsize);
+						cur += block_interface->nx*block_interface->elemsize;
+						block_y += block_interface->ldy * block_interface->elemsize;
+					}
+				}
+				block_z += block_interface->ldz * block_interface->elemsize;
 			}
-			block_z += block_interface->ldz * block_interface->elemsize;
 		}
 	}
 
@@ -266,17 +280,31 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	uint32_t z, y;
 	char *cur = ptr;
 	char *block = (void *)block_interface->ptr;
-	char *block_z = block;
-	for(z=0 ; z<block_interface->nz ; z++)
+
+	if (block_interface->nx * block_interface->ny == block_interface->ldz && block_interface->nx == block_interface->ldy)
+		memcpy(block, cur, block_interface->nx * block_interface->ny * block_interface->nz * block_interface->elemsize);
+	else
 	{
-		char *block_y = block_z;
-		for(y=0 ; y<block_interface->ny ; y++)
+		char *block_z = block;
+		for(z=0 ; z<block_interface->nz ; z++)
 		{
-			memcpy(block_y, cur, block_interface->nx*block_interface->elemsize);
-			cur += block_interface->nx*block_interface->elemsize;
-			block_y += block_interface->ldy * block_interface->elemsize;
+			if (block_interface->nx == block_interface->ldy)
+			{
+				memcpy(block_z, cur, block_interface->nx * block_interface->ny * block_interface->elemsize);
+				cur += block_interface->nx*block_interface->ny*block_interface->elemsize;
+			}
+			else
+			{
+				char *block_y = block_z;
+				for(y=0 ; y<block_interface->ny ; y++)
+				{
+					memcpy(block_y, cur, block_interface->nx*block_interface->elemsize);
+					cur += block_interface->nx*block_interface->elemsize;
+					block_y += block_interface->ldy * block_interface->elemsize;
+				}
+			}
+			block_z += block_interface->ldz * block_interface->elemsize;
 		}
-		block_z += block_interface->ldz * block_interface->elemsize;
 	}
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
