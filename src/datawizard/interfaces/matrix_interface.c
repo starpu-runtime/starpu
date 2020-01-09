@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2017,2019                           CNRS
  *
@@ -247,7 +247,7 @@ static int matrix_alloc_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_a = (struct starpu_matrix_interface *) data_interface_a;
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
-	/* Two matricess are considered compatible if they have the same size */
+	/* Two matricess are considered allocation-compatible if they have the same size */
 	return (matrix_a->allocsize == matrix_b->allocsize);
 }
 
