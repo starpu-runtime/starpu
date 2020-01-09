@@ -45,6 +45,12 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv, nodes);
 
+	if (check)
+	{
+		fprintf(stderr,"can't check in distributed mode\n");
+		check = 0;
+	}
+
 	matrix_init(&bmat, rank, nodes, 0);
 
 	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
@@ -52,19 +58,7 @@ int main(int argc, char **argv)
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 
-#ifndef STARPU_SIMGRID
-	if (rank == 0)
-	{
-		matrix_display(bmat, rank);
-
-		dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops, 0.001);
-	}
-#endif
 	matrix_free(&bmat, rank, nodes, 0);
-
-#ifndef STARPU_SIMGRID
-	assert(correctness);
-#endif
 
 	if (rank == 0)
 	{

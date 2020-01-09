@@ -170,6 +170,9 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	{
 		for (y = 0; y < nblocks; y++)
 		{
+			/* Get back data on node 0 for the potential check */
+			starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[x][y], 0);
+
 			if (data_handles[x][y])
 				starpu_data_unregister(data_handles[x][y]);
 		}
