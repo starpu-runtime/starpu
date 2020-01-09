@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015                                Université de Bordeaux
+ * Copyright (C) 2010-2015, 2020                          Université de Bordeaux
  * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Inria
  *
@@ -34,6 +34,7 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
+	int ld = STARPU_MATRIX_GET_LD(descr[0]);
 
         id = starpu_worker_get_id_check();
         devid = starpu_worker_get_devid(id);
@@ -47,6 +48,7 @@ void opencl_codelet(void *descr[], void *_args)
         err |= clSetKernelArg(kernel, n++, sizeof(nx), (void*)&nx);
         err |= clSetKernelArg(kernel, n++, sizeof(ny), (void*)&ny);
 	err |= clSetKernelArg(kernel, n++, sizeof(mult), &mult);
+	err |= clSetKernelArg(kernel, n++, sizeof(ld), (void*)&ld);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
