@@ -237,7 +237,16 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	*count = tensor_interface->nx*tensor_interface->ny*tensor_interface->nz*tensor_interface->nt*tensor_interface->elemsize;
+	uint32_t ldy = tensor_interface->ldy;
+	uint32_t ldz = tensor_interface->ldz;
+	uint32_t ldt = tensor_interface->ldt;
+	uint32_t nx = tensor_interface->nx;
+	uint32_t ny = tensor_interface->ny;
+	uint32_t nz = tensor_interface->nz;
+	uint32_t nt = tensor_interface->nt;
+	size_t elemsize = tensor_interface->elemsize;
+
+	*count = nx*ny*nz*nt*elemsize;
 
 	if (ptr != NULL)
 	{
@@ -247,45 +256,45 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
-		if (tensor_interface->nx * tensor_interface->ny * tensor_interface->nz == tensor_interface->ldt &&
-		    tensor_interface->nx * tensor_interface->ny == tensor_interface->ldz &&
-		    tensor_interface->nx == tensor_interface->ldy)
-			memcpy(cur, block, tensor_interface->nx * tensor_interface->ny * tensor_interface->nz * tensor_interface->nt * tensor_interface->elemsize);
+		if (nx * ny * nz == ldt &&
+		    nx * ny == ldz &&
+		    nx == ldy)
+			memcpy(cur, block, nx * ny * nz * nt * elemsize);
 		else
 		{
 			char *block_t = block;
-			for(t=0 ; t<tensor_interface->nt ; t++)
+			for(t=0 ; t<nt ; t++)
 			{
-				if (tensor_interface->nx * tensor_interface->ny == tensor_interface->ldz &&
-				    tensor_interface->nx == tensor_interface->ldy)
+				if (nx * ny == ldz &&
+				    nx == ldy)
 				{
-					memcpy(cur, block_t, tensor_interface->nx * tensor_interface->ny * tensor_interface->nz * tensor_interface->elemsize);
-					cur += tensor_interface->nx*tensor_interface->ny*tensor_interface->nz*tensor_interface->elemsize;
+					memcpy(cur, block_t, nx * ny * nz * elemsize);
+					cur += nx*ny*nz*elemsize;
 				}
 				else
 				{
 					char *block_z = block_t;
-					for(z=0 ; z<tensor_interface->nz ; z++)
+					for(z=0 ; z<nz ; z++)
 					{
-						if (tensor_interface->nx == tensor_interface->ldy)
+						if (nx == ldy)
 						{
-							memcpy(cur, block_z, tensor_interface->nx * tensor_interface->ny * tensor_interface->elemsize);
-							cur += tensor_interface->nx*tensor_interface->ny*tensor_interface->elemsize;
+							memcpy(cur, block_z, nx * ny * elemsize);
+							cur += nx*ny*elemsize;
 						}
 						else
 						{
 							char *block_y = block_z;
-							for(y=0 ; y<tensor_interface->ny ; y++)
+							for(y=0 ; y<ny ; y++)
 							{
-								memcpy(cur, block_y, tensor_interface->nx*tensor_interface->elemsize);
-								cur += tensor_interface->nx*tensor_interface->elemsize;
-								block_y += tensor_interface->ldy * tensor_interface->elemsize;
+								memcpy(cur, block_y, nx*elemsize);
+								cur += nx*elemsize;
+								block_y += ldy * elemsize;
 							}
 						}
-						block_z += tensor_interface->ldz * tensor_interface->elemsize;
+						block_z += ldz * elemsize;
 					}
 				}
-				block_t += tensor_interface->ldt * tensor_interface->elemsize;
+				block_t += ldt * elemsize;
 			}
 		}
 	}
@@ -300,51 +309,60 @@ static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	STARPU_ASSERT(count == tensor_interface->elemsize * tensor_interface->nx * tensor_interface->ny * tensor_interface->nz * tensor_interface->nt);
+	uint32_t ldy = tensor_interface->ldy;
+	uint32_t ldz = tensor_interface->ldz;
+	uint32_t ldt = tensor_interface->ldt;
+	uint32_t nx = tensor_interface->nx;
+	uint32_t ny = tensor_interface->ny;
+	uint32_t nz = tensor_interface->nz;
+	uint32_t nt = tensor_interface->nt;
+	size_t elemsize = tensor_interface->elemsize;
+
+	STARPU_ASSERT(count == elemsize * nx * ny * nz * nt);
 
 	uint32_t t, z, y;
 	char *cur = ptr;
 	char *block = (void *)tensor_interface->ptr;
 
-	if (tensor_interface->nx * tensor_interface->ny * tensor_interface->nz == tensor_interface->ldt &&
-	    tensor_interface->nx * tensor_interface->ny == tensor_interface->ldz &&
-	    tensor_interface->nx == tensor_interface->ldy)
-		memcpy(block, cur, tensor_interface->nx * tensor_interface->ny * tensor_interface->nz * tensor_interface->nt * tensor_interface->elemsize);
+	if (nx * ny * nz == ldt &&
+	    nx * ny == ldz &&
+	    nx == ldy)
+		memcpy(block, cur, nx * ny * nz * nt * elemsize);
 	else
 	{
 		char *block_t = block;
-		for(t=0 ; t<tensor_interface->nt ; t++)
+		for(t=0 ; t<nt ; t++)
 		{
-			if (tensor_interface->nx * tensor_interface->ny == tensor_interface->ldz &&
-			    tensor_interface->nx == tensor_interface->ldy)
+			if (nx * ny == ldz &&
+			    nx == ldy)
 			{
-				memcpy(block_t, cur, tensor_interface->nx * tensor_interface->ny * tensor_interface->nz * tensor_interface->elemsize);
-				cur += tensor_interface->nx*tensor_interface->ny*tensor_interface->nz*tensor_interface->elemsize;
+				memcpy(block_t, cur, nx * ny * nz * elemsize);
+				cur += nx*ny*nz*elemsize;
 			}
 			else
 			{
 				char *block_z = block_t;
-				for(z=0 ; z<tensor_interface->nz ; z++)
+				for(z=0 ; z<nz ; z++)
 				{
-					if (tensor_interface->nx == tensor_interface->ldy)
+					if (nx == ldy)
 					{
-						memcpy(block_z, cur, tensor_interface->nx * tensor_interface->ny * tensor_interface->elemsize);
-						cur += tensor_interface->nx*tensor_interface->ny*tensor_interface->elemsize;
+						memcpy(block_z, cur, nx * ny * elemsize);
+						cur += nx*ny*elemsize;
 					}
 					else
 					{
 						char *block_y = block_z;
-						for(y=0 ; y<tensor_interface->ny ; y++)
+						for(y=0 ; y<ny ; y++)
 						{
-							memcpy(block_y, cur, tensor_interface->nx*tensor_interface->elemsize);
-							cur += tensor_interface->nx*tensor_interface->elemsize;
-							block_y += tensor_interface->ldy * tensor_interface->elemsize;
+							memcpy(block_y, cur, nx*elemsize);
+							cur += nx*elemsize;
+							block_y += ldy * elemsize;
 						}
 					}
-					block_z += tensor_interface->ldz * tensor_interface->elemsize;
+					block_z += ldz * elemsize;
 				}
 			}
-			block_t += tensor_interface->ldt * tensor_interface->elemsize;
+			block_t += ldt * elemsize;
 		}
 	}
 
