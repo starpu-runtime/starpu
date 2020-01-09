@@ -227,7 +227,14 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	*count = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
+
+	*count = nx*ny*nz*elemsize;
 
 	if (ptr != NULL)
 	{
@@ -238,29 +245,29 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 
 		char *cur = *ptr;
 
-		if (block_interface->nx * block_interface->ny == block_interface->ldz && block_interface->nx == block_interface->ldy)
-			memcpy(cur, block, block_interface->nx * block_interface->ny * block_interface->nz * block_interface->elemsize);
+		if (nx * ny == ldz && nx == ldy)
+			memcpy(cur, block, nx * ny * nz * elemsize);
 		else
 		{
 			char *block_z = block;
-			for(z=0 ; z<block_interface->nz ; z++)
+			for(z=0 ; z<nz ; z++)
 			{
-				if (block_interface->nx == block_interface->ldy)
+				if (nx == ldy)
 				{
-					memcpy(cur, block_z, block_interface->nx * block_interface->ny * block_interface->elemsize);
-					cur += block_interface->nx*block_interface->ny*block_interface->elemsize;
+					memcpy(cur, block_z, nx * ny * elemsize);
+					cur += nx*ny*elemsize;
 				}
 				else
 				{
 					char *block_y = block_z;
-					for(y=0 ; y<block_interface->ny ; y++)
+					for(y=0 ; y<ny ; y++)
 					{
-						memcpy(cur, block_y, block_interface->nx*block_interface->elemsize);
-						cur += block_interface->nx*block_interface->elemsize;
-						block_y += block_interface->ldy * block_interface->elemsize;
+						memcpy(cur, block_y, nx*elemsize);
+						cur += nx*elemsize;
+						block_y += ldy * elemsize;
 					}
 				}
-				block_z += block_interface->ldz * block_interface->elemsize;
+				block_z += ldz * elemsize;
 			}
 		}
 	}
@@ -275,35 +282,42 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	STARPU_ASSERT(count == block_interface->elemsize * block_interface->nx * block_interface->ny * block_interface->nz);
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
+
+	STARPU_ASSERT(count == elemsize * nx * ny * nz);
 
 	uint32_t z, y;
 	char *cur = ptr;
 	char *block = (void *)block_interface->ptr;
 
-	if (block_interface->nx * block_interface->ny == block_interface->ldz && block_interface->nx == block_interface->ldy)
-		memcpy(block, cur, block_interface->nx * block_interface->ny * block_interface->nz * block_interface->elemsize);
+	if (nx * ny == ldz && nx == ldy)
+		memcpy(block, cur, nx * ny * nz * elemsize);
 	else
 	{
 		char *block_z = block;
-		for(z=0 ; z<block_interface->nz ; z++)
+		for(z=0 ; z<nz ; z++)
 		{
-			if (block_interface->nx == block_interface->ldy)
+			if (nx == ldy)
 			{
-				memcpy(block_z, cur, block_interface->nx * block_interface->ny * block_interface->elemsize);
-				cur += block_interface->nx*block_interface->ny*block_interface->elemsize;
+				memcpy(block_z, cur, nx * ny * elemsize);
+				cur += nx*ny*elemsize;
 			}
 			else
 			{
 				char *block_y = block_z;
-				for(y=0 ; y<block_interface->ny ; y++)
+				for(y=0 ; y<ny ; y++)
 				{
-					memcpy(block_y, cur, block_interface->nx*block_interface->elemsize);
-					cur += block_interface->nx*block_interface->elemsize;
-					block_y += block_interface->ldy * block_interface->elemsize;
+					memcpy(block_y, cur, nx*elemsize);
+					cur += nx*elemsize;
+					block_y += ldy * elemsize;
 				}
 			}
-			block_z += block_interface->ldz * block_interface->elemsize;
+			block_z += ldz * elemsize;
 		}
 	}
 

@@ -266,7 +266,12 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	*count = matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize;
+	uint32_t ld = matrix_interface->ld;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
+	size_t elemsize = matrix_interface->elemsize;
+
+	*count = nx*ny*elemsize;
 
 	if (ptr != NULL)
 	{
@@ -275,16 +280,16 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		char *cur = *ptr;
 
-		if (matrix_interface->ld == matrix_interface->nx)
-			memcpy(cur, matrix, matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize);
+		if (ld == nx)
+			memcpy(cur, matrix, nx*ny*elemsize);
 		else
 		{
 			uint32_t y;
-			for(y=0 ; y<matrix_interface->ny ; y++)
+			for(y=0 ; y<ny ; y++)
 			{
-				memcpy(cur, matrix, matrix_interface->nx*matrix_interface->elemsize);
-				cur += matrix_interface->nx*matrix_interface->elemsize;
-				matrix += matrix_interface->ld * matrix_interface->elemsize;
+				memcpy(cur, matrix, nx*elemsize);
+				cur += nx*elemsize;
+				matrix += ld * elemsize;
 			}
 		}
 	}
@@ -299,21 +304,26 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	STARPU_ASSERT(count == matrix_interface->elemsize * matrix_interface->nx * matrix_interface->ny);
+	uint32_t ld = matrix_interface->ld;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
+	size_t elemsize = matrix_interface->elemsize;
+
+	STARPU_ASSERT(count == elemsize * nx * ny);
 
 	char *matrix = (void *)matrix_interface->ptr;
 
-	if (matrix_interface->ld == matrix_interface->nx)
-		memcpy(matrix, ptr, matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize);
+	if (ld == nx)
+		memcpy(matrix, ptr, nx*ny*elemsize);
 	else
 	{
 		uint32_t y;
 		char *cur = ptr;
-		for(y=0 ; y<matrix_interface->ny ; y++)
+		for(y=0 ; y<ny ; y++)
 		{
-			memcpy(matrix, cur, matrix_interface->nx*matrix_interface->elemsize);
-			cur += matrix_interface->nx*matrix_interface->elemsize;
-			matrix += matrix_interface->ld * matrix_interface->elemsize;
+			memcpy(matrix, cur, nx*elemsize);
+			cur += nx*elemsize;
+			matrix += ld * elemsize;
 		}
 	}
 
