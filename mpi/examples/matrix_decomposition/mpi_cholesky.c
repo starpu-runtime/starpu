@@ -70,7 +70,8 @@ int main(int argc, char **argv)
 	matrix_free(&bmat, rank, nodes, 1);
 
 #ifndef STARPU_SIMGRID
-	assert(correctness);
+	if (check)
+		assert(correctness);
 #endif
 
 	if (rank == 0)
