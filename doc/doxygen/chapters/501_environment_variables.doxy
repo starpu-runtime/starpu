@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2013-2020                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -533,6 +533,13 @@ Define the idle power of the machine (\ref Energy-basedScheduling).
 \anchor STARPU_PROFILING
 \addindex __env__STARPU_PROFILING
 Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring).
+</dd>
+
+<dt>STARPU_PROF_PAPI_EVENTS</dt>
+<dd>
+\anchor STARPU_PROF_PAPI_EVENTS
+\addindex __env__STARPU_PROF_PAPI_EVENTS
+Specify which PAPI events should be recorded in the trace (\ref PapiCounters).
 </dd>
 
 </dl>

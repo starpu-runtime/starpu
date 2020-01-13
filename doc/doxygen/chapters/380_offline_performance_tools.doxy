@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2015-2017                      Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2017,2019-2020            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -560,6 +560,17 @@ more efficient):
 
 \verbatim
 $ starpu_paje_sort paje.trace
+\endverbatim
+
+\section PapiCounters PAPI counters
+
+Performance counter values can be obtained from the PAPI framework if
+<c>./configure</c> detected the libpapi. One has to set the \ref STARPU_PROFILING
+environment variable to 1 and then specify which counters to record with the
+\ref STARPU_PROF_PAPI_EVENTS environment variable. For instance:
+
+\verbatim
+export STARPU_PROFILING=1 STARPU_PROF_PAPI_EVENTS="PAPI_TOT_INS PAPI_TOT_CYC"
 \endverbatim
 
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
