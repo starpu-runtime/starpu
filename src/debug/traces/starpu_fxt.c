@@ -30,6 +30,10 @@
 #endif
 #define STARPU_TRACE_STR_LEN 200
 
+#ifdef STARPU_PAPI
+#include <papi.h>
+#endif
+
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
 #include <inttypes.h>
@@ -81,6 +85,7 @@ static FILE *activity_file;
 static FILE *anim_file;
 static FILE *tasks_file;
 static FILE *data_file;
+static FILE *papi_file;
 static FILE *trace_file;
 static FILE *comms_file;
 
@@ -325,6 +330,25 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		STARPU_ASSERT(data->mpi_rank == mpi_rank);
 
 	return data;
+}
+
+static void handle_papi_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+#ifdef STARPU_PAPI
+	int event_code = ev->param[0];
+	unsigned long task = ev->param[1];
+	long long int value = ev->param[2];
+	//char *prefix = options->file_prefix;
+
+	if (papi_file){
+		char event_str[PAPI_MAX_STR_LEN];
+		PAPI_event_code_to_name(event_code, event_str);
+		fprintf(papi_file, "JobId: %lu\n", task);
+		fprintf(papi_file, "Event: %s\n", event_str);
+		fprintf(papi_file, "Value: %lld\n", value);
+		fprintf(papi_file, "\n");
+	}
+#endif
 }
 
 static void data_dump(struct data_info *data)
@@ -3685,6 +3709,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
                                        handle_memnode_event_start_4(&ev, options, "rc");
                                }
                                break;
+
+		  case _STARPU_FUT_PAPI_TASK_EVENT_VALUE:
+				handle_papi_event(&ev, options);
+				break;
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
 				     handle_data_copy();
@@ -4167,6 +4195,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->tasks_path = "tasks.rec";
 	options->comms_path = "comms.rec";
 	options->data_path = "data.rec";
+	options->papi_path = "papi.rec";
 	options->anim_path = "trace.html";
 	options->states_path = "trace.rec";
 	options->distrib_time_path = "distrib.data";
@@ -4252,6 +4281,17 @@ void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
+{
+#ifdef STARPU_PAPI
+	if (options->papi_path)
+		papi_file = fopen(options->papi_path, "w+");
+	else
+		papi_file = NULL;
+#endif
+}
+
+static
 void _starpu_fxt_write_trace_header(FILE *f)
 {
 	fprintf(f, "#\n");
@@ -4315,6 +4355,15 @@ void _starpu_fxt_data_file_close(void)
 {
 	if (data_file)
 		fclose(data_file);
+}
+
+static
+void _starpu_fxt_papi_file_close(void)
+{
+#ifdef STARPU_PAPI
+	if (papi_file)
+		fclose(papi_file);
+#endif
 }
 
 static
@@ -4417,6 +4466,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_anim_file_init(options);
 	_starpu_fxt_tasks_file_init(options);
 	_starpu_fxt_data_file_init(options);
+	_starpu_fxt_papi_file_init(options);
 	_starpu_fxt_comms_file_init(options);
 	_starpu_fxt_trace_file_init(options);
 
@@ -4548,6 +4598,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_anim_file_close();
 	_starpu_fxt_tasks_file_close();
 	_starpu_fxt_data_file_close();
+	_starpu_fxt_papi_file_close();
 	_starpu_fxt_comms_file_close();
 	_starpu_fxt_trace_file_close();
 

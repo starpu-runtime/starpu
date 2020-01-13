@@ -26,6 +26,10 @@
 #include <common/fxt.h>
 #include <errno.h>
 
+#ifdef STARPU_PAPI
+#include <papi.h>
+#endif
+
 static struct starpu_profiling_worker_info worker_info[STARPU_NMAXWORKERS];
 /* TODO: rather use rwlock */
 static starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
@@ -38,6 +42,10 @@ static struct timespec sleeping_start_date[STARPU_NMAXWORKERS];
 static unsigned worker_registered_executing_start[STARPU_NMAXWORKERS];
 static struct timespec executing_start_date[STARPU_NMAXWORKERS];
 
+#ifdef STARPU_PAPI
+static int papi_events[PAPI_MAX_HWCTRS];
+static int papi_nevents = 0;
+#endif
 
 /* Store the busid of the different (src, dst) pairs. busid_matrix[src][dst]
  * contains the busid of (src, dst) or -1 if the bus was not registered. */
@@ -133,7 +141,80 @@ void _starpu_profiling_init(void)
 	{
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 	}
+
+#ifdef STARPU_PAPI
+		int retval = PAPI_library_init(PAPI_VER_CURRENT);
+		if (retval != PAPI_VER_CURRENT)
+		{
+			 _STARPU_MSG("Failed init PAPI, error: %s.\n", PAPI_strerror(retval));
+		}
+		retval = PAPI_thread_init(pthread_self);
+		if (retval != PAPI_OK)
+		{
+			 _STARPU_MSG("Failed init PAPI thread, error: %s.\n", PAPI_strerror(retval));
+		}
+
+		char *conf_papi_events;
+		char *papi_event_name;
+		conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
+		if (conf_papi_events != NULL)
+		{
+			while ((papi_event_name = strtok_r(conf_papi_events, " ", &conf_papi_events)))
+			{
+				_STARPU_DEBUG("Loading PAPI Event:%s\n", papi_event_name);
+				retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
+				if (retval != PAPI_OK)
+				      _STARPU_MSG("Failed to codify papi event [%s], error: %s.\n", papi_event_name, PAPI_strerror(retval));
+				else
+					papi_nevents++;
+			}
+		}
+#endif
+
 }
+
+#ifdef STARPU_PAPI
+void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
+{
+	if (!starpu_profiling_status_get())
+		return;
+
+	struct starpu_profiling_task_info *profiling_info;
+	profiling_info = task->profiling_info;
+	if (profiling_info)
+	{
+		profiling_info->papi_event_set = PAPI_NULL;
+		PAPI_create_eventset(&profiling_info->papi_event_set);
+		for(int i=0; i<papi_nevents; i++)
+		{
+			PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+			profiling_info->papi_values[i]=0;
+		}
+		PAPI_reset(profiling_info->papi_event_set);
+		PAPI_start(profiling_info->papi_event_set);
+	}
+}
+
+void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
+{
+	if (!starpu_profiling_status_get())
+		return;
+
+	struct starpu_profiling_task_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info)
+	{
+		PAPI_stop(profiling_info->papi_event_set, profiling_info->papi_values);
+		for(int i=0; i<papi_nevents; i++)
+		{
+			_STARPU_TRACE_PAPI_TASK_EVENT(papi_events[i], task, profiling_info->papi_values[i]);
+		}
+		PAPI_cleanup_eventset(profiling_info->papi_event_set);
+		PAPI_destroy_eventset(&profiling_info->papi_event_set);
+	}
+}
+#endif
 
 void _starpu_profiling_start(void)
 {

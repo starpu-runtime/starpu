@@ -23,6 +23,12 @@
 #include <errno.h>
 #include <time.h>
 
+#include <starpu_config.h>
+
+#ifdef STARPU_PAPI
+#include <papi.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -91,6 +97,13 @@ struct starpu_profiling_task_info
 	uint64_t stall_cycles;
 	/** Energy consumed by the task, in Joules */
 	double energy_consumed;
+
+#ifdef STARPU_PAPI
+	/** PAPI Events **/
+	long long int papi_values[PAPI_MAX_HWCTRS];
+	int papi_event_set;
+#endif
+
 };
 
 /**

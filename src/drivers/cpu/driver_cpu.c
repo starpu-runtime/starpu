@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014-2017,2019                 Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -111,7 +111,13 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			else
 				_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL);
 #else
+#  ifdef STARPU_PAPI
+			_starpu_profiling_papi_task_start_counters(task);
+#  endif
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+#  ifdef STARPU_PAPI
+			_starpu_profiling_papi_task_stop_counters(task);
+#  endif
 #endif
 			_STARPU_TRACE_END_EXECUTING();
 		}

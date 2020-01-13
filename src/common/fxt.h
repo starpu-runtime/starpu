@@ -258,6 +258,8 @@
 #define _STARPU_FUT_KEYMASK_HYP            FUT_KEYMASK18
 #define _STARPU_FUT_KEYMASK_HYP_VERBOSE    FUT_KEYMASK19
 
+#define _STARPU_FUT_PAPI_TASK_EVENT_VALUE   0x5186
+
 extern unsigned long _starpu_job_cnt;
 
 static inline unsigned long _starpu_fxt_get_job_id(void)
@@ -980,6 +982,9 @@ do {										\
 #define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)		\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_END_WRITEBACK_ASYNC, memnode, _starpu_gettid());
 
+#define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value)	\
+	FUT_DO_PROBE3(_STARPU_FUT_PAPI_TASK_EVENT_VALUE, event_id, _starpu_get_job_associated_to_task(task)->job_id, value)
+
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
@@ -1366,6 +1371,7 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre);} while(0)
+#define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value) do {(void)(event_id); (void)(task); (void)(value);} while(0)
 
 #endif // STARPU_USE_FXT
 
