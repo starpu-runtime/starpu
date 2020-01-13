@@ -5,7 +5,7 @@
 # Copyright (C) 2017                                     Guillaume Beauchamp
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2018                                     Umeà University
-# Copyright (C) 2010-2019                                CNRS
+# Copyright (C) 2010-2020                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
 #
@@ -609,15 +609,6 @@ if test x$enable_simgrid = xno ; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
-if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes ; then
-    if test x$enable_shared = xyes ; then
-	AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
-    else
-	CFLAGS="$CFLAGS -fPIC"
-	CXXFLAGS="$CXXFLAGS -fPIC"
-	NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
-    fi
-fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
     AC_MSG_RESULT($running_mpi_check)
@@ -643,6 +634,19 @@ if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	fi
 else
 	running_mpi_check=no
+fi
+
+if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
+    if test x$enable_simgrid = xyes ; then
+        if test x$enable_shared = xyes ; then
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+        else
+	    CFLAGS="$CFLAGS -fPIC"
+	    CXXFLAGS="$CXXFLAGS -fPIC"
+	    NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
+	    FFLAGS="$FFLAGS -fPIC"
+        fi
+    fi
 fi
 
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
