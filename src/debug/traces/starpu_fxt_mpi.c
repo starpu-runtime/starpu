@@ -39,6 +39,7 @@ LIST_TYPE(mpi_transfer,
 	float date;
 	long jobid;
 	double bandwidth;
+	unsigned long handle;
 );
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
@@ -123,7 +124,7 @@ unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= MAX_MPI_NODES)
@@ -151,37 +152,11 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].size = size;
 	mpi_sends[src][slot].date = date;
 	mpi_sends[src][slot].jobid = jobid;
+	mpi_sends[src][slot].handle = handle;
 }
 
-void _starpu_fxt_mpi_dump_send_comm(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, float date, unsigned long handle, FILE* comms_file)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
 {
-	STARPU_ASSERT(src >= 0);
-
-	if (comms_file != NULL)
-	{
-		fprintf(comms_file, "Type: send\n");
-		fprintf(comms_file, "Src: %d\n", src);
-		fprintf(comms_file, "Dst: %d\n", dst);
-		fprintf(comms_file, "Tag: %d\n", mpi_tag);
-		fprintf(comms_file, "Time: %f\n", date);
-		fprintf(comms_file, "Handle: %lx\n", handle);
-		fprintf(comms_file, "\n");
-	}
-}
-
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, FILE* comms_file)
-{
-	if (comms_file != NULL)
-	{
-		fprintf(comms_file, "Type: recv\n");
-		fprintf(comms_file, "Src: %d\n", src);
-		fprintf(comms_file, "Dst: %d\n", dst);
-		fprintf(comms_file, "Tag: %ld\n", mpi_tag);
-		fprintf(comms_file, "Time: %f\n", date);
-		fprintf(comms_file, "Handle: %lx\n", handle);
-		fprintf(comms_file, "\n");
-	}
-
 	if (dst >= MAX_MPI_NODES)
 		return;
 	unsigned slot = mpi_recvs_used[dst]++;
@@ -206,6 +181,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	mpi_recvs[dst][slot].mpi_tag = mpi_tag;
 	mpi_recvs[dst][slot].date = date;
 	mpi_recvs[dst][slot].jobid = jobid;
+	mpi_recvs[dst][slot].handle = handle;
 }
 
 static
@@ -246,7 +222,7 @@ struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED,
 
 static unsigned long mpi_com_id = 0;
 
-static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
+static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comms_file, unsigned n)
 {
 	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
@@ -309,6 +285,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 		int dst = cur->dst;
 		long mpi_tag = cur->mpi_tag;
 		size_t size = cur->size;
+		unsigned long send_handle = cur->handle;
 
 		if (dst < MAX_MPI_NODES)
 			match = try_to_match_send_transfer(src, dst, mpi_tag);
@@ -318,7 +295,11 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 		if (match)
 		{
 			float end_date = match->date;
+			unsigned long recv_handle = match->handle;
 			struct mpi_transfer *prev;
+
+			if (end_date <= start_date)
+				_STARPU_MSG("Warning: a communication finished before it started !\n");
 
 			match->bandwidth = (0.001*size)/(end_date - start_date);
 			current_out_bandwidth[src] += match->bandwidth;
@@ -365,6 +346,19 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld\n", start_date, (unsigned long)size, src, id, mpi_tag);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
 #endif
+
+			if (out_comms_file != NULL)
+			{
+				fprintf(out_comms_file, "Src: %d\n", src);
+				fprintf(out_comms_file, "Dst: %d\n", dst);
+				fprintf(out_comms_file, "Tag: %ld\n", mpi_tag);
+				fprintf(out_comms_file, "SendTime: %.9f\n", start_date);
+				fprintf(out_comms_file, "RecvTime: %.9f\n", end_date);
+				fprintf(out_comms_file, "SendHandle: %lx\n", send_handle);
+				fprintf(out_comms_file, "RecvHandle: %lx\n", recv_handle);
+				fprintf(out_comms_file, "Size: %ld\n", size);
+				fprintf(out_comms_file, "\n");
+			}
 		}
 		else
 		{
@@ -375,7 +369,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, unsigned n)
 	}
 }
 
-void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file)
+void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)
 {
 	if (options->ninputfiles > MAX_MPI_NODES)
 	{
@@ -385,7 +379,7 @@ void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *
 
 	/* display the MPI transfers if possible */
 	if (out_paje_file)
-		display_all_transfers_from_trace(out_paje_file, options->ninputfiles);
+		display_all_transfers_from_trace(out_paje_file, out_comms_file, options->ninputfiles);
 }
 
 #endif // STARPU_USE_FXT

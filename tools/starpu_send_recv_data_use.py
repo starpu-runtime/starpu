@@ -65,7 +65,12 @@ working_directory = sys.argv[1]
 comms = convert_rec_file(os.path.join(working_directory, "comms.rec"))
 tasks = [t for t in convert_rec_file(os.path.join(working_directory, "tasks.rec")) if "control" not in t and "starttime" in t]
 
-def plot_graph(comm_type, match, filename, title, xlabel):
+if len(tasks) == 0:
+    print("There is no task using data after communication.")
+    sys.exit(0)
+
+
+def plot_graph(comm_time_key, match, filename, title, xlabel):
     delays = []
     workers = dict()
     nb = 0
@@ -74,32 +79,28 @@ def plot_graph(comm_type, match, filename, title, xlabel):
     max_time = 0.
 
     for c in comms:
-        if c["type"] == comm_type:
-            t_matched = None
-            for t in tasks:
-                if match(t, c):
-                    t_matched = t
-                    break
+        t_matched = None
+        for t in tasks:
+            if match(t, c):
+                t_matched = t
+                break
 
-            if t_matched is None:
-                if comm_type == "recv":
-                    print("No match found")
-            else:
-                worker = str(t_matched['mpirank']) + "-" + str(t_matched['workerid'])
-                if worker not in workers:
-                    workers[worker] = []
+        if t_matched is not None:
+            worker = str(t_matched['mpirank']) + "-" + str(t_matched['workerid'])
+            if worker not in workers:
+                workers[worker] = []
 
-                eps = t["starttime"] - c["time"]
-                assert(eps > 0)
-                durations.append(eps)
-                workers[worker].append((c["time"], eps))
+            eps = t["starttime"] - c[comm_time_key]
+            assert(eps > 0)
+            durations.append(eps)
+            workers[worker].append((c[comm_time_key], eps))
 
-                if min_time == 0 or c["time"] < min_time:
-                    min_time = c["time"]
-                if max_time == 0 or c["time"] > max_time:
-                    max_time = c["time"]
+            if min_time == 0 or c[comm_time_key] < min_time:
+                min_time = c[comm_time_key]
+            if max_time == 0 or c[comm_time_key] > max_time:
+                max_time = c[comm_time_key]
 
-                nb += 1
+            nb += 1
 
 
     fig = plt.figure(constrained_layout=True)
@@ -122,14 +123,15 @@ def plot_graph(comm_type, match, filename, title, xlabel):
     axs[0].set_yticklabels(list(workers))
     axs[0].set(xlabel="Time (ms) - Duration: " + str(max_time - min_time) + "ms", ylabel="Worker [mpi]-[*pu]", title=title)
 
-    axs[2].hist(durations, bins=np.logspace(np.log10(1), np.log10(max(durations)), 50), rwidth=0.8)
-    axs[2].set_xscale("log")
-    axs[2].set(xlabel=xlabel, ylabel="Number of occurences", title="Histogramm")
+    if len(durations) != 0:
+        axs[2].hist(durations, bins=np.logspace(np.log10(1), np.log10(max(durations)), 50), rwidth=0.8)
+        axs[2].set_xscale("log")
+        axs[2].set(xlabel=xlabel, ylabel="Number of occurences", title="Histogramm")
 
     fig.set_size_inches(15, 9)
 
     plt.savefig(os.path.join(working_directory, filename), dpi=100)
     plt.show()
 
-plot_graph("recv", lambda t, c: (t["mpirank"] == c["dst"] and t["starttime"] >= c["time"] and c["handle"] in t["handles"]), "recv_use.png", "Elapsed time between recv and use (ms)", "Time between data reception and its use by a task")
-plot_graph("send", lambda t, c: (t["mpirank"] == c["src"] and t["starttime"] >= c["time"] and c["handle"] in t["handles"]), "send_use.png", "Elapsed time between send and use (ms)", "Time between data sending and its use by a task")
+plot_graph("recvtime", lambda t, c: (t["mpirank"] == c["dst"] and t["starttime"] >= c["recvtime"] and str(c["recvhandle"]) in t["handles"]), "recv_use.png", "Elapsed time between recv and use (ms)", "Time between data reception and its use by a task")
+plot_graph("sendtime", lambda t, c: (t["mpirank"] == c["src"] and t["starttime"] >= c["sendtime"] and str(c["sendhandle"]) in t["handles"]), "send_use.png", "Elapsed time between send and use (ms)", "Time between data sending and its use by a task")
