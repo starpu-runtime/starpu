@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013,2015,2017                      CNRS
- * Copyright (C) 2009-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2009-2012,2014,2020                      Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #define __MPI_CHOLESKY_MATRIX_H__
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes);
+int my_distrib(int y, int x, int nb_nodes);
 
 void matrix_display(float ***bmat, int rank);
 void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere);

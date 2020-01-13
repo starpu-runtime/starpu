@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2020                           Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -23,6 +23,9 @@
  * declaration through dependency tags.
  * It also uses data partitioning to split the matrix into submatrices
  */
+
+/* Note: this is using fortran ordering, i.e. column-major ordering, i.e.
+ * elements with consecutive row number are consecutive in memory */
 
 #include "cholesky.h"
 #include <starpu_perfmodel.h>
@@ -76,17 +79,19 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 	return task;
 }
 
-static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
+static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned m)
 {
-	struct starpu_task *task = create_task(TAG21(k, j));
+	int ret;
+
+	struct starpu_task *task = create_task(TAG21(k, m));
 
 	task->cl = &cl21;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
-	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, m, k);
 
-	if (!noprio_p && (j == k+1))
+	if (!noprio_p && (m == k+1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}
@@ -94,39 +99,37 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG21(k, m), 2, TAG11(k), TAG22(k-1, m, k));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
+		starpu_tag_declare_deps(TAG21(k, m), 1, TAG11(k));
 	}
 
-	int n = starpu_matrix_get_nx(task->handles[0]);
-	task->flops = FLOPS_STRSM(n, n);
+	int nx = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_STRSM(nx, nx);
 
-	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-                FPRINTF(stderr, "No worker may execute this task\n");
-                exit(0);
-        }
-
+	ret = starpu_task_submit(task);
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
 
-static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j)
+static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned m, unsigned n)
 {
-/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
+	int ret;
 
-	struct starpu_task *task = create_task(TAG22(k, i, j));
+/*	FPRINTF(stdout, "task 22 k,n,m = %d,%d,%d TAG = %llx\n", k,m,n, TAG22(k,m,n)); */
+
+	struct starpu_task *task = create_task(TAG22(k, m, n));
 
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
-	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
-	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
+	task->handles[0] = starpu_data_get_sub_data(dataA, 2, n, k);
+	task->handles[1] = starpu_data_get_sub_data(dataA, 2, m, k);
+	task->handles[2] = starpu_data_get_sub_data(dataA, 2, m, n);
 
-	if (!noprio_p && (i == k + 1) && (j == k +1) )
+	if (!noprio_p && (n == k + 1) && (m == k +1) )
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}
@@ -134,25 +137,20 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, m, n), 3, TAG22(k-1, m, n), TAG21(k, n), TAG21(k, m));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, m, n), 2, TAG21(k, n), TAG21(k, m));
 	}
 
-	int n = starpu_matrix_get_nx(task->handles[0]);
-	task->flops = FLOPS_SGEMM(n, n, n);
+	int nx = starpu_matrix_get_nx(task->handles[0]);
+	task->flops = FLOPS_SGEMM(nx, nx, nx);
 
-	int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-                FPRINTF(stderr, "No worker may execute this task\n");
-                exit(0);
-        }
+	ret = starpu_task_submit(task);
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	return ret;
 }
-
-
 
 /*
  *	code to bootstrap the factorization
@@ -161,13 +159,15 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 
 static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
+	int ret;
+
 	double start;
 	double end;
 
 	struct starpu_task *entry_task = NULL;
 
 	/* create all the DAG nodes */
-	unsigned i,j,k;
+	unsigned k, m, n;
 
 	start = starpu_timing_now();
 
@@ -191,27 +191,27 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 		}
 
-		for (j = k+1; j<nblocks; j++)
+		for (m = k+1; m<nblocks; m++)
 		{
-			create_task_21(dataA, k, j);
+			ret = create_task_21(dataA, k, m);
+			if (ret == -ENODEV) return 77;
 
-			for (i = k+1; i<nblocks; i++)
+			for (n = k+1; n<nblocks; n++)
 			{
-				if (i <= j)
-					create_task_22(dataA, k, i, j);
+				if (n <= m)
+				{
+					ret = create_task_22(dataA, k, m, n);
+					if (ret == -ENODEV) return 77;
+				}
 			}
 		}
 		starpu_iteration_pop();
 	}
 
 	/* schedule the codelet */
-	int ret = starpu_task_submit(entry_task);
-        if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-                FPRINTF(stderr, "No worker may execute this task\n");
-                exit(0);
-        }
-
+	ret = starpu_task_submit(entry_task);
+	if (ret == -ENODEV) return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
@@ -220,15 +220,16 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	end = starpu_timing_now();
 
-
 	double timing = end - start;
 
-	unsigned n = starpu_matrix_get_nx(dataA);
+	unsigned nx = starpu_matrix_get_nx(dataA);
 
-	double flop = (1.0f*n*n*n)/3.0f;
+	double flop = (1.0f*nx*nx*nx)/3.0f;
 
 	PRINTF("# size\tms\tGFlops\n");
-	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, (flop/timing/1000.0f));
+	PRINTF("%u\t%.0f\t%.1f\n", nx, timing/1000, (flop/timing/1000.0f));
+
+	return 0;
 }
 
 static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
@@ -273,20 +274,23 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (i,j) */
+	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
+	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_matrix_filter_vertical_block,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
+	/* Then split rows into tiles */
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_matrix_filter_block,
+		/* Note: here "vertical" is for row-major, we are here using column-major. */
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nblocks
 	};
 
@@ -321,28 +325,28 @@ int main(int argc, char **argv)
 	if (ret) return ret;
 
 #ifndef STARPU_SIMGRID
-	unsigned i,j;
-	for (i = 0; i < size_p; i++)
+	unsigned m,n;
+
+	for (n = 0; n < size_p; n++)
 	{
-		for (j = 0; j < size_p; j++)
+		for (m = 0; m < size_p; m++)
 		{
-			mat[j +i*size_p] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size_p:0.0f);
-			/* mat[j +i*size_p] = ((i == j)?1.0f*size_p:0.0f); */
+			mat[m +n*size_p] = (1.0f/(1.0f+n+m)) + ((n == m)?1.0f*size_p:0.0f);
+			/* mat[m +n*size_p] = ((n == m)?1.0f*size_p:0.0f); */
 		}
 	}
-#endif
 
-
-#ifdef CHECK_OUTPUT
+/* #define PRINT_OUTPUT */
+#ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
-	for (j = 0; j < size_p; j++)
+	for (m = 0; m < size_p; m++)
 	{
-		for (i = 0; i < size_p; i++)
+		for (n = 0; n < size_p; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size_p]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size_p]);
 			}
 			else
 			{
@@ -352,45 +356,21 @@ int main(int argc, char **argv)
 		FPRINTF(stdout, "\n");
 	}
 #endif
-
+#endif
 
 	cholesky(mat, size_p, size_p, nblocks_p);
 
-#ifdef CHECK_OUTPUT
+#ifndef STARPU_SIMGRID
+#ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
 
-	for (j = 0; j < size_p; j++)
+	for (m = 0; m < size_p; m++)
 	{
-		for (i = 0; i < size_p; i++)
+		for (n = 0; n < size_p; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size_p]);
-			}
-			else
-			{
-				FPRINTF(stdout, ".\t");
-				mat[j+i*size_p] = 0.0f; /* debug */
-			}
-		}
-		FPRINTF(stdout, "\n");
-	}
-
-	FPRINTF(stderr, "compute explicit LLt ...\n");
-	float *test_mat = malloc(size_p*size_p*sizeof(float));
-	STARPU_ASSERT(test_mat);
-
-	STARPU_SSYRK("L", "N", size_p, size_p, 1.0f,
-		     mat, size_p, 0.0f, test_mat, size_p);
-
-	FPRINTF(stderr, "comparing results ...\n");
-	for (j = 0; j < size_p; j++)
-	{
-		for (i = 0; i < size_p; i++)
-		{
-			if (i <= j)
-			{
-				FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size_p]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size_p]);
 			}
 			else
 			{
@@ -399,7 +379,64 @@ int main(int argc, char **argv)
 		}
 		FPRINTF(stdout, "\n");
 	}
-	free(test_mat);
+#endif
+
+	if (check_p)
+	{
+		FPRINTF(stderr, "compute explicit LLt ...\n");
+		for (m = 0; m < size_p; m++)
+		{
+			for (n = 0; n < size_p; n++)
+			{
+				if (n > m)
+				{
+					mat[m+n*size_p] = 0.0f; /* debug */
+				}
+			}
+		}
+		float *test_mat = malloc(size_p*size_p*sizeof(float));
+		STARPU_ASSERT(test_mat);
+
+		STARPU_SSYRK("L", "N", size_p, size_p, 1.0f,
+			     mat, size_p, 0.0f, test_mat, size_p);
+
+		FPRINTF(stderr, "comparing results ...\n");
+#ifdef PRINT_OUTPUT
+		for (m = 0; m < size_p; m++)
+		{
+			for (n = 0; n < size_p; n++)
+			{
+				if (n <= m)
+				{
+					FPRINTF(stdout, "%2.2f\t", test_mat[m +n*size_p]);
+				}
+				else
+				{
+					FPRINTF(stdout, ".\t");
+				}
+			}
+			FPRINTF(stdout, "\n");
+		}
+#endif
+
+		for (m = 0; m < size_p; m++)
+		{
+			for (n = 0; n < size_p; n++)
+			{
+				if (n <= m)
+				{
+	                                float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size_p:0.0f);
+	                                float err = fabsf(test_mat[m +n*size_p] - orig) / orig;
+	                                if (err > 0.0001)
+					{
+	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size_p], orig, err);
+	                                        assert(0);
+	                                }
+	                        }
+			}
+	        }
+		free(test_mat);
+	}
 #endif
 
 	shutdown_system(&mat, size_p, pinned_p);

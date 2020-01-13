@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015                           Inria
- * Copyright (C) 2009-2017,2019                           Université de Bordeaux
+ * Copyright (C) 2009-2017,2019-2020                           Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2010                                     Mehdi Juhoor
@@ -23,6 +23,9 @@
  * externally-compiler-generated loop nest, which allows to play with
  * compiler-side optimizations.
  */
+
+/* Note: this is using fortran ordering, i.e. column-major ordering, i.e.
+ * elements with consecutive row number are consecutive in memory */
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
@@ -50,8 +53,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	unsigned long nelems = starpu_matrix_get_nx(dataA);
 	unsigned long nn = nelems/nblocks;
-	int N = nblocks;
 	int M = nblocks;
+	int N = nblocks;
 
 	int lambda_b = starpu_get_env_float_default("CHOLESKY_LAMBDA_B", nblocks);
 	int lambda_o_u = starpu_get_env_float_default("CHOLESKY_LAMBDA_O_U", 0);
@@ -70,7 +73,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 #define ceild(n,d)  ceil(((double)(n))/((double)(d)))
 #define floord(n,d) floor(((double)(n))/((double)(d)))
 
-#define A(i,j) starpu_data_get_sub_data(dataA, 2, j, i)
+#define A(i,j) starpu_data_get_sub_data(dataA, 2, i, j)
 
 #define _POTRF(cl, A, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
@@ -204,31 +207,34 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
-	unsigned x, y;
+	unsigned m, n;
 
 	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (i,j) */
+	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
+	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
-	{
-		.filter_func = starpu_matrix_filter_vertical_block,
-		.nchildren = nblocks
-	};
-
-	struct starpu_data_filter f2 =
 	{
 		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
+	/* Then split rows into tiles */
+	struct starpu_data_filter f2 =
+	{
+		/* Note: here "vertical" is for row-major, we are here using column-major. */
+		.filter_func = starpu_matrix_filter_vertical_block,
+		.nchildren = nblocks
+	};
+
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	for (x = 0; x < nblocks; x++)
-		for (y = 0; y < nblocks; y++)
+	for (m = 0; m < nblocks; m++)
+		for (n = 0; n < nblocks; n++)
 		{
-			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, x, y);
-			starpu_data_set_coordinates(data, 2, x, y);
+			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
+			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
 	int ret = _cholesky(dataA, nblocks);
@@ -244,14 +250,14 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	float *mat = NULL;
 
 #ifndef STARPU_SIMGRID
-	unsigned i,j;
+	unsigned m,n;
 	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	for (i = 0; i < size; i++)
+	for (n = 0; n < size; n++)
 	{
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
 	}
 
@@ -259,13 +265,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
@@ -282,18 +288,17 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 #ifndef STARPU_SIMGRID
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
@@ -303,13 +308,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	if (check_p)
 	{
 		FPRINTF(stderr, "compute explicit LLt ...\n");
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i > j)
+				if (n > m)
 				{
-					mat[j+i*size] = 0.0f; /* debug */
+					mat[m+n*size] = 0.0f; /* debug */
 				}
 			}
 		}
@@ -321,13 +326,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
+					FPRINTF(stdout, "%2.2f\t", test_mat[m +n*size]);
 				}
 				else
 				{
@@ -338,17 +343,17 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		}
 #endif
 
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = fabsf(test_mat[j +i*size] - orig) / orig;
-	                                if (err > 0.00001)
+	                                float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+	                                float err = fabsf(test_mat[m +n*size] - orig) / orig;
+	                                if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }
