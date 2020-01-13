@@ -23,6 +23,9 @@
  * The whole algorithm thus appears clearly in the task submission loop in _cholesky().
  */
 
+/* Note: this is using fortran ordering, i.e. column-major ordering, i.e.
+ * elements with consecutive row number are consecutive in memory */
+
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 
@@ -46,9 +49,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	double start;
 	double end;
 
-	unsigned i,j,k;
-	unsigned long n = starpu_matrix_get_nx(dataA);
-	unsigned long nn = n/nblocks;
+	unsigned k,m,n;
+	unsigned long nx = starpu_matrix_get_nx(dataA);
+	unsigned long nn = nx/nblocks;
 
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
@@ -75,45 +78,45 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-		for (j = k+1; j<nblocks; j++)
+		for (m = k+1; m<nblocks; m++)
 		{
-                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
+                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
                         ret = starpu_task_insert(&cl21,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j) : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
-						 STARPU_RW, sdatakj,
+						 STARPU_RW, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
-						 STARPU_TAG_ONLY, TAG21(k,j),
+						 STARPU_TAG_ONLY, TAG21(m,k),
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 		starpu_data_wont_use(sdatakk);
 
-		for (j = k+1; j<nblocks; j++)
+		for (m = k+1; m<nblocks; m++)
 		{
-                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
-			for (i = k+1; i<nblocks; i++)
+                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+			for (n = k+1; n<nblocks; n++)
 			{
-				if (i <= j)
+				if (n <= m)
                                 {
-					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
+					starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
+					starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
 					ret = starpu_task_insert(&cl22,
-								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j - i) : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-								 STARPU_R, sdataki,
-								 STARPU_R, sdatakj,
-								 cl22.modes[2], sdataij,
+								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+								 STARPU_R, sdatamk,
+								 STARPU_R, sdatank,
+								 cl22.modes[2], sdatamn,
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
-								 STARPU_TAG_ONLY, TAG22(k,i,j),
+								 STARPU_TAG_ONLY, TAG22(k,m,n),
 								 0);
 					if (ret == -ENODEV) return 77;
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
                                 }
 			}
-			starpu_data_wont_use(sdatakj);
+			starpu_data_wont_use(sdatamk);
 		}
 		starpu_iteration_pop();
 	}
@@ -128,7 +131,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double timing = end - start;
 
-	double flop = FLOPS_SPOTRF(n);
+	double flop = FLOPS_SPOTRF(nx);
 
 	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
@@ -139,7 +142,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			PRINTF("\tTms\tTGFlops");
 		PRINTF("\n");
 
-		PRINTF("%lu\t%.0f\t%.1f", n, timing/1000, (flop/timing/1000.0f));
+		PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
 		if (bound_lp_p)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
@@ -166,31 +169,34 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
-	unsigned x, y;
+	unsigned m, n;
 
 	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (i,j) */
+	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
+	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
-	{
-		.filter_func = starpu_matrix_filter_vertical_block,
-		.nchildren = nblocks
-	};
-
-	struct starpu_data_filter f2 =
 	{
 		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
+	/* Then split rows into tiles */
+	struct starpu_data_filter f2 =
+	{
+		/* Note: here "vertical" is for row-major, we are here using column-major. */
+		.filter_func = starpu_matrix_filter_vertical_block,
+		.nchildren = nblocks
+	};
+
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	for (x = 0; x < nblocks; x++)
-		for (y = 0; y < nblocks; y++)
+	for (m = 0; m < nblocks; m++)
+		for (n = 0; n < nblocks; n++)
 		{
-			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, x, y);
-			starpu_data_set_coordinates(data, 2, x, y);
+			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
+			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
 	int ret = _cholesky(dataA, nblocks);
@@ -206,14 +212,14 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	float *mat = NULL;
 
 #ifndef STARPU_SIMGRID
-	unsigned i,j;
+	unsigned m,n;
 	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	for (i = 0; i < size; i++)
+	for (n = 0; n < size; n++)
 	{
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
 	}
 
@@ -221,13 +227,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
@@ -244,18 +250,17 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 #ifndef STARPU_SIMGRID
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
@@ -265,13 +270,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	if (check_p)
 	{
 		FPRINTF(stderr, "compute explicit LLt ...\n");
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i > j)
+				if (n > m)
 				{
-					mat[j+i*size] = 0.0f; /* debug */
+					mat[m+n*size] = 0.0f; /* debug */
 				}
 			}
 		}
@@ -283,13 +288,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
+					FPRINTF(stdout, "%2.2f\t", test_mat[m +n*size]);
 				}
 				else
 				{
@@ -300,17 +305,17 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		}
 #endif
 
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = fabsf(test_mat[j +i*size] - orig) / orig;
+	                                float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+	                                float err = fabsf(test_mat[m +n*size] - orig) / orig;
 	                                if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }

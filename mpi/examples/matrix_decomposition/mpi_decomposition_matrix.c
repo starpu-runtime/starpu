@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013,2015-2017                      CNRS
- * Copyright (C) 2009-2012,2014,2015                      Université de Bordeaux
+ * Copyright (C) 2009-2012,2014,2015,2020                 Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #include "mpi_cholesky.h"
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int y, int nb_nodes)
+int my_distrib(int y, int x, int nb_nodes)
 {
 	(void)nb_nodes;
 	//return (x+y) % nb_nodes;
@@ -62,27 +62,30 @@ void matrix_display(float ***bmat, int rank)
 	}
 }
 
+/* Note: bmat is indexed by bmat[m][n][mm+nn*BLOCKSIZE],
+ * i.e. the content of the tiles is column-major, but the array of tiles is
+ * row-major to keep the m,n notation everywhere */
 void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 {
-	unsigned i,j,x,y;
+	unsigned nn,mm,m,n;
 
 	*bmat = malloc(nblocks * sizeof(float **));
-	for(x=0 ; x<nblocks ; x++)
+	for(m=0 ; m<nblocks ; m++)
 	{
-		(*bmat)[x] = malloc(nblocks * sizeof(float *));
-		for(y=0 ; y<nblocks ; y++)
+		(*bmat)[m] = malloc(nblocks * sizeof(float *));
+		for(n=0 ; n<nblocks ; n++)
 		{
-			int mpi_rank = my_distrib(x, y, nodes);
+			int mpi_rank = my_distrib(m, n, nodes);
 			if (alloc_everywhere || (mpi_rank == rank))
 			{
-				starpu_malloc((void **)&(*bmat)[x][y], BLOCKSIZE*BLOCKSIZE*sizeof(float));
-				for (i = 0; i < BLOCKSIZE; i++)
+				starpu_malloc((void **)&(*bmat)[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float));
+				for (nn = 0; nn < BLOCKSIZE; nn++)
 				{
-					for (j = 0; j < BLOCKSIZE; j++)
+					for (mm = 0; mm < BLOCKSIZE; mm++)
 					{
 #ifndef STARPU_SIMGRID
-						(*bmat)[x][y][j +i*BLOCKSIZE] = (1.0f/(1.0f+(i+(x*BLOCKSIZE)+j+(y*BLOCKSIZE)))) + ((i+(x*BLOCKSIZE) == j+(y*BLOCKSIZE))?1.0f*size:0.0f);
-						//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
+						(*bmat)[m][n][mm +nn*BLOCKSIZE] = (1.0f/(1.0f+(nn+(m*BLOCKSIZE)+mm+(n*BLOCKSIZE)))) + ((nn+(m*BLOCKSIZE) == mm+(n*BLOCKSIZE))?1.0f*size:0.0f);
+						//mat[mm +nn*size] = ((nn == mm)?1.0f*size:0.0f);
 #endif
 					}
 				}
@@ -93,19 +96,19 @@ void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 
 void matrix_free(float ****bmat, int rank, int nodes, int alloc_everywhere)
 {
-	unsigned x, y;
+	unsigned m, n;
 
-	for(x=0 ; x<nblocks ; x++)
+	for(m=0 ; m<nblocks ; m++)
 	{
-		for(y=0 ; y<nblocks ; y++)
+		for(n=0 ; n<nblocks ; n++)
 		{
-			int mpi_rank = my_distrib(x, y, nodes);
+			int mpi_rank = my_distrib(m, n, nodes);
 			if (alloc_everywhere || (mpi_rank == rank))
 			{
-				starpu_free((void *)(*bmat)[x][y]);
+				starpu_free((void *)(*bmat)[m][n]);
 			}
 		}
-		free((*bmat)[x]);
+		free((*bmat)[m]);
 	}
 	free(*bmat);
 }
