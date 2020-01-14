@@ -157,7 +157,7 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned m, un
  *	and construct the DAG
  */
 
-static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
+static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
 
@@ -182,13 +182,9 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		else
 		{
-			int ret = starpu_task_submit(task);
-                        if (STARPU_UNLIKELY(ret == -ENODEV))
-			{
-                                FPRINTF(stderr, "No worker may execute this task\n");
-                                exit(0);
-                        }
-
+			ret = starpu_task_submit(task);
+			if (ret == -ENODEV) return 77;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		for (m = k+1; m<nblocks; m++)
@@ -269,9 +265,10 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
+	int ret;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (m,n) */
@@ -296,9 +293,10 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	_cholesky(dataA, nblocks);
+	ret = _cholesky(dataA, nblocks);
 
 	starpu_data_unregister(dataA);
+	return ret;
 }
 
 static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
@@ -358,7 +356,7 @@ int main(int argc, char **argv)
 #endif
 #endif
 
-	cholesky(mat, size_p, size_p, nblocks_p);
+	ret = cholesky(mat, size_p, size_p, nblocks_p);
 
 #ifndef STARPU_SIMGRID
 #ifdef PRINT_OUTPUT
@@ -440,5 +438,5 @@ int main(int argc, char **argv)
 #endif
 
 	shutdown_system(&mat, size_p, pinned_p);
-	return 0;
+	return ret;
 }
