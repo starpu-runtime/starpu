@@ -232,11 +232,8 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 
 	/* schedule the codelet */
 	ret = starpu_task_submit(entry_task);
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		FPRINTF(stderr, "No worker may execute this task\n");
-		return 77;
-	}
+	if (ret == -ENODEV) return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	if (nblocks == nbigblocks)
 	{
@@ -473,5 +470,5 @@ int main(int argc, char **argv)
 #endif
 
 	shutdown_system(&mat, size_p, pinned_p);
-	return 0;
+	return ret;
 }
