@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2017,2020                           Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2020                 CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2010                                     Mehdi Juhoor
  *
@@ -79,7 +79,7 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 	return task;
 }
 
-static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned m)
+static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned m)
 {
 	int ret;
 
