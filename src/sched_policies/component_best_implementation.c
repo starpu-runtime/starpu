@@ -31,7 +31,6 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 	double len = DBL_MAX;
 	int best_impl = -1;
 	unsigned impl;
-	struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 	if (!task->cl->model)
 	{
 		/* No perfmodel, first available will be fine */
@@ -39,8 +38,11 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 		best_impl = impl;
 		len = 0.0;
 	}
-	else for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
-	{
+	else
+	{	
+	    struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
+	    for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+	    {
 		if(starpu_worker_can_execute_task(workerid, task, impl))
 		{
 			double d = starpu_task_expected_length(task, archtype, impl);
@@ -56,6 +58,7 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 				best_impl = impl;
 			}
 		}
+	    }
 	}
 	if(best_impl == -1)
 		return 0;
