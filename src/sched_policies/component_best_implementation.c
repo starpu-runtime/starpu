@@ -37,6 +37,7 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 		/* No perfmodel, first available will be fine */
 		starpu_worker_can_execute_task_first_impl(workerid, task, &impl);
 		best_impl = impl;
+		len = 0.0;
 	}
 	else for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
 	{
