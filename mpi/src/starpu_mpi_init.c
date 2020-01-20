@@ -245,7 +245,12 @@ int starpu_mpi_shutdown(void)
 	/* kill the progression thread */
 	_starpu_mpi_progress_shutdown(&value);
 
-	_STARPU_MPI_TRACE_STOP(rank, world_size);
+#ifdef STARPU_USE_FXT
+	if (starpu_fxt_is_enabled())
+	{
+		_STARPU_MPI_TRACE_STOP(rank, world_size);
+	}
+#endif // STARPU_USE_FXT
 
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();

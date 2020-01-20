@@ -147,12 +147,17 @@ void starpu_fxt_stop_profiling()
 	fut_keychange(FUT_DISABLE, FUT_KEYMASKALL, threadid);
 }
 
+int starpu_fxt_is_enabled()
+{
+	return starpu_get_env_number_default("STARPU_FXT_TRACE", 1);
+}
+
 void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 {
 	unsigned threadid;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
-	if (!(_starpu_fxt_willstart = starpu_get_env_number_default("STARPU_FXT_TRACE", 1)))
+	if (!(_starpu_fxt_willstart = starpu_fxt_is_enabled()))
 	{
 		STARPU_PTHREAD_COND_BROADCAST(&_starpu_fxt_started_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_fxt_started_mutex);
