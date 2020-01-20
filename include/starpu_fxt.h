@@ -138,6 +138,11 @@ void starpu_fxt_stop_profiling(void);
 void starpu_fxt_write_data_trace(char *filename_in);
 
 /**
+    Wrapper to get value of env variable STARPU_FXT_TRACE
+*/
+int starpu_fxt_is_enabled();
+
+/**
    Add an event in the execution trace if FxT is enabled.
 */
 void starpu_fxt_trace_user_event(unsigned long code);
