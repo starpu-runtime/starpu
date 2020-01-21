@@ -183,21 +183,33 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		else
 		{
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV) return 77;
+			if (ret == -ENODEV)
+			{
+				starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+				return 77;
+			}
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
 		for (m = k+1; m<nblocks; m++)
 		{
 			ret = create_task_21(dataA, k, m);
-			if (ret == -ENODEV) return 77;
+			if (ret == -ENODEV)
+			{
+				starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+				return 77;
+			}
 
 			for (n = k+1; n<nblocks; n++)
 			{
 				if (n <= m)
 				{
 					ret = create_task_22(dataA, k, m, n);
-					if (ret == -ENODEV) return 77;
+					if (ret == -ENODEV)
+					{
+						starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+						return 77;
+					}
 				}
 			}
 		}
