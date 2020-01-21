@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2013,2014,2016,2017                      CNRS
- * Copyright (C) 2014-2019                                Université de Bordeaux
+ * Copyright (C) 2014-2020                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -281,6 +281,15 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 	int workerid = starpu_worker_get_id();
 	if(workerid == -1)
 		return starpu_sched_tree_push_task(task);
+
+	/* Check that we can execute it */
+	unsigned impl;
+	int can_execute = starpu_worker_can_execute_task_first_impl(workerid, task, &impl);
+	if (!can_execute)
+		return starpu_sched_tree_push_task(task);
+
+	/* Ok, use that implementation */
+	starpu_task_set_implementation(task, impl);
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_component * component =starpu_sched_component_worker_get(sched_ctx_id, workerid);
