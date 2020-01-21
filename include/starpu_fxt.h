@@ -62,6 +62,7 @@ struct starpu_fxt_options
 	char *out_paje_path;
 	char *distrib_time_path;
 	char *activity_path;
+	char *sched_tasks_path;
 	char *dag_path;
 	char *tasks_path;
 	char *data_path;

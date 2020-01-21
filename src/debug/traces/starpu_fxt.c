@@ -88,6 +88,7 @@ static FILE *data_file;
 static FILE *papi_file;
 static FILE *trace_file;
 static FILE *comms_file;
+static FILE *sched_tasks_file;
 
 struct data_parameter_info
 {
@@ -2608,6 +2609,7 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	double current_timestamp = get_event_time_stamp(ev, options);
 
 	unsigned task = ev->param[0];
+	int priority = ev->param[1];
 
 	curq_size++;
 
@@ -2633,6 +2635,18 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 	if (activity_file)
 		fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
+
+	if (sched_tasks_file)
+	{
+		fprintf(sched_tasks_file, "Type: push\n");
+		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
+		fprintf(sched_tasks_file, "Priority: %d\n", priority);
+		if (options->file_rank < 0)
+			fprintf(sched_tasks_file, "JobId: %d\n", task);
+		else
+			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+		fprintf(sched_tasks_file, "\n");
+	}
 }
 
 
@@ -2640,6 +2654,7 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 	unsigned task = ev->param[0];
+	int priority = ev->param[1];
 
 	curq_size--;
 	nsubmitted--;
@@ -2670,6 +2685,17 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 	}
 
+	if (sched_tasks_file)
+	{
+		fprintf(sched_tasks_file, "Type: pop\n");
+		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
+		fprintf(sched_tasks_file, "Priority: %d\n", priority);
+		if (options->file_rank < 0)
+			fprintf(sched_tasks_file, "JobId: %d\n", task);
+		else
+			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+		fprintf(sched_tasks_file, "\n");
+	}
 }
 
 static void handle_component_new(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -3514,7 +3540,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_update_task_cnt(&ev, options);
 				break;
 
-			/* monitor stack size */
+			/* monitor stack size and generate sched_tasks.rec */
 			case _STARPU_FUT_JOB_PUSH:
 				handle_job_push(&ev, options);
 				break;
@@ -4182,6 +4208,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->distrib_time_path = "distrib.data";
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
+	options->sched_tasks_path = "sched_tasks.rec";
 }
 
 static
@@ -4220,6 +4247,15 @@ void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 		activity_file = fopen(options->activity_path, "w+");
 	else
 		activity_file = NULL;
+}
+
+static
+void _starpu_fxt_sched_tasks_file_init(struct starpu_fxt_options *options)
+{
+	if (options->sched_tasks_path)
+		sched_tasks_file = fopen(options->sched_tasks_path, "w+");
+	else
+		sched_tasks_file = NULL;
 }
 
 static
@@ -4303,6 +4339,13 @@ void _starpu_fxt_activity_file_close(void)
 {
 	if (activity_file)
 		fclose(activity_file);
+}
+
+static
+void _starpu_fxt_sched_tasks_file_close(void)
+{
+	if (sched_tasks_file)
+		fclose(sched_tasks_file);
 }
 
 static
@@ -4444,6 +4487,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
 	_starpu_fxt_activity_file_init(options);
+	_starpu_fxt_sched_tasks_file_init(options);
 	_starpu_fxt_anim_file_init(options);
 	_starpu_fxt_tasks_file_init(options);
 	_starpu_fxt_data_file_init(options);
@@ -4575,6 +4619,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	/* close the different files */
 	_starpu_fxt_paje_file_close();
 	_starpu_fxt_activity_file_close();
+	_starpu_fxt_sched_tasks_file_close();
 	_starpu_fxt_distrib_file_close(options);
 	_starpu_fxt_anim_file_close();
 	_starpu_fxt_tasks_file_close();

@@ -405,7 +405,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			struct starpu_task *alias = starpu_task_dup(task);
 			alias->destroy = 1;
 
-			_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
+			_STARPU_TRACE_JOB_PUSH(alias, alias->priority);
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
@@ -537,7 +537,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
+	_STARPU_TRACE_JOB_PUSH(task, task->priority);
 
 	/* if the contexts still does not have workers put the task back to its place in
 	   the empty ctx list */
@@ -626,7 +626,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 					if (job->task_size > 1)
 					{
 						alias = starpu_task_dup(task);
-						_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
+						_STARPU_TRACE_JOB_PUSH(alias, alias->priority);
 						alias->destroy = 1;
 					}
 					else
@@ -667,7 +667,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		if(ret == -1)
 		{
 			_STARPU_MSG("repush task \n");
-			_STARPU_TRACE_JOB_POP(task, task->priority > 0);
+			_STARPU_TRACE_JOB_POP(task, task->priority);
 			ret = _starpu_push_task_to_workers(task);
 		}
 	}
@@ -694,7 +694,7 @@ int _starpu_pop_task_end(struct starpu_task *task)
 {
 	if (!task)
 		return 0;
-	_STARPU_TRACE_JOB_POP(task, task->priority > 0);
+	_STARPU_TRACE_JOB_POP(task, task->priority);
 	return 0;
 }
 
