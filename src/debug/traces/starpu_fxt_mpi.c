@@ -225,6 +225,7 @@ static unsigned long mpi_com_id = 0;
 static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comms_file, unsigned n)
 {
 	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
+	unsigned nb_wrong_comm_timing = 0;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
 	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
 	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
@@ -299,7 +300,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			struct mpi_transfer *prev;
 
 			if (end_date <= start_date)
-				_STARPU_MSG("Warning: a communication finished before it started !\n");
+				nb_wrong_comm_timing++;
 
 			match->bandwidth = (0.001*size)/(end_date - start_date);
 			current_out_bandwidth[src] += match->bandwidth;
@@ -367,6 +368,11 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 
 		slot[src]++;
 	}
+
+	if (nb_wrong_comm_timing == 1)
+		_STARPU_MSG("Warning: a communication finished before it started !\n");
+	else if (nb_wrong_comm_timing > 1)
+		_STARPU_MSG("Warning: %d communications finished before they started !\n", nb_wrong_comm_timing);
 }
 
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)
