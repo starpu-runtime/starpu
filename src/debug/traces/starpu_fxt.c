@@ -85,7 +85,9 @@ static FILE *activity_file;
 static FILE *anim_file;
 static FILE *tasks_file;
 static FILE *data_file;
+#ifdef STARPU_PAPI
 static FILE *papi_file;
+#endif
 static FILE *trace_file;
 static FILE *comms_file;
 static FILE *sched_tasks_file;
