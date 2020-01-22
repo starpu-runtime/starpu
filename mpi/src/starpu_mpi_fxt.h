@@ -71,48 +71,48 @@ extern "C"
 	FUT_DO_ALWAYS_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid()); \
 } while (0)
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
-	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
+	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(dest, data_tag, size, jobid, handle)	\
-	FUT_DO_PROBE6(_STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), _starpu_gettid(), (handle));
+	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), _starpu_gettid(), (handle));
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_SUBMIT_END, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(dest, data_tag, size)	\
-	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
+	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
 #define _STARPU_MPI_TRACE_COMPLETE_BEGIN(type, rank, data_tag)		\
 	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN((rank), (data_tag), 0); }
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(dest, data_tag, size)	\
-	FUT_DO_PROBE4(_STARPU_MPI_FUT_ISEND_COMPLETE_END, (dest), (data_tag), (size), _starpu_gettid());
+	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_COMPLETE_END, (dest), (data_tag), (size), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_COMPLETE_END(type, rank, data_tag)		\
 	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_END((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_END((rank), (data_tag), 0); }
 #define _STARPU_MPI_TRACE_TERMINATED(req, rank, data_tag)		\
-	if ((req)->request_type == RECV_REQ) FUT_DO_PROBE5(_STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (data_tag), (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle); else \
-	if ((req)->request_type == SEND_REQ) FUT_DO_PROBE3(_STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (data_tag), _starpu_gettid());
+	if ((req)->request_type == RECV_REQ) FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (data_tag), (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle); else \
+	if ((req)->request_type == SEND_REQ) FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_END()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_SLEEP_END, _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_SLEEP_END, _starpu_gettid());
 #define _STARPU_MPI_TRACE_DTESTING_BEGIN()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DTESTING_BEGIN,  _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DTESTING_BEGIN,  _starpu_gettid());
 #define _STARPU_MPI_TRACE_DTESTING_END()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DTESTING_END, _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DTESTING_END, _starpu_gettid());
 #define _STARPU_MPI_TRACE_UTESTING_BEGIN(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_UTESTING_BEGIN, (src), (data_tag),  _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_UTESTING_BEGIN, (src), (data_tag),  _starpu_gettid());
 #define _STARPU_MPI_TRACE_UTESTING_END(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_UTESTING_END, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_UTESTING_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_UWAIT_BEGIN(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_BEGIN, (src), (data_tag),  _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_UWAIT_BEGIN, (src), (data_tag),  _starpu_gettid());
 #define _STARPU_MPI_TRACE_UWAIT_END(src, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_UWAIT_END, (src), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_UWAIT_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_DATA_SET_RANK(handle, rank)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DATA_SET_RANK, (handle), (rank), _starpu_gettid());
 #define _STARPU_MPI_TRACE_DATA_SET_TAG(handle, data_tag)	\
-	FUT_DO_PROBE3(_STARPU_MPI_FUT_DATA_SET_TAG, (handle), (data_tag), _starpu_gettid());
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DATA_SET_TAG, (handle), (data_tag), _starpu_gettid());
 #if 0
 /* This is very expensive in the trace, only enable for debugging */
 #define _STARPU_MPI_TRACE_TESTING_DETACHED_BEGIN()	\
@@ -132,17 +132,17 @@ extern "C"
 #define _STARPU_MPI_TRACE_POLLING_BEGIN()					\
 	if(!trace_loop) {						\
 		trace_loop = 1;							\
-		FUT_DO_PROBE1(_STARPU_MPI_FUT_POLLING_BEGIN, _starpu_gettid()); \
+		FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_POLLING_BEGIN, _starpu_gettid()); \
 	}
 #define _STARPU_MPI_TRACE_POLLING_END()	\
 	if(trace_loop) {							\
 		trace_loop = 0;							\
-		FUT_DO_PROBE1(_STARPU_MPI_FUT_POLLING_END, _starpu_gettid());	\
+		FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_POLLING_END, _starpu_gettid());	\
 	}
 #define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
 #define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\
-	FUT_DO_PROBE1(_STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
+	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
 #define TRACE
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
