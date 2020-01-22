@@ -16,7 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-StarPU 1.4.0 (svn revision xxxx)
+StarPU 1.4.0 (git revision xxxx)
 ==============================================
 New features:
   * Fault tolerance support with starpu_task_ft_failed().
@@ -25,6 +25,7 @@ New features:
   * New offline tool to draw graph showing elapsed time between sent
     or received data and their use by tasks
   * Add 4D tensor data interface.
+  * New sched_tasks.rec trace file which monitors task scheduling push/pop actions
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
