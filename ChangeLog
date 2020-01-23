@@ -277,6 +277,7 @@ StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
 Small features:
   * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
   * Add starpu_data_set/get_ooc_flag.
+  * Use starpu_mpi_tag_t (int64_t) for MPI communication tag
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ====================================================================
@@ -627,6 +628,34 @@ Small changes:
     STARPU_NMICDEVS, the number of devices and the number of cores.
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
+
+StarPU 1.1.8 (git revision f7b7abe9f86361cbc96f2b51c6ad7336b7d1d628)
+====================================================================
+The scheduling context release
+
+Small changes:
+  * Fix compatibility with simgrid 3.14
+  * Fix lock ordering for memory reclaiming
+
+StarPU 1.1.7 (git revision 341044b67809892cf4a388e482766beb50256907)
+====================================================================
+The scheduling context release
+
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
+
+StarPU 1.1.6 (git revision cdffbd5f5447e4d076d659232b3deb14f3c20da6)
+====================================================================
+The scheduling context release
+
+Small features:
+  * Add starpu_task_get_task_succs to get the list of children of a given
+    task.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
+
+Small changes:
+  * Various fixes for MacOS and windows systems
 
 StarPU 1.1.5 (git revision 20469c6f3e7ecd6c0568c8e4e4b5b652598308d8xxx)
 =======================================================================
