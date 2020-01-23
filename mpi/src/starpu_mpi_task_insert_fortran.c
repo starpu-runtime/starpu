@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2018                                CNRS
- * Copyright (C) 2017-2019                                     Université de Bordeaux
+ * Copyright (C) 2016-2018, 2020                          CNRS
+ * Copyright (C) 2017-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -422,7 +422,7 @@ struct starpu_task *fstarpu_mpi_task_build(void **arglist)
 
 	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, arglist+2);
 	STARPU_ASSERT(ret >= 0);
-	return task;
+	return (ret > 0) ? NULL : task;
 }
 
 void fstarpu_mpi_task_post_build(void **arglist)
@@ -443,10 +443,10 @@ void fstarpu_mpi_task_post_build(void **arglist)
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, arglist+2);
-	if (ret < 0)
-		return ret;
+	STARPU_ASSERT(ret >= 0);
 
-	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data);
+	ret = _starpu_mpi_task_postbuild_v(MPI_Comm_f2c(comm), xrank, do_execute, descrs, nb_data);
+	STARPU_ASSERT(ret >= 0);
 }
 
 #endif /* HAVE_MPI_COMM_F2C */
