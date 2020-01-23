@@ -262,8 +262,11 @@ Small changes:
 
 StarPU 1.2.9 (git revision xxx)
 ==============================================
+
+Small changes:
   * Add STARPU_SIMGRID_TRANSFER_COST environment variable to easily disable
     data transfer costs.
+  * New dmdap "data-aware performance model (priority)" scheduler
   * Modification in the Native Fortran interface of the functions
     fstarpu_mpi_task_insert, fstarpu_mpi_task_build and
     fstarpu_mpi_task_post_build to only take 1 parameter being the MPI
