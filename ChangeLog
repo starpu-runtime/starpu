@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012-2014,2016-2018                      Inria
 # Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2019                                CNRS
+# Copyright (C) 2010-2020                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,14 @@ New features:
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
+
+StarPU 1.3.4 (git revision xxx)
+==============================================
+
+Small features:
+  * New environment variables STARPU_BUS_STATS_FILE and
+    STARPU_WORKER_STATS_FILE to specify files in which to display
+    statistics about data transfers and workers.
 
 StarPU 1.3.3 (git revision xxx)
 ==============================================

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2010-2020                                CNRS
  * Copyright (C) 2011,2012,2016                           Inria
  * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
  *
@@ -168,7 +168,7 @@ processing units), the idle power of the machine should be given by setting
 be obtained from the machine power supplier.
 
 The energy actually consumed by the total execution can be displayed by setting
-<c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> .
+<c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> (\ref STARPU_PROFILING and \ref STARPU_WORKER_STATS).
 
 For OpenCL devices, on-line task consumption measurement is currently supported through the
 <c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
