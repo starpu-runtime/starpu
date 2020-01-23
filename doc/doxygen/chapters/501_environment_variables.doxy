@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
+ * Copyright (C) 2010-2020                                CNRS
+ * Copyright (C) 2009-2011,2013-2020                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1086,7 +1086,17 @@ StarPU for internal data structures during execution.
 \anchor STARPU_BUS_STATS
 \addindex __env__STARPU_BUS_STATS
 When defined, statistics about data transfers will be displayed when calling
-starpu_shutdown() (\ref Profiling).
+starpu_shutdown() (\ref Profiling). By default, statistics are printed
+on the standard error stream, use the environement variable \ref
+STARPU_BUS_STATS_FILE to define another filename.
+</dd>
+
+<dt>STARPU_BUS_STATS_FILE</dt>
+<dd>
+\anchor STARPU_BUS_STATS_FILE
+\addindex __env__STARPU_BUS_STATS_FILE
+Define the name of the file where to display data transfers
+statistics, see \ref STARPU_BUS_STATS.
 </dd>
 
 <dt>STARPU_WORKER_STATS</dt>
@@ -1096,7 +1106,17 @@ starpu_shutdown() (\ref Profiling).
 When defined, statistics about the workers will be displayed when calling
 starpu_shutdown() (\ref Profiling). When combined with the
 environment variable \ref STARPU_PROFILING, it displays the energy
-consumption (\ref Energy-basedScheduling).
+consumption (\ref Energy-basedScheduling).  By default, statistics are
+printed on the standard error stream, use the environement variable
+\ref STARPU_WORKER_STATS_FILE to define another filename.
+</dd>
+
+<dt>STARPU_WORKER_STATS_FILE</dt>
+<dd>
+\anchor STARPU_WORKER_STATS_FILE
+\addindex __env__STARPU_WORKER_STATS_FILE
+Define the name of the file where to display workers statistics, see
+\ref STARPU_WORKER_STATS.
 </dd>
 
 <dt>STARPU_STATS</dt>

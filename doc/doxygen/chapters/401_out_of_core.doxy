@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013,2014,2016-2019                      CNRS
+ * Copyright (C) 2013,2014,2016-2020                      CNRS
  * Copyright (C) 2013,2014,2017,2018-2019                 Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2013                                     Corentin Salingue
@@ -91,7 +91,7 @@ system daemons, and application data).
 When the register call is made, StarPU will benchmark the disk. This can
 take some time.
 
-<strong>Warning: the size thus has to be at least \ref STARPU_DISK_SIZE_MIN bytes ! </strong> 
+<strong>Warning: the size thus has to be at least \ref STARPU_DISK_SIZE_MIN bytes ! </strong>
 
 StarPU will then automatically try to evict unused data to this new disk. One
 can also use the standard StarPU memory node API to prefetch data etc., see the
@@ -127,7 +127,7 @@ value right after this call, and thus the very first task using the handle needs
 to use the ::STARPU_W mode like above, ::STARPU_R or ::STARPU_RW would not make
 sense.
 
-By default, StarPU will try to push any data handle to the disk. 
+By default, StarPU will try to push any data handle to the disk.
 To specify whether a given handle should be pushed to the disk,
 starpu_data_set_ooc_flag() should be used.
 
@@ -174,7 +174,9 @@ work on this area in the coming future.
 
 Beyond pure performance feedback, some figures are interesting to have a look at.
 
-Using <c>export STARPU_BUS_STATS=1</c> gives an overview of the data
+Using <c>export STARPU_BUS_STATS=1</c> (\ref STARPU_BUS_STATS and \ref STARPU_BUS_STATS_FILE
+to define a filename in which to display statistics, by default the
+standard error stream is used) gives an overview of the data
 transfers which were needed. The values can also be obtained at runtime
 by using starpu_bus_get_profiling_info(). An example can be read in
 <c>src/profiling/profiling_helpers.c</c>.
@@ -188,7 +190,7 @@ Data transfer speed for /tmp/sthibault-disk-DJzhAj (node 1):
 1 -> 0: 23858 µs
 
 #---------------------
-TEST DISK MEMORY 
+TEST DISK MEMORY
 
 #---------------------
 Data transfer stats:
