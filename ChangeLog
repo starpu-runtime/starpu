@@ -665,12 +665,16 @@ StarPU 1.1.5 (git revision 20469c6f3e7ecd6c0568c8e4e4b5b652598308d8xxx)
 =======================================================================
 The scheduling context release
 
+New features:
   * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
     another way than starpu_malloc.
   * Add starpu_task_wait_for_n_submitted() and
     STARPU_LIMIT_MAX_NSUBMITTED_TASKS/STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
     easily control the number of submitted tasks by making task submission
     block.
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add Fortran 90 module and example using it
 
 StarPU 1.1.4 (git revision 2a3d30b28d6d099d271134a786335acdbb3931a3)
 ====================================================================
