@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012                                Inria
- * Copyright (C) 2012,2014-2017                           CNRS
+ * Copyright (C) 2012,2014-2017,2020                      CNRS
  * Copyright (C) 2010-2013                                Université de Bordeaux
  * Copyright (C) 2012                                     Vincent Danjean
  *
@@ -33,7 +33,8 @@ void socl_init_starpu(void) {
     starpu_conf_init(&conf);
     conf.ncuda = 0;
     conf.ncpus = 0;
-
+    setenv("STARPU_NCUDA", "0", 1);
+    setenv("STARPU_NCPUS", "0", 1);
 
     _starpu_init_failed = starpu_init(&conf);
     if (_starpu_init_failed != 0)
