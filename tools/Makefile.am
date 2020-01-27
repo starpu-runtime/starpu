@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2012,2016                           Inria
 # Copyright (C) 2009-2017,2019                           Université de Bordeaux
 # Copyright (C) 2013                                     Joris Pablo
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2018,2020                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -144,6 +144,14 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_11_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_12_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_21_openblas.mirage	\
+	perfmodels/sampling/codelets/44/starpu_slu_lu_model_22_openblas.mirage	\
 	perfmodels/sampling/codelets/44/overlap_sleep_1024_24.mirage	\
 	perfmodels/sampling/codelets/44/chol_model_11.sirocco	\
 	perfmodels/sampling/codelets/44/chol_model_21.sirocco	\
