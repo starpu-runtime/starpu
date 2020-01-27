@@ -834,53 +834,14 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldz_dst = dst_block->ldz;
 	uint32_t ldt_dst = dst_block->ldt;
 
-	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy_src, ldz_src, ldt_src) &&
-	    IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy_dst, ldz_dst, ldt_dst))
-	{
-		/* Optimise non-partitioned and z-partitioned case */
-		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
-		                          dst_block->dev_handle, dst_block->offset, dst_node,
-		                          nx*ny*nz*nt*elemsize, async_data))
-				ret = -EAGAIN;
-	}
-	else
-	{
-		unsigned t;
-		for (t = 0; t < nt; t++)
-		{
-		    unsigned z;
-		    for (z = 0; z < nz; z++)
-		    {
-			if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy_src) &&
-			    IS_CONTIGUOUS_MATRIX(nx, ny, ldy_dst))
-			{
-				/* Optimise y-partitioned case */
-				uint32_t src_offset = t*ldt_src*elemsize + z*ldz_src*elemsize;
-				uint32_t dst_offset = t*ldt_dst*elemsize + z*ldz_dst*elemsize;
-
-				if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-							  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-							  nx*ny*elemsize, async_data))
-					ret = -EAGAIN;
-			}
-			else
-			{
-				unsigned y;
-				for (y = 0; y < ny; y++)
-				{
-					/* Eerf, x-partitioned case */
-					uint32_t src_offset = (y*ldy_src + z*ldz_src + t*ldt_src)*elemsize;
-					uint32_t dst_offset = (y*ldy_dst + z*ldz_dst + t*ldt_dst)*elemsize;
-
-					if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-								  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-								  nx*elemsize, async_data))
-						ret = -EAGAIN;
-				}
-			}
-		    }
-		}
-	}
+	if (starpu_interface_copy4d(src_block->dev_handle, src_block->offset, src_node,
+				    dst_block->dev_handle, dst_block->offset, dst_node,
+				    nx * elemsize,
+				    ny, ldy_src * elemsize, ldy_dst * elemsize,
+				    nz, ldz_src * elemsize, ldz_dst * elemsize,
+				    nt, ldt_src * elemsize, ldt_dst * elemsize,
+				    async_data))
+		ret = -EAGAIN;
 
 	starpu_interface_data_copy(src_node, dst_node, nx*ny*nz*nt*elemsize);
 

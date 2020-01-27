@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2010-2015,2017,2019                           CNRS
  *
@@ -689,7 +689,90 @@ int starpu_data_interface_get_next_id(void);
    be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
    transfer is still ongoing, or 0 if the transfer is already completed.
 */
-int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
+int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node,
+			  uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			  size_t size, void *async_data);
+
+/**
+   Copy \p numblocks blocks of \p blocksize bytes from byte offset \p src_offset
+   of \p src on \p src_node to byte offset \p dst_offset of \p dst on \p
+   dst_node.
+
+   The blocks start at addresses with are ld_src (resp. ld_dst) bytes apart in
+   the source (resp. destination) interface.
+
+   If blocksize == ld_src == ld_dst, the transfer is optimized into a single
+   starpu_interface_copy call.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 2D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks, size_t ld_src, size_t ld_dst,
+			    void *async_data);
+
+/**
+   Copy \p numblocks_1 * \p numblocks_2 blocks of \p blocksize bytes from byte
+   offset \p src_offset of \p src on \p src_node to byte offset \p dst_offset of
+   \p dst on \p dst_node.
+
+   The blocks are grouped by \p numblocks_1 blocks whose start addresses are
+   ld1_src (resp. ld1_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_2 groups whose start addresses are
+   ld2_src (resp. ld2_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   If the blocks are contiguous, the transfers will be optimized.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 3D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks2, size_t ld2_src, size_t ld2_dst,
+			    void *async_data);
+
+/**
+   Copy \p numblocks_1 * \p numblocks_2 * \p numblocks_3 blocks of \p blocksize
+   bytes from byte offset \p src_offset of \p src on \p src_node to byte offset
+   \p dst_offset of \p dst on \p dst_node.
+
+   The blocks are grouped by \p numblocks_1 blocks whose start addresses are
+   ld1_src (resp. ld1_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_2 groups whose start addresses are
+   ld2_src (resp. ld2_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_3 groups whose start addresses are
+   ld3_src (resp. ld3_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   If the blocks are contiguous, the transfers will be optimized.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 3D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks2, size_t ld2_src, size_t ld2_dst,
+			    size_t numblocks3, size_t ld3_src, size_t ld3_dst,
+			    void *async_data);
 
 /**
    When an asynchonous implementation of the data transfer is implemented, the call

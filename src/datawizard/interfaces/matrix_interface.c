@@ -729,28 +729,12 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ld_src = src_matrix->ld;
 	uint32_t ld_dst = dst_matrix->ld;
 
-	if (IS_CONTIGUOUS_MATRIX(nx, ny, ld_src) && ld_dst == ld_src)
-	{
-		/* Optimize unpartitioned and y-partitioned cases */
-		if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset, src_node,
-		                          dst_matrix->dev_handle, dst_matrix->offset, dst_node,
-		                          nx*ny*elemsize, async_data))
-			ret = -EAGAIN;
-	}
-	else
-	{
-		unsigned y;
-		for (y = 0; y < ny; y++)
-		{
-			uint32_t src_offset = y*ld_src*elemsize;
-			uint32_t dst_offset = y*ld_dst*elemsize;
-
-			if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
-						  dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
-						  nx*elemsize, async_data))
-				ret = -EAGAIN;
-		}
-	}
+	if (starpu_interface_copy2d(src_matrix->dev_handle, src_matrix->offset, src_node,
+				    dst_matrix->dev_handle, dst_matrix->offset, dst_node,
+				    nx * elemsize,
+				    ny, ld_src * elemsize, ld_dst * elemsize,
+				    async_data))
+		ret = -EAGAIN;
 
 	starpu_interface_data_copy(src_node, dst_node, (size_t)nx*ny*elemsize);
 

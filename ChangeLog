@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012-2014,2016-2018                      Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2020                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@ New features:
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
+  * Add starpu_interface_copy2d, 3d, and 4d to easily request data copies from
+    data interfaces.
 
 StarPU 1.3.4 (git revision xxx)
 ==============================================

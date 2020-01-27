@@ -316,6 +316,119 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	}
 }
 
+int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks, size_t ld_src, size_t ld_dst,
+			    void *async_data)
+{
+	int ret = 0;
+	unsigned i;
+
+	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld_src);
+	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld_dst);
+
+	if (ld_src == blocksize && ld_dst == blocksize)
+		/* Optimize contiguous case */
+		return starpu_interface_copy(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     blocksize * numblocks, async_data);
+
+	/* TODO: introduce and call node_ops->copy2d_data_to when available */
+
+	for (i = 0; i < numblocks; i++)
+	{
+		if (starpu_interface_copy(src, src_offset + i*ld_src, src_node,
+					  dst, dst_offset + i*ld_dst, dst_node,
+					  blocksize, async_data))
+			ret = -EAGAIN;
+	}
+
+	return ret;
+}
+
+int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+			    void *async_data)
+{
+	int ret = 0;
+	unsigned i;
+
+	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
+	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
+
+	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %lu is bigger than group ld %lu in source", (unsigned long) numblocks_1 * ld1_src, (unsigned long) ld2_src);
+	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %lu is bigger than group ld %lu in destination", (unsigned long) numblocks_1 * ld1_dst, (unsigned long) ld2_dst);
+
+	if (ld1_src * ld2_src == blocksize * numblocks_1 &&
+	    ld1_dst * ld2_dst == blocksize * numblocks_1)
+		/* Optimize contiguous case */
+		return starpu_interface_copy(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     blocksize * numblocks_1 * numblocks_2,
+					     async_data);
+
+	/* TODO: introduce and call node_ops->copy3d_data_to when available */
+
+	for (i = 0; i < numblocks_2; i++)
+	{
+		if (starpu_interface_copy2d(src, src_offset + i*ld2_src, src_node,
+					    dst, dst_offset + i*ld2_dst, dst_node,
+					    blocksize, numblocks_1, ld1_src, ld1_dst,
+					    async_data))
+			ret = -EAGAIN;
+	}
+
+	return ret;
+}
+
+int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+			    size_t numblocks_3, size_t ld3_src, size_t ld3_dst,
+			    void *async_data)
+{
+	int ret = 0;
+	unsigned i;
+
+	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
+	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
+
+	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %lu is bigger than group ld %lu in source", (unsigned long) numblocks_1 * ld1_src, (unsigned long) ld2_src);
+	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %lu is bigger than group ld %lu in destination", (unsigned long) numblocks_1 * ld1_dst, (unsigned long) ld2_dst);
+
+	STARPU_ASSERT_MSG(ld3_src >= numblocks_2 * ld2_src, "block group group size %lu is bigger than group group ld %lu in source", (unsigned long) numblocks_2 * ld2_src, (unsigned long) ld3_src);
+	STARPU_ASSERT_MSG(ld3_dst >= numblocks_2 * ld2_dst, "block group group size %lu is bigger than group group ld %lu in destination", (unsigned long) numblocks_2 * ld2_dst, (unsigned long) ld3_dst);
+
+	if (ld1_src * ld2_src * ld3_src == blocksize * numblocks_1 * numblocks_2 &&
+	    ld1_dst * ld2_dst * ld3_dst == blocksize * numblocks_1 * numblocks_2)
+		/* Optimize contiguous case */
+		return starpu_interface_copy(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     blocksize * numblocks_1 * numblocks_2 * numblocks_3,
+					     async_data);
+
+	/* Probably won't ever have a 4D interface in drivers :) */
+
+	for (i = 0; i < numblocks_3; i++)
+	{
+		if (starpu_interface_copy3d(src, src_offset + i*ld3_src, src_node,
+					    dst, dst_offset + i*ld3_dst, dst_node,
+					    blocksize,
+					    numblocks_1, ld1_src, ld1_dst,
+					    numblocks_2, ld2_src, ld2_dst,
+					    async_data))
+			ret = -EAGAIN;
+	}
+
+	return ret;
+}
+
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
