@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014                           Université de Bordeaux
+ * Copyright (C) 2010-2012,2014,2020                      Université de Bordeaux
  * Copyright (C) 2011                                     Inria
  * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
  *
@@ -85,6 +85,44 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
    copy was successful, or fails otherwise.
 */
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind);
+
+/**
+   Copy \p numblocks blocks of \p blocksize bytes from the pointer \p src_ptr on
+   \p src_node to the pointer \p dst_ptr on \p dst_node.
+
+   The blocks start at addresses which are ld_src (resp. ld_dst) bytes apart in
+   the source (resp. destination) interface.
+
+   The function first tries to copy the data asynchronous (unless \p stream is
+   <c>NULL</c>). If the asynchronous copy fails or if \p stream is <c>NULL</c>,
+   it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
+   asynchronous launch was successfull. It returns 0 if the synchronous copy was
+   successful, or fails otherwise.
+*/
+int starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
+				  size_t blocksize,
+				  size_t numblocks, size_t ld_src, size_t ld_dst,
+				  cudaStream_t stream, enum cudaMemcpyKind kind);
+
+/**
+   Copy \p numblocks_1 * \p numblocks_2 blocks of \p blocksize bytes from the
+   pointer \p src_ptr on \p src_node to the pointer \p dst_ptr on \p dst_node.
+
+   The blocks are grouped by \p numblocks_1 blocks whose start addresses are
+   ld1_src (resp. ld1_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   The function first tries to copy the data asynchronous (unless \p stream is
+   <c>NULL</c>). If the asynchronous copy fails or if \p stream is <c>NULL</c>,
+   it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
+   asynchronous launch was successfull. It returns 0 if the synchronous copy was
+   successful, or fails otherwise.
+*/
+int starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
+				  size_t blocksize,
+				  size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+				  size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+				  cudaStream_t stream, enum cudaMemcpyKind kind);
 
 /**
    Call <c>cudaSetDevice(\p devid)</c> or <c>cudaGLSetGLDevice(\p devid)</c>,

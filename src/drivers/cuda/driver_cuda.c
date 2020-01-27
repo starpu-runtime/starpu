@@ -53,6 +53,11 @@
 #else
 #define starpu_cudaStreamCreate(stream) cudaStreamCreate(stream)
 #endif
+
+/* At least CUDA 4.2 still didn't have working memcpy3D */
+#if CUDART_VERSION < 5000
+#define BUGGED_MEMCPY3D
+#endif
 #endif
 
 /* the number of CUDA devices */
@@ -1187,6 +1192,195 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	return -EAGAIN;
 }
+
+int
+starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node,
+			      void *dst_ptr, unsigned dst_node,
+			      size_t blocksize,
+			      size_t numblocks, size_t ld_src, size_t ld_dst,
+			      cudaStream_t stream, enum cudaMemcpyKind kind)
+{
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+	int peer_copy = 0;
+	int src_dev = -1, dst_dev = -1;
+#endif
+	cudaError_t cures = 0;
+
+	if (kind == cudaMemcpyDeviceToDevice && src_node != dst_node)
+	{
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+#  ifdef BUGGED_MEMCPY3D
+		STARPU_ABORT_MSG("CUDA memcpy 3D peer buggy, but core triggered one?!");
+#  endif
+		peer_copy = 1;
+		src_dev = starpu_memory_node_get_devid(src_node);
+		dst_dev = starpu_memory_node_get_devid(dst_node);
+#else
+		STARPU_ABORT_MSG("CUDA memcpy 3D peer not available, but core triggered one ?!");
+#endif
+	}
+
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+	if (peer_copy)
+	{
+		struct cudaMemcpy3DPeerParms p;
+		memset(&p, 0, sizeof(p));
+
+		p.srcDevice = src_dev;
+		p.dstDevice = dst_dev;
+		p.srcPtr = make_cudaPitchedPtr((char *)src_ptr, ld_src, blocksize, numblocks);
+		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld_dst, blocksize, numblocks);
+		p.extent = make_cudaExtent(blocksize, numblocks, 1);
+
+
+		if (stream)
+		{
+			double start;
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
+			cures = cudaMemcpy3DPeerAsync(&p, stream);
+		}
+
+		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+		if (stream == NULL || cures)
+		{
+			cures = cudaMemcpy3DPeer(&p);
+
+			if (!cures)
+				cures = cudaDeviceSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+
+			return 0;
+		}
+	}
+	else
+#endif
+	{
+		if (stream)
+		{
+			double start;
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
+			cures = cudaMemcpy2DAsync((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+				blocksize, numblocks, kind, stream);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+		}
+
+		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+		if (stream == NULL || cures)
+		{
+			cures = cudaMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+					blocksize, numblocks, kind);
+			if (!cures)
+				cures = cudaDeviceSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+
+			return 0;
+		}
+	}
+
+
+	return -EAGAIN;
+}
+
+#if 0
+/* CUDA doesn't seem to be providing a way to set ld2?? */
+int
+starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
+			      void *dst_ptr, unsigned dst_node,
+			      size_t blocksize,
+			      size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+			      size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+			      cudaStream_t stream, enum cudaMemcpyKind kind)
+{
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+	int peer_copy = 0;
+	int src_dev = -1, dst_dev = -1;
+#endif
+	cudaError_t cures = 0;
+
+	if (kind == cudaMemcpyDeviceToDevice && src_node != dst_node)
+	{
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+		peer_copy = 1;
+		src_dev = starpu_memory_node_get_devid(src_node);
+		dst_dev = starpu_memory_node_get_devid(dst_node);
+#else
+		STARPU_ABORT_MSG("CUDA memcpy 3D peer not available, but core triggered one ?!");
+#endif
+	}
+
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+	if (peer_copy)
+	{
+		struct cudaMemcpy3DPeerParms p;
+		memset(&p, 0, sizeof(p));
+
+		p.srcDevice = src_dev;
+		p.dstDevice = dst_dev;
+		p.srcPtr = make_cudaPitchedPtr((char *)src_ptr, ld1_src, blocksize, numblocks);
+		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld1_dst, blocksize, numblocks);
+		// FIXME: how to pass ld2_src / ld2_dst ??
+		p.extent = make_cudaExtent(blocksize, numblocks_1, numblocks_2);
+
+
+		if (stream)
+		{
+			double start;
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
+			cures = cudaMemcpy3DPeerAsync(&p, stream);
+		}
+
+		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+		if (stream == NULL || cures)
+		{
+			cures = cudaMemcpy3DPeer(&p);
+
+			if (!cures)
+				cures = cudaDeviceSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+
+			return 0;
+		}
+	}
+	else
+#endif
+	{
+		struct cudaMemcpy3DParms p;
+		memset(&p, 0, sizeof(p));
+
+		p.srcPtr = make_cudaPitchedPtr((char *)src_ptr, ld1_src, blocksize, numblocks);
+		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld1_dst, blocksize, numblocks);
+		// FIXME: how to pass ld2_src / ld2_dst ??
+		p.extent = make_cudaExtent(blocksize, numblocks, 1);
+		p.kind = kind;
+
+		if (stream)
+		{
+			double start;
+			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
+			cures = cudaMemcpy3DAsync(&p, stream);
+			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+		}
+
+		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+		if (stream == NULL || cures)
+		{
+			cures = cudaMemcpy3D(&p);
+			if (!cures)
+				cures = cudaDeviceSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+
+			return 0;
+		}
+	}
+
+
+	return -EAGAIN;
+}
+#endif
 #endif /* STARPU_USE_CUDA */
 
 int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
@@ -1429,6 +1623,57 @@ int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, un
 					   cudaMemcpyHostToDevice);
 }
 
+int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node,
+					      uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					      struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CPU_RAM);
+
+	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   blocksize, numblocks, ld_src, ld_dst,
+					   async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
+					   cudaMemcpyDeviceToHost);
+}
+
+int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
+					       uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					       size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					       struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   blocksize, numblocks, ld_src, ld_dst,
+					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
+					   cudaMemcpyDeviceToDevice);
+}
+
+int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
+					      uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					      struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CUDA_RAM);
+
+	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
+					   (void*) (dst + dst_offset), dst_node,
+					   blocksize, numblocks, ld_src, ld_dst,
+					   async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
+					   cudaMemcpyHostToDevice);
+}
+
 #endif /* STARPU_USE_CUDA */
 
 int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node)
@@ -1586,6 +1831,22 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
+	.copy2d_data_to[STARPU_UNUSED] = NULL,
+	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
+	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy3d_data_to[STARPU_UNUSED] = NULL,
+	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
+	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
+
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
@@ -1611,6 +1872,27 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy_data_to[STARPU_DISK_RAM] = NULL,
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy2d_data_to[STARPU_UNUSED] = NULL,
+	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
+	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
+	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy3d_data_to[STARPU_UNUSED] = NULL,
+#if 0
+	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
+	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
+#else
+	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
+	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,
