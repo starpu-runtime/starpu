@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2011-2013,2016,2017                      Inria
  * Copyright (C) 2010,2011,2013,2015-2019                 CNRS
  *
@@ -186,13 +186,13 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif
 
 	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
-	if (node_ops && node_ops->copy_data_to[dst_kind])
+	if (node_ops && node_ops->copy_interface_to[dst_kind])
 	{
-		return node_ops->copy_data_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
+		return node_ops->copy_interface_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
 	}
 	else
 	{
-		STARPU_ABORT_MSG("No copy_data_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
+		STARPU_ABORT_MSG("No copy_interface_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 	}
 #endif /* !SIMGRID */
 }
@@ -302,16 +302,16 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
-	if (node_ops && node_ops->copy_interface_to[dst_kind])
+	if (node_ops && node_ops->copy_data_to[dst_kind])
 	{
-		return node_ops->copy_interface_to[dst_kind](src, src_offset, src_node,
+		return node_ops->copy_data_to[dst_kind](src, src_offset, src_node,
 							     dst, dst_offset, dst_node,
 							     size,
 							     async_channel);
 	}
 	else
 	{
-		STARPU_ABORT_MSG("No copy_interface_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
+		STARPU_ABORT_MSG("No copy_data_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 		return -1;
 	}
 }

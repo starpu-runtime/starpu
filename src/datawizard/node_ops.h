@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2014,2017                      Université de Bordeaux
+ * Copyright (C) 2008-2011,2014,2017,2020                 Université de Bordeaux
  * Copyright (C) 2016,2017                                Inria
  * Copyright (C) 2010,2013,2015,2017,2019                 CNRS
  *
@@ -23,18 +23,18 @@
 #include <common/config.h>
 #include <datawizard/copy_driver.h>
 
-typedef int (*copy_data_func_t)(starpu_data_handle_t handle, void *src_interface, unsigned src_node,
+typedef int (*copy_interface_func_t)(starpu_data_handle_t handle, void *src_interface, unsigned src_node,
 				void *dst_interface, unsigned dst_node,
 				struct _starpu_data_request *req);
 
-typedef int (*copy_interface_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
+typedef int (*copy_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
 				uintptr_t dst_ptr, size_t dst_offset, unsigned dst_node,
 				size_t ssize, struct _starpu_async_channel *async_channel);
 
 struct _starpu_node_ops
 {
-	copy_data_func_t copy_data_to[STARPU_MPI_MS_RAM+1];
-	copy_interface_t copy_interface_to[STARPU_MPI_MS_RAM+1];
+	copy_interface_func_t copy_interface_to[STARPU_MPI_MS_RAM+1];
+	copy_data_t copy_data_to[STARPU_MPI_MS_RAM+1];
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
