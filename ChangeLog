@@ -260,8 +260,8 @@ Small changes:
   * STARPU_COMM_STATS also displays the bandwidth
   * Update data interfaces implementations to only use public API
 
-StarPU 1.2.9 (git revision xxx)
-==============================================
+StarPU 1.2.9 (git revision 3aca8da3138a99e93d7f93905d2543bd6f1ea1df)
+====================================================================
 
 Small changes:
   * Add STARPU_SIMGRID_TRANSFER_COST environment variable to easily disable
