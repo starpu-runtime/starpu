@@ -704,6 +704,8 @@ struct _starpu_node_ops _starpu_driver_mic_node_ops =
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
+	/* TODO: copy2D/3D? */
+
 	.wait_request_completion = _starpu_mic_wait_request_completion,
 	.test_request_completion = _starpu_mic_test_request_completion,
 	.is_direct_access_supported = _starpu_mic_is_direct_access_supported,

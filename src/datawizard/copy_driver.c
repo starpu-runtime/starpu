@@ -324,6 +324,9 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 {
 	int ret = 0;
 	unsigned i;
+	struct _starpu_async_channel *async_channel = async_data;
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
 	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld_src);
 	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld_dst);
@@ -334,7 +337,13 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 					     dst, dst_offset, dst_node,
 					     blocksize * numblocks, async_data);
 
-	/* TODO: introduce and call node_ops->copy2d_data_to when available */
+	if (node_ops && node_ops->copy2d_data_to[dst_kind])
+		/* Hardware-optimized non-contiguous case */
+		return node_ops->copy2d_data_to[dst_kind](src, src_offset, src_node,
+							     dst, dst_offset, dst_node,
+							     blocksize,
+							     numblocks, ld_src, ld_dst,
+							     async_channel);
 
 	for (i = 0; i < numblocks; i++)
 	{
@@ -356,6 +365,9 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 {
 	int ret = 0;
 	unsigned i;
+	struct _starpu_async_channel *async_channel = async_data;
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
 	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
 	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
@@ -371,7 +383,15 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 					     blocksize * numblocks_1 * numblocks_2,
 					     async_data);
 
-	/* TODO: introduce and call node_ops->copy3d_data_to when available */
+	if (node_ops && node_ops->copy3d_data_to[dst_kind])
+		/* Hardware-optimized non-contiguous case */
+		return node_ops->copy3d_data_to[dst_kind](src, src_offset, src_node,
+							     dst, dst_offset, dst_node,
+							     blocksize,
+							     numblocks_1, ld1_src, ld1_dst,
+							     numblocks_2, ld2_src, ld2_dst,
+							     async_channel);
+
 
 	for (i = 0; i < numblocks_2; i++)
 	{

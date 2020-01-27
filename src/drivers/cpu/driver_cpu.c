@@ -557,6 +557,34 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 #endif
 
+	.copy2d_data_to[STARPU_UNUSED] = NULL,
+	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
+#ifdef STARPU_USE_CUDA
+	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
+#else
+	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy3d_data_to[STARPU_UNUSED] = NULL,
+	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
+#if 0
+#ifdef STARPU_USE_CUDA
+	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cpu_to_cuda,
+#else
+	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#else
+	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
+	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
+	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
+
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,

@@ -564,6 +564,8 @@ struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_mpi_to_mpi,
 
+	/* TODO: copy2D/3D? */
+
 	.wait_request_completion = _starpu_mpi_common_wait_request_completion,
 	.test_request_completion = _starpu_mpi_common_test_event,
 	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
