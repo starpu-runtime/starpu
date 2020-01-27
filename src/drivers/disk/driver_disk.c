@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017,2019                           CNRS
  * Copyright (C) 2013                                     Inria
- * Copyright (C) 2013                                     Université de Bordeaux
+ * Copyright (C) 2013,2020                                Université de Bordeaux
  * Copyright (C) 2013                                     Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_ch
 	}
 }
 
-int _starpu_disk_copy_data_from_disk_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -125,7 +125,7 @@ int _starpu_disk_copy_data_from_disk_to_cpu(starpu_data_handle_t handle, void *s
 	return ret;
 }
 
-int _starpu_disk_copy_data_from_disk_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -145,7 +145,7 @@ int _starpu_disk_copy_data_from_disk_to_disk(starpu_data_handle_t handle, void *
 	return ret;
 }
 
-int _starpu_disk_copy_data_from_cpu_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -189,7 +189,7 @@ int _starpu_disk_copy_data_from_cpu_to_disk(starpu_data_handle_t handle, void *s
 	return ret;
 }
 
-int _starpu_disk_copy_interface_from_disk_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_disk_copy_data_from_disk_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -200,7 +200,7 @@ int _starpu_disk_copy_interface_from_disk_to_cpu(uintptr_t src, size_t src_offse
 					     size, async_channel);
 }
 
-int _starpu_disk_copy_interface_from_disk_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_disk_copy_data_from_disk_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -211,7 +211,7 @@ int _starpu_disk_copy_interface_from_disk_to_disk(uintptr_t src, size_t src_offs
 					      size, async_channel);
 }
 
-int _starpu_disk_copy_interface_from_cpu_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_disk_copy_data_from_cpu_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -252,14 +252,6 @@ void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 
 struct _starpu_node_ops _starpu_driver_disk_node_ops =
 {
-	.copy_data_to[STARPU_UNUSED] = NULL,
-	.copy_data_to[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_disk_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
-
 	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_disk_to_cpu,
 	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
@@ -267,6 +259,14 @@ struct _starpu_node_ops _starpu_driver_disk_node_ops =
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_disk_to_cpu,
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = _starpu_disk_wait_request_completion,
 	.test_request_completion = _starpu_disk_test_request_completion,

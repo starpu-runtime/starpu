@@ -444,7 +444,7 @@ struct _starpu_driver_ops _starpu_driver_cpu_ops =
 };
 #endif /* STARPU_USE_CPU */
 
-int _starpu_cpu_copy_data(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -459,7 +459,7 @@ int _starpu_cpu_copy_data(starpu_data_handle_t handle, void *src_interface, unsi
 	return ret;
 }
 
-int _starpu_cpu_copy_interface(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -509,30 +509,6 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 
 struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
-	.copy_data_to[STARPU_UNUSED] = NULL,
-	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
-#ifdef STARPU_USE_CUDA
-	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
-#else
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
-#else
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-#endif
-	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
-#ifdef STARPU_USE_MIC
-	.copy_data_to[STARPU_MIC_RAM] = _starpu_mic_copy_data_from_cpu_to_mic,
-#else
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
-#else
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
-#endif
-
 	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
 #ifdef STARPU_USE_CUDA
@@ -555,6 +531,30 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
 #else
 	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
+#endif
+
+	.copy_data_to[STARPU_UNUSED] = NULL,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
+#ifdef STARPU_USE_CUDA
+	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
+#else
+	.copy_data_to[STARPU_CUDA_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
+#else
+	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
+#ifdef STARPU_USE_MIC
+	.copy_data_to[STARPU_MIC_RAM] = _starpu_mic_copy_data_from_cpu_to_mic,
+#else
+	.copy_data_to[STARPU_MIC_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
+#else
+	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 #endif
 
 	.wait_request_completion = NULL,
