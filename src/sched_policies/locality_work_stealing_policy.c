@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2017                                CNRS
+ * Copyright (C) 2010-2017, 2020                          CNRS
  * Copyright (C) 2011-2012,2016                           Inria
  * Copyright (C) 2010-2018                                Université de Bordeaux
  *
@@ -582,7 +582,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 
 		workerid = workerids[i];
 		if (ws->per_worker[workerid].proxlist == NULL)
-			_STARPU_MALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS*sizeof(int));
+			_STARPU_CALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS, sizeof(int));
 		workers->init_iterator(workers, &it);
 
 		bindid   = starpu_worker_get_bindid(workerid);
