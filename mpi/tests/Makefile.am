@@ -152,7 +152,8 @@ starpu_mpi_TESTS +=				\
 	sync					\
 	gather					\
 	gather2					\
-	driver
+	driver					\
+	sendrecv_bench
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -225,7 +226,8 @@ noinst_PROGRAMS =				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer				\
-	driver
+	driver					\
+	sendrecv_bench
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
