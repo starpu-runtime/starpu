@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011-2016                                Inria
 # Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2019                                CNRS
+# Copyright (C) 2010-2020                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
 #
@@ -17,7 +17,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AC_INIT([StarPU], [1.2.8.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.2.9], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
