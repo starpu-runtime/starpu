@@ -684,7 +684,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node,
    of \p src on \p src_node to byte offset \p dst_offset of \p dst on \p
    dst_node.
 
-   The blocks start at addresses with are ld_src (resp. ld_dst) bytes apart in
+   The blocks start at addresses which are ld_src (resp. ld_dst) bytes apart in
    the source (resp. destination) interface.
 
    If blocksize == ld_src == ld_dst, the transfer is optimized into a single
