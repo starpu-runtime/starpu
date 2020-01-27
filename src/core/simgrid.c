@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013,2015-2017                      CNRS
+ * Copyright (C) 2012-2013,2015-2017,2020                 CNRS
  * Copyright (C) 2012-2019                                Université de Bordeaux
  * Copyright (C) 2016                                     Inria
  *
@@ -436,8 +436,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 	{
 		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
-				"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
-			_starpu_job_get_model_name(j));
+				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
 	}
 
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j),
