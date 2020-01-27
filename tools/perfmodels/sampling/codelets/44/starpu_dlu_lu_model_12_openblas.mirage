@@ -1,0 +1,136 @@
+##################
+# Performance Model Version
+44
+
+####################
+# COMBs
+# number of combinations
+4
+####################
+# COMB_3
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+0
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cpu0_impl0 (Comb3)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	6553600        	0.000000e+00   	2.758103e+04   	7.024890e+02   	7.033162e+06   	1.941076e+11   	255
+ff82dda0	14745600       	0.000000e+00   	9.143755e+04   	1.725750e+03   	1.234407e+07   	1.129114e+12   	135
+2c1922b7	1638400        	0.000000e+00   	3.516018e+03   	1.528455e+02   	1.613852e+06   	5.685057e+09   	459
+
+####################
+# COMB_2
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+0
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda0_impl0 (Comb2)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	6553600        	0.000000e+00   	2.131008e+03   	3.294125e+02   	6.755295e+05   	1.473957e+09   	317
+ff82dda0	14745600       	0.000000e+00   	7.209283e+03   	1.090675e+03   	1.564414e+06   	1.153644e+10   	217
+2c1922b7	1638400        	0.000000e+00   	6.237527e+02   	1.148972e+02   	1.210080e+05   	7.804013e+07   	194
+
+####################
+# COMB_0
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb0)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	6553600        	0.000000e+00   	2.163459e+03   	3.374464e+02   	5.538454e+05   	1.227372e+09   	256
+ff82dda0	14745600       	0.000000e+00   	6.895326e+03   	1.111793e+03   	1.234263e+06   	8.731908e+09   	179
+2c1922b7	1638400        	0.000000e+00   	6.290993e+02   	1.019490e+02   	1.333690e+05   	8.610581e+07   	212
+
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)
+1
+####################
+# DEV_0
+# device id 
+2
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda2_impl0 (Comb1)
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+d39bff17	6553600        	0.000000e+00   	2.119354e+03   	3.243594e+02   	5.912998e+05   	1.282527e+09   	279
+ff82dda0	14745600       	0.000000e+00   	6.998019e+03   	1.239620e+03   	1.070697e+06   	7.727865e+09   	153
+2c1922b7	1638400        	0.000000e+00   	6.140937e+02   	1.075567e+02   	1.430838e+05   	9.056234e+07   	233
+
