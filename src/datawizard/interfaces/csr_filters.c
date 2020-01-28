@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013,2014,2016, 2019                 Université de Bordeaux
+ * Copyright (C) 2008-2011,2013,2014,2016,2019-2020       Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
@@ -30,22 +30,17 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 	size_t elemsize = csr_father->elemsize;
 	uint32_t firstentry = csr_father->firstentry;
 
-	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;
-
 	uint32_t *rowptr = csr_father->rowptr;
 
-	uint32_t first_index = id*chunk_size - firstentry;
-	uint32_t local_firstentry = rowptr[first_index];
+	size_t first_index;
+	unsigned child_nrow;
 
-	uint32_t child_nrow =
-	  STARPU_MIN(chunk_size, nrow - id*chunk_size);
-	/* TODO: the formula for the chunk size is probably wrong: we should
-	 * probably do this instead, and write a test.
-	starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nparts, elemsize,
-						     id, 1, &chunk_size, NULL);
-	 */
+	starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nchunks, 1, id, 1, &child_nrow, &first_index);
 
-	uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index];
+	uint32_t local_firstentry = rowptr[first_index] - firstentry;
+	uint32_t local_lastentry = rowptr[first_index + child_nrow] - firstentry;
+
+	uint32_t local_nnz = local_lastentry - local_firstentry;
 
 	STARPU_ASSERT_MSG(csr_father->id == STARPU_CSR_INTERFACE_ID, "%s can only be applied on a csr data", __func__);
 	csr_child->id = csr_father->id;
