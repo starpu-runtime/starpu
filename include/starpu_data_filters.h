@@ -323,6 +323,13 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 */
 struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
+/**
+   Partition a block-sparse matrix into block-sparse matrices.
+
+   The split is done along the leading dimension, i.e. along adjacent nnz blocks.
+*/
+void starpu_bcsr_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
 /** @} */
 
 /**

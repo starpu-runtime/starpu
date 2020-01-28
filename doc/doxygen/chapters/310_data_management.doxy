@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2020                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -169,7 +169,9 @@ StarPU provides an example on how to deal with such matrices in
 <c>examples/spmv</c>.
 
 BCSR data handles can be partitioned into its dense matrix blocks by using
-starpu_bcsr_filter_canonical_block().
+starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
+using starpu_bcsr_filter_block() (but only split along the leading dimension is
+supported, i.e. along adjacent nnz blocks)
 
 \subsection CSRDataInterface CSR Data Interface
 

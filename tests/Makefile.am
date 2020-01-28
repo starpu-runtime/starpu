@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2018                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2017,2019                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -254,6 +254,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
 	datawizard/acquire_try			\
+	datawizard/bcsr				\
 	datawizard/cache			\
 	datawizard/commute			\
 	datawizard/commute2			\
