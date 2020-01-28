@@ -132,7 +132,7 @@ int main(int argc, char **argv)
 	starpu_task_insert(&show_cl, STARPU_R, bcsr_handle, 0);
 
 	struct starpu_data_filter filter = {
-		.filter_func = starpu_bcsr_filter_block,
+		.filter_func = starpu_bcsr_filter_vertical_block,
 		.nchildren = 2,
 	};
 	starpu_data_partition(bcsr_handle, &filter);
