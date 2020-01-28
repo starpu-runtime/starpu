@@ -170,7 +170,7 @@ StarPU provides an example on how to deal with such matrices in
 
 BCSR data handles can be partitioned into its dense matrix blocks by using
 starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
-using starpu_bcsr_filter_block() (but only split along the leading dimension is
+using starpu_bcsr_filter_vertical_block() (but only split along the leading dimension is
 supported, i.e. along adjacent nnz blocks)
 
 \subsection CSRDataInterface CSR Data Interface
