@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		printf("Times in us\n");
-		printf("# size  (Bytes)\t|  latency \t| 10^6 B/s \t| MB/s   \t| median  \t| avg    \t| max\n");
+		printf("# size  (Bytes)\t|  latency \t| 10^6 B/s \t| MB/s   \t| d1    \t|median  \t| avg    \t| d9    \t| max\n");
 	}
 
 	int array_size = 0;
@@ -150,6 +150,8 @@ int main(int argc, char **argv)
 			const double min_lat = lats[0];
 			const double max_lat = lats[iterations - 1];
 			const double med_lat = lats[(iterations - 1) / 2];
+			const double d1_lat = lats[(iterations - 1) / 10];
+			const double d9_lat = lats[9 * (iterations - 1) / 10];
 			double avg_lat = 0.0;
 
 			for(int k = 0; k < iterations; k++)
@@ -161,8 +163,8 @@ int main(int argc, char **argv)
 			const double bw_million_byte = s / min_lat;
 			const double bw_mbyte        = bw_million_byte / 1.048576;
 
-			printf("%9lld\t%9.3lf\t%9.3f\t%9.3f\t%9.3lf\t%9.3lf\t%9.3lf\n",
-				(long long)s, min_lat, bw_million_byte, bw_mbyte, med_lat, avg_lat, max_lat);
+			printf("%9lld\t%9.3lf\t%9.3f\t%9.3f\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\n",
+				(long long)s, min_lat, bw_million_byte, bw_mbyte, d1_lat, med_lat, avg_lat, d9_lat, max_lat);
 			fflush(stdout);
 		}
 		starpu_data_unregister(handle_recv);
