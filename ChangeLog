@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012-2014,2016-2017                      Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2020                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,13 +15,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-
-StarPU 1.4.0 (svn revision xxxx)
-==============================================
-New features:
-  * Fault tolerance support with starpu_task_ft_failed().
-  * Add get_max_size method to data interfaces for applications using data with
-    variable size to express their maximal potential size.
 
 StarPU 1.3.4 (git revision xxx)
 ==============================================
