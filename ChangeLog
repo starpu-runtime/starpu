@@ -29,11 +29,6 @@ New features:
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
-  * Add starpu_interface_copy2d, 3d, and 4d to easily request data copies from
-    data interfaces.
-  * Move optimized cuda 2d copy from interfaces to new
-    starpu_cuda_copy2d_async_sync and starpu_cuda_copy3d_async_sync, and use
-    them from starpu_interface_copy2d and 3d.
 
 StarPU 1.3.4 (git revision xxx)
 ==============================================
@@ -43,6 +38,11 @@ Small features:
     STARPU_WORKER_STATS_FILE to specify files in which to display
     statistics about data transfers and workers.
   * Add starpu_bcsr_filter_vertical_block filtering function.
+  * Add starpu_interface_copy2d, 3d, and 4d to easily request data copies from
+    data interfaces.
+  * Move optimized cuda 2d copy from interfaces to new
+    starpu_cuda_copy2d_async_sync and starpu_cuda_copy3d_async_sync, and use
+    them from starpu_interface_copy2d and 3d.
 
 StarPU 1.3.3 (git revision 11afc5b007fe1ab1c729b55b47a5a98ef7f3cfad)
 ====================================================================
