@@ -95,4 +95,6 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(array_handle);
 	starpu_shutdown();
+
+	return 0;
 }

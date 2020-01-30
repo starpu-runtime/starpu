@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2018                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2017,2019                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -58,6 +58,7 @@ EXTRA_DIST =					\
 	datawizard/interfaces/multiformat/advanced/generic.h \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
 	datawizard/interfaces/block/block_opencl_kernel.cl \
+	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
 	microbenchs/microbench.sh \
@@ -254,6 +255,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
 	datawizard/acquire_try			\
+	datawizard/bcsr				\
 	datawizard/cache			\
 	datawizard/commute			\
 	datawizard/commute2			\
@@ -299,6 +301,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_worker \
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
+	datawizard/interfaces/tensor/tensor_interface \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
@@ -776,6 +779,25 @@ datawizard_interfaces_block_block_interface_SOURCES+= \
 	datawizard/interfaces/block/block_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/block/block_opencl_kernel.cl
+endif
+
+###################
+# Tensor interface #
+###################
+datawizard_interfaces_tensor_tensor_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c  \
+	datawizard/interfaces/tensor/tensor_interface.c
+
+if STARPU_USE_CUDA
+datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
+	datawizard/interfaces/tensor/tensor_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
+	datawizard/interfaces/tensor/tensor_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/tensor/tensor_opencl_kernel.cl
 endif
 
 ##################

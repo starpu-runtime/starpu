@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015,2017                      Inria
- * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2010-2020                                CNRS
  * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -102,7 +102,7 @@ to use a version that takes the a stream parameter.
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. This will seriously lower the potential for overlapping.
 If some CUDA calls are made without specifying this local stream,
-synchronization needs to be explicited with cudaThreadSynchronize() around these
+synchronization needs to be explicited with cudaDeviceSynchronize() around these
 calls, to make sure that they get properly synchronized with the calls using
 the local stream. Notably, \c cudaMemcpy() and \c cudaMemset() are actually
 asynchronous and need such explicit synchronization! Use \c cudaMemcpyAsync() and
@@ -440,10 +440,14 @@ and in Joules for the energy consumption models.
 A quick view of how many tasks each worker has executed can be obtained by setting
 <c>export STARPU_WORKER_STATS=1</c> (\ref STARPU_WORKER_STATS). This is a convenient way to check that
 execution did happen on accelerators, without penalizing performance with
-the profiling overhead.
+the profiling overhead. \ref STARPU_WORKER_STATS_FILE can be defined
+to specify a filename in which to display statistics, by default
+statistics are printed on the standard error stream.
 
 A quick view of how much data transfers have been issued can be obtained by setting
-<c>export STARPU_BUS_STATS=1</c> (\ref STARPU_BUS_STATS).
+<c>export STARPU_BUS_STATS=1</c> (\ref STARPU_BUS_STATS). \ref
+STARPU_BUS_STATS_FILE can be defined to specify a filename in which to
+display statistics, by default statistics are printed on the standard error stream.
 
 More detailed profiling information can be enabled by using <c>export STARPU_PROFILING=1</c> (\ref STARPU_PROFILING)
 or by

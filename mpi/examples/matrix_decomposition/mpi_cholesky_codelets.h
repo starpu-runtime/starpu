@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013,2015,2017                      CNRS
+ * Copyright (C) 2010-2013,2015,2017,2020                 CNRS
  * Copyright (C) 2009,2010,2014                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,6 @@
  */
 void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops);
 
-void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops);
+void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops, double epsilon);
 
 #endif /* __MPI_CHOLESKY_CODELETS_H__ */

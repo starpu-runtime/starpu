@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2011-2014,2016,2017                      Inria
  * Copyright (C) 2010-2015,2017,2019                           CNRS
  *
@@ -358,7 +358,8 @@ enum starpu_data_interface_id
 	STARPU_VOID_INTERFACE_ID=6, /**< Identifier for the void data interface*/
 	STARPU_MULTIFORMAT_INTERFACE_ID=7, /**< Identifier for the multiformat data interface*/
 	STARPU_COO_INTERFACE_ID=8, /**< Identifier for the COO data interface*/
-	STARPU_MAX_INTERFACE_ID=9 /**< Maximum number of data interfaces */
+	STARPU_TENSOR_INTERFACE_ID=9, /**< Identifier for the block data interface*/
+	STARPU_MAX_INTERFACE_ID=10 /**< Maximum number of data interfaces */
 };
 
 /**
@@ -703,7 +704,90 @@ int starpu_data_interface_get_next_id(void);
    be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
    transfer is still ongoing, or 0 if the transfer is already completed.
 */
-int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
+int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node,
+			  uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			  size_t size, void *async_data);
+
+/**
+   Copy \p numblocks blocks of \p blocksize bytes from byte offset \p src_offset
+   of \p src on \p src_node to byte offset \p dst_offset of \p dst on \p
+   dst_node.
+
+   The blocks start at addresses which are ld_src (resp. ld_dst) bytes apart in
+   the source (resp. destination) interface.
+
+   If blocksize == ld_src == ld_dst, the transfer is optimized into a single
+   starpu_interface_copy call.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 2D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks, size_t ld_src, size_t ld_dst,
+			    void *async_data);
+
+/**
+   Copy \p numblocks_1 * \p numblocks_2 blocks of \p blocksize bytes from byte
+   offset \p src_offset of \p src on \p src_node to byte offset \p dst_offset of
+   \p dst on \p dst_node.
+
+   The blocks are grouped by \p numblocks_1 blocks whose start addresses are
+   ld1_src (resp. ld1_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_2 groups whose start addresses are
+   ld2_src (resp. ld2_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   If the blocks are contiguous, the transfers will be optimized.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 3D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks2, size_t ld2_src, size_t ld2_dst,
+			    void *async_data);
+
+/**
+   Copy \p numblocks_1 * \p numblocks_2 * \p numblocks_3 blocks of \p blocksize
+   bytes from byte offset \p src_offset of \p src on \p src_node to byte offset
+   \p dst_offset of \p dst on \p dst_node.
+
+   The blocks are grouped by \p numblocks_1 blocks whose start addresses are
+   ld1_src (resp. ld1_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_2 groups whose start addresses are
+   ld2_src (resp. ld2_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   Such groups are grouped by numblocks_3 groups whose start addresses are
+   ld3_src (resp. ld3_dst) bytes apart in the source (resp. destination)
+   interface.
+
+   If the blocks are contiguous, the transfers will be optimized.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for 3D data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t blocksize,
+			    size_t numblocks1, size_t ld1_src, size_t ld1_dst,
+			    size_t numblocks2, size_t ld2_src, size_t ld2_dst,
+			    size_t numblocks3, size_t ld3_src, size_t ld3_dst,
+			    void *async_data);
 
 /**
    When an asynchonous implementation of the data transfer is implemented, the call
@@ -1191,6 +1275,187 @@ designated by \p interface.
 /** @} */
 
 /**
+   @name Tensor Data Interface
+   @{
+*/
+
+extern struct starpu_data_interface_ops starpu_interface_tensor_ops;
+
+/* TODO: rename to 4dtensor? */
+/* TODO: add allocsize support */
+/**
+   Tensor interface for 4D dense tensors
+*/
+struct starpu_tensor_interface
+{
+	enum starpu_data_interface_id id; /**< identifier of the interface */
+
+	uintptr_t ptr;                    /**< local pointer of the tensor */
+	uintptr_t dev_handle;             /**< device handle of the tensor. */
+	size_t offset;                    /**< offset in the tensor. */
+	uint32_t nx;                      /**< number of elements on the x-axis of the tensor. */
+	uint32_t ny;                      /**< number of elements on the y-axis of the tensor. */
+	uint32_t nz;                      /**< number of elements on the z-axis of the tensor. */
+	uint32_t nt;                      /**< number of elements on the t-axis of the tensor. */
+	uint32_t ldy;                     /**< number of elements between two lines */
+	uint32_t ldz;                     /**< number of elements between two planes */
+	uint32_t ldt;                     /**< number of elements between two cubes */
+	size_t elemsize;                  /**< size of the elements of the tensor. */
+};
+
+/**
+   Register the \p nx x \p ny x \p nz x \p nt 4D tensor of \p elemsize byte elements
+   pointed by \p ptr and initialize \p handle to represent it. Again, \p ldy,
+   \p ldz, and \p ldt specify the number of elements between rows, between z planes and between t cubes.
+
+   Here an example of how to use the function.
+   \code{.c}
+   float *tensor;
+   starpu_data_handle_t tensor_handle;
+   tensor = (float*)malloc(nx*ny*nz*nt*sizeof(float));
+   starpu_tensor_data_register(&tensor_handle, STARPU_MAIN_RAM, (uintptr_t)tensor, nx, nx*ny, nx*ny*nz, nx, ny, nz, nt, sizeof(float));
+   \endcode
+*/
+void starpu_tensor_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx, uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize);
+
+/**
+   Register into the \p handle that to store data on node \p node it should use the
+   buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+   (for OpenCL, notably), with \p ldy elements between rows, and \p ldz
+   elements between z planes, and \p ldt elements between t cubes.
+*/
+void starpu_tensor_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz, uint32_t ldt);
+
+/**
+   Return the number of elements on the x-axis of the tensor
+   designated by \p handle.
+ */
+uint32_t starpu_tensor_get_nx(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements on the y-axis of the tensor
+   designated by \p handle.
+ */
+uint32_t starpu_tensor_get_ny(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements on the z-axis of the tensor
+   designated by \p handle.
+ */
+uint32_t starpu_tensor_get_nz(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements on the t-axis of the tensor
+   designated by \p handle.
+ */
+uint32_t starpu_tensor_get_nt(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements between each row of the tensor
+   designated by \p handle, in the format of the current memory node.
+*/
+uint32_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements between each z plane of the tensor
+   designated by \p handle, in the format of the current memory node.
+ */
+uint32_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements between each t cubes of the tensor
+   designated by \p handle, in the format of the current memory node.
+ */
+uint32_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle);
+
+/**
+   Return the local pointer associated with \p handle.
+ */
+uintptr_t starpu_tensor_get_local_ptr(starpu_data_handle_t handle);
+
+/**
+   Return the size of the elements of the tensor designated by
+   \p handle.
+ */
+size_t starpu_tensor_get_elemsize(starpu_data_handle_t handle);
+
+#if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
+#define STARPU_TENSOR_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_tensor_interface *)(interface))->id) == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.")
+#define STARPU_TENSOR_GET_PTR(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ptr) ; })
+#define STARPU_TENSOR_GET_DEV_HANDLE(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->dev_handle) ; })
+#define STARPU_TENSOR_GET_OFFSET(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->offset) ; })
+#define STARPU_TENSOR_GET_NX(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nx) ; })
+#define STARPU_TENSOR_GET_NY(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ny) ; })
+#define STARPU_TENSOR_GET_NZ(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nz) ; })
+#define STARPU_TENSOR_GET_NT(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nt) ; })
+#define STARPU_TENSOR_GET_LDY(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldy) ; })
+#define STARPU_TENSOR_GET_LDZ(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldz) ; })
+#define STARPU_TENSOR_GET_LDT(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldt) ; })
+#define STARPU_TENSOR_GET_ELEMSIZE(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->elemsize) ; })
+#else
+/**
+   Return a pointer to the tensor designated by \p interface.
+ */
+#define STARPU_TENSOR_GET_PTR(interface)	        (((struct starpu_tensor_interface *)(interface))->ptr)
+/**
+   Return a device handle for the tensor designated by \p interface,
+   to be used on OpenCL. The offset returned by
+   ::STARPU_TENSOR_GET_OFFSET has to be used in
+   addition to this.
+ */
+#define STARPU_TENSOR_GET_DEV_HANDLE(interface)	(((struct starpu_tensor_interface *)(interface))->dev_handle)
+/**
+   Return the offset in the tensor designated by \p interface, to be
+   used with the device handle.
+ */
+#define STARPU_TENSOR_GET_OFFSET(interface)	(((struct starpu_tensor_interface *)(interface))->offset)
+/**
+   Return the number of elements on the x-axis of the tensor
+   designated by \p interface.
+ */
+#define STARPU_TENSOR_GET_NX(interface)	        (((struct starpu_tensor_interface *)(interface))->nx)
+/**
+   Return the number of elements on the y-axis of the tensor
+   designated by \p interface.
+ */
+#define STARPU_TENSOR_GET_NY(interface)	        (((struct starpu_tensor_interface *)(interface))->ny)
+/**
+Return the number of elements on the z-axis of the tensor
+designated by \p interface.
+ */
+#define STARPU_TENSOR_GET_NZ(interface)	        (((struct starpu_tensor_interface *)(interface))->nz)
+/**
+Return the number of elements on the t-axis of the tensor
+designated by \p interface.
+ */
+#define STARPU_TENSOR_GET_NT(interface)	        (((struct starpu_tensor_interface *)(interface))->nt)
+/**
+   Return the number of elements between each row of the tensor
+   designated by \p interface. May be equal to nx when there is no padding.
+ */
+#define STARPU_TENSOR_GET_LDY(interface)	        (((struct starpu_tensor_interface *)(interface))->ldy)
+/**
+   Return the number of elements between each z plane of the tensor
+   designated by \p interface. May be equal to nx*ny when there is no
+   padding.
+ */
+#define STARPU_TENSOR_GET_LDZ(interface)	        (((struct starpu_tensor_interface *)(interface))->ldz)
+/**
+   Return the number of elements between each t cubes of the tensor
+   designated by \p interface. May be equal to nx*ny*nz when there is no
+   padding.
+ */
+#define STARPU_TENSOR_GET_LDT(interface)	        (((struct starpu_tensor_interface *)(interface))->ldt)
+/**
+   Return the size of the elements of the tensor designated by
+   \p interface.
+ */
+#define STARPU_TENSOR_GET_ELEMSIZE(interface)	(((struct starpu_tensor_interface *)(interface))->elemsize)
+#endif
+
+/** @} */
+
+/**
    @name Vector Data Interface
    @{
 */
@@ -1562,6 +1827,11 @@ extern struct starpu_data_interface_ops starpu_interface_bcsr_ops;
 /**
    BCSR interface for sparse matrices (blocked compressed sparse
    row representation)
+
+   Note: when a BCSR matrix is partitioned, nzval, colind, and rowptr point into
+   the corresponding father arrays. The rowptr content is thus the same as the
+   father's. Firstentry is used to offset this so it becomes valid for the child
+   arrays.
 */
 struct starpu_bcsr_interface
 {
@@ -1570,7 +1840,7 @@ struct starpu_bcsr_interface
 	uint32_t nnz;                     /**< number of non-zero BLOCKS */
 	uint32_t nrow;                    /**< number of rows (in terms of BLOCKS) */
 
-	uintptr_t nzval;                  /**< non-zero values */
+	uintptr_t nzval;                  /**< non-zero values: nnz blocks of r*c elements */
 	uint32_t *colind;                 /**< array of nnz elements, colind[i] is the block-column index for block i in nzval */
 	uint32_t *rowptr;                 /**< array of nrow+1
 					   * elements, rowptr[i] is

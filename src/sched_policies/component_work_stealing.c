@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2017                                Inria
  * Copyright (C) 2013,2014,2016,2017                      CNRS
- * Copyright (C) 2014-2019                                Université de Bordeaux
+ * Copyright (C) 2014-2020                                Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -238,7 +238,32 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 	int ret;
 	unsigned i = wsd->last_push_child;
+	int found = 0;
+
+	/* Find a child component that can execute this task */
 	i = (i+1)%component->nchildren;
+	while(1) {
+		int workerid;
+		for(workerid = starpu_bitmap_first(component->children[i]->workers_in_ctx);
+		    -1 != workerid;
+		    workerid = starpu_bitmap_next(component->children[i]->workers_in_ctx, workerid))
+		{
+			unsigned impl;
+			int can_execute = starpu_worker_can_execute_task_first_impl(workerid, task, &impl);
+			if (can_execute)
+			{
+				/* Found one, set the implementation by the way */
+				starpu_task_set_implementation(task, impl);
+				found = 1;
+				break;
+			}
+		}
+		if (found)
+			break;
+		STARPU_ASSERT_MSG(i != wsd->last_push_child, "Could not find child able to execute this task");
+		i = (i+1)%component->nchildren;
+	}
+
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 	starpu_sched_task_break(task);
 	ret = _starpu_prio_deque_push_front_task(wsd->fifos[i], task);
@@ -256,6 +281,15 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 	int workerid = starpu_worker_get_id();
 	if(workerid == -1)
 		return starpu_sched_tree_push_task(task);
+
+	/* Check that we can execute it */
+	unsigned impl;
+	int can_execute = starpu_worker_can_execute_task_first_impl(workerid, task, &impl);
+	if (!can_execute)
+		return starpu_sched_tree_push_task(task);
+
+	/* Ok, use that implementation */
+	starpu_task_set_implementation(task, impl);
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_component * component =starpu_sched_component_worker_get(sched_ctx_id, workerid);

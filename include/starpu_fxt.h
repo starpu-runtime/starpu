@@ -62,9 +62,12 @@ struct starpu_fxt_options
 	char *out_paje_path;
 	char *distrib_time_path;
 	char *activity_path;
+	char *sched_tasks_path;
 	char *dag_path;
 	char *tasks_path;
 	char *data_path;
+	char *papi_path;
+	char *comms_path;
 	char *anim_path;
 	char *states_path;
 
@@ -134,6 +137,11 @@ void starpu_fxt_start_profiling(void);
 */
 void starpu_fxt_stop_profiling(void);
 void starpu_fxt_write_data_trace(char *filename_in);
+
+/**
+    Wrapper to get value of env variable STARPU_FXT_TRACE
+*/
+int starpu_fxt_is_enabled();
 
 /**
    Add an event in the execution trace if FxT is enabled.

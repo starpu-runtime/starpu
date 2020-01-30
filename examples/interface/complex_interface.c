@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2012-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2012-2015,2018                           Université de Bordeaux
+ * Copyright (C) 2012-2015,2018-2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,8 +73,8 @@ static void complex_register_data_handle(starpu_data_handle_t handle, unsigned h
 		}
 		else
 		{
-			local_interface->real = 0;
-			local_interface->imaginary = 0;
+			local_interface->real = NULL;
+			local_interface->imaginary = NULL;
 		}
 	}
 }
@@ -83,8 +83,8 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, unsign
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
-	double *addr_real = 0;
-	double *addr_imaginary = 0;
+	double *addr_real = NULL;
+	double *addr_imaginary = NULL;
 	starpu_ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
 
 	addr_real = (double*) starpu_malloc_on_node(node, requested_memory);

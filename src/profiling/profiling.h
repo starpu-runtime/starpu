@@ -66,6 +66,12 @@ void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size);
 void _starpu_profiling_set_task_push_start_time(struct starpu_task *task);
 void _starpu_profiling_set_task_push_end_time(struct starpu_task *task);
 
+#ifdef STARPU_PAPI
+/* Functions for papi task profilling */
+void _starpu_profiling_papi_task_start_counters(struct starpu_task *task);
+void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task);
+#endif
+
 /* This function needs to be called before other starpu_profile_* functions */
 void _starpu_profiling_init(void);
 

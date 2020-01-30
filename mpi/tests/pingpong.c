@@ -17,15 +17,26 @@
  */
 
 #include <starpu_mpi.h>
+#include <unistd.h>
 #include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER	16
+#  define DEFAULT_NITER 16
 #else
-#  define NITER	2048
+#  define DEFAULT_NITER 2048
 #endif
 
-#define SIZE	16
+#define DEFAULT_DATA_SIZE 16
+#define DEFAULT_SLEEP_TIME 0
+#define DEFAULT_METHOD 0 // ping pongs
+
+void usage()
+{
+	fprintf(stderr, "-n [number of iteration] (default: %d)\n", DEFAULT_NITER);
+	fprintf(stderr, "-s [number of floats to exchange] (default: %d)\n", DEFAULT_DATA_SIZE);
+	fprintf(stderr, "-S [time in millisecond of sleep between exchange, less than 1 second] (default: %d)\n", DEFAULT_SLEEP_TIME);
+	fprintf(stderr, "-b : broadcasts instead of simple pair-wise ping-pongs (default: %s)\n", DEFAULT_METHOD ? "broadcast" : "ping pongs");
+}
 
 float *tab;
 starpu_data_handle_t tab_handle;
@@ -34,6 +45,59 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int mpi_init;
+
+	int niter = DEFAULT_NITER;
+	int data_size = DEFAULT_DATA_SIZE;
+	int sleep_time = DEFAULT_SLEEP_TIME;
+	int method = DEFAULT_METHOD;
+
+	for (int i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-n") == 0)
+		{
+			niter = atoi(argv[i+1]);
+			if (niter <= 0)
+			{
+				fprintf(stderr, "%s: illegal argument %s\n", argv[0], argv[i]);
+				usage();
+				exit(0);
+			}
+			i++;
+		}
+		else if (strcmp(argv[i], "-s") == 0)
+		{
+			data_size = atoi(argv[i+1]);
+			if (data_size <= 0)
+			{
+				fprintf(stderr, "%s: illegal argument %s\n", argv[0], argv[i]);
+				usage();
+				exit(0);
+			}
+			i++;
+		}
+		else if(strcmp(argv[i], "-S") == 0)
+		{
+			sleep_time = atoi(argv[i+1]);
+			if (sleep_time <= 0 || sleep_time >= 1000)
+			{
+				fprintf(stderr, "%s: illegal argument %s\n", argv[0], argv[i]);
+				usage();
+				exit(0);
+			}
+			i++;
+		}
+		else if(strcmp(argv[i], "-b") == 0)
+		{
+			method = 1; // broadcasts
+		}
+		else
+		{
+			fprintf(stderr, "%s: illegal argument %s\n", argv[0], argv[i]);
+			usage();
+			exit(0);
+		}
+	}
+
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
@@ -54,26 +118,68 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	tab = calloc(SIZE, sizeof(float));
+	if (rank == 0)
+	{
+		FPRINTF(stdout, "Number of iterations: %d\n", niter);
+		FPRINTF(stdout, "Number of floats to exchange: %d\n", data_size);
+		FPRINTF(stdout, "Sleep time between exchanges: %d milliseconds\n", sleep_time);
+		if (method == 0)
+			FPRINTF(stdout, "Method: ping pongs\n");
+		else
+			FPRINTF(stdout, "Method: broadcasts\n");
+	}
 
-	starpu_vector_data_register(&tab_handle, STARPU_MAIN_RAM, (uintptr_t)tab, SIZE, sizeof(float));
+	tab = calloc(data_size, sizeof(float));
 
-	int nloops = NITER;
+	starpu_vector_data_register(&tab_handle, STARPU_MAIN_RAM, (uintptr_t)tab, data_size, sizeof(float));
+
 	int loop;
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
+	int sender;
 
-	for (loop = 0; loop < nloops; loop++)
+	if (method == 0) // ping pongs
 	{
-		if ((loop % 2) == (rank%2))
+		for (loop = 0; loop < niter; loop++)
 		{
-			//FPRINTF_MPI(stderr, "Sending to %d\n", other_rank);
-			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+			if ((loop % 2) == (rank%2))
+			{
+				//FPRINTF_MPI(stderr, "Sending to %d\n", other_rank);
+				starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+			}
+			else
+			{
+				MPI_Status status;
+				//FPRINTF_MPI(stderr, "Receiving from %d\n", other_rank);
+				starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+			}
+
+			usleep(sleep_time * 1000);
 		}
-		else
+	}
+	else // broadcasts
+	{
+		for (loop = 0; loop < niter; loop++)
 		{
-			MPI_Status status;
-			//FPRINTF_MPI(stderr, "Receiving from %d\n", other_rank);
-			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+			sender = loop % size;
+			if (sender == rank)
+			{
+				for (int r = 0; r < size; r++)
+				{
+					if (r != rank)
+					{
+						starpu_mpi_send(tab_handle, r, (r * niter) + loop, MPI_COMM_WORLD);
+						usleep(sleep_time * 1000);
+					}
+				}
+			}
+			else
+			{
+				MPI_Status status;
+				starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
+
+				for (int r = 0; r < (size-1); r++)
+					usleep(sleep_time * 1000);
+			}
 		}
 	}
 

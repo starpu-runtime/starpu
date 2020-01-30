@@ -414,7 +414,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 			}
 			status = cudaMemcpy(dst_multiformat->cpu_ptr, src_multiformat->cpu_ptr, size, kind);
 			if (!status)
-				status = cudaThreadSynchronize();
+				status = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 			break;
@@ -424,7 +424,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (!status)
-				status = cudaThreadSynchronize();
+				status = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 
@@ -435,7 +435,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (!status)
-				status = cudaThreadSynchronize();
+				status = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 			break;
@@ -494,7 +494,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
 			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
 			if (!status)
-				status = cudaThreadSynchronize();
+				status = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);
 
@@ -565,7 +565,7 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 				src_multiformat->cuda_ptr, src_dev,
 				size);
 	if (!status)
-		status = cudaThreadSynchronize();
+		status = cudaDeviceSynchronize();
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
 

@@ -322,19 +322,20 @@ extern "C"
 			STARPU_ABORT(); }}
 #endif
 
-/* Note: do not use starpu_cmpxchg / starpu_xchg / starpu_cmpxchgl /
- * starpu_xchgl / starpu_cmpxchg64 / starpu_xchg64, which only
+/* Note: do not use _starpu_cmpxchg / _starpu_xchg / _starpu_cmpxchgl /
+ * _starpu_xchgl / _starpu_cmpxchg64 / _starpu_xchg64, which only
  * assembly-hand-written fallbacks used when building with an old gcc.
- * Rather use STARPU_VAL_COMPARE_AND_SWAP available on all platforms with a
- * recent-enough gcc */
+ * Rather use STARPU_VAL_COMPARE_AND_SWAP and STARPU_VAL_EXCHANGE available on
+ * all platforms with a recent-enough gcc */
 
 #if defined(__i386__) || defined(__x86_64__)
-static __starpu_inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+static __starpu_inline unsigned _starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+#define STARPU_HAVE_CMPXCHG
+static __starpu_inline unsigned _starpu_xchg(unsigned *ptr, unsigned next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -342,12 +343,13 @@ static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 }
 #define STARPU_HAVE_XCHG
 
-static __starpu_inline uint32_t starpu_cmpxchg32(uint32_t *ptr, uint32_t old, uint32_t next)
+static __starpu_inline uint32_t _starpu_cmpxchg32(uint32_t *ptr, uint32_t old, uint32_t next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline uint32_t starpu_xchg32(uint32_t *ptr, uint32_t next)
+#define STARPU_HAVE_CMPXCHG32
+static __starpu_inline uint32_t _starpu_xchg32(uint32_t *ptr, uint32_t next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -356,12 +358,13 @@ static __starpu_inline uint32_t starpu_xchg32(uint32_t *ptr, uint32_t next)
 #define STARPU_HAVE_XCHG32
 
 #if defined(__i386__)
-static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+static __starpu_inline unsigned long _starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+#define STARPU_HAVE_CMPXCHGL
+static __starpu_inline unsigned long _starpu_xchgl(unsigned long *ptr, unsigned long next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -371,12 +374,13 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 #endif
 
 #if defined(__x86_64__)
-static __starpu_inline unsigned long starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
+static __starpu_inline unsigned long _starpu_cmpxchgl(unsigned long *ptr, unsigned long old, unsigned long next)
 {
 	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned long next)
+#define STARPU_HAVE_CMPXCHGL
+static __starpu_inline unsigned long _starpu_xchgl(unsigned long *ptr, unsigned long next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -385,13 +389,25 @@ static __starpu_inline unsigned long starpu_xchgl(unsigned long *ptr, unsigned l
 #define STARPU_HAVE_XCHGL
 #endif
 
+#if defined(__i386__)
+static __starpu_inline uint64_t _starpu_cmpxchg64(uint64_t *ptr, uint64_t old, uint64_t next)
+{
+	uint32_t next_hi = next >> 32;
+	uint32_t next_lo = next & 0xfffffffful;
+	__asm__ __volatile__("lock cmpxchg8b %1": "+A" (old), "+m" (*ptr) : "c" (next_hi), "b" (next_lo) : "memory");
+	return old;
+}
+#define STARPU_HAVE_CMPXCHG64
+#endif
+
 #if defined(__x86_64__)
-static __starpu_inline uint64_t starpu_cmpxchg64(uint64_t *ptr, uint64_t old, uint64_t next)
+static __starpu_inline uint64_t _starpu_cmpxchg64(uint64_t *ptr, uint64_t old, uint64_t next)
 {
 	__asm__ __volatile__("lock cmpxchgq %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __starpu_inline uint64_t starpu_xchg64(uint64_t *ptr, uint64_t next)
+#define STARPU_HAVE_CMPXCHG64
+static __starpu_inline uint64_t _starpu_xchg64(uint64_t *ptr, uint64_t next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgq %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -410,7 +426,7 @@ static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned val
 	{ \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchg(ptr, old, next) == old) \
+		if (_starpu_cmpxchg(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
@@ -423,7 +439,20 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 	{ \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchgl(ptr, old, next) == old) \
+		if (_starpu_cmpxchgl(ptr, old, next) == old) \
+			break; \
+	}; \
+	return expr; \
+}
+#define STARPU_ATOMIC_SOMETHING64(name,expr) \
+static __starpu_inline uint64_t starpu_atomic_##name##64(uint64_t *ptr, uint64_t value) \
+{ \
+	uint64_t old, next; \
+	while (1) \
+	{ \
+		old = *ptr; \
+		next = expr; \
+		if (_starpu_cmpxchg64(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
@@ -433,28 +462,38 @@ static __starpu_inline unsigned long starpu_atomic_##name##l(unsigned long *ptr,
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #define STARPU_ATOMIC_ADDL(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
+#define STARPU_ATOMIC_ADD64(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #else
-#if defined(STARPU_HAVE_XCHG)
+#if defined(STARPU_HAVE_CMPXCHG)
 STARPU_ATOMIC_SOMETHING(add, old + value)
 #define STARPU_ATOMIC_ADD(ptr, value) starpu_atomic_add(ptr, value)
 #endif
-#if defined(STARPU_HAVE_XCHGL)
+#if defined(STARPU_HAVE_CMPXCHGL)
 STARPU_ATOMIC_SOMETHINGL(add, old + value)
 #define STARPU_ATOMIC_ADDL(ptr, value) starpu_atomic_addl(ptr, value)
+#endif
+#if defined(STARPU_HAVE_CMPXCHG64)
+STARPU_ATOMIC_SOMETHING64(add, old + value)
+#define STARPU_ATOMIC_ADD64(ptr, value) starpu_atomic_add64(ptr, value)
 #endif
 #endif
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 #define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#define STARPU_ATOMIC_OR64(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 #else
-#if defined(STARPU_HAVE_XCHG)
+#if defined(STARPU_HAVE_CMPXCHG)
 STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_ATOMIC_OR(ptr, value) starpu_atomic_or(ptr, value)
 #endif
-#if defined(STARPU_HAVE_XCHGL)
+#if defined(STARPU_HAVE_CMPXCHGL)
 STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_ATOMIC_ORL(ptr, value) starpu_atomic_orl(ptr, value)
+#endif
+#if defined(STARPU_HAVE_CMPXCHG64)
+STARPU_ATOMIC_SOMETHING64(or, old | value)
+#define STARPU_ATOMIC_OR64(ptr, value) starpu_atomic_or64(ptr, value)
 #endif
 #endif
 
@@ -463,14 +502,14 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
 #define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
 #else
-#ifdef STARPU_HAVE_XCHG
-#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
+#ifdef STARPU_HAVE_CMPXCHG
+#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)) == (old))
 #endif
-#ifdef STARPU_HAVE_XCHG32
-#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) (starpu_cmpxchg32((ptr), (old), (value)) == (old))
+#ifdef STARPU_HAVE_CMPXCHG32
+#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) (_starpu_cmpxchg32((ptr), (old), (value)) == (old))
 #endif
-#ifdef STARPU_HAVE_XCHG64
-#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) (starpu_cmpxchg64((ptr), (old), (value)) == (old))
+#ifdef STARPU_HAVE_CMPXCHG64
+#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) (_starpu_cmpxchg64((ptr), (old), (value)) == (old))
 #endif
 #endif
 
@@ -479,14 +518,34 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
 #else
+#ifdef STARPU_HAVE_CMPXCHG
+#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)))
+#endif
+#ifdef STARPU_HAVE_CMPXCHG32
+#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (_starpu_cmpxchg32((ptr), (old), (value)))
+#endif
+#ifdef STARPU_HAVE_CMPXCHG64
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (_starpu_cmpxchg64((ptr), (old), (value)))
+#endif
+#endif
+
+#ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
+#define STARPU_VAL_EXCHANGE(ptr, value) (__atomic_exchange_n((ptr), (value), __ATOMIC_SEQ_CST))
+#define STARPU_VAL_EXCHANGEL(ptr, value) STARPU_VAL_EXCHANGE((ptr) (value))
+#define STARPU_VAL_EXCHANGE32(ptr, value) STARPU_VAL_EXCHANGE((ptr) (value))
+#define STARPU_VAL_EXCHANGE64(ptr, value) STARPU_VAL_EXCHANGE((ptr) (value))
+#else
 #ifdef STARPU_HAVE_XCHG
-#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
+#define STARPU_VAL_EXCHANGE(ptr, value) (_starpu_xchg((ptr), (value)))
+#endif
+#ifdef STARPU_HAVE_XCHGL
+#define STARPU_VAL_EXCHANGEL(ptr, value) (_starpu_xchgl((ptr), (value)))
 #endif
 #ifdef STARPU_HAVE_XCHG32
-#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (starpu_cmpxchg32((ptr), (old), (value)))
+#define STARPU_VAL_EXCHANGE32(ptr, value) (_starpu_xchg32((ptr), (value)))
 #endif
 #ifdef STARPU_HAVE_XCHG64
-#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (starpu_cmpxchg64((ptr), (old), (value)))
+#define STARPU_VAL_EXCHANGE64(ptr, value) (_starpu_xchg64((ptr), (value)))
 #endif
 #endif
 
@@ -495,8 +554,8 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
 #define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))
 #elif defined(STARPU_HAVE_XCHG)
-#define STARPU_TEST_AND_SET(ptr, value) (starpu_xchg((ptr), (value)))
-#define STARPU_RELEASE(ptr) (starpu_xchg((ptr), 0))
+#define STARPU_TEST_AND_SET(ptr, value) (_starpu_xchg((ptr), (value)))
+#define STARPU_RELEASE(ptr) (_starpu_xchg((ptr), 0))
 #endif
 
 #ifdef STARPU_HAVE_SYNC_SYNCHRONIZE

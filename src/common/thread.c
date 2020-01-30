@@ -85,9 +85,21 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 #else
 		host = MSG_get_host_by_name("MAIN");
 #endif
+
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+
+#ifdef HAVE_SG_ACTOR_INIT
+	*thread= sg_actor_init(name, host);
+	sg_actor_data_set(*thread, tsd);
+	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
+#else
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
+#ifdef HAVE_SG_ACTOR_DATA
+	sg_actor_data_set(*thread, tsd);
+#endif
+#endif
+
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
 #  ifdef HAVE_SG_ACTOR_REF
 	sg_actor_ref(*thread);
@@ -300,6 +312,9 @@ extern void *smpi_process_get_user_data();
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
+#ifdef HAVE_SG_ACTOR_DATA
+	array = sg_actor_data(sg_actor_self());
+#else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
@@ -316,6 +331,7 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 	else
 #endif
 		array = MSG_process_get_data(MSG_process_self());
+#endif
 	array[key] = (void*) pointer;
 	return 0;
 }
@@ -323,6 +339,9 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
+#ifdef HAVE_SG_ACTOR_DATA
+	array = sg_actor_data(sg_actor_self());
+#else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
 #if defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name)
 	const char *process_name = MSG_process_self_name();
@@ -339,6 +358,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 	else
 #endif
 		array = MSG_process_get_data(MSG_process_self());
+#endif
 	if (!array)
 		return NULL;
 	return array[key];
@@ -970,7 +990,7 @@ int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock)
 	while (1)
 	{
 		/* Tell releaser to wake us */
-		unsigned prev = starpu_xchg(&lock->taken, 2);
+		unsigned prev = STARPU_VAL_EXCHANGE(&lock->taken, 2);
 		if (prev == 0)
 			/* Ah, it just got released and we actually acquired
 			 * it!

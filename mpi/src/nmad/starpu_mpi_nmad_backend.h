@@ -37,9 +37,13 @@ struct _starpu_mpi_req_backend
 	nm_gate_t gate;
 	nm_session_t session;
 	nm_sr_request_t data_request;
-	int waited;
 	piom_cond_t req_cond;
 	nm_sr_request_t size_req;
+
+	// When datatype is unknown:
+	struct nm_data_s unknown_datatype_body;
+	struct nm_data_s unknown_datatype_data;
+	struct nm_data_s unknown_datatype_size;
 };
 
 #endif // STARPU_USE_MPI_NMAD

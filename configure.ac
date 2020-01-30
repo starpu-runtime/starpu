@@ -1,11 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2018                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2017                                     Guillaume Beauchamp
 # Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2018                                     Umeà University
-# Copyright (C) 2010-2019                                CNRS
+# Copyright (C) 2010-2020                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
 #
@@ -20,7 +20,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://starpu.gforge.inria.fr/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -185,7 +185,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach MSG_zone_get_hosts MSG_process_self_name MSG_process_userdata_init])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_cfg_set_int sg_actor_self_execute simgrid_get_clock])
@@ -245,6 +245,7 @@ if test x$enable_simgrid = xyes ; then
 	if test x$enable_simgrid_mc = xyes ; then
 		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
+		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
@@ -410,7 +411,7 @@ fi
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
 AC_ARG_ENABLE(mpi-pedantic-isend, [AS_HELP_STRING([--enable-mpi-pedantic-isend],
-				   [Enable StarPU MPI pedantic isend])],
+				   [Prevent StarPU MPI from reading buffers while being sent over MPI])],
 				   enable_mpi_pedantic_isend=$enableval, enable_mpi_pedantic_isend=no)
 if test x$enable_mpi_pedantic_isend = xyes; then
 	AC_DEFINE(STARPU_MPI_PEDANTIC_ISEND, [1], [enable StarPU MPI pedantic isend])
@@ -608,15 +609,6 @@ if test x$enable_simgrid = xno ; then
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
-if test x$running_mpi_check = xyes -a x$enable_simgrid = xyes ; then
-    if test x$enable_shared = xyes ; then
-	AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
-    else
-	CFLAGS="$CFLAGS -fPIC"
-	CXXFLAGS="$CXXFLAGS -fPIC"
-	NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
-    fi
-fi
 if test x$use_mpi = xyes ; then
     AC_MSG_CHECKING(whether MPI tests should be run)
     AC_MSG_RESULT($running_mpi_check)
@@ -642,6 +634,19 @@ if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	fi
 else
 	running_mpi_check=no
+fi
+
+if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
+    if test x$enable_simgrid = xyes ; then
+        if test x$enable_shared = xyes ; then
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+        else
+	    CFLAGS="$CFLAGS -fPIC"
+	    CXXFLAGS="$CXXFLAGS -fPIC"
+	    NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
+	    FFLAGS="$FFLAGS -fPIC"
+        fi
+    fi
 fi
 
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
@@ -992,6 +997,21 @@ STARPU_CHECK_SYNC_FETCH_AND_OR
 
 # This defines HAVE_SYNC_LOCK_TEST_AND_SET
 STARPU_CHECK_SYNC_LOCK_TEST_AND_SET
+
+# This defines HAVE_ATOMIC_COMPARE_EXCHANGE_N
+STARPU_CHECK_ATOMIC_COMPARE_EXCHANGE_N
+
+# This defines HAVE_ATOMIC_EXCHANGE_N
+STARPU_CHECK_ATOMIC_EXCHANGE_N
+
+# This defines HAVE_ATOMIC_FETCH_ADD
+STARPU_CHECK_ATOMIC_FETCH_ADD
+
+# This defines HAVE_ATOMIC_FETCH_OR
+STARPU_CHECK_ATOMIC_FETCH_OR
+
+# This defines HAVE_ATOMIC_TEST_AND_SET
+STARPU_CHECK_ATOMIC_TEST_AND_SET
 
 # This defines HAVE_SYNC_SYNCHRONIZE
 STARPU_CHECK_SYNC_SYNCHRONIZE
@@ -2146,6 +2166,10 @@ if test x$use_fxt = xyes; then
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
 
+	AC_CHECK_LIB([papi], [PAPI_library_init],
+		     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+		      PAPI_LIBS=-lpapi])
+
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################
@@ -3035,6 +3059,9 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	install_min_dgels=no
 	support_mlr=yes
    	STARPU_SEARCH_LIBS(LAPACK,[dgels_],[lapack],use_system_lapack=yes,,)
+	if test x$blas_lib = xnone ; then
+	   use_system_lapack=no
+	fi
 	if test x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
@@ -3158,7 +3185,7 @@ AS_IF([test "$use_hwloc" != "no"],
 AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
 # in case hwloc was explicitely required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
-      [AC_MSG_ERROR([cannot find hwloc])]
+      [AC_MSG_ERROR([cannot find hwloc or pkg-config])]
      )
 # in case hwloc is not available but was not explicitely disabled, this is an error
 AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
@@ -3451,7 +3478,7 @@ AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 ###############################################################################
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la

@@ -30,6 +30,10 @@
 #endif
 #define STARPU_TRACE_STR_LEN 200
 
+#ifdef STARPU_PAPI
+#include <papi.h>
+#endif
+
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
 #include <inttypes.h>
@@ -81,7 +85,12 @@ static FILE *activity_file;
 static FILE *anim_file;
 static FILE *tasks_file;
 static FILE *data_file;
+#ifdef STARPU_PAPI
+static FILE *papi_file;
+#endif
 static FILE *trace_file;
+static FILE *comms_file;
+static FILE *sched_tasks_file;
 
 struct data_parameter_info
 {
@@ -114,6 +123,7 @@ struct task_info
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
+	char **dep_labels;
 	unsigned long ndata;
 	struct data_parameter_info *data;
 	int mpi_rank;
@@ -152,6 +162,7 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
+		task->dep_labels = NULL;
 		task->ndata = 0;
 		task->data = NULL;
 		task->mpi_rank = mpi_rank;
@@ -209,6 +220,17 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 			fprintf(tasks_file, " %s%lu", prefix, task->dependencies[i]);
 		fprintf(tasks_file, "\n");
 		free(task->dependencies);
+	}
+	if (task->dep_labels)
+	{
+		fprintf(tasks_file, "DepLabels:");
+		for (i = 0; i < task->ndeps; i++)
+		{
+			fprintf(tasks_file, " %s", task->dep_labels[i]);
+			free(task->dep_labels[i]);
+		}
+		fprintf(tasks_file, "\n");
+		free(task->dep_labels);
 	}
 	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
 	if (task->workerid >= 0)
@@ -281,6 +303,7 @@ struct data_info
 	int home_node;
 	int mpi_rank;
 	int mpi_owner;
+	long mpi_tag;
 };
 
 struct data_info *data_info;
@@ -303,12 +326,32 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->home_node = STARPU_MAIN_RAM;
 		data->mpi_rank = mpi_rank;
 		data->mpi_owner = mpi_rank;
+		data->mpi_tag = -1;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
 	}
 	else
 		STARPU_ASSERT(data->mpi_rank == mpi_rank);
 
 	return data;
+}
+
+static void handle_papi_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+#ifdef STARPU_PAPI
+	int event_code = ev->param[0];
+	unsigned long task = ev->param[1];
+	long long int value = ev->param[2];
+	//char *prefix = options->file_prefix;
+
+	if (papi_file){
+		char event_str[PAPI_MAX_STR_LEN];
+		PAPI_event_code_to_name(event_code, event_str);
+		fprintf(papi_file, "JobId: %lu\n", task);
+		fprintf(papi_file, "Event: %s\n", event_str);
+		fprintf(papi_file, "Value: %lld\n", value);
+		fprintf(papi_file, "\n");
+	}
+#endif
 }
 
 static void data_dump(struct data_info *data)
@@ -342,6 +385,8 @@ static void data_dump(struct data_info *data)
 	}
 	if (data->mpi_owner >= 0)
 		fprintf(data_file, "MPIOwner: %d\n", data->mpi_owner);
+	if (data->mpi_tag >= 0)
+		fprintf(data_file, "MPITag: %ld\n", data->mpi_tag);
 	fprintf(data_file, "\n");
 out:
 	HASH_DEL(data_info, data);
@@ -2218,6 +2263,15 @@ static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	data->mpi_owner = rank;
 }
 
+static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long handle = ev->param[0];
+	long tag = ev->param[1];
+	struct data_info *data = get_data(handle, options->file_rank);
+
+	data->mpi_tag = tag;
+}
+
 static const char *copy_link_type(unsigned prefetch)
 {
 	switch (prefetch)
@@ -2557,6 +2611,7 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	double current_timestamp = get_event_time_stamp(ev, options);
 
 	unsigned task = ev->param[0];
+	int priority = ev->param[1];
 
 	curq_size++;
 
@@ -2582,6 +2637,18 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 	if (activity_file)
 		fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
+
+	if (sched_tasks_file)
+	{
+		fprintf(sched_tasks_file, "Type: push\n");
+		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
+		fprintf(sched_tasks_file, "Priority: %d\n", priority);
+		if (options->file_rank < 0)
+			fprintf(sched_tasks_file, "JobId: %d\n", task);
+		else
+			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+		fprintf(sched_tasks_file, "\n");
+	}
 }
 
 
@@ -2589,6 +2656,7 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 	unsigned task = ev->param[0];
+	int priority = ev->param[1];
 
 	curq_size--;
 	nsubmitted--;
@@ -2619,6 +2687,17 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 	}
 
+	if (sched_tasks_file)
+	{
+		fprintf(sched_tasks_file, "Type: pop\n");
+		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
+		fprintf(sched_tasks_file, "Priority: %d\n", priority);
+		if (options->file_rank < 0)
+			fprintf(sched_tasks_file, "JobId: %d\n", task);
+		else
+			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+		fprintf(sched_tasks_file, "\n");
+	}
 }
 
 static void handle_component_new(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
@@ -2726,8 +2805,11 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	if (alloc)
 	{
 		_STARPU_REALLOC(task->dependencies, sizeof(*task->dependencies) * alloc);
+		_STARPU_REALLOC(task->dep_labels, sizeof(*task->dep_labels) * alloc);
 	}
-	task->dependencies[task->ndeps++] = dep_prev;
+	task->dependencies[task->ndeps] = dep_prev;
+	task->dep_labels[task->ndeps] = strdup(name);
+	task->ndeps++;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
 	if (show_task(task, options))
@@ -2945,6 +3027,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int mpi_tag = ev->param[1];
 	size_t size = ev->param[2];
 	long jobid = ev->param[3];
+	unsigned long handle = ev->param[4];
 	double date = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
@@ -2961,7 +3044,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3029,6 +3112,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
+	unsigned long handle = ev->param[4];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -3040,7 +3124,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3458,7 +3542,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_update_task_cnt(&ev, options);
 				break;
 
-			/* monitor stack size */
+			/* monitor stack size and generate sched_tasks.rec */
 			case _STARPU_FUT_JOB_PUSH:
 				handle_job_push(&ev, options);
 				break;
@@ -3635,6 +3719,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
                                        handle_memnode_event_start_4(&ev, options, "rc");
                                }
                                break;
+
+		  case _STARPU_FUT_PAPI_TASK_EVENT_VALUE:
+				handle_papi_event(&ev, options);
+				break;
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
 				     handle_data_copy();
@@ -3858,6 +3946,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_DATA_SET_RANK:
 				handle_mpi_data_set_rank(&ev, options);
+				break;
+			case _STARPU_MPI_FUT_DATA_SET_TAG:
+				handle_mpi_data_set_tag(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_TESTING_DETACHED_BEGIN:
@@ -4111,12 +4202,15 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->out_paje_path = "paje.trace";
 	options->dag_path = "dag.dot";
 	options->tasks_path = "tasks.rec";
+	options->comms_path = "comms.rec";
 	options->data_path = "data.rec";
+	options->papi_path = "papi.rec";
 	options->anim_path = "trace.html";
 	options->states_path = "trace.rec";
 	options->distrib_time_path = "distrib.data";
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
+	options->sched_tasks_path = "sched_tasks.rec";
 }
 
 static
@@ -4158,6 +4252,15 @@ void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_sched_tasks_file_init(struct starpu_fxt_options *options)
+{
+	if (options->sched_tasks_path)
+		sched_tasks_file = fopen(options->sched_tasks_path, "w+");
+	else
+		sched_tasks_file = NULL;
+}
+
+static
 void _starpu_fxt_anim_file_init(struct starpu_fxt_options *options)
 {
 	if (options->anim_path)
@@ -4185,6 +4288,26 @@ void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
 		data_file = fopen(options->data_path, "w+");
 	else
 		data_file = NULL;
+}
+
+static
+void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
+{
+	if (options->comms_path)
+		comms_file = fopen(options->comms_path, "w+");
+	else
+		comms_file = NULL;
+}
+
+static
+void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
+{
+#ifdef STARPU_PAPI
+	if (options->papi_path)
+		papi_file = fopen(options->papi_path, "w+");
+	else
+		papi_file = NULL;
+#endif
 }
 
 static
@@ -4221,6 +4344,13 @@ void _starpu_fxt_activity_file_close(void)
 }
 
 static
+void _starpu_fxt_sched_tasks_file_close(void)
+{
+	if (sched_tasks_file)
+		fclose(sched_tasks_file);
+}
+
+static
 void _starpu_fxt_anim_file_close(void)
 {
 	//_starpu_fxt_component_dump(stderr);
@@ -4239,10 +4369,27 @@ void _starpu_fxt_tasks_file_close(void)
 }
 
 static
+void _starpu_fxt_comms_file_close(void)
+{
+	if (comms_file)
+		fclose(comms_file);
+}
+
+
+static
 void _starpu_fxt_data_file_close(void)
 {
 	if (data_file)
 		fclose(data_file);
+}
+
+static
+void _starpu_fxt_papi_file_close(void)
+{
+#ifdef STARPU_PAPI
+	if (papi_file)
+		fclose(papi_file);
+#endif
 }
 
 static
@@ -4342,9 +4489,12 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
 	_starpu_fxt_activity_file_init(options);
+	_starpu_fxt_sched_tasks_file_init(options);
 	_starpu_fxt_anim_file_init(options);
 	_starpu_fxt_tasks_file_init(options);
 	_starpu_fxt_data_file_init(options);
+	_starpu_fxt_papi_file_init(options);
+	_starpu_fxt_comms_file_init(options);
 	_starpu_fxt_trace_file_init(options);
 
 	_starpu_fxt_paje_file_init(options);
@@ -4465,16 +4615,19 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 		/* display the MPI transfers if possible */
 		if (display_mpi)
-			_starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
+			_starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file, comms_file);
 	}
 
 	/* close the different files */
 	_starpu_fxt_paje_file_close();
 	_starpu_fxt_activity_file_close();
+	_starpu_fxt_sched_tasks_file_close();
 	_starpu_fxt_distrib_file_close(options);
 	_starpu_fxt_anim_file_close();
 	_starpu_fxt_tasks_file_close();
 	_starpu_fxt_data_file_close();
+	_starpu_fxt_papi_file_close();
+	_starpu_fxt_comms_file_close();
 	_starpu_fxt_trace_file_close();
 
 	_starpu_fxt_dag_terminate();

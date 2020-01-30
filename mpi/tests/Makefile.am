@@ -132,6 +132,7 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
+	mpi_barrier				\
 	mpi_redux				\
 	ring					\
 	ring_sync				\
@@ -151,7 +152,8 @@ starpu_mpi_TESTS +=				\
 	sync					\
 	gather					\
 	gather2					\
-	driver
+	driver					\
+	sendrecv_bench
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -174,6 +176,7 @@ noinst_PROGRAMS =				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
+	mpi_barrier				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
 	mpi_detached_tag			\
@@ -223,7 +226,8 @@ noinst_PROGRAMS =				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer				\
-	driver
+	driver					\
+	sendrecv_bench
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

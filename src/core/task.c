@@ -586,6 +586,11 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 {
 	if (!cl)
 		return;
+	if (cl->checked)
+	{
+		STARPU_RMB();
+		return;
+	}
 
 	uint32_t where = cl->where;
 	int is_where_unset = where == 0;
@@ -711,6 +716,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		where |= STARPU_MIC|STARPU_MPI_MS;
 	}
 	cl->where = where;
+
+	STARPU_WMB();
+	cl->checked = 1;
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
@@ -779,7 +787,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Make sure the specified node exists */
-			STARPU_ASSERT_MSG(node == STARPU_SPECIFIC_NODE_LOCAL || node == STARPU_SPECIFIC_NODE_CPU || node == STARPU_SPECIFIC_NODE_SLOW || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
+			STARPU_ASSERT_MSG(node == STARPU_SPECIFIC_NODE_LOCAL || node == STARPU_SPECIFIC_NODE_CPU || node == STARPU_SPECIFIC_NODE_SLOW || node == STARPU_SPECIFIC_NODE_LOCAL_OR_CPU || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
@@ -851,10 +859,10 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		0
 #endif
 		;
-	if (!j->internal && !continuation)
+	if (!_starpu_perf_counter_paused() && !j->internal && !continuation)
 	{
-		(void) STARPU_ATOMIC_ADDL(&_starpu_task__g_total_submitted__value, 1);
-		int64_t value = STARPU_ATOMIC_ADDL(&_starpu_task__g_current_submitted__value, 1);
+		(void) STARPU_ATOMIC_ADD64(&_starpu_task__g_total_submitted__value, 1);
+		int64_t value = STARPU_ATOMIC_ADD64(&_starpu_task__g_current_submitted__value, 1);
 		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_submitted__value, value);
 		_starpu_perf_counter_update_global_sample();
 
@@ -862,8 +870,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		{
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
-			(void) STARPU_ATOMIC_ADD(&pcv->task.total_submitted, 1);
-			value = STARPU_ATOMIC_ADDL(&pcv->task.current_submitted, 1);
+			(void) STARPU_ATOMIC_ADD64(&pcv->task.total_submitted, 1);
+			value = STARPU_ATOMIC_ADD64(&pcv->task.current_submitted, 1);
 			_starpu_perf_counter_update_max_int64(&pcv->task.peak_submitted, value);
 			_starpu_perf_counter_update_per_codelet_sample(task->cl);
 		}
@@ -1129,7 +1137,8 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 int starpu_task_wait_for_all(void)
 {
 	_starpu_task_wait_for_all_and_return_nb_waited_tasks();
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1146,7 +1155,8 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
 	_starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx);
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1188,7 +1198,8 @@ int starpu_task_wait_for_n_submitted(unsigned n)
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
 		_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx_id, n);
 	}
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 
@@ -1196,7 +1207,8 @@ int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx, unsigned n)
 {
 	_starpu_wait_for_n_submitted_tasks_of_sched_ctx(sched_ctx, n);
 
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 /*
@@ -1232,7 +1244,8 @@ int starpu_task_wait_for_no_ready(void)
 		}
 	}
 
-	_starpu_perf_counter_update_global_sample();
+	if (!_starpu_perf_counter_paused())
+		_starpu_perf_counter_update_global_sample();
 	return 0;
 }
 

@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2013-2019                      Université de Bordeaux
+ * Copyright (C) 2010-2020                                CNRS
+ * Copyright (C) 2009-2011,2013-2020                      Université de Bordeaux
  * Copyright (C) 2016                                     Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -543,6 +543,13 @@ Define the idle power of the machine (\ref Energy-basedScheduling).
 Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring).
 </dd>
 
+<dt>STARPU_PROF_PAPI_EVENTS</dt>
+<dd>
+\anchor STARPU_PROF_PAPI_EVENTS
+\addindex __env__STARPU_PROF_PAPI_EVENTS
+Specify which PAPI events should be recorded in the trace (\ref PapiCounters).
+</dd>
+
 </dl>
 
 \section Extensions Extensions
@@ -614,6 +621,22 @@ communication cache.
 When set to 0, the use of priorities to order MPI communications is disabled
 (\ref MPISupport).
 </dd>
+
+<dt>STARPU_MPI_NDETACHED_SEND</dt>
+<dd>
+\anchor STARPU_MPI_NDETACHED_SEND
+\addindex __env__STARPU_MPI_NDETACHED_SEND
+This sets the number of send requests that StarPU-MPI will emit concurrently. The default is 10.
+</dd>
+
+<dt>STARPU_MPI_NREADY_PROCESS</dt>
+<dd>
+\anchor STARPU_MPI_NREADY_PROCESS
+\addindex __env__STARPU_MPI_NREADY_PROCESS
+This sets the number of requests that StarPU-MPI will submit to MPI before
+polling for termination of existing requests. The default is 10.
+</dd>
+
 
 <dt>STARPU_MPI_FAKE_SIZE</dt>
 <dd>
@@ -1078,7 +1101,17 @@ StarPU for internal data structures during execution.
 \anchor STARPU_BUS_STATS
 \addindex __env__STARPU_BUS_STATS
 When defined, statistics about data transfers will be displayed when calling
-starpu_shutdown() (\ref Profiling).
+starpu_shutdown() (\ref Profiling). By default, statistics are printed
+on the standard error stream, use the environement variable \ref
+STARPU_BUS_STATS_FILE to define another filename.
+</dd>
+
+<dt>STARPU_BUS_STATS_FILE</dt>
+<dd>
+\anchor STARPU_BUS_STATS_FILE
+\addindex __env__STARPU_BUS_STATS_FILE
+Define the name of the file where to display data transfers
+statistics, see \ref STARPU_BUS_STATS.
 </dd>
 
 <dt>STARPU_WORKER_STATS</dt>
@@ -1088,7 +1121,17 @@ starpu_shutdown() (\ref Profiling).
 When defined, statistics about the workers will be displayed when calling
 starpu_shutdown() (\ref Profiling). When combined with the
 environment variable \ref STARPU_PROFILING, it displays the energy
-consumption (\ref Energy-basedScheduling).
+consumption (\ref Energy-basedScheduling).  By default, statistics are
+printed on the standard error stream, use the environement variable
+\ref STARPU_WORKER_STATS_FILE to define another filename.
+</dd>
+
+<dt>STARPU_WORKER_STATS_FILE</dt>
+<dd>
+\anchor STARPU_WORKER_STATS_FILE
+\addindex __env__STARPU_WORKER_STATS_FILE
+Define the name of the file where to display workers statistics, see
+\ref STARPU_WORKER_STATS.
 </dd>
 
 <dt>STARPU_STATS</dt>
@@ -1193,15 +1236,6 @@ The random scheduler and some examples use random numbers for their own
 working. Depending on the examples, the seed is by default juste always 0 or
 the current time() (unless SimGrid mode is enabled, in which case it is always
 0). \ref STARPU_RAND_SEED allows to set the seed to a specific value.
-</dd>
-
-<dt>STARPU_IDLE_TIME</dt>
-<dd>
-\anchor STARPU_IDLE_TIME
-\addindex __env__STARPU_IDLE_TIME
-When set to a value being a valid filename, a corresponding file
-will be created when shutting down StarPU. The file will contain the
-sum of all the workers' idle time.
 </dd>
 
 <dt>STARPU_GLOBAL_ARBITER</dt>

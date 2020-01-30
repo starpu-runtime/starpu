@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2015,2017,2019                      CNRS
- * Copyright (C) 2012,2014-2017                           Université de Bordeaux
+ * Copyright (C) 2012,2014-2017,2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -177,6 +177,10 @@ static struct starpu_codelet pipeline_codelet_sum =
 	.model = &pipeline_model_sum
 };
 
+static void release_sem(void *arg) {
+	sem_post(arg);
+};
+
 int main(void)
 {
 	int ret = 0;
@@ -243,7 +247,7 @@ int main(void)
 
 		ret = starpu_task_insert(&pipeline_codelet_sum,
 				STARPU_R, buffersY[l%K],
-				STARPU_CALLBACK_WITH_ARG_NFREE, (void (*)(void*))sem_post, &sems[l%C],
+				STARPU_CALLBACK_WITH_ARG_NFREE, release_sem, &sems[l%C],
 				STARPU_TAG_ONLY, (starpu_tag_t) l,
 				0);
 		if (ret == -ENODEV) goto enodev;

@@ -29,6 +29,8 @@ program nf_matrix
         type(c_ptr) :: dh_mb    ! a pointer for the 'mb' vector data handle
         integer(c_int) :: err   ! return status for fstarpu_init
         integer(c_int) :: ncpu  ! number of cpus workers
+        real(c_double) :: start_time ! start clock in usec
+        real(c_double) :: end_time   ! end clock in usec
 
         allocate(ma(5,6))
         do i=1,5
@@ -56,6 +58,9 @@ program nf_matrix
                 call fstarpu_shutdown()
                 stop 77
         end if
+
+        ! collect the start clock time
+        start_time = fstarpu_timing_now()
 
         ! allocate an empty codelet structure
         cl_mat = fstarpu_codelet_allocate()
@@ -102,10 +107,15 @@ program nf_matrix
         ! free codelet structure
         call fstarpu_codelet_free(cl_mat)
 
+        ! collect the start clock time
+        end_time = fstarpu_timing_now()
+
         ! shut StarPU down
         call fstarpu_shutdown()
 
         deallocate(mb)
         deallocate(ma)
+
+        print "(es 10.3)", end_time - start_time
 
 end program nf_matrix

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2014,2016,2017                           CNRS
- * Copyright (C) 2014-2018                                Université de Bordeaux
+ * Copyright (C) 2014-2018,2020                           Université de Bordeaux
  * Copyright (C) 2013                                     Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,12 +30,22 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 {
 	double len = DBL_MAX;
 	int best_impl = -1;
-	int impl;
-	for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+	unsigned impl;
+	if (!task->cl->model)
 	{
+		/* No perfmodel, first available will be fine */
+		int can_execute = starpu_worker_can_execute_task_first_impl(workerid, task, &impl);
+		STARPU_ASSERT(can_execute);
+		best_impl = impl;
+		len = 0.0;
+	}
+	else
+	{	
+	    struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
+	    for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+	    {
 		if(starpu_worker_can_execute_task(workerid, task, impl))
 		{
-			struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 			double d = starpu_task_expected_length(task, archtype, impl);
 			if(isnan(d))
 			{
@@ -49,6 +59,7 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 				best_impl = impl;
 			}
 		}
+	    }
 	}
 	if(best_impl == -1)
 		return 0;

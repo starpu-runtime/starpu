@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2016                           Inria
- * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2010-2020                                CNRS
  * Copyright (C) 2009-2011,2014,2016,2018-2019            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,7 +94,9 @@ information associated to a worker.
 
 To easily display all this information, the environment variable
 \ref STARPU_WORKER_STATS can be set to <c>1</c> (in addition to setting
-\ref STARPU_PROFILING to 1). A summary will then be displayed at program termination:
+\ref STARPU_PROFILING to 1). A summary will then be displayed at
+program termination.  To display the summary in a file instead of the
+standard error stream, use the environment variable \ref STARPU_WORKER_STATS_FILE.
 
 \verbatim
 Worker stats:
@@ -150,7 +152,9 @@ CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
 
 Statistics about the data transfers which were performed and temporal average
 of bandwidth usage can be obtained by setting the environment variable
-\ref STARPU_BUS_STATS to <c>1</c>; a summary will then be displayed at program termination:
+\ref STARPU_BUS_STATS to <c>1</c>; a summary will then be displayed at
+program termination. To display the summary in a file instead of the
+standard error stream, use the environment variable \ref STARPU_BUS_STATS_FILE.
 
 \verbatim
 Data transfer stats:
@@ -462,20 +466,6 @@ task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
 The application can also request an on-the-fly XML report of the performance
 model, by calling starpu_perfmodel_dump_xml() to print the report to a
 <c>FILE*</c>.
-
-\section DataTrace Data trace and tasks length
-It is possible to get statistics about tasks length and data size by using :
-\verbatim
-$ starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
-\endverbatim
-Where filename is the FxT trace file and codeletX the names of the codelets you
-want to profile (if no names are specified, <c>starpu_fxt_data_trace</c> will profile them all).
-This will create a file, <c>data_trace.gp</c> which
-can be executed to get a <c>.eps</c> image of these results. On the image, each point represents a
-task, and each color corresponds to a codelet.
-
-\image html data_trace.png
-\image latex data_trace.eps "" width=\textwidth
 
 \section Performance Monitoring Counters
 

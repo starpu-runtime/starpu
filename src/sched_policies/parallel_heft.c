@@ -546,6 +546,8 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	struct _starpu_pheft_data *hd;
 	_STARPU_MALLOC(hd, sizeof(struct _starpu_pheft_data));
 
+	_STARPU_DISP("Warning: the pheft scheduler is mostly a proof of concept and not really very optimized");
+
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_PRIORITY);
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)

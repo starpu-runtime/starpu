@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2015-2017                      Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2017,2019                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2017,2019-2020            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -160,6 +160,13 @@ starpu_task::color. Colors are expressed with the following format
 <c>basic_examples/task_insert_color</c> for examples on how to assign
 colors.
 
+To get statistics on the time spend in runtime overhead, one can use the
+statistics plugin of ViTE. In Preferences, select Plugins. In "States Type",
+select "Worker State". Then click on "Reload" to update the histogram. The red
+"Idle" percentages are due to lack of parallelism, while the brown "Overhead"
+and "Scheduling" percentages are due to the overhead of the runtime and of the
+scheduler.
+
 To identify tasks precisely, the application can also set the field
 starpu_task::tag_id or setting \ref STARPU_TAG_ONLY when calling
 starpu_task_insert(). The value of the tag will then show up in the
@@ -202,7 +209,7 @@ $ dot -Tpdf dag.dot -o output.pdf
 
 Another generated trace file gives details on the executed tasks. The
 file, created in the current directory, is named <c>tasks.rec</c>. This file
-is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines to
+is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines are used to
 separate each task.  This can be used as a convenient input for various ad-hoc
 analysis tools. By default it only contains information about the actual
 execution. Performance models can be obtained by running
@@ -223,6 +230,14 @@ Another possibility is to obtain the performance models as an auxiliary <c>perfm
 \verbatim
 $ starpu_perfmodel_recdump tasks.rec -o perfmodel.rec
 \endverbatim
+
+\subsubsection TraceSchedTaskDetails Getting Scheduling Task Details
+
+The file, <c>sched_tasks.rec</c>, created in the current directory,
+and in the recutils format, gives information about the tasks
+scheduling, and lists the push and pop actions of the scheduler. For
+each action, it gives the timestamp, the job priority and the job id.
+Each action is separated from the next one by empty lines.
 
 \subsubsection MonitoringActivity Monitoring Activity
 
@@ -258,6 +273,20 @@ and whose name start with "modular-"), the call to
 <c>starpu_fxt_tool</c> will also produce a <c>trace.html</c> file
 which can be viewed in a javascript-enabled web browser. It shows the
 flow of tasks between the components of the modular scheduler.
+
+\subsubsection TimeBetweenSendRecvDataUse Analyzing Time Between MPI Data Transfer and Use by Tasks
+
+<c>starpu_fxt_tool</c> produces a file called <c>comms.rec</c> which describes all 
+MPI communications. The script <c>starpu_send_recv_data_use.py</c> uses this file 
+and <c>tasks.rec</c> in order to produce two graphs: the first one shows durations 
+between the reception of data and their usage by a task and the second one plots the 
+same graph but with elapsed time between send and usage of a data by the sender.
+
+\image html trace_recv_use.png
+\image latex trace_recv_use.eps "" width=\textwidth
+
+\image html trace_send_use.png
+\image latex trace_send_use.eps "" width=\textwidth
 
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
@@ -434,6 +463,21 @@ histogram of the codelet execution time distribution.
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
 
+\section DataTrace Data trace and tasks length
+
+It is possible to get statistics about tasks length and data size by using :
+\verbatim
+$ starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
+\endverbatim
+Where filename is the FxT trace file and codeletX the names of the codelets you
+want to profile (if no names are specified, <c>starpu_fxt_data_trace</c> will profile them all).
+This will create a file, <c>data_trace.gp</c> which
+can be executed to get a <c>.eps</c> image of these results. On the image, each point represents a
+task, and each color corresponds to a codelet.
+
+\image html data_trace.png
+\image latex data_trace.eps "" width=\textwidth
+
 \section TraceStatistics Trace Statistics
 
 More than just codelet performance, it is interesting to get statistics over all
@@ -526,6 +570,17 @@ more efficient):
 $ starpu_paje_sort paje.trace
 \endverbatim
 
+\section PapiCounters PAPI counters
+
+Performance counter values can be obtained from the PAPI framework if
+<c>./configure</c> detected the libpapi. One has to set the \ref STARPU_PROFILING
+environment variable to 1 and then specify which counters to record with the
+\ref STARPU_PROF_PAPI_EVENTS environment variable. For instance:
+
+\verbatim
+export STARPU_PROFILING=1 STARPU_PROF_PAPI_EVENTS="PAPI_TOT_INS PAPI_TOT_CYC"
+\endverbatim
+
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
 
 StarPU can record a trace of what tasks are needed to complete the
@@ -601,58 +656,50 @@ Moreover, statistics will be displayed at the end of the execution on
 data handles which have not been cleared out. This can be disabled by
 setting the environment variable \ref STARPU_MEMORY_STATS to <c>0</c>.
 
-For example, if you do not unregister data at the end of the complex
-example, you will get something similar to:
+For example, by adding a call to the function
+starpu_data_display_memory_stats() in the fblock example before
+unpartitioning the data, one will get something
+similar to:
 
 \verbatim
-$ STARPU_MEMORY_STATS=0 ./examples/interface/complex
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 78.00 + 78.00 i
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 45.00 + 12.00 i
-\endverbatim
-
-\verbatim
-$ STARPU_MEMORY_STATS=1 ./examples/interface/complex
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 78.00 + 78.00 i
-Complex[0] = 45.00 + 12.00 i
-Complex[0] = 45.00 + 12.00 i
-
+$ STARPU_MEMORY_STATS=1 ./examples/filters/fblock
+...
 #---------------------
-Memory stats:
+Memory stats :
 #-------
-Data on Node #3
+Data on Node #2
 #-----
-Data : 0x553ff40
-Size : 16
+Data : 0x5562074e8670
+Size : 144
 
 #--
 Data access stats
 /!\ Work Underway
 Node #0
-	Direct access : 4
+	Direct access : 0
 	Loaded (Owner) : 0
+	Loaded (Shared) : 0
+	Invalidated (was Owner) : 1
+
+Node #2
+	Direct access : 0
+	Loaded (Owner) : 1
 	Loaded (Shared) : 0
 	Invalidated (was Owner) : 0
 
-Node #3
-	Direct access : 0
-	Loaded (Owner) : 0
-	Loaded (Shared) : 1
-	Invalidated (was Owner) : 0
-
+#-------
+Data on Node #3
 #-----
-Data : 0x5544710
-Size : 16
+Data : 0x5562074e9338
+Size : 96
 
 #--
 Data access stats
 /!\ Work Underway
 Node #0
-	Direct access : 2
+	Direct access : 0
 	Loaded (Owner) : 0
-	Loaded (Shared) : 1
+	Loaded (Shared) : 0
 	Invalidated (was Owner) : 1
 
 Node #3
@@ -660,6 +707,10 @@ Node #3
 	Loaded (Owner) : 1
 	Loaded (Shared) : 0
 	Invalidated (was Owner) : 0
+
+
+#---------------------
+...
 \endverbatim
 
 \section DataStatistics Data Statistics

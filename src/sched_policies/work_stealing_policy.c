@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2013,2015-2017                      Inria
  * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
+ * Copyright (C) 2010-2013,2015-2017,2020                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -794,7 +794,7 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 	{
 		int workerid = workerids[i];
 		if (ws->per_worker[workerid].proxlist == NULL)
-			_STARPU_MALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS*sizeof(int));
+			_STARPU_CALLOC(ws->per_worker[workerid].proxlist, STARPU_NMAXWORKERS, sizeof(int));
 		int bindid;
 
 		struct starpu_sched_ctx_iterator it;

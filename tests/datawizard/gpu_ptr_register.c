@@ -146,7 +146,7 @@ test_cuda(void)
 	starpu_cuda_set_device(devid);
 	cures = cudaMemcpy(foo, foo_gpu, size * sizeof(*foo_gpu), cudaMemcpyDeviceToHost);
 	if (!cures)
-		cures = cudaThreadSynchronize();
+		cures = cudaDeviceSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 

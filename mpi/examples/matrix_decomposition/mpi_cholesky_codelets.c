@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2015,2017,2018                      CNRS
- * Copyright (C) 2009,2010,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2010-2015,2017,2018,2020                 CNRS
+ * Copyright (C) 2009,2010,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 #include <common/blas.h>
 #include <sys/time.h>
 #include <limits.h>
+#include <math.h>
 
 /*
  *	Create the codelets
@@ -78,24 +79,24 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	double start;
 	double end;
 	starpu_data_handle_t **data_handles;
-	unsigned x,y,i,j,k;
+	unsigned k, m, n;
 
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
 	/* create all the DAG nodes */
 
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
-	for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle_t));
+	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
 
-	for(x = 0; x < nblocks ; x++)
+	for (m = 0; m < nblocks; m++)
 	{
-		for (y = 0; y < nblocks; y++)
+		for(n = 0; n < nblocks ; n++)
 		{
-			int mpi_rank = my_distrib(x, y, nodes);
+			int mpi_rank = my_distrib(m, n, nodes);
 			if (mpi_rank == rank)
 			{
-				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-				starpu_matrix_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)matA[x][y],
+				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
 						ld, size/nblocks, size/nblocks, sizeof(float));
 			}
 #ifdef STARPU_DEVEL
@@ -104,14 +105,14 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			else
 			{
 				/* I don't own this index, but will need it for my computations */
-				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
-				starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
+				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], -1, (uintptr_t)NULL,
 						ld, size/nblocks, size/nblocks, sizeof(float));
 			}
-			if (data_handles[x][y])
+			if (data_handles[m][n])
 			{
-				starpu_data_set_coordinates(data_handles[x][y], 2, x, y);
-				starpu_mpi_data_register(data_handles[x][y], (y*nblocks)+x, mpi_rank);
+				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
+				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
 			}
 		}
 	}
@@ -128,34 +129,34 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 				       STARPU_RW, data_handles[k][k],
 				       0);
 
-		for (j = k+1; j<nblocks; j++)
+		for (m = k+1; m<nblocks; m++)
 		{
 			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
-					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j) : (j == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[k][k],
-					       STARPU_RW, data_handles[k][j],
+					       STARPU_RW, data_handles[m][k],
 					       0);
 
 			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
 			if (my_distrib(k, k, nodes) == rank)
 				starpu_data_wont_use(data_handles[k][k]);
 
-			for (i = k+1; i<nblocks; i++)
+			for (n = k+1; n<nblocks; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
-							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - j - i) : ((i == k+1) && (j == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-							       STARPU_R, data_handles[k][i],
-							       STARPU_R, data_handles[k][j],
-							       STARPU_RW | STARPU_COMMUTE, data_handles[i][j],
+							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							       STARPU_R, data_handles[n][k],
+							       STARPU_R, data_handles[m][k],
+							       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
 							       0);
 				}
 			}
 
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][j]);
-			if (my_distrib(k, j, nodes) == rank)
-				starpu_data_wont_use(data_handles[k][j]);
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
+			if (my_distrib(m, k, nodes) == rank)
+				starpu_data_wont_use(data_handles[m][k]);
 		}
 		starpu_iteration_pop();
 	}
@@ -165,14 +166,18 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	end = starpu_timing_now();
 
-	for(x = 0; x < nblocks ; x++)
+	for (m = 0; m < nblocks; m++)
 	{
-		for (y = 0; y < nblocks; y++)
+		for(n = 0; n < nblocks ; n++)
 		{
-			if (data_handles[x][y])
-				starpu_data_unregister(data_handles[x][y]);
+			/* Get back data on node 0 for the check */
+			if (check)
+				starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[m][n], 0);
+
+			if (data_handles[m][n])
+				starpu_data_unregister(data_handles[m][n]);
 		}
-		free(data_handles[x]);
+		free(data_handles[m]);
 	}
 	free(data_handles);
 
@@ -183,33 +188,33 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	}
 }
 
-void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops)
+void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops, double epsilon)
 {
-	unsigned i,j,x,y;
+	unsigned nn,mm,n,m;
 	float *rmat = malloc(size*size*sizeof(float));
 
-	for(x=0 ; x<nblocks ; x++)
+	for(n=0 ; n<nblocks ; n++)
 	{
-		for(y=0 ; y<nblocks ; y++)
+		for(m=0 ; m<nblocks ; m++)
 		{
-			for (i = 0; i < BLOCKSIZE; i++)
+			for (nn = 0; nn < BLOCKSIZE; nn++)
 			{
-				for (j = 0; j < BLOCKSIZE; j++)
+				for (mm = 0; mm < BLOCKSIZE; mm++)
 				{
-					rmat[j+(y*BLOCKSIZE)+(i+(x*BLOCKSIZE))*size] = matA[x][y][j +i*BLOCKSIZE];
+					rmat[mm+(m*BLOCKSIZE)+(nn+(n*BLOCKSIZE))*size] = matA[m][n][mm +nn*BLOCKSIZE];
 				}
 			}
 		}
 	}
 
 	FPRINTF(stderr, "[%d] compute explicit LLt ...\n", rank);
-	for (j = 0; j < size; j++)
+	for (mm = 0; mm < size; mm++)
 	{
-		for (i = 0; i < size; i++)
+		for (nn = 0; nn < size; nn++)
 		{
-			if (i > j)
+			if (nn > mm)
 			{
-				rmat[j+i*size] = 0.0f; // debug
+				rmat[mm+nn*size] = 0.0f; // debug
 			}
 		}
 	}
@@ -222,13 +227,13 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	FPRINTF(stderr, "[%d] comparing results ...\n", rank);
 	if (display)
 	{
-		for (j = 0; j < size; j++)
+		for (mm = 0; mm < size; mm++)
 		{
-			for (i = 0; i < size; i++)
+			for (nn = 0; nn < size; nn++)
 			{
-				if (i <= j)
+				if (nn <= mm)
 				{
-					printf("%2.2f\t", test_mat[j +i*size]);
+					printf("%2.2f\t", test_mat[mm +nn*size]);
 				}
 				else
 				{
@@ -240,24 +245,24 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	}
 
 	*correctness = 1;
-	for(x = 0; x < nblocks ; x++)
+	for(n = 0; n < nblocks ; n++)
 	{
-		for (y = 0; y < nblocks; y++)
+		for (m = 0; m < nblocks; m++)
 		{
-			int mpi_rank = my_distrib(x, y, nodes);
+			int mpi_rank = my_distrib(m, n, nodes);
 			if (mpi_rank == rank)
 			{
-				for (i = (size/nblocks)*x ; i < (size/nblocks)*x+(size/nblocks); i++)
+				for (nn = (size/nblocks)*n ; nn < (size/nblocks)*n+(size/nblocks); nn++)
 				{
-					for (j = (size/nblocks)*y ; j < (size/nblocks)*y+(size/nblocks); j++)
+					for (mm = (size/nblocks)*m ; mm < (size/nblocks)*m+(size/nblocks); mm++)
 					{
-						if (i <= j)
+						if (nn <= mm)
 						{
-							float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-							float err = abs(test_mat[j +i*size] - orig);
-							if (err > 0.00001)
+							float orig = (1.0f/(1.0f+nn+mm)) + ((nn == mm)?1.0f*size:0.0f);
+							float err = fabsf(test_mat[mm +nn*size] - orig) / orig;
+							if (err > epsilon)
 							{
-								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
+								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, nn, mm, test_mat[mm +nn*size], orig, err);
 								*correctness = 0;
 								*flops = 0;
 								break;

@@ -65,8 +65,19 @@ void _starpu_perf_counter_sample_exit(struct starpu_perf_counter_sample *sample)
 
 /* - */
 
-void _starpu_perf_counter_init(void)
+void _starpu_perf_counter_init(struct _starpu_machine_config *pconfig)
 {
+	if (pconfig->conf.start_perf_counter_collection)
+	{
+		/* start perf counter collection immediately */
+		pconfig->perf_counter_pause_depth = 0;
+	}
+	else
+	{
+		/* defer perf counter collection until call to
+		 * starpu_perf_counter_start_collection () */
+		pconfig->perf_counter_pause_depth = 1;
+	}
 	STARPU_ASSERT(!_starpu_machine_is_running());
 	_starpu_perf_counter_sample_init(&global_sample, starpu_perf_counter_scope_global);
 
@@ -80,6 +91,20 @@ void _starpu_perf_counter_exit(void)
 
 	_starpu_perf_counter_unregister_all_scopes();
 	_starpu_perf_counter_sample_exit(&global_sample);
+}
+
+/* - */
+
+void starpu_perf_counter_collection_start()
+{
+	STARPU_HG_DISABLE_CHECKING(_starpu_config.perf_counter_pause_depth);
+	(void)STARPU_ATOMIC_ADD(&_starpu_config.perf_counter_pause_depth, -1);
+}
+
+void starpu_perf_counter_collection_stop()
+{
+	STARPU_HG_DISABLE_CHECKING(_starpu_config.perf_counter_pause_depth);
+	(void)STARPU_ATOMIC_ADD(&_starpu_config.perf_counter_pause_depth, +1);
 }
 
 /* - */
@@ -462,6 +487,9 @@ void _starpu_perf_counter_register_updater(enum starpu_perf_counter_scope scope,
 
 static void update_sample(struct starpu_perf_counter_sample *sample, void *context)
 {
+	if (sample->listener == NULL)
+		return;
+
 	_starpu_spin_lock(&sample->lock);
 	struct perf_counter_array *counters = _get_counters(sample->scope);
 

@@ -1,8 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012-2014,2016-2018                      Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
-# Copyright (C) 2010-2019                                CNRS
+# Copyright (C) 2009-2020                                Université de Bordeaux
+# Copyright (C) 2010-2020                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,18 +16,36 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-StarPU 1.4.0 (svn revision xxxx)
+StarPU 1.4.0 (git revision xxxx)
 ==============================================
 New features:
   * Fault tolerance support with starpu_task_ft_failed().
   * Add get_max_size method to data interfaces for applications using data with
     variable size to express their maximal potential size.
+  * New offline tool to draw graph showing elapsed time between sent
+    or received data and their use by tasks
+  * Add 4D tensor data interface.
+  * New sched_tasks.rec trace file which monitors task scheduling push/pop actions
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
 
-StarPU 1.3.3 (git revision xxx)
+StarPU 1.3.4 (git revision xxx)
 ==============================================
+
+Small features:
+  * New environment variables STARPU_BUS_STATS_FILE and
+    STARPU_WORKER_STATS_FILE to specify files in which to display
+    statistics about data transfers and workers.
+  * Add starpu_bcsr_filter_vertical_block filtering function.
+  * Add starpu_interface_copy2d, 3d, and 4d to easily request data copies from
+    data interfaces.
+  * Move optimized cuda 2d copy from interfaces to new
+    starpu_cuda_copy2d_async_sync and starpu_cuda_copy3d_async_sync, and use
+    them from starpu_interface_copy2d and 3d.
+
+StarPU 1.3.3 (git revision 11afc5b007fe1ab1c729b55b47a5a98ef7f3cfad)
+====================================================================
 
 New features:
   * New semantic for starpu_task_insert() and alike parameters
@@ -47,6 +65,7 @@ New features:
   * Add STARPU_TASK_SCHED_DATA
   * Add support for staging schedulers.
   * New modular-heteroprio-heft scheduler.
+  * New dmdap "data-aware performance model (priority)" scheduler
 
 Changes:
   * Modification in the Native Fortran interface of the functions
@@ -65,8 +84,17 @@ Small features:
     submits an empty task with the specified callback
 
 
+Small changes:
+   * Default modular worker queues to 2 tasks unless it's an heft
+     scheduler
+   * Separate out STATUS_SLEEPING_SCHEDULING state from
+     STATUS_SLEEPING state
+     When running the scheduler while being idle, workers do not go in
+     the STATUS_SCHEDULING state, so that that time is considered as
+     idle time instead of overhead.
+
 StarPU 1.3.2 (git revision af22a20fc00a37addf3cc6506305f89feed940b0)
-==============================================
+====================================================================
 
 Small changes:
   * Improve OpenMP support to detect the environment is valid before
@@ -79,7 +107,7 @@ Small changes:
     communications progress.
 
 StarPU 1.3.1 (git revision 01949488b4f8e6fe26d2c200293b8aae5876b038)
-==============================================
+====================================================================
 
 Small features:
   * Add starpu_filter_nparts_compute_chunk_size_and_offset helper.
@@ -90,7 +118,7 @@ Small changes:
     library is available, also check the compiled code can be run.
 
 StarPU 1.3.0 (git revision 24ca83c6dbb102e1cfc41db3bb21c49662067062)
-==============================================
+====================================================================
 
 New features:
   * New scheduler 'heteroprio' with heterogeneous priorities
@@ -238,33 +266,41 @@ Small changes:
   * STARPU_COMM_STATS also displays the bandwidth
   * Update data interfaces implementations to only use public API
 
-StarPU 1.2.9 (git revision xxx)
-==============================================
+StarPU 1.2.9 (git revision 3aca8da3138a99e93d7f93905d2543bd6f1ea1df)
+====================================================================
+
+Small changes:
   * Add STARPU_SIMGRID_TRANSFER_COST environment variable to easily disable
     data transfer costs.
+  * New dmdap "data-aware performance model (priority)" scheduler
+  * Modification in the Native Fortran interface of the functions
+    fstarpu_mpi_task_insert, fstarpu_mpi_task_build and
+    fstarpu_mpi_task_post_build to only take 1 parameter being the MPI
+    communicator, the codelet and the various parameters for the task.
 
 StarPU 1.2.8 (git revision f66374c9ad39aefb7cf5dfc31f9ab3d756bcdc3c)
-==============================================
+====================================================================
 
 Small features:
   * Minor fixes
 
 StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
-==============================================
+====================================================================
 
 Small features:
   * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
   * Add starpu_data_set/get_ooc_flag.
+  * Use starpu_mpi_tag_t (int64_t) for MPI communication tag
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
-==============================================
+====================================================================
 
 Small changes:
   * Fix crash for lws scheduler
   * Avoid making hwloc load PCI topology when CUDA is not enabled
 
 StarPU 1.2.5 (git revision 22f32916916d158e3420033aa160854d1dd341bd)
-==============================================
+====================================================================
 
 Small features:
   * Add a new value STARPU_TASK_COLOR to be used in
@@ -275,7 +311,7 @@ Changes:
   * Do not export -lcuda -lcudart -lOpenCL in *starpu*.pc.
 
 StarPU 1.2.4 (git revision 255cf98175ef462749780f30bfed21452b74b594)
-==============================================
+====================================================================
 
 Small features:
    * Catch of signals SIGINT and SIGSEGV to dump fxt trace files.
@@ -292,8 +328,8 @@ Small features:
    * Add a way to choose the dag.dot colors.
 
 
-StarPU 1.2.3 (svn revision 22444)
-==============================================
+StarPU 1.2.3 (git revision 586ba6452a8eef99f275c891ce08933ae542c6c2)
+====================================================================
 
 New features:
   * Add per-node MPI data.
@@ -325,8 +361,8 @@ Small changes:
     reduction methods are provided, and make sure a handle is
     initialized before trying to read it.
 
-StarPU 1.2.2 (svn revision 21308)
-==============================================
+StarPU 1.2.2 (git revision a0b01437b7b91f33fb3ca36bdea35271cad34464)
+===================================================================
 
 New features:
   * Add starpu_data_acquire_try and starpu_data_acquire_on_node_try.
@@ -367,8 +403,8 @@ Small changes:
   * Fix odd ordering of CPU workers on CPUs due to GPUs stealing some
     cores
 
-StarPU 1.2.1 (svn revision 20299)
-==============================================
+StarPU 1.2.1 (git revision 473acaec8a1fb4f4c73d8b868e4f044b736b41ea)
+====================================================================
 
 New features:
   * Add starpu_fxt_trace_user_event_string.
@@ -404,8 +440,8 @@ Small changes:
     temporary data
   * Fix compatibility with simgrid 3.14
 
-StarPU 1.2.0 (svn revision 18521)
-==============================================
+StarPU 1.2.0 (git revision 5a86e9b61cd01b7797e18956283cc6ea22adfe11)
+====================================================================
 
 New features:
   * MIC Xeon Phi support
@@ -606,19 +642,51 @@ Small changes:
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
 
-StarPU 1.1.5 (svn revision xxx)
-==============================================
+StarPU 1.1.8 (git revision f7b7abe9f86361cbc96f2b51c6ad7336b7d1d628)
+====================================================================
 The scheduling context release
 
+Small changes:
+  * Fix compatibility with simgrid 3.14
+  * Fix lock ordering for memory reclaiming
+
+StarPU 1.1.7 (git revision 341044b67809892cf4a388e482766beb50256907)
+====================================================================
+The scheduling context release
+
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
+
+StarPU 1.1.6 (git revision cdffbd5f5447e4d076d659232b3deb14f3c20da6)
+====================================================================
+The scheduling context release
+
+Small features:
+  * Add starpu_task_get_task_succs to get the list of children of a given
+    task.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
+
+Small changes:
+  * Various fixes for MacOS and windows systems
+
+StarPU 1.1.5 (git revision 20469c6f3e7ecd6c0568c8e4e4b5b652598308d8xxx)
+=======================================================================
+The scheduling context release
+
+New features:
   * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
     another way than starpu_malloc.
   * Add starpu_task_wait_for_n_submitted() and
     STARPU_LIMIT_MAX_NSUBMITTED_TASKS/STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
     easily control the number of submitted tasks by making task submission
     block.
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add Fortran 90 module and example using it
 
-StarPU 1.1.4 (svn revision 14856)
-==============================================
+StarPU 1.1.4 (git revision 2a3d30b28d6d099d271134a786335acdbb3931a3)
+====================================================================
 The scheduling context release
 
 New features:
@@ -652,8 +720,8 @@ Small features:
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.
 
-StarPU 1.1.3 (svn revision 13450)
-==============================================
+StarPU 1.1.3 (git revision 11afc5b007fe1ab1c729b55b47a5a98ef7f3cfad)
+====================================================================
 The scheduling context release
 
 New features:
@@ -668,8 +736,8 @@ Small changes:
     issues on parallel launches, MPI runs notably.
   * Lots of build fixes for icc on Windows.
 
-StarPU 1.1.2 (svn revision 13011)
-==============================================
+StarPU 1.1.2 (git revision d14c550798630bbc4f3da2b07d793c47e3018f02)
+====================================================================
 The scheduling context release
 
 New features:
@@ -682,8 +750,8 @@ New features:
   * Add STARPU_TRACE_BUFFER_SIZE environment variable to specify the size of
     the trace buffer.
 
-StarPU 1.1.1 (svn revision 12638)
-==============================================
+StarPU 1.1.1 (git revision dab2e51117fac5bef767f3a6b7677abb2147d2f2)
+====================================================================
 The scheduling context release
 
 New features:
@@ -727,8 +795,8 @@ Small changes:
     configure option --enable-starpufft-examples needs to be specified
     to change this behaviour.
 
-StarPU 1.1.0 (svn revision 11960)
-==============================================
+StarPU 1.1.0 (git revision 3c4bc72ccef30e767680cad3d749c4e9010d4476)
+====================================================================
 The scheduling context release
 
 New features:
@@ -965,8 +1033,8 @@ Small changes:
   * Fix performance regression: dmda queues were inadvertently made
     LIFOs in r9611.
 
-StarPU 1.0.3 (svn revision 7379)
-==============================================
+StarPU 1.0.3 (git revision 25f8b3a7b13050e99bf1725ca6f52cfd62e7a861)
+====================================================================
 
 Changes:
   * Several bug fixes in the build system
@@ -974,8 +1042,8 @@ Changes:
   * Fix generating FXT traces bigger than 64MiB.
   * Improve ENODEV error detections in StarPU FFT
 
-StarPU 1.0.2 (svn revision 7210)
-==============================================
+StarPU 1.0.2 (git revision 6f95de279d6d796a39debe8d6c5493b3bdbe0c37)
+====================================================================
 
 Changes:
   * Add starpu_block_shadow_filter_func_vector and an example.
@@ -984,8 +1052,8 @@ Changes:
   * Fix parallel tasks CPU binding and combined worker generation.
   * Fix generating FXT traces bigger than 64MiB.
 
-StarPU 1.0.1 (svn revision 6659)
-==============================================
+StarPU 1.0.1 (git revision 97ea6e15a273e23e4ddabf491b0f9481373ca01a)
+====================================================================
 
 Changes:
   * hwloc support. Warn users when hwloc is not found on the system and
@@ -999,8 +1067,8 @@ Changes:
   * Update SOCL to use new API
   * Documentation improvement.
 
-StarPU 1.0.0 (svn revision 6306)
-==============================================
+StarPU 1.0.0 (git revision d3ad9ca318ec9acfeaf8eb7d8a018b09e4722292)
+====================================================================
 The extensions-again release
 
 New features:
@@ -1086,8 +1154,8 @@ Small changes:
   * Documentation improvement.
 
 
-StarPU 0.9 (svn revision 3721)
-==============================================
+StarPU 0.9 (git revision 12bba8528fc0d85367d885cddc383ba54efca464)
+==================================================================
 The extensions release
 
   * Provide the STARPU_REDUX data access mode
@@ -1109,8 +1177,8 @@ The extensions release
   * Add stencil MPI example
   * Initial support for CUDA4
 
-StarPU 0.4 (svn revision 2535)
-==============================================
+StarPU 0.4 (git revision ad8d8be3619f211f228c141282d7d504646fc2a6)
+==================================================================
 The API strengthening release
 
   * Major API improvements
@@ -1135,8 +1203,8 @@ The API strengthening release
     - Add OpenCL support
     - Add support for Windows
 
-StarPU 0.2.901 aka 0.3-rc1 (svn revision 1236)
-==============================================
+StarPU 0.2.901 aka 0.3-rc1 (git revision 991f2abb772c17c3d45bbcf27f46197652e6a3ef)
+==================================================================================
 The asynchronous heterogeneous multi-accelerator release
 
   * Many API changes and code cleanups
@@ -1164,8 +1232,8 @@ The asynchronous heterogeneous multi-accelerator release
     specify where to bind the workers
   * Use the hwloc library to detect the actual number of cores
 
-StarPU 0.2.0 (svn revision 1013)
-==============================================
+StarPU 0.2.0 (git revision 73e989f0783e10815aff394f80242760c4ed098c)
+====================================================================
 The Stabilizing-the-Basics release
 
   * Various API cleanups
@@ -1179,8 +1247,8 @@ The Stabilizing-the-Basics release
   * More examples are supplied
 
 
-StarPU 0.1.0 (svn revision 794)
-==============================================
+StarPU 0.1.0 (git revision 911869a96b40c74eb92b30a43d3e08bf445d8078)
+====================================================================
 First release.
 
 Status:

@@ -698,6 +698,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 0, "One can't submit several partition plannings at the same time");
 	STARPU_ASSERT_MSG(initial_handle->readonly == 0, "One can't submit a partition planning while a readonly partitioning is active");
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->partitioned++;
 	initial_handle->active_children = children[0]->siblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -757,6 +758,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 0 || initial_handle->readonly, "One can't submit a readonly partition planning at the same time as a readwrite partition planning");
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->partitioned++;
 	initial_handle->readonly = 1;
 	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
@@ -793,6 +795,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't upgrade a readonly partition planning to readwrite while other readonly partition plannings are active");
 	STARPU_ASSERT_MSG(initial_handle->readonly == 1, "One can only upgrade a readonly partition planning");
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->readonly = 0;
 	initial_handle->active_children = initial_handle->active_readonly_children[0];
 	initial_handle->active_readonly_children[0] = NULL;
@@ -819,6 +822,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	if (initial_handle->readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
@@ -913,6 +917,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 

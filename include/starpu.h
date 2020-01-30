@@ -433,6 +433,12 @@ struct starpu_conf
 	   \ref STARPU_CATCH_SIGNALS
 	 */
 	int catch_signals;
+
+	/**
+	   Specify whether StarPU should automatically start to collect
+	   performance counters after initialization
+	 */
+	unsigned start_perf_counter_collection;
 };
 
 /**

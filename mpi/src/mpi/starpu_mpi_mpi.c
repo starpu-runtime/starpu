@@ -382,7 +382,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid);
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
@@ -1150,6 +1150,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
+#ifdef HAVE_SG_ACTOR_DATA
+	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+#else
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
 	void **tsd;
@@ -1159,6 +1162,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
 	}
 	smpi_process_set_user_data(tsd);
+#endif
         /* And wait for StarPU to get initialized, to come back to the same
          * situation as native execution where that's always the case. */
 	starpu_wait_initialized();

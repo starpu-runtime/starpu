@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2020                      Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -54,6 +54,13 @@ starpu_data_handle_t vector_handle;
 starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 \endcode
 
+Vectors can be partitioned into pieces by using
+starpu_vector_filter_block(). They can also be partitioned with some overlapping
+by using starpu_vector_filter_block_shadow(). By default StarPU
+uses the same size for each piece. If different sizes are desired,
+starpu_vector_filter_list() or starpu_vector_filter_list_long() can be used
+instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be used.
+
 \subsection MatrixDataInterface Matrix Data Interface
 
 To register 2-D matrices with a potential padding, one can use the
@@ -67,9 +74,15 @@ matrix = (float*)malloc(width * height * sizeof(float));
 starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, width, width, height, sizeof(float));
 \endcode
 
+2D matrices can be partitioned into 2D matrices along the x dimension by
+using starpu_matrix_filter_block(), and along the y dimension by using
+starpu_matrix_filter_vertical_block(). They can also be partitioned
+with some overlapping by using starpu_matrix_filter_block_shadow() and
+starpu_matrix_filter_vertical_block_shadow().
+
 \subsection BlockDataInterface Block Data Interface
 
-To register 3-D blocks with potential paddings on Y and Z dimensions,
+To register 3-D matrices with potential paddings on Y and Z dimensions,
 one can use the block data interface. Here an example of how to
 register a block data to StarPU by using starpu_block_data_register().
 
@@ -79,6 +92,29 @@ starpu_data_handle_t block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
 starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
 \endcode
+
+3D matrices can be partitioned along the x dimension by
+using starpu_block_filter_block(), or along the y dimension
+by using starpu_block_filter_vertical_block, or along the
+z dimension by using starpu_block_filter_depth_block. They
+can also be partitioned with some overlapping by using
+starpu_block_filter_block_shadow(), starpu_block_filter_vertical_block_shadow(),
+or starpu_block_filter_depth_block_shadow().
+
+\subsection TensorDataInterface Tensor Data Interface
+
+To register 4-D matrices with potential paddings on Y, Z, and T dimensions,
+one can use the tensor data interface. Here an example of how to
+register a tensor data to StarPU by using starpu_tensor_data_register().
+
+\code{.c}
+float *block;
+starpu_data_handle_t block_handle;
+block = (float*)malloc(nx*ny*nz*nt*sizeof(float));
+starpu_tensor_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx*ny*nz, nx, ny, nz, nt, sizeof(float));
+\endcode
+
+Partitioning filters are not implemented yet.
 
 \subsection BCSRDataInterface BCSR Data Interface
 
@@ -147,9 +183,17 @@ starpu_bcsr_data_register(&bcsr_handle,
 StarPU provides an example on how to deal with such matrices in
 <c>examples/spmv</c>.
 
+BCSR data handles can be partitioned into its dense matrix blocks by using
+starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
+using starpu_bcsr_filter_vertical_block() (but only split along the leading dimension is
+supported, i.e. along adjacent nnz blocks)
+
 \subsection CSRDataInterface CSR Data Interface
 
 TODO
+
+CSR data handles can be partitioned into vertical CSR matrices by using
+starpu_csr_filter_vertical_block().
 
 \subsection VariableSizeDataInterface Data Interface with Variable Size
 
@@ -175,7 +219,39 @@ that the StarPU core knows the new data layout. The starpu_data_interface_ops
 structure however then needs to have the starpu_data_interface_ops::dontcache
 field set to 1, to prevent StarPU from trying to perform any cached allocation,
 since the allocated size will vary. An example is available in
-<c>tests/datawizard/variable_size.c</c>
+<c>tests/datawizard/variable_size.c</c>. The example uses its own data
+interface so as to contain some simulation information for data growth, but the
+principle can be applied for any data interface.
+
+The principle is to use <c>starpu_malloc_on_node_flags</c> to make the new
+allocation, and use <c>starpu_free_on_node_flags</c> to release any previous
+allocation. The flags have to be precisely like in the example:
+
+\code{.c}
+unsigned workerid = starpu_worker_get_id_check();
+unsigned dst_node = starpu_worker_get_memory_node(workerid);
+interface->ptr = starpu_malloc_on_node_flags(dst_node, size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+starpu_free_on_node_flags(dst_node, old, size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
+interface->size += increase;
+\endcode
+
+so that the allocated area has the expected properties and the allocation is accounted for properly.
+
+Depending on the interface (vector, CSR, etc.) you may have to fix several
+members of the data interface: e.g. both <c>nx</c> and <c>allocsize</c> for
+vectors, and store the pointer both in <c>ptr</c> and <c>dev_handle</c>.
+
+Some interfaces make a distinction between the actual number of elements
+stored in the data and the actually allocated buffer. For instance, the vector
+interface uses the <c>nx</c> field for the former, and the <c>allocsize</c> for
+the latter. This allows for lazy reallocation to avoid reallocating the buffer
+everytime to exactly match the actual number of elements. Computations and data
+transfers will use <c>nx</c> field, while allocation functions will use the
+<c>allocsize</c>. One just has to make sure that <c>allocsize</c> is always
+bigger or equal to <c>nx</c>.
+
+Important note: one can not change the size of a partitioned data.
+
 
 \section DataManagement Data Management
 
@@ -481,6 +557,34 @@ starpu_data_invalidate_submit(handle);
 
 And now we can start using vertical slices, etc.
 
+\section DataPointers Handles data buffer pointers
+
+A simple understanding of starpu handles is that it's a collection of buffers on
+each memory node of the machine, which contain the same data.  The picture is
+however made more complex with the OpenCL support and with partitioning.
+
+When partitioning a handle, the data buffers of the subhandles will indeed
+be inside the data buffers of the main handle (to save transferring data
+back and forth between the main handle and the subhandles). But in OpenCL,
+a <c>cl_mem</c> is not a pointer, but an opaque value on which pointer
+arithmetic can not be used. That is why data interfaces contain three members:
+<c>dev_handle</c>, <c>offset</c>, and <c>ptr</c>. The <c>dev_handle</c> member
+is what the allocation function returned, and one can not do arithmetic on
+it. The <c>offset</c> member is the offset inside the allocated area, most often
+it will be 0 because data start at the beginning of the allocated area, but
+when the handle is partitioned, the subhandles will have varying <c>offset</c>
+values, for each subpiece. The <c>ptr</c> member, in the non-OpenCL case, i.e.
+when pointer arithmetic can be used on <c>dev_handle</c>, is just the sum of
+<c>dev_handle</c> and <c>offset</c>, provided for convenience.
+
+This means that:
+<ul>
+<li>computation kernels can use <c>ptr</c> in non-OpenCL implementations.</li>
+<li>computation kernels have to use <c>dev_handle</c> and <c>offset</c> in the OpenCL implementation.</li>
+<li>allocation methods of data interfaces have to store the value returned by starpu_malloc_on_node in <c>dev_handle</c> and <c>ptr</c>, and set <c>offset</c> to 0.</li>
+<li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
+</ul>
+
 \section DefiningANewDataFilter Defining A New Data Filter
 
 StarPU provides a series of predefined filters in \ref API_Data_Partition, but
@@ -763,7 +867,11 @@ A full example may be found in <c>examples/basic_examples/multiformat.c</c>.
 
 \section DefiningANewDataInterface Defining A New Data Interface
 
-Let's define a new data interface to manage complex numbers.
+This section proposes an example how to define your own interface, when the
+StarPU-provided interface do not fit your needs. Here we take a dumb example of
+an array of complex numbers represented by two arrays of double values.
+
+Let's thus define a new data interface to manage arrays of complex numbers:
 
 \code{.c}
 /* interface for complex numbers */
@@ -774,6 +882,15 @@ struct starpu_complex_interface
         int nx;
 };
 \endcode
+
+That structure stores enough to describe <b>one</b> buffer of such kind of
+data. It is used for the buffer stored in the main memory, another instance
+is used for the buffer stored in a GPU, etc. A <i>data handle</i> is thus a
+collection of such structures, to remember each buffer on each memory node.
+
+Note: one should not take pointers into such structures, because StarPU needs
+to be able to copy over the content of it to various places, for instance to
+efficiently migrate a data buffer from one data handle to another data handle.
 
 Registering such a data to StarPU is easily done using the function
 starpu_data_register(). The last
@@ -800,12 +917,41 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
 }
 \endcode
 
-The <c>starpu_complex_interface</c> structure is here used just to store the
+The <c>struct starpu_complex_interface complex</c> is here used just to store the
 parameters that the user provided to <c>starpu_complex_data_register</c>.
 starpu_data_register() will first allocate the handle, and
 then pass the <c>starpu_complex_interface</c> structure to the
 starpu_data_interface_ops::register_data_handle method, which records them
-within the data handle (it is called once per node by starpu_data_register()).
+within the data handle (it is called once per node by starpu_data_register()):
+
+\code{.c}
+static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+{
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct starpu_complex_interface *local_interface = (struct starpu_complex_interface *)
+			starpu_data_get_interface_on_node(handle, node);
+
+		local_interface->nx = complex_interface->nx;
+		if (node == home_node)
+		{
+			local_interface->real = complex_interface->real;
+			local_interface->imaginary = complex_interface->imaginary;
+		}
+		else
+		{
+			local_interface->real = NULL;
+			local_interface->imaginary = NULL;
+		}
+	}
+}
+\endcode
+
+If the application provided a home node, the corresponding pointers will be
+recorded for that node. Others have no buffer allocated yet.
 
 Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic
@@ -931,5 +1077,22 @@ while the second data will be left in slow (but large) memory. This makes sense
 when the kernel does not make so many accesses to the second data, and thus data
 being remote e.g. over a PCI bus is not a performance problem, and avoids
 filling the fast local memory with data which does not need the performance.
+
+In cases where the kernel is fine with some data being either local or in the
+main memory, ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU can be used. StarPU will then
+be free to leave the data in the main memory and let the kernel access it from
+accelerators, or to move it to the accelerator before starting the kernel, for
+instance:
+
+\code{.c}
+struct starpu_codelet cl =
+{
+	.cuda_funcs = { kernel },
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_LOCAL_OR_CPU},
+};
+\endcode
 
 */

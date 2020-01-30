@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2012,2015,2017                           CNRS
- * Copyright (C) 2013,2016,2017                           Université de Bordeaux
+ * Copyright (C) 2013,2016,2017,2019                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,6 +87,17 @@ int main(int argc, char **argv)
 		int block[NX*NY*NZ];
 		starpu_block_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(block[0]));
 		ret = check_copy(handle, "block");
+	}
+
+	if (ret == 0)
+	{
+		int NX=3;
+		int NY=2;
+		int NZ=4;
+		int NT=3;
+		int tensor[NX*NY*NZ*NT];
+		starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(tensor[0]));
+		ret = check_copy(handle, "tensor");
 	}
 
 	if (ret == 0)

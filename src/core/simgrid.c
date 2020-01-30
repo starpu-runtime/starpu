@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2012,2013,2015-2019                      CNRS
- * Copyright (C) 2012-2019                                Université de Bordeaux
+ * Copyright (C) 2012,2013,2015-2020                      CNRS
+ * Copyright (C) 2012-2020                                Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -68,7 +68,7 @@ static struct transfer_runner
 	starpu_sem_t sem;
 	starpu_pthread_t runner;
 } transfer_runner[STARPU_MAXNODES][STARPU_MAXNODES];
-static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
+static void *transfer_execute(void *arg);
 
 starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 static struct worker_runner
@@ -77,7 +77,7 @@ static struct worker_runner
 	starpu_sem_t sem;
 	starpu_pthread_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
-static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED);
+static void *task_execute(void *arg);
 
 #if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
@@ -316,6 +316,11 @@ int do_starpu_main(int argc, char *argv[])
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
 
+	if (!starpu_main)
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
+	}
+
 	main_ret = starpu_main(argc, argv);
 	return main_ret;
 }
@@ -368,11 +373,9 @@ int main(int argc, char **argv)
 	int i;
 	for (i = 0; i < argc; i++)
 		argv_cpy[i] = strdup(argv[i]);
-	void **tsd;
-	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
 	/* Run the application in a separate thread */
-	MSG_process_create_with_arguments("main", &do_starpu_main, tsd, _starpu_simgrid_get_host_by_name("MAIN"), argc, argv_cpy);
+	_starpu_simgrid_actor_create("main", &do_starpu_main, _starpu_simgrid_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in the main thread */
 	MSG_main();
@@ -392,7 +395,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifdef HAVE_SG_CONFIG_CONTINUE_AFTER_HELP
 	sg_config_continue_after_help();
 #endif
-#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach) || defined(HAVE_SG_ACTOR_ATTACH)
 	if (simgrid_started < 2 && !_starpu_simgrid_running_smpi())
 	{
 		/* "Cannot create_maestro with this ContextFactory.
@@ -411,10 +414,18 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		SIMIX_set_maestro(maestro, NULL);
 		/* Initialize simgrid */
 		_starpu_start_simgrid(argc, *argv);
+
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+
+#if defined(HAVE_SG_ACTOR_ATTACH) && defined (HAVE_SG_ACTOR_DATA)
+		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+		sg_actor_data_set(actor, tsd);
+#else
 		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+#endif
+
 		/* We initialized through MSG_process_attach */
 		simgrid_started = 3;
 	}
@@ -431,12 +442,16 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-#ifdef HAVE_MSG_PROCESS_USERDATA_INIT
+#if defined(HAVE_MSG_PROCESS_USERDATA_INIT) && !defined(HAVE_SG_ACTOR_DATA)
 		MSG_process_userdata_init();
 #endif
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+#ifdef HAVE_SG_ACTOR_DATA
+		sg_actor_data_set(sg_actor_self(), tsd);
+#else
 		smpi_process_set_user_data(tsd);
+#endif
 	}
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -454,21 +469,22 @@ void _starpu_simgrid_init(void)
 	{
 		char s[32];
 		snprintf(s, sizeof(s), "worker %u runner", i);
-		void **tsd;
-		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 		starpu_sem_init(&worker_runner[i].sem, 0, 0);
-		tsd[0] = (void*)(uintptr_t) i;
-		worker_runner[i].runner = MSG_process_create_with_arguments(s, task_execute, tsd, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)), 0, NULL);
+		starpu_pthread_create_on(s, &worker_runner[i].runner, NULL, task_execute, (void*)(uintptr_t) i, _starpu_simgrid_get_host_by_worker(_starpu_get_worker_struct(i)));
 	}
 }
 
 void _starpu_simgrid_deinit_late(void)
 {
-#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach) || defined(HAVE_SG_ACTOR_ATTACH)
 	if (simgrid_started == 3)
 	{
 		/* Started with MSG_process_attach, now detach */
+#ifdef HAVE_SG_ACTOR_ATTACH
+		sg_actor_detach();
+#else
 		MSG_process_detach();
+#endif
 		simgrid_started = 0;
 	}
 #endif
@@ -553,12 +569,9 @@ struct task
 };
 
 /* Actually execute the task.  */
-static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+static void *task_execute(void *arg)
 {
-	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	starpu_sleep(0.000001);
-
-	unsigned workerid = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
+	unsigned workerid = (uintptr_t) arg;
 	struct worker_runner *w = &worker_runner[workerid];
 
 	_STARPU_DEBUG("worker runner %u started\n", workerid);
@@ -630,13 +643,13 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;
-	
+
 	if (isnan(length))
 	{
 		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
-				"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
-			_starpu_job_get_model_name(j));
+				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
                 /* TODO: option to add variance according to performance model,
                  * to be able to easily check scheduling robustness */
 	}
@@ -799,10 +812,7 @@ static void transfer_queue(struct transfer *transfer)
 		{
 			char s[64];
 			snprintf(s, sizeof(s), "transfer %u-%u runner", src, dst);
-			void **tsd;
-			_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
-			tsd[0] = (void*)(uintptr_t)((src<<16) + dst);
-			t->runner = MSG_process_create_with_arguments(s, transfer_execute, tsd, _starpu_simgrid_get_memnode_host(src), 0, NULL);
+			starpu_pthread_create_on(s, &t->runner, NULL, transfer_execute, (void*)(uintptr_t)((src<<16) + dst), _starpu_simgrid_get_memnode_host(src));
 			starpu_sem_init(&t->sem, 0, 0);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -824,12 +834,9 @@ static void transfer_queue(struct transfer *transfer)
 }
 
 /* Actually execute the transfer, and then start transfers waiting for this one.  */
-static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
+static void *transfer_execute(void *arg)
 {
-	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
-	starpu_sleep(0.000001);
-
-	unsigned src_dst = (uintptr_t) STARPU_PTHREAD_GETSPECIFIC(0);
+	unsigned src_dst = (uintptr_t) arg;
 	unsigned src = src_dst >> 16;
 	unsigned dst = src_dst & 0xffff;
 	struct transfer_runner *t = &transfer_runner[src][dst];
@@ -1105,6 +1112,24 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 	return 0;
 }
 
+starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[])
+{
+	void **tsd;
+	starpu_pthread_t actor;
+	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
+#ifdef HAVE_SG_ACTOR_INIT
+	actor = sg_actor_init(name, host);
+	sg_actor_data_set(actor, tsd);
+	sg_actor_start(actor, code, argc, argv);
+#else
+	actor = MSG_process_create_with_arguments(name, code, tsd, host, argc, argv);
+#ifdef HAVE_SG_ACTOR_DATA
+	sg_actor_data_set(actor, tsd);
+#endif
+#endif
+	return actor;
+}
+
 starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
 {
 	const char *fmt;
@@ -1217,7 +1242,7 @@ void _starpu_simgrid_count_ngpus(void)
 						found = 1;
 						break;
 					}
-					
+
 				if (!found)
 					continue;
 

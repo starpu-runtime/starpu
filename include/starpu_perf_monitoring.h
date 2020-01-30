@@ -63,6 +63,15 @@ struct starpu_perf_counter_sample;
 struct starpu_perf_counter_set;
 
 /**
+  Start collecting performance counter values.
+  */
+void starpu_perf_counter_collection_start();
+/**
+  Stop collecting performance counter values.
+  */
+void starpu_perf_counter_collection_stop();
+
+/**
   Translate scope name constant string to scope id.
   */
 int starpu_perf_counter_scope_name_to_id(const char *name);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2010-2017,2019                           CNRS
  *
@@ -18,40 +18,10 @@
 
 #include <starpu.h>
 
-#ifdef STARPU_USE_CUDA
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-#endif
-#ifdef STARPU_USE_OPENCL
-static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-#endif
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
 static const struct starpu_data_copy_methods block_copy_data_methods_s =
 {
-#ifdef STARPU_USE_CUDA
-	.ram_to_cuda = copy_ram_to_cuda,
-	.cuda_to_ram = copy_cuda_to_ram,
-	.ram_to_cuda_async = copy_ram_to_cuda_async,
-	.cuda_to_ram_async = copy_cuda_to_ram_async,
-	.cuda_to_cuda = copy_cuda_to_cuda,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.ram_to_opencl = copy_ram_to_opencl,
-	.opencl_to_ram = copy_opencl_to_ram,
-	.opencl_to_opencl = copy_opencl_to_opencl,
-        .ram_to_opencl_async = copy_ram_to_opencl_async,
-	.opencl_to_ram_async = copy_opencl_to_ram_async,
-	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
-#endif
 	.any_to_any = copy_any_to_any,
 };
 
@@ -101,9 +71,15 @@ static int block_pointer_is_inside(void *data_interface, unsigned node, void *pt
 {
 	(void) node;
 	struct starpu_block_interface *block_interface = data_interface;
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
 
 	return (char*) ptr >= (char*) block_interface->ptr &&
-		(char*) ptr < (char*) block_interface->ptr + block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
+		(char*) ptr < (char*) block_interface->ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize;
 }
 
 static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -214,6 +190,9 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
 
+#define IS_CONTIGUOUS_MATRIX(nx, ny, ldy) ((nx) == (ldy))
+#define IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz) ((nx) * (ny) == (ldz))
+
 static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -221,7 +200,14 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	*count = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
+
+	*count = nx*ny*nz*elemsize;
 
 	if (ptr != NULL)
 	{
@@ -231,16 +217,31 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
-		for(z=0 ; z<block_interface->nz ; z++)
+
+		if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
+			memcpy(cur, block, nx * ny * nz * elemsize);
+		else
 		{
 			char *block_z = block;
-			for(y=0 ; y<block_interface->ny ; y++)
+			for(z=0 ; z<nz ; z++)
 			{
-				memcpy(cur, block, block_interface->nx*block_interface->elemsize);
-				cur += block_interface->nx*block_interface->elemsize;
-				block += block_interface->ldy * block_interface->elemsize;
+				if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
+				{
+					memcpy(cur, block_z, nx * ny * elemsize);
+					cur += nx*ny*elemsize;
+				}
+				else
+				{
+					char *block_y = block_z;
+					for(y=0 ; y<ny ; y++)
+					{
+						memcpy(cur, block_y, nx*elemsize);
+						cur += nx*elemsize;
+						block_y += ldy * elemsize;
+					}
+				}
+				block_z += ldz * elemsize;
 			}
-			block = block_z + block_interface->ldz * block_interface->elemsize;
 		}
 	}
 
@@ -254,21 +255,43 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	STARPU_ASSERT(count == block_interface->elemsize * block_interface->nx * block_interface->ny * block_interface->nz);
+	uint32_t ldy = block_interface->ldy;
+	uint32_t ldz = block_interface->ldz;
+	uint32_t nx = block_interface->nx;
+	uint32_t ny = block_interface->ny;
+	uint32_t nz = block_interface->nz;
+	size_t elemsize = block_interface->elemsize;
+
+	STARPU_ASSERT(count == elemsize * nx * ny * nz);
 
 	uint32_t z, y;
 	char *cur = ptr;
 	char *block = (void *)block_interface->ptr;
-	for(z=0 ; z<block_interface->nz ; z++)
+
+	if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
+		memcpy(block, cur, nx * ny * nz * elemsize);
+	else
 	{
 		char *block_z = block;
-		for(y=0 ; y<block_interface->ny ; y++)
+		for(z=0 ; z<nz ; z++)
 		{
-			memcpy(block, cur, block_interface->nx*block_interface->elemsize);
-			cur += block_interface->nx*block_interface->elemsize;
-			block += block_interface->ldy * block_interface->elemsize;
+			if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
+			{
+				memcpy(block_z, cur, nx * ny * elemsize);
+				cur += nx*ny*elemsize;
+			}
+			else
+			{
+				char *block_y = block_z;
+				for(y=0 ; y<ny ; y++)
+				{
+					memcpy(block_y, cur, nx*elemsize);
+					cur += nx*elemsize;
+					block_y += ldy * elemsize;
+				}
+			}
+			block_z += ldz * elemsize;
 		}
-		block = block_z + block_interface->ldz * block_interface->elemsize;
 	}
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
@@ -441,284 +464,6 @@ static void free_block_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, block_interface->dev_handle, nx*ny*nz*elemsize);
 }
 
-#ifdef STARPU_USE_CUDA
-static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, enum cudaMemcpyKind kind)
-{
-	struct starpu_block_interface *src_block = src_interface;
-	struct starpu_block_interface *dst_block = dst_interface;
-
-	uint32_t nx = src_block->nx;
-	uint32_t ny = src_block->ny;
-	uint32_t nz = src_block->nz;
-	size_t elemsize = src_block->elemsize;
-
-	cudaError_t cures;
-
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
-	{
-		/* Is that a single contiguous buffer ? */
-		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
-		{
-			starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, NULL, kind);
-                }
-		else
-		{
-			/* Are all plans contiguous */
-                        cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
-                                             (char *)src_block->ptr, src_block->ldz*elemsize,
-                                             nx*ny*elemsize, nz, kind);
-			if (!cures)
-				cures = cudaThreadSynchronize();
-                        if (STARPU_UNLIKELY(cures))
-                                STARPU_CUDA_REPORT_ERROR(cures);
-                }
-	}
-	else
-	{
-		/* Default case: we transfer all blocks one by one: nz transfers */
-		/* TODO: use cudaMemcpy3D now that it works (except on cuda 4.2) */
-		unsigned layer;
-		for (layer = 0; layer < src_block->nz; layer++)
-		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
-
-			cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-                                             (char *)src_ptr, src_block->ldy*elemsize,
-                                             nx*elemsize, ny, kind);
-
-			if (!cures)
-				cures = cudaThreadSynchronize();
-			if (STARPU_UNLIKELY(cures))
-				STARPU_CUDA_REPORT_ERROR(cures);
-		}
-	}
-
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
-
-	return 0;
-}
-
-static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream, enum cudaMemcpyKind kind)
-{
-	struct starpu_block_interface *src_block = src_interface;
-	struct starpu_block_interface *dst_block = dst_interface;
-
-	uint32_t nx = src_block->nx;
-	uint32_t ny = src_block->ny;
-	uint32_t nz = src_block->nz;
-	size_t elemsize = src_block->elemsize;
-
-	cudaError_t cures;
-
-	int ret;
-
-	/* We may have a contiguous buffer for the entire block, or contiguous
-	 * plans within the block, we can avoid many small transfers that way */
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
-	{
-		/* Is that a single contiguous buffer ? */
-		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
-		{
-			ret = starpu_cuda_copy_async_sync((void *)src_block->ptr, src_node, (void *)dst_block->ptr, dst_node, nx*ny*nz*elemsize, stream, kind);
-		}
-		else
-		{
-			double start;
-			/* Are all plans contiguous */
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
-					(char *)src_block->ptr, src_block->ldz*elemsize,
-					nx*ny*elemsize, nz, kind, stream);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
-			if (STARPU_UNLIKELY(cures))
-			{
-				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
-						(char *)src_block->ptr, src_block->ldz*elemsize,
-						nx*ny*elemsize, nz, kind);
-				if (!cures)
-					cures = cudaThreadSynchronize();
-				if (STARPU_UNLIKELY(cures))
-					STARPU_CUDA_REPORT_ERROR(cures);
-
-				ret = 0;
-			}
-			else
-			{
-				ret = -EAGAIN;
-			}
-		}
-	}
-	else
-	{
-		/* Default case: we transfer all blocks one by one: nz 2D transfers */
-		/* TODO: use cudaMemcpy3D now that it works (except on cuda 4.2) */
-		unsigned layer;
-		for (layer = 0; layer < src_block->nz; layer++)
-		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
-			double start;
-
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
-                                                  (char *)src_ptr, src_block->ldy*elemsize,
-                                                  nx*elemsize, ny, kind, stream);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
-
-			if (STARPU_UNLIKELY(cures))
-			{
-				/* I don't know how to do that "better" */
-				goto no_async_default;
-			}
-
-		}
-
-		ret = -EAGAIN;
-
-	}
-
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
-
-	return ret;
-
-no_async_default:
-
-	{
-	unsigned layer;
-	for (layer = 0; layer < src_block->nz; layer++)
-	{
-		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
-		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
-
-		cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-                                     (char *)src_ptr, src_block->ldy*elemsize,
-                                     nx*elemsize, ny, kind);
-
-		if (!cures)
-			cures = cudaThreadSynchronize();
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-	}
-
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
-	return 0;
-	}
-}
-
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost);
-}
-
-static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice);
-}
-
-static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
-}
-
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
-{
-	return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToHost);
-}
-
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
-{
-	return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyHostToDevice);
-}
-#endif // STARPU_USE_CUDA
-
-#ifdef STARPU_USE_OPENCL
-static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	struct starpu_block_interface *src_block = src_interface;
-	struct starpu_block_interface *dst_block = dst_interface;
-        int ret = 0;
-
-	uint32_t nx = src_block->nx;
-	uint32_t ny = src_block->ny;
-
-	/* We may have a contiguous buffer for the entire block, or contiguous
-	 * plans within the block, we can avoid many small transfers that way */
-	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
-	{
-		/* Is that a single contiguous buffer ? */
-		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
-		{
-			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
-							    dst_block->dev_handle, dst_block->offset, dst_node,
-							    src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-							    event);
-                }
-		else
-		{
-			/* Are all plans contiguous */
-                        STARPU_ASSERT_MSG(0, "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
-                }
-        }
-	else
-	{
-		/* Default case: we transfer all lines one by one: ny*nz transfers */
-		/* TODO: rect support */
-		unsigned layer;
-		for (layer = 0; layer < src_block->nz; layer++)
-		{
-                        unsigned j;
-                        for(j=0 ; j<src_block->ny ; j++)
-			{
-				ret = starpu_opencl_copy_async_sync(src_block->dev_handle,
-								    src_block->offset + layer*src_block->ldz*src_block->elemsize + j*src_block->ldy*src_block->elemsize,
-								    src_node,
-								    dst_block->dev_handle,
-								    dst_block->offset + layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize,
-								    dst_node,
-								    src_block->nx*src_block->elemsize,
-								    event);
-                        }
-                }
-        }
-
-	starpu_interface_data_copy(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
-
-	return ret;
-}
-
-static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event)
-{
-	return copy_opencl_common(src_interface, src_node, dst_interface, dst_node, event);
-}
-
-static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-        return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-        return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
-{
-	return copy_opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
-}
-
-#endif
-
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
 	struct starpu_block_interface *src_block = (struct starpu_block_interface *) src_interface;
@@ -735,47 +480,13 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldy_dst = dst_block->ldy;
 	uint32_t ldz_dst = dst_block->ldz;
 
-	if (ldy_src == nx && ldy_dst == nx && ldz_src == ny && ldz_dst == ny)
-	{
-		/* Optimise non-partitioned and z-partitioned case */
-		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
-		                          dst_block->dev_handle, dst_block->offset, dst_node,
-		                          nx*ny*nz*elemsize, async_data))
-				ret = -EAGAIN;
-	}
-	else
-	{
-		unsigned z;
-		for (z = 0; z < nz; z++)
-		{
-			if (ldy_src == nx && ldy_dst == nx)
-			{
-				/* Optimise y-partitioned case */
-				uint32_t src_offset = z*ldz_src*elemsize;
-				uint32_t dst_offset = z*ldz_dst*elemsize;
-
-				if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-							  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-							  nx*ny*elemsize, async_data))
-					ret = -EAGAIN;
-			}
-			else
-			{
-				unsigned y;
-				for (y = 0; y < ny; y++)
-				{
-					/* Eerf, x-partitioned case */
-					uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
-					uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
-
-					if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
-								  dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
-								  nx*elemsize, async_data))
-						ret = -EAGAIN;
-				}
-			}
-		}
-	}
+	if (starpu_interface_copy3d(src_block->dev_handle, src_block->offset, src_node,
+				    dst_block->dev_handle, dst_block->offset, dst_node,
+				    nx * elemsize,
+				    ny, ldy_src * elemsize, ldy_dst * elemsize,
+				    nz, ldz_src * elemsize, ldz_dst * elemsize,
+				    async_data))
+		ret = -EAGAIN;
 
 	starpu_interface_data_copy(src_node, dst_node, nx*ny*nz*elemsize);
 

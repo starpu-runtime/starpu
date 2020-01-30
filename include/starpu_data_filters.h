@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012,2014,2015,2017,2019            Université de Bordeaux
+ * Copyright (C) 2009-2012,2014,2015,2017,2019-2020       Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015,2017,2018,2019            CNRS
  * Copyright (C) 2011                                     Inria
@@ -323,6 +323,13 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 */
 struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
+/**
+   Partition a block-sparse matrix into block-sparse matrices.
+
+   The split is done along the leading dimension, i.e. along adjacent nnz blocks.
+*/
+void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
 /** @} */
 
 /**
@@ -344,6 +351,8 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
    Predefined partitioning functions for matrix
    data. Examples on how to use them are shown in \ref
    PartitioningData.
+   Note: this is using the C element order which is row-major, i.e. elements
+   with consecutive x coordinates are consecutive in memory.
    @{
 */
 
@@ -450,6 +459,8 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
    Predefined partitioning functions for block data. Examples on how
    to use them are shown in \ref PartitioningData. An example is
    available in \c examples/filters/shadow3d.c
+   Note: this is using the C element order which is row-major, i.e. elements
+   with consecutive x coordinates are consecutive in memory.
    @{
 */
 

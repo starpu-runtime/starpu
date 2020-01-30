@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2011,2013,2014,2016,2019            Université de Bordeaux
+ * Copyright (C) 2008-2011,2013,2014,2016,2019-2020       Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010,2011,2013,2015,2017,2019            CNRS
  *
@@ -19,6 +19,46 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/filters.h>
+
+void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
+{
+	struct starpu_bcsr_interface *bcsr_father = (struct starpu_bcsr_interface *) father_interface;
+	struct starpu_bcsr_interface *bcsr_child = (struct starpu_bcsr_interface *) child_interface;
+
+	size_t elemsize = bcsr_father->elemsize;
+	uint32_t firstentry = bcsr_father->firstentry;
+	uint32_t r = bcsr_father->r;
+	uint32_t c = bcsr_father->c;
+	uint32_t *rowptr = bcsr_father->rowptr;
+
+	unsigned child_nrow;
+	size_t child_rowoffset;
+
+	STARPU_ASSERT_MSG(bcsr_father->id == STARPU_BCSR_INTERFACE_ID, "%s can only be applied on a bcsr data", __func__);
+
+	bcsr_child->id = bcsr_father->id;
+
+	if (!bcsr_father->nzval)
+		/* Not supported yet */
+		return;
+
+	starpu_filter_nparts_compute_chunk_size_and_offset(bcsr_father->nrow, nparts, 1, id, 1, &child_nrow, &child_rowoffset);
+
+	/* child blocks indexes between these (0-based) */
+	uint32_t start_block = rowptr[child_rowoffset] - firstentry;
+	uint32_t end_block = rowptr[child_rowoffset + child_nrow] - firstentry;
+
+	bcsr_child->nzval = bcsr_father->nzval + start_block * r*c * elemsize;
+	bcsr_child->nnz = end_block - start_block;
+	bcsr_child->nrow = child_nrow;
+	bcsr_child->colind = bcsr_father->colind + start_block;
+	bcsr_child->rowptr = rowptr + child_rowoffset;
+
+	bcsr_child->firstentry = firstentry + start_block;
+	bcsr_child->r = bcsr_father->r;
+	bcsr_child->c = bcsr_father->c;
+	bcsr_child->elemsize = elemsize;
+}
 
 void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
 {

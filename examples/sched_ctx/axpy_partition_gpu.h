@@ -126,7 +126,7 @@ static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int 
 
   cudaMemcpyAsync((void*)block_assignment_d,block_assignment,sizeof(block_assignment),cudaMemcpyHostToDevice, current_stream);
   //cudaMemcpy((void*)block_assignment_d,block_assignment,sizeof(block_assignment),cudaMemcpyHostToDevice);
-  //cudaThreadSynchronize();
+  //cudaDeviceSynchronize();
 }
 
 

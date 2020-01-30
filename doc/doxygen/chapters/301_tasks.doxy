@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2011,2012,2018                           Inria
- * Copyright (C) 2009-2011,2014-2016,2018                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2016,2018-2019            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,8 @@ checked if bad performance are observed. To get a grasp at the scalability
 possibility according to task size, one can run
 <c>tests/microbenchs/tasks_size_overhead.sh</c> which draws curves of the
 speedup of independent tasks of very small sizes.
+To determine what task size your application is actually using, one can use
+<c>starpu_fxt_data_trace</c>, see \ref DataTrace .
 
 The choice of scheduler also has impact over the overhead: for instance, the
  scheduler <c>dmda</c> takes time to make a decision, while <c>eager</c> does
@@ -563,6 +565,8 @@ several CPUs. It will automatically try the various available combined
 worker sizes (making several measurements for each worker size) and
 thus be able to avoid choosing a large combined worker if the codelet
 does not actually scale so much.
+
+This is however for now only proof of concept, and has not really been optimized yet.
 
 \subsection CombinedWorkers Combined Workers
 

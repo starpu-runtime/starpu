@@ -769,7 +769,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 	(void) devid;
 
 #ifdef STARPU_USE_FXT
-	_starpu_fxt_register_thread(worker->bindid);
+	_STARPU_TRACE_REGISTER_THREAD(worker->bindid);
 	_starpu_worker_start(worker, fut_key, sync);
 #endif
 	_starpu_set_local_worker_key(worker);
@@ -1147,6 +1147,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* 64MiB by default */
 	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
+
+	/* Do not start performance counter collection by default */
+	conf->start_perf_counter_collection = 0;
 	return 0;
 }
 
@@ -1202,35 +1205,46 @@ struct starpu_tree* starpu_workers_get_tree(void)
 	return _starpu_config.topology.tree;
 }
 
+#if HWLOC_API_VERSION >= 0x20000
+#define NORMAL_CHILD(obj) 1
+#else
+#define NORMAL_CHILD(obj) ((obj)->type < HWLOC_OBJ_BRIDGE)
+#endif
+
 #ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
 	unsigned i, j;
 	unsigned arity;
-	if (curr_obj->arity == 1)
+#if HWLOC_API_VERSION >= 0x20000
+	arity = curr_obj->arity;
+#else
+	arity = 0;
+	for(i = 0; i < curr_obj->arity; i++)
+	{
+		if (!NORMAL_CHILD(curr_obj->children[i]))
+			/* I/O stuff, stop caring */
+			break;
+		arity++;
+	}
+#endif
+
+	if (arity == 1)
 	{
 		/* Nothing interestin here, skip level */
 		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
 		return;
 	}
-	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, curr_obj->arity, father);
-	arity = 0;
-	for(i = 0; i < curr_obj->arity; i++)
-	{
-		hwloc_obj_t child = curr_obj->children[i];
-		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
-			/* I/O stuff, stop caring */
-			continue;
-		arity++;
-	}
+
+	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, arity, father);
 	starpu_tree_prepare_children(arity, tree);
 	j = 0;
 	for(i = 0; i < arity; i++)
 	{
 		hwloc_obj_t child = curr_obj->children[i];
-		if (child->type == HWLOC_OBJ_BRIDGE && (!child->cpuset || hwloc_bitmap_iszero(child->cpuset)))
-			/* I/O stuff, stop caring */
-			continue;
+		if (!NORMAL_CHILD(child))
+			/* I/O stuff, stop caring (shouldn't happen, though) */
+			break;
 #if 0
 		char string[128];
 		hwloc_obj_snprintf(string, sizeof(string), topology, child, "#", 0);
@@ -1595,7 +1609,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 	_starpu_initialize_registered_performance_models();
-	_starpu_perf_counter_init();
+	_starpu_perf_counter_init(&_starpu_config);
 	_starpu_perf_knob_init();
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)

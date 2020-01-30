@@ -229,14 +229,37 @@ typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
 #define STARPU_VARIABLE_NBUFFERS (-1)
 
 /**
-   Value to be set in the field starpu_codelet::nodes to request
+   Value to be set in the starpu_codelet::nodes field to request
+   StarPU to put the data in local memory of the worker running the task (this
+   is the default behavior).
+*/
+#define STARPU_SPECIFIC_NODE_LOCAL (-1)
+
+/**
+   Value to be set in the starpu_codelet::nodes field to request
    StarPU to put the data in CPU-accessible memory (and let StarPU
    choose the NUMA node).
 */
-#define STARPU_SPECIFIC_NODE_LOCAL (-1)
 #define STARPU_SPECIFIC_NODE_CPU (-2)
+
+/**
+   Value to be set in the starpu_codelet::nodes field to request
+   StarPU to put the data in some slow memory.
+*/
 #define STARPU_SPECIFIC_NODE_SLOW (-3)
+
+/**
+   Value to be set in the starpu_codelet::nodes field to request
+   StarPU to put the data in some fast memory.
+*/
 #define STARPU_SPECIFIC_NODE_FAST (-4)
+
+/**
+   Value to be set in the starpu_codelet::nodes field to let StarPU decide
+   whether to put the data in the local memory of the worker running the task,
+   or in CPU-accessible memory (and let StarPU choose the NUMA node).
+*/
+#define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
 
 struct starpu_task;
 
@@ -528,6 +551,11 @@ struct starpu_codelet
 
 	struct starpu_perf_counter_sample *perf_counter_sample;
 	struct starpu_perf_counter_sample_cl_values *perf_counter_values;
+
+	/**
+	   Whether _starpu_codelet_check_deprecated_fields was already done or not.
+	 */
+	int checked;
 };
 
 /**

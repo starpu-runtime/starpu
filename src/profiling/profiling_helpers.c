@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                Inria
- * Copyright (C) 2010-2013,2016,2017                      CNRS
- * Copyright (C) 2010,2011,2013-2016, 2019                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2016,2017,2020                 CNRS
+ * Copyright (C) 2010,2011,2013-2016, 2019                Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ void _starpu_profiling_bus_helper_display_summary(FILE *stream)
 
 		sum_transferred += transferred;
 	}
-	
+
 	double d = convert_to_GB(sum_transferred);
 
 	fprintf(stream, "Total transfers: %.4lf %s\n", d, "GB");
@@ -74,7 +74,17 @@ void starpu_profiling_bus_helper_display_summary(void)
 {
 	const char *stats;
 	if (!((stats = starpu_getenv("STARPU_BUS_STATS")) && atoi(stats))) return;
-	_starpu_profiling_bus_helper_display_summary(stderr);
+	const char *filename = starpu_getenv("STARPU_BUS_STATS_FILE");
+	if (filename==NULL)
+		_starpu_profiling_bus_helper_display_summary(stderr);
+	else
+	{
+		FILE *sfile = fopen(filename, "w+");
+		STARPU_ASSERT_MSG(sfile, "Could not open file %s for displaying bus stats (%s). You can specify another file destination with the STARPU_BUS_STATS_FILE environment variable", filename, strerror(errno));
+		_starpu_profiling_bus_helper_display_summary(sfile);
+		fclose(sfile);
+	}
+
 }
 
 void _starpu_profiling_worker_helper_display_summary(FILE *stream)
@@ -140,5 +150,14 @@ void starpu_profiling_worker_helper_display_summary(void)
 {
 	const char *stats;
 	if (!((stats = starpu_getenv("STARPU_WORKER_STATS")) && atoi(stats))) return;
-	_starpu_profiling_worker_helper_display_summary(stderr);
+	const char *filename = starpu_getenv("STARPU_WORKER_STATS_FILE");
+	if (filename==NULL)
+		_starpu_profiling_worker_helper_display_summary(stderr);
+	else
+	{
+		FILE *sfile = fopen(filename, "w+");
+		STARPU_ASSERT_MSG(sfile, "Could not open file %s for displaying worker stats (%s). You can specify another file destination with the STARPU_WORKER_STATS_FILE environment variable", filename, strerror(errno));
+		_starpu_profiling_worker_helper_display_summary(sfile);
+		fclose(sfile);
+	}
 }

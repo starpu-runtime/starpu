@@ -52,6 +52,8 @@
 
 static void initialize_parallel_heft_center_policy(unsigned sched_ctx_id)
 {
+	_STARPU_DISP("Warning: the modular-pheft scheduler is mostly a proof of concept and not really very optimized");
+
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
 			STARPU_SCHED_SIMPLE_COMBINED_WORKERS |
