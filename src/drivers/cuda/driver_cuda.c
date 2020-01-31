@@ -1523,7 +1523,6 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 	return -EAGAIN;
 }
 #endif
->>>>>>> master
 #endif /* STARPU_USE_CUDA */
 
 int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
