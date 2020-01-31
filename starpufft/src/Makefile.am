@@ -15,8 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-include $(top_srcdir)/starpu.mk
-
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/starpufft/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
@@ -46,14 +44,12 @@ cudaf_kernels.o: cudaf_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cudaf_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS = cudaf_kernels.o starpufft.lo starpufftf.lo starpufft_common.lo
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cuda_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS += cuda_kernels.o
 endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
