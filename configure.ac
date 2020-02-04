@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2016                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2020                                CNRS
 # Copyright (C) 2013                                     Thibaut Lambert
 # Copyright (C) 2011                                     Télécom-SudParis
@@ -1147,20 +1147,6 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 	AC_CHECK_FUNCS([SIMIX_process_get_code], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMIX_PROCESS_GET_CODE], [1], [Define to 1 if you have the `SIMIX_process_get_code' function.])])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-		    		[[
-#ifdef STARPU_HAVE_SIMGRID_MSG_H
-#include <simgrid/msg.h>
-#else
-#include <msg/msg.h>
-#endif
-				 ]],
-				[[msg_host_t foo; ]]
-			    )],
-	                 [],
-	                 [
-			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
-		         ])
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
