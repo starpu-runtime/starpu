@@ -194,20 +194,6 @@ if test x$enable_simgrid = xyes ; then
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
 
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-		    		[[
-#ifdef STARPU_HAVE_SIMGRID_MSG_H
-#include <simgrid/msg.h>
-#else
-#include <msg/msg.h>
-#endif
-				 ]],
-				[[msg_host_t foo; ]]
-			    )],
-	                 [],
-	                 [
-			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
-		         ])
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
@@ -639,7 +625,7 @@ fi
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
     if test x$enable_simgrid = xyes ; then
         if test x$enable_shared = xyes ; then
-	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this, or disable MPI with --disable-mpi])
         else
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
