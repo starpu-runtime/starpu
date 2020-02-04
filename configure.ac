@@ -174,18 +174,27 @@ if test x$enable_simgrid = xyes ; then
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
+	AC_CHECK_HEADERS([xbt/base.h], [AC_DEFINE([STARPU_HAVE_XBT_BASE_H], [1], [Define to 1 if you have base.h in xbt/.])])
+	AC_CHECK_HEADERS([simgrid/version.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_VERSION_H], [1], [Define to 1 if you have version.h in simgrid/.])], [], [[
+			  #ifdef STARPU_HAVE_XBT_BASE_H
+			  #include <xbt/base.h>
+			  #endif
+			  ]])
 	AC_CHECK_HEADERS([simgrid/simdag.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_SIMDAG_H], [1], [Define to 1 if you have simdag.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
+	AC_CHECK_HEADERS([xbt/config.h], [AC_DEFINE([STARPU_HAVE_XBT_CONFIG_H], [1], [Define to 1 if you have config.h in xbt/.])])
 	AC_CHECK_HEADERS([simgrid/actor.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ACTOR_H], [1], [Define to 1 if you have actor.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/engine.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ENGINE_H], [1], [Define to 1 if you have engine.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/semaphore.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_SEMAPHORE_H], [1], [Define to 1 if you have semaphore.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/mutex.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MUTEX_H], [1], [Define to 1 if you have mutex.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/cond.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_COND_H], [1], [Define to 1 if you have cond.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/barrier.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_BARRIER_H], [1], [Define to 1 if you have barrier.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/engine.h])
+	AC_CHECK_HEADERS([simgrid/zone.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ZONE_H], [1], [Define to 1 if you have zone.h in simgrid/.])])
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_cfg_set_int sg_actor_self_execute simgrid_get_clock])

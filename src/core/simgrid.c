@@ -38,6 +38,12 @@
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_ENGINE_H
+#include <simgrid/engine.h>
+#endif
+#ifdef STARPU_HAVE_XBT_CONFIG_H
+#include <xbt/config.h>
+#endif
 #include <smpi/smpi.h>
 
 #pragma weak starpu_main
@@ -137,9 +143,9 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
-#if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts)
+#if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(HAVE_SG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts) || defined(sg_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
-#  if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
+#  if defined(HAVE_SG_ZONE_GET_HOSTS) || defined(sg_zone_get_hosts)
 		sg_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
 #  else
 		MSG_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
@@ -382,7 +388,7 @@ int main(int argc, char **argv)
 	return main_ret;
 }
 
-#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach)
+#if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach) || defined(HAVE_SG_ACTOR_ATTACH)
 static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_main();
