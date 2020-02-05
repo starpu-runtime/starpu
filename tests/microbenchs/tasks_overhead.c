@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2013,2014,2016                 Université de Bordeaux
+ * Copyright (C) 2009-2011,2013,2014,2016,2020            Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -35,6 +35,8 @@ static unsigned ntasks = 128;
 static unsigned ntasks = 65536;
 #endif
 static unsigned nbuffers = 0;
+
+#define BUFFERSIZE 16
 
 struct starpu_task *tasks;
 
@@ -114,8 +116,8 @@ int main(int argc, char **argv)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_malloc((void**)&buffers[buffer], 16*sizeof(float));
-		starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], 16, sizeof(float));
+		starpu_malloc((void**)&buffers[buffer], BUFFERSIZE*sizeof(float));
+		starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], BUFFERSIZE, sizeof(float));
 	}
 
 	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
@@ -142,19 +144,33 @@ int main(int argc, char **argv)
 	tasks[ntasks-1].detach = 0;
 
 	start_submit = starpu_timing_now();
-	for (i = 1; i < ntasks; i++)
-	{
-		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
+        if (nbuffers)
+        {
+                /* Data dependency, just submit them all */
+                for (i = 0; i < ntasks; i++)
+                {
+                        ret = starpu_task_submit(&tasks[i]);
+                        if (ret == -ENODEV) goto enodev;
+                        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+                }
+        }
+        else
+        {
+                /* No data dependency, we have to introduce dependencies by hand */
+                for (i = 1; i < ntasks; i++)
+                {
+                        starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
 
-		ret = starpu_task_submit(&tasks[i]);
-		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	}
+                        ret = starpu_task_submit(&tasks[i]);
+                        if (ret == -ENODEV) goto enodev;
+                        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+                }
 
-	/* submit the first task */
-	ret = starpu_task_submit(&tasks[0]);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+                /* submit the first task */
+                ret = starpu_task_submit(&tasks[0]);
+                if (ret == -ENODEV) goto enodev;
+                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+        }
 
 	end_submit = starpu_timing_now();
 
@@ -190,35 +206,45 @@ int main(int argc, char **argv)
 
                 if (output_dir && bench_id)
 		{
+                        char number[1+sizeof(nbuffers)*3+1];
+                        const char *numberp;
                         char file[1024];
                         FILE *f;
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit.dat", output_dir);
+                        if (nbuffers)
+                        {
+                                snprintf(number, sizeof(number), "_%u", nbuffers);
+                                numberp = number;
+                        }
+                        else
+                                numberp = "";
+
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_submit/1000000);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_submit/ntasks);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_execution.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_execution%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_exec/1000000);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_execution.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_execution%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing_exec/ntasks);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit_execution.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit_execution%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/1000000);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit_execution.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit_execution%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/ntasks);
                         fclose(f);
