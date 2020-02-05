@@ -50,7 +50,7 @@
 #endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
-#else
+#elif defined(STARPU_HAVE_MSG_MSG_H)
 #include <msg/msg.h>
 #endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
