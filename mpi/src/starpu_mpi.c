@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2018                                Université de Bordeaux
+ * Copyright (C) 2009-2018,2020                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,9 +114,9 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_
 	MPI_Status status;
 
 	_STARPU_MPI_LOG_IN();
-	memset(&status, 0, sizeof(MPI_Status));
-
 	starpu_mpi_isend_prio(data_handle, &req, dest, data_tag, prio, comm);
+
+	memset(&status, 0, sizeof(MPI_Status));
 	starpu_mpi_wait(&req, &status);
 
 	_STARPU_MPI_LOG_OUT();
