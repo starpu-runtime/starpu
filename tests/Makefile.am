@@ -398,7 +398,11 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS += microbenchs/tasks_size_overhead_scheds.sh
+TESTS += \
+	microbenchs/tasks_data_overhead.sh \
+	microbenchs/sync_tasks_data_overhead.sh \
+	microbenchs/async_tasks_data_overhead.sh \
+	microbenchs/tasks_size_overhead_scheds.sh
 endif
 endif
 
