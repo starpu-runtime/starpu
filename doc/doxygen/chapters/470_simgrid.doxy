@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2011,2014-2019                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014-2020                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,8 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to 3.24.
+platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
+3.25. SimGrid versions 3.25 and above need to be configured with -Denable_msg=ON .
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
