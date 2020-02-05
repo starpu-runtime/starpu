@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
+ * Copyright (C) 2009-2014,2017,2018-2020                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,21 +51,21 @@ void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 
-	req->backend->data_request = 0;
+	//req->backend->data_request = 0;
 
 	STARPU_PTHREAD_MUTEX_INIT(&req->backend->req_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&req->backend->req_cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&req->backend->posted_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&req->backend->posted_cond, NULL);
 
-	req->backend->other_request = NULL;
+	//req->backend->other_request = NULL;
 
-	req->backend->size_req = 0;
-	req->backend->internal_req = NULL;
-	req->backend->is_internal_req = 0;
+	//req->backend->size_req = 0;
+	//req->backend->internal_req = NULL;
+	//req->backend->is_internal_req = 0;
 	req->backend->to_destroy = 1;
-	req->backend->early_data_handle = NULL;
-	req->backend->envelope = NULL;
+	//req->backend->early_data_handle = NULL;
+	//req->backend->envelope = NULL;
 }
 
 void _starpu_mpi_mpi_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req)

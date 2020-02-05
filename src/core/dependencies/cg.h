@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2018                                Université de Bordeaux
+ * Copyright (C) 2010-2018,2020                           Université de Bordeaux
  * Copyright (C) 2010,2011,2013,2015,2017                 CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -114,7 +114,7 @@ void _starpu_notify_dependencies(struct _starpu_job *j);
 void _starpu_job_notify_start(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch);
 void _starpu_job_notify_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data);
 
-void _starpu_cg_list_init(struct _starpu_cg_list *list);
+void _starpu_cg_list_init0(struct _starpu_cg_list *list);
 void _starpu_cg_list_deinit(struct _starpu_cg_list *list);
 int _starpu_add_successor_to_cg_list(struct _starpu_cg_list *successors, struct _starpu_cg *cg);
 int _starpu_list_task_successors_in_cg_list(struct _starpu_cg_list *successors, unsigned ndeps, struct starpu_task *task_array[]);

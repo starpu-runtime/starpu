@@ -829,6 +829,12 @@ if test x$have_pthread_setname_np = xyes; then
 	AC_DEFINE(STARPU_HAVE_PTHREAD_SETNAME_NP,[1],[pthread_setname_np is available])
 fi
 
+if test "x$cross_compiling" = "xno"; then
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_mutex_t, PTHREAD_MUTEX_INITIALIZER)
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_cond_t, PTHREAD_COND_INITIALIZER)
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_rwlock_t, PTHREAD_RWLOCK_INITIALIZER)
+fi
+
 # There is no posix_memalign on Mac OS X, only memalign
 AC_CHECK_FUNCS([posix_memalign], [AC_DEFINE([STARPU_HAVE_POSIX_MEMALIGN], [1], [Define to 1 if you have the `posix_memalign' function.])])
 AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 if you have the `memalign' function.])])

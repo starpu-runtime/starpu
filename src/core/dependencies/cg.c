@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012                                     Inria
- * Copyright (C) 2010-2012,2014-2018                      Université de Bordeaux
+ * Copyright (C) 2010-2012,2014-2018,2020                 Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,23 +24,23 @@
 #include <core/dependencies/cg.h>
 #include <core/dependencies/tags.h>
 
-void _starpu_cg_list_init(struct _starpu_cg_list *list)
+void _starpu_cg_list_init0(struct _starpu_cg_list *list)
 {
 	_starpu_spin_init(&list->lock);
-	list->ndeps = 0;
-	list->ndeps_completed = 0;
+	//list->ndeps = 0;
+	//list->ndeps_completed = 0;
 #ifdef STARPU_DEBUG
-	list->deps = NULL;
-	list->done = NULL;
+	//list->deps = NULL;
+	//list->done = NULL;
 #endif
 
-	list->terminated = 0;
+	//list->terminated = 0;
 
-	list->nsuccs = 0;
+	//list->nsuccs = 0;
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
-	list->succ_list_size = 0;
-	list->succ = NULL;
+	//list->succ_list_size = 0;
+	//list->succ = NULL;
 #endif
 }
 

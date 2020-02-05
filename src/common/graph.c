@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2016,2017                                CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2016-2018                                Université de Bordeaux
+ * Copyright (C) 2016-2018,2020                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,7 +140,7 @@ void _starpu_graph_add_job(struct _starpu_job *job)
 	_STARPU_CALLOC(node, 1, sizeof(*node));
 	node->job = job;
 	job->graph_node = node;
-	STARPU_PTHREAD_MUTEX_INIT(&node->mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&node->mutex, NULL);
 
 	_starpu_graph_wrlock();
 

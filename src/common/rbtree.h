@@ -34,6 +34,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include <starpu_util.h>
+
 #define MACRO_BEGIN ({
 #define MACRO_END })
 /*
@@ -68,6 +70,13 @@ static inline void starpu_rbtree_init(struct starpu_rbtree *tree)
 }
 
 /*
+ * This version assumes that the content of tree was already zeroed
+ */
+static inline void starpu_rbtree_init0(struct starpu_rbtree *tree STARPU_ATTRIBUTE_UNUSED)
+{
+}
+
+/*
  * Initialize a node.
  *
  * A node is in no tree when its parent points to itself.
@@ -79,6 +88,18 @@ static inline void starpu_rbtree_node_init(struct starpu_rbtree_node *node)
     node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
     node->children[STARPU_RBTREE_LEFT] = NULL;
     node->children[STARPU_RBTREE_RIGHT] = NULL;
+}
+
+/*
+ * This version assumes that the content of node was already zeroed
+ */
+static inline void starpu_rbtree_node_init0(struct starpu_rbtree_node *node)
+{
+    assert(starpu_rbtree_check_alignment(node));
+
+    node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
+    //node->children[STARPU_RBTREE_LEFT] = NULL;
+    //node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
 
 /*

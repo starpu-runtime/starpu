@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -70,11 +70,9 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
 
-	_STARPU_MALLOC(job, sizeof(*job));
-
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
-	memset(job, 0, sizeof(*job));
+	_STARPU_CALLOC(job, 1, sizeof(*job));
 
 	if (task->dyn_handles)
 	{
@@ -99,10 +97,10 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 			maxnjobs = jobs;
 	}
 
-	_starpu_cg_list_init(&job->job_successors);
+	_starpu_cg_list_init0(&job->job_successors);
 
-	STARPU_PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(&job->sync_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&job->sync_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&job->sync_cond, NULL);
 
 	/* By default we have sequential tasks */
 	job->task_size = 1;

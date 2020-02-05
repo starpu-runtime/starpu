@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2013,2017                           Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2018                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -85,9 +85,9 @@ static inline void _starpu_data_acquire_wrapper_init(struct user_interaction_wra
 	wrapper->handle = handle;
 	wrapper->node = node;
 	wrapper->mode = mode;
-	wrapper->finished = 0;
-	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	//wrapper->finished = 0;
+	STARPU_PTHREAD_COND_INIT0(&wrapper->cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&wrapper->lock, NULL);
 }
 
 /* Called to signal completion of asynchronous data acquisition */

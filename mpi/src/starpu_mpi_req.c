@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
@@ -25,37 +25,37 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	_STARPU_MPI_CALLOC(*req, 1, sizeof(struct _starpu_mpi_req));
 
 	/* Initialize the request structure */
-	(*req)->data_handle = NULL;
-	(*req)->prio = 0;
+	//(*req)->data_handle = NULL;
+	//(*req)->prio = 0;
 
-	(*req)->datatype = 0;
-	(*req)->datatype_name = NULL;
-	(*req)->ptr = NULL;
+	//(*req)->datatype = 0;
+	//(*req)->datatype_name = NULL;
+	//(*req)->ptr = NULL;
 	(*req)->count = -1;
 	(*req)->registered_datatype = -1;
 
 	(*req)->node_tag.node.rank = -1;
 	(*req)->node_tag.data_tag = -1;
-	(*req)->node_tag.node.comm = 0;
+	//(*req)->node_tag.node.comm = 0;
 
-	(*req)->func = NULL;
+	//(*req)->func = NULL;
 
-	(*req)->status = NULL;
-	(*req)->flag = NULL;
+	//(*req)->status = NULL;
+	//(*req)->flag = NULL;
 	_starpu_mpi_req_multilist_init_coop_sends(*req);
 
 	(*req)->ret = -1;
 
 	(*req)->request_type = UNKNOWN_REQ;
 
-	(*req)->submitted = 0;
-	(*req)->completed = 0;
-	(*req)->posted = 0;
+	//(*req)->submitted = 0;
+	//(*req)->completed = 0;
+	//(*req)->posted = 0;
 
-	(*req)->sync = 0;
+	//(*req)->sync = 0;
 	(*req)->detached = -1;
-	(*req)->callback = NULL;
-	(*req)->callback_arg = NULL;
+	//(*req)->callback = NULL;
+	//(*req)->callback_arg = NULL;
 
 	(*req)->sequential_consistency = 1;
 	(*req)->pre_sync_jobid = -1;
@@ -64,7 +64,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_init(&((*req)->queue));
 	starpu_pthread_queue_register(&_starpu_mpi_thread_wait, &((*req)->queue));
-	(*req)->done = 0;
+	//(*req)->done = 0;
 #endif
 	_mpi_backend._starpu_mpi_backend_request_init(*req);
 }

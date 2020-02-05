@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2016,2017                      Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2010                                     Mehdi Juhoor
  * Copyright (C) 2010-2013,2015-2019                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -228,24 +228,27 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		else
 			ops = initial_handle->ops;
 
+		/* As most of the fields must be initialized at NULL, let's put
+		 * 0 everywhere */
+		memset(child, 0, sizeof(*child));
 		_starpu_data_handle_init(child, ops, initial_handle->mf_node);
 
-		child->nchildren = 0;
-		child->nplans = 0;
-		child->switch_cl = NULL;
-		child->partitioned = 0;
-		child->readonly = 0;
+		//child->nchildren = 0;
+		//child->nplans = 0;
+		//child->switch_cl = NULL;
+		//child->partitioned = 0;
+		//child->readonly = 0;
 		child->active = inherit_state;
-		child->active_ro = 0;
-                child->mpi_data = NULL;
+		//child->active_ro = 0;
+                //child->mpi_data = NULL;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
-		child->active_children = NULL;
-		child->active_readonly_children = NULL;
-		child->nactive_readonly_children = 0;
+		//child->active_children = NULL;
+		//child->active_readonly_children = NULL;
+		//child->nactive_readonly_children = 0;
 		child->nsiblings = nparts;
 		if (inherit_state)
-			child->siblings = NULL;
+			; //child->siblings = NULL;
 		else
 			child->siblings = childrenp;
 		child->sibling_index = i;
@@ -258,31 +261,31 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		/* initialize the chunk lock */
 		_starpu_data_requester_prio_list_init(&child->req_list);
 		_starpu_data_requester_prio_list_init(&child->reduction_req_list);
-		child->reduction_tmp_handles = NULL;
-		child->write_invalidation_req = NULL;
-		child->refcnt = 0;
-		child->unlocking_reqs = 0;
-		child->busy_count = 0;
-		child->busy_waiting = 0;
-		STARPU_PTHREAD_MUTEX_INIT(&child->busy_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&child->busy_cond, NULL);
-		child->reduction_refcnt = 0;
+		//child->reduction_tmp_handles = NULL;
+		//child->write_invalidation_req = NULL;
+		//child->refcnt = 0;
+		//child->unlocking_reqs = 0;
+		//child->busy_count = 0;
+		//child->busy_waiting = 0;
+		STARPU_PTHREAD_MUTEX_INIT0(&child->busy_mutex, NULL);
+		STARPU_PTHREAD_COND_INIT0(&child->busy_cond, NULL);
+		//child->reduction_refcnt = 0;
 		_starpu_spin_init(&child->header_lock);
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 		child->initialized = initial_handle->initialized;
 		child->ooc = initial_handle->ooc;
 
-		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
+		//STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
-		child->last_sync_task = NULL;
-		child->last_submitted_accessors.task = NULL;
+		//child->last_sync_task = NULL;
+		//child->last_submitted_accessors.task = NULL;
 		child->last_submitted_accessors.next = &child->last_submitted_accessors;
 		child->last_submitted_accessors.prev = &child->last_submitted_accessors;
-		child->post_sync_tasks = NULL;
+		//child->post_sync_tasks = NULL;
 		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
 		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
-		child->post_sync_tasks_cnt = 0;
+		//child->post_sync_tasks_cnt = 0;
 
 		/* The methods used for reduction are propagated to the
 		 * children. */
@@ -290,17 +293,17 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->init_cl = initial_handle->init_cl;
 
 #ifdef STARPU_USE_FXT
-		child->last_submitted_ghost_sync_id_is_valid = 0;
-		child->last_submitted_ghost_sync_id = 0;
-		child->last_submitted_ghost_accessors_id = NULL;
+		//child->last_submitted_ghost_sync_id_is_valid = 0;
+		//child->last_submitted_ghost_sync_id = 0;
+		//child->last_submitted_ghost_accessors_id = NULL;
 #endif
 
 		if (_starpu_global_arbiter)
 			/* Just for testing purpose */
 			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
 		else
-			child->arbiter = NULL;
-		_starpu_data_requester_prio_list_init(&child->arbitered_req_list);
+			; //child->arbiter = NULL;
+		_starpu_data_requester_prio_list_init0(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -317,16 +320,16 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			if (inherit_state || !initial_replicate->automatically_allocated)
 				child_replicate->allocated = initial_replicate->allocated;
 			else
-				child_replicate->allocated = 0;
+				; //child_replicate->allocated = 0;
 			/* Do not allow memory reclaiming within the child for parent bits */
-			child_replicate->automatically_allocated = 0;
-			child_replicate->refcnt = 0;
+			//child_replicate->automatically_allocated = 0;
+			//child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
-			child_replicate->relaxed_coherency = 0;
+			//child_replicate->relaxed_coherency = 0;
 			if (inherit_state)
 				child_replicate->initialized = initial_replicate->initialized;
 			else
-				child_replicate->initialized = 0;
+				; //child_replicate->initialized = 0;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
@@ -336,8 +339,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
-		child->per_worker = NULL;
-		child->user_data = NULL;
+		//child->per_worker = NULL;
+		//child->user_data = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */

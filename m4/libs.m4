@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011                                     Inria
 # Copyright (C) 2012,2017                                CNRS
-# Copyright (C) 2011,2014                                Université de Bordeaux
+# Copyright (C) 2011,2014,2020                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -52,4 +52,24 @@ AC_DEFUN([STARPU_CHECK_LIB], [dnl
 # AC_SUBSTs it
 AC_DEFUN([STARPU_HAVE_LIBRARY], [dnl
 STARPU_CHECK_LIB([$1], [$2], main, [$3], [$4], [$5])
+])dnl
+
+# STARPU_INIT_ZERO(INCLUDES, TYPE, INIT_MACRO)
+# Checks whether when TYPE is initialized with INIT_MACRO, the content is just
+# plain zeroes
+AC_DEFUN([STARPU_INIT_ZERO], [dnl
+AC_MSG_CHECKING(whether $3 just zeroes)
+AC_RUN_IFELSE([AC_LANG_PROGRAM(
+		$1,
+		[[$2 var = $3;
+		 char *p;
+		 for (p = (char*) &var; p < (char*) (&var+1); p++)
+		   if (*p != 0)
+		     return 1;
+		 return 0;
+		]],
+		)],
+		[AC_DEFINE([STARPU_$3_ZERO], [1], [Define to 1 if `$3' is just zeroes])
+		 AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(no)])
 ])dnl
