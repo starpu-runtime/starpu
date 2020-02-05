@@ -46,7 +46,7 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
 {
-	if (_starpu_mpi_fake_world_size != -1)
+	if (STARPU_UNLIKELY(_starpu_mpi_fake_world_size != -1))
 	{
 		/* Don't actually do the communication */
 		return NULL;

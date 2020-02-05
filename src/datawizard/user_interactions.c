@@ -240,7 +240,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		if (new_task)
+		if (STARPU_UNLIKELY(new_task))
 		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);

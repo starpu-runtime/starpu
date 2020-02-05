@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014                           Inria
- * Copyright (C) 2010-2017,2019                           Université de Bordeaux
+ * Copyright (C) 2010-2017,2019-2020                      Université de Bordeaux
  * Copyright (C) 2010-2017,2019                           CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -257,7 +257,7 @@ static void new_task(struct _starpu_job *j)
 /* A new task was submitted, record it */
 void _starpu_bound_record(struct _starpu_job *j)
 {
-	if (!_starpu_bound_recording)
+	if (STARPU_LIKELY(!_starpu_bound_recording))
 		return;
 
 	if (!good_job(j))

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017,2019                           Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2016                                     Uppsala University
@@ -1187,7 +1187,7 @@ int _starpu_get_catch_signals(void);
 static inline int _starpu_perf_counter_paused(void) 
 {
 	STARPU_RMB();
-	return _starpu_config.perf_counter_pause_depth > 0;
+	return STARPU_UNLIKELY(_starpu_config.perf_counter_pause_depth > 0);
 }
 
 /* @}*/
