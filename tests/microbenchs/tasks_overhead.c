@@ -57,25 +57,16 @@ static struct starpu_codelet dummy_codelet =
 	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
 };
 
-static
-int inject_one_task(void)
+static void usage(char **argv)
 {
-	struct starpu_task *task = starpu_task_create();
-
-	task->cl = &dummy_codelet;
-	task->cl_arg = NULL;
-	task->callback_func = NULL;
-	task->synchronous = 1;
-
-	int ret;
-	ret = starpu_task_submit(task);
-	return ret;
+	fprintf(stderr, "Usage: %s [-i ntasks] [-p sched_policy] [-b nbuffers] [-h]\n", argv[0]);
+	exit(EXIT_FAILURE);
 }
 
-static void parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv, struct starpu_conf *conf)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:b:h")) != -1)
+	while ((c = getopt(argc, argv, "i:b:p:h")) != -1)
 	switch(c)
 	{
 		case 'i':
@@ -85,8 +76,11 @@ static void parse_args(int argc, char **argv)
 			nbuffers = atoi(optarg);
 			dummy_codelet.nbuffers = nbuffers;
 			break;
+		case 'p':
+			conf->sched_policy_name = optarg;
+			break;
 		case 'h':
-			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-h]\n", argv[0]);
+			usage(argv);
 			break;
 	}
 }
@@ -107,7 +101,7 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
 
-	parse_args(argc, argv);
+	parse_args(argc, argv, &conf);
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -128,9 +122,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		starpu_task_init(&tasks[i]);
-		tasks[i].callback_func = NULL;
 		tasks[i].cl = &dummy_codelet;
-		tasks[i].cl_arg = NULL;
 		tasks[i].synchronous = 0;
 		tasks[i].use_tag = 1;
 		tasks[i].tag_id = (starpu_tag_t)i;

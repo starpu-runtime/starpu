@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014,2016                           Université de Bordeaux
+ * Copyright (C) 2009-2014,2016,2020                      Université de Bordeaux
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,17 @@
  * Measure the cost of submitting synchronous tasks
  */
 
+starpu_data_handle_t data_handles[8];
+float *buffers[8];
+
+#ifdef STARPU_QUICK_CHECK
+static unsigned ntasks = 128;
+#else
 static unsigned ntasks = 65536;
+#endif
+static unsigned nbuffers = 0;
+
+#define BUFFERSIZE 16
 
 void dummy_func(void *descr[], void *arg)
 {
@@ -40,11 +50,11 @@ static struct starpu_codelet dummy_codelet =
         .opencl_funcs = {dummy_func},
 	.cpu_funcs_name = {"dummy_func"},
 	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
 };
 
-static
-int inject_one_task(void)
+static int inject_one_task(void)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -59,14 +69,30 @@ int inject_one_task(void)
 
 }
 
-static void parse_args(int argc, char **argv)
+static void usage(char **argv)
+{
+	fprintf(stderr, "Usage: %s [-i ntasks] [-p sched_policy] [-b nbuffers] [-h]\n", argv[0]);
+	exit(EXIT_FAILURE);
+}
+
+static void parse_args(int argc, char **argv, struct starpu_conf *conf)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:")) != -1)
+	while ((c = getopt(argc, argv, "i:b:p:h")) != -1)
 	switch(c)
 	{
 		case 'i':
 			ntasks = atoi(optarg);
+			break;
+		case 'b':
+			nbuffers = atoi(optarg);
+			dummy_codelet.nbuffers = nbuffers;
+			break;
+		case 'p':
+			conf->sched_policy_name = optarg;
+			break;
+		case 'h':
+			usage(argv);
 			break;
 	}
 }
@@ -82,22 +108,35 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
 
-#ifdef STARPU_QUICK_CHECK
-	ntasks = 128;
-#endif
-
-	parse_args(argc, argv);
+	parse_args(argc, argv, &conf);
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	fprintf(stderr, "#tasks : %u\n", ntasks);
+	unsigned buffer;
+	for (buffer = 0; buffer < nbuffers; buffer++)
+	{
+		starpu_malloc((void**)&buffers[buffer], BUFFERSIZE*sizeof(float));
+		starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], BUFFERSIZE, sizeof(float));
+	}
+
+	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
 
 	start = starpu_timing_now();
 	for (i = 0; i < ntasks; i++)
 	{
-		ret = inject_one_task();
+		struct starpu_task *task = starpu_task_create();
+		task->cl = &dummy_codelet;
+		task->synchronous = 1;
+
+		/* we have 8 buffers at most */
+		for (buffer = 0; buffer < nbuffers; buffer++)
+		{
+			task->handles[buffer] = data_handles[buffer];
+		}
+
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -114,15 +153,25 @@ int main(int argc, char **argv)
 
                 if (output_dir && bench_id)
 		{
+                        char number[1+sizeof(nbuffers)*3+1];
+                        const char *numberp;
                         char file[1024];
                         FILE *f;
 
-                        snprintf(file, sizeof(file), "%s/sync_tasks_overhead_total.dat", output_dir);
+                        if (nbuffers)
+                        {
+                                snprintf(number, sizeof(number), "_%u", nbuffers);
+                                numberp = number;
+                        }
+                        else
+                                numberp = "";
+
+                        snprintf(file, sizeof(file), "%s/sync_tasks_overhead_total%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
                         fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/sync_tasks_overhead_per_task.dat", output_dir);
+                        snprintf(file, sizeof(file), "%s/sync_tasks_overhead_per_task%s.dat", output_dir, numberp);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
                         fclose(f);
