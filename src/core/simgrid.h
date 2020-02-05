@@ -27,7 +27,7 @@ extern "C"
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
-#else
+#elif defined(STARPU_HAVE_MSG_MSG_H)
 #include <msg/msg.h>
 #endif
 

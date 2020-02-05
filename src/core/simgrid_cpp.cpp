@@ -21,18 +21,10 @@
 #include <common/config.h>
 
 #ifdef STARPU_SIMGRID
-#ifdef STARPU_HAVE_SIMGRID_MSG_H
-#include <simgrid/msg.h>
-#else
-#include <msg/msg.h>
-#endif
 #if SIMGRID_VERSION >= 32190
 #include <simgrid/simix.hpp>
 #else
 #include <simgrid/simix.h>
-#endif
-#ifdef STARPU_HAVE_SIMGRID_HOST_H
-#include <simgrid/host.h>
 #endif
 
 /* thread_create function which implements inheritence of MPI privatization */

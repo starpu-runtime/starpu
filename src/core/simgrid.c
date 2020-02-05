@@ -286,7 +286,11 @@ void _starpu_start_simgrid(int *argc, char **argv)
 
 	simgrid_started = 1;
 
+#if defined(STARPU_SIMGRID_HAVE_SIMGRID_INIT) && defined(HAVE_SG_ACTOR_INIT)
+	simgrid_init(argc, argv);
+#else
 	MSG_init(argc, argv);
+#endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
 	unsigned stack_size = 8192;
 #ifdef HAVE_GETRLIMIT
@@ -310,7 +314,11 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #else
 	_starpu_simgrid_get_platform_path(4, path, sizeof(path));
 #endif
+#if defined(STARPU_SIMGRID_HAVE_SIMGRID_INIT) && defined(HAVE_SG_ACTOR_INIT)
+	simgrid_load_platform(path);
+#else
 	MSG_create_environment(path);
+#endif
 
 	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
@@ -384,14 +392,22 @@ int main(int argc, char **argv)
 	_starpu_simgrid_actor_create("main", &do_starpu_main, _starpu_simgrid_get_host_by_name("MAIN"), argc, argv_cpy);
 
 	/* And run maestro in the main thread */
+#if defined(STARPU_SIMGRID_HAVE_SIMGRID_INIT) && defined(HAVE_SG_ACTOR_INIT)
+	simgrid_run();
+#else
 	MSG_main();
+#endif
 	return main_ret;
 }
 
 #if defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach) || defined(HAVE_SG_ACTOR_ATTACH)
 static void maestro(void *data STARPU_ATTRIBUTE_UNUSED)
 {
+#if defined(STARPU_SIMGRID_HAVE_SIMGRID_INIT) && defined(HAVE_SG_ACTOR_INIT)
+	simgrid_run();
+#else
 	MSG_main();
+#endif
 }
 #endif
 
