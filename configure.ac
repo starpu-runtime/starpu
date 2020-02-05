@@ -3490,6 +3490,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_data_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/sync_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/sync_tasks_data_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/async_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/async_tasks_data_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
