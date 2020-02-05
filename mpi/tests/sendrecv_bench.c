@@ -95,7 +95,16 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
-	STARPU_ASSERT_MSG(worldsize == 2, "We need two prcesses.");
+	if (worldsize != 2)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need 2 processes.\n");
+
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
 
 
 	if (rank == 0)
