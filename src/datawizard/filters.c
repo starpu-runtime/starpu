@@ -248,7 +248,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		//child->nactive_readonly_children = 0;
 		child->nsiblings = nparts;
 		if (inherit_state)
-			; //child->siblings = NULL;
+		{
+			//child->siblings = NULL;
+		}
 		else
 			child->siblings = childrenp;
 		child->sibling_index = i;
@@ -302,7 +304,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			/* Just for testing purpose */
 			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
 		else
-			; //child->arbiter = NULL;
+		{
+			//child->arbiter = NULL;
+		}
 		_starpu_data_requester_prio_list_init0(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
@@ -320,7 +324,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			if (inherit_state || !initial_replicate->automatically_allocated)
 				child_replicate->allocated = initial_replicate->allocated;
 			else
-				; //child_replicate->allocated = 0;
+			{
+				//child_replicate->allocated = 0;
+			}
 			/* Do not allow memory reclaiming within the child for parent bits */
 			//child_replicate->automatically_allocated = 0;
 			//child_replicate->refcnt = 0;
@@ -329,7 +335,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			if (inherit_state)
 				child_replicate->initialized = initial_replicate->initialized;
 			else
-				; //child_replicate->initialized = 0;
+			{
+				//child_replicate->initialized = 0;
+			}
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);

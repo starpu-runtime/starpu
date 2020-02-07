@@ -339,7 +339,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		/* Just for testing purpose */
 		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
 	else
-		; //handle->arbiter = NULL;
+	{
+		//handle->arbiter = NULL;
+	}
 	_starpu_data_requester_prio_list_init0(&handle->arbitered_req_list);
 	handle->last_locality = -1;
 
