@@ -216,6 +216,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	{
 		struct starpu_task *new_task;
 		struct _starpu_job *pre_sync_job, *post_sync_job;
+		int submit_pre_sync = 0;
 		wrapper->pre_sync_task = starpu_task_create();
 		wrapper->pre_sync_task->name = "_starpu_data_acquire_cb_pre";
 		wrapper->pre_sync_task->detach = 1;
@@ -237,7 +238,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		if (quick)
 			pre_sync_job->quick_next = post_sync_job;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (STARPU_UNLIKELY(new_task))
@@ -246,9 +247,17 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 			STARPU_ASSERT(!ret);
 		}
 
-		/* TODO detect if this is superflous */
-		int ret = _starpu_task_submit_internally(wrapper->pre_sync_task);
-		STARPU_ASSERT(!ret);
+		if (submit_pre_sync)
+		{
+			int ret = _starpu_task_submit_internally(wrapper->pre_sync_task);
+			STARPU_ASSERT(!ret);
+		}
+		else
+		{
+			wrapper->pre_sync_task->detach = 0;
+			starpu_task_destroy(wrapper->pre_sync_task);
+			starpu_data_acquire_cb_pre_sync_callback(wrapper);
+		}
 	}
 	else
 	{
@@ -360,6 +369,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	if (sequential_consistency)
 	{
 		struct starpu_task *new_task;
+		int submit_pre_sync = 0;
 		wrapper.pre_sync_task = starpu_task_create();
 		wrapper.pre_sync_task->name = "_starpu_data_acquire_pre";
 		wrapper.pre_sync_task->detach = 0;
@@ -370,18 +380,26 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		wrapper.post_sync_task->detach = 1;
 		wrapper.post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, &submit_pre_sync, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-		if (new_task)
+
+		if (STARPU_UNLIKELY(new_task))
 		{
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
 
-		/* TODO detect if this is superflous */
-		wrapper.pre_sync_task->synchronous = 1;
-		int ret = _starpu_task_submit_internally(wrapper.pre_sync_task);
-		STARPU_ASSERT(!ret);
+		if (submit_pre_sync)
+		{
+			wrapper.pre_sync_task->synchronous = 1;
+			int ret = _starpu_task_submit_internally(wrapper.pre_sync_task);
+			STARPU_ASSERT(!ret);
+		}
+		else
+		{
+			wrapper.pre_sync_task->detach = 0;
+			starpu_task_destroy(wrapper.pre_sync_task);
+		}
 	}
 	else
 	{

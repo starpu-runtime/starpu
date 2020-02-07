@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2010-2012,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2010,2011,2013,2015,2017,2018            CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <common/config.h>
 
-struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
+struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, int *submit_pre_sync, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
 								  starpu_data_handle_t handle, enum starpu_data_access_mode mode, unsigned task_handle_sequential_consistency);
 int _starpu_test_implicit_data_deps_with_handle(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 void _starpu_detect_implicit_data_deps(struct starpu_task *task);
