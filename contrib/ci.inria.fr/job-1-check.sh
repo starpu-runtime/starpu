@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2018                                CNRS
+# Copyright (C) 2013-2018, 2020                          CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -73,6 +73,7 @@ fi
 ../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS
 
 export STARPU_TIMEOUT_ENV=1800
+export MPIEXEC_TIMEOUT=1800
 make
 #make check
 (make -k check || true) 2>&1 | tee  ../check_$$
