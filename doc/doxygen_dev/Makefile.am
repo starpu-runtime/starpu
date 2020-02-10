@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2018                                CNRS
+# Copyright (C) 2010-2018, 2020                          CNRS
 # Copyright (C) 2013-2018                                Inria
 # Copyright (C) 2009,2011,2013,2014,2017                 Université de Bordeaux
 #
@@ -126,7 +126,6 @@ $(DOX_TAG): $(dox_inputs)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen_dev/chapters/version.sty $(DOX_LATEX_DIR)
-	@-cp $(top_srcdir)/doc/doxygen_dev/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
