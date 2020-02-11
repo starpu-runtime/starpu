@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2016-2018                      Université de Bordeaux
+ * Copyright (C) 2008-2014,2016-2018,2020                 Université de Bordeaux
  * Copyright (C) 2011,2012,2016                           Inria
  * Copyright (C) 2010-2013,2015-2017,2019                 CNRS
  *
@@ -76,16 +76,16 @@ static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 static struct _starpu_tag *_starpu_tag_init(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
-	_STARPU_MALLOC(tag, sizeof(struct _starpu_tag));
+	_STARPU_CALLOC(tag, 1, sizeof(struct _starpu_tag));
 
-	tag->job = NULL;
-	tag->is_assigned = 0;
-	tag->is_submitted = 0;
+	//tag->job = NULL;
+	//tag->is_assigned = 0;
+	//tag->is_submitted = 0;
 
 	tag->id = id;
 	tag->state = STARPU_INVALID_STATE;
 
-	_starpu_cg_list_init(&tag->tag_successors);
+	_starpu_cg_list_init0(&tag->tag_successors);
 
 	_starpu_spin_init(&tag->lock);
 

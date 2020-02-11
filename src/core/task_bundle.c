@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014                                Université de Bordeaux
+ * Copyright (C) 2011-2014, 2020                                Université de Bordeaux
  * Copyright (C) 2011,2012                                Inria
  * Copyright (C) 2011,2013,2015-2017                      CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -29,15 +29,15 @@
 /* Initialize a task bundle */
 void starpu_task_bundle_create(starpu_task_bundle_t *bundle)
 {
-	_STARPU_MALLOC(*bundle, sizeof(struct _starpu_task_bundle));
+	_STARPU_CALLOC(*bundle, 1, sizeof(struct _starpu_task_bundle));
 
-	STARPU_PTHREAD_MUTEX_INIT(&(*bundle)->mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&(*bundle)->mutex, NULL);
 	/* Of course at the beginning a bundle is open,
 	 * user can insert and remove tasks from it */
-	(*bundle)->closed = 0;
+	//(*bundle)->closed = 0;
 
 	/* Start with an empty list */
-	(*bundle)->list = NULL;
+	//(*bundle)->list = NULL;
 
 }
 

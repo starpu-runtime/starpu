@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2018                                Université de Bordeaux
+ * Copyright (C) 2008-2018,2020                           Université de Bordeaux
  * Copyright (C) 2010-2012,2015-2018                      CNRS
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -50,6 +50,9 @@
  *
  *   * Initializes a list (initially empty)
  *   void		FOO_list_init(struct FOO_list*);
+ *
+ *   * Initializes a list (initially empty), assuming that the content of FOO_list was already zeroed
+ *   void		FOO_list_init0(struct FOO_list*);
  *
  *   * Suppresses a liste
  *   void		FOO_list_delete(struct FOO_list*);
@@ -225,7 +228,9 @@
   /** @internal */LIST_INLINE struct ENAME *ENAME##_list_back(const struct ENAME##_list *l) \
     { return l->_tail; } \
   /** @internal */LIST_INLINE void ENAME##_list_init(struct ENAME##_list *l) \
-    { l->_head=NULL; l->_tail=l->_head; } \
+    { l->_head=NULL; l->_tail=NULL; } \
+  /** @internal */LIST_INLINE void ENAME##_list_init0(struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+    { } \
   /** @internal */LIST_INLINE struct ENAME##_list *ENAME##_list_new(void) \
     { struct ENAME##_list *l; _STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \

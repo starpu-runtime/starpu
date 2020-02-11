@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2013,2015-2017                           Inria
  * Copyright (C) 2010-2015,2017,2019                           CNRS
- * Copyright (C) 2010,2012-2019                           Université de Bordeaux
+ * Copyright (C) 2010,2012-2020                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,9 +45,12 @@
 #ifdef STARPU_HAVE_SIMGRID_BARRIER_H
 #include <simgrid/barrier.h>
 #endif
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+#include <simgrid/host.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
-#else
+#elif defined(STARPU_HAVE_MSG_MSG_H)
 #include <msg/msg.h>
 #endif
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)

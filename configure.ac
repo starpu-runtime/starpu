@@ -173,20 +173,31 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
+	AC_CHECK_HEADERS([msg/msg.h], [AC_DEFINE([STARPU_HAVE_MSG_MSG_H], [1], [Define to 1 if you have msg.h in msg/.])])
 	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
+	AC_CHECK_HEADERS([xbt/base.h], [AC_DEFINE([STARPU_HAVE_XBT_BASE_H], [1], [Define to 1 if you have base.h in xbt/.])])
+	AC_CHECK_HEADERS([simgrid/version.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_VERSION_H], [1], [Define to 1 if you have version.h in simgrid/.])], [], [[
+			  #ifdef STARPU_HAVE_XBT_BASE_H
+			  #include <xbt/base.h>
+			  #endif
+			  ]])
 	AC_CHECK_HEADERS([simgrid/simdag.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_SIMDAG_H], [1], [Define to 1 if you have simdag.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/synchro.h], [AC_DEFINE([STARPU_HAVE_XBT_SYNCHRO_H], [1], [Define to 1 if you have synchro.h in xbt/.])])
+	AC_CHECK_HEADERS([xbt/config.h], [AC_DEFINE([STARPU_HAVE_XBT_CONFIG_H], [1], [Define to 1 if you have config.h in xbt/.])])
 	AC_CHECK_HEADERS([simgrid/actor.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ACTOR_H], [1], [Define to 1 if you have actor.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/engine.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ENGINE_H], [1], [Define to 1 if you have engine.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/semaphore.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_SEMAPHORE_H], [1], [Define to 1 if you have semaphore.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/mutex.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MUTEX_H], [1], [Define to 1 if you have mutex.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/cond.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_COND_H], [1], [Define to 1 if you have cond.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/barrier.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_BARRIER_H], [1], [Define to 1 if you have barrier.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/engine.h])
+	AC_CHECK_HEADERS([simgrid/zone.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ZONE_H], [1], [Define to 1 if you have zone.h in simgrid/.])])
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
+	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_cfg_set_int sg_actor_self_execute simgrid_get_clock])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
@@ -194,20 +205,6 @@ if test x$enable_simgrid = xyes ; then
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
 
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-		    		[[
-#ifdef STARPU_HAVE_SIMGRID_MSG_H
-#include <simgrid/msg.h>
-#else
-#include <msg/msg.h>
-#endif
-				 ]],
-				[[msg_host_t foo; ]]
-			    )],
-	                 [],
-	                 [
-			   AC_MSG_ERROR(StarPU needs a version of Simgrid which defines the type msg_host_t (should be any version >= 3.8.1))
-		         ])
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
 	with_hwloc=no
@@ -639,7 +636,7 @@ fi
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
     if test x$enable_simgrid = xyes ; then
         if test x$enable_shared = xyes ; then
-	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this])
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, use --disable-shared to fix this, or disable MPI with --disable-mpi])
         else
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
@@ -830,6 +827,12 @@ AC_CHECK_FUNCS(pthread_setaffinity_np)
 AC_CHECK_FUNC([pthread_setname_np], have_pthread_setname_np=yes, have_pthread_setname_np=no)
 if test x$have_pthread_setname_np = xyes; then
 	AC_DEFINE(STARPU_HAVE_PTHREAD_SETNAME_NP,[1],[pthread_setname_np is available])
+fi
+
+if test "x$cross_compiling" = "xno"; then
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_mutex_t, PTHREAD_MUTEX_INITIALIZER)
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_cond_t, PTHREAD_COND_INITIALIZER)
+	STARPU_INIT_ZERO([[#include <pthread.h>]], pthread_rwlock_t, PTHREAD_RWLOCK_INITIALIZER)
 fi
 
 # There is no posix_memalign on Mac OS X, only memalign
@@ -3512,6 +3515,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   mkdir -p tests/microbenchs
+  test -e tests/microbenchs/tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_data_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/sync_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/sync_tasks_data_overhead.sh tests/microbenchs/
+  test -e tests/microbenchs/async_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/async_tasks_data_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/

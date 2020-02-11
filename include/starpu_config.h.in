@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011,2012,2014,2016,2017                 Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2010-2017,2019                           CNRS
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@
 #undef STARPU_SIMGRID_MC
 #undef STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT
 #undef STARPU_HAVE_SIMGRID_MSG_H
+#undef STARPU_HAVE_MSG_MSG_H
 #undef STARPU_HAVE_SIMGRID_ACTOR_H
 #undef STARPU_HAVE_SIMGRID_SEMAPHORE_H
 #undef STARPU_HAVE_SIMGRID_MUTEX_H
@@ -164,6 +165,9 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_PTHREAD_BARRIER
 #undef STARPU_HAVE_PTHREAD_SETNAME_NP
 #undef STARPU_HAVE_STRUCT_TIMESPEC
+#undef STARPU_PTHREAD_MUTEX_INITIALIZER_ZERO
+#undef STARPU_PTHREAD_COND_INITIALIZER_ZERO
+#undef STARPU_PTHREAD_RWLOCK_INITIALIZER_ZERO
 
 /* This is only for building examples */
 #undef STARPU_HAVE_HELGRIND_H

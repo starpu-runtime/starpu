@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012,2013                                Inria
- * Copyright (C) 2010-2013,2015,2017,2019                      CNRS
- * Copyright (C) 2010-2014,2016,2017                      Université de Bordeaux
+ * Copyright (C) 2010-2013,2015,2017,2019                 CNRS
+ * Copyright (C) 2010-2014,2016,2017,2020                 Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@
  * Encapsulation of the starpu_pthread_mutex_* functions.
  */
 
-#define STARPU_PTHREAD_MUTEX_INIT(mutex, attr) do {                           \
+#define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr) do {                           \
 	int p_ret = starpu_pthread_mutex_init((mutex), (attr));                \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -73,6 +73,22 @@
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
+
+#ifdef STARPU_PTHREAD_MUTEX_INITIALIZER_ZERO
+#define STARPU_PTHREAD_MUTEX_INIT(mutex, attr) do {                            \
+	if (!attr)                                                             \
+		memset(mutex, 0, sizeof(*mutex));                              \
+	else                                                                   \
+		_STARPU_PTHREAD_MUTEX_INIT(mutex, attr);                       \
+} while (0)
+#define STARPU_PTHREAD_MUTEX_INIT0(mutex, attr) do {                           \
+	if (attr)                                                              \
+		_STARPU_PTHREAD_MUTEX_INIT(mutex, attr);                       \
+} while (0)
+#else
+#define STARPU_PTHREAD_MUTEX_INIT(mutex, attr) _STARPU_PTHREAD_MUTEX_INIT(mutex, attr)
+#define STARPU_PTHREAD_MUTEX_INIT0(mutex, attr) _STARPU_PTHREAD_MUTEX_INIT(mutex, attr)
+#endif
 
 #define STARPU_PTHREAD_MUTEX_DESTROY(mutex) do {                              \
 	int p_ret = starpu_pthread_mutex_destroy(mutex);                       \
@@ -199,7 +215,7 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 /*
  * Encapsulation of the starpu_pthread_rwlock_* functions.
  */
-#define STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) do {                          \
+#define _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) do {                         \
 	int p_ret = starpu_pthread_rwlock_init((rwlock), (attr));              \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -208,6 +224,22 @@ int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex, char *fil
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
+
+#ifdef STARPU_PTHREAD_RWLOCK_INITIALIZER_ZERO
+#define STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) do {                            \
+	if (!attr)                                                             \
+		memset(rwlock, 0, sizeof(*rwlock));                              \
+	else                                                                   \
+		_STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr);                       \
+} while (0)
+#define STARPU_PTHREAD_RWLOCK_INIT0(rwlock, attr) do {                           \
+	if (attr)                                                              \
+		_STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr);                       \
+} while (0)
+#else
+#define STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr) _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr)
+#define STARPU_PTHREAD_RWLOCK_INIT0(rwlock, attr) _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr)
+#endif
 
 #define STARPU_PTHREAD_RWLOCK_RDLOCK(rwlock) do {                              \
 	int p_ret = starpu_pthread_rwlock_rdlock(rwlock);                      \
@@ -282,7 +314,7 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
 /*
  * Encapsulation of the starpu_pthread_cond_* functions.
  */
-#define STARPU_PTHREAD_COND_INIT(cond, attr) do {                             \
+#define _STARPU_PTHREAD_COND_INIT(cond, attr) do {                             \
 	int p_ret = starpu_pthread_cond_init((cond), (attr));                  \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
@@ -291,6 +323,22 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
+
+#ifdef STARPU_PTHREAD_COND_INITIALIZER_ZERO
+#define STARPU_PTHREAD_COND_INIT(cond, attr) do {                            \
+	if (!attr)                                                             \
+		memset(cond, 0, sizeof(*cond));                              \
+	else                                                                   \
+		_STARPU_PTHREAD_COND_INIT(cond, attr);                       \
+} while (0)
+#define STARPU_PTHREAD_COND_INIT0(cond, attr) do {                           \
+	if (attr)                                                              \
+		_STARPU_PTHREAD_COND_INIT(cond, attr);                       \
+} while (0)
+#else
+#define STARPU_PTHREAD_COND_INIT(cond, attr) _STARPU_PTHREAD_COND_INIT(cond, attr)
+#define STARPU_PTHREAD_COND_INIT0(cond, attr) _STARPU_PTHREAD_COND_INIT(cond, attr)
+#endif
 
 #define STARPU_PTHREAD_COND_DESTROY(cond) do {                                \
 	int p_ret = starpu_pthread_cond_destroy(cond);                         \

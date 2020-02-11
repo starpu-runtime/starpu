@@ -32,6 +32,9 @@ EXTRA_DIST =					\
 	regression/profiles.in			\
 	regression/regression.sh.in		\
 	regression/profiles.build.only.in	\
+	microbenchs/tasks_data_overhead.sh	\
+	microbenchs/sync_tasks_data_overhead.sh	\
+	microbenchs/async_tasks_data_overhead.sh	\
 	microbenchs/tasks_size_overhead.sh	\
 	microbenchs/tasks_size_overhead_sched.sh	\
 	microbenchs/tasks_size_overhead_scheds.sh	\
@@ -391,11 +394,18 @@ examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
 examplebin_SCRIPTS = \
+	microbenchs/tasks_data_overhead.sh \
+	microbenchs/sync_tasks_data_overhead.sh \
+	microbenchs/async_tasks_data_overhead.sh \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS += microbenchs/tasks_size_overhead_scheds.sh
+TESTS += \
+	microbenchs/tasks_data_overhead.sh \
+	microbenchs/sync_tasks_data_overhead.sh \
+	microbenchs/async_tasks_data_overhead.sh \
+	microbenchs/tasks_size_overhead_scheds.sh
 endif
 endif
 

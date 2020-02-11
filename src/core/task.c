@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2019                                Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -772,7 +772,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 					  "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.",
 					  task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
 
-		if (task->dyn_handles)
+		if (STARPU_UNLIKELY(task->dyn_handles))
 		{
 			_STARPU_MALLOC(task->dyn_interfaces, nbuffers * sizeof(void *));
 		}
@@ -805,7 +805,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		}
 
 		/* Check the type of worker(s) required by the task exist */
-		if (!_starpu_worker_exists(task))
+		if (STARPU_UNLIKELY(!_starpu_worker_exists(task)))
 		{
 			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
@@ -814,7 +814,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0))
+		if (STARPU_UNLIKELY(task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0)))
 		{
 			_STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
@@ -916,7 +916,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 			_starpu_detect_implicit_data_deps(task);
 	}
 
-	if (bundle)
+	if (STARPU_UNLIKELY(bundle))
 	{
 		/* We need to make sure that models for other tasks of the
 		 * bundle are also loaded, so the scheduler can estimate the
@@ -951,7 +951,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	 * dependency. */
 	task->status = STARPU_TASK_BLOCKED;
 
-	if (profiling)
+	if (STARPU_UNLIKELY(profiling))
 		_starpu_clock_gettime(&info->submit_time);
 
 	ret = _starpu_submit_job(j, nodeps);

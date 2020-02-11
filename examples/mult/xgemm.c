@@ -58,6 +58,7 @@ static unsigned zdim = 960*4;
 #endif
 static unsigned check = 0;
 static unsigned bound = 0;
+static unsigned print_hostname = 0;
 
 static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
@@ -304,6 +305,11 @@ static void parse_args(int argc, char **argv)
 			bound = 1;
 		}
 
+		else if (strcmp(argv[i], "-hostname") == 0)
+		{
+			print_hostname = 1;
+		}
+
 		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
@@ -316,7 +322,7 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
 			exit(EXIT_SUCCESS);
 		}
@@ -400,10 +406,19 @@ int main(int argc, char **argv)
 	if (bound)
 		starpu_bound_compute(&min, &min_int, 1);
 
-	PRINTF("# x\ty\tz\tms\tGFlops");
+	PRINTF("# ");
+	if (print_hostname)
+		PRINTF("node\t");
+	PRINTF("x\ty\tz\tms\tGFlops");
 	if (bound)
 		PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
 	PRINTF("\n");
+	if (print_hostname)
+	{
+		char hostname[255];
+		gethostname(hostname, 255);
+		PRINTF("%s\t", hostname);
+	}
 	PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
 	if (bound)
 		PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);

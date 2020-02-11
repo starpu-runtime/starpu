@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2014-2018                                Inria
  * Copyright (C) 2014-2017,2019                           CNRS
- * Copyright (C) 2015,2017,2019                           Université de Bordeaux
+ * Copyright (C) 2015,2017,2019-2020                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -319,7 +319,7 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 	_STARPU_CALLOC(region, 1, sizeof(*region));
 	region->parent_region = parent_region;
 	region->owner_device = owner_device;
-	starpu_omp_thread_list_init(&region->thread_list);
+	starpu_omp_thread_list_init0(&region->thread_list);
 
 	_starpu_spin_init(&region->lock);
 	_starpu_spin_init(&region->registered_handles_lock);

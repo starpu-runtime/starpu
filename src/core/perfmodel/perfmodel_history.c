@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
+ * Copyright (C) 2008-2020                                Université de Bordeaux
  * Copyright (C) 2010-2017, 2019                          CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -582,7 +582,7 @@ static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_p
 			 * good-enough estimation */
 			STARPU_HG_DISABLE_CHECKING(entry->nsample);
 			STARPU_HG_DISABLE_CHECKING(entry->mean);
-			entry->nerror = 0;
+			//entry->nerror = 0;
 		}
 
 		scan_history_entry(f, path, entry);
@@ -1886,18 +1886,18 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 				/* Do not take the first measurement into account, it is very often quite bogus */
 				/* TODO: it'd be good to use a better estimation heuristic, like the median, or latest n values, etc. */
-				entry->mean = 0;
-				entry->sum = 0;
+				//entry->mean = 0;
+				//entry->sum = 0;
 
-				entry->deviation = 0.0;
-				entry->sum2 = 0;
+				//entry->deviation = 0.0;
+				//entry->sum2 = 0;
 
 				entry->size = _starpu_job_get_data_size(model, arch, impl, j);
 				entry->flops = j->task->flops;
 
 				entry->footprint = key;
-				entry->nsample = 0;
-				entry->nerror = 0;
+				//entry->nsample = 0;
+				//entry->nerror = 0;
 
 				insert_history_entry(entry, list, &per_arch_model->history);
 			}

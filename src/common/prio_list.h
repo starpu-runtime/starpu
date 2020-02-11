@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017,2018                                Inria
  * Copyright (C) 2016,2017                                CNRS
- * Copyright (C) 2015-2017,2019                           Université de Bordeaux
+ * Copyright (C) 2015-2017,2019-2020                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,9 @@
  *
  * * Initialize a new priority list
  * void FOO_prio_list_init(struct FOO_prio_list*)
+ *
+ * * Initialize a new priority list, assuming that the content of FOO_prio_list was already zeroed
+ * void FOO_prio_list_init0(struct FOO_prio_list*)
  *
  * * Free an empty priority list
  * void FOO_prio_list_deinit(struct FOO_prio_list*)
@@ -152,6 +155,11 @@
 		starpu_rbtree_init(&priolist->tree); \
 		priolist->empty = 1; \
 	} \
+	PRIO_LIST_INLINE void ENAME##_prio_list_init0(struct ENAME##_prio_list *priolist) \
+	{ \
+		starpu_rbtree_init0(&priolist->tree); \
+		priolist->empty = 1; \
+	} \
 	PRIO_LIST_INLINE void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
 	{ \
 		if (starpu_rbtree_empty(&priolist->tree)) \
@@ -183,10 +191,10 @@
 		if (node) \
 			stage = ENAME##_node_to_list_stage(node); \
 		else { \
-			_STARPU_MALLOC(stage, sizeof(*stage));	\
-			starpu_rbtree_node_init(&stage->node); \
+			_STARPU_CALLOC(stage, 1, sizeof(*stage));	\
+			starpu_rbtree_node_init0(&stage->node); \
 			stage->prio = prio; \
-			ENAME##_list_init(&stage->list); \
+			ENAME##_list_init0(&stage->list); \
 			starpu_rbtree_insert_slot(&priolist->tree, slot, &stage->node); \
 		} \
 		return stage; \
@@ -469,6 +477,8 @@
 	struct ENAME##_prio_list { struct ENAME##_list list; }; \
 	PRIO_LIST_INLINE void ENAME##_prio_list_init(struct ENAME##_prio_list *priolist) \
 	{ ENAME##_list_init(&(priolist)->list); } \
+	PRIO_LIST_INLINE void ENAME##_prio_list_init0(struct ENAME##_prio_list *priolist) \
+	{ ENAME##_list_init0(&(priolist)->list); } \
 	PRIO_LIST_INLINE void ENAME##_prio_list_deinit(struct ENAME##_prio_list *priolist) \
 	{ (void) (priolist); /* ENAME##_list_deinit(&(priolist)->list); */ } \
 	PRIO_LIST_INLINE void ENAME##_prio_list_push_back(struct ENAME##_prio_list *priolist, struct ENAME *e) \
