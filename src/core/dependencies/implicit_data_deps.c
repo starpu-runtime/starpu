@@ -50,7 +50,6 @@ static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_ta
 }
 
 /* Add post_sync_task as new accessor among the existing ones, making pre_sync_task depend on the last synchronization task if any.  */
-/* This returns 1 if pre_sync_task really needs to wait for anything, and 0 otherwise (which means it does not actually need to be submitted) */
 static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, int submit_pre_sync, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot)
 {
 	/* Add this task to the list of readers */
