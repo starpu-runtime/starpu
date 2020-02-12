@@ -46,6 +46,7 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 	if (bcsr_father->nzval)
 	{
 		uint8_t *nzval = (uint8_t *)(bcsr_father->nzval);
-		matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
+		matrix_child->dev_handle = matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
+		matrix_child->offset = 0;
 	}
 }
