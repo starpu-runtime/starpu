@@ -94,7 +94,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
 
-	if (submit_pre_sync && !pre_sync_task->cl)
+	if (*submit_pre_sync && !pre_sync_task->cl)
 	{
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
