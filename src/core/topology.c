@@ -1924,12 +1924,15 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 			 (previous >= 0 && previous == workerid) ||
 			 (name && cpu_name[cpuid] && !strcmp(name, cpu_name[cpuid])) ) )
 		{
+			char hostname[65];
+			_starpu_gethostname(hostname, sizeof(hostname));
+
 			if (previous == STARPU_ACTIVETHREAD)
-				_STARPU_DISP("Warning: active thread %s was already bound to PU %d\n", cpu_name[cpuid], cpuid);
+				_STARPU_DISP("[%s] Warning: active thread %s was already bound to PU %d\n", hostname, cpu_name[cpuid], cpuid);
 			else if (previous == STARPU_NONACTIVETHREAD)
-				_STARPU_DISP("Warning: non-active thread %s was already bound to PU %d\n", cpu_name[cpuid], cpuid);
+				_STARPU_DISP("[%s] Warning: non-active thread %s was already bound to PU %d\n", hostname, cpu_name[cpuid], cpuid);
 			else
-				_STARPU_DISP("Warning: worker %d was already bound to PU %d\n", previous, cpuid);
+				_STARPU_DISP("[%s] Warning: worker %d was already bound to PU %d\n", hostname, previous, cpuid);
 
 			if (workerid == STARPU_ACTIVETHREAD)
 				_STARPU_DISP("and we were told to also bind active thread %s to it.\n", name);
@@ -1942,7 +1945,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 
 			if (workerid >= 0)
 				/* This shouldn't happen for workers */
-				_STARPU_DISP("Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", config->topology.nhwcpus, config->topology.nhwpus);
+				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwcpus, config->topology.nhwpus);
 			ret = -1;
 		}
 		else
