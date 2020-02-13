@@ -1629,13 +1629,6 @@ void starpu_task_ft_failed(struct starpu_task *task);
  */
 void starpu_task_ft_success(struct starpu_task *meta_task);
 
-
-/**
-   Sets the function to call when the watchdog detects that StarPU has not
- * finished task for STARPU_WATCHDOG_TIMEOUT seconds */
-void starpu_task_set_watchdog_hook(void (*hook)(void *), void * hook_arg);
-
-
 /** @} */
 
 #ifdef __cplusplus
