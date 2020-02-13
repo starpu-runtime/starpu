@@ -743,7 +743,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 
 /* Note: simgrid is not parallel, so there is no need to hold locks for management of transfers.  */
 LIST_TYPE(transfer,
-#ifdef HAVE_SG_HOST_SEND_TO
+#if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
 	size_t size;
 #else
 	msg_task_t task;
@@ -876,15 +876,20 @@ static void *transfer_execute(void *arg)
 		if (t->last_transfer == transfer)
 			t->last_transfer = NULL;
 
-#ifdef HAVE_SG_HOST_SEND_TO
+#if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
 		if (transfer->size)
 #else
 		if (transfer->task)
 #endif
 		{
 			_STARPU_DEBUG("transfer %p started\n", transfer);
-#ifdef HAVE_SG_HOST_SEND_TO
-			sg_host_send_to(_starpu_simgrid_memory_node_get_host(transfer->src_node),
+#if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
+#ifdef HAVE_SG_HOST_SENDTO
+			sg_host_sendto
+#else
+			sg_host_send_to
+#endif
+				(_starpu_simgrid_memory_node_get_host(transfer->src_node),
 					_starpu_simgrid_memory_node_get_host(transfer->dst_node),
 					transfer->size);
 #else
@@ -985,7 +990,7 @@ static void _starpu_simgrid_wait_transfers(void)
 	struct transfer *sync = transfer_new();
 	struct transfer *cur;
 
-#ifdef HAVE_SG_HOST_SEND_TO
+#if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
 	sync->size = 0;
 #else
 	sync->task = NULL;
@@ -1053,7 +1058,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 
 	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
 
-#ifdef HAVE_SG_HOST_SEND_TO
+#if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
 	transfer->size = size;
 #else
 	msg_task_t task;
