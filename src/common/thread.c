@@ -29,7 +29,10 @@
 #include <limits.h>
 
 #ifdef STARPU_SIMGRID
-#ifdef STARPU_HAVE_XBT_SYNCHRO_H
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+#include <simgrid/mutex.h>
+#include <simgrid/cond.h>
+#elif defined(STARPU_HAVE_XBT_SYNCHRO_H)
 #include <xbt/synchro.h>
 #else
 #include <xbt/synchro_core.h>
