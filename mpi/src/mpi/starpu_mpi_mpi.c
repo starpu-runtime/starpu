@@ -551,7 +551,6 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
 	int ret;
 	struct _starpu_mpi_req *req = *public_req;
-	struct _starpu_mpi_req *waiting_req;
 
 	_STARPU_MPI_LOG_IN();
 
@@ -575,6 +574,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 		*status = req->status_store;
 	_starpu_mpi_handle_request_termination(req);
 #else
+	struct _starpu_mpi_req *waiting_req;
 	/* We cannot try to complete a MPI request that was not actually posted
 	 * to MPI yet. */
 	STARPU_PTHREAD_MUTEX_LOCK(&(req->backend->req_mutex));
