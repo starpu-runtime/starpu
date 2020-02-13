@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2016,2017                                CNRS
- * Copyright (C) 2012-2019                                Université de Bordeaux
+ * Copyright (C) 2012-2020                                Université de Bordeaux
  * Copyright (C) 2016,2017                                Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,6 +26,7 @@
 #else
 #include <simgrid/simix.h>
 #endif
+#include <smpi/smpi.h>
 
 /* thread_create function which implements inheritence of MPI privatization */
 /* See https://github.com/simgrid/simgrid/issues/139 */
@@ -34,9 +35,26 @@ typedef struct
 {
 	void_f_pvoid_t code;
 	void *userparam;
+#if SIMGRID_VERSION >= 32501
 	void *father_data;
+#endif
 } thread_data_t;
 
+#if SIMGRID_VERSION >= 32501
+static void *_starpu_simgrid_xbt_thread_create_wrapper(void *arg)
+{
+	thread_data_t *t = (thread_data_t *) arg;
+	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
+	starpu_sleep(0.000001);
+#ifdef HAVE_SMPI_THREAD_CREATE
+	/* Make this actor inherit SMPI data from father actor */
+	SMPI_thread_create();
+#endif
+	t->code(t->userparam);
+	free(t);
+	return NULL;
+}
+#else
 #if SIMGRID_VERSION >= 32190
 static void _starpu_simgrid_xbt_thread_create_wrapper(void)
 #else
@@ -66,9 +84,17 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 	return 0;
 #endif
 }
+#endif
 
 void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
 {
+#if SIMGRID_VERSION >= 32501
+	starpu_pthread_t t;
+	thread_data_t *res = (thread_data_t *) malloc(sizeof(thread_data_t));
+	res->userparam = param;
+	res->code = code;
+	starpu_pthread_create_on(name, &t, NULL, _starpu_simgrid_xbt_thread_create_wrapper, res, sg_host_self());
+#else
 #if SIMGRID_VERSION >= 32190 || defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
@@ -113,6 +139,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 				 );
 #else
 	STARPU_ABORT_MSG("Can't run StarPU-Simgrid-MPI with a Simgrid version which does not provide simcall_process_create and does not fix https://github.com/simgrid/simgrid/issues/139 , sorry.");
+#endif
 #endif
 }
 
