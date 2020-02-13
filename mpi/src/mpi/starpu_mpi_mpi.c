@@ -571,7 +571,8 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	starpu_pthread_wait_destroy(&wait);
 	_STARPU_MPI_TRACE_UWAIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
 
-	*status = req->status_store;
+	if (status)
+		*status = req->status_store;
 	_starpu_mpi_handle_request_termination(req);
 #else
 	/* We cannot try to complete a MPI request that was not actually posted
