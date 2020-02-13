@@ -128,7 +128,6 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	gather					\
 	sendrecv_bench
 
 if !STARPU_SIMGRID
@@ -152,6 +151,7 @@ starpu_mpi_TESTS +=				\
 	multiple_send				\
 	tags_checking				\
 	sync					\
+	gather					\
 	gather2					\
 	driver
 
