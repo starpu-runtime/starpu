@@ -126,7 +126,6 @@ starpu_mpi_TESTS +=				\
 	ring_async_implicit			\
 	temporary				\
 	user_defined_datatype			\
-	gather					\
 	early_stuff
 
 if !STARPU_SIMGRID
@@ -150,6 +149,7 @@ starpu_mpi_TESTS +=				\
 	multiple_send				\
 	tags_checking				\
 	sync					\
+	gather					\
 	gather2					\
 	driver
 
