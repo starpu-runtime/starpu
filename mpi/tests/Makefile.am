@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2019                                CNRS
-# Copyright (C) 2009-2018                                Université de Bordeaux
+# Copyright (C) 2009-2018, 2020                                Université de Bordeaux
 # Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -95,6 +95,7 @@ if BUILD_TESTS
 starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
+	broadcast				\
 	cache					\
 	cache_disable				\
 	callback				\
@@ -108,36 +109,38 @@ starpu_mpi_TESTS +=				\
 	insert_task_owner_data			\
 	matrix					\
 	matrix2					\
+	mpi_barrier				\
 	mpi_detached_tag			\
+	mpi_irecv				\
 	mpi_irecv_detached			\
+	mpi_isend				\
 	mpi_isend_detached			\
 	mpi_reduction				\
 	mpi_scatter_gather			\
+	pingpong				\
 	policy_register				\
 	policy_register_many			\
 	policy_selection			\
 	policy_selection2			\
+	ring					\
+	ring_async				\
 	ring_async_implicit			\
 	temporary				\
-	early_stuff
+	user_defined_datatype			\
+	early_stuff				\
+	gather					\
+	sendrecv_bench
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
 	attr					\
-	broadcast				\
-	pingpong				\
 	mpi_test				\
-	mpi_isend				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
-	mpi_irecv				\
-	mpi_barrier				\
 	mpi_redux				\
-	ring					\
 	ring_sync				\
 	ring_sync_detached			\
-	ring_async				\
 	block_interface				\
 	block_interface_pinned			\
 	matrix2					\
@@ -147,13 +150,10 @@ starpu_mpi_TESTS +=				\
 	insert_task_count			\
 	insert_task_seq				\
 	multiple_send				\
-	user_defined_datatype			\
 	tags_checking				\
 	sync					\
-	gather					\
 	gather2					\
-	driver					\
-	sendrecv_bench
+	driver
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
