@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
+ * Copyright (C) 2011-2017,2020                           Inria
  * Copyright (C) 2009-2019                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
+ * Copyright (C) 2010-2015,2017,2018,2019,2020            CNRS
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
  *
@@ -1538,6 +1538,12 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
    Create and submit an empty task with the given callback
  */
 void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
+
+/**
+   Set the function to call when the watchdog detects that StarPU has
+   not finished any task for STARPU_WATCHDOG_TIMEOUT seconds
+*/
+void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
 
 /** @} */
 
