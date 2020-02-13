@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2012,2013,2016,2017                      Inria
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
@@ -1152,13 +1152,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
+	void **tsd;
+	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
 #ifdef HAVE_SG_ACTOR_DATA
 	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	/* And set TSD for us */
+	sg_actor_self_data_set(tsd);
 #else
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
-	void **tsd;
-	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
 	if (!smpi_process_set_user_data)
 	{
 		_STARPU_ERROR("Your version of simgrid does not provide smpi_process_set_user_data, we can not continue without it\n");
