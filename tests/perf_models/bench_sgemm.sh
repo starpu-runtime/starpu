@@ -1,8 +1,13 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
+<<<<<<< HEAD
 # Copyright (C) 2009-2011,2014                           Université de Bordeaux
 # Copyright (C) 2010,2015                                CNRS
+=======
+# Copyright (C) 2009-2011,2014,2019-2020                 Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
+>>>>>>> f2bea4ce9... Use $STARPU_LAUNCH in scripts
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +60,7 @@ do
 	fi
 
 	echo "GotoBLAS -> size $size niter $niter"
-	timing=`STARPU_NCPUS=1 STARPU_NCUDA=0 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
+	timing=`STARPU_NCPUS=1 STARPU_NCUDA=0 $STARPU_LAUNCH $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
 	echo "$size	$timing	$niter" >> $cpu_output
 done
 
@@ -72,7 +77,7 @@ do
 	fi
 
 	echo "CUBLAS -> size $size niter $niter"
-	timing=`STARPU_NCPUS=0 STARPU_NCUDA=1 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
+	timing=`STARPU_NCPUS=0 STARPU_NCUDA=1 $STARPU_LAUNCH $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
 	echo "$size	$timing	$niter" >> $gpu_output
 done
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011,2014                           Université de Bordeaux
-# Copyright (C) 2010,2015                                CNRS
+# Copyright (C) 2009-2011,2014,2019-2020                 Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ trace_sched()
 		do
 			echo "$iter / $maxiter"
 			echo "$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null"
-			val=`$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
+			val=`$STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
 			echo "$val" >> $filename
 			echo "$val"
 		done
@@ -64,7 +64,7 @@ mkdir -p $TIMINGDIR
 # calibrate
 for i in `seq 1 5` 
 do
-STARPU_SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
+STARPU_SCHED="dm" $STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
 done
 
 for sched in $schedlist

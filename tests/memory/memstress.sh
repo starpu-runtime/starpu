@@ -1,8 +1,13 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
+<<<<<<< HEAD
 # Copyright (C) 2008-2011,2014                           Université de Bordeaux
 # Copyright (C) 2010,2015                                CNRS
+=======
+# Copyright (C) 2008-2011,2014,2020                      Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
+>>>>>>> f2bea4ce9... Use $STARPU_LAUNCH in scripts
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +46,7 @@ trace_stress()
 		echo "Computing size $size with $memstress MB of memory LESS"
 		
 		echo "$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
-		timing=`$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+		timing=`$STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 	
 		echo "size : $size memstress $memstress => $timing us"
 

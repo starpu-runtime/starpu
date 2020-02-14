@@ -1,8 +1,8 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2011,2014                           Université de Bordeaux
-# Copyright (C) 2010,2015                                CNRS
+# Copyright (C) 2010,2011,2014,2020                      Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@ ncalibrate=0
 for i in `seq 1 $ncalibrate`
 do
 echo "STARPU_CALIBRATE $i/$ncalibrate"
-STARPU_CALIBRATE=1 STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $nnodes ./mpi_lu/plu_example_float -p 2 -q 2 -nblocks 32 -size $((32*$BLOCKSIZE)) -numa
+STARPU_CALIBRATE=1 STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $nnodes $STARPU_LAUNCH ./mpi_lu/plu_example_float -p 2 -q 2 -nblocks 32 -size $((32*$BLOCKSIZE)) -numa
 done
 
 func()
@@ -57,7 +57,7 @@ echo "*******************************************">> log
 cat log
 cat log >> log.all
 
-STARPU_NCPUS=0 STARPU_NCUDA=$ngpus STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
+STARPU_NCPUS=0 STARPU_NCUDA=$ngpus STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np $STARPU_LAUNCH ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
 cat log.out > log
 cat log.err >> log
 cat log

@@ -1,8 +1,8 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011,2014                           Université de Bordeaux
-# Copyright (C) 2010,2015                                CNRS
+# Copyright (C) 2009-2011,2014,2020                      Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@ echo "H -> D"
 for log in `seq 1 13`
 do
 	size=$((2**$log))
-	echo "$size	`./cuda_bandwidth -pin -HtoD -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/htod-pin.data 
+	echo "$size	`$STARPU_LAUNCH ./cuda_bandwidth -pin -HtoD -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/htod-pin.data 
 done
 
 echo "D -> H"
@@ -33,7 +33,7 @@ echo "D -> H"
 for log in `seq 1 13`
 do
 	size=$((2**$log))
-	echo "$size	`./cuda_bandwidth -pin -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/dtoh-pin.data 
+	echo "$size	`$STARPU_LAUNCH ./cuda_bandwidth -pin -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/dtoh-pin.data 
 done
 
 ./bench_bandwidth.gp
@@ -48,7 +48,7 @@ do
 	for log in `seq 1 $stridelog`
 	do
 		size=$((2**$log))
-		echo "$size	`./cuda_bandwidth -pin -HtoD -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/htod-pin.$stridesize.data 
+		echo "$size	`$STARPU_LAUNCH ./cuda_bandwidth -pin -HtoD -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/htod-pin.$stridesize.data 
 	done
 done
 
@@ -62,6 +62,6 @@ do
 	for log in `seq 1 $stridelog`
 	do
 		size=$((2**$log))
-		echo "$size	`./cuda_bandwidth -pin -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/dtoh-pin.$stridesize.data 
+		echo "$size	`$STARPU_LAUNCH ./cuda_bandwidth -pin -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/dtoh-pin.$stridesize.data 
 	done
 done

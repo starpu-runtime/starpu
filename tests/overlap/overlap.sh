@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017                                     Université de Bordeaux
+# Copyright (C) 2017,2018-2020                           Université de Bordeaux
 # Copyright (C) 2017                                     Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -22,23 +22,23 @@ set -e
 
 PREFIX=$(dirname $0)
 STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_plot -o ! -f $PREFIX/prof_file_${USER}_0 ] || $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_plot -o ! -f $PREFIX/prof_file_${USER}_0 ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	# Generate paje, dag, data, etc.
-	$PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -i $PREFIX/prof_file_${USER}_0
 
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
 
 	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
 	[ -f distrib.data.gp -a \( -f distrib.data.0 -o -f distrib.data.1 -o -f distrib.data.2 -o -f distrib.data.3 -o -f distrib.data.4 \) ]
 
-	$PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
 	[ -f data_trace.gp ]
 
-	$PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
-	$PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
 	$PREFIX/../../tools/starpu_workers_activity activity.data
 	[ -f activity.eps ]
 

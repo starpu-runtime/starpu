@@ -1,8 +1,13 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
+<<<<<<< HEAD
 # Copyright (C) 2008-2011,2014                           Université de Bordeaux
 # Copyright (C) 2010,2015                                CNRS
+=======
+# Copyright (C) 2008-2011,2014,2020                      Université de Bordeaux
+# Copyright (C) 2010,2015,2017                           CNRS
+>>>>>>> f2bea4ce9... Use $STARPU_LAUNCH in scripts
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -49,39 +54,39 @@ cd $DIR
 init;
 
 echo "heat.dm.8k.no.pin.v2"
-timing=`STARPU_SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> log`
 save_cov "heat.dm.8k.no.pin.v2";
 
 echo "heat.prio.8k"
-timing=`STARPU_SCHED="prio" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> log`
+timing=`STARPU_SCHED="prio" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> log`
 save_cov "heat.prio.8k";
 
 echo "heat.dm.8k.v2"
-timing=`STARPU_SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.dm.8k.v2";
 
 echo "heat.ws.8k.v2"
-timing=`STARPU_SCHED="ws" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="ws" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.ws.8k.v2";
 
 echo "heat.lws.8k.v2"
-timing=`STARPU_SCHED="lws" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="lws" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.lws.8k.v2";
 
 echo "heat.greedy.8k.v2"
-timing=`STARPU_SCHED="greedy" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="greedy" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.greedy.8k.v2";
 
 echo "heat.dm.8k.cg"
-timing=`$ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> log`
+timing=`$STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> log`
 save_cov "heat.dm.8k.cg";
 
 echo "heat.dm.8k.v3"
-timing=`STARPU_SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> log`
 save_cov "heat.dm.8k.v3";
 
 echo "incrementer"
-timing=`$ROOTDIR/examples/incrementer/incrementer 2> log`
+timing=`$STARPU_LAUNCH $ROOTDIR/examples/incrementer/incrementer 2> log`
 save_cov "incrementer";
 
 generatehtml;
