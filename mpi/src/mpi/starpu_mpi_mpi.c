@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <unistd.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
@@ -1163,7 +1164,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
 	{
 		char hostname[65];
-		_starpu_gethostname(hostname, sizeof(hostname));
+		gethostname(hostname, sizeof(hostname));
 		_STARPU_DISP("[%s] No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n", hostname);
 	}
 	_starpu_mpi_do_initialize(argc_argv);

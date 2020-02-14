@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
@@ -1925,7 +1926,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 			 (name && cpu_name[cpuid] && !strcmp(name, cpu_name[cpuid])) ) )
 		{
 			char hostname[65];
-			_starpu_gethostname(hostname, sizeof(hostname));
+			gethostname(hostname, sizeof(hostname));
 
 			if (previous == STARPU_ACTIVETHREAD)
 				_STARPU_DISP("[%s] Warning: active thread %s was already bound to PU %d\n", hostname, cpu_name[cpuid], cpuid);
