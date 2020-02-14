@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011-2012,2017                           Inria
  * Copyright (C) 2012-2018                                CNRS
- * Copyright (C) 2010,2014-2017                           Université de Bordeaux
+ * Copyright (C) 2010,2014-2017,2020                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -256,6 +256,28 @@ int main(int argc, char *argv[])
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
+	if (launcher)
+	{
+		const char *top_srcdir = getenv("top_srcdir");
+		decode(&launcher, "@top_srcdir@", top_srcdir);
+		decode(&launcher_args, "@top_srcdir@", top_srcdir);
+	}
+
+	size_t len = strlen(test_name);
+	if (launcher && len >= 3 &&
+	    test_name[len-3] == '.' &&
+	    test_name[len-2] == 's' &&
+	    test_name[len-1] == 'h')
+	{
+		/* This is a shell script, don't run the check on bash, but pass
+		it the decoded variables */
+		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
+		if (launcher_args)
+			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
+		launcher = NULL;
+		launcher_args = NULL;
+	}
+
 	/* get user-defined iter_max value */
 	if (getenv("STARPU_TIMEOUT_ENV"))
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
@@ -285,7 +307,6 @@ int main(int argc, char *argv[])
 			 * after the Libtool-generated wrapper scripts, hence
 			 * this special-case.  */
 			const char *top_builddir = getenv ("top_builddir");
-			const char *top_srcdir = getenv("top_srcdir");
 			if (top_builddir != NULL)
 			{
 				char *launcher_argv[100];
@@ -294,8 +315,6 @@ int main(int argc, char *argv[])
 					     + sizeof("libtool") + 1];
 				strcpy(libtool, top_builddir);
 				strcat(libtool, "/libtool");
-
-				decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 				launcher_argv[0] = libtool;
 				launcher_argv[1] = "--mode=execute";
