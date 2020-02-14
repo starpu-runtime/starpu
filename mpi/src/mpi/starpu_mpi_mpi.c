@@ -1187,7 +1187,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #ifdef HAVE_SG_ACTOR_DATA
 	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
-	sg_actor_self_data_set(tsd);
+	sg_actor_data_set(sg_actor_self(), tsd);
 #else
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
