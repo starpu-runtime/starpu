@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
+ * Copyright (C) 2009-2014,2017,2018-2020                 Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,10 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
@@ -29,7 +32,6 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 #include <starpu_mpi_init.h>
-#include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/coherency.h>
 #include <core/task.h>

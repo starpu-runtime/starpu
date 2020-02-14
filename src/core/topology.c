@@ -20,10 +20,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <common/config.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/topology.h>

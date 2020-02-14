@@ -19,7 +19,10 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
@@ -34,7 +37,6 @@
 #include <mpi/starpu_mpi_tag.h>
 #include <mpi/starpu_mpi_comm.h>
 #include <starpu_mpi_init.h>
-#include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
