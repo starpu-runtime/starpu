@@ -59,6 +59,7 @@ static struct starpu_codelet starpu_my_data_display_codelet =
 	.cpu_funcs_name = {"starpu_my_data_display_codelet_cpu"},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
+	.model = &starpu_perfmodel_nop,
 	.name = "starpu_my_data_display_codelet"
 };
 
@@ -68,6 +69,7 @@ static struct starpu_codelet starpu_my_data_compare_codelet =
 	.cpu_funcs_name = {"starpu_my_data_compare_codelet_cpu"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
+	.model = &starpu_perfmodel_nop,
 	.name = "starpu_my_data_compare_codelet"
 };
 
