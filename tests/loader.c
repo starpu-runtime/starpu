@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
 	char *test_args;
 	char *launcher;
 	char *launcher_args;
+	char *libtool;
+	const char *top_builddir = getenv ("top_builddir");
 	struct sigaction sa;
 	int   ret;
 	struct timeval start;
@@ -256,6 +258,22 @@ int main(int argc, char *argv[])
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
+	if (top_builddir == NULL)
+	{
+		fprintf(stderr,
+			"warning: $top_builddir undefined, "
+			"so $STARPU_CHECK_LAUNCHER ignored\n");
+		launcher = NULL;
+		launcher_args = NULL;
+		libtool = NULL;
+	}
+	else
+	{
+		libtool = malloc(strlen(top_builddir) + 1 + strlen("libtool") + 1);
+		strcpy(libtool, top_builddir);
+		strcat(libtool, "/libtool");
+	}
+
 	if (launcher)
 	{
 		const char *top_srcdir = getenv("top_srcdir");
@@ -278,9 +296,10 @@ int main(int argc, char *argv[])
 			launcher_args = "";
 
 		/* And give a convenience macro */
-		size_t len_launch = strlen(launcher) + 1 + strlen(launcher_args) + 1;
+		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
+				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
 		char *launch = malloc(len_launch);
-		snprintf(launch, len_launch, "%s %s", launcher, launcher_args);
+		snprintf(launch, len_launch, "%s --mode=execute %s %s", libtool, launcher, launcher_args);
 		setenv("STARPU_LAUNCH", launch, 1);
 
 		launcher = NULL;
@@ -324,15 +343,10 @@ int main(int argc, char *argv[])
 			/* "Launchers" such as Valgrind need to be inserted
 			 * after the Libtool-generated wrapper scripts, hence
 			 * this special-case.  */
-			const char *top_builddir = getenv ("top_builddir");
 			if (top_builddir != NULL)
 			{
 				char *launcher_argv[100];
 				int i=3;
-				char libtool[strlen(top_builddir)
-					     + sizeof("libtool") + 1];
-				strcpy(libtool, top_builddir);
-				strcat(libtool, "/libtool");
 
 				launcher_argv[0] = libtool;
 				launcher_argv[1] = "--mode=execute";
@@ -353,9 +367,6 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				fprintf(stderr,
-					"warning: $top_builddir undefined, "
-					"so $STARPU_CHECK_LAUNCHER ignored\n");
 				execl(test_name, test_name, test_args, NULL);
 			}
 		}
