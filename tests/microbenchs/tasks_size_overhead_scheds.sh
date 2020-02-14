@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016,2017                                CNRS
-# Copyright (C) 2016,2019                                Université de Bordeaux
+# Copyright (C) 2016,2019-2020                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,4 +24,6 @@ then
 	FAST="-i 8"
 fi
 
+_STARPU_LAUNCH="$STARPU_LAUNCH"
+unset STARPU_LAUNCH
 test_scheds tasks_size_overhead_sched.sh $FAST
