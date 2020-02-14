@@ -35,7 +35,7 @@ typedef struct
 {
 	void_f_pvoid_t code;
 	void *userparam;
-#if SIMGRID_VERSION >= 32501
+#if SIMGRID_VERSION < 32501
 	void *father_data;
 #endif
 } thread_data_t;
