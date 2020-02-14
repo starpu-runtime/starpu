@@ -501,10 +501,10 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	{
 		_STARPU_MPI_COMM_FROM_DEBUG(req, req->count, req->datatype, req->node_tag.node.rank, _STARPU_MPI_TAG_DATA, req->node_tag.data_tag, req->node_tag.node.comm);
 		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, _STARPU_MPI_TAG_DATA, req->node_tag.node.comm, &req->backend->data_request);
-#ifdef STARPU_SIMGRID
-		_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
-#endif
 	}
+#ifdef STARPU_SIMGRID
+	_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
+#endif
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
@@ -620,6 +620,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 /*                                                      */
 /********************************************************/
 
+#ifndef STARPU_SIMGRID
 void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 {
 	_STARPU_MPI_LOG_IN();
@@ -632,12 +633,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
-#ifdef STARPU_SIMGRID
-	req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, testing_req->flag);
-	memcpy(testing_req->status, &req->status_store, sizeof(*testing_req->status));
-#else
 	req->ret = MPI_Test(&req->backend->data_request, testing_req->flag, testing_req->status);
-#endif
 
 	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_error_code(req->ret));
 
@@ -655,6 +651,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&testing_req->backend->req_mutex);
 	_STARPU_MPI_LOG_OUT();
 }
+#endif
 
 int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
@@ -667,6 +664,15 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 
+#ifdef STARPU_SIMGRID
+	ret = req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, flag);
+	if (*flag)
+	{
+		if (status)
+			*status = req->status_store;
+		_starpu_mpi_handle_request_termination(req);
+	}
+#else
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	unsigned submitted = req->submitted;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
@@ -695,24 +701,25 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 		ret = testing_req->ret;
 
-		if (*(testing_req->flag))
-		{
-			/* The request was completed so we free the internal
-			 * request structure which was automatically allocated
-			 * */
-			*public_req = NULL;
-			if (req->backend->internal_req)
-			{
-				_starpu_mpi_request_destroy(req->backend->internal_req);
-			}
-			_starpu_mpi_request_destroy(req);
-		}
-
 		_starpu_mpi_request_destroy(testing_req);
 	}
 	else
 	{
 		*flag = 0;
+	}
+#endif
+
+	if (*flag)
+	{
+		/* The request was completed so we free the internal
+		 * request structure which was automatically allocated
+		 * */
+		*public_req = NULL;
+		if (req->backend->internal_req)
+		{
+			_starpu_mpi_request_destroy(req->backend->internal_req);
+		}
+		_starpu_mpi_request_destroy(req);
 	}
 
 	_STARPU_MPI_LOG_OUT();
@@ -949,6 +956,9 @@ static void _starpu_mpi_early_data_cb(void* arg)
 			args->req->submitted = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&args->req->backend->req_cond);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->req_mutex);
+#ifdef STARPU_SIMGRID
+			args->req->done = 1;
+#endif
 		}
 	}
 

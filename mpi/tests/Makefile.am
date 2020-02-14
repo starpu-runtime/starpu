@@ -99,9 +99,13 @@ starpu_mpi_TESTS +=				\
 	cache					\
 	cache_disable				\
 	callback				\
+	driver					\
 	early_request				\
+	gather					\
+	gather2					\
 	insert_task				\
 	insert_task_block			\
+	insert_task_count			\
 	insert_task_dyn_handles			\
 	insert_task_node_choice			\
 	insert_task_owner			\
@@ -110,12 +114,16 @@ starpu_mpi_TESTS +=				\
 	matrix					\
 	matrix2					\
 	mpi_detached_tag			\
+	mpi_earlyrecv				\
 	mpi_irecv				\
 	mpi_irecv_detached			\
 	mpi_isend				\
 	mpi_isend_detached			\
 	mpi_reduction				\
+	mpi_redux				\
 	mpi_scatter_gather			\
+	mpi_test				\
+	multiple_send				\
 	pingpong				\
 	policy_register				\
 	policy_register_many			\
@@ -124,34 +132,26 @@ starpu_mpi_TESTS +=				\
 	ring					\
 	ring_async				\
 	ring_async_implicit			\
+	ring_sync				\
+	ring_sync_detached			\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff
 
 if !STARPU_SIMGRID
+# missing support in simgrid
 starpu_mpi_TESTS +=				\
 	attr					\
-	mpi_test				\
-	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
-	mpi_redux				\
-	ring_sync				\
-	ring_sync_detached			\
 	block_interface				\
 	block_interface_pinned			\
-	matrix2					\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
-	insert_task_count			\
 	insert_task_seq				\
-	multiple_send				\
 	tags_checking				\
-	sync					\
-	gather					\
-	gather2					\
-	driver
+	sync
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
