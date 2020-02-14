@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 				starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
 			}
 
-			usleep(sleep_time * 1000);
+			starpu_sleep(sleep_time / 1000);
 		}
 	}
 	else // broadcasts
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 					if (r != rank)
 					{
 						starpu_mpi_send(tab_handle, r, (r * niter) + loop, MPI_COMM_WORLD);
-						usleep(sleep_time * 1000);
+						starpu_sleep(sleep_time / 1000);
 					}
 				}
 			}
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 				starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
 
 				for (int r = 0; r < (size-1); r++)
-					usleep(sleep_time * 1000);
+					starpu_sleep(sleep_time / 1000);
 			}
 		}
 	}

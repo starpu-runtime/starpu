@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2017                                CNRS
- * Copyright (C) 2009,2010,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2009,2010,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2013                                     Inria
  *
@@ -73,7 +73,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 		}
 
 		// We sleep to make sure that the data for the tag 9 will be received before the recv is posted
-		usleep(2000000);
+		starpu_sleep(2);
 		for(i=1 ; i<NB ; i++)
 		{
 			if (detached)
