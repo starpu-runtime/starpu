@@ -18,7 +18,7 @@
 ROOT=${0%.sh}
 ROOT=${ROOT%_sched}
 unset STARPU_SSILENT
-$STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
+$STARPU_LAUNCH $_STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
 ret=$?
 if test "$ret" = "0"
 then
