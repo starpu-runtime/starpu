@@ -572,14 +572,36 @@ $ starpu_paje_sort paje.trace
 
 \section PapiCounters PAPI counters
 
-Performance counter values can be obtained from the PAPI framework if
+Performance counter values could be obtained from the PAPI framework if
 <c>./configure</c> detected the libpapi. One has to set the \ref STARPU_PROFILING
-environment variable to 1 and then specify which counters to record with the
+environment variable to 1 and then specify which events to record with the
 \ref STARPU_PROF_PAPI_EVENTS environment variable. For instance:
 
 \verbatim
 export STARPU_PROFILING=1 STARPU_PROF_PAPI_EVENTS="PAPI_TOT_INS PAPI_TOT_CYC"
 \endverbatim
+
+In the current simple implementation, only CPU tasks have their events measured
+and require CPUs that support the PAPI events. All events that PAPI support are
+available from their documentation (https://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Preset_Event_Definitions).
+It is important to note that not all events are available on all systems, and
+general PAPI recommendations should be followed.
+
+The counter values can be accessed using the profiling interface:
+\code{.c}
+task->profiling_info->papi_values
+\endcode
+Also, it can be accessed and/or saved with tracing when using \ref STARPU_FXT_TRACE. With the use of <c>starpu_fxt_tool</c>
+the file <c>papi.rec</c> is generated containing the following triple:
+
+\verbatim
+Task Id
+Event Id
+Value
+\endverbatim
+
+External tools like <c>rec2csv</c> can be used to convert this rec file to a <c>csv</c>, where each
+line represents a value for an event for a task.
 
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
 
