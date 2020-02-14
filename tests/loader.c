@@ -274,6 +274,8 @@ int main(int argc, char *argv[])
 		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
 		if (launcher_args)
 			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
+		else
+			launcher_args = "";
 
 		/* And give a convenience macro */
 		size_t len_launch = strlen(launcher) + 1 + strlen(launcher_args) + 1;
