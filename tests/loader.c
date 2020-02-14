@@ -305,10 +305,17 @@ int main(int argc, char *argv[])
 	    test_name[len-1] == 'h')
 	{
 		/* This is a shell script, don't run the check on bash, but pass
-		it the decoded variables */
+		 * the script the decoded variables */
 		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
 		if (launcher_args)
 			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
+
+		/* And give a convenience macro */
+		size_t len_launch = strlen(launcher) + 1 + strlen(launcher_args) + 1;
+		char *launch = malloc(len_launch);
+		snprintf(launch, len_launch, "%s %s", launcher, launcher_args);
+		setenv("STARPU_LAUNCH", launch, 1);
+
 		launcher = NULL;
 		launcher_args = NULL;
 	}
