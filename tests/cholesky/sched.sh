@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014,2019                      Université de Bordeaux
+# Copyright (C) 2008-2011,2014,2019-2020                 Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ trace_sched()
 		do
 			echo "$iter / $maxiter"
 			 echo "$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null"
-			 val=`$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
+			 val=`$STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done

@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014                           Université de Bordeaux
+# Copyright (C) 2008-2011,2014,2020                      Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ measure_heat()
 	for i in `seq 1 $nsample`
 	do
 		echo "iter $i/$nsample"
-		val=`STARPU_SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
+		val=`STARPU_SCHED=$policy $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
 		total=`echo "$val + $total" |bc -l`
 	done
 

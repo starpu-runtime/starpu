@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2019                                Université de Bordeaux
+# Copyright (C) 2018-2020                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ for size in `seq 2 2 30` ; do
 	for STARPU_SCHED in $STARPU_SCHEDS
 	do
 		export STARPU_SCHED
-		GFLOPS=`${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlops | cut -d '	' -f 3`
+		GFLOPS=`$STARPU_LAUNCH ${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlops | cut -d '	' -f 3`
 		[ -n "$GFLOPS" ] || GFLOPS='""'
 		echo -n "	$GFLOPS"
 	done

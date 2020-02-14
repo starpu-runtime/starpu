@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011,2014                           Université de Bordeaux
+# Copyright (C) 2009-2011,2014,2020                      Université de Bordeaux
 # Copyright (C) 2010,2011,2015,2017                      CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ test_with_timeout()
 
 	echo "$application"
 
-	$application > /dev/null 2> /dev/null & _pid_appli=$!;
+	$STARPU_LAUNCH $application > /dev/null 2> /dev/null & _pid_appli=$!;
 	(sleep $timeout ; kill -9 $_pid_appli 2> /dev/null) & _pid_killer=$!
 	wait $_pid_appli
 	ret=$?

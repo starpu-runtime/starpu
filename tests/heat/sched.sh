@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014, 2019                           Université de Bordeaux
+# Copyright (C) 2008-2011,2014, 2019-2020                           Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ calibrate_point()
 		export STARPU_SCHED=$strat
 		export STARPU_CALIBRATE=1
 		export STARPU_PREFETCH=$prefetch
-		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
+		val=`$STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
 		echo "$val"
 	done
 
@@ -68,7 +68,7 @@ trace_point()
 		export STARPU_SCHED=$strat
 		export STARPU_CALIBRATE=$docalibrate
 		export STARPU_PREFETCH=$prefetch
-		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
+		val=`$STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
 		echo "$val"
 		echo "$val" >> $filename
 	done
