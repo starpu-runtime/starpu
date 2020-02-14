@@ -16,4 +16,4 @@
 #
 ROOT=${0%.sh}
 ROOT=${ROOT/tasks_data_overhead/tasks_overhead}
-exec $ROOT -b 1 "$@"
+exec $STARPU_LAUNCH $ROOT -b 1 "$@"

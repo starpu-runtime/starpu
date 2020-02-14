@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2012,2016,2017                           CNRS
 # Copyright (C) 2012                                     Inria
-# Copyright (C) 2014,2019                                Université de Bordeaux
+# Copyright (C) 2014,2019-2020                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -31,4 +31,4 @@ export STARPU_NCUDA=0
 export STARPU_NOPENCL=0
 export STARPU_WORKER_STATS=1
 export STARPU_CALIBRATE=1
-./bfs data/graph65536.txt
+$STARPU_LAUNCH ./bfs data/graph65536.txt

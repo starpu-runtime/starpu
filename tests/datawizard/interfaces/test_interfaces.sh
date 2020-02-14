@@ -17,7 +17,7 @@
 
 for i in bcsr block coo csr matrix multiformat variable vector void
 do
-    ./tests/datawizard/interfaces/$i/${i}_interface
+    $STARPU_LAUNCH ./tests/datawizard/interfaces/$i/${i}_interface
     ret=$?
     if test "$ret" = "0"
     then

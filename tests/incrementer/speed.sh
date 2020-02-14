@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010,2011,2014                           Université de Bordeaux
+# Copyright (C) 2010,2011,2014,2020                      Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ max=20
 
 for logi in `seq 0 $max`
 do
-	$examplebindir/incrementer $i 2> .tmpperf
+	$STARPU_LAUNCH $examplebindir/incrementer $i 2> .tmpperf
 
 	grep "ms" .tmpperf
 	grep "ms" .tmpperf | sed -e "s/^\(.*\) elems took \(.*\) ms$/\1	\2/" >> .perftable 
