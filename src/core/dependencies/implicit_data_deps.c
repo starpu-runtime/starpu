@@ -50,8 +50,7 @@ static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_ta
 }
 
 /* Add post_sync_task as new accessor among the existing ones, making pre_sync_task depend on the last synchronization task if any.  */
-/* This returns 1 if pre_sync_task really needs to wait for anything, and 0 otherwise (which means it does not actually need to be submitted) */
-static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, int submit_pre_sync, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot)
+static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, int *submit_pre_sync, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot)
 {
 	/* Add this task to the list of readers */
 	STARPU_ASSERT(!post_sync_task_dependency_slot->prev);
@@ -65,6 +64,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 	/* This task depends on the previous synchronization task if any */
 	if (handle->last_sync_task && handle->last_sync_task != post_sync_task)
 	{
+		*submit_pre_sync= 1;
 		struct starpu_task *task_array[1] = {handle->last_sync_task};
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
 		_starpu_add_dependency(handle, handle->last_sync_task, pre_sync_task);
@@ -94,7 +94,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
 
-	if (submit_pre_sync && !pre_sync_task->cl)
+	if (*submit_pre_sync && !pre_sync_task->cl)
 	{
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
@@ -280,7 +280,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			/* Can access concurrently with current tasks */
 			if (handle->last_sync_task != NULL)
 				*submit_pre_sync = 1;
-			_starpu_add_accessor(handle, pre_sync_task, *submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
+			_starpu_add_accessor(handle, pre_sync_task, submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
 		}
 		else
 		{
@@ -325,7 +325,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);
 					/* And the requested task wait for this one */
-					_starpu_add_accessor(handle, pre_sync_task, *submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
+					_starpu_add_accessor(handle, pre_sync_task, submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
 
 					task = sync_task;
 				}
@@ -361,7 +361,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 				{
 					_STARPU_DEP_DEBUG("No previous accessor, no dependency\n");
 				}
-				_starpu_add_accessor(handle, pre_sync_task, *submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
+				_starpu_add_accessor(handle, pre_sync_task, submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
 			}
 		}
 		handle->last_submitted_mode = mode;

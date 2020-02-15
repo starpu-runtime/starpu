@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2019                                Inria
  * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2017                                     Erwan Leria
- * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2010-2020                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  * Copyright (C) 2016                                     Uppsala University
@@ -244,6 +244,12 @@ static int limit_min_submitted_tasks;
 static int limit_max_submitted_tasks;
 static int watchdog_crash;
 static int watchdog_delay;
+
+/*
+ * Function to call when watchdog detects that no task has finished for more than STARPU_WATCHDOG_TIMEOUT seconds
+ */
+static void (*watchdog_hook)(void *) = NULL;
+static void * watchdog_hook_arg = NULL;
 
 #define _STARPU_TASK_MAGIC 42
 
@@ -1547,14 +1553,18 @@ static void *watchdog_func(void *arg)
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n",
-				    timeout);
+			if (watchdog_hook == NULL)
+				_STARPU_MSG("The StarPU watchdog detected that no task finished for %fs (can be configured through STARPU_WATCHDOG_TIMEOUT)\n",
+									timeout);
+			else
+				watchdog_hook(watchdog_hook_arg);
+
 			if (watchdog_crash)
 			{
 				_STARPU_MSG("Crashing the process\n");
 				raise(SIGABRT);
 			}
-			else
+			else if (watchdog_hook == NULL)
 				_STARPU_MSG("Set the STARPU_WATCHDOG_CRASH environment variable if you want to abort the process in such a case\n");
 		}
 		/* Only shout again after another period */
@@ -1564,7 +1574,13 @@ static void *watchdog_func(void *arg)
 	return NULL;
 }
 
-void _starpu_watchdog_init(void)
+void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg)
+{
+	watchdog_hook = hook;
+	watchdog_hook_arg = hook_arg;
+}
+
+void _starpu_watchdog_init()
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	char *timeout_env = starpu_getenv("STARPU_WATCHDOG_TIMEOUT");
