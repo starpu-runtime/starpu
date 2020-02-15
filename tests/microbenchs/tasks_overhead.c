@@ -177,9 +177,6 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 		starpu_task_clean(&tasks[i]);
 
-	for (buffer = 0; buffer < nbuffers; buffer++)
-		starpu_data_unregister(data_handles[buffer]);
-
 	timing_submit = end_submit - start_submit;
 	timing_exec = end_exec - start_exec;
 
