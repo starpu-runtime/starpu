@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016,2017                                Inria
+ * Copyright (C) 2016,2017,2020                           Inria
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2009-2018                                Université de Bordeaux
  *
@@ -181,7 +181,8 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 
 	_mpi_backend._starpu_mpi_backend_init(conf);
 
-	if (_mpi_backend._starpu_mpi_backend_reserve_core())
+	/* Reserve a core only if required by the backend and if STARPU_NCPU isn't provided */
+	if (_mpi_backend._starpu_mpi_backend_reserve_core() && conf->ncpus == -1)
 	{
 		/* Reserve a core for our progression thread */
 		if (conf->reserve_ncpus == -1)
