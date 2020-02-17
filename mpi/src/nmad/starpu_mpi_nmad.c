@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     Inria
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
+ * Copyright (C) 2009-2014,2017,2018-2020                 Université de Bordeaux
  * Copyright (C) 2017                                     Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,10 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
@@ -28,7 +32,6 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 #include <starpu_mpi_init.h>
-#include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/coherency.h>
 #include <core/task.h>
@@ -414,7 +417,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
-		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
+		char hostname[65];
+		gethostname(hostname, sizeof(hostname));
+		_STARPU_DISP("[%s] No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n", hostname);
 	}
 	_starpu_mpi_do_initialize(argc_argv);
 	if (_starpu_mpi_thread_cpuid >= 0)

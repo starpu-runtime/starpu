@@ -29,7 +29,10 @@
 #include <limits.h>
 
 #ifdef STARPU_SIMGRID
-#ifdef STARPU_HAVE_XBT_SYNCHRO_H
+#ifdef STARPU_HAVE_SIMGRID_MUTEX_H
+#include <simgrid/mutex.h>
+#include <simgrid/cond.h>
+#elif defined(STARPU_HAVE_XBT_SYNCHRO_H)
 #include <xbt/synchro.h>
 #else
 #include <xbt/synchro_core.h>
@@ -72,7 +75,7 @@ starpu_pthread_t starpu_pthread_self(void)
 #endif
 }
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
+int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
 {
 	char **_args;
 	_STARPU_MALLOC(_args, 3*sizeof(char*));

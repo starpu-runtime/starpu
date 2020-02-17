@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2012,2014,2016                           Inria
 # Copyright (C) 2010-2017,2019                           CNRS
-# Copyright (C) 2009-2017,2019                           Université de Bordeaux
+# Copyright (C) 2009-2017,2019-2020                      Université de Bordeaux
 # Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -248,11 +248,9 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
-if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
-endif
 endif
 endif
 
@@ -336,10 +334,8 @@ complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
 	../../examples/interface/complex_interface.c
 
-if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
-endif
 endif
 
 #########################

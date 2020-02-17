@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010,2011,2016,2017                      CNRS
-# Copyright (C) 2009,2010,2016                           Université de Bordeaux
+# Copyright (C) 2009,2010,2016,2020                      Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 ROOT=${0%.sh}
 ROOT=${ROOT%_sched}
 unset STARPU_SSILENT
-$ROOT "$@" > tasks_size_overhead.output
+$STARPU_LAUNCH $_STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
 ret=$?
 if test "$ret" = "0"
 then

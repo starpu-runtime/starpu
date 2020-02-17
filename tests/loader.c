@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2017                           Inria
  * Copyright (C) 2011-2020                                CNRS
- * Copyright (C) 2010,2014-2018                           Université de Bordeaux
+ * Copyright (C) 2010,2014-2018,2020                      Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
 	char *test_args;
 	char *launcher;
 	char *launcher_args;
+	char *libtool;
+	const char *top_builddir = getenv ("top_builddir");
 	struct sigaction sa;
 	int   ret;
 	struct timeval start;
@@ -291,6 +293,54 @@ int main(int argc, char *argv[])
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
+	if (top_builddir == NULL)
+	{
+		fprintf(stderr,
+			"warning: $top_builddir undefined, "
+			"so $STARPU_CHECK_LAUNCHER ignored\n");
+		launcher = NULL;
+		launcher_args = NULL;
+		libtool = NULL;
+	}
+	else
+	{
+		libtool = malloc(strlen(top_builddir) + 1 + strlen("libtool") + 1);
+		strcpy(libtool, top_builddir);
+		strcat(libtool, "/libtool");
+	}
+
+	if (launcher)
+	{
+		const char *top_srcdir = getenv("top_srcdir");
+		decode(&launcher, "@top_srcdir@", top_srcdir);
+		decode(&launcher_args, "@top_srcdir@", top_srcdir);
+	}
+
+	size_t len = strlen(test_name);
+	if (launcher && len >= 3 &&
+	    test_name[len-3] == '.' &&
+	    test_name[len-2] == 's' &&
+	    test_name[len-1] == 'h')
+	{
+		/* This is a shell script, don't run the check on bash, but pass
+		 * the script the decoded variables */
+		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
+		if (launcher_args)
+			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
+		else
+			launcher_args = "";
+
+		/* And give a convenience macro */
+		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
+				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
+		char *launch = malloc(len_launch);
+		snprintf(launch, len_launch, "%s --mode=execute %s %s", libtool, launcher, launcher_args);
+		setenv("STARPU_LAUNCH", launch, 1);
+
+		launcher = NULL;
+		launcher_args = NULL;
+	}
+
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
@@ -308,19 +358,10 @@ int main(int argc, char *argv[])
 			/* "Launchers" such as Valgrind need to be inserted
 			 * after the Libtool-generated wrapper scripts, hence
 			 * this special-case.  */
-			const char *top_builddir = getenv ("top_builddir");
-			const char *top_srcdir = getenv("top_srcdir");
 			if (top_builddir != NULL)
 			{
 				char *launcher_argv[100];
 				int i=3;
-				char libtool[strlen(top_builddir)
-					     + sizeof("libtool") + 1];
-				strcpy(libtool, top_builddir);
-				strcat(libtool, "/libtool");
-
-				decode(&launcher, "@top_srcdir@", top_srcdir);
-				decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
 				launcher_argv[0] = libtool;
 				launcher_argv[1] = "--mode=execute";
@@ -341,9 +382,6 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				fprintf(stderr,
-					"warning: $top_builddir undefined, "
-					"so $STARPU_CHECK_LAUNCHER ignored\n");
 				execl(test_name, test_name, test_args, NULL);
 			}
 		}

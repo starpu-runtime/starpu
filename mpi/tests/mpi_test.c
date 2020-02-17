@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010,2011,2014,2015,2017,2018            Université de Bordeaux
+ * Copyright (C) 2010,2011,2014,2015,2017,2018,2020       Université de Bordeaux
  * Copyright (C) 2013                                     Inria
  * Copyright (C) 2010-2013,2015-2017                      CNRS
  *
@@ -79,6 +79,9 @@ int main(int argc, char **argv)
 		{
 			MPI_Status status;
 			starpu_mpi_test(&req, &finished, &status);
+#ifdef STARPU_SIMGRID
+			starpu_sleep(0.001);
+#endif
 		}
 		while (!finished);
 	}

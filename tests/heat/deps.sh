@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014                           Université de Bordeaux
+# Copyright (C) 2008-2011,2014,2020                      Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ trace_deps()
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`$ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`$STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done

@@ -178,6 +178,12 @@ int main(int argc, char **argv)
                 }
         }
 
+	for (buffer = 0; buffer < nbuffers; buffer++)
+	{
+		starpu_data_unregister(data_handles[buffer]);
+		starpu_free((void*)buffers[buffer]);
+	}
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

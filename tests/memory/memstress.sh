@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2011,2014                           Université de Bordeaux
+# Copyright (C) 2008-2011,2014,2020                      Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ trace_stress()
 		echo "Computing size $size with $memstress MB of memory LESS"
 		
 		echo "$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
-		timing=`$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+		timing=`$STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 	
 		echo "size : $size memstress $memstress => $timing us"
 

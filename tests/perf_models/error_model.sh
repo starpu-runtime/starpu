@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2011,2014, 2019                           Université de Bordeaux
+# Copyright (C) 2009-2011,2014,2019-2020                 Université de Bordeaux
 # Copyright (C) 2010,2015,2017                           CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ do
 
 	echo "ITER $iter -> I $i NBLOCKS $nblocks"
 
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" $STARPU_LAUNCH ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
 	gflops=`grep "Synthetic GFlops :" output.log.err| sed -e "s/Synthetic GFlops ://"`
 
 	sumgflops[$i]=$(echo "${sumgflops[$i]} + $gflops"|bc -l)
