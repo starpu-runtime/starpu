@@ -22,7 +22,7 @@
 #include <math.h>
 
 #ifdef STARPU_QUICK_CHECK
-unsigned size = 4*64;
+unsigned size = 2*320;
 unsigned nblocks = 2;
 unsigned nbigblocks = 2;
 #elif !defined(STARPU_LONG_CHECK)
