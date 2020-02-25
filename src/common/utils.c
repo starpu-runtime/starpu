@@ -460,6 +460,7 @@ int _starpu_fwrlock(FILE *file)
 
 int _starpu_fwrunlock(FILE *file)
 {
+	fflush(file);
 	return _starpu_frdunlock(file);
 }
 
