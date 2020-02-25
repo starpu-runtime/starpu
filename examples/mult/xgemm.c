@@ -46,6 +46,7 @@ static const TYPE v0 = 0.0;
 #endif
 
 static unsigned niter = 10;
+static unsigned nsleeps = 1;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
 #if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
@@ -65,7 +66,7 @@ static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-#define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
+#define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
 static void check_output(void)
 {
@@ -301,6 +302,12 @@ static void parse_args(int argc, char **argv)
 			niter = strtol(argv[++i], &argptr, 10);
 		}
 
+		else if (strcmp(argv[i], "-nsleeps") == 0)
+		{
+			char *argptr;
+			nsleeps = strtol(argv[++i], &argptr, 10);
+		}
+
 		else if (strcmp(argv[i], "-bound") == 0)
 		{
 			bound = 1;
@@ -323,8 +330,8 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname]\n", argv[0]);
-			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -357,56 +364,6 @@ int main(int argc, char **argv)
 	init_problem_data();
 	partition_mult_data();
 
-	if (bound)
-		starpu_bound_start(0, 0);
-
-	starpu_fxt_start_profiling();
-	start = starpu_timing_now();
-
-	unsigned x, y, iter;
-	for (iter = 0; iter < niter; iter++)
-	{
-		for (x = 0; x < nslicesx; x++)
-		for (y = 0; y < nslicesy; y++)
-		{
-			struct starpu_task *task = starpu_task_create();
-
-			task->cl = &cl;
-
-			task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-			task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-			task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
-
-			task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-			ret = starpu_task_submit(task);
-			if (ret == -ENODEV)
-			{
-			     ret = 77;
-			     goto enodev;
-			}
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-			starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
-		}
-
-		starpu_task_wait_for_all();
-	}
-
-
-	end = starpu_timing_now();
-	starpu_fxt_stop_profiling();
-
-	if (bound)
-		starpu_bound_stop();
-
-	double timing = end - start;
-	double min, min_int;
-	double flops = 2.0*((unsigned long long)niter)*((unsigned long long)xdim)
-		           *((unsigned long long)ydim)*((unsigned long long)zdim);
-
-	if (bound)
-		starpu_bound_compute(&min, &min_int, 1);
-
 	PRINTF("# ");
 	if (print_hostname)
 		PRINTF("node\t");
@@ -414,16 +371,75 @@ int main(int argc, char **argv)
 	if (bound)
 		PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
 	PRINTF("\n");
-	if (print_hostname)
+
+	unsigned sleeps;
+	for (sleeps = 0; sleeps < nsleeps; sleeps++)
 	{
-		char hostname[255];
-		gethostname(hostname, 255);
-		PRINTF("%s\t", hostname);
+		if (bound)
+			starpu_bound_start(0, 0);
+
+		starpu_fxt_start_profiling();
+		start = starpu_timing_now();
+
+		unsigned x, y, iter;
+		for (iter = 0; iter < niter; iter++)
+		{
+			for (x = 0; x < nslicesx; x++)
+			for (y = 0; y < nslicesy; y++)
+			{
+				struct starpu_task *task = starpu_task_create();
+
+				task->cl = &cl;
+
+				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
+				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
+				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
+
+				task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+				ret = starpu_task_submit(task);
+				if (ret == -ENODEV)
+				{
+				     ret = 77;
+				     goto enodev;
+				}
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+			}
+
+			starpu_task_wait_for_all();
+		}
+
+		end = starpu_timing_now();
+		starpu_fxt_stop_profiling();
+
+		if (bound)
+			starpu_bound_stop();
+
+		double timing = end - start;
+		double min, min_int;
+		double flops = 2.0*((unsigned long long)niter)*((unsigned long long)xdim)
+				   *((unsigned long long)ydim)*((unsigned long long)zdim);
+
+		if (bound)
+			starpu_bound_compute(&min, &min_int, 1);
+
+		if (print_hostname)
+		{
+			char hostname[255];
+			gethostname(hostname, 255);
+			PRINTF("%s\t", hostname);
+		}
+		PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
+		if (bound)
+			PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
+		PRINTF("\n");
+
+		if (sleeps < nsleeps-1)
+		{
+			sleep(10);
+		}
 	}
-	PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
-	if (bound)
-		PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
-	PRINTF("\n");
 
 enodev:
 	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
