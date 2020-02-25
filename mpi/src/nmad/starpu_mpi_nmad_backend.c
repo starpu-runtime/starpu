@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     Inria
+ * Copyright (C) 2017,2020                                Inria
  * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
  * Copyright (C) 2009-2014,2017,2018-2019                 Université de Bordeaux
  *
@@ -27,6 +27,12 @@ void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
 	(void)conf;
 	/* strat_prio is preferred for StarPU instead of default strat_aggreg */
 	setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
+	/* prefer rcache on ibverbs */
+	setenv("NMAD_IBVERBS_RCACHE", "1", 0);
+	/* use pioman dedicated thread */
+	setenv("PIOM_DEDICATED", "1", 0);
+	/* pioman waits for starpu to place its dedicated thread */
+	setenv("PIOM_DEDICATED_WAIT", "1", 0);
 }
 
 void _starpu_mpi_nmad_backend_shutdown(void)
