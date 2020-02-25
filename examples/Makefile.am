@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2017                                     Erwan Leria
 # Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2011                                     Télécom-SudParis
@@ -348,7 +348,7 @@ STARPU_EXAMPLES +=				\
 	lu/lu_implicit_example_complex_double
 endif
 
-if ATLAS_BLAS_LIB
+if BLAS_LIB_HAS_CBLAS_SGEMV
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
 endif
@@ -889,7 +889,6 @@ spmv_spmv_SOURCES +=				\
 	spmv/spmv_cuda.cu
 endif
 
-if ATLAS_BLAS_LIB
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
 	spmv/dw_block_spmv_kernels.c		\
@@ -898,7 +897,6 @@ spmv_dw_block_spmv_SOURCES =			\
 
 spmv_dw_block_spmv_LDADD =			\
 	$(STARPU_BLAS_LDFLAGS)
-endif
 
 ###########################
 # C++ Incrementer example #

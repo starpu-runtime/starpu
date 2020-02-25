@@ -3010,6 +3010,12 @@ if test x$blas_lib = xmaybe; then
     fi
 fi
 
+SAVED_LIBS="${LIBS}"
+LIBS="$LIBS $STARPU_BLAS_LDFLAGS"
+AC_CHECK_FUNC([cblas_sgemv], have_cblas_sgemv=yes)
+AM_CONDITIONAL(BLAS_LIB_HAS_CBLAS_SGEMV, test x$have_cblas_sgemv = xyes)
+LIBS="${SAVED_LIBS}"
+
 AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
 AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
