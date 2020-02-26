@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2013                                     Joris Pablo
  * Copyright (C) 2010-2019                                CNRS
  * Copyright (C) 2013                                     Simon Archipoff
@@ -229,43 +229,7 @@ static void _starpu_fifo_task_finished(struct _starpu_fifo_taskq *fifo, struct s
 }
 
 
-
-static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
-{
-	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	struct starpu_task *task;
-
-	unsigned workerid = starpu_worker_get_id_check();
-	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
-
-	/* Take the opportunity to update start time */
-	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
-	fifo->exp_end = fifo->exp_start + fifo->exp_len;
-
-	task = _starpu_fifo_pop_first_ready_task(fifo, workerid, dt->num_priorities);
-	if (task)
-	{
-		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
-
-		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-
-#ifdef STARPU_VERBOSE
-		if (task->cl)
-		{
-			int non_ready = _starpu_count_non_ready_buffers(task, workerid);
-			if (non_ready == 0)
-				dt->ready_task_cnt++;
-		}
-
-		dt->total_task_cnt++;
-#endif
-	}
-
-	return task;
-}
-
-static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
+static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
@@ -280,7 +244,10 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 
 	STARPU_ASSERT_MSG(fifo, "worker %u does not belong to ctx %u anymore.\n", workerid, sched_ctx_id);
 
-	task = _starpu_fifo_pop_local_task(fifo);
+	if (ready)
+		task = _starpu_fifo_pop_first_ready_task(fifo, workerid, dt->num_priorities);
+	else
+		task = _starpu_fifo_pop_local_task(fifo);
 	if (task)
 	{
 		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
@@ -300,6 +267,16 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	}
 
 	return task;
+}
+
+static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
+{
+	return _dmda_pop_task(sched_ctx_id, 1);
+}
+
+static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
+{
+	return _dmda_pop_task(sched_ctx_id, 0);
 }
 
 static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
