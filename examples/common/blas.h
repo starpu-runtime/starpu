@@ -21,7 +21,7 @@
 
 #include <starpu.h>
 
-#if defined(STARPU_ATLAS) || defined(STARPU_BLAS_LIB_HAS_CBLAS_SGEMV)
+#if defined(STARPU_ATLAS) || defined(STARPU_HAVE_CBLAS_H)
 #include <cblas.h>
 #endif
 

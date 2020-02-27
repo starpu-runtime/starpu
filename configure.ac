@@ -3015,9 +3015,9 @@ fi
 if test x$blas_lib = xsystem; then
     AC_CHECK_HEADER([cblas.h], [have_cblas_h=yes], [have_cblas_h=no])
 fi
-AM_CONDITIONAL(BLAS_LIB_HAS_CBLAS_SGEMV, test x$have_cblas_h = xyes)
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_H, test x$have_cblas_h = xyes)
 if test x$have_cblas_h = xyes; then
-    AC_DEFINE(STARPU_BLAS_LIB_HAS_CBLAS_SGEMV, [1], [The blas library has cblas_sgemv])
+    AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
 
 AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
