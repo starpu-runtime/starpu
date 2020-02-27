@@ -64,7 +64,7 @@ then
 	$PREFIX/../../tools/starpu_paje_state_stats paje.trace || true
 	$PREFIX/../../tools/starpu_paje_summary paje.trace || true
 	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data || true
-	[ -f distrib.data.starpu_sgemm_gemm.0.a3d3725e.1024.pdf ] || true
+	[ -f distrib.data.starpu_sgemm_gemm.0.492beed5.33177600.pdf ] || true
 
 	if [ -x $PREFIX/../../tools/starpu_replay ]; then
 		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay tasks.rec
