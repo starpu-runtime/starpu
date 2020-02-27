@@ -278,7 +278,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->initialized = initial_handle->initialized;
 		child->ooc = initial_handle->ooc;
 
-		//STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
+		STARPU_PTHREAD_MUTEX_INIT0(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
 		//child->last_sync_task = NULL;
 		//child->last_submitted_accessors.task = NULL;
