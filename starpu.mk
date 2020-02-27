@@ -16,52 +16,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-ifeq ($(TESTS_TYPE),none)
-recheck:
-	-cat /dev/null
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null
-endif
-
-ifeq ($(TESTS_TYPE),subdirs)
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
-endif
-
-ifeq ($(TESTS_TYPE),tests)
-
 if STARPU_USE_MPI_MASTER_SLAVE
 MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
 MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 STARPU_NMPIMSTHREADS=4
@@ -127,6 +81,4 @@ env:
 	@echo export STARPU_PERF_MODEL_DIR=$(STARPU_PERF_MODEL_DIR)
 	@echo export STARPU_HOSTNAME=$(STARPU_HOSTNAME)
 	@echo export MALLOC_PERTURB_=$(MALLOC_PERTURB_)
-endif
-
 endif

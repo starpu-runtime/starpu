@@ -16,8 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-TESTS_TYPE = subdirs
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-subdirtests.mk
 
 SUBDIRS = src examples
 
