@@ -15,52 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-ifeq ($(TESTS_TYPE),none)
-recheck:
-	-cat /dev/null
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null
-endif
-
-ifeq ($(TESTS_TYPE),subdirs)
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
-endif
-
-ifeq ($(TESTS_TYPE),tests)
-
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
 V_nvcc_0 = @echo "  NVCC    " $@;
 V_nvcc_1 =
@@ -108,4 +62,3 @@ showsuite:
 		make -C $$i showsuite || RET=1 ; \
 	done ; \
 	exit $$RET
-endif
