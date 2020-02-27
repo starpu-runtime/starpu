@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2017                                CNRS
-# Copyright (C) 2015                                     Université de Bordeaux
+# Copyright (C) 2015,2020                                Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,9 @@ txt_DATA = $(EXTRA_DIST)
 
 recheck:
 	-cat /dev/null
+
+showfailed:
+	@-cat /dev/null
 
 showcheck:
 	-cat /dev/null

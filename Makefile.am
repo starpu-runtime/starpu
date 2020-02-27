@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2016                                Inria
-# Copyright (C) 2009-2017                                Université de Bordeaux
+# Copyright (C) 2009-2017,2020                           Université de Bordeaux
 # Copyright (C) 2010-2016                                CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -164,6 +164,13 @@ DISTCLEANFILES = STARPU-REVISION
 
 
 include starpu-top/extradist
+
+showfailed:
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -s -C $$i showfailed || RET=1 ; \
+	done ; \
+	exit $$RET
 
 showcheck:
 	RET=0 ; \
