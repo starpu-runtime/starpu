@@ -153,7 +153,9 @@ TESTS			=	$(STARPU_EXAMPLES)
 if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS			+=	scheduler/schedulers.sh
 TESTS			+=	scheduler/schedulers_context.sh
+if !NO_BLAS_LIB
 TESTS			+=	mult/sgemm.sh
+endif
 endif
 
 if STARPU_HAVE_WINDOWS
