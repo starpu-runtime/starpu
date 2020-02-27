@@ -611,7 +611,9 @@ static void *task_execute(void *arg)
 			w->last_task = NULL;
 
 		_STARPU_DEBUG("task %p started\n", task);
-#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+#ifdef HAVE_SG_ACTOR_EXECUTE
+		sg_actor_execute(task->flops);
+#elif defined(HAVE_SG_ACTOR_SELF_EXECUTE)
 		sg_actor_self_execute(task->flops);
 #else
 		MSG_task_execute(task->task);
@@ -697,7 +699,9 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		/* Synchronous execution */
 		/* First wait for previous tasks */
 		_starpu_simgrid_wait_tasks(workerid);
-#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+#ifdef HAVE_SG_ACTOR_EXECUTE
+		sg_actor_execute(flops);
+#elif defined(HAVE_SG_ACTOR_SELF_EXECUTE)
 		sg_actor_self_execute(flops);
 #else
 		MSG_task_execute(simgrid_task);
