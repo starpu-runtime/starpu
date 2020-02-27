@@ -26,6 +26,8 @@ New features:
     or received data and their use by tasks
   * Add 4D tensor data interface.
   * New sched_tasks.rec trace file which monitors task scheduling push/pop actions
+  * New STARPU_MPI_MEM_THROTTLE environment variable to throttle mpi
+    submission according to memory use.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.

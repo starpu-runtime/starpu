@@ -674,6 +674,15 @@ for that environment variable to be used, and the
 STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
+<dt>STARPU_MPI_MEM_THROTTLE</dt>
+<dd>
+\anchor STARPU_MPI_MEM_THROTTLE
+\addindex __env__STARPU_MPI_MEM_THROTTLE
+When set to a positive value, this makes the starpu_mpi_*recv* functions
+block when the memory allocation required for network reception overflows the
+available main memory (as typically set by \ref STARPU_LIMIT_CPU_MEM)
+</dd>
+
 <dt>STARPU_SIMGRID_TRANSFER_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_TRANSFER_COST
@@ -935,6 +944,10 @@ that have a limited amount of memory.
 Specify the maximum number of megabytes that should be
 available to the application in the main CPU memory. Setting it enables allocation
 cache in main memory. Setting it to zero lets StarPU overflow memory.
+
+Note: for now not all StarPU allocations get throttled by this
+parameter. Notably MPI reception are not throttled unless \ref
+STARPU_MPI_MEM_THROTTLE is set to 1.
 </dd>
 
 <dt>STARPU_LIMIT_CPU_NUMA_devid_MEM</dt>

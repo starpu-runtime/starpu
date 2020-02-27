@@ -167,6 +167,13 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
 
+	if (req->reserved_size)
+	{
+		/* The core will have really allocated the reception buffer now, release our reservation */
+		starpu_memory_deallocate(STARPU_MAIN_RAM, req->reserved_size);
+		req->reserved_size = 0;
+	}
+
 	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
 
 	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64" and type %s %d\n", req, req->node_tag.node.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req);
