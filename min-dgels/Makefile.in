@@ -33,6 +33,9 @@ distdir:
 check:
 	echo "No checks are implemented for min-dgels"
 
+showfailed:
+	@:
+
 showcheck: check
 
 showsuite: check
