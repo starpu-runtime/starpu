@@ -41,5 +41,5 @@ $STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i
 if type pj_dump > /dev/null 2> /dev/null
 then
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
-	pj_dump paje.trace
+	pj_dump -e 0 paje.trace
 fi
