@@ -15,51 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-ifeq ($(TESTS_TYPE),none)
-recheck:
-	-cat /dev/null
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null
-endif
-
-ifeq ($(TESTS_TYPE),subdirs)
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
-endif
-
-ifeq ($(TESTS_TYPE),tests)
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
 	@RET=0 ; \
@@ -97,4 +52,3 @@ showsuite:
 		make -C $$i showsuite || RET=1 ; \
 	done ; \
 	exit $$RET
-endif

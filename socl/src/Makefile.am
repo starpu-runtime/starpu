@@ -16,8 +16,7 @@
 
 include $(top_srcdir)/starpu.mk
 
-TESTS_TYPE = none
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-notests.mk
 
 CLEANFILES = *.gcno *.gcda
 

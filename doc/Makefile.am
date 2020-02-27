@@ -9,8 +9,7 @@
 #
 # See the GNU Free Documentation License in COPYING.GFDL for more details.
 
-TESTS_TYPE = none
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-notests.mk
 
 if BUILD_DOC
 SUBDIRS = doxygen

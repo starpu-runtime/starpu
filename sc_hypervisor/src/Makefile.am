@@ -15,8 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-TESTS_TYPE = none
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-notests.mk
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
