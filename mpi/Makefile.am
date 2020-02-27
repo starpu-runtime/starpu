@@ -15,6 +15,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+TESTS_TYPE = subdirs
+include $(top_srcdir)/starpu.mk
+
 SUBDIRS=src tests examples
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -24,24 +28,3 @@ versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
 	include/fstarpu_mpi_mod.f90			\
 	include/starpu_mpi.h
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET

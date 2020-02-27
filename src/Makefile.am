@@ -15,6 +15,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -349,14 +353,3 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_sink.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_utils.c
 endif
-
-#########################################
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null
