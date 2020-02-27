@@ -16,6 +16,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 CLEANFILES = *.gcno *.gcda
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(FXT_CFLAGS)
@@ -135,12 +138,3 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_geteventprofilinginfo.c \
   cl_getextensionfunctionaddress.c \
   cl_icdgetplatformidskhr.c
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null

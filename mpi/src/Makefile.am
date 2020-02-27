@@ -15,6 +15,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 CC=$(MPICC)
 CCLD=$(MPICC)
 
@@ -110,12 +114,3 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	load_balancer/policy/load_data_interface.c	\
 	load_balancer/policy/load_heat_propagation.c	\
 	load_balancer/load_balancer.c
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null
