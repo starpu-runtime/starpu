@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011,2014,2018                      Université de Bordeaux
+ * Copyright (C) 2009-2011,2014,2018,2020                 Université de Bordeaux
  * Copyright (C) 2012                                     Inria
  * Copyright (C) 2010,2015,2017                           CNRS
  *
@@ -21,7 +21,7 @@
 
 #include <starpu.h>
 
-#ifdef STARPU_ATLAS
+#if defined(STARPU_ATLAS) || defined(STARPU_BLAS_LIB_HAS_CBLAS_SGEMV)
 #include <cblas.h>
 #endif
 
