@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2015                                Université de Bordeaux
+# Copyright (C) 2009-2015,2020                           Université de Bordeaux
 # Copyright (C) 2011,2012,2016                           Inria
 # Copyright (C) 2010-2013,2015,2017,2018                 CNRS
 #
@@ -30,6 +30,13 @@ recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
 		make -C $$i recheck || RET=1 ; \
+	done ; \
+	exit $$RET
+
+showfailed:
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showfailed || RET=1 ; \
 	done ; \
 	exit $$RET
 

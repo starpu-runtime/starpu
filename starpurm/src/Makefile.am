@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2017,2018                                Inria
-# Copyright (C) 2018                                     Université de Bordeaux
+# Copyright (C) 2018,2020                                Université de Bordeaux
 # Copyright (C) 2018                                     CNRS
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,9 @@ endif
 
 noinst_HEADERS = 					\
 	starpurm_private.h
+
+showfailed:
+	@-cat /dev/null
 
 showcheck:
 	-cat /dev/null

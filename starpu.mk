@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2017                                     Inria
 # Copyright (C) 2017, 2018, 2019                         CNRS
-# Copyright (C) 2016,2017                                Université de Bordeaux
+# Copyright (C) 2016,2017,2020                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,14 @@ V_icc_  = $(V_icc_$(AM_DEFAULT_VERBOSITY))
 V_icc_0 = @echo "  ICC     " $@;
 V_icc_1 =
 V_icc   = $(V_icc_$(V))
+
+showfailed:
+	@! grep "^FAIL " $(TEST_LOGS) /dev/null
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showfailed || RET=1 ; \
+	done ; \
+	exit $$RET
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
