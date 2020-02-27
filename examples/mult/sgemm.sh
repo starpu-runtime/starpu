@@ -19,30 +19,27 @@
 #
 # Test parsing of FxT traces
 
-# Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = dmdas ] || exit 77
-
-# XXX: Also see examples/mult/sgemm.sh
-
 set -e
+
+# XXX: Also see tests/overlap/overlap.sh
 
 PREFIX=$(dirname $0)
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
-	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/overlap
+	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/sgemm
 	# in case libtool got into play
-	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap
+	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm
 fi
 
-STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
+STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/sgemm
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s starpu_sgemm_gemm
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s starpu_sgemm_gemm
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
 [ -f perfs.rec ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
-	[ -f starpu_overlap_sleep_1024_24.gp -a -f starpu_overlap_sleep_1024_24.data -a -f starpu_overlap_sleep_1024_24_avg.data ]
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -s starpu_sgemm_gemm -i $PREFIX/prof_file_${USER}_0
+	[ -f starpu_starpu_sgemm_gemm.gp -a -f starpu_starpu_sgemm_gemm.data -a -f starpu_starpu_sgemm_gemm.data ]
 
 	# Generate paje, dag, data, etc.
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
@@ -50,10 +47,10 @@ then
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
 	! type pj_dump || pj_dump -e 0 < paje.trace
 
-	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
+	$PREFIX/../../tools/starpu_codelet_profile distrib.data starpu_sgemm_gemm
 	[ -f distrib.data.gp -a \( -f distrib.data.0 -o -f distrib.data.1 -o -f distrib.data.2 -o -f distrib.data.3 -o -f distrib.data.4 \) ]
 
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 starpu_sgemm_gemm
 	[ -f data_trace.gp ]
 
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
@@ -67,7 +64,7 @@ then
 	$PREFIX/../../tools/starpu_paje_state_stats paje.trace || true
 	$PREFIX/../../tools/starpu_paje_summary paje.trace || true
 	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data || true
-	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ] || true
+	[ -f distrib.data.starpu_sgemm_gemm.0.a3d3725e.1024.pdf ] || true
 
 	if [ -x $PREFIX/../../tools/starpu_replay ]; then
 		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay tasks.rec
