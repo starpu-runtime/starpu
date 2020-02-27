@@ -162,15 +162,7 @@ void _starpu_fxt_flush_callback()
 }
 #endif
 
-#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
-/**
- * Support for buffer size > 2 GB was added in FxT at the same
- * time than fut_setup_flush_callback()
- */
 void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
-#else
-void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
-#endif
 {
 	unsigned threadid;
 

@@ -419,15 +419,7 @@ struct starpu_conf
 	   to specify a bigger value to avoid any flushing (which
 	   would disturb the trace).
 	*/
-#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
-	/**
-	   Support for buffer size > 2 GB was added in FxT at the same
-	   time than fut_setup_flush_callback()
-	*/
 	uint64_t trace_buffer_size;
-#else
-	unsigned trace_buffer_size;
-#endif
 	int global_sched_ctx_min_priority;
 	int global_sched_ctx_max_priority;
 
