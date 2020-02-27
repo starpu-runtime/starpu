@@ -18,7 +18,7 @@
 maxiter=5
 
 # Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != random -a "$STARPU_SCHED" != greedy -a "$STARPU_SCHED" != dm ] || exit 77
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = random -o "$STARPU_SCHED" = greedy -o "$STARPU_SCHED" = dm ] || exit 77
 
 trace_sched()
 {

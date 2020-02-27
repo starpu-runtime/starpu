@@ -18,7 +18,7 @@
 maxiter=2
 
 # Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != dm -a "$STARPU_SCHED" != dmda ] || exit 77
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = dm -o "$STARPU_SCHED" = dmda ] || exit 77
 
 calibrate_point()
 {
