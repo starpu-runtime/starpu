@@ -2135,12 +2135,14 @@ if test x$use_fxt = xyes; then
 	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
    	AC_CHECK_FUNCS([enable_fut_flush])
    	AC_CHECK_FUNCS([fut_set_filename])
+	AC_CHECK_FUNCS([fut_setup_flush_callback])
 	LDFLAGS="$save_LDFLAGS"
 	LIBS="$save_LIBS"
 	save_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $FXT_CFLAGS"
 	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
 	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
+	AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
 	CFLAGS="$save_CFLAGS"
 
 	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then

@@ -1142,7 +1142,15 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 	/* 64MiB by default */
+#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
+	/**
+	* Support for buffer size > 2 GB was added in FxT at the same
+	* time than fut_setup_flush_callback()
+	*/
+	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
+#else
 	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
+#endif
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;

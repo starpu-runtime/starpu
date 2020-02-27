@@ -313,7 +313,15 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 long _starpu_gettid(void);
 
 /* Initialize the FxT library. */
+#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
+/**
+ * Support for buffer size > 2 GB was added in FxT at the same
+ * time than fut_setup_flush_callback()
+ */
+void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
+#else
 void _starpu_fxt_init_profiling(unsigned trace_buffer_size);
+#endif
 
 /* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
