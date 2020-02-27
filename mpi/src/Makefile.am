@@ -16,8 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-TESTS_TYPE = none
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-notests.mk
 
 CC=$(MPICC)
 CCLD=$(MPICC)
