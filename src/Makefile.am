@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011-2017                                Inria
-# Copyright (C) 2009-2019                                Université de Bordeaux
+# Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2015,2017,2018,2019                 CNRS
 # Copyright (C) 2013                                     Simon Archipoff
 #
@@ -412,6 +412,8 @@ dist-hook:
 
 recheck:
 	-cat /dev/null
+showfailed:
+	@-cat /dev/null
 showcheck:
 	-cat /dev/null
 showsuite:

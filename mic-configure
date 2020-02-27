@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2014,2016                                Inria
 # Copyright (C) 2013-2017                                CNRS
-# Copyright (C) 2013-2017                                Université de Bordeaux
+# Copyright (C) 2013-2017,2020                           Université de Bordeaux
 # Copyright (C) 2013                                     Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -221,6 +221,9 @@ check:
 	$MIC_BUILD_ENV
 	\$(MAKE) \$(MFLAGS) -C build_mic check
 
+showfailed:
+	@\$(MAKE) \$(MFLAGS) -C build_mic showfailed
+
 showcheck:
 	\$(MAKE) \$(MFLAGS) -C build_mic showcheck
 
@@ -249,6 +252,10 @@ check:
 	\$(MAKE) \$(MFLAGS) -C build_mic check ; \
 	RET=\$\$? ; \
 	STARPU_NCPUS=0 \$(MAKE) \$(MFLAGS) -C build_mic check && [ \$\$RET == 0 ]
+
+showfailed:
+	@\$(MAKE) \$(MFLAGS) -C build_host showfailed
+	@\$(MAKE) \$(MFLAGS) -C build_mic showfailed
 
 showcheck:
 	\$(MAKE) \$(MFLAGS) -C build_host showcheck

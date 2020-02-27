@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2017                                     Inria
 # Copyright (C) 2010-2019                                CNRS
-# Copyright (C) 2009-2017,2019                           Université de Bordeaux
+# Copyright (C) 2009-2017,2019-2020                      Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -63,6 +63,8 @@ endif
 
 recheck:
 	-cat /dev/null
+showfailed:
+	@-cat /dev/null
 showcheck:
 	-cat /dev/null
 showsuite:
