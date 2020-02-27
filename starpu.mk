@@ -1,3 +1,11 @@
+showfailed:
+	@! grep "^FAIL " $(TEST_LOGS) /dev/null
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showfailed || RET=1 ; \
+	done ; \
+	exit $$RET
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
 	! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null

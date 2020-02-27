@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013, 2015-2016  Université de Bordeaux
+# Copyright (C) 2009-2013, 2015-2016, 2020  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -55,6 +55,10 @@ endif
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
+recheck:
+	-cat /dev/null
+showfailed:
+	@-cat /dev/null
 showcheck:
 	-cat /dev/null
 showsuite:

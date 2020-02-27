@@ -1,6 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2011, 2012  INRIA
+# Copyright (C) 2020                                Université de Bordeaux
+#
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation; either version 2.1 of the License, or (at
@@ -40,6 +42,9 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/throughput_lp_policy.c
 
 noinst_HEADERS = sc_hypervisor_intern.h
+
+showfailed:
+	@-cat /dev/null
 
 showcheck:
 	-cat /dev/null

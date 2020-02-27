@@ -32,6 +32,12 @@ EXTRA_DIST =    tutorial/hello_world.c \
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
 
+recheck:
+	-cat /dev/null
+
+showfailed:
+	@-cat /dev/null
+
 showcheck:
 	-cat /dev/null
 

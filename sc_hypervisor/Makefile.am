@@ -22,6 +22,14 @@ versinclude_HEADERS = 	include/sc_hypervisor.h			\
 			include/sc_hypervisor_monitoring.h 	\
 			include/sc_hypervisor_policy.h 		\
 			include/sc_hypervisor_lp.h
+
+showfailed:
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showfailed || RET=1 ; \
+	done ; \
+	exit $$RET
+
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
