@@ -16,6 +16,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -409,12 +413,3 @@ dist-hook:
 		done ; \
 	done ; \
 	[ $$failed == 0 ]
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null
