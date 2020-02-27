@@ -17,7 +17,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 # Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != pheft ] || exit 77
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = pheft ] || exit 77
 
 #export STARPU_GENERATE_TRACE=1
 #export GOMP_CPU_AFFINITY="0 6 1 7 2 8 3 9 4 10 5 11"
