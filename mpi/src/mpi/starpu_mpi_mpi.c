@@ -1240,20 +1240,19 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 
 #ifdef STARPU_USE_FXT
-	_starpu_fxt_wait_initialisation();
-	/* We need to record our ID in the trace before the main thread makes any MPI call */
-	_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
-	starpu_profiling_set_id(argc_argv->rank);
+	if (_starpu_fxt_wait_initialisation())
+	{
+		/* We need to record our ID in the trace before the main thread makes any MPI call */
+		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
+		starpu_profiling_set_id(argc_argv->rank);
+		_starpu_mpi_add_sync_point_in_fxt();
+	}
 #endif //STARPU_USE_FXT
 
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
-	_starpu_mpi_add_sync_point_in_fxt();
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
  	int envelope_request_submitted = 0;
 	int mpi_driver_loop_counter = 0;
