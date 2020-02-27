@@ -13,6 +13,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
 
 CC=$(MPICC)
 CCLD=$(MPICC)
@@ -50,13 +54,3 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_private.c				\
 	starpu_mpi_cache.c				\
 	starpu_mpi_cache_stats.c
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null

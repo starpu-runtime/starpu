@@ -13,6 +13,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
@@ -42,12 +46,3 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/throughput_lp_policy.c
 
 noinst_HEADERS = sc_hypervisor_intern.h
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null

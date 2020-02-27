@@ -15,6 +15,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/starpufft/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
@@ -54,12 +57,3 @@ endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null

@@ -9,6 +9,9 @@
 #
 # See the GNU Free Documentation License in COPYING.GFDL for more details.
 
+TESTS_TYPE = none
+include $(top_srcdir)/starpu.mk
+
 if BUILD_DOC
 SUBDIRS = doxygen
 DIST_SUBDIRS = doxygen
@@ -31,15 +34,3 @@ EXTRA_DIST =    tutorial/hello_world.c \
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
-
-recheck:
-	-cat /dev/null
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null

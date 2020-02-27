@@ -13,6 +13,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+TESTS_TYPE = subdirs
+include $(top_srcdir)/starpu.mk
 
 SUBDIRS=src tests examples
 
@@ -22,24 +26,3 @@ pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
 	include/starpu_mpi.h
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
