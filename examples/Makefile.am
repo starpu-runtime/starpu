@@ -48,6 +48,7 @@ EXTRA_DIST = 					\
 	spmv/spmv_opencl.cl			\
 	spmv/matrix_market/examples/fidapm05.mtx \
 	mult/xgemm.c				\
+	mult/sgemm.sh				\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
 	lu/xlu_implicit.c			\
@@ -152,6 +153,7 @@ TESTS			=	$(STARPU_EXAMPLES)
 if !STARPU_USE_MPI_MASTER_SLAVE
 TESTS			+=	scheduler/schedulers.sh
 TESTS			+=	scheduler/schedulers_context.sh
+TESTS			+=	mult/sgemm.sh
 endif
 
 if STARPU_HAVE_WINDOWS
