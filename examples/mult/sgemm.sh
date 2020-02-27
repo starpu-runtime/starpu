@@ -19,9 +19,12 @@
 #
 # Test parsing of FxT traces
 
-set -e
+# Testing another specific scheduler, no need to run this
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = dmdas ] || exit 77
 
 # XXX: Also see tests/overlap/overlap.sh
+
+set -e
 
 PREFIX=$(dirname $0)
 
@@ -31,7 +34,7 @@ if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm
 fi
 
-STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/sgemm
+STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/sgemm
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s starpu_sgemm_gemm
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s starpu_sgemm_gemm
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
