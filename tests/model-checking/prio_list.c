@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2017                                     CNRS
  * Copyright (C) 2017                                     Inria
- * Copyright (C) 2017,2019                                Université de Bordeaux
+ * Copyright (C) 2017,2019-2020                           Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #define _STARPU_MALLOC(p, s) do {p = malloc(s);} while (0)
+#define _STARPU_CALLOC(p, n, s) do {p = calloc(n, s);} while (0)
 #define _STARPU_MALLOC_CAST(p, s, t) do {p = (t) malloc(s);} while (0)
 
 #ifndef NOCONFIG
