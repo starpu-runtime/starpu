@@ -352,7 +352,7 @@ STARPU_EXAMPLES +=				\
 	lu/lu_implicit_example_complex_double
 endif
 
-if BLAS_LIB_HAS_CBLAS_SGEMV
+if STARPU_HAVE_CBLAS_H
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
 endif
