@@ -3509,6 +3509,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
   mkdir -p examples/cholesky
   test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
+  mkdir -p examples/mut
   test -e examples/mult/sgemm.sh || ln -sf $ac_abs_top_srcdir/examples/mult/sgemm.sh examples/mult/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
