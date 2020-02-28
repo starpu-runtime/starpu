@@ -275,8 +275,8 @@ int main(int argc, char *argv[])
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
-		test_args = (char *) calloc(150, sizeof(char));
-		snprintf(test_args, 150, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
+		test_args = (char *) calloc(512, sizeof(char));
+		snprintf(test_args, 512, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
