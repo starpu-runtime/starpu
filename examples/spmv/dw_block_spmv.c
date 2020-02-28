@@ -266,7 +266,7 @@ void launch_spmv_codelets(void)
 
 		ret = starpu_task_submit(&task_tab[task]);
 		if (ret == -ENODEV)
-			exit(STARPU_TEST_SKIPPED);
+			exit(77);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
