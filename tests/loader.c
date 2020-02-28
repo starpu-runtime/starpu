@@ -328,14 +328,15 @@ int main(int argc, char *argv[])
 		if (launcher_args)
 			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
 		else
-			launcher_args = "";
+			launcher_args = strdup("");
 
 		/* And give a convenience macro */
 		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
 				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
-		char *launch = malloc(len_launch);
-		snprintf(launch, len_launch, "%s --mode=execute %s %s", libtool, launcher, launcher_args);
+		char launch[len_launch];
+		snprintf(launch, sizeof(launch), "%s --mode=execute %s %s", libtool, launcher, launcher_args);
 		setenv("STARPU_LAUNCH", launch, 1);
+		free(launcher_args);
 
 		launcher = NULL;
 		launcher_args = NULL;
@@ -397,6 +398,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	free(test_args);
+	free(libtool);
 
 	ret = EXIT_SUCCESS;
 	gettimeofday(&start, NULL);
