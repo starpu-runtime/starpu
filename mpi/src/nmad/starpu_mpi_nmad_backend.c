@@ -20,9 +20,9 @@
 
 #ifdef STARPU_USE_MPI_NMAD
 
-void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
+static void starpu_mpi_nmad_backend_constructor(void) __attribute__((constructor));
+static void starpu_mpi_nmad_backend_constructor(void)
 {
-	(void)conf;
 	/* strat_prio is preferred for StarPU instead of default strat_aggreg */
 	setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
 	/* prefer rcache on ibverbs */
@@ -31,6 +31,11 @@ void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
 	setenv("PIOM_DEDICATED", "1", 0);
 	/* pioman waits for starpu to place its dedicated thread */
 	setenv("PIOM_DEDICATED_WAIT", "1", 0);
+}
+
+void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
+{
+	(void)conf;
 }
 
 void _starpu_mpi_nmad_backend_shutdown(void)
