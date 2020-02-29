@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014,2016                           Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
+ * Copyright (C) 2009-2020                                Université de Bordeaux
  * Copyright (C) 2010-2017, 2019                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -340,12 +340,12 @@ void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxl
 void starpu_perfmodel_dump_xml(FILE *output, struct starpu_perfmodel *model);
 
 /**
-   Free internal memory used for sampling directory
+   Free internal memory used for sampling
    management. It should only be called by an application which is not
    calling starpu_shutdown() as this function already calls it. See for
    example <c>tools/starpu_perfmodel_display.c</c>.
 */
-void starpu_perfmodel_free_sampling_directories(void);
+void starpu_perfmodel_free_sampling(void);
 
 /**
    Return the architecture type of the worker \p workerid.
