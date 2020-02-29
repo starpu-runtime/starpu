@@ -148,6 +148,6 @@ int main(int argc, char **argv)
 	if (ret) return ret;
 	starpu_fxt_write_data_trace(argv[1]);
 	write_gp(argc - 2, argv + 2);
-	starpu_perfmodel_free_sampling_directories();
+	starpu_perfmodel_free_sampling();
 	return 0;
 }

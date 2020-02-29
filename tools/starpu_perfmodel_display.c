@@ -176,6 +176,6 @@ int main(int argc, char **argv)
 		starpu_perfmodel_unload_model(&model);
         }
 
-	starpu_perfmodel_free_sampling_directories();
+	starpu_perfmodel_free_sampling();
 	return 0;
 }

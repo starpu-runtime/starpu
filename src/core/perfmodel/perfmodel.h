@@ -101,6 +101,8 @@ void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb);
 
+void _starpu_free_arch_combs(void);
+
 #ifdef __cplusplus
 }
 #endif
