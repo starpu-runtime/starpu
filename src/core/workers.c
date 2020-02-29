@@ -1372,7 +1372,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* sink doesn't exit even if no worker discorvered */
 	if (ret && !is_a_sink)
 	{
-		starpu_perfmodel_free_sampling_directories();
+		starpu_perfmodel_free_sampling();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 

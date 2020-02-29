@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2011,2012,2015                           Inria
  * Copyright (C) 2011-2017                                CNRS
- * Copyright (C) 2011-2014,2017                           Université de Bordeaux
+ * Copyright (C) 2011-2014,2017,2020                      Université de Bordeaux
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
  *
@@ -541,6 +541,6 @@ int main(int argc, char **argv)
 			_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
 		}
 	}
-	starpu_perfmodel_free_sampling_directories();
+	starpu_perfmodel_free_sampling();
 	return ret;
 }
