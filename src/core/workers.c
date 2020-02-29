@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014,2016-2017                      Inria
- * Copyright (C) 2008-2017                                Université de Bordeaux
+ * Copyright (C) 2008-2017,2020                           Université de Bordeaux
  * Copyright (C) 2010-2017                                CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
  * Copyright (C) 2011                                     Télécom-SudParis
@@ -33,6 +33,7 @@
 #include <core/task.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
+#include <profiling/bound.h>
 #include <starpu_task_list.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
@@ -1591,6 +1592,7 @@ void starpu_shutdown(void)
 
 	starpu_profiling_bus_helper_display_summary();
 	starpu_profiling_worker_helper_display_summary();
+	starpu_bound_clear();
 
 	_starpu_deinitialize_registered_performance_models();
 
