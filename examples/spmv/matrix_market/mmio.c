@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010,2013-2017                           CNRS
- * Copyright (C) 2008,2009,2011,2013,2016                 Université de Bordeaux
+ * Copyright (C) 2008,2009,2011,2013,2016,2020            Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <starpu_util.h>
 
 #include "mmio.h"
 
@@ -84,7 +85,8 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_, do
 	/*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
 	for (i=0; i<nz; i++)
 	{
-		fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+		int ret = fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+		STARPU_ASSERT(ret == 3);
 		I[i]--;  /* adjust from 1-based to 0-based */
 		J[i]--;
 	}
