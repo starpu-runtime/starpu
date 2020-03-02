@@ -1012,6 +1012,6 @@ starpu_mod.mod: starpu_mod.o
 starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
 	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
 
-init_01.o: $(top_srcdir)/tests/fortran90/init_01.f90 starpu_mod.mod
+fortran90/init_01.o: $(top_srcdir)/tests/fortran90/init_01.f90 starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/init_01.f90' || echo '$(srcdir)/'`fortran90/init_01.f90
 endif
