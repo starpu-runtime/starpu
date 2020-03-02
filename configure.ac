@@ -933,15 +933,15 @@ if test "x$enable_hdf5" != xno ; then
 	enable_include_hdf5=no
 	for f in $hdf5_inc_dir; do
 		if test -n "$f" ; then
-			SAVED_CFLAGS="${CFLAGS}"
-			CFLAGS=-I${f}
+			SAVED_CPPFLAGS="${CPPFLAGS}"
+			CPPFLAGS="$CPPFLAGS -I$f"
 			AC_CHECK_HEADERS([hdf5.h])
 			if test "$ac_cv_header_hdf5_h" = "yes" ; then
-				CFLAGS="-I${f} ${SAVED_CFLAGS}"
+				CPPFLAGS="-I${f} ${SAVED_CFLAGS}"
 				enable_include_hdf5=yes
 				break
 			else
-				CFLAGS=${SAVED_CFLAGS}
+				CPPFLAGS=${SAVED_CPPFLAGS}
 			fi
 			unset ac_cv_header_hdf5_h
 		fi
