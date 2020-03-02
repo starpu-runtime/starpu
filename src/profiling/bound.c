@@ -161,6 +161,16 @@ static void _starpu_bound_clear(int record, int deps, int prio)
 	while (t != NULL)
 	{
 		struct bound_task *next = t->next;
+		unsigned i,j;
+		for (i = 0; i < STARPU_NARCH; i++)
+		{
+			if (t->duration[i])
+			{
+				for (j = 0; t->duration[i][j]; j++)
+					free(t->duration[i][j]);
+				free(t->duration[i]);
+			}
+		}
 		free(t);
 		t = next;
 	}
@@ -248,8 +258,7 @@ static void new_task(struct _starpu_job *j)
 	if (j->bound_task)
 		return;
 
-	_STARPU_MALLOC(t, sizeof(*t));
-	memset(t, 0, sizeof(*t));
+	_STARPU_CALLOC(t, 1, sizeof(*t));
 	t->id = j->job_id;
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
