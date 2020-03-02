@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2011,2016,2017                           Inria
 # Copyright (C) 2011-2019                                CNRS
-# Copyright (C) 2010-2017,2019                           Université de Bordeaux
+# Copyright (C) 2010-2017,2019-2020                           Université de Bordeaux
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -143,11 +143,6 @@ implicit_stencil_SOURCES =			\
 	implicit-stencil-tasks.c		\
 	implicit-stencil-blocks.c		\
 	implicit-stencil.c
-
-noinst_HEADERS =				\
-	stencil.h				\
-	implicit-stencil.h			\
-	shadow.h
 
 if STARPU_USE_CUDA
 implicit_stencil_SOURCES +=			\
