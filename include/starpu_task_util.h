@@ -170,6 +170,10 @@ extern "C"
 */
 #define STARPU_TAG_ONLY          (20<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_task_insert(), must be followed by an unsigned
+   stored in starpu_task::possibly_parallel.
+*/
 #define STARPU_POSSIBLY_PARALLEL    (21<<STARPU_MODE_SHIFT)
 
 /**
