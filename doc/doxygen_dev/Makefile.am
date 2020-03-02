@@ -131,13 +131,14 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
 	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
 	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
-	$(PDFLATEX) refman.tex ;\
+	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
+	! < refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined" || exit 1 ;\
 	$(MAKEINDEX) refman.idx ;\
-	$(PDFLATEX) refman.tex ;\
+	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
 	done=0; repeat=5 ;\
 	while test $$done = 0 -a $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
-	       $(PDFLATEX) refman.tex; \
+	       max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex; \
 	       repeat=`expr $$repeat - 1`; \
 	   else \
 	       done=1; \
