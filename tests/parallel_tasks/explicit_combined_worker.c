@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2016                                Université de Bordeaux
+ * Copyright (C) 2010-2016,2020                           Université de Bordeaux
  * Copyright (C) 2012,2013                                Inria
  * Copyright (C) 2010-2013,2015,2017                      CNRS
  * Copyright (C) 2013                                     Thibaut Lambert
@@ -99,7 +99,7 @@ int main(void)
 			task->workerid = worker;
 
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV) goto enodev;
+			if (ret == -ENODEV) { task->destroy = 0; starpu_task_destroy(task); goto enodev; }
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
@@ -116,7 +116,7 @@ int main(void)
 enodev:
 	starpu_data_unregister(v_handle);
 	starpu_free(v);
-	fprintf(stderr, "WARNING: No one can execute this task\n");
+	fprintf(stderr, "WARNING: No one can execute the task on workerid %d\n", worker);
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
