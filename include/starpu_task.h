@@ -1203,8 +1203,19 @@ struct starpu_task
 	void *sched_data;
 };
 
+/**
+   To be used in the starpu_task::type field, for normal application tasks.
+*/
 #define STARPU_TASK_TYPE_NORMAL		0
+
+/**
+   To be used in the starpu_task::type field, for StarPU-internal tasks.
+*/
 #define STARPU_TASK_TYPE_INTERNAL	(1<<0)
+
+/**
+   To be used in the starpu_task::type field, for StarPU-internal data acquisition tasks.
+*/
 #define STARPU_TASK_TYPE_DATA_ACQUIRE	(1<<1)
 
 /**

@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 
-		for (int j = 0; j < iterations; j++)
+		for (uint64_t j = 0; j < iterations; j++)
 		{
 			if (rank == 0)
 			{
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
 			const double d9_lat = lats[9 * (iterations - 1) / 10];
 			double avg_lat = 0.0;
 
-			for(int k = 0; k < iterations; k++)
+			for(uint64_t k = 0; k < iterations; k++)
 			{
 				avg_lat += lats[k];
 			}

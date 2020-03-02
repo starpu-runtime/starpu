@@ -38,6 +38,9 @@ extern "C"
    @{
 */
 
+/**
+  Memory node Type
+*/
 enum starpu_node_kind
 {
 	STARPU_UNUSED=0,
