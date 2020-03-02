@@ -19,7 +19,7 @@
 
 TODO: improve!
 
-\section GeneralIdeas General Ideas
+\section ContextGeneralIdeas General Ideas
 
 Scheduling contexts represent abstracts sets of workers that allow the
 programmers to control the distribution of computational resources

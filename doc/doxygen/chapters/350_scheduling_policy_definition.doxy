@@ -17,7 +17,7 @@
 
 /*! \page HowToDefineANewSchedulingPolicy How To Define A New Scheduling Policy
 
-\section Introduction Introduction
+\section NewSchedulingPolicy_Introduction Introduction
 
 StarPU provides two ways of defining a scheduling policy, a basic monolithic
 way, and a modular way.
