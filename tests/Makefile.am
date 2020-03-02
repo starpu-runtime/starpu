@@ -768,7 +768,7 @@ openmp_cuda_task_01_SOURCES = 	\
 
 if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
-	$(top_srcdir)/include/starpu_mod.f90	\
+	fortran90/starpu_mod.f90	\
 	fortran90/init_01.f90
 endif
 
@@ -1004,14 +1004,14 @@ sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 
 if STARPU_HAVE_FC
 # Fortran90 tests
-# - list explicit dependences to control proper module files generation
-# - the overriding rule fully disables the corresponing default rule, thus
-#   the default rule body must be copied entirely
-starpu_mod.mod: starpu_mod.o
+# - link over source file to build our own object
+fortran90/starpu_mod.f90:
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $(top_srcdir)/include/$(notdir $@) $@
 
-starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
-	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
+# - express the creation of .mod along .o
+starpu_mod.mod: fortran90/starpu_mod.o
 
-fortran90/init_01.o: $(top_srcdir)/tests/fortran90/init_01.f90 starpu_mod.mod
-	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/init_01.f90' || echo '$(srcdir)/'`fortran90/init_01.f90
+# - list explicit dependences to control proper module files dependencies
+fortran90/init_01.o: starpu_mod.mod
 endif
