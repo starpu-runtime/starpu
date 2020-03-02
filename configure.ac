@@ -62,8 +62,8 @@ dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 dnl do not use option subdir-objects, it causes fortran compilation to fail
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall -Wno-portability foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
