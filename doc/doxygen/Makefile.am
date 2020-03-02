@@ -272,6 +272,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	$(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
 	$(SED) -i s'/\\item File\\.Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
+	! < $(DOX_LATEX_DIR)/refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined"
 	$(MAKEINDEX) refman.idx ;\
 	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
 	done=0; repeat=5 ;\
@@ -283,7 +284,6 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	       done=1; \
 	   fi; \
 	done
-	! < $(DOX_LATEX_DIR)/refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined"
 	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
 
 CLEANFILES = $(DOX_TAG) starpu_config.h \
