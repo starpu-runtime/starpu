@@ -547,9 +547,6 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	if (!_starpu_config.workers[workerid].enable_knob)
-		return 0;
-
 	/* TODO: check that the task operand sizes will fit on that device */
 
 	struct starpu_codelet *cl = task->cl;
@@ -558,6 +555,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
+		if (!_starpu_config.workers[workerid].enable_knob)
+			return 0;
+
 		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
