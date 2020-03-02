@@ -1,13 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2018                                Inria
-# Copyright (C) 2009-2020                                Université de Bordeaux
-# Copyright (C) 2017                                     Guillaume Beauchamp
-# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
-# Copyright (C) 2018                                     Umeà University
-# Copyright (C) 2010-2020                                CNRS
-# Copyright (C) 2013                                     Thibaut Lambert
-# Copyright (C) 2011                                     Télécom-SudParis
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011       Télécom-SudParis
+# Copyright (C) 2013       Thibaut Lambert
+# Copyright (C) 2017       Guillaume Beauchamp
+# Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
+# Copyright (C) 2018       Umeà University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -2259,6 +2257,10 @@ fi
 AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 
+
+STARPU_FXT_EVENT_DEFINES="`grep -E '#define\s+_STARPU_(MPI_)?FUT_' ${srcdir}/src/common/fxt.h ${srcdir}/mpi/src/starpu_mpi_fxt.h | grep 0x | grep -v 0x1 | cut -d : -f 2`"
+AC_SUBST([STARPU_FXT_EVENT_DEFINES])
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #
@@ -3490,6 +3492,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
+  chmod +x tools/starpu_fxt_number_events_to_names.py
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
@@ -3563,6 +3566,7 @@ AC_OUTPUT([
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_mpi_comm_matrix.py
+	tools/starpu_fxt_number_events_to_names.py
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
