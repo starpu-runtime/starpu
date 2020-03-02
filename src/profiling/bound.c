@@ -170,6 +170,7 @@ static void _starpu_bound_clear(int record, int deps, int prio)
 					free(t->duration[i][j]);
 				free(t->duration[i]);
 			}
+			free(t->deps);
 		}
 		free(t);
 		t = next;
