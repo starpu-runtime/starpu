@@ -1007,7 +1007,7 @@ if STARPU_HAVE_FC
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(top_srcdir)/include/$(notdir $@) $@
+	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
 
 # - express the creation of .mod along .o
 starpu_mod.mod: fortran90/starpu_mod.o
