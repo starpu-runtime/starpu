@@ -184,6 +184,7 @@ void _starpu_free_arch_combs(void)
 	}
 	current_arch_comb = 0;
 	free(arch_combs);
+	arch_combs = NULL;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&arch_combs_mutex);
 }
