@@ -98,8 +98,8 @@ means of the tool <c>pkg-config</c>.
 
 <dt>--with-hwloc=<c>prefix</c></dt>
 <dd>
-\anchor with-hwloc
-\addindex __configure__--with-hwloc
+\anchor with-hwloc-prefix
+\addindex __configure__--with-hwloc-prefix
 Specify <c>hwloc</c> should be used by StarPU. <c>hwloc</c> should be found in the
 directory specified by <c>prefix</c>
 </dd>
@@ -652,14 +652,6 @@ Disable the build of tests.
 \addindex __configure__--disable-build-examples
 Disable the build of examples.
 </dd>
-
-<dt>--disable-build-tests</dt>
-<dd>
-\anchor disable-build-tests
-\addindex __configure__--disable-build-tests
-Disable the build of tests.
-</dd>
-
 
 <dt>--enable-sc-hypervisor</dt>
 <dd>

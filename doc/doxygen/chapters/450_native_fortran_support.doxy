@@ -29,9 +29,9 @@ symbols in the same Fortran code has unspecified behaviour.
 See \ref APIMIX for a discussion about valid and unspecified
 combinations.
 
-\section Implementation Implementation Details and Specificities
+\section NFImplementation Implementation Details and Specificities
 
-\subsection Prerequisites Prerequisites
+\subsection NFPrerequisites Prerequisites
 
 The Native Fortran support relies on Fortran 2008 specific constructs,
 as well as on the support of interoperability of assumed-shape arrays
@@ -44,7 +44,7 @@ not to work with GNU GFortran < 4.9, Intel Fortran Compiler < 2016.
 See Section \ref OldFortran on information on how to write StarPU
 Fortran code with older compilers.
 
-\subsection Configuration Configuration
+\subsection NFConfiguration Configuration
 
 The Native Fortran API is enabled and its companion
 <c>fstarpu_mod.f90</c> Fortran module source file is installed
@@ -55,13 +55,13 @@ disable-fortran "--disable-fortran". Conditional compiled source codes
 may check for the availability of the Native Fortran Support by testing
 whether the preprocessor macro <c>STARPU_HAVE_FC</c> is defined or not.
 
-\subsection Examples Examples
+\subsection NFExamples Examples
 
 Several examples using the Native Fortran API are provided in
 StarPU's <c>examples/native_fortran/</c> examples directory, to showcase
 the Fortran flavor of various basic and more advanced StarPU features.
 
-\subsection AppCompile Compiling a Native Fortran Application
+\subsection NFAppCompile Compiling a Native Fortran Application
 
 The Fortran module <c>fstarpu_mod.f90</c> installed in StarPU's
 <c>include/</c> directory provides all the necessary API definitions. It
@@ -74,7 +74,7 @@ examples directory comes with its own dedicated Makefile for out-of-tree
 build. Such example Makefiles may be used as starting points for
 building application codes with StarPU.
 
-\section Idioms Fortran Translation for Common StarPU API Idioms
+\section NFIdioms Fortran Translation for Common StarPU API Idioms
 
 All these examples assume that the standard Fortran module <c>iso_c_binding</c>
 is in use.
@@ -142,7 +142,7 @@ is in use.
         call fstarpu_codelet_add_buffer(my_cl, FSTARPU_RW.ior.FSTARPU_LOCALITY)
 \endcode
 
-\section InitExit Uses, Initialization and Shutdown
+\section NFInitExit Uses, Initialization and Shutdown
 
 The snippet below show an example of minimal StarPU code using the
 Native Fortran support. The program should <c>use</c> the standard
@@ -154,7 +154,7 @@ the runtime engine and frees all internal StarPU data structures.
 
 \snippet nf_initexit.f90 To be included. You should update doxygen if you see this text.
 
-\section InsertTask Fortran Flavor of StarPU's Variadic Insert_task
+\section NFInsertTask Fortran Flavor of StarPU's Variadic Insert_task
 
 Fortran does not have a construction similar to C variadic functions on which
 starpu_insert_task() relies at the time of this writing. However, Fortran's variable
@@ -183,7 +183,7 @@ Example extracted from nf_vector.f90:
             C_NULL_PTR /))                                ! no more args
 \endcode
 
-\section Structs Functions and Subroutines Expecting Data Structures Arguments
+\section NFStructs Functions and Subroutines Expecting Data Structures Arguments
 
 Several StarPU structures that are expected to be passed to the C API,
 are replaced by function/subroutine wrapper sets to allocate, set fields
@@ -215,8 +215,8 @@ structure:
         call fstarpu_codelet_free(cl_vec)
 \endcode
 
-\section Notes Additional Notes about the Native Fortran Support
-\subsection OldFortran Using StarPU with Older Fortran Compilers
+\section NFNotes Additional Notes about the Native Fortran Support
+\subsection NFOldFortran Using StarPU with Older Fortran Compilers
 
 When using older compilers, Fortran applications may still interoperate
 with StarPU using C marshalling functions as exemplified in StarPU's
@@ -231,7 +231,7 @@ Note that this marshalled FORTRAN support remains available even
 when specifying \c configure option \ref disable-fortran "--disable-fortran"
 (which only disables StarPU's native Fortran layer).
 
-\subsection APIMIX Valid API Mixes and Language Mixes
+\subsection NFAPIMIX Valid API Mixes and Language Mixes
 
 Mixing uses of
 <c>fstarpu_</c> and <c>starpu_</c> symbols in the same

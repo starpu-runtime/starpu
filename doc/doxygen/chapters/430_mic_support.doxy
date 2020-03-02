@@ -18,7 +18,7 @@
 
 /*! \page MICSupport MIC Xeon Phi Support
 
-\section Compilation Compilation
+\section MICCompilation Compilation
 
 MIC Xeon Phi support actually needs two compilations of StarPU, one for the host and one for
 the device. The <c>PATH</c> environment variable has to include the path to the

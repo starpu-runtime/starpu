@@ -22,7 +22,7 @@
 The behavior of the StarPU library and tools may be tuned thanks to
 the following environment variables.
 
-\section ConfiguringWorkers Configuring Workers
+\section EnvConfiguringWorkers Configuring Workers
 
 <dl>
 

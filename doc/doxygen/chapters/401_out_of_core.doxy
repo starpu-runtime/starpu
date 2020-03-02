@@ -19,7 +19,7 @@
 
 /*! \page OutOfCore Out Of Core
 
-\section Introduction Introduction
+\section OutOfCore_Introduction Introduction
 
 When using StarPU, one may need to store more data than what the main memory
 (RAM) can store. This part describes the method to add a new memory node on a

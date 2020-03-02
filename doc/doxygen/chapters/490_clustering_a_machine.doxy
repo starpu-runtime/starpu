@@ -18,7 +18,7 @@
 
 /*! \page ClusteringAMachine Clustering A Machine
 
-\section GeneralIdeas General Ideas
+\section ClusteringGeneralIdeas General Ideas
 
 Clusters are a concept introduced in this
 <a href="https://hal.inria.fr/view/index/docid/1181135">paper</a>.
