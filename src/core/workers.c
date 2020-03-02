@@ -417,6 +417,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
+		if (!_starpu_config.workers[workerid].enable_knob)
+			return 0;
+
 		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
