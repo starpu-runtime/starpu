@@ -107,7 +107,7 @@ int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_PO
 /* .... */
 \endcode
 
-\section CreatingAContext Creating A Context To Partition a GPU
+\section CreatingAGPUContext Creating A Context To Partition a GPU
 
 The contexts can also be used to group set of SMs of an NVIDIA GPU in order to isolate
 the parallel kernels and allow them to coexecution on a specified partiton of the GPU.
