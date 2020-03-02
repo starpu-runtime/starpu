@@ -43,7 +43,19 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_PRIORITY		 (5<<STARPU_MODE_SHIFT)
 #define STARPU_EXECUTE_ON_NODE	 (6<<STARPU_MODE_SHIFT)
 #define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_in_sert(), must be followed by an array of
+   handles and the number of elements in the array (as int). This is equivalent
+   to passing the handles as separate parameters with STARPU_R/W/RW.
+*/
 #define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_in_sert(), must be followed by an array of
+   struct starpu_data_descr and the number of elements in the array (as int).
+   This is equivalent to passing the handles with the corresponding modes.
+*/
 #define STARPU_DATA_MODE_ARRAY   (9<<STARPU_MODE_SHIFT)
 #define STARPU_TAG               (10<<STARPU_MODE_SHIFT)
 #define STARPU_HYPERVISOR_TAG	 (11<<STARPU_MODE_SHIFT)
