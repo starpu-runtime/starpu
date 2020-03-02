@@ -5,7 +5,6 @@
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2017       Erwan Leria
- * Copyright (C) 2020       Alexis Juven
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
