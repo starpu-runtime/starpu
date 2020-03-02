@@ -288,6 +288,20 @@ same graph but with elapsed time between send and usage of a data by the sender.
 \image html trace_send_use.png
 \image latex trace_send_use.eps "" width=\textwidth
 
+
+\subsubsection NumberEvents Number of events in trace files
+
+When launched with the option <c>-number-events</c>, <c>starpu_fxt_tool</c> will
+produce a file named <c>number_events.data</c>. This file contains the number of
+events for each event type. Events are represented with their key. To convert
+event keys to event names, you can use the <c>starpu_fxt_number_events_to_names.py</c>
+script:
+
+\verbatim
+$ starpu_fxt_number_events_to_names.py number_events.data
+\endverbatim
+
+
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
 For computing statistics, it is useful to limit the trace to a given portion of

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012-2014,2016-2018                      Inria
+# Copyright (C) 2012-2014,2016-2018,2020                 Inria
 # Copyright (C) 2009-2020                                Université de Bordeaux
 # Copyright (C) 2010-2020                                CNRS
 #
@@ -28,6 +28,9 @@ New features:
   * New sched_tasks.rec trace file which monitors task scheduling push/pop actions
   * New STARPU_MPI_MEM_THROTTLE environment variable to throttle mpi
     submission according to memory use.
+  * New number_events.data trace file which monitors number of events in trace
+    files. This file can be parsed by the new script
+    starpu_fxt_number_events_to_names.py to convert event keys to event names.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.

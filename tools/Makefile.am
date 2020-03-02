@@ -417,19 +417,20 @@ STARPU_TOOLS	+=			\
 	starpu_perfmodel_plot
 endif
 
-dist_bin_SCRIPTS +=			\
-	starpu_workers_activity		\
-	starpu_codelet_histo_profile	\
-	starpu_codelet_profile		\
-	starpu_mpi_comm_matrix.py	\
-	starpu_paje_draw_histogram	\
-	starpu_paje_draw_histogram.R	\
-	starpu_paje_summary		\
-	starpu_paje_summary.Rmd		\
-	starpu_mlr_analysis		\
-	starpu_mlr_analysis.Rmd		\
-	starpu_paje_state_stats		\
-	starpu_send_recv_data_use.py \
+dist_bin_SCRIPTS +=				\
+	starpu_workers_activity			\
+	starpu_codelet_histo_profile		\
+	starpu_codelet_profile			\
+	starpu_mpi_comm_matrix.py		\
+	starpu_fxt_number_events_to_names.py	\
+	starpu_paje_draw_histogram		\
+	starpu_paje_draw_histogram.R		\
+	starpu_paje_summary			\
+	starpu_paje_summary.Rmd			\
+	starpu_mlr_analysis			\
+	starpu_mlr_analysis.Rmd			\
+	starpu_paje_state_stats			\
+	starpu_send_recv_data_use.py 		\
 	starpu_trace_state_stats.py
 
 if STARPU_USE_AYUDAME2
@@ -475,6 +476,9 @@ starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 starpu_mpi_comm_matrix.1: starpu_mpi_comm_matrix.py
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU MPI communications matrix" --output=$@ ./$<
+starpu_fxt_number_events_to_names.1: starpu_fxt_number_events_to_names.py
+	chmod +x $<
+	help2man --no-discard-stderr -N -n "Count events in StarPU traces" --output=$@ ./$<
 starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU trace histogram" --output=$@ ./$<
@@ -502,6 +506,7 @@ dist_man1_MANS =\
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
 	starpu_mpi_comm_matrix.1 \
+	starpu_fxt_number_events_to_names.1 \
 	starpu_paje_draw_histogram.1 \
 	starpu_paje_state_stats.1
 

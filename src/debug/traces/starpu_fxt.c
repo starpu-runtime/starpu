@@ -62,6 +62,7 @@ static unsigned cpus_index = 0;
 static unsigned mic_index = 0;
 static unsigned mpi_ms_index = 0;
 static unsigned other_index = 0;
+static uint64_t* number_events = NULL;
 
 static unsigned long fut_keymask;
 
@@ -89,6 +90,7 @@ static FILE *papi_file;
 static FILE *trace_file;
 static FILE *comms_file;
 static FILE *sched_tasks_file;
+static FILE *number_events_file;
 
 struct data_parameter_info
 {
@@ -3485,6 +3487,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			break;
 		}
 
+		if (number_events_file != NULL)
+		{
+			assert(number_events != NULL);
+			assert(ev.code <= FUT_SETUP_CODE);
+			number_events[ev.code]++;
+		}
+
 		switch (ev.code)
 		{
 			case _STARPU_FUT_WORKER_INIT_START:
@@ -4198,6 +4207,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->dag_path = "dag.dot";
 	options->tasks_path = "tasks.rec";
 	options->comms_path = "comms.rec";
+	options->number_events_path = NULL;
 	options->data_path = "data.rec";
 	options->papi_path = "papi.rec";
 	options->anim_path = "trace.html";
@@ -4295,6 +4305,20 @@ void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
 }
 
 static
+void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
+{
+	if (options->number_events_path)
+	{
+		number_events_file = fopen(options->number_events_path, "w+");
+
+		/* FUT_SETUP_CODE is the event with the maximal value */
+		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
+	}
+	else
+		number_events_file = NULL;
+}
+
+static
 void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 {
 #ifdef STARPU_PAPI
@@ -4370,6 +4394,27 @@ void _starpu_fxt_comms_file_close(void)
 		fclose(comms_file);
 }
 
+static
+void _starpu_fxt_number_events_file_close(void)
+{
+	if (number_events_file)
+	{
+		assert(number_events != NULL);
+
+		fprintf(number_events_file, "# Use starpu_fxt_number_events_to_names.py to convert event keys to event names.\n");
+
+		for (int i = 0; i <= FUT_SETUP_CODE; i++)
+		{
+			if (number_events[i] > 0)
+				fprintf(number_events_file, "0x%x\t%lu\n", i, number_events[i]);
+		}
+
+		free(number_events);
+		number_events = NULL;
+
+		fclose(number_events_file);
+	}
+}
 
 static
 void _starpu_fxt_data_file_close(void)
@@ -4490,6 +4535,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_data_file_init(options);
 	_starpu_fxt_papi_file_init(options);
 	_starpu_fxt_comms_file_init(options);
+	_starpu_fxt_number_events_file_init(options);
 	_starpu_fxt_trace_file_init(options);
 
 	_starpu_fxt_paje_file_init(options);
@@ -4623,6 +4669,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_data_file_close();
 	_starpu_fxt_papi_file_close();
 	_starpu_fxt_comms_file_close();
+	_starpu_fxt_number_events_file_close();
 	_starpu_fxt_trace_file_close();
 
 	_starpu_fxt_dag_terminate();

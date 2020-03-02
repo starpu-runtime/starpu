@@ -2257,6 +2257,10 @@ fi
 AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 
+
+STARPU_FXT_EVENT_DEFINES="`grep -E '#define\s+_STARPU_(MPI_)?FUT_' ${srcdir}/src/common/fxt.h ${srcdir}/mpi/src/starpu_mpi_fxt.h | grep 0x | grep -v 0x1 | cut -d : -f 2`"
+AC_SUBST([STARPU_FXT_EVENT_DEFINES])
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #
@@ -3488,6 +3492,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
+  chmod +x tools/starpu_fxt_number_events_to_names.py
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
@@ -3561,6 +3566,7 @@ AC_OUTPUT([
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_mpi_comm_matrix.py
+	tools/starpu_fxt_number_events_to_names.py
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
