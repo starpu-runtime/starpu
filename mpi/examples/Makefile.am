@@ -384,9 +384,6 @@ starpu_mpi_EXAMPLES	+=			\
 endif
 endif
 
-if STARPU_HAVE_MPIFORT
-if BUILD_EXAMPLES
-if !STARPU_SANITIZE
 # Native Fortran example
 
 # - link over source file to build our own object
@@ -397,6 +394,9 @@ native_fortran/fstarpu_mpi_mod.f90:
 	@$(MKDIR_P) $(dir $@)
 	$(LN_S) $(srcdir)/../../../mpi/include/$(notdir $@) $@
 
+if STARPU_HAVE_MPIFORT
+if BUILD_EXAMPLES
+if !STARPU_SANITIZE
 # - express the creation of .mod along .o
 fstarpu_mod.mod: native_fortran/fstarpu_mod.o
 fstarpu_mpi_mod.mod: native_fortran/fstarpu_mpi_mod.o

@@ -1113,13 +1113,16 @@ sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 
 endif
 
-if STARPU_HAVE_FC
-# Fortran90 example
-
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
 	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
+native_fortran/fstarpu_mod.f90:
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
+
+if STARPU_HAVE_FC
+# Fortran90 example
 
 # - express the creation of .mod along .o
 starpu_mod.mod: fortran90/starpu_mod.o
@@ -1134,13 +1137,8 @@ fortran90/f90_example.o: mod_types.mod mod_interface.mod mod_compute.mod starpu_
 
 # Native Fortran example
 
-# - link over source file to build our own object
-native_fortran/fstarpu_mod.f90:
-	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
-fstarpu_mod.mod: native_fortran/fstarpu_mod.o
-
 # - express the creation of .mod along .o
+fstarpu_mod.mod: native_fortran/fstarpu_mod.o
 nf_codelets.mod: native_fortran/nf_codelets.o
 nf_compute.mod: native_fortran/nf_compute.o
 nf_dynbuf_cl.mod: native_fortran/nf_dynbuf_cl.o
