@@ -1120,73 +1120,73 @@ if STARPU_HAVE_FC
 # - list explicit dependences to control proper module files generation
 # - the overriding rule fully disables the corresponing default rule, thus
 #   the default rule body must be copied entirely
-mod_types.mod: mod_types.o
-mod_compute.mod: mod_compute.o
-mod_interface.mod: mod_interface.o
-starpu_mod.mod: starpu_mod.o
+mod_types.mod: fortran90/mod_types.o
+mod_compute.mod: fortran90/mod_compute.o
+mod_interface.mod: fortran90/mod_interface.o
+starpu_mod.mod: fortran90/starpu_mod.o
 
-starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
+fortran90/starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
 
-mod_compute.o: $(top_srcdir)/examples/fortran90/mod_compute.f90 mod_types.mod mod_interface.mod starpu_mod.mod
+fortran90/mod_compute.o: $(top_srcdir)/examples/fortran90/mod_compute.f90 mod_types.mod mod_interface.mod starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/mod_compute.f90' || echo '$(srcdir)/'`fortran90/mod_compute.f90
 
-f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/examples/fortran90/marshalling.c mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
+fortran90/f90_example.o: $(top_srcdir)/examples/fortran90/f90_example.f90 $(top_srcdir)/examples/fortran90/marshalling.c mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
 	$(AM_V_FC)$(FC) $(fortran90_f90_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/f90_example.f90' || echo '$(srcdir)/'`fortran90/f90_example.f90
 
 # Native Fortran example
 # - list explicit dependences to control proper module files generation
 # - the overriding rule fully disables the corresponing default rule, thus
 #   the default rule body must be copied entirely
-nf_types.mod: nf_types.o
-nf_compute.mod: nf_compute.o
-fstarpu_mod.mod: fstarpu_mod.o
-nf_codelets.mod: nf_codelets.o
-nf_dynbuf_cl.mod: nf_dynbuf_cl.o
-nf_varbuf_cl.mod: nf_varbuf_cl.o
-nf_sched_ctx_cl.mod: nf_sched_ctx_cl.o
-nf_partition_cl.mod: nf_partition_cl.o
+nf_types.mod: native_fortran/nf_types.o
+nf_compute.mod: native_fortran/nf_compute.o
+fstarpu_mod.mod: native_fortran/fstarpu_mod.o
+nf_codelets.mod: native_fortran/nf_codelets.o
+nf_dynbuf_cl.mod: native_fortran/nf_dynbuf_cl.o
+nf_varbuf_cl.mod: native_fortran/nf_varbuf_cl.o
+nf_sched_ctx_cl.mod: native_fortran/nf_sched_ctx_cl.o
+nf_partition_cl.mod: native_fortran/nf_partition_cl.o
 
-fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
+native_fortran/fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
 	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
 
-nf_codelets.o: $(top_srcdir)/examples/native_fortran/nf_codelets.f90 fstarpu_mod.mod
+native_fortran/nf_codelets.o: $(top_srcdir)/examples/native_fortran/nf_codelets.f90 fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_codelets.f90' || echo '$(srcdir)/'`native_fortran/nf_codelets.f90
 
-nf_vector.o: $(top_srcdir)/examples/native_fortran/nf_vector.f90 nf_codelets.mod fstarpu_mod.mod
+native_fortran/nf_vector.o: $(top_srcdir)/examples/native_fortran/nf_vector.f90 nf_codelets.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_vector_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_vector.f90' || echo '$(srcdir)/'`native_fortran/nf_vector.f90
 
-nf_matrix.o: $(top_srcdir)/examples/native_fortran/nf_matrix.f90 nf_codelets.mod fstarpu_mod.mod
+native_fortran/nf_matrix.o: $(top_srcdir)/examples/native_fortran/nf_matrix.f90 nf_codelets.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_matrix_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_matrix.f90' || echo '$(srcdir)/'`native_fortran/nf_matrix.f90
 
-nf_compute.o: $(top_srcdir)/examples/native_fortran/nf_compute.f90 nf_types.mod fstarpu_mod.mod
+native_fortran/nf_compute.o: $(top_srcdir)/examples/native_fortran/nf_compute.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_compute.f90' || echo '$(srcdir)/'`native_fortran/nf_compute.f90
 
-nf_example.o: $(top_srcdir)/examples/native_fortran/nf_example.f90 nf_types.mod nf_compute.mod fstarpu_mod.mod
+native_fortran/nf_example.o: $(top_srcdir)/examples/native_fortran/nf_example.f90 nf_types.mod nf_compute.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_example_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_example.f90' || echo '$(srcdir)/'`native_fortran/nf_example.f90
 
-nf_dynbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf_cl.f90 nf_types.mod fstarpu_mod.mod
+native_fortran/nf_dynbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf_cl.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf_cl.f90
 
-nf_dynbuf.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf.f90 nf_types.mod nf_dynbuf_cl.mod fstarpu_mod.mod
+native_fortran/nf_dynbuf.o: $(top_srcdir)/examples/native_fortran/nf_dynbuf.f90 nf_types.mod nf_dynbuf_cl.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_dynbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_dynbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_dynbuf.f90
 
-nf_varbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_varbuf_cl.f90 nf_types.mod fstarpu_mod.mod
+native_fortran/nf_varbuf_cl.o: $(top_srcdir)/examples/native_fortran/nf_varbuf_cl.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_varbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_varbuf_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_varbuf_cl.f90
 
-nf_varbuf.o: $(top_srcdir)/examples/native_fortran/nf_varbuf.f90 nf_types.mod nf_varbuf_cl.mod fstarpu_mod.mod
+native_fortran/nf_varbuf.o: $(top_srcdir)/examples/native_fortran/nf_varbuf.f90 nf_types.mod nf_varbuf_cl.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_varbuf_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_varbuf.f90' || echo '$(srcdir)/'`native_fortran/nf_varbuf.f90
 
-nf_sched_ctx_cl.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx_cl.f90 nf_types.mod fstarpu_mod.mod
+native_fortran/nf_sched_ctx_cl.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx_cl.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx_cl.f90
 
-nf_sched_ctx.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx.f90 nf_types.mod nf_sched_ctx_cl.mod fstarpu_mod.mod
+native_fortran/nf_sched_ctx.o: $(top_srcdir)/examples/native_fortran/nf_sched_ctx.f90 nf_types.mod nf_sched_ctx_cl.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_sched_ctx_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_sched_ctx.f90' || echo '$(srcdir)/'`native_fortran/nf_sched_ctx.f90
 
-nf_partition_cl.o: $(top_srcdir)/examples/native_fortran/nf_partition_cl.f90 nf_types.mod fstarpu_mod.mod
+native_fortran/nf_partition_cl.o: $(top_srcdir)/examples/native_fortran/nf_partition_cl.f90 nf_types.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_partition_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_partition_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_partition_cl.f90
 
-nf_partition.o: $(top_srcdir)/examples/native_fortran/nf_partition.f90 nf_types.mod nf_partition_cl.mod fstarpu_mod.mod
+native_fortran/nf_partition.o: $(top_srcdir)/examples/native_fortran/nf_partition.f90 nf_types.mod nf_partition_cl.mod fstarpu_mod.mod
 	$(AM_V_FC)$(FC) $(native_fortran_nf_partition_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_partition.f90' || echo '$(srcdir)/'`native_fortran/nf_partition.f90
 
 endif
