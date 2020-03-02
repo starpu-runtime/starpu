@@ -409,7 +409,7 @@ endif
 dist-hook:
 	failed=0 ; \
 	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME | $(SED) -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | $(GREP) -v _starpu_spin_init) ; do \
-		for j in .libs/*.o ; do \
+		for j in $(shell find . -name \*.o) ; do \
 			nm $$j | $(GREP) "U $$i$$" && { echo $$j ; failed=1 ; } ; \
 		done ; \
 	done ; \
