@@ -148,7 +148,7 @@ static inline void init_sizes(void) {
 
 #ifdef STARPU_HAVE_VALGRIND_H
        if (RUNNING_ON_VALGRIND)
-	       size_p = 16;
+	       size = 16;
 #endif
 }
 
