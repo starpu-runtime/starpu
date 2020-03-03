@@ -17,6 +17,10 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
 #else
@@ -87,6 +91,11 @@ int main(void)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_HAVE_VALGRIND_H
+       if (RUNNING_ON_VALGRIND)
+               ntasks = 8;
+#endif
 
 #ifdef STARPU_USE_CPU
 	nprocs1 = starpu_cpu_worker_get_count();
