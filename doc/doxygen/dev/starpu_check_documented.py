@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# coding=utf-8
+#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
