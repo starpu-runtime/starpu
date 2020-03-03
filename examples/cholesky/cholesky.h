@@ -29,6 +29,10 @@
 #include <common/blas.h>
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 #define NMAXBLOCKS	128
@@ -141,6 +145,11 @@ static inline void init_sizes(void)
 		nblocks_p = 8*power_cbrt;
 	if (!nbigblocks_p)
 		nbigblocks_p = 4*power_cbrt;
+#endif
+
+#ifdef STARPU_HAVE_VALGRIND_H
+       if (RUNNING_ON_VALGRIND)
+	       size_p = 16;
 #endif
 }
 
