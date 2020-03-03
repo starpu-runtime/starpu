@@ -536,7 +536,7 @@ static void *starpu_hdf5_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIB
 	else
 	{
 		while (!init_finished)
-			;
+			STARPU_UYIELD();
 	}
 #endif
 
