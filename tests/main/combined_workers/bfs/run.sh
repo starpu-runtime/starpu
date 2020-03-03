@@ -1,13 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012                                     Inria
-<<<<<<< HEAD
-# Copyright (C) 2012,2015-2016                           CNRS
-# Copyright (C) 2014                                     Université de Bordeaux
-=======
-# Copyright (C) 2014,2019-2020                           Université de Bordeaux
->>>>>>> f2bea4ce9... Use $STARPU_LAUNCH in scripts
+# Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
