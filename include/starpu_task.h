@@ -1,10 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017,2020                           Inria
- * Copyright (C) 2009-2019                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2018,2019,2020            CNRS
- * Copyright (C) 2011                                     Télécom-SudParis
- * Copyright (C) 2016                                     Uppsala University
+ * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1205,8 +1203,19 @@ struct starpu_task
 	void *sched_data;
 };
 
+/**
+   To be used in the starpu_task::type field, for normal application tasks.
+*/
 #define STARPU_TASK_TYPE_NORMAL		0
+
+/**
+   To be used in the starpu_task::type field, for StarPU-internal tasks.
+*/
 #define STARPU_TASK_TYPE_INTERNAL	(1<<0)
+
+/**
+   To be used in the starpu_task::type field, for StarPU-internal data acquisition tasks.
+*/
 #define STARPU_TASK_TYPE_DATA_ACQUIRE	(1<<1)
 
 /**

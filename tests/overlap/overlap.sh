@@ -1,10 +1,8 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
-# Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017,2018-2020                           Université de Bordeaux
-# Copyright (C) 2017                                     Inria
+# Copyright (C) 2017-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +18,9 @@
 # Test parsing of FxT traces
 
 # Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != dmdas ] || exit 77
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = dmdas ] || exit 77
+
+# XXX: Also see examples/mult/sgemm.sh
 
 set -e
 
@@ -46,6 +46,7 @@ then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
 
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
+	! type pj_dump || pj_dump -e 0 < paje.trace
 
 	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
 	[ -f distrib.data.gp -a \( -f distrib.data.0 -o -f distrib.data.1 -o -f distrib.data.2 -o -f distrib.data.3 -o -f distrib.data.4 \) ]

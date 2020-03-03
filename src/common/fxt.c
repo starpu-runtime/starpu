@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2015                           Inria
- * Copyright (C) 2008-2020                                Université de Bordeaux
- * Copyright (C) 2010-2018                                CNRS
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -146,7 +144,17 @@ int starpu_fxt_is_enabled()
 	return starpu_get_env_number_default("STARPU_FXT_TRACE", 1);
 }
 
-void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
+#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
+void _starpu_fxt_flush_callback()
+{
+	_STARPU_MSG("FxT is flushing trace to disk ! This can impact performance.\n");
+	_STARPU_MSG("Maybe you should increase the value of STARPU_TRACE_BUFFER_SIZE ?\n");
+
+	starpu_fxt_trace_user_event_string("fxt flush");
+}
+#endif
+
+void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 {
 	unsigned threadid;
 
@@ -178,7 +186,11 @@ void _starpu_fxt_init_profiling(unsigned trace_buffer_size)
 
 	threadid = _starpu_gettid();
 
+#ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
+	if (fut_setup_flush_callback(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid, &_starpu_fxt_flush_callback) < 0)
+#else
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), initial_key_mask, threadid) < 0)
+#endif
 	{
 		perror("fut_setup");
 		STARPU_ABORT();

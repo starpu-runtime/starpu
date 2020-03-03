@@ -1,10 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2020                                Université de Bordeaux
- * Copyright (C) 2010-2017, 2019                          CNRS
- * Copyright (C) 2013                                     Thibaut Lambert
- * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -173,7 +171,7 @@ int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device*
 	return comb;
 }
 
-static 	void _free_arch_combs(void)
+void _starpu_free_arch_combs(void)
 {
 	int i;
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&arch_combs_mutex);
@@ -184,6 +182,7 @@ static 	void _free_arch_combs(void)
 	}
 	current_arch_comb = 0;
 	free(arch_combs);
+	arch_combs = NULL;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&arch_combs_mutex);
 }
@@ -1340,8 +1339,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
-	_free_arch_combs();
-	starpu_perfmodel_free_sampling_directories();
+	starpu_perfmodel_free_sampling();
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
@@ -2095,7 +2093,7 @@ struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct sta
 	return &model->state->per_arch[comb][impl];
 }
 
-struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, va_list varg_list)
+static struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, va_list varg_list)
 {
 	struct starpu_perfmodel_arch arch;
 	va_list varg_list_copy;

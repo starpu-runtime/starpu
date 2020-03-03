@@ -1,9 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017                                     Inria
- * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2009-2014,2017,2018-2020                 Université de Bordeaux
- * Copyright (C) 2017                                     Guillaume Beauchamp
+ * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -396,6 +394,13 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
 	STARPU_ASSERT_MSG(req, "Invalid request");
+
+	if (req->reserved_size)
+	{
+		/* The core will have really allocated the reception buffer now, release our reservation */
+		starpu_memory_deallocate(STARPU_MAIN_RAM, req->reserved_size);
+		req->reserved_size = 0;
+	}
 
 	/* submit the request to MPI directly from submitter */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",

@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013,2016,2017                           Inria
- * Copyright (C) 2010-2017, 2019                          CNRS
- * Copyright (C) 2010-2019                                Université de Bordeaux
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,6 +63,7 @@ extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
 extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_use_coop_sends;
+extern int _starpu_mpi_mem_throttle;
 void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
@@ -238,6 +237,9 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int *flag;
 	unsigned sync;
+
+	/* Amount of memory pre-reserved for the reception buffer */
+	size_t reserved_size;
 
 	int ret;
 

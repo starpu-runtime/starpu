@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019                                     Université de Bordeaux
+ * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
 
 /*! \page FaultTolerance Fault Tolerance
 
-\section Introduction Introduction
+\section FaultTolerance_Introduction Introduction
 
 Due to e.g. hardware error, some tasks may fail, or even complete nodes may
 fail.  For now, StarPU provides some support for failure of tasks.

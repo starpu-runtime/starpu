@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011,2012,2017                           Inria
- * Copyright (C) 2011-2020                                CNRS
- * Copyright (C) 2010,2014-2018,2020                      Université de Bordeaux
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -275,8 +273,8 @@ int main(int argc, char *argv[])
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
-		test_args = (char *) calloc(150, sizeof(char));
-		snprintf(test_args, 150, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
+		test_args = (char *) calloc(512, sizeof(char));
+		snprintf(test_args, 512, "%s/examples/spmv/matrix_market/examples/fidapm05.mtx", STARPU_SRC_DIR);
 	}
 	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
@@ -328,14 +326,15 @@ int main(int argc, char *argv[])
 		if (launcher_args)
 			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
 		else
-			launcher_args = "";
+			launcher_args = strdup("");
 
 		/* And give a convenience macro */
 		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
 				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
-		char *launch = malloc(len_launch);
-		snprintf(launch, len_launch, "%s --mode=execute %s %s", libtool, launcher, launcher_args);
+		char launch[len_launch];
+		snprintf(launch, sizeof(launch), "%s --mode=execute %s %s", libtool, launcher, launcher_args);
 		setenv("STARPU_LAUNCH", launch, 1);
+		free(launcher_args);
 
 		launcher = NULL;
 		launcher_args = NULL;
@@ -397,6 +396,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	free(test_args);
+	free(libtool);
 
 	ret = EXIT_SUCCESS;
 	gettimeofday(&start, NULL);

@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2014,2016-2018                      Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2018                      CNRS
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +43,7 @@ static void usage()
 	fprintf(stderr, "   -label-deps         add label on dependencies.\n");
 	fprintf(stderr, "   -memory-states      show detailed memory states of handles\n");
 	fprintf(stderr, "   -internal           show StarPU-internal tasks in DAG\n");
+	fprintf(stderr, "   -number-events      generate a file counting FxT events by type\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
@@ -87,6 +87,13 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-events") == 0)
 		{
 			options.no_events = 1;
+			reading_input_filenames = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-number-events") == 0)
+		{
+			options.number_events_path = "number_events.data";
 			reading_input_filenames = 0;
 			continue;
 		}

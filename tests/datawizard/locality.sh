@@ -1,10 +1,8 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
-# Copyright (C) 2017                                     CNRS
-# Copyright (C) 2017                                     Inria
-# Copyright (C) 2017,2018-2020                           Université de Bordeaux
+# Copyright (C) 2017-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +18,7 @@
 # Test generation of FxT traces
 
 # Testing another specific scheduler, no need to run this
-[ -z "$STARPU_SCHED" -a "$STARPU_SCHED" != modular-eager ] || exit 77
+[ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = modular-eager ] || exit 77
 
 set -e
 
@@ -41,5 +39,5 @@ $STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i
 if type pj_dump > /dev/null 2> /dev/null
 then
 	$PREFIX/../../tools/starpu_paje_sort paje.trace
-	pj_dump paje.trace
+	pj_dump -e 0 paje.trace
 fi

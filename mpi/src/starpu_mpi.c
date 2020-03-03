@@ -1,8 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2016,2017                      Inria
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2018,2020                           Université de Bordeaux
+ * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +40,19 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
 	 * the request is actually submitted */
+
+	if (_starpu_mpi_mem_throttle && mode & STARPU_W && !req->data_handle->initialized)
+	{
+		/* We will trigger allocation, pre-reserve for it */
+		size_t size = starpu_data_get_size(req->data_handle);
+		if (size)
+		{
+			/* This will potentially block */
+			starpu_memory_allocate(STARPU_MAIN_RAM, size, STARPU_MEMORY_WAIT);
+			req->reserved_size = size;
+		}
+	}
+
 	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
 }
 

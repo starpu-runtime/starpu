@@ -1,9 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012,2014,2016                           Inria
-# Copyright (C) 2010-2017,2019                           CNRS
-# Copyright (C) 2009-2017,2019-2020                      Université de Bordeaux
-# Copyright (C) 2013                                     Thibaut Lambert
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -288,8 +286,8 @@ examplebin_PROGRAMS +=		\
 
 native_fortran_nf_mm_SOURCES	=			\
 	native_fortran/nf_mm_cl.f90			\
-	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
-	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mm.f90
 
 native_fortran_nf_mm_LDADD =					\
@@ -297,16 +295,16 @@ native_fortran_nf_mm_LDADD =					\
 
 native_fortran_nf_mm_task_build_SOURCES	=			\
 	native_fortran/nf_mm_cl.f90			\
-	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
-	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mm_task_build.f90
 
 native_fortran_nf_mm_task_build_LDADD =					\
 	-lm
 
 native_fortran_nf_basic_ring_SOURCES	=			\
-	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90	\
-	$(top_srcdir)/include/fstarpu_mod.f90		\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_basic_ring.f90
 
 native_fortran_nf_basic_ring_LDADD =					\
@@ -386,34 +384,30 @@ starpu_mpi_EXAMPLES	+=			\
 endif
 endif
 
+# Native Fortran example
+
+# - link over source file to build our own object
+native_fortran/fstarpu_mod.f90:
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $(srcdir)/../../../include/$(notdir $@) $@
+native_fortran/fstarpu_mpi_mod.f90:
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $(srcdir)/../../../mpi/include/$(notdir $@) $@
+
 if STARPU_HAVE_MPIFORT
 if BUILD_EXAMPLES
 if !STARPU_SANITIZE
-# Native Fortran example
-# - list explicit dependences to control proper module files generation
-# - the overriding rule fully disables the corresponing default rule, thus
-#   the default rule body must be copied entirely
-fstarpu_mod.mod: fstarpu_mod.o
-fstarpu_mpi_mod.mod: fstarpu_mpi_mod.o
-nf_mm_cl.mod: nf_mm_cl.o
+# - express the creation of .mod along .o
+fstarpu_mod.mod: native_fortran/fstarpu_mod.o
+fstarpu_mpi_mod.mod: native_fortran/fstarpu_mpi_mod.o
+nf_mm_cl.mod: native_fortran/nf_mm_cl.o
 
-fstarpu_mod.o: $(top_srcdir)/include/fstarpu_mod.f90
-	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/fstarpu_mod.f90
-
-fstarpu_mpi_mod.o: $(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90 fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'mpi/include/fstarpu_mpi_mod.f90
-
-nf_mm_cl.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_cl.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm_cl.f90' || echo '$(srcdir)/'`native_fortran/nf_mm_cl.f90
-
-nf_mm.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_nf_mm_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm.f90' || echo '$(srcdir)/'`native_fortran/nf_mm.f90
-
-nf_mm_task_build.o: $(top_srcdir)/mpi/examples/native_fortran/nf_mm_task_build.f90 nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_nf_mm__task_build_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_mm_task_build.f90' || echo '$(srcdir)/'`native_fortran/nf_mm_task_build.f90
-
-nf_basic_ring.o: $(top_srcdir)/mpi/examples/native_fortran/nf_basic_ring.f90 fstarpu_mpi_mod.mod fstarpu_mod.mod
-	$(AM_V_FC)$(FC) $(native_fortran_nf_basic_ring_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'native_fortran/nf_basic_ring.f90' || echo '$(srcdir)/'`native_fortran/nf_basic_ring.f90
+# - list explicit dependences to control proper module files dependencies
+native_fortran/fstarpu_mpi_mod.o: fstarpu_mod.mod
+native_fortran/nf_mm_cl.o: fstarpu_mod.mod
+native_fortran/nf_mm.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif
 endif

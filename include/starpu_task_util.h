@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2014                                Inria
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2010-2015,2018-2019                      Université de Bordeaux
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,7 +86,19 @@ extern "C"
    execute the codelet.
 */
 #define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_in_sert(), must be followed by an array of
+   handles and the number of elements in the array (as int). This is equivalent
+   to passing the handles as separate parameters with STARPU_R/W/RW.
+*/
 #define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_in_sert(), must be followed by an array of
+   struct starpu_data_descr and the number of elements in the array (as int).
+   This is equivalent to passing the handles with the corresponding modes.
+*/
 #define STARPU_DATA_MODE_ARRAY   (9<<STARPU_MODE_SHIFT)
 
 /**
@@ -158,6 +168,10 @@ extern "C"
 */
 #define STARPU_TAG_ONLY          (20<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_task_insert(), must be followed by an unsigned
+   stored in starpu_task::possibly_parallel.
+*/
 #define STARPU_POSSIBLY_PARALLEL    (21<<STARPU_MODE_SHIFT)
 
 /**

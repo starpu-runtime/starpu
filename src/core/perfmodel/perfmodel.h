@@ -1,10 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2014,2016,2017                      Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2019                      CNRS
- * Copyright (C) 2013                                     Thibaut Lambert
- * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,6 +102,8 @@ int _starpu_read_double(FILE *f, char *format, double *val);
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb);
+
+void _starpu_free_arch_combs(void);
 
 #if defined(STARPU_HAVE_HWLOC)
 hwloc_topology_t _starpu_perfmodel_get_hwtopology();

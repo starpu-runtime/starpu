@@ -1,8 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2018, 2020                          CNRS
-# Copyright (C) 2013-2018                                Inria
-# Copyright (C) 2009,2011,2013,2014,2017                 Université de Bordeaux
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -133,13 +131,14 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
 	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
 	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
-	$(PDFLATEX) refman.tex ;\
+	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
+	! < refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined" || exit 1 ;\
 	$(MAKEINDEX) refman.idx ;\
-	$(PDFLATEX) refman.tex ;\
+	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
 	done=0; repeat=5 ;\
 	while test $$done = 0 -a $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
-	       $(PDFLATEX) refman.tex; \
+	       max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex; \
 	       repeat=`expr $$repeat - 1`; \
 	   else \
 	       done=1; \

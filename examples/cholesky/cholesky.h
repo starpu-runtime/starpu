@@ -1,9 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011,2012                                Inria
- * Copyright (C) 2008-2017,2019                           Université de Bordeaux
- * Copyright (C) 2010-2013,2015-2017                      CNRS
- * Copyright (C) 2013                                     Thibaut Lambert
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +28,10 @@
 
 #include <common/blas.h>
 #include <starpu.h>
+
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
@@ -143,6 +145,11 @@ static inline void init_sizes(void)
 		nblocks_p = 8*power_cbrt;
 	if (!nbigblocks_p)
 		nbigblocks_p = 4*power_cbrt;
+#endif
+
+#ifdef STARPU_HAVE_VALGRIND_H
+       if (RUNNING_ON_VALGRIND)
+	       size_p = 16;
 #endif
 }
 

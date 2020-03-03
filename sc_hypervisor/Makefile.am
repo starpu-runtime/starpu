@@ -1,8 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2014                                Inria
-# Copyright (C) 2012,2015,2017,2018                      CNRS
-# Copyright (C) 2013,2015,2020                           Université de Bordeaux
+# Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu-subdirtests.mk
+
 SUBDIRS = src examples
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
@@ -24,24 +25,3 @@ versinclude_HEADERS = 	include/sc_hypervisor.h			\
 			include/sc_hypervisor_monitoring.h 	\
 			include/sc_hypervisor_policy.h 		\
 			include/sc_hypervisor_lp.h
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET

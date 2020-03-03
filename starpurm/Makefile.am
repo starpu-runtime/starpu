@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017,2018                                Inria
+# Copyright (C) 2017-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu-subdirtests.mk
+
 SUBDIRS=src
 
 if BUILD_STARPURM_EXAMPLES
@@ -28,32 +31,3 @@ versinclude_HEADERS = 					\
 
 nodist_versinclude_HEADERS = \
 	include/starpurm_config.h
-
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET

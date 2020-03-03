@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2015                                Inria
- * Copyright (C) 2012,2013,2017,2019                      CNRS
+ * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,39 +27,6 @@
 extern "C"
 {
 #endif
-
-/**
-   @defgroup API_SC_Hypervisor_usage Scheduling Context Hypervisor - Regular usage
-   There is a single hypervisor that is in charge of resizing contexts
-   and the resizing strategy is chosen at the initialization of the
-   hypervisor. A single resize can be done at a time.
-
-   The Scheduling Context Hypervisor Plugin provides a series of
-   performance counters to StarPU. By incrementing them, StarPU can
-   help the hypervisor in the resizing decision making process.
-
-   The function sc_hypervisor_init() initializes the hypervisor to use
-   the strategy provided as parameter and creates the performance
-   counters (see starpu_sched_ctx_performance_counters). These
-   performance counters represent actually some callbacks that will be
-   used by the contexts to notify the information needed by the
-   hypervisor.
-
-   Scheduling Contexts that have to be resized by the hypervisor must
-   be first registered to the hypervisor using the function
-   sc_hypervisor_register_ctx()
-
-   Note: The Hypervisor is actually a worker that takes this role once
-   certain conditions trigger the resizing process (there is no
-   additional thread assigned to the hypervisor).
-   @{
-*/
-
-/**
-   synchronise the hypervisor when several workers try to update its
-   information
-*/
-extern starpu_pthread_mutex_t act_hypervisor_mutex;
 
 /**
    @ingroup API_SC_Hypervisor
@@ -144,6 +110,39 @@ struct sc_hypervisor_policy
 	*/
 	void (*init_worker)(int workerid, unsigned sched_ctx);
 };
+
+/**
+   @defgroup API_SC_Hypervisor_usage Scheduling Context Hypervisor - Regular usage
+   There is a single hypervisor that is in charge of resizing contexts
+   and the resizing strategy is chosen at the initialization of the
+   hypervisor. A single resize can be done at a time.
+
+   The Scheduling Context Hypervisor Plugin provides a series of
+   performance counters to StarPU. By incrementing them, StarPU can
+   help the hypervisor in the resizing decision making process.
+
+   The function sc_hypervisor_init() initializes the hypervisor to use
+   the strategy provided as parameter and creates the performance
+   counters (see starpu_sched_ctx_performance_counters). These
+   performance counters represent actually some callbacks that will be
+   used by the contexts to notify the information needed by the
+   hypervisor.
+
+   Scheduling Contexts that have to be resized by the hypervisor must
+   be first registered to the hypervisor using the function
+   sc_hypervisor_register_ctx()
+
+   Note: The Hypervisor is actually a worker that takes this role once
+   certain conditions trigger the resizing process (there is no
+   additional thread assigned to the hypervisor).
+   @{
+*/
+
+/**
+   synchronise the hypervisor when several workers try to update its
+   information
+*/
+extern starpu_pthread_mutex_t act_hypervisor_mutex;
 
 /**
    Start the hypervisor with the given policy

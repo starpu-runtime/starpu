@@ -1,10 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2010-2019                                CNRS
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013       Joris Pablo
+ * Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -313,7 +311,7 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 long _starpu_gettid(void);
 
 /* Initialize the FxT library. */
-void _starpu_fxt_init_profiling(unsigned trace_buffer_size);
+void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
 
 /* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);

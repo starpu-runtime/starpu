@@ -1,8 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2018                                Inria
-# Copyright (C) 2009-2020                                Université de Bordeaux
-# Copyright (C) 2010-2017,2019                           CNRS
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -768,7 +766,7 @@ openmp_cuda_task_01_SOURCES = 	\
 
 if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
-	$(top_srcdir)/include/starpu_mod.f90	\
+	fortran90/starpu_mod.f90	\
 	fortran90/init_01.f90
 endif
 
@@ -1002,16 +1000,17 @@ perfmodels_feed_SOURCES=\
 
 sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 
-if STARPU_HAVE_FC
 # Fortran90 tests
-# - list explicit dependences to control proper module files generation
-# - the overriding rule fully disables the corresponing default rule, thus
-#   the default rule body must be copied entirely
-starpu_mod.mod: starpu_mod.o
 
-starpu_mod.o: $(top_srcdir)/include/starpu_mod.f90
-	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ '$(top_srcdir)/'include/starpu_mod.f90
+# - link over source file to build our own object
+fortran90/starpu_mod.f90:
+	@$(MKDIR_P) $(dir $@)
+	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
 
-init_01.o: $(top_srcdir)/tests/fortran90/init_01.f90 starpu_mod.mod
-	$(AM_V_FC)$(FC) $(fortran90_init_01_FCFLAGS) $(FCFLAGS) -c -o $@ `test -f 'fortran90/init_01.f90' || echo '$(srcdir)/'`fortran90/init_01.f90
+if STARPU_HAVE_FC
+# - express the creation of .mod along .o
+starpu_mod.mod: fortran90/starpu_mod.o
+
+# - list explicit dependences to control proper module files dependencies
+fortran90/init_01.o: starpu_mod.mod
 endif

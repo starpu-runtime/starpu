@@ -1,9 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2009-2020                                Université de Bordeaux
- * Copyright (C) 2012,2013,2016,2017                      Inria
- * Copyright (C) 2017                                     Guillaume Beauchamp
+ * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,6 +164,13 @@ void _starpu_mpi_submit_ready_request(void *arg)
 {
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_req *req = arg;
+
+	if (req->reserved_size)
+	{
+		/* The core will have really allocated the reception buffer now, release our reservation */
+		starpu_memory_deallocate(STARPU_MAIN_RAM, req->reserved_size);
+		req->reserved_size = 0;
+	}
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
 
@@ -1225,20 +1230,19 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 
 #ifdef STARPU_USE_FXT
-	_starpu_fxt_wait_initialisation();
-	/* We need to record our ID in the trace before the main thread makes any MPI call */
-	_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
-	starpu_profiling_set_id(argc_argv->rank);
+	if (_starpu_fxt_wait_initialisation())
+	{
+		/* We need to record our ID in the trace before the main thread makes any MPI call */
+		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
+		starpu_profiling_set_id(argc_argv->rank);
+		_starpu_mpi_add_sync_point_in_fxt();
+	}
 #endif //STARPU_USE_FXT
 
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-
-	_starpu_mpi_add_sync_point_in_fxt();
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
  	int envelope_request_submitted = 0;
 	int mpi_driver_loop_counter = 0;

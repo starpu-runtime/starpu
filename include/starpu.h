@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2017                                Inria
- * Copyright (C) 2009-2014,2016-2019                      Université de Bordeaux
- * Copyright (C) 2010-2015,2017,2019                      CNRS
+ * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -413,7 +411,7 @@ struct starpu_conf
 	   to specify a bigger value to avoid any flushing (which
 	   would disturb the trace).
 	*/
-	unsigned trace_buffer_size;
+	uint64_t trace_buffer_size;
 	int global_sched_ctx_min_priority;
 	int global_sched_ctx_max_priority;
 

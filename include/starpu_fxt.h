@@ -1,10 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012,2013,2016                           Inria
- * Copyright (C) 2013                                     Joris Pablo
- * Copyright (C) 2010-2015,2017,2018,2019                 CNRS
- * Copyright (C) 2010,2011,2013-2018                      Université de Bordeaux
- * Copyright (C) 2013                                     Thibaut Lambert
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013       Joris Pablo
+ * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,6 +67,7 @@ struct starpu_fxt_options
 	char *data_path;
 	char *papi_path;
 	char *comms_path;
+	char *number_events_path;
 	char *anim_path;
 	char *states_path;
 

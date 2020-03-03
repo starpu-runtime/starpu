@@ -1,11 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2019                                Inria
- * Copyright (C) 2008-2019                                Université de Bordeaux
- * Copyright (C) 2010-2019                                CNRS
- * Copyright (C) 2013                                     Thibaut Lambert
- * Copyright (C) 2011                                     Télécom-SudParis
- * Copyright (C) 2016                                     Uppsala University
+ * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +34,7 @@
 #include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
+#include <profiling/bound.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
 #include <common/knobs.h>
@@ -546,9 +545,6 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	if (!_starpu_config.workers[workerid].enable_knob)
-		return 0;
-
 	/* TODO: check that the task operand sizes will fit on that device */
 
 	struct starpu_codelet *cl = task->cl;
@@ -557,6 +553,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
+		if (!_starpu_config.workers[workerid].enable_knob)
+			return 0;
+
 		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
 				_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
@@ -1146,7 +1145,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_map = 0;
 
 	/* 64MiB by default */
-	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
+	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
@@ -1564,7 +1563,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* sink doesn't exit even if no worker discorvered */
 	if (ret && !is_a_sink)
 	{
-		starpu_perfmodel_free_sampling_directories();
+		starpu_perfmodel_free_sampling();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 
@@ -1876,6 +1875,7 @@ void starpu_shutdown(void)
 
 	starpu_profiling_bus_helper_display_summary();
 	starpu_profiling_worker_helper_display_summary();
+	starpu_bound_clear();
 
 	_starpu_deinitialize_registered_performance_models();
 

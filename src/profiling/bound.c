@@ -1,10 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011,2012,2014                           Inria
- * Copyright (C) 2010-2017,2019-2020                      Université de Bordeaux
- * Copyright (C) 2010-2017,2019                           CNRS
- * Copyright (C) 2013                                     Thibaut Lambert
- * Copyright (C) 2011                                     Télécom-SudParis
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,8 +125,7 @@ static int recordprio;
 
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
-/* Initialization */
-void starpu_bound_start(int deps, int prio)
+static void _starpu_bound_clear(int record, int deps, int prio)
 {
 	struct bound_task_pool *tp;
 	struct bound_task *t;
@@ -146,7 +143,7 @@ void starpu_bound_start(int deps, int prio)
 	td = tag_deps;
 	tag_deps = NULL;
 
-	_starpu_bound_recording = 1;
+	_starpu_bound_recording = record;
 	recorddeps = deps;
 	recordprio = prio;
 
@@ -162,6 +159,17 @@ void starpu_bound_start(int deps, int prio)
 	while (t != NULL)
 	{
 		struct bound_task *next = t->next;
+		unsigned i,j;
+		for (i = 0; i < STARPU_NARCH; i++)
+		{
+			if (t->duration[i])
+			{
+				for (j = 0; t->duration[i][j]; j++)
+					free(t->duration[i][j]);
+				free(t->duration[i]);
+			}
+		}
+		free(t->deps);
 		free(t);
 		t = next;
 	}
@@ -172,6 +180,17 @@ void starpu_bound_start(int deps, int prio)
 		free(td);
 		td = next;
 	}
+}
+
+void starpu_bound_clear(void)
+{
+	_starpu_bound_clear(0, 0, 0);
+}
+
+/* Initialization */
+void starpu_bound_start(int deps, int prio)
+{
+	_starpu_bound_clear(1, deps, prio);
 }
 
 /* Whether we will include it in the computation */
@@ -238,8 +257,7 @@ static void new_task(struct _starpu_job *j)
 	if (j->bound_task)
 		return;
 
-	_STARPU_MALLOC(t, sizeof(*t));
-	memset(t, 0, sizeof(*t));
+	_STARPU_CALLOC(t, 1, sizeof(*t));
 	t->id = j->job_id;
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;

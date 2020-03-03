@@ -1,8 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2015                                Inria
-# Copyright (C) 2012,2013,2015,2017,2018                 CNRS
-# Copyright (C) 2013,2020                                Université de Bordeaux
+# Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu-notests.mk
+
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_srcdir)/sc_hypervisor/include/ -I$(top_srcdir)/sc_hypervisor/src
@@ -45,12 +46,3 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/perf_count_policy.c
 
 noinst_HEADERS = sc_hypervisor_intern.h
-
-showfailed:
-	@-cat /dev/null
-
-showcheck:
-	-cat /dev/null
-
-showsuite:
-	-cat /dev/null

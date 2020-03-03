@@ -1,13 +1,11 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2018                                Inria
-# Copyright (C) 2009-2020                                Université de Bordeaux
-# Copyright (C) 2017                                     Guillaume Beauchamp
-# Copyright (C) 2018                                     Federal University of Rio Grande do Sul (UFRGS)
-# Copyright (C) 2018                                     Umeà University
-# Copyright (C) 2010-2020                                CNRS
-# Copyright (C) 2013                                     Thibaut Lambert
-# Copyright (C) 2011                                     Télécom-SudParis
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011       Télécom-SudParis
+# Copyright (C) 2013       Thibaut Lambert
+# Copyright (C) 2017       Guillaume Beauchamp
+# Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
+# Copyright (C) 2018       Umeà University
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -64,12 +62,7 @@ AC_SUBST([LIBSOCL_INTERFACE_AGE])
 
 AC_CANONICAL_SYSTEM
 
-dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
-dnl when they're available.
-dnl do not use option subdir-objects, it causes fortran compilation to fail
-m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
+AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests subdir-objects])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -199,7 +192,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
-	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_host_sendto sg_cfg_set_int sg_actor_self_execute simgrid_get_clock])
+	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_host_sendto sg_cfg_set_int sg_actor_self_execute sg_actor_execute simgrid_get_clock])
 	AC_CHECK_DECLS([smpi_process_set_user_data], [], [], [[#include <smpi/smpi.h>]])
 
 	# Oldies for compatibility with older simgrid
@@ -938,15 +931,15 @@ if test "x$enable_hdf5" != xno ; then
 	enable_include_hdf5=no
 	for f in $hdf5_inc_dir; do
 		if test -n "$f" ; then
-			SAVED_CFLAGS="${CFLAGS}"
-			CFLAGS=-I${f}
+			SAVED_CPPFLAGS="${CPPFLAGS}"
+			CPPFLAGS="$CPPFLAGS -I$f"
 			AC_CHECK_HEADERS([hdf5.h])
 			if test "$ac_cv_header_hdf5_h" = "yes" ; then
-				CFLAGS="-I${f} ${SAVED_CFLAGS}"
+				CPPFLAGS="-I${f} ${SAVED_CFLAGS}"
 				enable_include_hdf5=yes
 				break
 			else
-				CFLAGS=${SAVED_CFLAGS}
+				CPPFLAGS=${SAVED_CPPFLAGS}
 			fi
 			unset ac_cv_header_hdf5_h
 		fi
@@ -2155,12 +2148,14 @@ if test x$use_fxt = xyes; then
 	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
    	AC_CHECK_FUNCS([enable_fut_flush])
    	AC_CHECK_FUNCS([fut_set_filename])
+	AC_CHECK_FUNCS([fut_setup_flush_callback])
 	LDFLAGS="$save_LDFLAGS"
 	LIBS="$save_LIBS"
 	save_CFLAGS="$CFLAGS"
 	CFLAGS="$CFLAGS $FXT_CFLAGS"
 	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
 	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
+	AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
 	CFLAGS="$save_CFLAGS"
 
 	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
@@ -2281,6 +2276,10 @@ fi
 
 AM_CONDITIONAL([STARPU_USE_AYUDAME1], [test "x$enable_ayudame1" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
+
+
+STARPU_FXT_EVENT_DEFINES="`grep -E '#define\s+_STARPU_(MPI_)?FUT_' ${srcdir}/src/common/fxt.h ${srcdir}/mpi/src/starpu_mpi_fxt.h | grep 0x | grep -v 0x1 | cut -d : -f 2`"
+AC_SUBST([STARPU_FXT_EVENT_DEFINES])
 
 ###############################################################################
 #                                                                             #
@@ -3030,6 +3029,14 @@ if test x$blas_lib = xmaybe; then
     fi
 fi
 
+if test x$blas_lib = xsystem; then
+    AC_CHECK_HEADER([cblas.h], [have_cblas_h=yes], [have_cblas_h=no])
+fi
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_H, test x$have_cblas_h = xyes)
+if test x$have_cblas_h = xyes; then
+    AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
+fi
+
 AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
 AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
@@ -3505,6 +3512,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
+  chmod +x tools/starpu_fxt_number_events_to_names.py
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
@@ -3543,6 +3551,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
   mkdir -p examples/cholesky
   test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
+  mkdir -p examples/mult
+  test -e examples/mult/sgemm.sh || ln -sf $ac_abs_top_srcdir/examples/mult/sgemm.sh examples/mult/
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
@@ -3576,6 +3586,7 @@ AC_OUTPUT([
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_mpi_comm_matrix.py
+	tools/starpu_fxt_number_events_to_names.py
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats

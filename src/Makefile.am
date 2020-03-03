@@ -1,9 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2017,2019                           Inria
-# Copyright (C) 2009-2020                                Université de Bordeaux
-# Copyright (C) 2010-2015,2017,2018,2019                 CNRS
-# Copyright (C) 2013                                     Simon Archipoff
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +14,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu-notests.mk
+
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -407,17 +408,8 @@ endif
 dist-hook:
 	failed=0 ; \
 	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME | $(SED) -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | $(GREP) -v _starpu_spin_init) ; do \
-		for j in .libs/*.o ; do \
+		for j in $(shell find . -name \*.o) ; do \
 			nm $$j | $(GREP) "U $$i$$" && { echo $$j ; failed=1 ; } ; \
 		done ; \
 	done ; \
 	[ $$failed == 0 ]
-
-recheck:
-	-cat /dev/null
-showfailed:
-	@-cat /dev/null
-showcheck:
-	-cat /dev/null
-showsuite:
-	-cat /dev/null

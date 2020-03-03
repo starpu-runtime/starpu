@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2019                                CNRS
- * Copyright (C) 2015,2018                                Université de Bordeaux
- * Copyright (C) 2015,2016                                Inria
+ * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +16,7 @@
 
 /*! \page ClusteringAMachine Clustering A Machine
 
-\section GeneralIdeas General Ideas
+\section ClusteringGeneralIdeas General Ideas
 
 Clusters are a concept introduced in this
 <a href="https://hal.inria.fr/view/index/docid/1181135">paper</a>.
