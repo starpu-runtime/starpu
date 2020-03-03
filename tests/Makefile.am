@@ -112,10 +112,12 @@ TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_src
 endif
 endif
 
-TESTS = $(noinst_PROGRAMS)
+TESTS = $(SHELL_TESTS) $(noinst_PROGRAMS)
+
+SHELL_TESTS =
 
 if STARPU_COVERAGE_ENABLED
-TESTS	+=	coverage/coverage.sh
+SHELL_TESTS	+=	coverage/coverage.sh
 endif
 
 XFAIL_TESTS	=				\
@@ -359,7 +361,7 @@ else
 check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
 endif
 
-TESTS += \
+SHELL_TESTS += \
 	datawizard/locality.sh \
 	overlap/overlap.sh
 
