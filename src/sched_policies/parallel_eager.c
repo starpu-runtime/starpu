@@ -163,7 +163,7 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 	struct _starpu_peager_data *data;
 	_STARPU_CALLOC(data, 1, sizeof(struct _starpu_peager_data));
 
-	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized");
+	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized\n");
 
 	/* masters pick tasks from that queue */
 	data->fifo = _starpu_create_fifo();
