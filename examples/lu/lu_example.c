@@ -26,6 +26,10 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 static unsigned long size = 0;
 static unsigned nblocks = 0;
 static unsigned check = 0;
@@ -342,6 +346,11 @@ int main(int argc, char **argv)
 		size = 960*8*power_cbrt;
 	if (!nblocks)
 		nblocks = 8*power_cbrt;
+#endif
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		size = 16;
 #endif
 
 	parse_args(argc, argv);
