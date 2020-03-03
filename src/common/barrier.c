@@ -49,11 +49,11 @@ int _starpu_barrier_test(struct _starpu_barrier *barrier)
 
 int _starpu_barrier_destroy(struct _starpu_barrier *barrier)
 {
-	int ret = _starpu_barrier_test(barrier);
-	while (ret == EBUSY)
-	{
+	int ret;
+	do {
 		ret = _starpu_barrier_test(barrier);
 	}
+	while (ret == EBUSY);
 	_STARPU_DEBUG("reached_exit %u\n", barrier->reached_exit);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&barrier->mutex);
