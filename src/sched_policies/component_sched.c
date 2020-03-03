@@ -678,9 +678,10 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 	STARPU_ASSERT(component);
 	double min = DBL_MAX;
 	unsigned i;
+	double ends[component->nchildren];
 	for(i = 0; i < component->nchildren; i++)
 	{
-		double tmp = component->children[i]->estimated_end(component->children[i]);
+		double tmp = ends[i] = component->children[i]->estimated_end(component->children[i]);
 		if(tmp < min)
 			min = tmp;
 	}
@@ -695,8 +696,7 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 			card = 1;
 		for(i = 0; i < component->nchildren; i++)
 		{
-			double tmp = component->children[i]->estimated_end(component->children[i]);
-			exp_len += tmp - min;
+			exp_len += ends[i] - min;
 		}
 		min += exp_len / card;
 	}
