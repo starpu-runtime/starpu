@@ -181,17 +181,14 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return ret;
 }
 
-static double compute_expected_end(int workerid, double length)
+static double compute_expected_end(double *_worker_exp_end, int workerid, double length)
 {
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		double res;
 		/* This is a basic worker */
 
-		/* Here helgrind would shout that this is unprotected, but we
-		 * are fine with getting outdated values, this is just an
-		 * estimation */
-		res = worker_exp_start[workerid] + worker_exp_len[workerid] + length;
+		res = _worker_exp_end[workerid] + length;
 
 		return res;
 	}
@@ -204,15 +201,10 @@ static double compute_expected_end(int workerid, double length)
 
 		double exp_end = DBL_MIN;
 
-		/* Here helgrind would shout that this is unprotected, but we
-		 * are fine with getting outdated values, this is just an
-		 * estimation */
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
-			double local_exp_start = worker_exp_start[combined_workerid[i]];
-			double local_exp_len = worker_exp_len[combined_workerid[i]];
-			double local_exp_end = local_exp_start + local_exp_len + length;
+			double local_exp_end = _worker_exp_end[combined_workerid[i]] + length;
 			exp_end = STARPU_MAX(exp_end, local_exp_end);
 		}
 
@@ -295,6 +287,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	struct starpu_sched_ctx_iterator it;
 
 	double now = starpu_timing_now();
+	double _worker_exp_end[nworkers_ctx];
 
 	memset(skip_worker, 0, nworkers_ctx*STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 
@@ -305,13 +298,14 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 		if(!starpu_worker_is_combined_worker(workerid))
 		{
+			/* Here helgrind would shout that this is unprotected, but we
+			 * are fine with getting outdated values, this is just an
+			 * estimation */
 			/* Sometimes workers didn't take the tasks as early as we expected */
-			starpu_worker_lock(workerid);
-			worker_exp_start[workerid] = STARPU_MAX(worker_exp_start[workerid], now);
-			worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
-			if (worker_exp_end[workerid] > max_exp_end)
-				max_exp_end = worker_exp_end[workerid];
-			starpu_worker_unlock(workerid);
+			double exp_start = STARPU_MAX(worker_exp_start[workerid], now);
+			_worker_exp_end[workerid] = exp_start + worker_exp_len[workerid];
+			if (_worker_exp_end[workerid] > max_exp_end)
+				max_exp_end = _worker_exp_end[workerid];
 		}
 	}
 
@@ -378,7 +372,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (unknown)
 				continue;
 
-			local_exp_end[worker_ctx][nimpl] = compute_expected_end(workerid, local_task_length[worker_ctx][nimpl]);
+			local_exp_end[worker_ctx][nimpl] = compute_expected_end(_worker_exp_end, workerid, local_task_length[worker_ctx][nimpl]);
 
 			//fprintf(stderr, "WORKER %d -> length %e end %e\n", workerid, local_task_length[worker_ctx][nimpl], local_exp_end[workerid][nimpl]);
 
@@ -460,7 +454,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		best_id_ctx = forced_best_ctx;
 		nimpl_best = forced_nimpl;
 		//penality_best = 0.0;
-		best_exp_end = compute_expected_end(best, 0);
+		best_exp_end = compute_expected_end(_worker_exp_end, best, 0);
 	}
 	else
 	{
