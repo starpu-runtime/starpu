@@ -126,10 +126,12 @@ TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_s
 endif
 endif
 
-TESTS = $(myPROGRAMS)
+TESTS = $(SHELL_TESTS) $(myPROGRAMS)
+
+SHELL_TESTS =
 
 if STARPU_COVERAGE_ENABLED
-TESTS	+=	coverage/coverage.sh
+SHELL_TESTS	+=	coverage/coverage.sh
 endif
 
 XFAIL_TESTS	=				\
@@ -399,7 +401,7 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS += \
+SHELL_TESTS += \
 	microbenchs/tasks_data_overhead.sh \
 	microbenchs/sync_tasks_data_overhead.sh \
 	microbenchs/async_tasks_data_overhead.sh \
@@ -416,11 +418,11 @@ noinst_PROGRAMS = $(myPROGRAMS)
 noinst_PROGRAMS += $(MICROBENCHS)
 
 if STARPU_SIMGRID
-TESTS += $(MICROBENCHS:=.sh)
+SHELL_TESTS += $(MICROBENCHS:=.sh)
 endif
 
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS += \
+SHELL_TESTS += \
 	datawizard/locality.sh \
 	overlap/overlap.sh
 endif
@@ -434,14 +436,14 @@ model_checking_prio_list_LDADD =
 model_checking_prio_list_LDFLAGS = 
 noinst_PROGRAMS += model-checking/prio_list
 if !STARPU_QUICK_CHECK
-TESTS += model-checking/prio_list.sh
+SHELL_TESTS += model-checking/prio_list.sh
 endif
 
 model_checking_starpu_barrier_LDADD = 
 model_checking_starpu_barrier_LDFLAGS = 
 noinst_PROGRAMS += model-checking/starpu_barrier
 if !STARPU_QUICK_CHECK
-#TESTS += model-checking/barrier.sh
+#SHELL_TESTS += model-checking/barrier.sh
 endif
 endif
 
