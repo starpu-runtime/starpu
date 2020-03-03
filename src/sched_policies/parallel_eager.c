@@ -120,6 +120,8 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 static void initialize_peager_policy(unsigned sched_ctx_id)
 {
+	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized\n");
+
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_peager_data *data;
