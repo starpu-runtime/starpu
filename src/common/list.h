@@ -20,11 +20,6 @@
 
 #include <starpu_util.h>
 
-/** @file
- * @brief Doubly-linked lists
- */
-
-
 /** @remarks list how-to
  * *********************************************************
  * LIST_TYPE(FOO, content);

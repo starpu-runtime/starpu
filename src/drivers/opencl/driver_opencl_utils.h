@@ -17,6 +17,8 @@
 #ifndef __STARPU_OPENCL_UTILS_H__
 #define __STARPU_OPENCL_UTILS_H__
 
+/** @file */
+
 char *_starpu_opencl_get_device_type_as_string(int id);
 
 #define _STARPU_OPENCL_PLATFORM_MAX 4

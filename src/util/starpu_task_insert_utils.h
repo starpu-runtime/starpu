@@ -17,6 +17,8 @@
 #ifndef __STARPU_TASK_INSERT_UTILS_H__
 #define __STARPU_TASK_INSERT_UTILS_H__
 
+/** @file */
+
 #include <stdlib.h>
 #include <stdarg.h>
 #include <starpu.h>

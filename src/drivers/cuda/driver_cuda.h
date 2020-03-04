@@ -18,6 +18,8 @@
 #ifndef __DRIVER_CUDA_H__
 #define __DRIVER_CUDA_H__
 
+/** @file */
+
 #include <common/config.h>
 
 #ifdef STARPU_USE_CUDA

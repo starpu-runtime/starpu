@@ -17,6 +17,8 @@
 #ifndef __IDLE_HOOK_H__
 #define __IDLE_HOOK_H__
 
+/** @file */
+
 void _starpu_init_idle_hooks(void);
 
 unsigned _starpu_execute_registered_idle_hooks(void);

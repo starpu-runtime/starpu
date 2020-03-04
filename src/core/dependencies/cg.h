@@ -17,10 +17,12 @@
 #ifndef __CG_H__
 #define __CG_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 
-/* we do not necessarily want to allocate room for 256 dependencies, but we
+/** we do not necessarily want to allocate room for 256 dependencies, but we
    want to handle the few situation where there are a lot of dependencies as
    well */
 #define STARPU_DYNAMIC_DEPS_SIZE	1
@@ -32,30 +34,30 @@
 
 struct _starpu_job;
 
-/* Completion Group list, records both the number of expected notifications
+/** Completion Group list, records both the number of expected notifications
  * before the completion can start, and the list of successors when the
  * completion is finished. */
 struct _starpu_cg_list
 {
-	/* Protects atomicity of the list and the terminated flag */
+	/** Protects atomicity of the list and the terminated flag */
 	struct _starpu_spinlock lock;
 
-	/* Number of notifications to be waited for */
+	/** Number of notifications to be waited for */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
 #ifdef STARPU_DEBUG
-	/* Array of the notifications, size ndeps */
+	/** Array of the notifications, size ndeps */
 	struct _starpu_cg **deps;
-	/* Which ones have notified, size ndeps */
+	/** Which ones have notified, size ndeps */
 	char *done;
 #endif
 
-	/* Whether the completion is finished.
+	/** Whether the completion is finished.
 	 * For restartable/restarted tasks, only the first iteration is taken into account here.
 	 */
 	unsigned terminated;
 
-	/* List of successors */
+	/** List of successors */
 	unsigned nsuccs; /* how many successors ? */
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size; /* How many allocated items in succ */
@@ -72,7 +74,7 @@ enum _starpu_cg_type
 	STARPU_CG_TASK=(1<<2)
 };
 
-/* Completion Group */
+/** Completion Group */
 struct _starpu_cg
 {
 	unsigned ntags; /* number of tags depended on */

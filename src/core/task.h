@@ -17,20 +17,22 @@
 #ifndef __CORE_TASK_H__
 #define __CORE_TASK_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <core/jobs.h>
 
-/* Internal version of starpu_task_destroy: don't check task->destroy flag */
+/** Internal version of starpu_task_destroy: don't check task->destroy flag */
 void _starpu_task_destroy(struct starpu_task *task);
 
 #ifdef STARPU_OPENMP
-/* Test for the termination of the task.
+/** Test for the termination of the task.
  * Call starpu_task_destroy if required and the task is terminated. */
 int _starpu_task_test_termination(struct starpu_task *task);
 #endif
 
-/* A pthread key is used to store the task currently executed on the thread.
+/** A pthread key is used to store the task currently executed on the thread.
  * _starpu_task_init initializes this pthread key and
  * _starpu_set_current_task updates its current value. */
 void _starpu_task_init(void);
@@ -45,7 +47,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task);
 
 void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[], int check);
 
-/* Returns the job structure (which is the internal data structure associated
+/** Returns the job structure (which is the internal data structure associated
  * to a task). */
 static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
@@ -61,7 +63,7 @@ static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct star
 	return job;
 }
 
-/* Submits starpu internal tasks to the initial context */
+/** Submits starpu internal tasks to the initial context */
 int _starpu_task_submit_internally(struct starpu_task *task);
 
 int _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
@@ -71,7 +73,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				     enum starpu_node_kind node_kind);
 
 #ifdef STARPU_OPENMP
-/* Prepare the current task for accepting new dependencies before becoming a continuation. */
+/** Prepare the current task for accepting new dependencies before becoming a continuation. */
 void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
 		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg);
 

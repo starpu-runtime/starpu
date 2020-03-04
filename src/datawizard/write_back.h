@@ -17,10 +17,12 @@
 #ifndef __DW_WRITE_BACK_H__
 #define __DW_WRITE_BACK_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <datawizard/coherency.h>
 
-/* If a write-through mask is associated to that data handle, this propagates
+/** If a write-through mask is associated to that data handle, this propagates
  * the the current value of the data onto the different memory nodes in the
  * write_through_mask. */
 void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting_node,

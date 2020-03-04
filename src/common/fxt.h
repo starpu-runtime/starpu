@@ -20,6 +20,8 @@
 #define __FXT_H__
 
 
+/** @file */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE  1 /* ou _BSD_SOURCE ou _SVID_SOURCE */
 #endif
@@ -282,13 +284,13 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 
 long _starpu_gettid(void);
 
-/* Initialize the FxT library. */
+/** Initialize the FxT library. */
 void _starpu_fxt_init_profiling(unsigned trace_buffer_size);
 
-/* Stop the FxT library, and generate the trace file. */
+/** Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
 
-/* Generate the trace file. Used when catching signals SIGINT and SIGSEGV */
+/** Generate the trace file. Used when catching signals SIGINT and SIGSEGV */
 void _starpu_fxt_dump_file(void);
 
 /* Associate the current processing unit to the identifier of the LWP that runs
@@ -304,7 +306,7 @@ void _starpu_fxt_register_thread(unsigned);
 #ifdef FUT_DO_PROBE1STR
 #define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str) FUT_DO_PROBE1STR(CODE, P1, str)
 #else
-/* Sometimes we need something a little more specific than the wrappers from
+/** Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
 #define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str)			\
@@ -329,7 +331,7 @@ do {									\
 #ifdef FUT_DO_PROBE2STR
 #define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str) FUT_DO_PROBE2STR(CODE, P1, P2, str)
 #else
-/* Sometimes we need something a little more specific than the wrappers from
+/** Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
 #define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str)			\

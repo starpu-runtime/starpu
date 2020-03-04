@@ -17,6 +17,8 @@
 #ifndef __DRIVER_MPI_SOURCE_H__
 #define __DRIVER_MPI_SOURCE_H__
 
+/** @file */
+
 #include <drivers/mp_common/mp_common.h>
 #include <starpu_mpi_ms.h>
 #include <datawizard/node_ops.h>
@@ -25,7 +27,7 @@
 
 extern struct _starpu_node_ops _starpu_driver_mpi_node_ops;
 
-/* Array of structures containing all the informations useful to send
+/** Array of structures containing all the informations useful to send
  * and receive informations with devices */
 extern struct _starpu_mp_node *_starpu_mpi_ms_nodes[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);

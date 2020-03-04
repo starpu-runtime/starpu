@@ -17,9 +17,11 @@
 #ifndef __CORE_TASK_BUNDLE_H__
 #define __CORE_TASK_BUNDLE_H__
 
+/** @file */
+
 #include <starpu_thread.h>
 
-/* struct _starpu_task_bundle_entry
+/** struct _starpu_task_bundle_entry
  * ================================
  * Purpose
  * =======
@@ -38,7 +40,7 @@ struct _starpu_task_bundle_entry
 	struct _starpu_task_bundle_entry *next;
 };
 
-/* struct _starpu_task_bundle
+/** struct _starpu_task_bundle
  * ==========================
  * Purpose
  * =======
@@ -60,7 +62,7 @@ struct _starpu_task_bundle_entry
 
 struct _starpu_task_bundle
 {
-	/* Mutex protecting the bundle */
+	/** Mutex protecting the bundle */
 	starpu_pthread_mutex_t mutex;
 
 	struct _starpu_task_bundle_entry *list;
@@ -68,7 +70,7 @@ struct _starpu_task_bundle
 	int closed;
 };
 
-/* struct _starpu_handle_list
+/** struct _starpu_handle_list
  * ==========================
  * Purpose
  * =======
@@ -92,7 +94,7 @@ struct _starpu_handle_list
 	struct _starpu_handle_list *next;
 };
 
-/* _starpu_task_bundle_destroy
+/** _starpu_task_bundle_destroy
  * ==========================
  * Purpose
  * =======
@@ -106,7 +108,7 @@ struct _starpu_handle_list
  */
 void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle);
 
-/* _insertion_handle_sorted
+/** _insertion_handle_sorted
  * ========================
  * Purpose
  * =======

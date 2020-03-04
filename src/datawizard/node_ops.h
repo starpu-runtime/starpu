@@ -17,6 +17,8 @@
 #ifndef __NODE_OPS_H__
 #define __NODE_OPS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/copy_driver.h>

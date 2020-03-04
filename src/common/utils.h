@@ -17,6 +17,8 @@
 #ifndef __COMMON_UTILS_H__
 #define __COMMON_UTILS_H__
 
+/** @file */
+
 #include <common/config.h>
 #include <starpu.h>
 #include <sys/stat.h>
@@ -162,17 +164,17 @@ int _starpu_fwrunlock(FILE *file);
 char *_starpu_get_home_path(void);
 void _starpu_gethostname(char *hostname, size_t size);
 
-/* If FILE is currently on a comment line, eat it.  */
+/** If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
 
 struct _starpu_job;
-/* Returns the symbol associated to that job if any. */
+/** Returns the symbol associated to that job if any. */
 const char *_starpu_job_get_model_name(struct _starpu_job *j);
-/* Returns the name associated to that job if any. */
+/** Returns the name associated to that job if any. */
 const char *_starpu_job_get_task_name(struct _starpu_job *j);
 
 struct starpu_codelet;
-/* Returns the symbol associated to that job if any. */
+/** Returns the symbol associated to that job if any. */
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);

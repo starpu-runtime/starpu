@@ -18,6 +18,8 @@
 #ifndef __DRIVERS_H__
 #define __DRIVERS_H__
 
+/** @file */
+
 struct _starpu_driver_ops
 {
 	int (*init)(struct _starpu_worker *worker);

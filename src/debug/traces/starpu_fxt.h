@@ -18,6 +18,8 @@
 #ifndef __STARPU__FXT_H__
 #define __STARPU__FXT_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <starpu_config.h>
 #include <common/config.h>

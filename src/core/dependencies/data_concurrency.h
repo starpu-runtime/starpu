@@ -17,6 +17,8 @@
 #ifndef __DATA_CONCURRENCY_H__
 #define __DATA_CONCURRENCY_H__
 
+/** @file */
+
 #include <core/jobs.h>
 
 void _starpu_job_set_ordered_buffers(struct _starpu_job *j);

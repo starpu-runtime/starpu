@@ -17,6 +17,8 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+/** @file */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

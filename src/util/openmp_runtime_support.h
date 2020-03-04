@@ -17,6 +17,8 @@
 #ifndef __OPENMP_RUNTIME_SUPPORT_H__
 #define __OPENMP_RUNTIME_SUPPORT_H__
 
+/** @file */
+
 #include <starpu.h>
 
 #ifdef STARPU_OPENMP
@@ -24,7 +26,7 @@
 #include <common/starpu_spinlock.h>
 #include <common/uthash.h>
 
-/* ucontexts have been deprecated as of POSIX 1-2004
+/** ucontexts have been deprecated as of POSIX 1-2004
  * _XOPEN_SOURCE required at least on OS/X
  *
  * TODO: add detection in configure.ac
@@ -37,12 +39,12 @@
 extern starpu_pthread_key_t omp_thread_key;
 extern starpu_pthread_key_t omp_task_key;
 
-/*
+/**
  * Arbitrary limit on the number of nested parallel sections
  */
 #define STARPU_OMP_MAX_ACTIVE_LEVELS 1
 
-/*
+/**
  * Possible abstract names for OpenMP places
  */
 enum starpu_omp_place_name
@@ -51,7 +53,7 @@ enum starpu_omp_place_name
 	starpu_omp_place_threads   = 1,
 	starpu_omp_place_cores     = 2,
 	starpu_omp_place_sockets   = 3,
-	starpu_omp_place_numerical = 4 /* place specified numerically */
+	starpu_omp_place_numerical = 4 /** place specified numerically */
 };
 
 struct starpu_omp_numeric_place
@@ -63,7 +65,7 @@ struct starpu_omp_numeric_place
 	int nb_excluded_numeric_items;
 };
 
-/*
+/**
  * OpenMP place for thread afinity, defined by the OpenMP spec
  */
 struct starpu_omp_place
@@ -75,54 +77,54 @@ struct starpu_omp_place
 	int nb_numeric_places;
 };
 
-/*
+/**
  * Internal Control Variables (ICVs) declared following
  * OpenMP 4.0.0 spec section 2.3.1
  */
 struct starpu_omp_data_environment_icvs
 {
-	/* parallel region icvs */
+	/** parallel region icvs */
 	int dyn_var;
 	int nest_var;
-	int *nthreads_var; /* nthreads_var ICV is a list */
+	int *nthreads_var; /** nthreads_var ICV is a list */
 	int thread_limit_var;
 
 	int active_levels_var;
 	int levels_var;
-	int *bind_var; /* bind_var ICV is a list */
+	int *bind_var; /** bind_var ICV is a list */
 
-	/* loop region icvs */
+	/** loop region icvs */
 	int run_sched_var;
 	unsigned long long run_sched_chunk_var;
 
-	/* program execution icvs */
+	/** program execution icvs */
 	int default_device_var;
 	int max_task_priority_var;
 };
 
 struct starpu_omp_device_icvs
 {
-	/* parallel region icvs */
+	/** parallel region icvs */
 	int max_active_levels_var;
 
-	/* loop region icvs */
+	/** loop region icvs */
 	int def_sched_var;
 	unsigned long long def_sched_chunk_var;
 
-	/* program execution icvs */
+	/** program execution icvs */
 	int stacksize_var;
 	int wait_policy_var;
 };
 
 struct starpu_omp_implicit_task_icvs
 {
-	/* parallel region icvs */
+	/** parallel region icvs */
 	int place_partition_var;
 };
 
 struct starpu_omp_global_icvs
 {
-	/* program execution icvs */
+	/** program execution icvs */
 	int cancel_var;
 };
 
@@ -147,7 +149,7 @@ struct starpu_omp_initial_icv_values
 	int default_device_var;
 	int max_task_priority_var;
 
-	/* not a real ICV, but needed to store the contents of OMP_PLACES */
+	/** not a real ICV, but needed to store the contents of OMP_PLACES */
 	struct starpu_omp_place places;
 };
 
@@ -185,7 +187,7 @@ enum starpu_omp_task_state
 	starpu_omp_task_state_terminated = 2,
 	starpu_omp_task_state_zombie     = 3,
 
-	/* target tasks are non-preemptible tasks, without dedicated stack and OpenMP Runtime Support context */
+	/** target tasks are non-preemptible tasks, without dedicated stack and OpenMP Runtime Support context */
 	starpu_omp_task_state_target     = 4,
 };
 
@@ -237,7 +239,7 @@ LIST_TYPE(starpu_omp_task,
 	void **starpu_buffers;
 	void *starpu_cl_arg;
 
-	/* actual task function to be run */
+	/** actual task function to be run */
 	void (*cpu_f)(void **starpu_buffers, void *starpu_cl_arg);
 #ifdef STARPU_USE_CUDA
 	void (*cuda_f)(void **starpu_buffers, void *starpu_cl_arg);
@@ -348,11 +350,11 @@ struct starpu_omp_region
 	struct starpu_omp_region *parent_region;
 	struct starpu_omp_device *owner_device;
 	struct starpu_omp_thread *master_thread;
-	/* note: the list of threads does not include the master_thread */
+	/** note: the list of threads does not include the master_thread */
 	struct starpu_omp_thread_list thread_list;
-	/* list of implicit omp tasks created to run the region */
+	/** list of implicit omp tasks created to run the region */
 	struct starpu_omp_task **implicit_task_array;
-	/* include both the master thread and the region own threads */
+	/** include both the master thread and the region own threads */
 	int nb_threads;
 	struct _starpu_spinlock lock;
 	struct starpu_omp_task *waiting_task;
@@ -372,7 +374,7 @@ struct starpu_omp_device
 {
 	struct starpu_omp_device_icvs icvs;
 
-	/* atomic fallback implementation lock */
+	/** atomic fallback implementation lock */
 	struct _starpu_spinlock atomic_lock;
 };
 

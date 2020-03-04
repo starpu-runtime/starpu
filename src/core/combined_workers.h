@@ -17,6 +17,8 @@
 #ifndef __COMBINED_WORKERS_H__
 #define __COMBINED_WORKERS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 

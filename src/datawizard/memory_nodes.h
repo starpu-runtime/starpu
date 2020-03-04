@@ -17,6 +17,8 @@
 #ifndef __MEMORY_NODES_H__
 #define __MEMORY_NODES_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/coherency.h>
@@ -76,7 +78,7 @@ static inline void _starpu_memory_node_add_nworkers(unsigned node)
 	_starpu_descr.nworkers[node]++;
 }
 
-/* same utility as _starpu_memory_node_add_nworkers */
+/** same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode);
 
 static inline struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
@@ -125,13 +127,13 @@ static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	/* This workerid may either be a basic worker or a combined worker */
+	/** This workerid may either be a basic worker or a combined worker */
 	unsigned nworkers = config->topology.nworkers;
 
 	if (workerid < config->topology.nworkers)
 		return config->workers[workerid].memory_node;
 
-	/* We have a combined worker */
+	/** We have a combined worker */
 	unsigned ncombinedworkers STARPU_ATTRIBUTE_UNUSED = config->topology.ncombinedworkers;
 	STARPU_ASSERT_MSG(workerid < ncombinedworkers + nworkers, "Bad workerid %u, maximum %u", workerid, ncombinedworkers + nworkers);
 	return config->combined_workers[workerid - nworkers].memory_node;

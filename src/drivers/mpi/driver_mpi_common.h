@@ -17,6 +17,8 @@
 #ifndef __DRIVER_MPI_COMMON_H__
 #define __DRIVER_MPI_COMMON_H__
 
+/** @file */
+
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 
