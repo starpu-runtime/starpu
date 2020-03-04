@@ -1830,11 +1830,11 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 					break;
 				}
 			}
-		}
-		/* no place in RAM */
-		if (target == -1)
-		{
-			target = get_better_disk_can_accept_size(handle, node);
+			/* no place in RAM */
+			if (target == -1)
+			{
+				target = get_better_disk_can_accept_size(handle, node);
+			}
 		}
 	}
 	/* we haven't the right to write on the disk */
