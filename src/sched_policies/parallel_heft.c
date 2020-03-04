@@ -98,7 +98,7 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched
 	starpu_worker_unlock_self();
 }
 
-static void parallel_heft_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+static void parallel_heft_post_exec_hook(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	const double now = starpu_timing_now();
