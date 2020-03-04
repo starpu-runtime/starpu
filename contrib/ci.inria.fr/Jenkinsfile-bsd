@@ -24,8 +24,8 @@ pipeline
 	// Trigger the build
 	triggers
 	{
-		// Poll scm once a day between 10pm and 11pm
-		pollSCM('H 22 * * *')
+		// Poll gforge explicitly every past-half hour
+		pollSCM('30 * * * *')
 	}
 
 	stages
@@ -44,13 +44,13 @@ pipeline
 					}
 					stash includes: "${env.tarballgz}", name: 'tarballgz'
 					stash includes: "starpu.pdf", name: 'doc'
+					stash includes: "starpu_dev.pdf", name: 'doc_dev'
 					// Stash those scripts because they are not in make dist
 					dir('contrib/ci.inria.fr')
 					{
-						stash includes: "job-1-check-windows.bat", name: 'script-windows-check'
-						stash includes: "job-1-build-windows.sh", name: 'script-windows-build'
+						stash includes: "job-1-check.sh", name: 'script-unix-check'
 					}
-					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf", fingerprint: true, onlyIfSuccessful: true
+					archiveArtifacts artifacts: "${env.tarballgz},starpu.pdf,starpu_dev.pdf", fingerprint: true, onlyIfSuccessful: true
 					deleteDir()
 
 				}
@@ -62,7 +62,7 @@ pipeline
 			{
 				script
 				{
-					labelToSelect = 'windows'
+					labelToSelect = 'bsd'
 					listOfNodeNames = jenkins.model.Jenkins.instance.nodes.collect
 					{
 						node -> node.getLabelString().contains(labelToSelect) ? node.name : null
@@ -75,15 +75,12 @@ pipeline
 						{
 							node(it)
 							{
-								dir('check-windows')
+								dir('check-unix')
 								{
 									unstash 'tarballgz'
-									unstash 'script-windows-check'
-									unstash 'script-windows-build'
-									bat './job-1-check-windows.bat'
-									archiveArtifacts artifacts: "*.zip", fingerprint: true, onlyIfSuccessful: true
-									if (env.KEEP_WORKING_DIRECTORY != 'true')
-										deleteDir()
+									unstash 'script-unix-check'
+									sh 'chmod 755 job-1-check.sh && ./job-1-check.sh'
+									deleteDir()
 								}
 							}
 						}
