@@ -353,7 +353,9 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, star
 	sim_req->done = done;
 	*done = 0;
 
+	_starpu_simgrid_set_stack_size(32786);
 	_starpu_simgrid_xbt_thread_create("wait for mpi transfer", _starpu_mpi_simgrid_wait_req_func, sim_req);
+	_starpu_simgrid_set_stack_size(_starpu_default_stack_size);
 }
 #endif
 

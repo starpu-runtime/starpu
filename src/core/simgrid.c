@@ -83,6 +83,20 @@ static struct worker_runner
 } worker_runner[STARPU_NMAXWORKERS];
 static void *task_execute(void *arg);
 
+size_t _starpu_default_stack_size = 8192;
+
+void _starpu_simgrid_set_stack_size(size_t stack_size)
+{
+#ifdef HAVE_SG_CFG_SET_INT
+	sg_cfg_set_int("contexts/stack-size", stack_size);
+#elif SIMGRID_VERSION >= 31300
+	xbt_cfg_set_int("contexts/stack-size", stack_size);
+#else
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+#endif
+}
+
 #if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 sg_netzone_t _starpu_simgrid_get_as_by_name(const char *name)
@@ -290,21 +304,12 @@ void _starpu_start_simgrid(int *argc, char **argv)
 	MSG_init(argc, argv);
 #endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
-	unsigned stack_size = 8192;
 #ifdef HAVE_GETRLIMIT
 	struct rlimit rlim;
 	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
-		stack_size = rlim.rlim_cur / 1024;
+		_starpu_default_stack_size = rlim.rlim_cur / 1024;
 #endif
-
-#ifdef HAVE_SG_CFG_SET_INT
-	sg_cfg_set_int("contexts/stack-size", stack_size);
-#elif SIMGRID_VERSION < 31300
-	extern xbt_cfg_t _sg_cfg_set;
-	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
-#else
-	xbt_cfg_set_int("contexts/stack-size", stack_size);
-#endif
+	_starpu_simgrid_set_stack_size(_starpu_default_stack_size);
 
 	/* Load XML platform */
 #if SIMGRID_VERSION < 31300
