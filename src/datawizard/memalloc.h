@@ -17,6 +17,8 @@
 #ifndef __MEMALLOC_H__
 #define __MEMALLOC_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 
@@ -27,10 +29,10 @@
 
 struct _starpu_data_replicate;
 
-/* While associated with a handle, the content is protected by the handle lock, except a few fields
+/** While associated with a handle, the content is protected by the handle lock, except a few fields
  */
 LIST_TYPE(_starpu_mem_chunk,
-	/* protected by the mc_lock */
+	/** protected by the mc_lock */
 	starpu_data_handle_t data;
 
 	uint32_t footprint;
@@ -47,21 +49,21 @@ LIST_TYPE(_starpu_mem_chunk,
 	void *chunk_interface;
 	size_t size_interface;
 
-	/* Whether StarPU automatically allocated this memory, or the application did */
+	/** Whether StarPU automatically allocated this memory, or the application did */
 	unsigned automatically_allocated:1;
-	/* A buffer that is used for SCRATCH or reduction cannnot be used with
+	/** A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
 	unsigned relaxed_coherency:2;
-	/* Whether this is the home chunk, or there is no home chunk (and it is thus always clean) */
+	/** Whether this is the home chunk, or there is no home chunk (and it is thus always clean) */
 	unsigned home:1;
-	/* Whether the memchunk is in the clean part of the mc_list */
+	/** Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
-	/* Was this chunk used since it got allocated?  */
+	/** Was this chunk used since it got allocated?  */
 	unsigned diduse:1;
-	/* Was this chunk marked as "won't use"? */
+	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;
 
-	/* the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
+	/** the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
 	 * it is needed to estimate how much memory is in mc_cache, and by
 	 * free_memory_on_node() which is called when the handle is no longer
 	 * valid.
@@ -71,7 +73,7 @@ LIST_TYPE(_starpu_mem_chunk,
 
 	struct _starpu_data_replicate *replicate;
 
-	/* This is set when one keeps a pointer to this mc obtained from the
+	/** This is set when one keeps a pointer to this mc obtained from the
 	 * mc_list without mc_lock held. We need to clear the pointer if we
 	 * remove this entry from the mc_list, so we know we have to restart
 	 * from zero. This is protected by the corresponding mc_lock.  */

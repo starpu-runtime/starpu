@@ -19,6 +19,8 @@
 #ifndef __JOBS_H__
 #define __JOBS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <semaphore.h>
 #include <stdio.h>
@@ -47,7 +49,7 @@
 
 struct _starpu_worker;
 
-/* codelet function */
+/** codelet function */
 typedef void (*_starpu_cl_func_t)(void **, void *);
 
 #define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->where & STARPU_CPU)
@@ -59,12 +61,12 @@ struct _starpu_data_descr
 {
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
-	int node; /* This is the value actually chosen, only set by
+	int node; /** This is the value actually chosen, only set by
 		     _starpu_fetch_task_input for coherency with
 		     __starpu_push_task_output */
 	int index;
 
-	int orderedindex; /* For this field the array is actually indexed by
+	int orderedindex; /** For this field the array is actually indexed by
 			     parameter order, and this provides the ordered
 			     index */
 };
@@ -72,27 +74,27 @@ struct _starpu_data_descr
 #ifdef STARPU_DEBUG
 MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
 #endif
-/* A job is the internal representation of a task. */
+/** A job is the internal representation of a task. */
 struct _starpu_job
 {
-	/* Each job is attributed a unique id. */
+	/** Each job is attributed a unique id. */
 	unsigned long job_id;
 
-	/* The task associated to that job */
+	/** The task associated to that job */
 	struct starpu_task *task;
 
-        /* A task that this will unlock quickly, e.g. we are the pre_sync part
+        /** A task that this will unlock quickly, e.g. we are the pre_sync part
          * of a data acquisition, and the caller promised that data release will
 	 * happen immediately, so that the post_sync task will be started
          * immediately after. */
 	struct _starpu_job *quick_next;
 
-	/* These synchronization structures are used to wait for the job to be
+	/** These synchronization structures are used to wait for the job to be
 	 * available or terminated for instance. */
 	starpu_pthread_mutex_t sync_mutex;
 	starpu_pthread_cond_t sync_cond;
 
-	/* To avoid deadlocks, we reorder the different buffers accessed to by
+	/** To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
 	struct _starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
@@ -100,24 +102,24 @@ struct _starpu_job
 	struct _starpu_data_descr *dyn_ordered_buffers;
 	struct _starpu_task_wrapper_dlist *dyn_dep_slots;
 
-	/* If a tag is associated to the job, this points to the internal data
+	/** If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
 	struct _starpu_tag *tag;
 
-	/* Maintain a list of all the completion groups that depend on the job.
+	/** Maintain a list of all the completion groups that depend on the job.
 	 * */
 	struct _starpu_cg_list job_successors;
 
-	/* Task whose termination depends on this task */
+	/** Task whose termination depends on this task */
 	struct starpu_task *end_rdep;
 
-	/* For tasks with cl==NULL but submitted with explicit data dependency,
+	/** For tasks with cl==NULL but submitted with explicit data dependency,
 	 * the handle for this dependency, so as to remove the task from the
 	 * last_writer/readers */
 	starpu_data_handle_t implicit_dep_handle;
 	struct _starpu_task_wrapper_dlist implicit_dep_slot;
 
-	/* Indicates whether the task associated to that job has already been
+	/** Indicates whether the task associated to that job has already been
 	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).
 	 * Becomes and stays 2 when the task is submitted several times.
 	 *
@@ -125,7 +127,7 @@ struct _starpu_job
 	 */
 	unsigned submitted:2;
 
-	/* Indicates whether the task associated to this job is terminated or
+	/** Indicates whether the task associated to this job is terminated or
 	 * not.
 	 *
 	 * Protected by j->sync_mutex.
@@ -133,15 +135,15 @@ struct _starpu_job
 	unsigned terminated:2;
 
 #ifdef STARPU_OPENMP
-	/* Job is a continuation or a regular task. */
+	/** Job is a continuation or a regular task. */
 	unsigned continuation;
 
-	/* If 0, the prepared continuation is not resubmitted automatically
+	/** If 0, the prepared continuation is not resubmitted automatically
 	 * when going to sleep, if 1, the prepared continuation is immediately
 	 * resubmitted when going to sleep. */
 	unsigned continuation_resubmit;
 
-	/* Callback function called when:
+	/** Callback function called when:
 	 * - The continuation starpu task is ready to be submitted again if
 	 *   continuation_resubmit = 0;
 	 * - The continuation starpu task has just been re-submitted if
@@ -152,53 +154,53 @@ struct _starpu_job
 	void (*omp_cleanup_callback)(void *arg);
 	void *omp_cleanup_callback_arg;
 
-	/* Job has been stopped at least once. */
+	/** Job has been stopped at least once. */
 	unsigned discontinuous;
 
-	/* Cumulated execution time for discontinuous jobs */
+	/** Cumulated execution time for discontinuous jobs */
 	struct timespec cumulated_ts;
 
-	/* Cumulated energy consumption for discontinuous jobs */
+	/** Cumulated energy consumption for discontinuous jobs */
 	double cumulated_energy_consumed;
 #endif
 
-	/* The value of the footprint that identifies the job may be stored in
+	/** The value of the footprint that identifies the job may be stored in
 	 * this structure. */
 	uint32_t footprint;
 	unsigned footprint_is_computed:1;
 
-	/* Should that task appear in the debug tools ? (eg. the DAG generated
+	/** Should that task appear in the debug tools ? (eg. the DAG generated
 	 * with dot) */
 	unsigned exclude_from_dag:1;
 
-	/* Is that task internal to StarPU? */
+	/** Is that task internal to StarPU? */
 	unsigned internal:1;
-	/* Did that task use sequential consistency for its data? */
+	/** Did that task use sequential consistency for its data? */
 	unsigned sequential_consistency:1;
 
-	/* During the reduction of a handle, StarPU may have to submit tasks to
+	/** During the reduction of a handle, StarPU may have to submit tasks to
 	 * perform the reduction itself: those task should not be stalled while
 	 * other tasks are blocked until the handle has been properly reduced,
 	 * so we need a flag to differentiate them from "normal" tasks. */
 	unsigned reduction_task:1;
 
-	/* The implementation associated to the job */
+	/** The implementation associated to the job */
 	unsigned nimpl;
 
-	/* Number of workers executing that task (>1 if the task is parallel)
+	/** Number of workers executing that task (>1 if the task is parallel)
 	 * */
 	int task_size;
 
-	/* In case we have assigned this job to a combined workerid */
+	/** In case we have assigned this job to a combined workerid */
 	int combined_workerid;
 
-	/* How many workers are currently running an alias of that job (for
+	/** How many workers are currently running an alias of that job (for
 	 * parallel tasks only). */
 	int active_task_alias_count;
 
 	struct bound_task *bound_task;
 
-	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
+	/** Parallel workers may have to synchronize before/after the execution of a parallel task. */
 	starpu_pthread_barrier_t before_work_barrier;
 	starpu_pthread_barrier_t after_work_barrier;
 	unsigned after_work_busy_barrier;
@@ -206,7 +208,7 @@ struct _starpu_job
 	struct _starpu_graph_node *graph_node;
 
 #ifdef STARPU_DEBUG
-	/* Linked-list of all jobs, for debugging */
+	/** Linked-list of all jobs, for debugging */
 	struct _starpu_job_multilist_all_submitted all_submitted;
 #endif
 };
@@ -218,23 +220,23 @@ MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, all_submitted)
 void _starpu_job_init(void);
 void _starpu_job_fini(void);
 
-/* Create an internal struct _starpu_job *structure to encapsulate the task. */
+/** Create an internal struct _starpu_job *structure to encapsulate the task. */
 struct _starpu_job* _starpu_job_create(struct starpu_task *task) STARPU_ATTRIBUTE_MALLOC;
 
-/* Destroy the data structure associated to the job structure */
+/** Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);
 
-/* Test for the termination of the job */
+/** Test for the termination of the job */
 int _starpu_job_finished(struct _starpu_job *j);
 
-/* Wait for the termination of the job */
+/** Wait for the termination of the job */
 void _starpu_wait_job(struct _starpu_job *j);
 
 #ifdef STARPU_OPENMP
-/* Test for the termination of the job */
+/** Test for the termination of the job */
 int _starpu_test_job_termination(struct _starpu_job *j);
 
-/* Prepare the job for accepting new dependencies before becoming a continuation. */
+/** Prepare the job for accepting new dependencies before becoming a continuation. */
 
 void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
 		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg);
@@ -243,33 +245,33 @@ void _starpu_job_set_omp_cleanup_callback(struct _starpu_job *j,
 		void (*omp_cleanup_callback)(void *arg), void *omp_cleanup_callback_arg);
 #endif
 
-/* Specify that the task should not appear in the DAG generated by debug tools. */
+/** Specify that the task should not appear in the DAG generated by debug tools. */
 void _starpu_exclude_task_from_dag(struct starpu_task *task);
 
-/* try to submit job j, enqueue it if it's not schedulable yet. The job's sync mutex is supposed to be held already */
+/** try to submit job j, enqueue it if it's not schedulable yet. The job's sync mutex is supposed to be held already */
 unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j);
 unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 #ifdef STARPU_OPENMP
-/* When waking up a continuation, we only enforce new task dependencies */
+/** When waking up a continuation, we only enforce new task dependencies */
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j);
 #endif
 unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j);
 void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag);
 
-/* Called at the submission of the job */
+/** Called at the submission of the job */
 void _starpu_handle_job_submission(struct _starpu_job *j);
-/* This function must be called after the execution of a job, this triggers all
+/** This function must be called after the execution of a job, this triggers all
  * job's dependencies and perform the callback function if any. */
 void _starpu_handle_job_termination(struct _starpu_job *j);
 
-/* Get the sum of the size of the data accessed by the job. */
+/** Get the sum of the size of the data accessed by the job. */
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned nimpl, struct _starpu_job *j);
 
-/* Get a task from the local pool of tasks that were explicitly attributed to
+/** Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */
 struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
 
-/* Put a task into the pool of tasks that are explicitly attributed to the
+/** Put a task into the pool of tasks that are explicitly attributed to the
  * specified worker. If "back" is set, the task is put at the back of the list.
  * Considering the tasks are popped from the back, this value should be 0 to
  * enforce a FIFO ordering. */

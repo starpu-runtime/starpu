@@ -17,6 +17,8 @@
 #ifndef __MULTIPLE_REGRESSION_H__
 #define __MULTIPLE_REGRESSION_H__
 
+/** @file */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

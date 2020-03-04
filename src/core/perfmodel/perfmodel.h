@@ -19,6 +19,8 @@
 #ifndef __PERFMODEL_H__
 #define __PERFMODEL_H__
 
+/** @file */
+
 #include <common/config.h>
 #include <starpu.h>
 #include <core/task_bundle.h>

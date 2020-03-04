@@ -20,31 +20,33 @@
 #ifndef __FIFO_QUEUES_H__
 #define __FIFO_QUEUES_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <core/task.h>
 
 struct _starpu_fifo_taskq
 {
-	/* the actual list */
+	/** the actual list */
 	struct starpu_task_list taskq;
 
-	/* the number of tasks currently in the queue */
+	/** the number of tasks currently in the queue */
 	unsigned ntasks;
 
-	/* the number of tasks currently in the queue corresponding to each priority */
+	/** the number of tasks currently in the queue corresponding to each priority */
 	unsigned *ntasks_per_priority;
 
-	/* the number of tasks that were processed */
+	/** the number of tasks that were processed */
 	unsigned nprocessed;
 
-	/* only meaningful if the queue is only used by a single worker */
-	double exp_start; /* Expected start date of next item to do in the
+	/** only meaningful if the queue is only used by a single worker */
+	double exp_start; /** Expected start date of next item to do in the
 			   * queue (i.e. not started yet). This is thus updated
 			   * when we start it. */
-	double exp_end; /* Expected end date of last task in the queue */
-	double exp_len; /* Expected duration of the set of tasks in the queue */
-	double *exp_len_per_priority; /* Expected duration of the set of tasks in the queue corresponding to each priority */
-	double pipeline_len; /* the expected duration of what is already pushed to the worker */
+	double exp_end; /** Expected end date of last task in the queue */
+	double exp_len; /** Expected duration of the set of tasks in the queue */
+	double *exp_len_per_priority; /** Expected duration of the set of tasks in the queue corresponding to each priority */
+	double pipeline_len; /** the expected duration of what is already pushed to the worker */
 };
 
 struct _starpu_fifo_taskq*_starpu_create_fifo(void) STARPU_ATTRIBUTE_MALLOC;

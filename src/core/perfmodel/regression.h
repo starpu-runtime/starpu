@@ -17,6 +17,8 @@
 #ifndef __REGRESSION_H__
 #define __REGRESSION_H__
 
+/** @file */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,4 +27,4 @@
 
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c);
 
-#endif // __REGRESSION_H__ 
+#endif // __REGRESSION_H__

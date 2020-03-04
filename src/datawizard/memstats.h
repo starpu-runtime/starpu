@@ -17,6 +17,8 @@
 #ifndef __MEMSTATS_H__
 #define __MEMSTATS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 

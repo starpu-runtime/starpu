@@ -17,6 +17,8 @@
 #ifndef __DATAWIZARD_H__
 #define __DATAWIZARD_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 

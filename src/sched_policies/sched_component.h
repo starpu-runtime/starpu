@@ -18,6 +18,8 @@
 #ifndef __SCHED_COMPONENT_H__
 #define __SCHED_COMPONENT_H__
 
+/** @file */
+
 #include <starpu_sched_component.h>
 
 

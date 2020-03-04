@@ -17,6 +17,8 @@
 #ifndef __DATASTATS_H__
 #define __DATASTATS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <stdint.h>

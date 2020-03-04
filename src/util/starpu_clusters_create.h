@@ -17,6 +17,8 @@
 #ifndef __STARPU_CLUSTERS_CREATE_H__
 #define __STARPU_CLUSTERS_CREATE_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <core/workers.h>
 #include <common/list.h>
