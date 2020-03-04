@@ -17,43 +17,45 @@
 #ifndef __ERRORCHECK_H__
 #define __ERRORCHECK_H__
 
+/** @file */
+
 #include <starpu.h>
 
-/* This type describes in which state a worker may be. */
+/** This type describes in which state a worker may be. */
 enum _starpu_worker_status
 {
-	/* invalid status (for instance if we request the status of some thread
+	/** invalid status (for instance if we request the status of some thread
 	 * that is not controlled by StarPU */
 	STATUS_INVALID,
-	/* everything that does not fit the other status */
+	/** everything that does not fit the other status */
 	STATUS_UNKNOWN,
-	/* during the initialization */
+	/** during the initialization */
 	STATUS_INITIALIZING,
-	/* during the execution of a codelet */
+	/** during the execution of a codelet */
 	STATUS_EXECUTING,
-	/* during the execution of the callback */
+	/** during the execution of the callback */
 	STATUS_CALLBACK,
-	/* while executing the scheduler code */
+	/** while executing the scheduler code */
 	STATUS_SCHEDULING,
-	/* while waiting for a data transfer */
+	/** while waiting for a data transfer */
 	STATUS_WAITING,
-	/* while sleeping because there is nothing to do, but looking for tasks to do */
+	/** while sleeping because there is nothing to do, but looking for tasks to do */
 	STATUS_SLEEPING_SCHEDULING,
-	/* while sleeping because there is nothing to do, and not even scheduling */
+	/** while sleeping because there is nothing to do, and not even scheduling */
 	STATUS_SLEEPING
 };
 
 struct _starpu_worker;
-/* Specify what the local worker is currently doing (eg. executing a callback).
+/** Specify what the local worker is currently doing (eg. executing a callback).
  * This permits to detect if this is legal to do a blocking call for instance.
  * */
 void _starpu_set_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
 void _starpu_set_local_worker_status(enum _starpu_worker_status st);
 
-/* Indicate what type of operation the worker is currently doing. */
+/** Indicate what type of operation the worker is currently doing. */
 enum _starpu_worker_status _starpu_get_local_worker_status(void);
 
-/* It is forbidden to do blocking calls during some operations such as callback
+/** It is forbidden to do blocking calls during some operations such as callback
  * or during the execution of a task. This function indicates whether it is
  * legal to call a blocking operation in the current context. */
 unsigned _starpu_worker_may_perform_blocking_calls(void);

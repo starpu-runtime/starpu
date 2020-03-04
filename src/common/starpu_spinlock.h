@@ -16,6 +16,8 @@
 #ifndef __STARPU_SPINLOCK_H__
 #define __STARPU_SPINLOCK_H__
 
+/** @file */
+
 #include <errno.h>
 #include <stdint.h>
 #include <common/config.h>

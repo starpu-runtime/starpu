@@ -17,7 +17,9 @@
 #ifndef __SCHED_CONTEXT_LIST_H__
 #define __SCHED_CONTEXT_LIST_H__
 
-/* Represents a non circular list of priorities and contains a list of sched context */
+/** @file */
+
+/** Represents a non circular list of priorities and contains a list of sched context */
 struct _starpu_sched_ctx_elt;
 struct _starpu_sched_ctx_list
 {
@@ -27,7 +29,7 @@ struct _starpu_sched_ctx_list
 	unsigned priority;
 };
 
-/* Represents a circular list of sched context. */
+/** Represents a circular list of sched context. */
 struct _starpu_sched_ctx_elt
 {
 	struct _starpu_sched_ctx_elt *prev;
@@ -44,7 +46,7 @@ struct _starpu_sched_ctx_list_iterator
 	struct _starpu_sched_ctx_elt *cursor;
 };
 
-/* Element (sched_ctx) level operations */
+/** Element (sched_ctx) level operations */
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_elt_find(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 void _starpu_sched_ctx_elt_ensure_consistency(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 void _starpu_sched_ctx_elt_init(struct _starpu_sched_ctx_elt *elt, unsigned sched_ctx);
@@ -56,7 +58,7 @@ int _starpu_sched_ctx_elt_exists(struct _starpu_sched_ctx_list *list, unsigned s
 int _starpu_sched_ctx_elt_get_priority(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 
 
-/* List (priority) level operations */
+/** List (priority) level operations */
 struct _starpu_sched_ctx_list* _starpu_sched_ctx_list_find(struct _starpu_sched_ctx_list *list, unsigned prio);
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sched_ctx_list **list, unsigned prio, unsigned sched_ctx);
 int _starpu_sched_ctx_list_add(struct _starpu_sched_ctx_list **list, unsigned sched_ctx);
@@ -67,12 +69,12 @@ int _starpu_sched_ctx_list_exists(struct _starpu_sched_ctx_list *list, unsigned 
 void _starpu_sched_ctx_list_remove_all(struct _starpu_sched_ctx_list *list);
 void _starpu_sched_ctx_list_delete(struct _starpu_sched_ctx_list **list);
 
-/* Task number management */
+/** Task number management */
 int _starpu_sched_ctx_list_push_event(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 int _starpu_sched_ctx_list_pop_event(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 int _starpu_sched_ctx_list_pop_all_event(struct _starpu_sched_ctx_list *list, unsigned sched_ctx);
 
-/* Iterator operations */
+/** Iterator operations */
 int _starpu_sched_ctx_list_iterator_init(struct _starpu_sched_ctx_list *list, struct _starpu_sched_ctx_list_iterator *it);
 int _starpu_sched_ctx_list_iterator_has_next(struct _starpu_sched_ctx_list_iterator *it);
 struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_iterator_get_next(struct _starpu_sched_ctx_list_iterator *it);

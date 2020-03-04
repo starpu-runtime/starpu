@@ -17,26 +17,28 @@
 #ifndef __BOUND_H__
 #define __BOUND_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <starpu_bound.h>
 #include <core/jobs.h>
 
-/* Are we recording? */
+/** Are we recording? */
 extern int _starpu_bound_recording;
 
-/* Record task for bound computation */
+/** Record task for bound computation */
 extern void _starpu_bound_record(struct _starpu_job *j);
 
-/* Record tag dependency: id depends on dep_id */
+/** Record tag dependency: id depends on dep_id */
 extern void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id);
 
-/* Record task dependency: j depends on dep_j */
+/** Record task dependency: j depends on dep_j */
 extern void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j);
 
-/* Record job id dependency: j depends on job_id */
+/** Record job id dependency: j depends on job_id */
 extern void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *dep_j, unsigned long job_id);
 
-/* Clear recording */
+/** Clear recording */
 extern void starpu_bound_clear(void);
 
 #endif // __BOUND_H__

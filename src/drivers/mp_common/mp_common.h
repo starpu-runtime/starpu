@@ -18,6 +18,8 @@
 #ifndef __MP_COMMON_H__
 #define __MP_COMMON_H__
 
+/** @file */
+
 #include <semaphore.h>
 
 #include <starpu.h>
@@ -152,7 +154,7 @@ LIST_TYPE(_starpu_mp_event,
 );
 
 
-/* Message-passing working node, whether source
+/** Message-passing working node, whether source
  * or sink */
 struct _starpu_mp_node
 {
@@ -167,38 +169,38 @@ struct _starpu_mp_node
 	/*Is starpu running*/
 	int is_running;
 
-	/* Buffer used for scif data transfers, allocated
+	/** Buffer used for scif data transfers, allocated
 	 * during node initialization.
 	 * Size : BUFFER_SIZE */
 	void *buffer;
 
-	/* For sink : -1.
+	/** For sink : -1.
 	 * For host : index of the sink = devid.
 	 */
 	int peer_id;
 
-	/* Only MIC use this for now !!
+	/** Only MIC use this for now !!
 	 * This is the devid both for the sink and the host. */
 	int devid;
 
-	/* Only MIC use this for now !!
+	/** Only MIC use this for now !!
 	 *  Is the number ok MIC on the system. */
 	unsigned int nb_mp_sinks;
 
-	/* Connection used for command passing between the host thread and the
+	/** Connection used for command passing between the host thread and the
 	 * sink it controls */
 	union _starpu_mp_connection mp_connection;
 
-        /* Only MIC use this for now !!
+        /** Only MIC use this for now !!
          * Connection used for data transfers between the host and his sink. */
         union _starpu_mp_connection host_sink_dt_connection;
 
-        /* Mutex to protect the interleaving of communications when using one thread per node,
+        /** Mutex to protect the interleaving of communications when using one thread per node,
          * for instance, when a thread transfers piece of data and an other wants to use
          * a sink_to_sink communication */
         starpu_pthread_mutex_t connection_mutex;
 
-        /* Only MIC use this for now !!
+        /** Only MIC use this for now !!
          * Only sink use this for now !!
          * Connection used for data transfer between devices.
          * A sink opens a connection with each other sink,
@@ -208,15 +210,15 @@ struct _starpu_mp_node
          *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
         union _starpu_mp_connection *sink_sink_dt_connections;
 
-        /* This list contains events
+        /** This list contains events
          * about asynchronous request
          */
         struct _starpu_mp_event_list event_list;
 
-        /* */
+        /** */
         starpu_pthread_barrier_t init_completed_barrier;
 
-        /* table to store pointer of the thread workers*/
+        /** table to store pointer of the thread workers*/
         void* thread_table;
 
         /*list where threads add messages to send to the source node */
@@ -232,24 +234,24 @@ struct _starpu_mp_node
         struct mp_task ** run_table_detached;
         sem_t * sem_run_table;
 
-        /* Node general functions */
+        /** Node general functions */
         void (*init)            (struct _starpu_mp_node *node);
         void (*launch_workers)  (struct _starpu_mp_node *node);
         void (*deinit)          (struct _starpu_mp_node *node);
         void (*report_error)    (const char *, const char *, const int, const int);
 
-        /* Message passing */
+        /** Message passing */
         int (*mp_recv_is_ready) (const struct _starpu_mp_node *);
         void (*mp_send)         (const struct _starpu_mp_node *, void *, int);
         void (*mp_recv)         (const struct _starpu_mp_node *, void *, int);
 
-        /* Data transfers */
+        /** Data transfers */
         void (*dt_send)             (const struct _starpu_mp_node *, void *, int, void *);
         void (*dt_recv)             (const struct _starpu_mp_node *, void *, int, void *);
         void (*dt_send_to_device)   (const struct _starpu_mp_node *, int, void *, int, void *);
         void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
 
-        /* Test async transfers */
+        /** Test async transfers */
         int (*dt_test) (struct _starpu_async_channel *);
 
         void (*(*get_kernel_from_job)   (const struct _starpu_mp_node *,struct _starpu_job *))(void);

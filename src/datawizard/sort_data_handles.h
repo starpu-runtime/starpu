@@ -17,6 +17,8 @@
 #ifndef __SORT_DATA_HANDLES_H__
 #define __SORT_DATA_HANDLES_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <stdlib.h>
@@ -26,7 +28,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
-/* To avoid deadlocks, we reorder the different buffers accessed to by the task
+/** To avoid deadlocks, we reorder the different buffers accessed to by the task
  * so that we always grab the rw-lock associated to the handles in the same
  * order. */
 void _starpu_sort_task_handles(struct _starpu_data_descr descr[], unsigned nbuffers);

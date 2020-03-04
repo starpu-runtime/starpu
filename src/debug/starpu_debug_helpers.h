@@ -17,6 +17,8 @@
 #ifndef __STARPU_DEBUG_HELPERS_H__
 #define __STARPU_DEBUG_HELPERS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <starpu_config.h>
 #include <starpu_util.h>
@@ -26,10 +28,10 @@ extern "C"
 {
 #endif
 
-/* Perform a ping pong between the two memory nodes */
+/** Perform a ping pong between the two memory nodes */
 void _starpu_benchmark_ping_pong(starpu_data_handle_t handle, unsigned node0, unsigned node1, unsigned niter);
 
-/* Display the size of different data structures */
+/** Display the size of different data structures */
 void _starpu_debug_display_structures_size(FILE *stream);
 
 #ifdef __cplusplus

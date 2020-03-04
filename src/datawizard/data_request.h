@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/** @file */
+
 /* This one includes us, so make sure to include it first */
 #include <datawizard/coherency.h>
 
@@ -44,18 +46,18 @@ struct _starpu_callback_list
 	struct _starpu_callback_list *next;
 };
 
-/* This represents a data request, i.e. we want some data to get transferred
+/** This represents a data request, i.e. we want some data to get transferred
  * from a source to a destination. */
 LIST_TYPE(_starpu_data_request,
 	struct _starpu_spinlock lock;
 	unsigned refcnt;
-	const char *origin; /* Name of the function that triggered the request */
+	const char *origin; /** Name of the function that triggered the request */
 
 	starpu_data_handle_t handle;
 	struct _starpu_data_replicate *src_replicate;
 	struct _starpu_data_replicate *dst_replicate;
 
-	/* Which memory node will actually perform the transfer.
+	/** Which memory node will actually perform the transfer.
 	 * This is important in the CUDA/OpenCL case, where only the worker for
 	 * the node can make the CUDA/OpenCL calls.
 	 */
@@ -71,33 +73,33 @@ LIST_TYPE(_starpu_data_request,
 	 */
 	enum starpu_data_access_mode mode;
 
-	/* Elements needed to make the transfer asynchronous */
+	/** Elements needed to make the transfer asynchronous */
 	struct _starpu_async_channel async_channel;
 
-	/* Whether the transfer is completed. */
+	/** Whether the transfer is completed. */
 	unsigned completed;
 
-	/* Whether this is just a prefetch request:
+	/** Whether this is just a prefetch request:
 	 * 0 for fetch,
 	 * 1 for prefetch (dependencies have just been released)
 	 * 2 for idle (a good idea to do it some time, but no hurry at all)
 	 */
 	unsigned prefetch;
 
-	/* Priority of the request. Default is 0 */
+	/** Priority of the request. Default is 0 */
 	int prio;
 
-	/* The value returned by the transfer function */
+	/** The value returned by the transfer function */
 	int retval;
 
-	/* The request will not actually be submitted until there remains
+	/** The request will not actually be submitted until there remains
 	 * dependencies. */
 	unsigned ndeps;
 
-	/* in case we have a chain of request (eg. for nvidia multi-GPU), this
+	/** in case we have a chain of request (eg. for nvidia multi-GPU), this
 	 * is the list of requests which are waiting for this one. */
 	struct _starpu_data_request *next_req[STARPU_MAXNODES+1];
-	/* The number of requests in next_req */
+	/** The number of requests in next_req */
 	unsigned next_req_count;
 
 	struct _starpu_callback_list *callbacks;
@@ -106,22 +108,22 @@ LIST_TYPE(_starpu_data_request,
 )
 PRIO_LIST_TYPE(_starpu_data_request, prio)
 
-/* Everyone that wants to access some piece of data will post a request.
+/** Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
 LIST_TYPE(_starpu_data_requester,
-	/* what kind of access is requested ? */
+	/** what kind of access is requested ? */
 	enum starpu_data_access_mode mode;
 
-	/* applications may also directly manipulate data */
+	/** applications may also directly manipulate data */
 	unsigned is_requested_by_codelet;
 
-	/* in case this is a codelet that will do the access */
+	/** in case this is a codelet that will do the access */
 	struct _starpu_job *j;
 	unsigned buffer_index;
 
 	int prio;
 
-	/* if this is more complicated ... (eg. application request) 
+	/** if this is more complicated ... (eg. application request) 
 	 * NB: this callback is not called with the lock taken !
 	 */
 	void (*ready_data_callback)(void *argcb);
@@ -132,7 +134,7 @@ PRIO_LIST_TYPE(_starpu_data_requester, prio)
 void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(struct _starpu_data_request *r);
-/* returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
+/** returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
 int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
 int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
 int _starpu_handle_node_idle_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);

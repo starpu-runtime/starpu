@@ -17,6 +17,8 @@
 #ifndef __TAGS_H__
 #define __TAGS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <common/starpu_spinlock.h>

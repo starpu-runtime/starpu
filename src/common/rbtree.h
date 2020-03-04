@@ -29,6 +29,8 @@
 #ifndef _KERN_RBTREE_H
 #define _KERN_RBTREE_H
 
+/** @file */
+
 #include <stddef.h>
 #include <assert.h>
 #include <stdint.h>
@@ -44,24 +46,24 @@
 #define STARPU_RBTREE_LEFT     0
 #define STARPU_RBTREE_RIGHT    1
 
-/*
+/**
  * Red-black node.
  */
 struct starpu_rbtree_node;
 
-/*
+/**
  * Red-black tree.
  */
 struct starpu_rbtree;
 
-/*
+/**
  * Static tree initializer.
  */
 #define STARPU_RBTREE_INITIALIZER { NULL }
 
 #include "rbtree_i.h"
 
-/*
+/**
  * Initialize a tree.
  */
 static inline void starpu_rbtree_init(struct starpu_rbtree *tree)
@@ -69,14 +71,14 @@ static inline void starpu_rbtree_init(struct starpu_rbtree *tree)
     tree->root = NULL;
 }
 
-/*
+/**
  * This version assumes that the content of tree was already zeroed
  */
 static inline void starpu_rbtree_init0(struct starpu_rbtree *tree STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
-/*
+/**
  * Initialize a node.
  *
  * A node is in no tree when its parent points to itself.
@@ -90,7 +92,7 @@ static inline void starpu_rbtree_node_init(struct starpu_rbtree_node *node)
     node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
 
-/*
+/**
  * This version assumes that the content of node was already zeroed
  */
 static inline void starpu_rbtree_node_init0(struct starpu_rbtree_node *node)
@@ -102,7 +104,7 @@ static inline void starpu_rbtree_node_init0(struct starpu_rbtree_node *node)
     //node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
 
-/*
+/**
  * Return true if node is in no tree.
  */
 static inline int starpu_rbtree_node_unlinked(const struct starpu_rbtree_node *node)
@@ -110,13 +112,13 @@ static inline int starpu_rbtree_node_unlinked(const struct starpu_rbtree_node *n
     return starpu_rbtree_parent(node) == node;
 }
 
-/*
+/**
  * Macro that evaluates to the address of the structure containing the
  * given node based on the given type and member.
  */
 #define starpu_rbtree_entry(node, type, member) structof(node, type, member)
 
-/*
+/**
  * Return true if tree is empty.
  */
 static inline int starpu_rbtree_empty(const struct starpu_rbtree *tree)
@@ -124,7 +126,7 @@ static inline int starpu_rbtree_empty(const struct starpu_rbtree *tree)
     return tree->root == NULL;
 }
 
-/*
+/**
  * Look up a node in a tree.
  *
  * Note that implementing the lookup algorithm as a macro gives two benefits:
@@ -155,7 +157,7 @@ MACRO_BEGIN                                             \
     ___cur;                                             \
 MACRO_END
 
-/*
+/**
  * Look up a node or one of its nearest nodes in a tree.
  *
  * This macro essentially acts as starpu_rbtree_lookup() but if no entry matched
@@ -191,7 +193,7 @@ MACRO_BEGIN                                                 \
     ___cur;                                                 \
 MACRO_END
 
-/*
+/**
  * Insert a node in a tree.
  *
  * This macro performs a standard lookup to obtain the insertion point of
@@ -227,7 +229,7 @@ MACRO_BEGIN                                                 \
     starpu_rbtree_insert_rebalance(tree, ___prev, ___index, node); \
 MACRO_END
 
-/*
+/**
  * Look up a node/slot pair in a tree.
  *
  * This macro essentially acts as starpu_rbtree_lookup() but in addition to a node,
@@ -263,7 +265,7 @@ MACRO_BEGIN                                         \
     ___cur;                                         \
 MACRO_END
 
-/*
+/**
  * Insert a node at an insertion point in a tree.
  *
  * This macro essentially acts as starpu_rbtree_insert() except that it doesn't
@@ -283,20 +285,20 @@ static inline void starpu_rbtree_insert_slot(struct starpu_rbtree *tree, uintptr
     starpu_rbtree_insert_rebalance(tree, parent, index, node);
 }
 
-/*
+/**
  * Remove a node from a tree.
  *
  * After completion, the node is stale.
  */
 void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node *node);
 
-/*
+/**
  * Return the first node of a tree.
  */
 /* TODO: optimize by maintaining the first node of the tree */
 #define starpu_rbtree_first(tree) starpu_rbtree_firstlast(tree, STARPU_RBTREE_LEFT)
 
-/*
+/**
  * Return the last node of a tree.
  */
 /* TODO: optimize by maintaining the first node of the tree */
@@ -304,17 +306,17 @@ void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node 
  * bigger that the biggest node */
 #define starpu_rbtree_last(tree) starpu_rbtree_firstlast(tree, STARPU_RBTREE_RIGHT)
 
-/*
+/**
  * Return the node previous to the given node.
  */
 #define starpu_rbtree_prev(node) starpu_rbtree_walk(node, STARPU_RBTREE_LEFT)
 
-/*
+/**
  * Return the node next to the given node.
  */
 #define starpu_rbtree_next(node) starpu_rbtree_walk(node, STARPU_RBTREE_RIGHT)
 
-/*
+/**
  * Forge a loop to process all nodes of a tree, removing them when visited.
  *
  * This macro can only be used to destroy a tree, so that the resources used

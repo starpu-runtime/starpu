@@ -17,6 +17,8 @@
 #ifndef __DRIVER_MPI_SINK_H__
 #define __DRIVER_MPI_SINK_H__
 
+/** @file */
+
 #include <drivers/mp_common/sink_common.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE

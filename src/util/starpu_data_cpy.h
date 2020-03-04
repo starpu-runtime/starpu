@@ -17,6 +17,8 @@
 #ifndef __STARPU_DATA_CPY_H__
 #define __STARPU_DATA_CPY_H__
 
+/** @file */
+
 #include <starpu.h>
 
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,

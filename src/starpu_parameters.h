@@ -18,6 +18,8 @@
 #ifndef _STARPU_PARAMETERS_H
 #define _STARPU_PARAMETERS_H
 
+/** @file */
+
 /* Parameters which are not worth being added to ./configure options, but
  * still interesting to easily change */
 

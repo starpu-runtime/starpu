@@ -19,11 +19,13 @@
 #ifndef __KNOBS_H__
 #define __KNOBS_H__
 
+/** @file */
+
 #include <stdint.h>
 #include <starpu.h>
 #include <common/config.h>
 
-/* Performance Monitoring */
+/** Performance Monitoring */
 #define STARPU_ASSERT_PERF_COUNTER_SCOPE_DEFINED(t) STARPU_ASSERT( \
 		(t == starpu_perf_counter_scope_global ) \
 		|| (t == starpu_perf_counter_scope_per_worker ) \

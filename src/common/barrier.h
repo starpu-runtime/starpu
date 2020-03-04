@@ -19,6 +19,8 @@
 
 #include <starpu_thread.h>
 
+/** @file */
+
 struct _starpu_barrier
 {
 	unsigned count;

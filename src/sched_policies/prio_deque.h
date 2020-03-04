@@ -20,6 +20,7 @@
 #include <starpu_scheduler.h>
 #include <core/task.h>
 
+/** @file */
 
 struct _starpu_prio_deque
 {
@@ -45,7 +46,7 @@ static inline void _starpu_prio_deque_destroy(struct _starpu_prio_deque *pdeque)
 	starpu_task_prio_list_deinit(&pdeque->list);
 }
 
-/* return 0 iff the struct _starpu_prio_deque is not empty */
+/** return 0 iff the struct _starpu_prio_deque is not empty */
 static inline int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *pdeque)
 {
 	return pdeque->ntasks == 0;
@@ -56,7 +57,7 @@ static inline void _starpu_prio_deque_erase(struct _starpu_prio_deque *pdeque, s
 	starpu_task_prio_list_erase(&pdeque->list, task);
 }
 
-/* push a task in O(lg(nb priorities)) */
+/** push a task in O(lg(nb priorities)) */
 static inline int _starpu_prio_deque_push_front_task(struct _starpu_prio_deque *pdeque, struct starpu_task *task)
 {
 	starpu_task_prio_list_push_front(&pdeque->list, task);
@@ -81,7 +82,7 @@ static inline struct starpu_task * _starpu_prio_deque_highest_task(struct _starp
 	return task;
 }
 
-/* all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
+/** all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
  * in O(lg(nb priorities))
  */
 
@@ -123,11 +124,11 @@ static inline int _starpu_prio_deque_pop_this_task(struct _starpu_prio_deque *pd
 	return 0;
 }
 
-/* return a task that can be executed by workerid
+/** return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 
-/* return a task that can be executed by workerid
+/** return a task that can be executed by workerid
  */
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 

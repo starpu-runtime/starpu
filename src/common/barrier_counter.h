@@ -18,6 +18,8 @@
 #ifndef __BARRIER_COUNTER_H__
 #define __BARRIER_COUNTER_H__
 
+/** @file */
+
 #include <common/utils.h>
 #include <common/barrier.h>
 

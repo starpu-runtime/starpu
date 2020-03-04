@@ -18,6 +18,8 @@
 #ifndef __DRIVER_MIC_SOURCE_H__
 #define __DRIVER_MIC_SOURCE_H__
 
+/** @file */
+
 #include <starpu_mic.h>
 #include <common/config.h>
 

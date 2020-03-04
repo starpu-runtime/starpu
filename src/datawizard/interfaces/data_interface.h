@@ -17,6 +17,8 @@
 #ifndef __DATA_INTERFACE_H__
 #define __DATA_INTERFACE_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
@@ -24,7 +26,7 @@
 #include <util/openmp_runtime_support.h>
 #endif
 
-/* Generic type representing an interface, for now it's only used before
+/** Generic type representing an interface, for now it's only used before
  * execution on message-passing devices but it can be useful in other cases.
  */
 union _starpu_interface
@@ -39,7 +41,7 @@ union _starpu_interface
 	struct starpu_multiformat_interface multiformat;
 };
 
-/* Some data interfaces or filters use this interface internally */
+/** Some data interfaces or filters use this interface internally */
 extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
 extern struct starpu_data_interface_ops starpu_interface_block_ops;
 extern struct starpu_data_interface_ops starpu_interface_vector_ops;

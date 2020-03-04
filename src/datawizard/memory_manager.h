@@ -17,6 +17,8 @@
 #ifndef __MEMORY_MANAGER_H__
 #define __MEMORY_MANAGER_H__
 
+/** @file */
+
 #include <starpu.h>
 
 #ifdef __cplusplus
