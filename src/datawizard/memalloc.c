@@ -1049,7 +1049,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 			{
 				char name[32];
 				starpu_memory_node_get_name(node, name, sizeof(name));
-				_STARPU_DISP("Not enough memory left on node %s. Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges\n", name, (unsigned long) (reclaim / 1048576));
+				_STARPU_DISP("Not enough memory left on node %s. Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges\n", name, (unsigned long) ((reclaim+1048575) / 1048576));
 			}
 		}
 	}
@@ -1270,7 +1270,7 @@ void starpu_memchunk_tidy(unsigned node)
 		{
 			char name[32];
 			starpu_memory_node_get_name(node, name, sizeof(name));
-			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
+			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) ((amount+1048575) / 1048576));
 		}
 	}
 
