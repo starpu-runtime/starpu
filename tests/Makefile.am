@@ -139,6 +139,7 @@ noinst_PROGRAMS +=				\
 	datawizard/acquire_cb			\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
+	datawizard/numa_overflow		\
 	datawizard/locality			\
 	datawizard/simgrid-locality		\
 	errorcheck/starpu_init_noworker		\
