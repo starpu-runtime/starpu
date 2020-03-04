@@ -146,13 +146,15 @@ noinst_HEADERS = 				\
 
 examplebin_PROGRAMS 	+=	$(STARPU_EXAMPLES)
 
-TESTS			=	$(STARPU_EXAMPLES)
+TESTS			=	$(SHELL_TESTS) $(STARPU_EXAMPLES)
+
+SHELL_TESTS =
 
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS			+=	scheduler/schedulers.sh
-TESTS			+=	scheduler/schedulers_context.sh
+SHELL_TESTS			+=	scheduler/schedulers.sh
+SHELL_TESTS			+=	scheduler/schedulers_context.sh
 if !NO_BLAS_LIB
-TESTS			+=	mult/sgemm.sh
+SHELL_TESTS			+=	mult/sgemm.sh
 endif
 endif
 
@@ -324,7 +326,7 @@ STARPU_EXAMPLES +=				\
 	pipeline/pipeline
 
 if !STARPU_USE_MPI_MASTER_SLAVE
-TESTS += \
+SHELL_TESTS += \
 	heat/heat.sh				\
 	lu/lu.sh
 
@@ -334,7 +336,7 @@ endif
 
 if STARPU_SIMGRID
 if !STARPU_QUICK_CHECK
-TESTS += \
+SHELL_TESTS += \
 	 cholesky/cholesky.sh
 endif
 endif

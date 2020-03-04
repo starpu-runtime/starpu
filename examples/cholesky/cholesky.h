@@ -146,11 +146,6 @@ static inline void init_sizes(void)
 	if (!nbigblocks_p)
 		nbigblocks_p = 4*power_cbrt;
 #endif
-
-#ifdef STARPU_HAVE_VALGRIND_H
-       if (RUNNING_ON_VALGRIND)
-	       size_p = 16;
-#endif
 }
 
 static unsigned pinned_p = 1;
@@ -281,6 +276,11 @@ static void parse_args(int argc, char **argv)
 			exit(0);
 		}
 	}
+
+#ifdef STARPU_HAVE_VALGRIND_H
+       if (RUNNING_ON_VALGRIND)
+	       size_p = 16;
+#endif
 }
 
 #endif /* __DW_CHOLESKY_H__ */

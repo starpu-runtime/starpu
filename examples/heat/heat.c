@@ -711,7 +711,7 @@ int main(int argc, char **argv)
 	RefArray = malloc(DIM*sizeof(int));
 	RefArrayBack = malloc(DIM*sizeof(int));
 	Bformer = malloc(DIM*sizeof(float));
-	result = malloc(DIM*sizeof(float));
+	result = calloc(DIM, sizeof(float));
 
 	build_mesh(pmesh);
 

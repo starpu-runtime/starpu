@@ -348,12 +348,12 @@ int main(int argc, char **argv)
 		nblocks = 8*power_cbrt;
 #endif
 
+	parse_args(argc, argv);
+
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
 		size = 16;
 #endif
-
-	parse_args(argc, argv);
 
 	starpu_cublas_init();
 
