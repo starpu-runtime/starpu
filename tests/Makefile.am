@@ -154,6 +154,7 @@ myPROGRAMS +=					\
 	datawizard/deps				\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
+	datawizard/numa_overflow		\
 	datawizard/locality			\
 	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
