@@ -99,6 +99,22 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
+static void parallel_heft_post_exec_hook(struct starpu_task *task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+{
+	unsigned workerid = starpu_worker_get_id_check();
+	const double now = starpu_timing_now();
+
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	/* Once we have executed the task, we can update the predicted amount
+	 * of work. */
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
+	worker_exp_start[workerid] = now;
+	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
+}
+
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double exp_start_predicted, double exp_end_predicted, int prio, unsigned sched_ctx_id)
 {
 	/* make sure someone coule execute that task ! */
@@ -593,7 +609,6 @@ static void parallel_heft_deinit(unsigned sched_ctx_id)
 	free(hd);
 }
 
-/* TODO: use post_exec_hook to fix the expected start */
 struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 {
 	.init_sched = initialize_parallel_heft_policy,
@@ -603,7 +618,7 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.push_task = parallel_heft_push_task,
 	.pop_task = NULL,
 	.pre_exec_hook = parallel_heft_pre_exec_hook,
-	.post_exec_hook = NULL,
+	.post_exec_hook = parallel_heft_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "pheft",
 	.policy_description = "parallel HEFT"
