@@ -2057,7 +2057,7 @@ static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
 	}
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t global_mem;
 	starpu_ssize_t limit = -1;
@@ -2115,8 +2115,13 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 		// No limit is defined, we return the global memory size
 		return global_mem;
 	else if (global_mem && (size_t)limit * 1024*1024 > global_mem)
-		// The requested limit is higher than what is available, we return the global memory size
+	{
+		if (numa_enabled)
+			_STARPU_DISP("The requested limit %ldMB for NUMA node %d is higher that available memory %luMB, using the latter\n", (unsigned long) limit, nodeid, (unsigned long) global_mem / (1024*1024));
+		else
+			_STARPU_DISP("The requested limit %ldMB is higher that available memory %luMB, using the latter\n", (long) limit, (unsigned long) global_mem / (1024*1024));
 		return global_mem;
+	}
 	else
 		// We limit the memory
 		return limit*1024*1024;
