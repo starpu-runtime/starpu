@@ -106,6 +106,9 @@ extern "C"
 */
 #define STARPU_TAG               (10<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_task_insert(), must be followed by a tag.
+*/
 #define STARPU_HYPERVISOR_TAG	 (11<<STARPU_MODE_SHIFT)
 
 /**
