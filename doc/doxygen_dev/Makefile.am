@@ -191,7 +191,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/core/progress_hook.h \
 	$(top_srcdir)/src/core/drivers.h \
 	$(top_srcdir)/src/core/workers.h
-	$(top_srcdir)/src/datawizard/coherency.h \ \
+	$(top_srcdir)/src/datawizard/coherency.h \
 	$(top_srcdir)/src/datawizard/sort_data_handles.h \
 	$(top_srcdir)/src/datawizard/memalloc.h \
 	$(top_srcdir)/src/datawizard/copy_driver.h \
