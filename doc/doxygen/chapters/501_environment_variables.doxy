@@ -956,6 +956,18 @@ Specify the maximum number of megabytes that should be
 available to the application on the NUMA node with the OS identifier <c>devid</c>.
 </dd>
 
+<dt>STARPU_LIMIT_CPU_NUMA_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CPU_NUMA_MEM
+\addindex __env__STARPU_LIMIT_CPU_NUMA_MEM
+Specify the maximum number of megabytes that should be available to the
+application on each NUMA node. This is the same as specifying that same amount
+with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
+memory available to StarPU will thus be this amount multiplied by the number of
+NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
+specified will take over STARPU_LIMIT_CPU_NUMA_MEM.
+</dd>
+
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM
