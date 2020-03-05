@@ -27,7 +27,7 @@
 
 #if defined STARPU_OPENMP
 /**
-   Opaque Simple Lock object (\ref SimpleLock) for inter-task
+   Opaque Simple Lock object (\anchor SimpleLock) for inter-task
    synchronization operations.
    \sa starpu_omp_init_lock()
    \sa starpu_omp_destroy_lock()
@@ -38,7 +38,7 @@
 typedef struct { void *internal; /**< opaque pointer for internal use */ } starpu_omp_lock_t;
 
 /**
-   Opaque Nestable Lock object (\ref NestableLock) for inter-task
+   Opaque Nestable Lock object (\anchor NestableLock) for inter-task
    synchronization operations.
    \sa starpu_omp_init_nest_lock()
    \sa starpu_omp_destroy_nest_lock()
@@ -50,7 +50,7 @@ typedef struct { void *internal; /**< opaque pointer for internal use */  } star
 
 /**
    Set of constants for selecting the for loop iteration scheduling
-   algorithm (\ref OMPFor) as defined by the OpenMP specification.
+   algorithm (\anchor OMPFor) as defined by the OpenMP specification.
    \sa starpu_omp_for()
    \sa starpu_omp_for_inline_first()
    \sa starpu_omp_for_inline_next()

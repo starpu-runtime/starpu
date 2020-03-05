@@ -757,6 +757,13 @@ and allows studying scheduling overhead of the runtime system. However,
 it also makes simulation non-deterministic.
 </dd>
 
+<dt>STARPU_SINK</dt>
+<dd>
+\anchor STARPU_SINK
+\addindex __env__STARPU_SINK
+Variable defined by StarPU when running MPI Xeon PHI on the sink.
+</dd>
+
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug

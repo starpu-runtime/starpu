@@ -17,7 +17,6 @@
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 		       	 @top_srcdir@/doc/doxygen/chapters/api \
-		       	 @top_srcdir@/doc/doxygen/chapters/api/sc_hypervisor \
                          @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/starpu_bitmap.h \
 	 		 @top_srcdir@/include/starpu_bound.h \
