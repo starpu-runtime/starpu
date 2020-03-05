@@ -34,21 +34,73 @@ extern "C"
    @{
  */
 
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_MIN_NB			(1<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_MAX_NB			(2<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_NB			(3<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_PREFERE_MIN		(4<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_KEEP_HOMOGENEOUS		(5<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_POLICY_NAME		(6<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_POLICY_STRUCT		(7<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_CREATE_FUNC		(8<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_CREATE_FUNC_ARG		(9<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_TYPE			(10<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_AWAKE_WORKERS		(11<<STARPU_MODE_SHIFT)
 
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_PARTITION_ONE		(12<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_NEW			(13<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_cluster_machine
+ */
 #define STARPU_CLUSTER_NCORES			(14<<STARPU_MODE_SHIFT)
 
 /**

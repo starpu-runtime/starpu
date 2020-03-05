@@ -409,6 +409,7 @@ int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
 
 /**
    @name MPI Insert Task
+   \anchor MPIInsertTask
    @{
 */
 
@@ -615,7 +616,15 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new
    @{
 */
 
+
+/**
+   Define the current policy
+ */
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
+/**
+   Define the policy in which the selected node is the one having the
+   most data in ::STARPU_R mode
+*/
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
 
 typedef int (*starpu_mpi_select_node_policy_func_t)(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);

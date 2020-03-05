@@ -96,16 +96,8 @@ chapters =	\
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
-	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/fft_support.doxy \
-	chapters/api/mpi.doxy \
-	chapters/api/opencl_extensions.doxy \
-	chapters/api/openmp_runtime_support.doxy \
-	chapters/api/mic_extensions.doxy \
-	chapters/api/scheduling_contexts.doxy \
-	chapters/api/scheduling_policy.doxy \
 	chapters/api/versioning.doxy \
-	chapters/api/workers.doxy \
 	chapters/api/threads.doxy
 
 images = 	\
