@@ -443,8 +443,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		return 0;
 
 	/* This data cannnot be pushed outside CPU memory */
-	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
-		&& starpu_memory_nodes_get_numa_count() == 1)
+	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
 		return 0;
 
 	/* REDUX memchunk */
