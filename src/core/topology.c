@@ -2081,7 +2081,7 @@ static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
 	}
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
 	starpu_ssize_t limit = -1;
@@ -2135,7 +2135,14 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 #endif
 
 	if (limit == -1)
+	{
 		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+		if (limit != -1 && numa_enabled)
+		{
+			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nnumanodes(config));
+			limit /= _starpu_topology_get_nnumanodes(config);
+		}
+	}
 
 	if (limit < 0)
 		// No limit is defined, we return the global memory size

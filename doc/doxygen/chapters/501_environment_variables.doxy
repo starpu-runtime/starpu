@@ -952,8 +952,9 @@ STARPU_MPI_MEM_THROTTLE is set to 1.
 <dd>
 \anchor STARPU_LIMIT_CPU_NUMA_devid_MEM
 \addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
-Specify the maximum number of megabytes that should be
-available to the application on the NUMA node with the OS identifier <c>devid</c>.
+Specify the maximum number of megabytes that should be available to the
+application on the NUMA node with the OS identifier <c>devid</c>.  Setting it
+overrides the value of STARPU_LIMIT_CPU_MEM.
 </dd>
 
 <dt>STARPU_LIMIT_CPU_NUMA_MEM</dt>
