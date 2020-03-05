@@ -154,7 +154,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/common/prio_list.h	\
 	$(top_srcdir)/src/common/barrier_counter.h	\
 	$(top_srcdir)/src/common/uthash.h	\
-	$(top_srcdir)/src/common/knobs.h	\
 	$(top_srcdir)/src/common/utils.h	\
 	$(top_srcdir)/src/common/thread.h	\
 	$(top_srcdir)/src/common/list.h	\
