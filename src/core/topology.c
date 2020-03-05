@@ -2089,6 +2089,8 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 #endif
 			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
 			limit = starpu_get_env_number(name);
+			if (limit == -1)
+				limit = starpu_get_env_number("STARPU_LIMIT_CPU_NUMA_MEM");
 		}
 	}
 	else
