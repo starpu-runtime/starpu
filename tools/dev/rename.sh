@@ -1,7 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,5 +12,5 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
+#
 find . -type f -not -name rename.sed |xargs sed -i -f $(dirname $0)/rename.sed

@@ -1,11 +1,7 @@
 #!/bin/bash
-# Note: expects Coccinelle's spatch command n the PATH
-# See: http://coccinelle.lip6.fr/
-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
-# Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +13,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+# Note: expects Coccinelle's spatch command n the PATH
+# See: http://coccinelle.lip6.fr/
 
 stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
