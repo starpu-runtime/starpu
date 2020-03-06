@@ -22,9 +22,10 @@ check_success()
     fi
 }
 
-if test ! -x ./cholesky/cholesky_tag
+basedir=$(dirname $0)
+if test ! -x $basedir/../cholesky/cholesky_tag
 then
-    echo "Application ./cholesky/cholesky_tag unavailable"
+    echo "Application $basedir/../cholesky/cholesky_tag unavailable"
     exit 77
 fi
 
@@ -32,12 +33,12 @@ if [ -n "$STARPU_SCHED" ]
 then
 	SCHEDULERS=$STARPU_SCHED
 else
-	SCHEDULERS=`../tools/starpu_sched_display | grep -v heteroprio`
+	SCHEDULERS=`$basedir/../../tools/starpu_sched_display | grep -v heteroprio`
 fi
 
 for sched in $SCHEDULERS
 do
     echo "cholesky.$sched"
-    STARPU_SCHED=$sched $STARPU_LAUNCH ./cholesky/cholesky_tag -size $((960*3)) -nblocks 3
+    STARPU_SCHED=$sched $STARPU_LAUNCH $basedir/../cholesky/cholesky_tag -size $((960*3)) -nblocks 3
     check_success $?
 done
