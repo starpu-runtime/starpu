@@ -179,12 +179,6 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
-
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_prio_deque_is_empty(prio))
-	{
-		return NULL;
-	}
-
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
