@@ -105,7 +105,7 @@ void _starpu_simgrid_count_ngpus(void);
 
 extern size_t _starpu_default_stack_size;
 void _starpu_simgrid_set_stack_size(size_t stack_size);
-void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
+void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *attr, void_f_pvoid_t code,
 				       void *param);
 
 #define _SIMGRID_TIMER_BEGIN(cond)			\

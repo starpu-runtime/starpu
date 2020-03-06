@@ -90,8 +90,16 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
+#ifndef HAVE_SG_ACTOR_SET_STACKSIZE
+	if (attr && attr->stacksize)
+		_starpu_simgrid_set_stack_size(attr->stacksize);
+#endif
 #ifdef HAVE_SG_ACTOR_INIT
 	*thread= sg_actor_init(name, host);
+#ifdef HAVE_SG_ACTOR_SET_STACKSIZE
+	if (attr && attr->stacksize)
+		sg_actor_set_stacksize(*thread, attr->stacksize);
+#endif
 	sg_actor_data_set(*thread, tsd);
 	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
 #else
@@ -99,6 +107,10 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 #ifdef HAVE_SG_ACTOR_DATA
 	sg_actor_data_set(*thread, tsd);
 #endif
+#endif
+#ifndef HAVE_SG_ACTOR_SET_STACKSIZE
+	if (attr && attr->stacksize)
+		_starpu_simgrid_set_stack_size(_starpu_default_stack_size);
 #endif
 
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
@@ -148,13 +160,20 @@ int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 }
 
 
-int starpu_pthread_attr_init(starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED)
+int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
 {
+	attr->stacksize = 0;
 	return 0;
 }
 
 int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED)
 {
+	return 0;
+}
+
+int starpu_pthread_attr_setstacksize(starpu_pthread_attr_t *attr, size_t stacksize)
+{
+	attr->stacksize = stacksize;
 	return 0;
 }
 

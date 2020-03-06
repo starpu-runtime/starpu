@@ -84,15 +84,17 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 }
 #endif
 
-void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, void *param)
+void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *attr, void_f_pvoid_t code, void *param)
 {
 #if SIMGRID_VERSION >= 32501
 	starpu_pthread_t t;
 	thread_data_t *res = (thread_data_t *) malloc(sizeof(thread_data_t));
 	res->userparam = param;
 	res->code = code;
-	starpu_pthread_create_on(name, &t, NULL, _starpu_simgrid_xbt_thread_create_wrapper, res, sg_host_self());
+	starpu_pthread_create_on(name, &t, attr, _starpu_simgrid_xbt_thread_create_wrapper, res, sg_host_self());
 #else
+	if (attr && attr->stacksize)
+		_starpu_simgrid_set_stack_size(attr->stacksize);
 #if SIMGRID_VERSION >= 32190 || defined(HAVE_SIMCALL_PROCESS_CREATE) || defined(simcall_process_create)
 #ifdef HAVE_SMX_ACTOR_T
 	smx_actor_t process STARPU_ATTRIBUTE_UNUSED;
@@ -138,6 +140,8 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code, vo
 #else
 	STARPU_ABORT_MSG("Can't run StarPU-Simgrid-MPI with a Simgrid version which does not provide simcall_process_create and does not fix https://github.com/simgrid/simgrid/issues/139 , sorry.");
 #endif
+	if (attr && attr->stacksize)
+		_starpu_simgrid_set_stack_size(_starpu_default_stack_size);
 #endif
 }
 

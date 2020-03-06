@@ -76,7 +76,9 @@ typedef sg_actor_t starpu_pthread_t;
 #else
 typedef msg_process_t starpu_pthread_t;
 #endif
-typedef int starpu_pthread_attr_t;
+typedef struct {
+	size_t stacksize;
+} starpu_pthread_attr_t;
 
 #ifdef STARPU_HAVE_SIMGRID_ACTOR_H
 typedef sg_host_t starpu_sg_host_t;
