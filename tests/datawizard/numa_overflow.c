@@ -21,6 +21,14 @@
 #include <stdlib.h>
 #include "../helper.h"
 
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
+int main(void)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 #define ITER 10
 #define N 10
 #define SIZE (10*1024*1024)
@@ -118,3 +126,5 @@ enodev:
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
+
+#endif
