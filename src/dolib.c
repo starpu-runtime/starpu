@@ -26,12 +26,12 @@ int main(int argc, char *argv[])
 {
 	char *prog, *arch, *def, *effective_version, *version, *lib;
 	char s[1024];
-	char name[16];
+	char name[64];
 	int current, age, revision;
 
 	if (argc != 7)
 	{
-		fprintf(stderr,"bad number of arguments");
+		fprintf(stderr, "[dolib] bad number of arguments, expected %d, got %d\n", 7, argc);
 		exit(EXIT_FAILURE);
 	}
 
@@ -43,13 +43,17 @@ int main(int argc, char *argv[])
 	lib = argv[6];
 
 	if (sscanf(version, "%d:%d:%d", &current, &revision, &age) != 3)
+	{
+		fprintf(stderr, "version not formatted as current:revision:age (%s)\n", version);
 		exit(EXIT_FAILURE);
+	}
 
 	_snprintf(name, sizeof(name), "libstarpu-%s-%d", effective_version, current - age);
-	printf("using soname %s\n", name);
+	name[sizeof(name) - 1] = '\0';
+	fprintf(stdout, "[dolib] using soname '%s'\n", name);
 
-	_snprintf(s, sizeof(s), "\"%s\" /machine:%s /def:%s /name:%s /out:%s",
-		 prog, arch, def, name, lib);
+	_snprintf(s, sizeof(s), "\"%s\" /machine:%s /def:%s /name:%s /out:%s", prog, arch, def, name, lib);
+	s[sizeof(s) - 1] = '\0';
 	if (system(s))
 	{
 		fprintf(stderr, "%s failed\n", s);
