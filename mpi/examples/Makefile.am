@@ -389,10 +389,10 @@ endif
 # - link over source file to build our own object
 native_fortran/fstarpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../../include/$(notdir $@) $@
+	$(LN_S) $(top_srcdir)/include/$(notdir $@) $@
 native_fortran/fstarpu_mpi_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../../mpi/include/$(notdir $@) $@
+	$(LN_S) $(top_srcdir)/mpi/include/$(notdir $@) $@
 
 if STARPU_HAVE_MPIFORT
 if BUILD_EXAMPLES
