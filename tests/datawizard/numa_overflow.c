@@ -64,15 +64,11 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned i, j;
 	char s[16];
-	int worker, numa;
+	int worker;
 
 	snprintf(s, sizeof(s), "%u", (N*3/4)*SIZE/(1024*1024));
 	/* We make NUMA nodes not big enough for all data */
-	numa = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
-	if (numa == 1)
-		setenv("STARPU_LIMIT_CPU_NUMA_MEM", s, 1);
-	else
-		setenv("STARPU_LIMIT_CPU_MEM", s, 1);
+	setenv("STARPU_LIMIT_CPU_NUMA_MEM", s, 1);
 
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
