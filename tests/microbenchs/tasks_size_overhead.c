@@ -162,10 +162,6 @@ int main(int argc, char **argv)
 	unsigned buffer;
 	char *starpu_sched = getenv("STARPU_SCHED");
 
-	if (starpu_sched && !strcmp(starpu_sched, "pheft"))
-		/* pheft does not run tasks in parallel, avoid burning time... */
-		return STARPU_TEST_SKIPPED;
-
 	/* Get number of CPUs */
 	starpu_conf_init(&conf);
 	conf.ncuda = 0;
