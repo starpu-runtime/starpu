@@ -2250,7 +2250,7 @@ AC_OUTPUT([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
-	tools/mvsc/starpu_var.bat
+	tools/msvc/starpu_var.bat
 ])
 
 AC_MSG_NOTICE([

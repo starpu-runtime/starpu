@@ -119,12 +119,12 @@ EXTRA_DIST =				\
 	tsan/starpu.suppr		\
 	lsan/libc.suppr			\
 	lsan/openmpi.suppr		\
-	mvsc/starpu_clean.bat		\
-	mvsc/starpu_open.bat		\
-	mvsc/starpu_exec.bat		\
-	mvsc/starpu_var.bat		\
-	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj	\
+	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj	\
 	cppcheck/suppressions.txt
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -210,14 +210,14 @@ dist_bin_SCRIPTS +=			\
 	starpu_paje_state_stats
 
 if STARPU_HAVE_WINDOWS
-STARPU_MVSC_dir		 =	$(bindir)
-nobase_STARPU_MVSC__DATA =		\
-	mvsc/starpu_clean.bat		\
-	mvsc/starpu_open.bat		\
-	mvsc/starpu_exec.bat		\
-	mvsc/starpu_var.bat		\
-	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj
+STARPU_MSVC_dir		 =	$(bindir)
+nobase_STARPU_MSVC__DATA =		\
+	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj
 endif
 
 if STARPU_HAVE_HELP2MAN

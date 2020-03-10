@@ -14,11 +14,26 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 REM
-TITLE MVSC StarPU Cleaning
+TITLE MSVC StarPU Environment
 ECHO.
-ECHO MVSC StarPU Cleaning
+ECHO MSVC StarPU Environment
+
+IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
+
 ECHO.
+ECHO Setting environment from %STARPU_PATH%
 
-FOR %%d in (debug starpu\debug ipch) DO IF EXIST %%d RMDIR /S /Q %%d
-FOR %%f in (starpu.sdf starpu.suo) DO IF EXIST %%f DEL %%f
+set STARPU_LIBDIR=%STARPU_PATH%/lib
+set STARPU_INCLUDEDIR=%STARPU_PATH%/include
+set STARPU_CFLAGS=/I%STARPU_INCLUDEDIR%\starpu\@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
+set STARPU_LDFLAGS=/link %STARPU_PATH%\lib\libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 
+GOTO end
+
+:starpunotfound
+  ECHO.
+  ECHO You need to set the variable STARPU_PATH to a valid StarPU installation directory
+  exit /B 1
+  GOTO end
+
+:end

@@ -14,33 +14,37 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 REM
-TITLE MVSC StarPU Execution
+TITLE MSVC StarPU Execution
 ECHO.
-ECHO MVSC StarPU Execution
+ECHO MSVC StarPU Execution
+
+IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
+
+ECHO.
+ECHO %STARPU_PATH%
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam
 
-call .\starpu_var.bat
-
-mkdir starpu
+COPY %1 starpu\starpu_appli.c
 FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu\%%~nF
-FOR %%F IN (%HWLOC%\bin\*dll) DO COPY %%F starpu
+FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu
+COPY c:\MinGW\bin\pthreadGC2.dll starpu
+IF EXIST Debug RMDIR /S /Q Debug
+IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
 
-set STARPU_OLDPATH=%PATH%
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-cl %1 %STARPU_CFLAGS% %STARPU_LDFLAGS%
+"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe" starpu.sln
 
-set PATH=starpu;c:\MinGW\bin;%PATH%
-.\%~n1.exe
-
-set PATH=%STARPU_OLDPATH%
 GOTO end
 
 :invalidparam
   ECHO.
   ECHO Syntax error. You need to give the name of a StarPU application
-  EXIT /B 2
+  GOTO end
+
+:starpunotfound
+  ECHO.
+  ECHO You need to set the variable STARPU_PATH to a valid StarPU installation directory
   GOTO end
 
 :end
