@@ -59,7 +59,7 @@ starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod native_fortran/fstarpu_mod.f90 native_fortran/fstarpu_mpi_mod.f90
 
 EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\

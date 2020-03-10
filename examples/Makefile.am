@@ -75,7 +75,7 @@ EXTRA_DIST = 					\
 	lu/lu.sh
 
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot *.pl *.png *.output tasks.rec perfs.rec perfs2.rec
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot *.pl *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
 
 if STARPU_USE_CUDA
 
