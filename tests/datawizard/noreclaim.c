@@ -76,12 +76,17 @@ static void emit_empty_task(void)
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret, numa;
 	struct starpu_conf conf;
 	starpu_data_handle_t handle;
 	void *allocated;
 
-	setenv("STARPU_LIMIT_CPU_MEM", TOTAL, 1);
+	numa = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
+
+	if (numa == 1)
+		setenv("STARPU_LIMIT_CPU_NUMA_MEM", TOTAL, 1);
+	else
+		setenv("STARPU_LIMIT_CPU_MEM", TOTAL, 1);
 
 	starpu_conf_init(&conf);
 	conf.ncpus = 1;
