@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+include $(top_srcdir)/starpu-subdirtests.mk
+
 SUBDIRS = src tests
 if BUILD_EXAMPLES
 SUBDIRS += examples
@@ -28,21 +30,6 @@ noinst_HEADERS =				\
   include/starpu-gcc/tasks.h			\
   include/starpu-gcc/utils.h			\
   include/starpu-gcc/warn-unregistered.h
-
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
 
 # Generate a GNU-style ChangeLog for inclusion in the tarball.
 # It requires network access and may be slow.

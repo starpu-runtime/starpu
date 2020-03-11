@@ -14,6 +14,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+include $(top_srcdir)/starpu-subdirtests.mk
+
 SUBDIRS=src
 
 if BUILD_STARPUFFT_EXAMPLES
@@ -26,17 +28,3 @@ versinclude_HEADERS = 				\
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
