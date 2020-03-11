@@ -28,6 +28,7 @@ struct _starpu_fifo_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 	int ready;
+	int exp;
 };
 
 static void fifo_component_deinit_data(struct starpu_sched_component * component)
@@ -91,25 +92,52 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	int ret = 0;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	double exp_len;
-	if(!isnan(task->predicted))
-		exp_len = fifo->exp_len + task->predicted;
-	else
-		exp_len = fifo->exp_len;
 
-	if ((data->ntasks_threshold != 0 && fifo->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
+	if(data->exp)
 	{
-		static int warned;
-		if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
+		double exp_len;
+		if(!isnan(task->predicted))
+			exp_len = fifo->exp_len + task->predicted;
+		else
+			exp_len = fifo->exp_len;
+
+		if ((data->ntasks_threshold != 0 && fifo->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
 		{
-			_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
-			warned = 1;
+			static int warned;
+			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
+			{
+				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
+				warned = 1;
+			}
+			STARPU_ASSERT(!is_pushback);
+			ret = 1;
+			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		}
-		STARPU_ASSERT(!is_pushback);
-		ret = 1;
-		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
+		else
+		{
+			if(!isnan(task->predicted_transfer))
+			{
+				double end = fifo_estimated_end(component);
+				double tfer_end = now + task->predicted_transfer;
+				if(tfer_end < end)
+					task->predicted_transfer = 0.0;
+				else
+					task->predicted_transfer = tfer_end - end;
+				exp_len += task->predicted_transfer;
+			}
+
+			if(!isnan(task->predicted))
+			{
+				fifo->exp_len = exp_len;
+				fifo->exp_end = fifo->exp_start + fifo->exp_len;
+			}
+			STARPU_ASSERT(!isnan(fifo->exp_end));
+			STARPU_ASSERT(!isnan(fifo->exp_len));
+			STARPU_ASSERT(!isnan(fifo->exp_start));
+		}
 	}
-	else
+
+	if(!ret)
 	{
 		if(is_pushback)
 			ret = _starpu_fifo_push_back_task(fifo,task);
@@ -118,27 +146,6 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 			ret = _starpu_fifo_push_task(fifo,task);
 			starpu_sched_component_prefetch_on_node(component, task);
 		}
-
-		if(!isnan(task->predicted_transfer))
-		{
-			double end = fifo_estimated_end(component);
-			double tfer_end = now + task->predicted_transfer;
-			if(tfer_end < end)
-				task->predicted_transfer = 0.0;
-			else
-				task->predicted_transfer = tfer_end - end;
-			exp_len += task->predicted_transfer;
-		}
-
-		if(!isnan(task->predicted))
-		{
-			fifo->exp_len = exp_len;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		}
-		STARPU_ASSERT(!isnan(fifo->exp_end));
-		STARPU_ASSERT(!isnan(fifo->exp_len));
-		STARPU_ASSERT(!isnan(fifo->exp_start));
-
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
@@ -172,7 +179,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 		task = _starpu_fifo_pop_first_ready_task(fifo, starpu_bitmap_first(to->workers_in_ctx), -1);
 	else
 		task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
-	if(task)
+	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))
 		{
@@ -271,12 +278,14 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 		data->ntasks_threshold=params->ntasks_threshold;
 		data->exp_len_threshold=params->exp_len_threshold;
 		data->ready=params->ready;
+		data->exp=params->exp;
 	}
 	else
 	{
 		data->ntasks_threshold=0;
 		data->exp_len_threshold=0.0;
 		data->ready=0;
+		data->exp=0;
 	}
 
 	return component;

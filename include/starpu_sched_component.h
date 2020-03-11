@@ -420,6 +420,7 @@ struct starpu_sched_component_fifo_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 	int ready;
+	int exp;
 };
 
 /**
@@ -446,6 +447,7 @@ struct starpu_sched_component_prio_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 	int ready;
+	int exp;
 };
 struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_prio(struct starpu_sched_component *component);
