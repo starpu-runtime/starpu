@@ -742,9 +742,9 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 		/* Remove from the cache */
 		_starpu_mem_chunk_list_erase(&entry->list, mc);
 		mc_cache_nb[node]--;
-		STARPU_ASSERT(mc_cache_nb[node] >= 0);
+		STARPU_ASSERT_MSG(mc_cache_nb[node] >= 0, "allocation cache for node %u has %d objects??", node, mc_cache_nb[node]);
 		mc_cache_size[node] -= mc->size;
-		STARPU_ASSERT(mc_cache_size[node] >= 0);
+		STARPU_ASSERT_MSG(mc_cache_size[node] >= 0, "allocation cache for node %u has %ld bytes??", node, (long) mc_cache_size[node]);
 		return mc;
 	}
 
