@@ -130,8 +130,11 @@ msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {
 	int ret;
-	xbt_dynar_t hosts;
-	unsigned i, nb;
+#ifdef HAVE_SG_HOST_LIST
+	sg_host_t *hosts_list = NULL;
+#endif
+	xbt_dynar_t hosts = NULL;
+	unsigned i, nb = 0;
 	unsigned len = strlen(prefix);
 
 	if (_starpu_simgrid_running_smpi())
@@ -159,26 +162,38 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 #endif /* HAVE_STARPU_SIMGRID_GET_AS_BY_NAME */
 	}
 	else
-#ifdef STARPU_HAVE_SIMGRID_HOST_H
+	{
+#ifdef HAVE_SG_HOST_LIST
+		hosts_list = sg_host_list();
+		nb = sg_host_count();
+#elif defined(STARPU_HAVE_SIMGRID_HOST_H)
 		hosts = sg_hosts_as_dynar();
 #else
 		hosts = MSG_hosts_as_dynar();
 #endif
-	nb = xbt_dynar_length(hosts);
+	}
+	if (hosts)
+		nb = xbt_dynar_length(hosts);
 
 	ret = 0;
 	for (i = 0; i < nb; i++)
 	{
 		const char *name;
-#ifdef STARPU_HAVE_SIMGRID_HOST_H
-		name = sg_host_get_name(xbt_dynar_get_as(hosts, i, sg_host_t));
+#ifdef HAVE_SG_HOST_LIST
+		if (hosts_list)
+			name = sg_host_get_name(hosts_list[i]);
+		else
+#endif
+#if defined(STARPU_HAVE_SIMGRID_HOST_H)
+			name = sg_host_get_name(xbt_dynar_get_as(hosts, i, sg_host_t));
 #else
-		name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
+			name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
 #endif
 		if (!strncmp(name, prefix, len))
 			ret++;
 	}
-	xbt_dynar_free(&hosts);
+	if (hosts)
+		xbt_dynar_free(&hosts);
 	return ret;
 }
 
