@@ -112,9 +112,9 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 
+	double exp_len = NAN;
 	if(data->exp)
 	{
-		double exp_len;
 		if(!isnan(task->predicted))
 			exp_len = prio->exp_len + task->predicted;
 		else
