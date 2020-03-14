@@ -117,6 +117,8 @@ static int value_unpack_data(starpu_data_handle_t handle, unsigned node, void *p
 
 	assert(value_interface->value[0] == 36);
 
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
+
 	return 0;
 }
 

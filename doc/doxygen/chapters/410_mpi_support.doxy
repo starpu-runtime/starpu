@@ -314,7 +314,7 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
   struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   *count = complex_get_size(handle);
-  starpu_malloc_flags(ptr, *count, 0);
+  *ptr = starpu_malloc_on_node_flags(node, *count, 0);
   memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
   memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 
