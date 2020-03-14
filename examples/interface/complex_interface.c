@@ -138,7 +138,7 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 	if (ptr != NULL)
 	{
 		char *data;
-		starpu_malloc_flags((void**) &data, *count, 0);
+		data = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		*ptr = data;
 		memcpy(data, complex_interface->real, complex_interface->nx*sizeof(double));
 		memcpy(data+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
