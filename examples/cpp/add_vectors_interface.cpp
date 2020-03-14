@@ -450,7 +450,7 @@ static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		*ptr = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, (void*)vector_interface->ptr, vector_interface->elemsize*vector_interface->nx);
 	}
 

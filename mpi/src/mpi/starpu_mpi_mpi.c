@@ -856,7 +856,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					int ret;
 					ret = MPI_Wait(&req->backend->size_req, MPI_STATUS_IGNORE);
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
-					free(req->ptr);
+					starpu_free_on_node_flags(STARPU_MAIN_RAM, req->ptr, req->backend->envelope->size, 0);
 					req->ptr = NULL;
 				}
 				else if (req->request_type == RECV_REQ)
