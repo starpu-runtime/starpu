@@ -99,7 +99,7 @@ static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **pt
 	*count = sizeof(int);
 	if (ptr != NULL)
 	{
-		*ptr = malloc(*count);
+		starpu_malloc_flags(ptr, *count, 0);
 		memcpy(*ptr, value_interface->value, sizeof(int));
 	}
 
