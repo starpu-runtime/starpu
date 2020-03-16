@@ -277,7 +277,7 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 	/* else the datatype is not predefined by StarPU */
 }
 
-int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
 {
 	struct _starpu_mpi_datatype_funcs *table;
 
@@ -298,7 +298,6 @@ int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, sta
 		table->free_datatype_func = free_datatype_func;
 		HASH_ADD_INT(_starpu_mpi_datatype_funcs_table, id, table);
 	}
-	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer || handle->ops->to_pointer, "The data interface must define the operation 'to_pointer'\n");
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	return 0;
 }
@@ -306,7 +305,10 @@ int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, sta
 int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
-	starpu_mpi_interface_datatype_register(id, allocate_datatype_func, free_datatype_func);
+	int ret;
+	ret = starpu_mpi_interface_datatype_register(id, allocate_datatype_func, free_datatype_func);
+	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer || handle->ops->to_pointer, "The data interface must define the operation 'to_pointer'\n");
+	return ret;
 }
 
 int starpu_mpi_interface_datatype_unregister(enum starpu_data_interface_id id)
@@ -329,5 +331,5 @@ int starpu_mpi_interface_datatype_unregister(enum starpu_data_interface_id id)
 int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
-	starpu_mpi_interface_datatype_unregister(id);
+	return starpu_mpi_interface_datatype_unregister(id);
 }
