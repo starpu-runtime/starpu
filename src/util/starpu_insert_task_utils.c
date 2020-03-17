@@ -145,8 +145,8 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 			void *ptr = va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
-			*(size_t *)(&(_arg_buffer)[current_arg_offset]) = cst_size;
-			current_arg_offset += sizeof(size_t);
+			memcpy(&_arg_buffer[current_arg_offset], &cst_size, sizeof(cst_size));
+			current_arg_offset += sizeof(cst_size);
 
 			memcpy(&_arg_buffer[current_arg_offset], ptr, cst_size);
 			current_arg_offset += cst_size;
