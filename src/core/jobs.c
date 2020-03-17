@@ -346,6 +346,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
+	/* Check nowhere before releasing the sequential consistency (which may
+	 * unregister the handle and free its switch_cl, and thus task->cl here.  */
+	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE;
 	/* If this is a continuation, we do not release task dependencies now.
 	 * Task dependencies will be released only when the continued task
 	 * fully completes */
@@ -360,7 +363,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE;
 	if(j->task_size == 1 && !nowhere && !j->internal
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
