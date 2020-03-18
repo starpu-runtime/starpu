@@ -137,11 +137,13 @@ void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
 	_starpu_mpi_submit_ready_request(req);
 }
 
+#if 0
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
 {
 	(void)coop_sends;
 	/* TODO: turn them into redirects & forwards */
 }
+#endif
 
 void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
 {
