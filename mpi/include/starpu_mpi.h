@@ -337,7 +337,7 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_
 */
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag);
 
-typedef void (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
+typedef int (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 
 /**
