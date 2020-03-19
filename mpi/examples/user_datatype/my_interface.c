@@ -67,10 +67,11 @@ void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype)
 	free(myinterface);
 }
 
-void starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
 {
 	(void)handle;
 	_starpu_my_data_datatype_allocate(mpi_datatype);
+	return 0;
 }
 
 void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype)

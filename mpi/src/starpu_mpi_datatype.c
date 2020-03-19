@@ -43,7 +43,7 @@ void _starpu_mpi_datatype_shutdown(void)
  * 	Matrix
  */
 
-static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -57,13 +57,15 @@ static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Block
  */
 
-static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -86,13 +88,15 @@ static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datat
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Tensor
  */
 
-static void handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -124,13 +128,15 @@ static void handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Vector
  */
 
-static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -142,13 +148,15 @@ static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Variable
  */
 
-static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -159,13 +167,15 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Void
  */
 
-static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 	(void)data_handle;
@@ -175,6 +185,8 @@ static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Dataty
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
@@ -225,8 +237,15 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->allocate_datatype_func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-			table->allocate_datatype_func(data_handle, &req->datatype);
-			req->registered_datatype = 1;
+			int ret = table->allocate_datatype_func(data_handle, &req->datatype);
+			if (ret == 0)
+				req->registered_datatype = 1;
+			else
+			{
+				/* Couldn't register, probably complex data which needs packing. */
+				req->datatype = MPI_BYTE;
+				req->registered_datatype = 0;
+			}
 		}
 		else
 		{
@@ -315,7 +334,8 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->free_datatype_func, "Free Datatype Function not defined for StarPU data interface %d", id);
-			table->free_datatype_func(datatype);
+			if (*datatype != MPI_BYTE)
+				table->free_datatype_func(datatype);
 		}
 
 	}
