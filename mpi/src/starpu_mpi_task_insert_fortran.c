@@ -194,6 +194,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			arg_i++;
+			prio = *(int *)arglist[arg_i];
 			/* int* */
 		}
 		/* STARPU_EXECUTE_ON_NODE handled above */
