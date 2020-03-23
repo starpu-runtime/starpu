@@ -779,6 +779,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<12)
 
 /**
+   Request that the fifos below keep track of expected duration, start and end time of theirs elements
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP	(1<<13)
+
+/**
    Create a simple modular scheduler tree around a scheduling decision-making
    component \p component. The details of what should be built around \p component
    is described by \p flags. The different STARPU_SCHED_SIMPL_DECIDE_* flags are

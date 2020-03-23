@@ -276,12 +276,14 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		int ready = starpu_get_env_number_default("STARPU_SCHED_READY", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY ? 1 : 0);
 
+		int exp = flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP ? 1 : 0;
+
 		struct starpu_sched_component_prio_data prio_data =
 			{
 				.ntasks_threshold = ntasks_threshold,
 				.exp_len_threshold = exp_len_threshold,
 				.ready = ready,
-				.exp = 1,
+				.exp = exp,
 			};
 
 		struct starpu_sched_component_fifo_data fifo_data =
@@ -289,7 +291,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 				.ntasks_threshold = ntasks_threshold,
 				.exp_len_threshold = exp_len_threshold,
 				.ready = ready,
-				.exp = 1,
+				.exp = exp,
 			};
 
 		/* Create one fifo+eager component pair per choice, below scheduling decision */
