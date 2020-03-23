@@ -429,6 +429,7 @@ dist_bin_SCRIPTS +=			\
 	starpu_mlr_analysis		\
 	starpu_mlr_analysis.Rmd		\
 	starpu_paje_state_stats		\
+	starpu_env			\
 	starpu_trace_state_stats.py
 
 if STARPU_USE_AYUDAME2
@@ -468,6 +469,9 @@ starpu_workers_activity.1: starpu_workers_activity
 starpu_codelet_profile.1: starpu_codelet_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet profile" --output=$@ ./$<
+starpu_env.1: starpu_env
+	chmod +x $<
+	help2man --no-discard-stderr -N -n "Set StarPU environment variables" --output=$@ ./$<
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet histogram" --output=$@ ./$<
@@ -500,6 +504,7 @@ dist_man1_MANS =\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
+	starpu_env.1 \
 	starpu_mpi_comm_matrix.1 \
 	starpu_paje_draw_histogram.1 \
 	starpu_paje_state_stats.1

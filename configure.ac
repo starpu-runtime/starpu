@@ -3466,6 +3466,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/model-checking/starpu-mc.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
+  chmod +x tools/starpu_env
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
@@ -3542,6 +3543,7 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_mpi_comm_matrix.py

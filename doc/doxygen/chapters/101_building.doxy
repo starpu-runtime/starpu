@@ -219,6 +219,18 @@ $ starpu_machine_display
 If it does not, please check the output of \c lstopo from \c hwloc and report
 the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
 
+<br>
+A tool is provided to help setting all the environment variables
+needed by StarPU. If the given directory is a valid StarPU
+installation directory, calling the script <c>bin/starpu_env</c> will
+set in your current environment the variables <c>STARPU_PATH</c>,
+<c>LD_LIBRARY_PATH</c>, <c>PKG_CONFIG_PATH</c>, <c>PATH</c> and
+<c>MANPATH</c>.
+
+\verbatim
+$ source ./bin/starpu_env .
+\endverbatim
+
 \subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
 
 \subsubsection StarPUInMake Integrating StarPU in a Make Build System
