@@ -327,15 +327,11 @@ void _starpu_fxt_dump_file(void);
 #define _STARPU_FUT_COMMIT(size) do { } while (0)
 #endif
 
-#ifdef FUT_FULL_PROBE1STR
-#define _STARPU_FUT_FULL_PROBE1STR(KEYMASK, CODE, P1, str) FUT_FULL_PROBE1STR(CODE, P1, str)
+#ifdef FUT_ALWAYS_PROBE1STR
+#define _STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str) FUT_RAW_ALWAYS_PROBE1STR(CODE, P1, str)
 #else
-/** Sometimes we need something a little more specific than the wrappers from
- * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
- * by a string. */
-#define _STARPU_FUT_FULL_PROBE1STR(KEYMASK, CODE, P1, str)			\
+#define _STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str)	\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 1)*sizeof(unsigned long));\
@@ -348,19 +344,28 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-    }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE2STR
-#define _STARPU_FUT_FULL_PROBE2STR(KEYMASK, CODE, P1, P2, str) FUT_FULL_PROBE2STR(CODE, P1, P2, str)
+#ifdef FUT_FULL_PROBE1STR
+#define _STARPU_FUT_FULL_PROBE1STR(KEYMASK, CODE, P1, str) FUT_FULL_PROBE1STR(CODE, P1, str)
 #else
 /** Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
-#define _STARPU_FUT_FULL_PROBE2STR(KEYMASK, CODE, P1, P2, str)			\
+#define _STARPU_FUT_FULL_PROBE1STR(KEYMASK, CODE, P1, str)		\
 do {									\
-    if(KEYMASK & fut_active) {							\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str);		\
+    }									\
+} while (0);
+#endif
+
+#ifdef FUT_ALWAYS_PROBE2STR
+#define _STARPU_FUT_ALWAYS_PROBE2STR(CODE, P1, P2, str) FUT_RAW_ALWAYS_PROBE2STR(CODE, P1, P2, str)
+#else
+#define _STARPU_FUT_ALWAYS_PROBE2STR(CODE, P1, P2, str)			\
+do {									\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 2)*sizeof(unsigned long));\
@@ -374,16 +379,25 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE2STR
+#define _STARPU_FUT_FULL_PROBE2STR(KEYMASK, CODE, P1, P2, str) FUT_FULL_PROBE2STR(CODE, P1, P2, str)
+#else
+#define _STARPU_FUT_FULL_PROBE2STR(KEYMASK, CODE, P1, P2, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE2STR(CODE, P1, P2, str);		\
     }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE3STR
-#define _STARPU_FUT_FULL_PROBE3STR(KEYMASK, CODE, P1, P2, P3, str) FUT_FULL_PROBE3STR(CODE, P1, P2, P3, str)
+#ifdef FUT_ALWAYS_PROBE3STR
+#define _STARPU_FUT_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str) FUT_RAW_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str)
 #else
-#define _STARPU_FUT_FULL_PROBE3STR(KEYMASK, CODE, P1, P2, P3, str)			\
+#define _STARPU_FUT_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 3)*sizeof(unsigned long));\
@@ -398,16 +412,25 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE3STR
+#define _STARPU_FUT_FULL_PROBE3STR(KEYMASK, CODE, P1, P2, P3, str) FUT_FULL_PROBE3STR(CODE, P1, P2, P3, str)
+#else
+#define _STARPU_FUT_FULL_PROBE3STR(KEYMASK, CODE, P1, P2, P3, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str);	\
     }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE4STR
-#define _STARPU_FUT_FULL_PROBE4STR(KEYMASK, CODE, P1, P2, P3, P4, str) FUT_FULL_PROBE4STR(CODE, P1, P2, P3, P4, str)
+#ifdef FUT_ALWAYS_PROBE4STR
+#define _STARPU_FUT_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str) FUT_RAW_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str)
 #else
-#define _STARPU_FUT_FULL_PROBE4STR(KEYMASK, CODE, P1, P2, P3, P4, str)		\
+#define _STARPU_FUT_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long));\
@@ -423,16 +446,25 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE4STR
+#define _STARPU_FUT_FULL_PROBE4STR(KEYMASK, CODE, P1, P2, P3, P4, str) FUT_FULL_PROBE4STR(CODE, P1, P2, P3, P4, str)
+#else
+#define _STARPU_FUT_FULL_PROBE4STR(KEYMASK, CODE, P1, P2, P3, P4, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str);	\
     }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE5STR
-#define _STARPU_FUT_FULL_PROBE5STR(KEYMASK, CODE, P1, P2, P3, P4, P5, str) FUT_FULL_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
+#ifdef FUT_ALWAYS_PROBE5STR
+#define _STARPU_FUT_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str) FUT_RAW_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
 #else
-#define _STARPU_FUT_FULL_PROBE5STR(KEYMASK, CODE, P1, P2, P3, P4, P5, str)		\
+#define _STARPU_FUT_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 5)*sizeof(unsigned long));\
@@ -449,16 +481,25 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE5STR
+#define _STARPU_FUT_FULL_PROBE5STR(KEYMASK, CODE, P1, P2, P3, P4, P5, str) FUT_FULL_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
+#else
+#define _STARPU_FUT_FULL_PROBE5STR(KEYMASK, CODE, P1, P2, P3, P4, P5, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str);	\
     }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE6STR
-#define _STARPU_FUT_FULL_PROBE6STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, str) FUT_FULL_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
+#ifdef FUT_ALWAYS_PROBE6STR
+#define _STARPU_FUT_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str) FUT_RAW_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
 #else
-#define _STARPU_FUT_FULL_PROBE6STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, str)	\
+#define _STARPU_FUT_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 6)*sizeof(unsigned long));\
@@ -476,16 +517,25 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE6STR
+#define _STARPU_FUT_FULL_PROBE6STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, str) FUT_FULL_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
+#else
+#define _STARPU_FUT_FULL_PROBE6STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str);	\
     }									\
 } while (0);
 #endif
 
-#ifdef FUT_FULL_PROBE7STR
-#define _STARPU_FUT_FULL_PROBE7STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_FULL_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
+#ifdef FUT_ALWAYS_PROBE7STR
+#define _STARPU_FUT_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_RAW_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
 #else
-#define _STARPU_FUT_FULL_PROBE7STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
+#define _STARPU_FUT_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
 do {									\
-    if(KEYMASK & fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 7)*sizeof(unsigned long));\
@@ -504,6 +554,16 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
+} while (0);
+#endif
+
+#ifdef FUT_FULL_PROBE7STR
+#define _STARPU_FUT_FULL_PROBE7STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_FULL_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
+#else
+#define _STARPU_FUT_FULL_PROBE7STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, P7, str)		\
+do {									\
+    if(KEYMASK & fut_active) {						\
+	_STARPU_FUT_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str);	\
     }									\
 } while (0);
 #endif
@@ -1204,10 +1264,10 @@ do {										\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_POP_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)		\
-	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
+	_STARPU_FUT_ALWAYS_PROBE1STR(_STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
-	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_CONNECT, parent, child);
+	FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)		\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, (task)->priority);
