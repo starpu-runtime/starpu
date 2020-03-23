@@ -285,22 +285,24 @@ int starpu_cluster_print(struct starpu_cluster_machine *clusters)
 
 	printf("Number of clusters created: %u\n", clusters->nclusters);
 	cnt=0;
-	for (group = _starpu_cluster_group_list_begin(clusters->groups);
-	     group != _starpu_cluster_group_list_end(clusters->groups);
-	     group = _starpu_cluster_group_list_next(group))
+	if (clusters->nclusters)
 	{
-		for (cluster = _starpu_cluster_list_begin(group->clusters);
-		     cluster != _starpu_cluster_list_end(group->clusters);
-		     cluster = _starpu_cluster_list_next(cluster))
+		for (group = _starpu_cluster_group_list_begin(clusters->groups);
+		     group != _starpu_cluster_group_list_end(clusters->groups);
+		     group = _starpu_cluster_group_list_next(group))
 		{
-			printf("Cluster %d contains the following logical indexes:\n\t", cnt);
-			for (w=0; w < cluster->ncores; w++)
-				printf("%d ", cluster->cores[w]);
-			printf("\n");
-			cnt++;
+			for (cluster = _starpu_cluster_list_begin(group->clusters);
+			     cluster != _starpu_cluster_list_end(group->clusters);
+			     cluster = _starpu_cluster_list_next(cluster))
+			{
+				printf("Cluster %d contains the following logical indexes:\n\t", cnt);
+				for (w=0; w < cluster->ncores; w++)
+					printf("%d ", cluster->cores[w]);
+				printf("\n");
+				cnt++;
+			}
 		}
 	}
-
 	return 0;
 }
 
