@@ -421,6 +421,7 @@ dist_bin_SCRIPTS +=				\
 	starpu_workers_activity			\
 	starpu_codelet_histo_profile		\
 	starpu_codelet_profile			\
+	starpu_env				\
 	starpu_mpi_comm_matrix.py		\
 	starpu_fxt_number_events_to_names.py	\
 	starpu_paje_draw_histogram		\
@@ -470,6 +471,9 @@ starpu_workers_activity.1: starpu_workers_activity
 starpu_codelet_profile.1: starpu_codelet_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet profile" --output=$@ ./$<
+starpu_env.1: starpu_env
+	chmod +x $<
+	help2man --no-discard-stderr -N -n "Set StarPU environment variables" --output=$@ ./$<
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet histogram" --output=$@ ./$<
@@ -505,6 +509,7 @@ dist_man1_MANS =\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
+	starpu_env.1 \
 	starpu_mpi_comm_matrix.1 \
 	starpu_fxt_number_events_to_names.1 \
 	starpu_paje_draw_histogram.1 \
