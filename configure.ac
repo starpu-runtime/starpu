@@ -2970,6 +2970,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
+  chmod +x tools/starpu_env
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_workers_activity
@@ -3031,6 +3032,7 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_workers_activity
