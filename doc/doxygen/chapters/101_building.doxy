@@ -212,14 +212,13 @@ $ PATH=$PATH:$STARPU_PATH/bin
 
 <br>
 A tool is provided to help setting all the environment variables
-needed by StarPU. If the given directory is a valid StarPU
-installation directory, calling the script <c>bin/starpu_env</c> will
-set in your current environment the variables <c>STARPU_PATH</c>,
-<c>LD_LIBRARY_PATH</c>, <c>PKG_CONFIG_PATH</c>, <c>PATH</c> and
-<c>MANPATH</c>.
+needed by StarPU. Once StarPU is installed in a specific directory,
+calling the script <c>bin/starpu_env</c> will set in your current
+environment the variables <c>STARPU_PATH</c>, <c>LD_LIBRARY_PATH</c>,
+<c>PKG_CONFIG_PATH</c>, <c>PATH</c> and <c>MANPATH</c>.
 
 \verbatim
-$ source ./bin/starpu_env .
+$ source $STARPU_PATH/bin/starpu_env
 \endverbatim
 
 When using a Makefile, the following lines can be added to set the
