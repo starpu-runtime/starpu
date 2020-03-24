@@ -120,9 +120,9 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 	int arg_type;
 	struct _starpu_cluster_parameters *params;
 	struct starpu_cluster_machine *machine;
-	_STARPU_MALLOC(machine, sizeof(struct starpu_cluster_machine));
+	_STARPU_CALLOC(machine, 1, sizeof(struct starpu_cluster_machine));
 
-	_STARPU_MALLOC(machine->params, sizeof(struct _starpu_cluster_parameters));
+	_STARPU_CALLOC(machine->params, 1, sizeof(struct _starpu_cluster_parameters));
 	machine->id = STARPU_NMAX_SCHED_CTXS;
 	machine->groups = _starpu_cluster_group_list_new();
 	machine->nclusters = 0;
