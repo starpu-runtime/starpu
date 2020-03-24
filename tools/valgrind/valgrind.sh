@@ -22,4 +22,4 @@ else
     RUN="valgrind --tool=$EXEC"
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr ; do echo "--suppressions=$f" ; done)
-$RUN --num-callers=42 --error-exitcode=42 --gen-suppressions=all $SUPPRESSIONS $*
+$RUN --keep-debuginfo=yes --num-callers=42 --error-exitcode=42 --gen-suppressions=all $SUPPRESSIONS $*
