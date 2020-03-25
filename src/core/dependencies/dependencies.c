@@ -81,10 +81,18 @@ static void __starpu_job_notify_start(struct _starpu_job *j, double delay)
 	/* TODO: check data notification */
 }
 
+/* Called when the last dependency of this job has just started, so we know that
+ * this job will be released after the given delay. */
 void _starpu_job_notify_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data)
 {
 	struct starpu_task *task = j->task;
+
+	/* Notify that this task will start after the given delay */
 	notify_ready_soon_func(notify_ready_soon_func_data, task, data->delay);
+
+
+	/* Notify some known transitions as well */
+
 	if (!task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE)
 		/* This task will immediately terminate, so transition this */
 		__starpu_job_notify_start(_starpu_get_job_associated_to_task(task), data->delay);
