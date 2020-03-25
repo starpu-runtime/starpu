@@ -117,6 +117,20 @@ int main(int argc, char **argv)
 
 	if (rank >= 2)
 	{
+		starpu_pause();
+		for (uint64_t s = NX_MIN; s <= NX_MAX; s = _next(s, multiplier, increment))
+		{
+			iterations = _iterations(iterations, s);
+
+			starpu_mpi_barrier(MPI_COMM_WORLD);
+
+			for (uint64_t j = 0; j < iterations; j++)
+			{
+				starpu_mpi_barrier(MPI_COMM_WORLD);
+			}
+		}
+		starpu_resume();
+
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
