@@ -15,6 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "helper.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

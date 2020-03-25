@@ -15,6 +15,7 @@
  */
 
 #include "mpi_cholesky.h"
+#include "helper.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
