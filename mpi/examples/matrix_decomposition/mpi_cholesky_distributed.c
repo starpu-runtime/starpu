@@ -53,10 +53,10 @@ int main(int argc, char **argv)
 
 	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
+	matrix_free(&bmat, rank, nodes, 0);
+
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
-
-	matrix_free(&bmat, rank, nodes, 0);
 
 	if (rank == 0)
 	{
