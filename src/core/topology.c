@@ -1130,7 +1130,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 		res = 1;
 	}
 
-	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered is higher than maximum accepted ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n");
+	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
 	return res;
 }
 
