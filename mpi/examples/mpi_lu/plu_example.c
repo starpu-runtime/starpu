@@ -125,6 +125,11 @@ static void parse_args(int rank, int argc, char **argv)
 			exit(0);
 		}
 	}
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		size = 16;
+#endif
 }
 
 unsigned STARPU_PLU(display_flag)(void)
