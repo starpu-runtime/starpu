@@ -24,8 +24,8 @@ void func_cpu(void *descr[], void *_args)
 	int *data0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *data1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	int *data2 = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
-	*data1 += *data0;
-	*data2 += *data0;
+	*data1 = *data0;
+	*data2 = *data0;
 }
 
 struct starpu_codelet mycodelet =
@@ -69,11 +69,11 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	data[0] = 12;
+	data[0] = 42;
 	starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&data[0], sizeof(int));
 	starpu_mpi_data_register(handles[0], 10, 0);
 
-	data[1] = 12;
+	data[1] = 42;
 	starpu_variable_data_register(&handles[1], STARPU_MAIN_RAM, (uintptr_t)&data[1], sizeof(int));
 	starpu_mpi_data_register(handles[1], 20, 1);
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	if (rank == 0)
 	{
-		STARPU_ASSERT_MSG(data[0] == 2*data[2] && data[1] == 2*data[2], "Computation incorrect. data[%d] (%d) != 2*data[%d] (%d) && data[%d] (%d) != 2*data[%d] (%d)\n",
+		STARPU_ASSERT_MSG(data[0] == data[2] && data[1] == data[2], "Computation incorrect. data[%d] (%d) != data[%d] (%d) && data[%d] (%d) != data[%d] (%d)\n",
 				  0, data[0], 2, data[2], 1, data[1], 2, data[2]);
 	}
 #endif
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(data[0] == 2*data[2] && data[1] == 2*data[2], "Computation incorrect. data[%d] (%d) != 2*data[%d] (%d) && data[%d] (%d) != 2*data[%d] (%d)\n",
+		STARPU_ASSERT_MSG(data[0] == data[2] && data[1] == data[2], "Computation incorrect. data[%d] (%d) != data[%d] (%d) && data[%d] (%d) != data[%d] (%d)\n",
 				  0, data[0], 2, data[2], 1, data[1], 2, data[2]);
 	}
 #endif
