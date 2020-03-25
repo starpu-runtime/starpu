@@ -138,9 +138,9 @@ int main(int argc, char **argv)
 				     STARPU_W, handles[0], STARPU_W, handles[1],
 				     0);
 	FPRINTF_MPI(stderr, "Task %p\n", task);
-	if (rank == 2)
+	if (rank == 0)
 	{
-		STARPU_ASSERT_MSG(task, "Task should be executed by rank 2\n");
+		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0\n");
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
