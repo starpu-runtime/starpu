@@ -220,6 +220,8 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_comm_amounts_shutdown();
 	_starpu_mpi_cache_shutdown(world_size);
 
+	_mpi_backend._starpu_mpi_backend_shutdown();
+
 	if (_mpi_initialized_starpu)
 		starpu_shutdown();
 
