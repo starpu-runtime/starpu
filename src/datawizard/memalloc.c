@@ -115,6 +115,7 @@ static unsigned reclaiming[STARPU_MAXNODES];
 
 int _starpu_is_reclaiming(unsigned node)
 {
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	return tidying[node] || reclaiming[node];
 }
 
@@ -1040,6 +1041,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 {
 	size_t freed = 0;
 
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (reclaim && !force)
 	{
 		static unsigned warned;
@@ -1082,6 +1084,7 @@ void starpu_memchunk_tidy(unsigned node)
 	starpu_ssize_t available;
 	size_t target, amount;
 
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		return;
 
@@ -1340,6 +1343,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	STARPU_ASSERT(mc->data == handle);
 	_starpu_spin_checklocked(&handle->header_lock);
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 
 	/* Record the allocated size, so that later in memory
 	 * reclaiming we can estimate how much memory we free
@@ -1575,6 +1579,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	starpu_ssize_t allocated_memory;
 
 	unsigned dst_node = replicate->memory_node;
+	STARPU_ASSERT(dst_node < STARPU_MAXNODES);
 
 	STARPU_ASSERT(handle);
 	_starpu_spin_checklocked(&handle->header_lock);
@@ -1615,6 +1620,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
+	STARPU_ASSERT(memory_node < STARPU_MAXNODES);
 	return handle->per_node[memory_node].allocated;
 }
 
@@ -1625,6 +1631,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1642,6 +1649,7 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1669,6 +1677,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 	if (mc->home)
 		/* Home is always clean */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1696,6 +1705,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 #ifdef STARPU_MEMORY_STATS
 void _starpu_memory_display_stats_by_node(FILE *stream, int node)
 {
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	_starpu_spin_lock(&mc_lock[node]);
 
 	if (!_starpu_mem_chunk_list_empty(&mc_list[node]))
