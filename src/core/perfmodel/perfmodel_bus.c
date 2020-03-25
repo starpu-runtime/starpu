@@ -869,9 +869,9 @@ static void get_affinity_path(char *path, size_t maxlen)
 
 #ifndef STARPU_SIMGRID
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void load_bus_affinity_file_content(void)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 	int locked;
 
@@ -939,9 +939,8 @@ static void load_bus_affinity_file_content(void)
 		_starpu_frdunlock(f);
 
 	fclose(f);
-#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
-
 }
+#endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
 
 #ifndef STARPU_SIMGRID
 static void write_bus_affinity_file_content(void)
@@ -1039,10 +1038,10 @@ static void generate_bus_affinity_file(void)
 	write_bus_affinity_file_content();
 }
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static int check_bus_affinity_file(void)
 {
 	int ret = 1;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	FILE *f;
 	int locked;
 	unsigned dummy;
@@ -1066,12 +1065,13 @@ static int check_bus_affinity_file(void)
 		_starpu_frdunlock(f);
 
 	fclose(f);
-#endif
 	return ret == 1;
 }
+#endif
 
 static void load_bus_affinity_file(void)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int exist, check = 1;
 
 	char path[PATH_LENGTH];
@@ -1094,6 +1094,7 @@ static void load_bus_affinity_file(void)
 	}
 
 	load_bus_affinity_file_content();
+#endif
 }
 
 #ifdef STARPU_USE_CUDA
