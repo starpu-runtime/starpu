@@ -55,9 +55,6 @@ int main(int argc, char **argv)
 
 	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
-	starpu_cublas_shutdown();
-	starpu_mpi_shutdown();
-
 #ifndef STARPU_SIMGRID
 	matrix_display(bmat, rank);
 
@@ -66,6 +63,9 @@ int main(int argc, char **argv)
 #endif
 
 	matrix_free(&bmat, rank, nodes, 1);
+
+	starpu_cublas_shutdown();
+	starpu_mpi_shutdown();
 
 #ifndef STARPU_SIMGRID
 	if (check)
