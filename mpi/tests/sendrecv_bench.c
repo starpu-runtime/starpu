@@ -24,10 +24,18 @@
 
 #define NX_MAX (512 * 1024 * 1024) // kB
 #define NX_MIN 0
+#ifdef STARPU_QUICK_CHECK
+#define MULT_DEFAULT 4
+#else
 #define MULT_DEFAULT 2
+#endif
 #define INCR_DEFAULT 0
 #define NX_STEP 1.4 // multiplication
+#ifdef STARPU_QUICK_CHECK
+#define LOOPS_DEFAULT 100
+#else
 #define LOOPS_DEFAULT 10000
+#endif
 
 int times_nb_nodes;
 int times_size;
@@ -96,7 +104,7 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
-	if (worldsize != 2)
+	if (worldsize < 2)
 	{
 		if (rank == 0)
 			FPRINTF(stderr, "We need 2 processes.\n");
@@ -107,6 +115,13 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	if (rank >= 2)
+	{
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return 0;
+	}
 
 	if (rank == 0)
 	{
@@ -185,6 +200,8 @@ int main(int argc, char **argv)
 	}
 
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }
