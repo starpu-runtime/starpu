@@ -266,6 +266,8 @@ void _starpu_notify_tag_dependencies(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 }
 
+/* Called when a job has just started, so we can notify tasks which were waiting
+ * only for this one when they can expect to start */
 void _starpu_notify_job_start_tag_dependencies(struct _starpu_tag *tag, _starpu_notify_job_start_data *data)
 {
 	_starpu_notify_job_start_cg_list(tag, &tag->tag_successors, data);

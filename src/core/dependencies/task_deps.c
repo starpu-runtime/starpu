@@ -66,6 +66,8 @@ void _starpu_notify_task_dependencies(struct _starpu_job *j)
 	_starpu_notify_cg_list(j, &j->job_successors);
 }
 
+/* Called when a job has just started, so we can notify tasks which were waiting
+ * only for this one when they can expect to start */
 void _starpu_notify_job_start_tasks(struct _starpu_job *j, _starpu_notify_job_start_data *data)
 {
 	_starpu_notify_job_start_cg_list(j, &j->job_successors, data);

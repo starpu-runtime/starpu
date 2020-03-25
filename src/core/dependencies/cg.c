@@ -286,6 +286,8 @@ void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg
 	}
 }
 
+/* Called when a job has just started, so we can notify tasks which were waiting
+ * only for this one when they can expect to start */
 /* Note: in case of a tag, it must be already locked */
 void _starpu_notify_job_ready_soon_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg, _starpu_notify_job_start_data *data)
 {
@@ -389,6 +391,8 @@ void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors)
 	_starpu_spin_unlock(&successors->lock);
 }
 
+/* Called when a job has just started, so we can notify tasks which were waiting
+ * only for this one when they can expect to start */
 /* Caller just has to promise that the list will not disappear.
  * _starpu_notify_cg_list protects the list itself.
  * No job lock should be held, since we might want to immediately call the callback of an empty task.
