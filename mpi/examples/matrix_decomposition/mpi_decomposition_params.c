@@ -95,6 +95,11 @@ void parse_args(int argc, char **argv, int nodes)
                 }
         }
 
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		size = 16;
+#endif
+
         if (nblocks > size)
 		nblocks = size;
 
