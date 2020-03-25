@@ -597,3 +597,38 @@
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
 }
+
+# that happens at initialization
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   writev(vector[...])
+   fun:__writev
+   fun:writev
+   fun:send_msg
+   fun:pmix_ptl_base_send_handler
+   fun:event_persist_closure
+   fun:event_process_active_single_queue
+   fun:event_process_active
+   fun:event_base_loop
+   fun:progress_engine
+   fun:start_thread
+   fun:clone
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:fetch_nodeinfo
+   fun:hash_fetch
+   fun:_getnb_cbfunc
+   fun:pmix_ptl_base_process_msg
+   fun:event_process_active_single_queue
+   fun:event_process_active
+   fun:event_base_loop
+   fun:progress_engine
+   fun:start_thread
+   fun:clone
+}
+
