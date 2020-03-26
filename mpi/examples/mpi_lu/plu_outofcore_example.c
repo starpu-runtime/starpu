@@ -33,6 +33,10 @@
 #include <numaif.h>
 #endif
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;

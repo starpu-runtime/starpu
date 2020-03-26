@@ -21,6 +21,10 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 #ifdef STARPU_QUICK_CHECK
 unsigned size = 2*320;
 unsigned nblocks = 2;
