@@ -858,7 +858,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					int ret;
 					ret = MPI_Wait(&req->backend->size_req, MPI_STATUS_IGNORE);
 					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
-					starpu_free_on_node_flags(STARPU_MAIN_RAM, req->ptr, req->count, 0);
+					starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t)req->ptr, req->count, 0);
 					req->ptr = NULL;
 				}
 				else if (req->request_type == RECV_REQ)
@@ -1122,7 +1122,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		 * to the application when it post a receive for this tag
 		 */
 		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)early_data_handle->env->size);
-		_STARPU_MPI_MALLOC(early_data_handle->buffer, early_data_handle->env->size);
+		early_data_handle->buffer = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, early_data_handle->env->size, 0);
 		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, early_data_handle->env->size);
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
