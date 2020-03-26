@@ -62,7 +62,12 @@ static int _starpu_mpi_reqs_prio_compare(const void *a, const void *b)
 {
 	const struct _starpu_mpi_req * const *ra = a;
 	const struct _starpu_mpi_req * const *rb = b;
-	return (*rb)->prio - (*ra)->prio;
+	if ((*rb)->prio < (*ra)->prio)
+		return -1;
+	else if ((*rb)->prio == (*ra)->prio)
+		return 0;
+	else
+		return 1;
 }
 
 /* Sort the requests by priority and build a diffusion tree. Actually does something only once per coop_sends bag. */
