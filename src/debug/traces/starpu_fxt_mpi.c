@@ -355,6 +355,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "RecvTime: %.9f\n", end_date);
 				fprintf(out_comms_file, "SendHandle: %lx\n", send_handle);
 				fprintf(out_comms_file, "RecvHandle: %lx\n", recv_handle);
+				if (cur->jobid != -1)
+					fprintf(out_comms_file, "SendJobId: %d_%lu\n", src, cur->jobid);
+				if (match->jobid != -1)
+					fprintf(out_comms_file, "RecvJobId: %d_%lu\n", dst, match->jobid);
 				fprintf(out_comms_file, "Size: %ld\n", size);
 				fprintf(out_comms_file, "\n");
 			}
