@@ -785,8 +785,27 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		int err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
 		if (err < 0) _STARPU_DISP("Could not load hwloc input %s\n", hwloc_input);
 	}
+
 	_starpu_topology_filter(topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
+
+	if (starpu_get_env_number_default("STARPU_WORKERS_GETBIND", 0))
+	{
+		/* Respect the existing binding */
+		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
+
+		int ret = hwloc_get_cpubind(topology->hwtopology, cpuset, HWLOC_CPUBIND_THREAD);
+		if (ret)
+			_STARPU_DISP("Warning: could not get current CPU binding: %s\n", strerror(errno));
+		else
+		{
+			ret = hwloc_topology_restrict(topology->hwtopology, cpuset, 0);
+			if (ret)
+				_STARPU_DISP("Warning: could not restrict hwloc to cpuset: %s\n", strerror(errno));
+		}
+		hwloc_bitmap_free(cpuset);
+	}
+
 	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif
 #endif
