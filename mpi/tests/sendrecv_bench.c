@@ -217,5 +217,6 @@ int main(int argc, char **argv)
 	if (!mpi_init)
 		MPI_Finalize();
 
+	free(lats);
 	return 0;
 }
