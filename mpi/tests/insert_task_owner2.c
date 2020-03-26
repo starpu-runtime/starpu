@@ -37,7 +37,7 @@ struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
 	.nbuffers = 4,
-	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W},
+	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_RW},
 	.model = &starpu_perfmodel_nop,
 };
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_R, data_handles[0], STARPU_RW, data_handles[1],
 				     STARPU_W, data_handles[2],
-				     STARPU_W, data_handles[3],
+				     STARPU_RW, data_handles[3],
 				     STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_task_insert");
 	starpu_task_wait_for_all();
