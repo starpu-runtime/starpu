@@ -106,13 +106,13 @@ int main(int argc, char **argv)
 	FPRINTF_MPI(stderr, "Task %p\n", task);
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(task, "Task should be executed by rank 1\n");
+		STARPU_ASSERT_MSG(task, "Task should be executed by rank 1");
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
 	{
-		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 1\n");
+		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 1");
 	}
 
 	// Force the execution on node 1
@@ -123,13 +123,13 @@ int main(int argc, char **argv)
 	FPRINTF_MPI(stderr, "Task %p\n", task);
 	if (rank == 1)
 	{
-		STARPU_ASSERT_MSG(task, "Task should be executed by rank 1\n");
+		STARPU_ASSERT_MSG(task, "Task should be executed by rank 1");
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
 	{
-		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 1\n");
+		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 1");
 	}
 
 	// Let StarPU choose the node
@@ -140,13 +140,13 @@ int main(int argc, char **argv)
 	FPRINTF_MPI(stderr, "Task %p\n", task);
 	if (rank == 0)
 	{
-		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0\n");
+		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0");
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
 	{
-		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 2\n");
+		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 2");
 	}
 
 	// Let StarPU choose the node
@@ -156,13 +156,13 @@ int main(int argc, char **argv)
 	FPRINTF_MPI(stderr, "Task %p\n", task);
 	if (rank == 0)
 	{
-		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0\n");
+		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0");
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
 	{
-		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 0\n");
+		STARPU_ASSERT_MSG(task == NULL, "Task should be executed by rank 0");
 	}
 
 	starpu_data_unregister(handles[0]);
