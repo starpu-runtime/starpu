@@ -16,6 +16,13 @@
 
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
+	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l "ERROR: LeakSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l "WARNING: LeakSanitizer: " $(TEST_LOGS) /dev/null
+	@! grep -l " runtime error: " $(TEST_LOGS) /dev/null
 	@RET=0 ; \
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showfailed || RET=1 ; \
