@@ -149,7 +149,7 @@ void starpu_mpi_set_communication_tag(int tag);
 typedef void *starpu_mpi_req;
 
 /**
-   Define the type which can be used to set communication tag when exchanging data.
+   Type of the message tag.
 */
 typedef int64_t starpu_mpi_tag_t;
 
