@@ -28,7 +28,7 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                         type(c_ptr), value, intent(in) :: mpi_req
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_isend
 
@@ -41,7 +41,7 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                         type(c_ptr), value, intent(in) :: mpi_req
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_isend_prio
@@ -54,7 +54,7 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                         type(c_ptr), value, intent(in) :: mpi_req
                         integer(c_int), value, intent(in) :: src
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_irecv
 
@@ -65,7 +65,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_send
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_send
 
@@ -76,7 +76,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_send_prio
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_send_prio
@@ -88,7 +88,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_recv
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: src
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_ptr), value, intent(in) :: mpi_status
                 end function fstarpu_mpi_recv
@@ -100,7 +100,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_isend_detached
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
                         type(c_ptr), value, intent(in) :: arg
@@ -113,7 +113,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_isend_detached_prio
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
@@ -127,7 +127,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_recv_detached
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: src
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
                         type(c_ptr), value, intent(in) :: arg
@@ -141,7 +141,7 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                         type(c_ptr), value, intent(in) :: mpi_req
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_issend
 
@@ -153,7 +153,7 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                         type(c_ptr), value, intent(in) :: mpi_req
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_issend_prio
@@ -165,7 +165,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_issend_detached
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
                         type(c_ptr), value, intent(in) :: arg
@@ -178,7 +178,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_issend_detached_prio
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
@@ -220,7 +220,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_recv_detached_sequential_consistency
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: src
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_funptr), value, intent(in) :: callback
                         type(c_ptr), value, intent(in) :: arg
@@ -342,7 +342,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_isend_detached_unlock_tag
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_isend_detached_unlock_tag
@@ -354,7 +354,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_isend_detached_unlock_tag_prio
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: dst
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: prio
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_ptr), value, intent(in) :: starpu_tag
@@ -367,7 +367,7 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_recv_detached_unlock_tag
                         type(c_ptr), value, intent(in) :: dh
                         integer(c_int), value, intent(in) :: src
-                        integer(c_int), value, intent(in) :: data_tag
+                        integer(c_int64_t), value, intent(in) :: data_tag
                         integer(c_int), value, intent(in) :: mpi_comm
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_recv_detached_unlock_tag
@@ -381,7 +381,7 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: array_size
                         type(c_ptr), intent(in) :: dhs(*)
                         integer(c_int), intent(in) :: dsts(*)
-                        integer(c_int), intent(in) :: data_tags(*)
+                        integer(c_int64_t), intent(in) :: data_tags(*)
                         integer(c_int), intent(in) :: mpi_comms(*)
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_isend_array_detached_unlock_tag
@@ -395,7 +395,7 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: array_size
                         type(c_ptr), intent(in) :: dhs(*)
                         integer(c_int), intent(in) :: dsts(*)
-                        integer(c_int), intent(in) :: data_tags(*)
+                        integer(c_int64_t), intent(in) :: data_tags(*)
                         integer(c_int), intent(in) :: prio(*)
                         integer(c_int), intent(in) :: mpi_comms(*)
                         type(c_ptr), value, intent(in) :: starpu_tag
@@ -410,7 +410,7 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: array_size
                         type(c_ptr), intent(in) :: dhs(*)
                         integer(c_int), intent(in) :: srcs(*)
-                        integer(c_int), intent(in) :: data_tags(*)
+                        integer(c_int64_t), intent(in) :: data_tags(*)
                         integer(c_int), intent(in) :: mpi_comms(*)
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_recv_array_detached_unlock_tag
@@ -489,7 +489,7 @@ module fstarpu_mpi_mod
                 subroutine fstarpu_mpi_set_communication_tag(tag) bind(C,name="starpu_mpi_set_communication_tag")
                         use iso_c_binding
                         implicit none
-                        integer(c_int), value, intent(in) :: tag
+                        integer(c_int64_t), value, intent(in) :: tag
                 end subroutine fstarpu_mpi_set_communication_tag
 
                 ! void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm);
@@ -497,7 +497,7 @@ module fstarpu_mpi_mod
                         use iso_c_binding
                         implicit none
                         type(c_ptr), value, intent(in) :: dh
-                        integer(c_int), value, intent(in) :: tag
+                        integer(c_int64_t), value, intent(in) :: tag
                         integer(c_int), value, intent(in) :: rank
                         integer(c_int), value, intent(in) :: mpi_comm
                 end subroutine fstarpu_mpi_data_register_comm
@@ -507,7 +507,7 @@ module fstarpu_mpi_mod
                         use iso_c_binding
                         implicit none
                         type(c_ptr), value, intent(in) :: dh
-                        integer(c_int), value, intent(in) :: tag
+                        integer(c_int64_t), value, intent(in) :: tag
                         integer(c_int), value, intent(in) :: rank
                 end subroutine fstarpu_mpi_data_register
 
@@ -533,7 +533,7 @@ module fstarpu_mpi_mod
                         use iso_c_binding
                         implicit none
                         type(c_ptr), value, intent(in) :: dh
-                        integer(c_int), value, intent(in) :: tag
+                        integer(c_int64_t), value, intent(in) :: tag
                 end subroutine fstarpu_mpi_data_set_tag
 
                 ! int starpu_mpi_data_get_rank(starpu_data_handle_t handle);
@@ -548,7 +548,7 @@ module fstarpu_mpi_mod
                 function fstarpu_mpi_data_get_tag(dh) bind(C,name="starpu_mpi_data_get_tag")
                         use iso_c_binding
                         implicit none
-                        integer(c_int) :: fstarpu_mpi_data_get_tag
+                        integer(c_int64_t) :: fstarpu_mpi_data_get_tag
                         type(c_ptr), value, intent(in) :: dh
                 end function fstarpu_mpi_data_get_tag
 
