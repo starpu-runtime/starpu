@@ -25,7 +25,7 @@ program nf_basic_ring
         integer(c_int),target :: token = 42
         integer(c_int) :: nloops = 32
         integer(c_int) :: loop
-        integer(c_int) :: tag
+        integer(c_int64_t) :: tag
         integer(c_int) :: world
         integer(c_int) :: src,dst
         type(c_ptr) :: token_dh, st
