@@ -479,22 +479,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 
 #ifndef STARPU_SIMGRID
-	if (_starpu_mpi_thread_cpuid < 0)
-	{
-		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(0, NULL, 0);
-	}
-
 	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
-
-	if (_starpu_mpi_thread_cpuid >= 0)
-		/* In case MPI changed the binding */
-		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
 #endif
-
-	_starpu_mpi_env_init();
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -650,23 +639,23 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 
-	if (!_starpu_mpi_nobind)
-	{
-		/* Tell pioman to use a bound thread for communication progression */
-		unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
-		int indexes[1] = {piom_bindid};
-		piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU,indexes,1);
-
-		/* We force the "MPI" thread to share the same core as the pioman thread
-		   to avoid binding it on the same core as a worker */
-		_starpu_mpi_thread_cpuid = piom_bindid;
-	}
+	_starpu_mpi_env_init();
 
 	/* This function calls MPI_Init_thread if needed, and it initializes internal NMAD/Pioman variables,
 	 * required for piom_ltask_set_bound_thread_indexes() */
 	_starpu_mpi_do_initialize(argc_argv);
 
 	callback_lfstack_init(&callback_stack);
+
+	if (_starpu_mpi_thread_cpuid < 0)
+	{
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	}
+
+	/* Tell pioman to use a bound thread for communication progression:
+	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
+	int indexes[1] = { _starpu_mpi_thread_cpuid };
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;
