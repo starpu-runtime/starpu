@@ -48,7 +48,10 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
+
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
+#endif
 
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_t progress_thread;
@@ -549,9 +552,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 // static int hookid = - 1;
 // #endif /* STARPU_MPI_ACTIVITY */
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	int ret;
@@ -580,8 +583,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-#endif
 }
+#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
