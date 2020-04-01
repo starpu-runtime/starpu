@@ -149,9 +149,16 @@ In order to install StarPU at the location which was specified during
 configuration:
 
 \verbatim
-$ sudo make install
+$ make install
+\endverbatim
+
+If you have let StarPU install in <c>/usr/local/</c>, you additionally need to run
+
+\verbatim
 $ sudo ldconfig
 \endverbatim
+
+so the libraries can be found by the system.
 
 Libtool interface versioning information are included in
 libraries names (<c>libstarpu-1.3.so</c>, <c>libstarpumpi-1.3.so</c> and
