@@ -266,7 +266,6 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 			   void *dst_interface, unsigned dst_node,
 			   void *async_data)
 {
-	assert(0);
 	struct starpu_my_data *src_data = src_interface;
 	struct starpu_my_data *dst_data = dst_interface;
 	int ret = 0;
@@ -295,7 +294,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.register_data_handle = data_register_data_handle,
 	.allocate_data_on_node = data_allocate_data_on_node,
 	.free_data_on_node = data_free_data_on_node,
-	//	.copy_methods = &data_copy_methods,
+	.copy_methods = &data_copy_methods,
 	.get_size = data_get_size,
 	.get_alloc_size = data_get_alloc_size,
 	.footprint = data_footprint,
@@ -330,7 +329,7 @@ static struct starpu_data_interface_ops interface_data2_ops =
 	.register_data_handle = data_register_data_handle,
 	.allocate_data_on_node = data_allocate_data_on_node,
 	.free_data_on_node = data_free_data_on_node,
-	//	.copy_methods = &data_copy_methods,
+	.copy_methods = &data_copy_methods,
 	.get_size = data_get_size,
 	.get_alloc_size = data_get_alloc_size,
 	.footprint = data_footprint,
