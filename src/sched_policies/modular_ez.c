@@ -186,7 +186,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		void *data = va_arg(varg_list, void *);
 		flags = va_arg(varg_list, unsigned);
 
-		if (nbelow == 1)
+		if (nbelow == 1 && !(flags & STARPU_SCHED_SIMPLE_DECIDE_ALWAYS))
 		{
 			/* Oh, no choice, we don't actually need to decide, just
 			 * use an eager scheduler */

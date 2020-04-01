@@ -729,6 +729,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_DECIDE_ARCHS	(3<<0)
 
 /**
+   Request to create the scheduling decision-making component even if there is only one available choice. This is useful for instance when the decision-making component will store tasks itself (and not use STARPU_SCHED_SIMPLE_FIFO_ABOVE) to decide in which order tasks should be passed below.
+*/
+#define STARPU_SCHED_SIMPLE_DECIDE_ALWAYS	(1<<3)
+
+/**
    Request to add a perfmodel selector above the scheduling decision-making component. That way, only tasks with a calibrated performance model will be given to the component, other tasks will go to an eager branch that will distributed tasks so that their performance models will get calibrated.
    In other words, this is needed when using a component which needs performance models for tasks.
 */
