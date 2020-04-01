@@ -31,7 +31,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 	int rank;
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "comuting on rank %d\n", rank);
+	fprintf(stderr, "computing on rank %d\n", rank);
         unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
         int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args(cl_arg, &factor);

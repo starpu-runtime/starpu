@@ -488,7 +488,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
-	_starpu_mpi_do_initialize(argc_argv);
+
 	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
@@ -661,6 +661,10 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 		   to avoid binding it on the same core as a worker */
 		_starpu_mpi_thread_cpuid = piom_bindid;
 	}
+
+	/* This function calls MPI_Init_thread if needed, and it initializes internal NMAD/Pioman variables,
+	 * required for piom_ltask_set_bound_thread_indexes() */
+	_starpu_mpi_do_initialize(argc_argv);
 
 	callback_lfstack_init(&callback_stack);
 
