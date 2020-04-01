@@ -44,7 +44,7 @@
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
@@ -283,7 +283,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 /********************************************************/
 
 #ifdef STARPU_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
 	{
