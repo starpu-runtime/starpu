@@ -149,7 +149,8 @@ In order to install StarPU at the location which was specified during
 configuration:
 
 \verbatim
-$ make install
+$ sudo make install
+$ sudo ldconfig
 \endverbatim
 
 Libtool interface versioning information are included in
