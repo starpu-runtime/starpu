@@ -18,6 +18,8 @@
 #ifndef __SIMGRID_H__
 #define __SIMGRID_H__
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -97,11 +99,13 @@ extern starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 #define _starpu_simgrid_fetching_input_cost() starpu_get_env_number_default("STARPU_SIMGRID_FETCHING_INPUT_COST", 1)
 #define _starpu_simgrid_sched_cost() starpu_get_env_number_default("STARPU_SIMGRID_SCHED_COST", 0)
 
-/* Called at initialization to count how many GPUs are interfering with each
+/** Called at initialization to count how many GPUs are interfering with each
  * bus */
 void _starpu_simgrid_count_ngpus(void);
 
-void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
+extern size_t _starpu_default_stack_size;
+void _starpu_simgrid_set_stack_size(size_t stack_size);
+void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *attr, void_f_pvoid_t code,
 				       void *param);
 
 #define _SIMGRID_TIMER_BEGIN(cond)			\
@@ -124,7 +128,7 @@ void _starpu_simgrid_xbt_thread_create(const char *name, void_f_pvoid_t code,
 #define _SIMGRID_TIMER_END }
 #endif
 
-/* Experimental functions for OOC stochastic analysis */
+/** Experimental functions for OOC stochastic analysis */
 /* disk <-> MAIN_RAM only */
 #if defined(STARPU_SIMGRID) && 0
 void _starpu_simgrid_data_new(size_t size);

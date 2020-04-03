@@ -57,7 +57,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	int ret;
 
 	/* limit main ram to force to push in disk */
-	setenv("STARPU_LIMIT_CPU_MEM", RAM, 1);
+	setenv("STARPU_LIMIT_CPU_NUMA_MEM", RAM, 1);
 
 	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
 	// Ignore environment variables as we want to force the exact number of workers
@@ -68,6 +68,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
+	conf.ncpus = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;

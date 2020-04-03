@@ -98,7 +98,7 @@ static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **pt
 	*count = sizeof(int);
 	if (ptr != NULL)
 	{
-		*ptr = malloc(*count);
+		*ptr = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, value_interface->value, sizeof(int));
 	}
 
@@ -116,6 +116,8 @@ static int value_unpack_data(starpu_data_handle_t handle, unsigned node, void *p
 	value_interface->value[0] = ((int *)ptr)[0];
 
 	assert(value_interface->value[0] == 36);
+
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }

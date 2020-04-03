@@ -20,6 +20,10 @@ include $(top_srcdir)/starpu.mk
 
 SUBDIRS =
 
+if STARPU_SIMGRID
+SUBDIRS += replay
+endif
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
@@ -391,15 +395,6 @@ bin_PROGRAMS += 			\
 	starpu_lp2paje			\
 	starpu_perfmodel_recdump
 
-if STARPU_SIMGRID
-bin_PROGRAMS += 			\
-	starpu_replay
-
-starpu_replay_SOURCES = \
-	starpu_replay.c \
-	starpu_replay_sched.c
-endif
-
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
 if STARPU_LONG_CHECK
@@ -421,6 +416,7 @@ dist_bin_SCRIPTS +=				\
 	starpu_workers_activity			\
 	starpu_codelet_histo_profile		\
 	starpu_codelet_profile			\
+	starpu_env				\
 	starpu_mpi_comm_matrix.py		\
 	starpu_fxt_number_events_to_names.py	\
 	starpu_paje_draw_histogram		\
@@ -470,6 +466,9 @@ starpu_workers_activity.1: starpu_workers_activity
 starpu_codelet_profile.1: starpu_codelet_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet profile" --output=$@ ./$<
+starpu_env.1: starpu_env
+	chmod +x $<
+	help2man --no-discard-stderr -N -n "Set StarPU environment variables" --output=$@ ./$<
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N -n "Draw StarPU codelet histogram" --output=$@ ./$<
@@ -505,6 +504,7 @@ dist_man1_MANS =\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1 \
+	starpu_env.1 \
 	starpu_mpi_comm_matrix.1 \
 	starpu_fxt_number_events_to_names.1 \
 	starpu_paje_draw_histogram.1 \

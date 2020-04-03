@@ -51,10 +51,10 @@ void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
 
 	//req->backend->data_request = 0;
 
-	STARPU_PTHREAD_MUTEX_INIT(&req->backend->req_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(&req->backend->req_cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&req->backend->posted_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT(&req->backend->posted_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&req->backend->req_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&req->backend->req_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT0(&req->backend->posted_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&req->backend->posted_cond, NULL);
 
 	//req->backend->other_request = NULL;
 

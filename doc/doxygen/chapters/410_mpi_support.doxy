@@ -25,6 +25,11 @@ GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
 use the usual <c>mpirun</c> command of the MPI implementation to start StarPU on
 the different MPI nodes.
 
+In case the user wants to run several MPI processes by machine (e.g. one per
+NUMA node), \ref STARPU_WORKERS_GETBIND should be used to make StarPU take into
+account the binding set by the MPI launcher (otherwise each StarPU instance
+would try to bind on all cores of the machine...)
+
 An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
@@ -314,7 +319,7 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
   struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
   *count = complex_get_size(handle);
-  starpu_malloc_flags(ptr, *count, 0);
+  *ptr = starpu_malloc_on_node_flags(node, *count, 0);
   memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
   memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 
@@ -341,7 +346,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
-Instead of defining pack and unpack operations, users may want to attach a MPI type to their user defined data interface. The function starpu_mpi_datatype_register() allows to do so. This function takes 3 parameters: the data handle for which the MPI datatype is going to be defined, a function's pointer that will create the MPI datatype, and a function's pointer that will free the MPI datatype.
+Instead of defining pack and unpack operations, users may want to attach a MPI type to their user defined data interface. The function starpu_mpi_datatype_register() allows to do so. This function takes 3 parameters: the data handle for which the MPI datatype is going to be defined, a function's pointer that will create the MPI datatype, and a function's pointer that will free the MPI datatype. If for some data an MPI datatype can not be built (e.g. complex data structure), the creation function can return -1, StarPU-MPI will then fallback to using pack/unpack.
 
 \code{.c}
 starpu_data_interface handle;

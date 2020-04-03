@@ -17,6 +17,8 @@
 #ifndef TIMING_H
 #define TIMING_H
 
+/** @file */
+
 /*
  * _starpu_timing_init must be called prior to using any of these timing
  * functions.

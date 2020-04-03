@@ -59,7 +59,7 @@ starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod native_fortran/fstarpu_mod.f90 native_fortran/fstarpu_mpi_mod.f90
 
 EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\
@@ -342,14 +342,20 @@ endif
 
 if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
-	user_datatype/user_datatype
+	user_datatype/user_datatype		\
+	user_datatype/user_datatype2
 
 user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
 	user_datatype/my_interface.c
 
+user_datatype_user_datatype2_SOURCES =		\
+	user_datatype/user_datatype2.c		\
+	user_datatype/my_interface.c
+
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
+	user_datatype/user_datatype2		\
 	user_datatype/user_datatype
 endif
 endif
@@ -389,10 +395,10 @@ endif
 # - link over source file to build our own object
 native_fortran/fstarpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../../include/$(notdir $@) $@
+	$(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
 native_fortran/fstarpu_mpi_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../../mpi/include/$(notdir $@) $@
+	$(LN_S) $(abs_top_srcdir)/mpi/include/$(notdir $@) $@
 
 if STARPU_HAVE_MPIFORT
 if BUILD_EXAMPLES

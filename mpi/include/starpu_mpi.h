@@ -149,7 +149,7 @@ void starpu_mpi_set_communication_tag(int tag);
 typedef void *starpu_mpi_req;
 
 /**
-   Define the type which can be used to set communication tag when exchanging data.
+   Type of the message tag.
 */
 typedef int64_t starpu_mpi_tag_t;
 
@@ -337,7 +337,7 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_
 */
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag);
 
-typedef void (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
+typedef int (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 
 /**
@@ -350,10 +350,26 @@ typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
 
 /**
+   Register functions to create and free a MPI datatype for the given
+   interface id.
+   Similar to starpu_mpi_datatype_register().
+   It is important that the function is called before any
+   communication can take place for a data with the given handle. See
+   \ref ExchangingUserDefinedDataInterface for an example.
+*/
+int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+
+/**
    Unregister the MPI datatype functions stored for the interface of
    the given handle.
 */
 int starpu_mpi_datatype_unregister(starpu_data_handle_t handle);
+
+/**
+   Unregister the MPI datatype functions stored for the interface of
+   the given interface id. Similar to starpu_mpi_datatype_unregister().
+*/
+int starpu_mpi_interface_datatype_unregister(enum starpu_data_interface_id id);
 
 /** @} */
 
@@ -409,6 +425,7 @@ int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
 
 /**
    @name MPI Insert Task
+   \anchor MPIInsertTask
    @{
 */
 
@@ -517,7 +534,7 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 	If there is several nodes owning data in ::STARPU_W mode, a
 	node will be selected according to a given node selection
 	policy (see ::STARPU_NODE_SELECTION_POLICY or
-	starpu_mpi_node_selection_set_current_policy()) 
+	starpu_mpi_node_selection_set_current_policy())
 	<li>
 	The argument ::STARPU_EXECUTE_ON_NODE followed by an integer
 	can be used to specify the node;
@@ -615,7 +632,15 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new
    @{
 */
 
+
+/**
+   Define the current policy
+ */
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
+/**
+   Define the policy in which the selected node is the one having the
+   most data in ::STARPU_R mode
+*/
 #define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
 
 typedef int (*starpu_mpi_select_node_policy_func_t)(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);

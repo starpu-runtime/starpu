@@ -36,6 +36,7 @@ struct starpu_my_data
 };
 
 void starpu_my_data_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_data *xc);
+void starpu_my_data2_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_data *xc);
 
 char starpu_my_data_get_char(starpu_data_handle_t handle);
 int starpu_my_data_get_int(starpu_data_handle_t handle);
@@ -47,8 +48,10 @@ int starpu_my_data_interface_get_int(void *interface);
 #define STARPU_MY_DATA_GET_INT(interface)	starpu_my_data_interface_get_int(interface)
 
 void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype);
-void starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype);
+int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype);
 void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype);
+int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype);
+void starpu_my_data2_datatype_free(MPI_Datatype *mpi_datatype);
 
 void starpu_my_data_display_codelet_cpu(void *descr[], void *_args);
 void starpu_my_data_compare_codelet_cpu(void *descr[], void *_args);

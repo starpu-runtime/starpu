@@ -15,10 +15,15 @@
  */
 
 #include "mpi_cholesky.h"
+#include "helper.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 
 #ifdef STARPU_QUICK_CHECK
 unsigned size = 2*320;
@@ -94,6 +99,11 @@ void parse_args(int argc, char **argv, int nodes)
 			printf("usage : %s [-size size] [-nblocks nblocks] [-no-prio] [-display] [-check]\n", argv[0]);
                 }
         }
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		size = 16;
+#endif
 
         if (nblocks > size)
 		nblocks = size;

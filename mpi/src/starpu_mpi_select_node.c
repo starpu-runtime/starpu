@@ -28,13 +28,13 @@ static int _current_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;
 static int _last_predefined_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;
 static starpu_mpi_select_node_policy_func_t _policies[_STARPU_MPI_NODE_SELECTION_MAX_POLICY];
 
-int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
+int _starpu_mpi_select_node_with_most_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
 
 void _starpu_mpi_select_node_init()
 {
 	int i;
 
-	_policies[STARPU_MPI_NODE_SELECTION_MOST_R_DATA] = _starpu_mpi_select_node_with_most_R_data;
+	_policies[STARPU_MPI_NODE_SELECTION_MOST_R_DATA] = _starpu_mpi_select_node_with_most_data;
 	for(i=_last_predefined_policy+1 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY ; i++)
 		_policies[i] = NULL;
 }
@@ -73,7 +73,7 @@ int starpu_mpi_node_selection_unregister_policy(int policy)
 	return 0;
 }
 
-int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
+int _starpu_mpi_select_node_with_most_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
 {
 	size_t *size_on_nodes;
 	size_t max_size;
@@ -87,11 +87,15 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 	{
 		starpu_data_handle_t data = descr[i].handle;
 		enum starpu_data_access_mode mode = descr[i].mode;
+		int rank = starpu_data_get_rank(data);
+		size_t size = data->ops->get_size(data);
+
 		if (mode & STARPU_R)
-		{
-			int rank = starpu_data_get_rank(data);
-			size_on_nodes[rank] += data->ops->get_size(data);
-		}
+			size_on_nodes[rank] += size;
+
+		if (mode & STARPU_W)
+			/* Would have to transfer it back */
+			size_on_nodes[rank] += size;
 	}
 
 	max_size = 0;

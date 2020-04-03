@@ -17,6 +17,8 @@
 #ifndef __FILTERS_H__
 #define __FILTERS_H__
 
+/** @file */
+
 #include <stdarg.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
@@ -24,7 +26,6 @@
 #include <starpu.h>
 #include <common/config.h>
 
-
-/* submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
+/** submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
 void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write);
 #endif

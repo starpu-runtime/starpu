@@ -18,6 +18,8 @@
 #ifndef __SOURCE_COMMON_H__
 #define __SOURCE_COMMON_H__
 
+/** @file */
+
 #ifdef STARPU_USE_MP
 
 #include <core/sched_policy.h>

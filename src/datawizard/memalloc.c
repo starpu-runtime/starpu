@@ -115,6 +115,7 @@ static unsigned reclaiming[STARPU_MAXNODES];
 
 int _starpu_is_reclaiming(unsigned node)
 {
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	return tidying[node] || reclaiming[node];
 }
 
@@ -564,7 +565,8 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 		return 0;
 
 	/* This data cannnot be pushed outside CPU memory */
-	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
+	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
+		&& starpu_memory_nodes_get_numa_count() == 1)
 		return 0;
 
 	if (diduse_barrier && !mc->diduse)
@@ -749,9 +751,9 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 		/* Remove from the cache */
 		_starpu_mem_chunk_list_erase(&entry->list, mc);
 		mc_cache_nb[node]--;
-		STARPU_ASSERT(mc_cache_nb[node] >= 0);
+		STARPU_ASSERT_MSG(mc_cache_nb[node] >= 0, "allocation cache for node %u has %d objects??", node, mc_cache_nb[node]);
 		mc_cache_size[node] -= mc->size;
-		STARPU_ASSERT(mc_cache_size[node] >= 0);
+		STARPU_ASSERT_MSG(mc_cache_size[node] >= 0, "allocation cache for node %u has %ld bytes??", node, (long) mc_cache_size[node]);
 		return mc;
 	}
 
@@ -1047,6 +1049,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 {
 	size_t freed = 0;
 
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (reclaim && !force)
 	{
 		static unsigned warned;
@@ -1056,7 +1059,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 			{
 				char name[32];
 				starpu_memory_node_get_name(node, name, sizeof(name));
-				_STARPU_DISP("Not enough memory left on node %s. Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges\n", name, (unsigned long) (reclaim / 1048576));
+				_STARPU_DISP("Not enough memory left on node %s. Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges\n", name, (unsigned long) ((reclaim+1048575) / 1048576));
 			}
 		}
 	}
@@ -1089,6 +1092,7 @@ void starpu_memchunk_tidy(unsigned node)
 	starpu_ssize_t available;
 	size_t target, amount;
 
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		return;
 
@@ -1277,7 +1281,7 @@ void starpu_memchunk_tidy(unsigned node)
 		{
 			char name[32];
 			starpu_memory_node_get_name(node, name, sizeof(name));
-			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
+			_STARPU_DISP("Low memory left on node %s (%ldMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) ((amount+1048575) / 1048576));
 		}
 	}
 
@@ -1348,6 +1352,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	STARPU_ASSERT(mc->data == handle);
 	_starpu_spin_checklocked(&handle->header_lock);
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 
 	/* Record the allocated size, so that later in memory
 	 * reclaiming we can estimate how much memory we free
@@ -1583,6 +1588,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	starpu_ssize_t allocated_memory;
 
 	unsigned dst_node = replicate->memory_node;
+	STARPU_ASSERT(dst_node < STARPU_MAXNODES);
 
 	STARPU_ASSERT(handle);
 	_starpu_spin_checklocked(&handle->header_lock);
@@ -1630,7 +1636,8 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsi
 
 unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
-	return handle->per_node[memory_node].mapped;
+	STARPU_ASSERT(memory_node < STARPU_MAXNODES);
+	return handle->per_node[memory_node].allocated;
 }
 
 /* This memchunk has been recently used, put it last on the mc_list, so we will
@@ -1640,6 +1647,7 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1657,6 +1665,7 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	if (!mc)
 		/* user-allocated memory */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1684,6 +1693,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 	if (mc->home)
 		/* Home is always clean */
 		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	if (!can_evict(node))
 		/* Don't bother */
 		return;
@@ -1711,6 +1721,7 @@ void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 #ifdef STARPU_MEMORY_STATS
 void _starpu_memory_display_stats_by_node(FILE *stream, int node)
 {
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	_starpu_spin_lock(&mc_lock[node]);
 
 	if (!_starpu_mem_chunk_list_empty(&mc_list[node]))
@@ -1845,11 +1856,11 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 					break;
 				}
 			}
-		}
-		/* no place in RAM */
-		if (target == -1)
-		{
-			target = get_better_disk_can_accept_size(handle, node);
+			/* no place in RAM */
+			if (target == -1)
+			{
+				target = get_better_disk_can_accept_size(handle, node);
+			}
 		}
 	}
 	/* we haven't the right to write on the disk */

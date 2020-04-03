@@ -69,7 +69,7 @@ EXTRA_DIST =					\
 	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -155,6 +155,7 @@ myPROGRAMS +=					\
 	datawizard/deps				\
 	datawizard/user_interaction_implicit	\
 	datawizard/interfaces/copy_interfaces	\
+	datawizard/numa_overflow		\
 	datawizard/locality			\
 	datawizard/variable_size		\
 	errorcheck/starpu_init_noworker		\
@@ -1007,7 +1008,7 @@ sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(srcdir)/../../include/$(notdir $@) $@
+	$(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
 
 if STARPU_HAVE_FC
 # - express the creation of .mod along .o

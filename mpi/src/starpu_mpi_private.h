@@ -278,8 +278,10 @@ void _starpu_mpi_submit_ready_request(void *arg);
 /* To be called when request is completed */
 void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
 
+#if 0
 /* Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends);
+#endif
 /* Try to merge with send request with other send requests */
 void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
 

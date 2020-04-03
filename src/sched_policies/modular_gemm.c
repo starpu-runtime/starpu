@@ -174,6 +174,7 @@ static void initialize_gemm_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 

@@ -18,6 +18,8 @@
 #ifndef __SCHED_POLICY_H__
 #define __SCHED_POLICY_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <signal.h>
 #include <core/workers.h>
@@ -51,12 +53,12 @@ void _starpu_sched_do_schedule(unsigned sched_ctx_id);
 int _starpu_push_task(struct _starpu_job *task);
 int _starpu_repush_task(struct _starpu_job *task);
 
-/* actually pushes the tasks to the specific worker or to the scheduler */
+/** actually pushes the tasks to the specific worker or to the scheduler */
 int _starpu_push_task_to_workers(struct starpu_task *task);
 
-/* pop a task that can be executed on the worker */
+/** pop a task that can be executed on the worker */
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker);
-/* pop every task that can be executed on the worker */
+/** pop every task that can be executed on the worker */
 struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx);
 void _starpu_sched_post_exec_hook(struct starpu_task *task);
 int _starpu_pop_task_end(struct starpu_task *task);

@@ -17,6 +17,8 @@
 #ifndef __PROGRESS_HOOK_H__
 #define __PROGRESS_HOOK_H__
 
+/** @file */
+
 void _starpu_init_progression_hooks(void);
 
 unsigned _starpu_execute_registered_progression_hooks(void);

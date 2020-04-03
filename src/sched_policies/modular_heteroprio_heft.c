@@ -31,6 +31,7 @@ static void initialize_heteroprio_heft_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL,
 			(starpu_sched_component_create_t) starpu_sched_component_heft_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
@@ -39,6 +40,7 @@ static void initialize_heteroprio_heft_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL);
 }
 

@@ -17,6 +17,8 @@
 #ifndef __COPY_DRIVER_H__
 #define __COPY_DRIVER_H__
 
+/** @file */
+
 #ifdef HAVE_AIO_H
 #include <aio.h>
 #endif
@@ -46,7 +48,7 @@ struct _starpu_data_request;
 struct _starpu_data_replicate;
 
 #ifdef STARPU_USE_MIC
-/* MIC needs memory_node to know which MIC is concerned.
+/** MIC needs memory_node to know which MIC is concerned.
  * mark is used to wait asynchronous request.
  * signal is used to test asynchronous request. */
 struct _starpu_mic_async_event
@@ -84,7 +86,7 @@ struct _starpu_disk_async_event
 	starpu_data_handle_t handle;
 };
 
-/* this is a structure that can be queried to see whether an asynchronous
+/** this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
@@ -114,10 +116,10 @@ struct _starpu_async_channel
 {
 	union _starpu_async_channel_event event;
 	struct _starpu_node_ops *node_ops;
-        /* Which node to polling when needing ACK msg */
+        /** Which node to polling when needing ACK msg */
         struct _starpu_mp_node *polling_node_sender;
         struct _starpu_mp_node *polling_node_receiver;
-        /* Used to know if the acknowlegdment msg is arrived from sinks */
+        /** Used to know if the acknowlegdment msg is arrived from sinks */
         volatile int starpu_mp_common_finished_sender;
         volatile int starpu_mp_common_finished_receiver;
 };

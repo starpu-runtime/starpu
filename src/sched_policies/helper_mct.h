@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/** @file */
+
 struct _starpu_mct_data
 {
 	double alpha;

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/** @file */
+
 /*
  * This implements list with priorities (as an int), by using two stages:
  * - an RB tree stage sorted by priority, whose leaves are...

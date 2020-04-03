@@ -16,6 +16,10 @@
 
 #include "implicit-stencil.h"
 
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 /* Main application */
 
 /* default parameter values */
@@ -26,18 +30,20 @@ static unsigned ticks = 1000;
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 4;
 #define SIZE 16
+#define NBZ 8
 #else
 static unsigned niter = 32;
 #define SIZE 128
+#define NBZ 64
 #endif
 
 /* Problem size */
 static unsigned sizex = SIZE;
 static unsigned sizey = SIZE;
-static unsigned sizez = 64*SIZE;
+static unsigned sizez = NBZ*SIZE;
 
 /* Number of blocks (scattered over the different MPI processes) */
-unsigned nbz = 64;
+unsigned nbz = NBZ;
 
 double start;
 double begin, end;
@@ -120,6 +126,15 @@ static void parse_args(int argc, char **argv)
 			 exit(0);
 		}
 	}
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+	{
+		sizex = sizey = 3;
+		nbz = 10;
+		sizez = nbz*3;
+	}
+#endif
 }
 
 static void init_problem(int argc, char **argv, int rank, int world_size)

@@ -25,7 +25,7 @@ Every symbol of the Native Fortran support API is prefixed by
 
 Note: Mixing uses of <c>fstarpu_</c> and <c>starpu_</c>
 symbols in the same Fortran code has unspecified behaviour.
-See \ref APIMIX for a discussion about valid and unspecified
+See \ref NFAPIMIX for a discussion about valid and unspecified
 combinations.
 
 \section NFImplementation Implementation Details and Specificities
@@ -40,7 +40,7 @@ standard. It has currently been tested successfully with GNU GFortran 4.9,
 GFortran 5.x, GFortran 6.x and the Intel Fortran Compiler >= 2016. It is known
 not to work with GNU GFortran < 4.9, Intel Fortran Compiler < 2016.
 
-See Section \ref OldFortran on information on how to write StarPU
+See Section \ref NFOldFortran on information on how to write StarPU
 Fortran code with older compilers.
 
 \subsection NFConfiguration Configuration

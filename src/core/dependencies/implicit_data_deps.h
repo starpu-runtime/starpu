@@ -17,6 +17,8 @@
 #ifndef __IMPLICIT_DATA_DEPS_H__
 #define __IMPLICIT_DATA_DEPS_H__
 
+/** @file */
+
 #include <starpu.h>
 #include <common/config.h>
 
@@ -30,10 +32,10 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j);
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle);
 void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle);
 
-/* Register a hook to be called when a write is submitted */
+/** Register a hook to be called when a write is submitted */
 void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t));
 
-/* This function blocks until the handle is available in the requested mode */
+/** This function blocks until the handle is available in the requested mode */
 int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode, const char *sync_name);
 
 void _starpu_data_clear_implicit(starpu_data_handle_t handle);

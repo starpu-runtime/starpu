@@ -152,6 +152,14 @@ configuration:
 $ make install
 \endverbatim
 
+If you have let StarPU install in <c>/usr/local/</c>, you additionally need to run
+
+\verbatim
+$ sudo ldconfig
+\endverbatim
+
+so the libraries can be found by the system.
+
 Libtool interface versioning information are included in
 libraries names (<c>libstarpu-1.3.so</c>, <c>libstarpumpi-1.3.so</c> and
 <c>libstarpufft-1.3.so</c>).
@@ -218,6 +226,17 @@ $ starpu_machine_display
 
 If it does not, please check the output of \c lstopo from \c hwloc and report
 the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
+
+<br>
+A tool is provided to help setting all the environment variables
+needed by StarPU. Once StarPU is installed in a specific directory,
+calling the script <c>bin/starpu_env</c> will set in your current
+environment the variables <c>STARPU_PATH</c>, <c>LD_LIBRARY_PATH</c>,
+<c>PKG_CONFIG_PATH</c>, <c>PATH</c> and <c>MANPATH</c>.
+
+\verbatim
+$ source $STARPU_PATH/bin/starpu_env
+\endverbatim
 
 \subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
 
@@ -504,9 +523,10 @@ It can also be convenient to try simulated benchmarks, if you want to give a try
 at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the SimGrid version of StarPU: first install the SimGrid simulator from
 http://simgrid.gforge.inria.fr/ (we tested with SimGrid from 3.11 to 3.16, and
-3.18 to 3.22, other versions may have compatibility issues, 3.17 notably does
-not build at all. MPI simulation does not work with version 3.22),
-then configure StarPU with \ref enable-simgrid
+3.18 to 3.25. SimGrid versions 3.25 and above need to be configured with -Denable_msg=ON.
+Other versions may have compatibility issues, 3.17 notably does
+not build at all. MPI simulation does not work with version 3.22).
+Then configure StarPU with \ref enable-simgrid
 "--enable-simgrid" and rebuild and install it, and then you can simulate the performance for a
 few virtualized systems shipped along StarPU: attila, mirage, idgraf, and sirocco.
 

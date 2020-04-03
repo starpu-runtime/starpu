@@ -17,6 +17,8 @@
 #ifndef __DRIVER_OPENCL_H__
 #define __DRIVER_OPENCL_H__
 
+/** @file */
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif

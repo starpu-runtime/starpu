@@ -1,0 +1,52 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+PROGNAME=starpu_env
+
+usage()
+{
+    echo "Tool to set StarPU environment variables"
+    echo ""
+    echo "Usage: source $PROGNAME"
+    echo ""
+    echo ""
+    echo "Options:"
+    echo "	-h, --help          display this help and exit"
+    echo "	-v, --version       output version information and exit"
+    echo ""
+    echo "Report bugs to <@PACKAGE_BUGREPORT@>"
+}
+
+if [ "$1" = "-v" ] || [ "$1" = "--version" ]
+then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+elif [ "$1" = "-h" ] || [ "$1" = "--help" ]
+then
+    usage
+else
+    starpu_prefix=$(realpath @prefix@)
+    if test -f $starpu_prefix/bin/starpu_machine_display -a -f $starpu_prefix/lib/pkgconfig/libstarpu.pc
+    then
+	echo "Setting StarPU environment for $starpu_prefix"
+	export PKG_CONFIG_PATH=$starpu_prefix/lib/pkgconfig:$PKG_CONFIG_PATH
+	export LD_LIBRARY_PATH=$starpu_prefix/lib:$LD_LIBRARY_PATH
+	export PATH=$starpu_prefix/bin:$PATH
+	export MANPATH=$starpu_prefix/share/man:$MANPATH
+    else
+	echo "[Error] $starpu_prefix is not a valid StarPU installation directory"
+    fi
+fi
+

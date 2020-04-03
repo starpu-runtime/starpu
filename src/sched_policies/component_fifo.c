@@ -28,6 +28,7 @@ struct _starpu_fifo_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 	int ready;
+	int exp;
 };
 
 static void fifo_component_deinit_data(struct starpu_sched_component * component)
@@ -43,8 +44,8 @@ static double fifo_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
-	return starpu_sched_component_estimated_end_min_add(component, fifo->exp_len);
+	struct _starpu_fifo_taskq * queue = data->fifo;
+	return starpu_sched_component_estimated_end_min_add(component, queue->exp_len);
 }
 
 static double fifo_estimated_load(struct starpu_sched_component * component)
@@ -52,7 +53,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(component->workers_in_ctx) != 0);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_fifo_taskq * queue = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
@@ -61,7 +62,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
-		load += fifo->ntasks / relative_speedup;
+		load += queue->ntasks / relative_speedup;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		return load;
 	}
@@ -75,7 +76,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
-		load += fifo->ntasks / relative_speedup;
+		load += queue->ntasks / relative_speedup;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	return load;
@@ -86,59 +87,71 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	STARPU_ASSERT(component && component->data && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_fifo_taskq * queue = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	double exp_len;
-	if(!isnan(task->predicted))
-		exp_len = fifo->exp_len + task->predicted;
-	else
-		exp_len = fifo->exp_len;
 
-	if ((data->ntasks_threshold != 0 && fifo->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
+	if (data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
 	{
-		static int warned;
-		if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
-		{
-			_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
-			warned = 1;
-		}
 		STARPU_ASSERT(!is_pushback);
 		ret = 1;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
-	else
+	else if(data->exp)
 	{
-		if(is_pushback)
-			ret = _starpu_fifo_push_back_task(fifo,task);
+		double exp_len;
+		if(!isnan(task->predicted))
+			exp_len = queue->exp_len + task->predicted;
+		else
+			exp_len = queue->exp_len;
+
+		if (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
+		{
+			static int warned;
+			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
+			{
+				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
+				warned = 1;
+			}
+			STARPU_ASSERT(!is_pushback);
+			ret = 1;
+			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
+		}
 		else
 		{
-			ret = _starpu_fifo_push_task(fifo,task);
+			if(!isnan(task->predicted_transfer))
+			{
+				double end = fifo_estimated_end(component);
+				double tfer_end = now + task->predicted_transfer;
+				if(tfer_end < end)
+					task->predicted_transfer = 0.0;
+				else
+					task->predicted_transfer = tfer_end - end;
+				exp_len += task->predicted_transfer;
+			}
+
+			if(!isnan(task->predicted))
+			{
+				queue->exp_len = exp_len;
+				queue->exp_end = queue->exp_start + queue->exp_len;
+			}
+			STARPU_ASSERT(!isnan(queue->exp_end));
+			STARPU_ASSERT(!isnan(queue->exp_len));
+			STARPU_ASSERT(!isnan(queue->exp_start));
+		}
+	}
+
+	if(!ret)
+	{
+		if(is_pushback)
+			ret = _starpu_fifo_push_back_task(queue,task);
+		else
+		{
+			ret = _starpu_fifo_push_task(queue,task);
 			starpu_sched_component_prefetch_on_node(component, task);
 		}
-
-		if(!isnan(task->predicted_transfer))
-		{
-			double end = fifo_estimated_end(component);
-			double tfer_end = now + task->predicted_transfer;
-			if(tfer_end < end)
-				task->predicted_transfer = 0.0;
-			else
-				task->predicted_transfer = tfer_end - end;
-			exp_len += task->predicted_transfer;
-		}
-
-		if(!isnan(task->predicted))
-		{
-			fifo->exp_len = exp_len;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		}
-		STARPU_ASSERT(!isnan(fifo->exp_end));
-		STARPU_ASSERT(!isnan(fifo->exp_len));
-		STARPU_ASSERT(!isnan(fifo->exp_start));
-
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
@@ -156,54 +169,61 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_fifo_taskq * queue = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
+
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(queue))
+	{
+		starpu_sched_component_send_can_push_to_parents(component);
+		return NULL;
+	}
+
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
-		task = _starpu_fifo_pop_first_ready_task(fifo, starpu_bitmap_first(to->workers_in_ctx), -1);
+		task = _starpu_fifo_pop_first_ready_task(queue, starpu_bitmap_first(to->workers_in_ctx), -1);
 	else
-		task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id_check());
-	if(task)
+		task = _starpu_fifo_pop_task(queue, starpu_worker_get_id_check());
+	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))
 		{
-			const double exp_len = fifo->exp_len - task->predicted;
-			fifo->exp_start = now + task->predicted;
+			const double exp_len = queue->exp_len - task->predicted;
+			queue->exp_start = now + task->predicted;
 			if (exp_len >= 0.0)
 			{
-				fifo->exp_len = exp_len;
+				queue->exp_len = exp_len;
 			}
 			else
 			{
 				/* exp_len can become negative due to rounding errors */
-				fifo->exp_len = 0.0;
+				queue->exp_len = 0.0;
 			}
 		}
 
-		STARPU_ASSERT_MSG(fifo->exp_len>=0, "fifo->exp_len=%lf\n",fifo->exp_len);
+		STARPU_ASSERT_MSG(queue->exp_len>=0, "fifo->exp_len=%lf\n",queue->exp_len);
 		if(!isnan(task->predicted_transfer))
 		{
-			if (fifo->exp_len > task->predicted_transfer)
+			if (queue->exp_len > task->predicted_transfer)
 			{
-				fifo->exp_start += task->predicted_transfer;
-				fifo->exp_len -= task->predicted_transfer;
+				queue->exp_start += task->predicted_transfer;
+				queue->exp_len -= task->predicted_transfer;
 			}
 			else
 			{
-				fifo->exp_start += fifo->exp_len;
-				fifo->exp_len = 0;
+				queue->exp_start += queue->exp_len;
+				queue->exp_len = 0;
 			}
 		}
 
-		fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		if(fifo->ntasks == 0)
-			fifo->exp_len = 0.0;
+		queue->exp_end = queue->exp_start + queue->exp_len;
+		if(queue->ntasks == 0)
+			queue->exp_len = 0.0;
 	}
-	STARPU_ASSERT(!isnan(fifo->exp_end));
-	STARPU_ASSERT(!isnan(fifo->exp_len));
-	STARPU_ASSERT(!isnan(fifo->exp_start));
+	STARPU_ASSERT(!isnan(queue->exp_end));
+	STARPU_ASSERT(!isnan(queue->exp_len));
+	STARPU_ASSERT(!isnan(queue->exp_start));
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	// When a pop is called, a can_push is called for pushing tasks onto
@@ -264,12 +284,14 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 		data->ntasks_threshold=params->ntasks_threshold;
 		data->exp_len_threshold=params->exp_len_threshold;
 		data->ready=params->ready;
+		data->exp=params->exp;
 	}
 	else
 	{
 		data->ntasks_threshold=0;
 		data->exp_len_threshold=0.0;
 		data->ready=0;
+		data->exp=0;
 	}
 
 	return component;

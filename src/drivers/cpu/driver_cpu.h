@@ -17,6 +17,8 @@
 #ifndef __DRIVER_CPU_H__
 #define __DRIVER_CPU_H__
 
+/** @file */
+
 #include <common/config.h>
 #include <datawizard/node_ops.h>
 

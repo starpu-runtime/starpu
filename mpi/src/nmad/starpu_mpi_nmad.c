@@ -44,11 +44,14 @@
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
 #ifdef STARPU_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
+
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
+#endif
 
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_t progress_thread;
@@ -283,7 +286,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 /********************************************************/
 
 #ifdef STARPU_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
 	{
@@ -368,10 +371,12 @@ void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 	nm_sr_request_monitor(req->backend->session, &(req->backend->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
 }
 
+#if 0
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
 {
 	/* TODO: turn them into redirects & forwards */
 }
+#endif
 
 void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
 {
@@ -415,24 +420,13 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 
 #ifndef STARPU_SIMGRID
-	if (_starpu_mpi_thread_cpuid < 0)
-	{
-		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(0, NULL, 0);
-	}
-
 	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
 		_STARPU_DISP("[%s] No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n", hostname);
 	}
-	_starpu_mpi_do_initialize(argc_argv);
-	if (_starpu_mpi_thread_cpuid >= 0)
-		/* In case MPI changed the binding */
-		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
 #endif
-
-	_starpu_mpi_env_init();
 
 #ifdef STARPU_SIMGRID
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
@@ -547,9 +541,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 // static int hookid = - 1;
 // #endif /* STARPU_MPI_ACTIVITY */
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	int ret;
@@ -578,8 +572,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-#endif
 }
+#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
@@ -589,14 +583,21 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
 
-	/* Tell pioman to use a bound thread for communication progression */
-	unsigned piom_bindid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
-	int indexes[1] = {piom_bindid};
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU,indexes,1);
+	_starpu_mpi_env_init();
 
-	/* We force the "MPI" thread to share the same core as the pioman thread
-	   to avoid binding it on the same core as a worker */
-	_starpu_mpi_thread_cpuid = piom_bindid;
+	/* This function calls MPI_Init_thread if needed, and it initializes internal NMAD/Pioman variables,
+	 * required for piom_ltask_set_bound_thread_indexes() */
+	_starpu_mpi_do_initialize(argc_argv);
+
+	if (_starpu_mpi_thread_cpuid < 0)
+	{
+		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+	}
+
+	/* Tell pioman to use a bound thread for communication progression:
+	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
+	int indexes[1] = { _starpu_mpi_thread_cpuid };
+	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;

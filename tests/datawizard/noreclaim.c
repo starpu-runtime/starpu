@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	void *allocated;
 
-	setenv("STARPU_LIMIT_CPU_MEM", TOTAL, 1);
+	setenv("STARPU_LIMIT_CPU_NUMA_MEM", TOTAL, 1);
 
 	starpu_conf_init(&conf);
 	conf.ncpus = 1;

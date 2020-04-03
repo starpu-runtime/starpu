@@ -806,8 +806,27 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		int err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
 		if (err < 0) _STARPU_DISP("Could not load hwloc input %s\n", hwloc_input);
 	}
+
 	_starpu_topology_filter(topology->hwtopology);
 	hwloc_topology_load(topology->hwtopology);
+
+	if (starpu_get_env_number_default("STARPU_WORKERS_GETBIND", 0))
+	{
+		/* Respect the existing binding */
+		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
+
+		int ret = hwloc_get_cpubind(topology->hwtopology, cpuset, HWLOC_CPUBIND_THREAD);
+		if (ret)
+			_STARPU_DISP("Warning: could not get current CPU binding: %s\n", strerror(errno));
+		else
+		{
+			ret = hwloc_topology_restrict(topology->hwtopology, cpuset, 0);
+			if (ret)
+				_STARPU_DISP("Warning: could not restrict hwloc to cpuset: %s\n", strerror(errno));
+		}
+		hwloc_bitmap_free(cpuset);
+	}
+
 	_starpu_allocate_topology_userdata(hwloc_get_root_obj(topology->hwtopology));
 #endif
 #endif
@@ -1151,7 +1170,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 		res = 1;
 	}
 
-	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered is higher than maximum accepted ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n");
+	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
 	return res;
 }
 
@@ -2081,7 +2100,7 @@ static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
 	}
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
 	starpu_ssize_t limit = -1;
@@ -2133,14 +2152,29 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 #endif
 
 	if (limit == -1)
+		limit = starpu_get_env_number("STARPU_LIMIT_CPU_NUMA_MEM");
+
+	if (limit == -1)
+	{
 		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+		if (limit != -1 && numa_enabled)
+		{
+			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nnumanodes(config));
+			limit /= _starpu_topology_get_nnumanodes(config);
+		}
+	}
 
 	if (limit < 0)
 		// No limit is defined, we return the global memory size
 		return global_mem;
 	else if (global_mem && (size_t)limit * 1024*1024 > global_mem)
-		// The requested limit is higher than what is available, we return the global memory size
+	{
+		if (numa_enabled)
+			_STARPU_DISP("The requested limit %ldMB for NUMA node %d is higher that available memory %luMB, using the latter\n", (unsigned long) limit, nodeid, (unsigned long) global_mem / (1024*1024));
+		else
+			_STARPU_DISP("The requested limit %ldMB is higher that available memory %luMB, using the latter\n", (long) limit, (unsigned long) global_mem / (1024*1024));
 		return global_mem;
+	}
 	else
 		// We limit the memory
 		return limit*1024*1024;

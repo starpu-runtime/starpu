@@ -43,7 +43,7 @@ void _starpu_mpi_datatype_shutdown(void)
  * 	Matrix
  */
 
-static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -57,13 +57,15 @@ static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Block
  */
 
-static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -86,13 +88,15 @@ static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datat
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Tensor
  */
 
-static void handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -124,13 +128,15 @@ static void handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Vector
  */
 
-static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -142,13 +148,15 @@ static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Data
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Variable
  */
 
-static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 
@@ -159,13 +167,15 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
  * 	Void
  */
 
-static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
+static int handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
 	int ret;
 	(void)data_handle;
@@ -175,6 +185,8 @@ static void handle_to_datatype_void(starpu_data_handle_t data_handle, MPI_Dataty
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	return 0;
 }
 
 /*
@@ -225,8 +237,15 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->allocate_datatype_func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
-			table->allocate_datatype_func(data_handle, &req->datatype);
-			req->registered_datatype = 1;
+			int ret = table->allocate_datatype_func(data_handle, &req->datatype);
+			if (ret == 0)
+				req->registered_datatype = 1;
+			else
+			{
+				/* Couldn't register, probably complex data which needs packing. */
+				req->datatype = MPI_BYTE;
+				req->registered_datatype = 0;
+			}
 		}
 		else
 		{
@@ -315,16 +334,16 @@ void _starpu_mpi_datatype_free(starpu_data_handle_t data_handle, MPI_Datatype *d
 		if (table)
 		{
 			STARPU_ASSERT_MSG(table->free_datatype_func, "Free Datatype Function not defined for StarPU data interface %d", id);
-			table->free_datatype_func(datatype);
+			if (*datatype != MPI_BYTE)
+				table->free_datatype_func(datatype);
 		}
 
 	}
 	/* else the datatype is not predefined by StarPU */
 }
 
-int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
+int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
 {
-	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
 	struct _starpu_mpi_datatype_funcs *table;
 
 	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
@@ -344,14 +363,21 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
 		table->free_datatype_func = free_datatype_func;
 		HASH_ADD_INT(_starpu_mpi_datatype_funcs_table, id, table);
 	}
-	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer || handle->ops->to_pointer, "The data interface must define the operation 'to_pointer'\n");
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	return 0;
 }
 
-int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
+int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+	int ret;
+	ret = starpu_mpi_interface_datatype_register(id, allocate_datatype_func, free_datatype_func);
+	STARPU_ASSERT_MSG(handle->ops->handle_to_pointer || handle->ops->to_pointer, "The data interface must define the operation 'to_pointer'\n");
+	return ret;
+}
+
+int starpu_mpi_interface_datatype_unregister(enum starpu_data_interface_id id)
+{
 	struct _starpu_mpi_datatype_funcs *table;
 
 	STARPU_ASSERT_MSG(id >= STARPU_MAX_INTERFACE_ID, "Cannot redefine the MPI datatype for a predefined StarPU datatype");
@@ -365,4 +391,10 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
 	return 0;
+}
+
+int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
+{
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+	return starpu_mpi_interface_datatype_unregister(id);
 }

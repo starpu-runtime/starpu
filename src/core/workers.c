@@ -426,42 +426,11 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	return 0;
 }
 
-/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
-int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
-{
+/* Test if this task can be processed on this worker, regardless of the implementation */
+/* must be called with sched_mutex locked to protect state_blocked */
+static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct starpu_task *task) {
+
 	if (!_starpu_config.workers[workerid].enable_knob)
-		return 0;
-
-	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-#ifdef STARPU_DEVEL
-#warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
-#endif
-	if(starpu_worker_is_blocked_in_parallel(workerid))
-		return 0;
-
-	/* TODO: check that the task operand sizes will fit on that device */
-	return (task->where & _starpu_config.workers[workerid].worker_mask) &&
-		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
-		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
-}
-
-/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
-int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
-{
-	if (!_starpu_config.workers[workerid].enable_knob)
-		return 0;
-
-	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(starpu_worker_is_blocked_in_parallel(workerid))
-		return 0;
-
-	unsigned mask;
-	int i;
-	enum starpu_worker_archtype arch;
-	struct starpu_codelet *cl;
-	/* TODO: check that the task operand sizes will fit on that device */
-	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
 		return 0;
 
 	if (task->workerids_len)
@@ -470,6 +439,43 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 		if (workerid / div >= task->workerids_len || ! (task->workerids[workerid / div] & (1UL << workerid % div)))
 			return 0;
 	}
+
+	
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
+#ifdef STARPU_DEVEL
+#warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
+#endif
+	if(starpu_worker_is_blocked_in_parallel(workerid))
+		return 0;
+
+	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
+		return 0;
+
+	return 1; 
+}
+
+/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
+int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+
+	/* TODO: check that the task operand sizes will fit on that device */
+	return  _starpu_can_execute_task_any_impl(workerid, task) &&
+		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
+		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
+}
+
+/* must be called with sched_mutex locked to protect state_blocked_in_parallel */
+int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
+{
+	if (!_starpu_can_execute_task_any_impl(workerid, task))
+		return 0;
+
+	unsigned mask;
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
 
 	mask = 0;
 	arch = _starpu_config.workers[workerid].arch;
@@ -502,19 +508,13 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
 /* must be called with sched_mutex locked to protect state_blocked */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
 {
-	if (!_starpu_config.workers[workerid].enable_knob)
-		return 0;
-
-	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-	if(starpu_worker_is_blocked_in_parallel(workerid))
+	if (!_starpu_can_execute_task_any_impl(workerid, task))
 		return 0;
 	int i;
 	enum starpu_worker_archtype arch;
 	struct starpu_codelet *cl;
 	/* TODO: check that the task operand sizes will fit on that device */
 	cl = task->cl;
-	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
-		return 0;
 
 	arch = _starpu_config.workers[workerid].arch;
 	if (!task->cl->can_execute)

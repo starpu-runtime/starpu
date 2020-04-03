@@ -450,7 +450,7 @@ static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags(ptr, *count, 0);
+		*ptr = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		memcpy(*ptr, (void*)vector_interface->ptr, vector_interface->elemsize*vector_interface->nx);
 	}
 
@@ -466,6 +466,8 @@ static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, 
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
+
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
 }
@@ -574,6 +576,8 @@ void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
+	bool fail;
+
 	starpu_conf_init(&conf);
 	conf.nmic = 0;
 	conf.nmpi_ms = 0;
@@ -584,73 +588,75 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	/* Test data transfers between NUMA nodes if available */
-	unsigned last_numa_node = starpu_memory_nodes_get_numa_count() - 1;
-
-	const my_allocator<char> allocator_main_ram(STARPU_MAIN_RAM);
-	const my_allocator<char> allocator_last_numa(last_numa_node);
-	std::vector<MY_TYPE> vec_A(VEC_SIZE, 2, allocator_main_ram); // all the vector is initialized to 2
-	std::vector<MY_TYPE> vec_B(VEC_SIZE, 3, allocator_main_ram); // all the vector is initialized to 3
-	std::vector<MY_TYPE> vec_C(VEC_SIZE, 0, allocator_last_numa); // all the vector is initialized to 0
-
-	// StarPU data registering
-	starpu_data_handle_t spu_vec_A;
-	starpu_data_handle_t spu_vec_B;
-	starpu_data_handle_t spu_vec_C;
-
-	// give the data of the vector to StarPU (C array)
-	vector_cpp_data_register(&spu_vec_A, STARPU_MAIN_RAM, &vec_A, vec_A.size(), sizeof(char));
-	vector_cpp_data_register(&spu_vec_B, STARPU_MAIN_RAM, &vec_B, vec_B.size(), sizeof(char));
-	vector_cpp_data_register(&spu_vec_C, last_numa_node, &vec_C, vec_C.size(), sizeof(char));
-
-	// create the StarPU codelet
-	starpu_codelet cl;
-	starpu_codelet_init(&cl);
-	cl.cpu_funcs     [0] = cpu_kernel_add_vectors;
-	cl.cpu_funcs_name[0] = "cpu_kernel_add_vectors";
-	cl.nbuffers          = 3;
-	cl.modes         [0] = STARPU_R;
-	cl.modes         [1] = STARPU_R;
-	cl.modes         [2] = STARPU_W;
-	cl.name              = "add_vectors";
-
-	// submit a new StarPU task to execute
-	ret = starpu_task_insert(&cl,
-	                         STARPU_R, spu_vec_A,
-	                         STARPU_R, spu_vec_B,
-	                         STARPU_W, spu_vec_C,
-	                         0);
-	if (ret == -ENODEV)
 	{
+		/* Test data transfers between NUMA nodes if available */
+		unsigned last_numa_node = starpu_memory_nodes_get_numa_count() - 1;
+
+		const my_allocator<char> allocator_main_ram(STARPU_MAIN_RAM);
+		const my_allocator<char> allocator_last_numa(last_numa_node);
+		std::vector<MY_TYPE> vec_A(VEC_SIZE, 2, allocator_main_ram); // all the vector is initialized to 2
+		std::vector<MY_TYPE> vec_B(VEC_SIZE, 3, allocator_main_ram); // all the vector is initialized to 3
+		std::vector<MY_TYPE> vec_C(VEC_SIZE, 0, allocator_last_numa); // all the vector is initialized to 0
+
+		// StarPU data registering
+		starpu_data_handle_t spu_vec_A;
+		starpu_data_handle_t spu_vec_B;
+		starpu_data_handle_t spu_vec_C;
+
+		// give the data of the vector to StarPU (C array)
+		vector_cpp_data_register(&spu_vec_A, STARPU_MAIN_RAM, &vec_A, vec_A.size(), sizeof(char));
+		vector_cpp_data_register(&spu_vec_B, STARPU_MAIN_RAM, &vec_B, vec_B.size(), sizeof(char));
+		vector_cpp_data_register(&spu_vec_C, last_numa_node, &vec_C, vec_C.size(), sizeof(char));
+
+		// create the StarPU codelet
+		starpu_codelet cl;
+		starpu_codelet_init(&cl);
+		cl.cpu_funcs     [0] = cpu_kernel_add_vectors;
+		cl.cpu_funcs_name[0] = "cpu_kernel_add_vectors";
+		cl.nbuffers          = 3;
+		cl.modes         [0] = STARPU_R;
+		cl.modes         [1] = STARPU_R;
+		cl.modes         [2] = STARPU_W;
+		cl.name              = "add_vectors";
+
+		// submit a new StarPU task to execute
+		ret = starpu_task_insert(&cl,
+					 STARPU_R, spu_vec_A,
+					 STARPU_R, spu_vec_B,
+					 STARPU_W, spu_vec_C,
+					 0);
+		if (ret == -ENODEV)
+		{
+			// StarPU data unregistering
+			starpu_data_unregister(spu_vec_C);
+			starpu_data_unregister(spu_vec_B);
+			starpu_data_unregister(spu_vec_A);
+
+			// terminate StarPU, no task can be submitted after
+			starpu_shutdown();
+
+			return 77;
+		}
+
+		STARPU_CHECK_RETURN_VALUE(ret, "task_submit::add_vectors");
+
+		// wait the task
+		starpu_task_wait_for_all();
+
 		// StarPU data unregistering
 		starpu_data_unregister(spu_vec_C);
 		starpu_data_unregister(spu_vec_B);
 		starpu_data_unregister(spu_vec_A);
 
-		// terminate StarPU, no task can be submitted after
-		starpu_shutdown();
-
-		return 77;
+		// check results
+		fail = false;
+		int i = 0;
+		while (!fail && i < VEC_SIZE)
+			fail = vec_C[i++] != 5;
 	}
-
-	STARPU_CHECK_RETURN_VALUE(ret, "task_submit::add_vectors");
-
-	// wait the task
-	starpu_task_wait_for_all();
-
-	// StarPU data unregistering
-	starpu_data_unregister(spu_vec_C);
-	starpu_data_unregister(spu_vec_B);
-	starpu_data_unregister(spu_vec_A);
 
 	// terminate StarPU, no task can be submitted after
 	starpu_shutdown();
-
-	// check results
-	bool fail = false;
-	int i = 0;
-	while (!fail && i < VEC_SIZE)
-		fail = vec_C[i++] != 5;
 
 	if (fail)
 	{

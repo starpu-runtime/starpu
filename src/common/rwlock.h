@@ -20,7 +20,9 @@
 #include <stdint.h>
 #include <starpu.h>
 
-/* Dummy implementation of a RW-lock using a spinlock. */
+/** @file */
+
+/** Dummy implementation of a RW-lock using a spinlock. */
 struct _starpu_rw_lock
 {
 	uint32_t busy;
@@ -28,24 +30,24 @@ struct _starpu_rw_lock
 	uint16_t readercnt;
 };
 
-/* Initialize the RW-lock */
+/** Initialize the RW-lock */
 void _starpu_init_rw_lock(struct _starpu_rw_lock *lock);
 
-/* Grab the RW-lock in a write mode */
+/** Grab the RW-lock in a write mode */
 void _starpu_take_rw_lock_write(struct _starpu_rw_lock *lock);
 
-/* Grab the RW-lock in a read mode */
+/** Grab the RW-lock in a read mode */
 void _starpu_take_rw_lock_read(struct _starpu_rw_lock *lock);
 
-/* Try to grab the RW-lock in a write mode. Returns 0 in case of success, -1
+/** Try to grab the RW-lock in a write mode. Returns 0 in case of success, -1
  * otherwise. */
 int _starpu_take_rw_lock_write_try(struct _starpu_rw_lock *lock);
 
-/* Try to grab the RW-lock in a read mode. Returns 0 in case of success, -1
+/** Try to grab the RW-lock in a read mode. Returns 0 in case of success, -1
  * otherwise. */
 int _starpu_take_rw_lock_read_try(struct _starpu_rw_lock *lock);
 
-/* Unlock the RW-lock. */
+/** Unlock the RW-lock. */
 void _starpu_release_rw_lock(struct _starpu_rw_lock *lock);
 
 #endif

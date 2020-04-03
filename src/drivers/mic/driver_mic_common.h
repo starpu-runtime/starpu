@@ -19,6 +19,8 @@
 #ifndef __DRIVER_MIC_COMMON_H__
 #define __DRIVER_MIC_COMMON_H__
 
+/** @file */
+
 #include <common/config.h>
 
 #ifdef STARPU_USE_MIC

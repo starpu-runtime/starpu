@@ -82,7 +82,7 @@ void get_comb_name(int comb, char* name, int name_size)
 void print_archs(FILE* output)
 {
 	int nb_workers = 0;
-	unsigned workerid, node; int comb, old_comb = -1;
+	unsigned workerid, node, src, dst; int comb, old_comb = -1;
 
 	fprintf(output, "%%rec: worker_count\n\n");
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
@@ -139,6 +139,20 @@ void print_archs(FILE* output)
 		if (printed)
 			fprintf(output, "\n");
 		fprintf(output, "\n");
+	}
+	fprintf(output, "%%rec: memory_performance\n\n");
+	for (src = 0; src < starpu_memory_nodes_get_count(); src++)
+	{
+		for (dst = 0; dst < starpu_memory_nodes_get_count(); dst++)
+		{
+			if (src != dst) {
+				fprintf(output, "MemoryNodeSrc: %d\n", src);
+				fprintf(output, "MemoryNodeDst: %d\n", dst);
+				fprintf(output, "Bandwidth: %f\n", starpu_transfer_bandwidth(src, dst));
+				fprintf(output, "Latency: %f\n", starpu_transfer_latency(src, dst));
+				fprintf(output, "\n");
+			}
+		}
 	}
 }
 

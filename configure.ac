@@ -188,8 +188,8 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
-	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_speed simcall_process_create sg_config_continue_after_help])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
+	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_name sg_host_route sg_host_self sg_host_list sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_host_sendto sg_cfg_set_int sg_actor_self_execute sg_actor_execute simgrid_get_clock])
@@ -3509,6 +3509,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/model-checking/starpu-mc.sh
   chmod +x examples/loader-cross.sh
   chmod +x examples/stencil/loader-cross.sh
+  chmod +x tools/starpu_env
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_mpi_comm_matrix.py
@@ -3553,6 +3554,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
   mkdir -p examples/mult
   test -e examples/mult/sgemm.sh || ln -sf $ac_abs_top_srcdir/examples/mult/sgemm.sh examples/mult/
+  mkdir -p examples/scheduler
+  test -e examples/scheduler/schedulers.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers.sh examples/scheduler
+  test -e examples/scheduler/schedulers_context.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers_context.sh examples/scheduler
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
@@ -3583,6 +3587,8 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	tools/replay/Makefile
+	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_mpi_comm_matrix.py

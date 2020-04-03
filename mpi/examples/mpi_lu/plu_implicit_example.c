@@ -15,6 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "helper.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,6 +28,10 @@
 
 #ifdef STARPU_HAVE_LIBNUMA
 #include <numaif.h>
+#endif
+
+#ifdef STARPU_HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
 #endif
 
 static unsigned long size = 4096;
@@ -104,6 +109,11 @@ static void parse_args(int argc, char **argv)
 			exit(0);
 		}
 	}
+
+#ifdef STARPU_HAVE_VALGRIND_H
+	if (RUNNING_ON_VALGRIND)
+		size = 16;
+#endif
 }
 
 unsigned STARPU_PLU(display_flag)(void)

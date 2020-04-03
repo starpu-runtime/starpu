@@ -32,7 +32,8 @@ program nf_mm
         integer(c_int) :: ret
         integer(c_int) :: row, col
         integer(c_int) :: b_row, b_col
-        integer(c_int) :: mr, tag, rank
+        integer(c_int) :: mr, rank
+        integer(c_int64_t) :: tag
 
         ret = fstarpu_init(C_NULL_PTR)
         if (ret == -19) then

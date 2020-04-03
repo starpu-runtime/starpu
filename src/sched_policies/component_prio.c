@@ -47,6 +47,7 @@ struct _starpu_prio_data
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 	int ready;
+	int exp;
 };
 
 static void prio_component_deinit_data(struct starpu_sched_component * component)
@@ -62,8 +63,8 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
-	return starpu_sched_component_estimated_end_min_add(component, prio->exp_len);
+	struct _starpu_prio_deque * queue = &data->prio;
+	return starpu_sched_component_estimated_end_min_add(component, queue->exp_len);
 }
 
 static double prio_estimated_load(struct starpu_sched_component * component)
@@ -71,7 +72,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(component->workers_in_ctx) != 0);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct _starpu_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
@@ -80,7 +81,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
-		load += prio->ntasks / relative_speedup;
+		load += queue->ntasks / relative_speedup;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		return load;
 	}
@@ -94,7 +95,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
-		load += prio->ntasks / relative_speedup;
+		load += queue->ntasks / relative_speedup;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	return load;
@@ -105,59 +106,73 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	STARPU_ASSERT(component && component->data && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct _starpu_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	int ret;
+	int ret = 0;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	double exp_len;
-	if(!isnan(task->predicted))
-		exp_len = prio->exp_len + task->predicted;
-	else
-		exp_len = prio->exp_len;
 
-	if ((data->ntasks_threshold != 0 && prio->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
+	double exp_len = NAN;
+
+	if (data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
 	{
-		static int warned;
-		if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
-		{
-			_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
-			warned = 1;
-		}
+		STARPU_ASSERT(!is_pushback);
 		ret = 1;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
-	else
+	else if(data->exp)
 	{
-		if(is_pushback)
-			ret = _starpu_prio_deque_push_front_task(prio,task);
+		if(!isnan(task->predicted))
+			exp_len = queue->exp_len + task->predicted;
+		else
+			exp_len = queue->exp_len;
+
+		if (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
+		{
+			static int warned;
+			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
+			{
+				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
+				warned = 1;
+			}
+			STARPU_ASSERT(!is_pushback);
+			ret = 1;
+			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
+		}
 		else
 		{
-			ret = _starpu_prio_deque_push_back_task(prio,task);
+			if(!isnan(task->predicted_transfer))
+			{
+				double end = prio_estimated_end(component);
+				double tfer_end = now + task->predicted_transfer;
+				if(tfer_end < end)
+					task->predicted_transfer = 0.0;
+				else
+					task->predicted_transfer = tfer_end - end;
+				exp_len += task->predicted_transfer;
+			}
+
+			if(!isnan(task->predicted))
+			{
+				queue->exp_len = exp_len;
+				queue->exp_end = queue->exp_start + queue->exp_len;
+			}
+			STARPU_ASSERT(!isnan(queue->exp_end));
+			STARPU_ASSERT(!isnan(queue->exp_len));
+			STARPU_ASSERT(!isnan(queue->exp_start));
+		}
+	}
+
+	if(!ret)
+	{
+		if(is_pushback)
+			ret = _starpu_prio_deque_push_front_task(queue,task);
+		else
+		{
+			ret = _starpu_prio_deque_push_back_task(queue,task);
 			starpu_sched_component_prefetch_on_node(component, task);
-			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, prio->ntasks, exp_len);
+			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, queue->ntasks, exp_len);
 		}
-
-		if(!isnan(task->predicted_transfer))
-		{
-			double end = prio_estimated_end(component);
-			double tfer_end = now + task->predicted_transfer;
-			if(tfer_end < end)
-				task->predicted_transfer = 0.0;
-			else
-				task->predicted_transfer = tfer_end - end;
-			exp_len += task->predicted_transfer;
-		}
-
-		if(!isnan(task->predicted))
-		{
-			prio->exp_len = exp_len;
-			prio->exp_end = prio->exp_start + prio->exp_len;
-		}
-		STARPU_ASSERT(!isnan(prio->exp_end));
-		STARPU_ASSERT(!isnan(prio->exp_len));
-		STARPU_ASSERT(!isnan(prio->exp_start));
-
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
 			component->can_pull(component);
@@ -176,55 +191,63 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct _starpu_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
+
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_prio_deque_is_empty(queue))
+	{
+		starpu_sched_component_send_can_push_to_parents(component);
+		return NULL;
+	}
+
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
-		task = _starpu_prio_deque_deque_first_ready_task(prio, starpu_bitmap_first(to->workers_in_ctx));
+		task = _starpu_prio_deque_deque_first_ready_task(queue, starpu_bitmap_first(to->workers_in_ctx));
 	else
-		task = _starpu_prio_deque_pop_task(prio);
-	if(task)
+		task = _starpu_prio_deque_pop_task(queue);
+	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))
 		{
-			const double exp_len = prio->exp_len - task->predicted;
-			prio->exp_start = now + task->predicted;
+			const double exp_len = queue->exp_len - task->predicted;
+			queue->exp_start = now + task->predicted;
 			if (exp_len >= 0.0)
 			{
-				prio->exp_len = exp_len;
+				queue->exp_len = exp_len;
 			}
 			else
 			{
 				/* exp_len can become negative due to rounding errors */
-				prio->exp_len = 0.0;
+				queue->exp_len = 0.0;
 			}
 		}
-		STARPU_ASSERT_MSG(prio->exp_len>=0, "prio->exp_len=%lf\n",prio->exp_len);
+
+		STARPU_ASSERT_MSG(queue->exp_len>=0, "prio->exp_len=%lf\n",queue->exp_len);
 		if(!isnan(task->predicted_transfer))
 		{
-			if (prio->exp_len > task->predicted_transfer)
+			if (queue->exp_len > task->predicted_transfer)
 			{
-				prio->exp_start += task->predicted_transfer;
-				prio->exp_len -= task->predicted_transfer;
+				queue->exp_start += task->predicted_transfer;
+				queue->exp_len -= task->predicted_transfer;
 			}
 			else
 			{
-				prio->exp_start += prio->exp_len;
-				prio->exp_len = 0;
+				queue->exp_start += queue->exp_len;
+				queue->exp_len = 0;
 			}
 		}
 
-		prio->exp_end = prio->exp_start + prio->exp_len;
-		if(prio->ntasks == 0)
-			prio->exp_len = 0.0;
-
-		STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component, prio->ntasks, prio->exp_len);
+		queue->exp_end = queue->exp_start + queue->exp_len;
+		if(queue->ntasks == 0)
+			queue->exp_len = 0.0;
 	}
-	STARPU_ASSERT(!isnan(prio->exp_end));
-	STARPU_ASSERT(!isnan(prio->exp_len));
-	STARPU_ASSERT(!isnan(prio->exp_start));
+	if(task)
+		STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component, queue->ntasks, queue->exp_len);
+	STARPU_ASSERT(!isnan(queue->exp_end));
+	STARPU_ASSERT(!isnan(queue->exp_len));
+	STARPU_ASSERT(!isnan(queue->exp_start));
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	// When a pop is called, a can_push is called for pushing tasks onto
@@ -285,12 +308,14 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 		data->ntasks_threshold=params->ntasks_threshold;
 		data->exp_len_threshold=params->exp_len_threshold;
 		data->ready=params->ready;
+		data->exp=params->exp;
 	}
 	else
 	{
 		data->ntasks_threshold=0;
 		data->exp_len_threshold=0.0;
 		data->ready=0;
+		data->exp=0;
 	}
 
 	return component;

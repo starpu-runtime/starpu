@@ -179,7 +179,7 @@ int main(void)
 
 	setenv("STARPU_LIMIT_CUDA_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);
-	setenv("STARPU_LIMIT_CPU_MEM", STR_LIMIT, 1);
+	setenv("STARPU_LIMIT_CPU_NUMA_MEM", STR_LIMIT, 1);
 
         ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

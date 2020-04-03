@@ -22,9 +22,10 @@ check_success()
     fi
 }
 
-if test ! -x ./sched_ctx/sched_ctx
+basedir=$(dirname $0)
+if test ! -x $basedir/../sched_ctx/sched_ctx
 then
-    echo "Application ./sched_ctx/sched_ctx unavailable"
+    echo "Application $basedir/../sched_ctx/sched_ctx unavailable"
     exit 77
 fi
 
@@ -32,12 +33,12 @@ if [ -n "$STARPU_SCHED" ]
 then
 	SCHEDULERS="$STARPU_SCHED"
 else
-	SCHEDULERS=`../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
+	SCHEDULERS=`$basedir/../../tools/starpu_sched_display | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
 fi
 
 for sched in $SCHEDULERS
 do
     echo "sched_ctx.$sched"
-    STARPU_SCHED=$sched $STARPU_LAUNCH ./sched_ctx/sched_ctx
+    STARPU_SCHED=$sched $STARPU_LAUNCH $basedir/../sched_ctx/sched_ctx
     check_success $?
 done

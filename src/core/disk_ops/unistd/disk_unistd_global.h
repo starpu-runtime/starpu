@@ -18,6 +18,8 @@
 #ifndef __DISK_UNISTD_GLOBAL_H__
 #define __DISK_UNISTD_GLOBAL_H__
 
+/** @file */
+
 #include <fcntl.h>
 #ifdef __linux__
 #include <sys/syscall.h>

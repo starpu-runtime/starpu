@@ -76,7 +76,9 @@ typedef sg_actor_t starpu_pthread_t;
 #else
 typedef msg_process_t starpu_pthread_t;
 #endif
-typedef int starpu_pthread_attr_t;
+typedef struct {
+	size_t stacksize;
+} starpu_pthread_attr_t;
 
 #ifdef STARPU_HAVE_SIMGRID_ACTOR_H
 typedef sg_host_t starpu_sg_host_t;
@@ -93,6 +95,7 @@ int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr);
 int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr);
 int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachstate);
+int starpu_pthread_attr_setstacksize(starpu_pthread_attr_t *attr, size_t stacksize);
 
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* STARPU_SIMGRID */
 
@@ -108,6 +111,7 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #define starpu_pthread_attr_init pthread_attr_init
 #define starpu_pthread_attr_destroy pthread_attr_destroy
 #define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
+#define starpu_pthread_attr_setstacksize pthread_attr_setstacksize
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 

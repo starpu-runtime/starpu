@@ -2878,6 +2878,9 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		colour= (worker < 0)?"#aaaaaa":get_worker_color(worker);
 	}
 
+	if (!task->name)
+		task->name = strdup(name);
+
 	unsigned exclude_from_dag = ev->param[2];
 	task->exclude_from_dag = exclude_from_dag;
 

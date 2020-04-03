@@ -62,15 +62,18 @@ static int _starpu_mpi_reqs_prio_compare(const void *a, const void *b)
 {
 	const struct _starpu_mpi_req * const *ra = a;
 	const struct _starpu_mpi_req * const *rb = b;
-	return (*rb)->prio - (*ra)->prio;
+	if ((*rb)->prio < (*ra)->prio)
+		return -1;
+	else if ((*rb)->prio == (*ra)->prio)
+		return 0;
+	else
+		return 1;
 }
 
 /* Sort the requests by priority and build a diffusion tree. Actually does something only once per coop_sends bag. */
 static void _starpu_mpi_coop_sends_optimize(struct _starpu_mpi_coop_sends *coop_sends)
 {
-	if (coop_sends->n == 1)
-		/* Trivial case, don't optimize */
-		return;
+	STARPU_ASSERT(coop_sends->n > 1);
 
 	_starpu_spin_lock(&coop_sends->lock);
 	if (!coop_sends->reqs_array)
@@ -92,8 +95,10 @@ static void _starpu_mpi_coop_sends_optimize(struct _starpu_mpi_coop_sends *coop_
 		/* Sort them */
 		qsort(reqs, n, sizeof(*reqs), _starpu_mpi_reqs_prio_compare);
 
+#if 0
 		/* And build the diffusion tree */
 		_starpu_mpi_coop_sends_build_tree(coop_sends);
+#endif
 	}
 	_starpu_spin_unlock(&coop_sends->lock);
 }
@@ -114,9 +119,6 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 		_starpu_spin_unlock(&mpi_data->coop_lock);
 	}
 
-	/* Build diffusion tree */
-	_starpu_mpi_coop_sends_optimize(coop_sends);
-
 	if (coop_sends->n == 1)
 	{
 		/* Trivial case, just submit it */
@@ -124,6 +126,9 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 	}
 	else
 	{
+		/* Build diffusion tree */
+		_starpu_mpi_coop_sends_optimize(coop_sends);
+
 		/* And submit them */
 		if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
 			_starpu_mpi_submit_coop_sends(coop_sends, 1, 1);
@@ -138,15 +143,11 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
  * or because the value has changed.  */
 static void _starpu_mpi_coop_send_flush(struct _starpu_mpi_coop_sends *coop_sends)
 {
-	if (!coop_sends)
+	if (!coop_sends || coop_sends->n == 1)
 		return;
 
 	/* Build diffusion tree */
 	_starpu_mpi_coop_sends_optimize(coop_sends);
-
-	if (coop_sends->n == 1)
-		/* Trivial case, we will just send the data */
-		return;
 
 	/* And submit them */
 	if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
