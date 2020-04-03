@@ -22,7 +22,7 @@ SUBDIRS =
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src -DSTARPU_REPLAY_MPI
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 CC=$(CC_OR_MPICC)
@@ -33,8 +33,8 @@ LIBS += ../../mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
 endif
 
-bin_PROGRAMS = starpu_replay
+bin_PROGRAMS = starpu_replay_mpi
 
-starpu_replay_SOURCES = \
-	starpu_replay.c \
-	starpu_replay_sched.c
+starpu_replay_mpi_SOURCES = \
+	../starpu_replay.c \
+	../starpu_replay_sched.c

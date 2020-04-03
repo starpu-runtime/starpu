@@ -3567,7 +3567,7 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
-	tools/replay/Makefile
+	tools/replay-mpi/Makefile
 	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
