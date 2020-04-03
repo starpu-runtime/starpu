@@ -20,6 +20,10 @@ include $(top_srcdir)/starpu.mk
 
 SUBDIRS =
 
+if STARPU_SIMGRID
+SUBDIRS += replay
+endif
+
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
@@ -390,15 +394,6 @@ bin_PROGRAMS += 			\
 	starpu_tasks_rec_complete	\
 	starpu_lp2paje			\
 	starpu_perfmodel_recdump
-
-if STARPU_SIMGRID
-bin_PROGRAMS += 			\
-	starpu_replay
-
-starpu_replay_SOURCES = \
-	starpu_replay.c \
-	starpu_replay_sched.c
-endif
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
