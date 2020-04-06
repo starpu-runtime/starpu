@@ -133,8 +133,8 @@ skip:
 	starpu_mpi_shutdown();
 
 	if (rank == 0)
-		STARPU_ASSERT_MSG(val0 == 24, "%d should be %d\n", val0, 16 * size);
+		STARPU_ASSERT_MSG(val0 == 24, "%d should be %d\n", val0, 24);
 	if (rank == 1)
-		STARPU_ASSERT_MSG(val1 == 24, "%d should be %d\n", val0, 16 * size);
+		STARPU_ASSERT_MSG(val1 == 24, "%d should be %d\n", val1, 24);
 	return 0;
 }
