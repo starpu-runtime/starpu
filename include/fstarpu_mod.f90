@@ -1537,6 +1537,15 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: prio
                 end subroutine fstarpu_data_idle_prefetch_on_node_prio
 
+                !unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
+                function fstarpu_data_is_on_node(dh, node) &
+                                bind(C,name="starpu_data_is_on_node")
+                        use iso_c_binding, only: c_ptr, c_int
+                        integer(c_int)                 :: fstarpu_data_is_on_node
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: node
+                end function fstarpu_data_is_on_node
+
                 ! void starpu_data_wont_use(starpu_data_handle_t handle);
                 subroutine fstarpu_data_wont_use (dh) bind(c,name="starpu_data_wont_use")
                         use iso_c_binding, only: c_ptr
