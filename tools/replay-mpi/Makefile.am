@@ -35,6 +35,9 @@ endif
 
 bin_PROGRAMS = starpu_replay_mpi
 
+starpu_replay.c starpu_replay_sched.c:
+	$(LN_S) $(abs_srcdir)/../$(notdir $@) $@
+
 starpu_replay_mpi_SOURCES = \
-	../starpu_replay.c \
-	../starpu_replay_sched.c
+	starpu_replay.c \
+	starpu_replay_sched.c
