@@ -1323,10 +1323,10 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		/* Paje won't like spaces, replace with underscores */
+		/* Paje won't like spaces or tabs, replace with underscores */
 		char *c;
 		for (c = parameters; *c; c++)
-			if (*c == ' ')
+			if ((*c == ' ') || (*c == '\t'))
 				*c = '_';
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1]);
