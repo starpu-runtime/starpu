@@ -333,6 +333,7 @@ static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 	ret = MPI_Wait(sim_req->request, sim_req->status);
 
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
+	_STARPU_MPI_DEBUG(0, "request %p finished\n", sim_req->request);
 
 	*(sim_req->done) = 1;
 	starpu_pthread_queue_broadcast(sim_req->queue);
@@ -355,6 +356,7 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, star
 	sim_req->done = done;
 	*done = 0;
 
+	_STARPU_MPI_DEBUG(0, "will wait for request %p to finish\n", sim_req->request);
 	starpu_pthread_attr_t attr;
 	starpu_pthread_attr_init(&attr);
 	starpu_pthread_attr_setstacksize(&attr, 32786);
