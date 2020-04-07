@@ -633,10 +633,6 @@ int submit_tasks(void)
 		else
 		{
 			fix_wontuse_handle(currentTask); /* Add the handle in the wontuse task */
-                        /* FIXME: can not actually work properly since we have
-                         * disabled sequential consistency, so we don't have any
-                         * easy way to make this wait for the last task that
-                         * wrote to the handle. */
 			if (currentTask->task.handles[0])
 				starpu_data_wont_use(currentTask->task.handles[0]);
 		}
@@ -662,8 +658,6 @@ static void usage(const char *program)
 
 int main(int argc, char **argv)
 {
-	starpu_data_set_default_sequential_consistency_flag(0);
-
 	FILE *rec;
 	char *s;
 	const char *tasks_rec = NULL;
@@ -672,6 +666,8 @@ int main(int argc, char **argv)
 	size_t s_allocated = 128;
 
 	unsigned long nread_tasks = 0;
+
+	/* FIXME: we do not support data with sequential consistency disabled */
 
 	_STARPU_MALLOC(s, s_allocated);
 	dependson_size = REPLAY_NMAX_DEPENDENCIES; /* Change the value of REPLAY_NMAX_DEPENCIES to modify the number of dependencies */
