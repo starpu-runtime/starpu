@@ -227,7 +227,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 			else
 			{
 				/* Nope, incompatible, put ours instead */
-				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
+				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p for tag %"PRIi64", dest %d\n", data_handle, coop_sends, req->node_tag.data_tag, req->node_tag.node.rank);
 				mpi_data->coop_sends = coop_sends;
 				first = 1;
 				_starpu_spin_unlock(&mpi_data->coop_lock);
@@ -239,7 +239,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 		else if (coop_sends)
 		{
 			/* Nobody else and we have allocated one, we're first! */
-			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
+			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p for tag %"PRIi64", dest %d\n", data_handle, coop_sends, req->node_tag.data_tag, req->node_tag.node.rank);
 			mpi_data->coop_sends = coop_sends;
 			first = 1;
 			done = 1;
