@@ -110,6 +110,10 @@ struct starpu_sched_policy
 	   to be executed by the worker. This method therefore permits
 	   to keep the state of the scheduler coherent even when
 	   StarPU bypasses the scheduling strategy.
+
+	   Note: to get an estimation of the task duration, \p perf_workerid
+	   needs to be used rather than \p workerid, for the case of parallel
+	   tasks.
 	*/
 	void (*push_task_notify)(struct starpu_task *, int workerid, int perf_workerid, unsigned sched_ctx_id);
 
@@ -366,6 +370,11 @@ uint32_t starpu_task_data_footprint(struct starpu_task *task);
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 /**
+   Same as starpu_task_expected_length() but for a precise worker.
+*/
+double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
+
+/**
    Return an estimated speedup factor relative to CPU speed
 */
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
@@ -393,6 +402,11 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
    Return expected energy consumption in J
 */
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+
+/**
+   Same as starpu_task_expected_energy but for a precise worker
+*/
+double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
 
 /**
    Return expected conversion time in ms (multiformat interface only)

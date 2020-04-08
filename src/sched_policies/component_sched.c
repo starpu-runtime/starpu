@@ -49,7 +49,6 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 	    workerid != -1;
 	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
-		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id);
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -59,9 +58,13 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 				double d;
 				can_execute = 1;
 				if(bundle)
+				{
+					struct starpu_perfmodel_arch* archtype =
+						starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id);
 					d = starpu_task_bundle_expected_length(bundle, archtype, nimpl);
+				}
 				else
-					d = starpu_task_expected_length(task, archtype, nimpl);
+					d = starpu_task_worker_expected_length(task, workerid, component->tree->sched_ctx_id, nimpl);
 				if(isnan(d))
 				{
 					*length = d;

@@ -29,6 +29,7 @@ New features:
   * New number_events.data trace file which monitors number of events in trace
     files. This file can be parsed by the new script
     starpu_fxt_number_events_to_names.py to convert event keys to event names.
+  * New STARPU_PER_WORKER perfmodel.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.

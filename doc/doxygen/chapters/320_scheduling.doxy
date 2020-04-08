@@ -190,9 +190,10 @@ single task gives the consumption of the task in Joules, which can be given to
 starpu_perfmodel_update_history().
 
 Another way to provide the energy performance is to define a
-perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH, and set the
-starpu_perfmodel::arch_cost_function field to a function which shall return the
-estimated consumption of the task in Joules. Such a function can for instance
+perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH or
+::STARPU_PER_WORKER , and set the starpu_perfmodel::arch_cost_function or
+starpu_perfmodel::worker_cost_function field to a function which shall return
+the estimated consumption of the task in Joules. Such a function can for instance
 use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
 get Joules.
