@@ -587,7 +587,7 @@ whole machine, it would not be efficient to accumulate them in only one place,
 incurring data transmission each and access concurrency.
 
 StarPU provides a mode ::STARPU_REDUX, which permits to optimize
-this case: it will allocate a buffer on each memory node, and accumulate
+this case: it will allocate a buffer on each worker (lazily), and accumulate
 intermediate results there. When the data is eventually accessed in the normal
 mode ::STARPU_R, StarPU will collect the intermediate results in just one
 buffer.
