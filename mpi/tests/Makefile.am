@@ -138,7 +138,8 @@ starpu_mpi_TESTS +=				\
 	user_defined_datatype			\
 	early_stuff				\
 	sendrecv_bench				\
-	sendrecv_gemm_bench
+	sendrecv_gemm_bench			\
+	sendrecv_parallel_tasks_bench
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -228,7 +229,8 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
-	sendrecv_gemm_bench
+	sendrecv_gemm_bench			\
+	sendrecv_parallel_tasks_bench
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
@@ -262,6 +264,10 @@ mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
 sendrecv_bench_SOURCES = sendrecv_bench.c
 sendrecv_bench_SOURCES += bench_helper.c
 sendrecv_bench_SOURCES += abstract_sendrecv_bench.c
+
+sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
+sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
+sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
 
 if !NO_BLAS_LIB
 sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c

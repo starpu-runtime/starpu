@@ -26,7 +26,6 @@
 #define MULT_DEFAULT 2
 #endif
 #define INCR_DEFAULT 0
-#define NX_STEP 1.4 // multiplication
 #ifdef STARPU_QUICK_CHECK
 #define LOOPS_DEFAULT 100
 #else
