@@ -434,6 +434,20 @@ static void arrays_managing(int mode)
 	}
 }
 
+static unsigned count_number_tokens(const char* buffer, const char* delim)
+{
+	char* dup = strdup(buffer);
+	int result = 0;
+	char* token = strtok(dup, delim);
+	while(token != NULL)
+	{
+		++result;
+		token = strtok(NULL, delim); 
+	}
+	free(dup);
+	return result; 
+}
+
 /* Check if a handle hasn't been registered yet */
 static void variable_data_register_check(size_t * array_of_size, int nb_handles)
 {
@@ -983,31 +997,24 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Parameters"))
 		{
-			/* Parameters line format is PARAM1 PARAM2 (...)PARAMi (...)PARAMn */
-			char * param_str = s + 12;
-			int count = 0;
-
-			for (i = 0 ; param_str[i] != '\n'; i++)
-			{
-				if (param_str[i] == ' ') /* Checking the number of ' ' (space), assuming that the file is not corrupted */
-				{
-					count++;
-				}
-			}
-
-			nb_parameters = count + 1; /* There is one space per paramater except for the last one, that's why we have to add +1 (dirty programming) */
-
-			/* This part of the algorithm will determine if it needs static or dynamic arrays */
-			alloc_mode = set_alloc_mode(nb_parameters);
-			arrays_managing(alloc_mode);
-
+			/* Nothing to do */
 		}
 		else if (TEST("Handles"))
 		{
+			*ln = 0; 
 			char *buffer = s + 9;
 			const char *delim = " ";
-			char *token = strtok(buffer, delim);
-
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
+			
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
+			
+			char* token = strtok(buffer, delim); 
 			for (i = 0 ; i < nb_parameters ; i++)
 			{
 				STARPU_ASSERT(token);
@@ -1034,10 +1041,21 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Modes"))
 		{
+			*ln = 0; 
 			char * buffer = s + 7;
 			unsigned mode_i = 0;
 			const char * delim = " ";
-			char * token = strtok(buffer, delim);
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
+			
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
+
+			char* token = strtok(buffer, delim); 
 
 			while (token != NULL && mode_i < nb_parameters)
 			{
