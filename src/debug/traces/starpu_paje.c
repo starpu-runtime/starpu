@@ -139,8 +139,6 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	Container	string\n");
 	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Value	string\n");
-#if 0
-	/* TODO: implement in worker_set_detailed_state() and handle_codelet_details() */
 	fprintf(file, "%%	Size	string\n");
 	fprintf(file, "%%	Params	string\n");
 	fprintf(file, "%%	Footprint	string\n");
@@ -149,10 +147,9 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED)
 	fprintf(file, "%%	GFlop	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
-	fprintf(file, "%%	Z	string\n");
+	/* fprintf(file, "%%	Z	string\n"); */
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
-#endif
 	fprintf(file, "%%EndEventDef\n");
 #endif
 
