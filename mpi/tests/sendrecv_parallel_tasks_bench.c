@@ -42,9 +42,12 @@ void cpu_task(void* descr[], void* args)
 	uint64_t s;
 	starpu_data_handle_t handle_send, handle_recv;
 	double t1, t2;
-	unsigned worker;
+	int asked_worker;
+	int current_worker = starpu_worker_get_id();
 
-	starpu_codelet_unpack_args(args, &mpi_rank, &worker, &s, &handle_send, &handle_recv);
+	starpu_codelet_unpack_args(args, &mpi_rank, &asked_worker, &s, &handle_send, &handle_recv);
+
+	STARPU_ASSERT(asked_worker == current_worker);
 
 	iterations = bench_nb_iterations(iterations, s);
 	double* lats = malloc(sizeof(double) * iterations);
@@ -101,8 +104,8 @@ void cpu_task(void* descr[], void* args)
 		const double bw_million_byte = s / min_lat;
 		const double bw_mbyte        = bw_million_byte / 1.048576;
 
-		printf("%2u\t\t%9lld\t%9.3lf\t%9.3f\t%9.3f\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\n",
-			worker, (long long) s, min_lat, bw_million_byte, bw_mbyte, d1_lat, med_lat, avg_lat, d9_lat, max_lat);
+		printf("%2d\t\t%9lld\t%9.3lf\t%9.3f\t%9.3f\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf\n",
+			current_worker, (long long) s, min_lat, bw_million_byte, bw_mbyte, d1_lat, med_lat, avg_lat, d9_lat, max_lat);
 		fflush(stdout);
 	}
 }
@@ -155,7 +158,7 @@ int main(int argc, char **argv)
 	unsigned* mpi_tags = malloc(cpu_count * sizeof(unsigned));
 	unsigned tag = 0;
 
-	unsigned* workers = malloc(cpu_count * sizeof(unsigned));
+	int* workers = malloc(cpu_count * sizeof(int));
 	float** vectors_send = malloc(cpu_count * sizeof(float*));
 	float** vectors_recv = malloc(cpu_count * sizeof(float*));
 	starpu_data_handle_t* handles_send = malloc(cpu_count * sizeof(starpu_data_handle_t));
@@ -165,7 +168,7 @@ int main(int argc, char **argv)
 	{
 		starpu_pause();
 
-		for (unsigned i = 0; i < cpu_count; i++)
+		for (int i = 0; i < cpu_count; i++)
 		{
 			workers[i] = i;
 			vectors_send[i] = malloc(s);
@@ -177,8 +180,9 @@ int main(int argc, char **argv)
 			starpu_vector_data_register(&handles_recv[i], STARPU_MAIN_RAM, (uintptr_t) vectors_recv[i], s, 1);
 
 			starpu_task_insert(&cl,
+					STARPU_EXECUTE_ON_WORKER, workers[i],
 					STARPU_VALUE, &rank, sizeof(int),
-					STARPU_VALUE, workers + i, sizeof(unsigned),
+					STARPU_VALUE, workers + i, sizeof(int),
 					STARPU_VALUE, &s, sizeof(uint64_t),
 					STARPU_VALUE, &handles_send[i], sizeof(starpu_data_handle_t),
 					STARPU_VALUE, &handles_recv[i], sizeof(starpu_data_handle_t), 0);
