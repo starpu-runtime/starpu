@@ -138,8 +138,12 @@ starpu_mpi_TESTS +=				\
 	user_defined_datatype			\
 	early_stuff				\
 	sendrecv_bench				\
-	sendrecv_gemm_bench			\
 	sendrecv_parallel_tasks_bench
+
+if !NO_BLAS_LIB
+starpu_mpi_TESTS +=				\
+	sendrecv_gemm_bench
+endif
 
 if !STARPU_SIMGRID
 # missing support in simgrid
