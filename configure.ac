@@ -365,6 +365,14 @@ AC_ARG_ENABLE(mpi, [AS_HELP_STRING([--disable-mpi],
             [enable_mpi=$enableval],
             [enable_mpi=$default_enable_mpi])
 
+if test x$enable_mpi = xmaybe ; then
+    if test -x "$mpicc_path"; then
+	enable_mpi=yes
+    else
+	enable_mpi=no
+    fi
+fi
+
 # in case MPI was explicitely required, but mpicc is not available, this is an error
 if test x$enable_mpi = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
