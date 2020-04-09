@@ -97,7 +97,7 @@ if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
 default_enable_mpi_check=maybe
-default_enable_mpi=yes
+default_enable_mpi=maybe
 
 ###############################################################################
 #                                                                             #
