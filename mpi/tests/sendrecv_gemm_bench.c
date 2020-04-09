@@ -375,9 +375,10 @@ int main(int argc, char **argv)
 	}
 
 	starpu_pause();
+
+	unsigned x, y;
 #ifndef STARPU_SIMGRID
 	// Initialize matrices:
-	unsigned x, y;
 	for (x = 0; x < nslices; x++)
 	{
 		struct starpu_task *task = starpu_task_create();
