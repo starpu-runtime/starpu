@@ -81,6 +81,20 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 }
 
 /*
+ * PER WORKER model
+ */
+
+static double per_worker_task_expected_perf(struct starpu_perfmodel *model, unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+	double (*worker_cost_function)(struct starpu_task *task, unsigned workerid, unsigned nimpl);
+
+	worker_cost_function = model->worker_cost_function;
+	STARPU_ASSERT_MSG(worker_cost_function, "STARPU_PER_WORKER needs worker_cost_function to be defined");
+
+	return worker_cost_function(task, workerid, nimpl);
+}
+
+/*
  * PER ARCH model
  */
 
@@ -156,6 +170,7 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 
 	switch (model->type)
 	{
+		case STARPU_PER_WORKER:
 		case STARPU_PER_ARCH:
 		case STARPU_COMMON:
 			/* Nothing more to do than init */
@@ -220,6 +235,20 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 	return exp_perf;
 }
 
+static double starpu_model_worker_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
+{
+	if (!model)
+		return 0.0;
+
+	if (model->type == STARPU_PER_WORKER)
+		return per_worker_task_expected_perf(model, workerid, task, nimpl);
+	else
+	{
+		struct starpu_perfmodel_arch *per_arch = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
+		return starpu_model_expected_perf(task, model, per_arch, nimpl);
+	}
+}
+
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	if (!task->cl)
@@ -228,12 +257,29 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
+double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
+{
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
+	return starpu_model_worker_expected_perf(task, task->cl->model, workerid, sched_ctx_id, nimpl);
+}
+
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	if (!task->cl)
 		/* Tasks without codelet don't actually take time */
 		return 0.0;
 	return starpu_model_expected_perf(task, task->cl->energy_model, arch, nimpl);
+}
+
+double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
+{
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
+	return starpu_model_worker_expected_perf(task, task->cl->energy_model, workerid, sched_ctx_id, nimpl);
+
 }
 
 double starpu_task_expected_conversion_time(struct starpu_task *task,

@@ -1085,13 +1085,23 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Sizes"))
 		{
+			*ln = 0;
 			char *  buffer = s + 7;
 			const char * delim = " ";
-			char * token = strtok(buffer, delim);
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
 			unsigned k = 0;
+
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
+			char * token = strtok(buffer, delim);
 			while (token != NULL && k < nb_parameters)
 			{
 				sizes_set[k] = strtol(token, NULL, 10);

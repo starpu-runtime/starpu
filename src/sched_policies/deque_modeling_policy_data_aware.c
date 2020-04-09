@@ -487,7 +487,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 			}
 
 			double exp_end;
-			double local_length = starpu_task_expected_length(task, perf_arch, nimpl);
+			double local_length = starpu_task_worker_expected_length(task, worker, sched_ctx_id, nimpl);
 			double local_penalty = starpu_task_expected_data_transfer_time_for(task, worker);
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
@@ -679,9 +679,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			}
 			else
 			{
-				local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch, nimpl);
+				local_task_length[worker_ctx][nimpl] = starpu_task_worker_expected_length(task, workerid, sched_ctx_id, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time_for(task, workerid);
-				local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
+				local_energy[worker_ctx][nimpl] = starpu_task_worker_expected_energy(task, workerid, sched_ctx_id,nimpl);
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
 					local_task_length[worker_ctx][nimpl] += conversion_time;
@@ -1100,10 +1100,9 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
-	/* Compute the expected penality */
-	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(perf_workerid, sched_ctx_id);
 
-	double predicted = starpu_task_expected_length(task, perf_arch,
+	/* Compute the expected penality */
+	double predicted = starpu_task_worker_expected_length(task, perf_workerid, STARPU_NMAX_SCHED_CTXS,
 						       starpu_task_get_implementation(task));
 
 	double predicted_transfer = starpu_task_expected_data_transfer_time_for(task, workerid);
