@@ -300,6 +300,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_eager_prio.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
+	sched_policies/basic_sched.c				\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
 	sched_policies/modular_random.c				\
