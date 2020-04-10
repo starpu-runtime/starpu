@@ -32,7 +32,7 @@ function starpu_parse(x :: Expr)
 
 end
 
-for kw in (:if, :call, :for, :block, :return, :function, :while, :ref)
+for kw in (:if, :call, :for, :block, :return, :function, :while, :ref, :break)
     starpu_parse_key_word_parsing_function[kw] = eval(Symbol(:starpu_parse_, kw))
 end
 

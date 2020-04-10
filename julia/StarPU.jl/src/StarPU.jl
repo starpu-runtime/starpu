@@ -583,6 +583,7 @@ function starpu_init()
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else
+        @debugprint "generating codelet library"
         system("make generated_tasks.dylib")
         global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks")
     end
@@ -798,13 +799,26 @@ function starpu_task_submit(task :: StarpuTask)
     @starpucall starpu_task_submit Cint (Ptr{Cvoid},) task.c_task
 end
 
+
+function starpu_modes(x :: Symbol)
+    if (x == Symbol("STARPU_RW"))
+        return STARPU_RW
+    elseif (x == Symbol("STARPU_R"))
+        return STARPU_R
+    else return STARPU_W
+    end
+end
+
 """
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
 """
-macro starpu_async_cl(expr)
+macro starpu_async_cl(expr,modes)
 
     if (!isa(expr, Expr) || expr.head != :call)
+        error("Invalid task submit syntax")
+    end
+    if (!isa(expr, Expr)||modes.head != :vect)
         error("Invalid task submit syntax")
     end
     perfmodel = StarpuPerfmodel(
@@ -817,7 +831,7 @@ macro starpu_async_cl(expr)
         #cuda_func = "matrix_mult",
         #opencl_func="ocl_matrix_mult",
         ### TODO: CORRECT !
-        modes = [STARPU_R, STARPU_R, STARPU_W],
+        modes = map((x -> starpu_modes(x)),modes.args),
         perfmodel = perfmodel
     )
     handles = Expr(:vect, expr.args[2:end]...)

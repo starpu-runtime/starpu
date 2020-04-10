@@ -10,6 +10,7 @@ global generated_cpu_kernel_file_name = "PRINT TO STDOUT"
 const cpu_kernel_file_start = "#include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
+#include <math.h>
 
 static inline long long jlstarpu_max(long long a, long long b)
 {
@@ -30,6 +31,7 @@ static inline long long jlstarpu_interval_size(long long start, long long step, 
 const cuda_kernel_file_start = "#include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
+#include <math.h>
 
 #define THREADS_PER_BLOCK 64
 

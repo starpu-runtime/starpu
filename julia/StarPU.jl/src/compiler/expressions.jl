@@ -93,6 +93,8 @@ end
 struct StarpuExprReturn <: StarpuExpr
     value :: StarpuExpr
 end
+struct StarpuExprBreak <: StarpuExpr
+end
 struct StarpuExprVar <: StarpuExpr
     name :: Symbol
 end
@@ -716,6 +718,26 @@ function apply(func :: Function, expr :: StarpuExprRef)
     return func(StarpuExprRef(ref, indexes))
 end
 
+#======================================================
+                BREAK EXPRESSION
+======================================================#
+
+function starpu_parse_break(x :: Expr)
+    if (x.head != :break)
+        error("Invalid \"break\" expression")
+    end
+
+    return StarpuExprBreak()
+end
+
+function print(io :: IO, x :: StarpuExprBreak ; indent = 0)
+    print(io, "break")
+end
+
+function apply(func :: Function, expr :: StarpuExprBreak)
+
+    return func(StarpuExprBreak())
+end
 #======================================================
                 RETURN EXPRESSION
 ======================================================#
