@@ -17,11 +17,10 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
 
         float centerr = params[0];
         float centeri = params[1];
-
         float offset = params[2];
         float dim = params[3];
         float zoom = width * 0.25296875;
-        float conv_limit = 2.0;
+        float diverge = 4.0;
         int max_iter = (width/2) * 0.049715909 * log10(zoom);
 
         int x,y,n;
@@ -32,27 +31,23 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
                         float ci = centeri + (y+offset - (dim/2))/zoom;
                         float zr = cr;
                         float zi = ci;
-                        float m = zr * zr + zi * zi;
                         
-                        for (n = 0; n <= max_iter && m < conv_limit * conv_limit; n++) {
-
+                        for (n = 0; n <= max_iter; n++) {
+				if (zr*zr + zi*zi>diverge) break;
                                 float tmp = zr*zr - zi*zi + cr;
                                 zi = 2*zr*zi + ci;
                                 zr = tmp;
-                                m = zr*zr + zi*zi;
                         }
-
+			int color;
+			if (n<max_iter)
+				color = round(15.*n/max_iter);
+			else
+				color = 0;
+			pixels[x*ldP + y] = color;
 		}
-		int color;
-		if (n==max_iter) fprintf(stderr,".");
-		else fprintf(stderr,"%d",n);
-		if (n<max_iter)
-			color = round(15.*n/max_iter);
-		else
-			color = 0;
-		pixels[x*ldP + y] = color;
 	}
 }
+
 char* CPU = "cpu_mandelbrot";
 char* GPU = "gpu_mandelbrot";
 extern char *starpu_find_function(char *name, char *device) {
