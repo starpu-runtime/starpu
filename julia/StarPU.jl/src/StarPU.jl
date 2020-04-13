@@ -12,14 +12,14 @@ export STARPU_CUDA
 const  STARPU_CPU = 1 << 1
 const  STARPU_CUDA = 1 << 3
 
-global starpu_task_library_name="libjlstarpu_c_wrapper"
+const starpu_task_library_name="libjlstarpu_c_wrapper.so"
 global starpu_tasks_library_handle = C_NULL
 global starpu_target=STARPU_CPU
 
 include("compiler/include.jl")
 
 macro starpufunc(symbol)
-    :($symbol, "libjlstarpu_c_wrapper")
+    :($symbol, starpu_task_library_name)
 end
 
 """
@@ -27,7 +27,7 @@ end
     Works as ccall function
 """
 macro starpucall(func, ret_type, arg_types, args...)
-    return Expr(:call, :ccall, (func, "libjlstarpu_c_wrapper"), esc(ret_type), esc(arg_types), map(esc, args)...)
+    return Expr(:call, :ccall, (func, starpu_task_library_name), esc(ret_type), esc(arg_types), map(esc, args)...)
 end
 
 export @debugprint
@@ -586,8 +586,8 @@ function starpu_init()
         end
     else
         @debugprint "generating codelet library"
-        system("make generated_tasks.dylib")
-        global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks")
+        run(`make generated_tasks.so`);
+        global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks.so")
     end
     output = @starpucall jlstarpu_init Cint ()
 
@@ -1232,7 +1232,7 @@ macro starpu_noparam_function(func_name, ret_type)
 
     quote
         export $func
-        global $func() = ccall(($func_name, "libjlstarpu_c_wrapper"),
+        global $func() = ccall(($func_name, starpu_task_library_name),
                                 $ret_type, ()) :: $ret_type
     end
 end
