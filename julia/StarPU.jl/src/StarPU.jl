@@ -103,13 +103,14 @@ export StarpuCodelet
 
 const jlstarpu_allocated_structures = Vector{Ptr{Cvoid}}([])
 @enum(StarpuPerfmodelType,
-    STARPU_PERFMODEL_INVALID = 0,
-	STARPU_PER_ARCH = 1,
-	STARPU_COMMON = 2,
-	STARPU_HISTORY_BASED = 3,
-	STARPU_REGRESSION_BASED = 4,
-	STARPU_NL_REGRESSION_BASED = 5,
-	STARPU_MULTIPLE_REGRESSION_BASED = 6
+      STARPU_PERFMODEL_INVALID = 0,
+      STARPU_PER_WORKER = 1,
+      STARPU_PER_ARCH = 2,
+      STARPU_COMMON = 3,
+      STARPU_HISTORY_BASED = 4,
+      STARPU_REGRESSION_BASED = 5,
+      STARPU_NL_REGRESSION_BASED = 6,
+      STARPU_MULTIPLE_REGRESSION_BASED = 7
 )
 mutable struct StarpuPerfmodel_c
 
@@ -117,6 +118,7 @@ mutable struct StarpuPerfmodel_c
 
     cost_function :: Ptr{Cvoid}
     arch_cost_function :: Ptr{Cvoid}
+    worker_cost_function :: Ptr{Cvoid}
 
     size_base :: Ptr{Cvoid}
     footprint :: Ptr{Cvoid}
