@@ -67,8 +67,8 @@ static volatile int pending_request = 0;
 
 #define REQ_FINALIZED 0x1
 
-PUK_LFSTACK_TYPE(callback,	struct _starpu_mpi_req *req;);
-static callback_lfstack_t callback_stack = NULL;
+PUK_LFSTACK_TYPE(callback, struct _starpu_mpi_req *req;);
+static callback_lfstack_t callback_stack;
 
 static starpu_sem_t callback_sem;
 
@@ -594,6 +594,8 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
 
+	callback_lfstack_init(&callback_stack);
+
 	/* Tell pioman to use a bound thread for communication progression:
 	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
 	int indexes[1] = { _starpu_mpi_thread_cpuid };
@@ -662,6 +664,8 @@ void _starpu_mpi_progress_shutdown(void **value)
 	starpu_sem_post(&callback_sem);
 
 	STARPU_PTHREAD_JOIN(progress_thread, value);
+
+	callback_lfstack_destroy(&callback_stack);
 
         STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
         STARPU_PTHREAD_COND_DESTROY(&progress_cond);
