@@ -41,7 +41,8 @@ void _starpu_notify_dependencies(struct _starpu_job *j)
 static starpu_notify_ready_soon_func notify_ready_soon_func;
 static void *notify_ready_soon_func_data;
 
-struct _starpu_notify_job_start_data {
+struct _starpu_notify_job_start_data
+{
 	double delay;
 };
 

@@ -185,7 +185,8 @@ int main(int argc, char **argv)
 	unsetenv("STARPU_NCPU");
 #endif
 
-	if (STARPU_RUNNING_ON_VALGRIND) {
+	if (STARPU_RUNNING_ON_VALGRIND)
+	{
 		factortime *= 4;
 		cpustep *= 4;
 	}

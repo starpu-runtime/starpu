@@ -70,7 +70,7 @@ static void tag_cleanup_grid(unsigned iter)
 
 	for (i = 0; i < ni; i++)
 		starpu_tag_remove(TAG(i,iter));
-} 
+}
 
 static int create_task_grid(unsigned iter)
 {

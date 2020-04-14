@@ -175,9 +175,12 @@ int main(int argc, char **argv)
 			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", psymbol);
 			return 1;
 		}
-		if (xml) {
+		if (xml)
+		{
 			starpu_perfmodel_dump_xml(stdout, &model);
-		} else {
+		}
+		else
+		{
 			uint32_t *footprint = NULL;
 			if (pdisplay_specific_footprint == 1)
 			{

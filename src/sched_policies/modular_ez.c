@@ -262,10 +262,13 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		unsigned ntasks_threshold;
 		if (starpu_sched_component_is_heft(decision_component) ||
 		    starpu_sched_component_is_mct(decision_component) ||
-		    starpu_sched_component_is_heteroprio(decision_component)) {
+		    starpu_sched_component_is_heteroprio(decision_component))
+		{
 			/* These need more queueing to allow CPUs to take some share of the work */
 			ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_HEFT;
-		} else {
+		}
+		else
+		{
 			ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
 		}
 		/* But let user tune it */
@@ -279,20 +282,20 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		int exp = flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP ? 1 : 0;
 
 		struct starpu_sched_component_prio_data prio_data =
-			{
-				.ntasks_threshold = ntasks_threshold,
-				.exp_len_threshold = exp_len_threshold,
-				.ready = ready,
-				.exp = exp,
-			};
+		{
+			.ntasks_threshold = ntasks_threshold,
+			.exp_len_threshold = exp_len_threshold,
+			.ready = ready,
+			.exp = exp,
+		};
 
 		struct starpu_sched_component_fifo_data fifo_data =
-			{
-				.ntasks_threshold = ntasks_threshold,
-				.exp_len_threshold = exp_len_threshold,
-				.ready = ready,
-				.exp = exp,
-			};
+		{
+			.ntasks_threshold = ntasks_threshold,
+			.exp_len_threshold = exp_len_threshold,
+			.ready = ready,
+			.exp = exp,
+		};
 
 		/* Create one fifo+eager component pair per choice, below scheduling decision */
 		for(i = 0; i < nbelow; i++)
@@ -334,7 +337,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 					STARPU_ABORT();
 			}
 			STARPU_ASSERT(n >= 1);
-			if (n > 1) {
+			if (n > 1)
+			{
 				/* Several workers for this choice, need to introduce
 				 * a component to distribute the work */
 				struct starpu_sched_component *distribute;

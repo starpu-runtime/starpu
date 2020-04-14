@@ -50,7 +50,8 @@ int _starpu_barrier_test(struct _starpu_barrier *barrier)
 int _starpu_barrier_destroy(struct _starpu_barrier *barrier)
 {
 	int ret;
-	do {
+	do
+	{
 		ret = _starpu_barrier_test(barrier);
 	}
 	while (ret == EBUSY);

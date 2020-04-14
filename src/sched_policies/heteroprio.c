@@ -524,7 +524,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				nb_added_tasks       += 1;
 				// TODO starpu_prefetch_task_input_for(task, workerid);
 			}
-		}		
+		}
 	}
 
 	struct starpu_task* task = NULL;

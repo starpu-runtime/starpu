@@ -284,8 +284,10 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
 	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
 	unsigned i,j;
-	for(i = starpu_worker_get_count(); i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++) {
-		if (starpu_bitmap_get(component->workers, i)) {
+	for(i = starpu_worker_get_count(); i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
+	{
+		if (starpu_bitmap_get(component->workers, i))
+		{
 			/* Component has this combined worker, check whether the
 			 * context has all the corresponding workers */
 			int worker_size;
