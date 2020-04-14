@@ -267,13 +267,13 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	! < refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined" || exit 1 ;\
 	$(MAKEINDEX) refman.idx ;\
 	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
-	done=0; repeat=5 ;\
-	while test $$done = 0 -a $$repeat -gt 0; do \
+	repeat=5 ;\
+	while test $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
 	       max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex; \
 	       repeat=`expr $$repeat - 1`; \
 	   else \
-	       done=1; \
+	       repeat=0; \
 	   fi; \
 	done
 	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
