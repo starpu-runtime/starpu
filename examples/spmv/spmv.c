@@ -245,10 +245,13 @@ int main(int argc, char **argv)
 			vector_exp_out_ptr[row] += UPPER_BAND * vector_in_ptr[row+1];
 	}
 	for (row = 0; row < size; row++)
-		if (vector_out_ptr[row] != vector_exp_out_ptr[row]) {
+	{
+		if (vector_out_ptr[row] != vector_exp_out_ptr[row])
+		{
 			FPRINTF(stderr, "check failed at %u: %f vs expected %f\n", row, vector_out_ptr[row], vector_exp_out_ptr[row]);
 			exit(EXIT_FAILURE);
 		}
+	}
 
 	starpu_free(nzval);
 	starpu_free(colind);

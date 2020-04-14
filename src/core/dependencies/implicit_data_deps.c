@@ -234,11 +234,13 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 		/* Skip tasks that are associated to a reduction phase so that
 		 * they do not interfere with the application. */
-		if (pre_sync_job->reduction_task) {
+		if (pre_sync_job->reduction_task)
+		{
 			*submit_pre_sync = 1;
 			return NULL;
 		}
-		if (post_sync_job->reduction_task) {
+		if (post_sync_job->reduction_task)
+		{
 			*submit_pre_sync = 0;
 			return NULL;
 		}

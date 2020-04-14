@@ -126,7 +126,8 @@ int main(int argc, char **argv)
 		const int id = starpu_perf_knob_name_to_id(scope_id, knob_name);
 		STARPU_ASSERT(starpu_perf_knob_get_type_id(id) == starpu_perf_knob_type_name_to_id(knob_type_name));
 
-		struct starpu_codelet cl = {
+		struct starpu_codelet cl =
+		{
 			.cpu_funcs = {cpu_func}
 		};
 

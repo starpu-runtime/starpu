@@ -240,7 +240,8 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 
 	/* Find a child component that can execute this task */
 	i = (i+1)%component->nchildren;
-	while(1) {
+	while(1)
+	{
 		int workerid;
 		for(workerid = starpu_bitmap_first(component->children[i]->workers_in_ctx);
 		    -1 != workerid;

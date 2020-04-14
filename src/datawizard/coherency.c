@@ -208,7 +208,8 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			for (node = 0; node < nnodes; node++)
 			{
 				struct _starpu_data_replicate *replicate = &handle->per_node[node];
-                               if (replicate->state != STARPU_INVALID){
+                               if (replicate->state != STARPU_INVALID)
+			       {
                                        _STARPU_TRACE_DATA_STATE_SHARED(handle, node);
 					replicate->state = STARPU_SHARED;
                                }

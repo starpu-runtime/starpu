@@ -165,7 +165,8 @@ static void replay_data_register(starpu_data_handle_t *handleptr, starpu_data_ha
 	{
 		replay_interface_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
-	struct replay_interface interface = {
+	struct replay_interface interface =
+	{
 		.id = replay_interface_ops.interfaceid,
 		.orig_handle = orig_handle,
 		.size = size,
@@ -337,7 +338,8 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 /* End of settings */
 
 static unsigned long nexecuted_tasks;
-void dumb_kernel(void *buffers[], void *args) {
+void dumb_kernel(void *buffers[], void *args)
+{
 	(void) buffers;
 	(void) args;
 	nexecuted_tasks++;

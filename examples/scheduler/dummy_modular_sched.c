@@ -170,7 +170,8 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 {
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 
-	struct dummy_sched_params params = {
+	struct dummy_sched_params params =
+	{
 		.verbose = 0,
 	};
 
