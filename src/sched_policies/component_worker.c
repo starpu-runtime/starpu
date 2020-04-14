@@ -149,7 +149,8 @@ struct _starpu_worker_component_data
 	union
 	{
 		struct _starpu_worker * worker;
-		struct {
+		struct
+		{
 			unsigned worker_size;
 			unsigned workerids[STARPU_NMAXWORKERS];
 		} parallel_worker;

@@ -1026,7 +1026,8 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 		for(dev = 0; dev < ndevices; dev++)
 		{
 			const char *type;
-			switch (arch_combs[comb]->devices[dev].type) {
+			switch (arch_combs[comb]->devices[dev].type)
+			{
 				case STARPU_CPU_WORKER: type = "CPU"; break;
 				case STARPU_CUDA_WORKER: type = "CUDA"; break;
 				case STARPU_OPENCL_WORKER: type = "OpenCL"; break;
@@ -1421,7 +1422,8 @@ int starpu_perfmodel_list(FILE *output)
 	else
 	{
 		int i;
-		for (i = 0; i < n; i++) {
+		for (i = 0; i < n; i++)
+		{
 			if (strcmp(list[i]->d_name, ".") && strcmp(list[i]->d_name, ".."))
 				fprintf(output, "file: <%s>\n", list[i]->d_name);
 			free(list[i]);
@@ -1772,7 +1774,8 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 
 docal:
 #ifdef STARPU_SIMGRID
-	if (isnan(exp)) {
+	if (isnan(exp))
+	{
 		char archname[STR_SHORT_LENGTH];
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 

@@ -206,7 +206,8 @@ out:
 	//fprintf(stderr, "could not push %p to %d actually\n", task, best_icomponent);
 	/* Could not push to child actually, push that one back */
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	for (j = 0; j < (int) data->naccel; j++) {
+	for (j = 0; j < (int) data->naccel; j++)
+	{
 		if (acceleration == data->accel[j])
 		{
 			_starpu_prio_deque_push_front_task(data->bucket[j], task);
@@ -305,7 +306,8 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 	task = _starpu_prio_deque_pop_task(no_accel);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
-	if (task) {
+	if (task)
+	{
 		if (heteroprio_progress_noaccel(component, data, task))
 		{
 			/* Could not push to child actually, push that one back */
@@ -388,7 +390,8 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 			max_expected = min_arch;
 	}
 
-	if (workerid == -1) {
+	if (workerid == -1)
+	{
 		/* All archs can run it */
 		STARPU_ASSERT(!isnan(min_expected));
 		STARPU_ASSERT(!isnan(max_expected));
@@ -402,13 +405,15 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		unsigned i, j;
 		/* Try to find a bucket with similar acceleration */
-		for (i = 0; i < data->naccel; i++) {
+		for (i = 0; i < data->naccel; i++)
+		{
 			if (acceleration >= data->accel[i] * (1 - APPROX) &&
 			    acceleration <= data->accel[i] * (1 + APPROX))
 				break;
 		}
 
-		if (i == data->naccel) {
+		if (i == data->naccel)
+		{
 			/* Didn't find it, add one */
 			data->naccel++;
 
@@ -418,8 +423,10 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 			_starpu_prio_deque_init(newbucket);
 			int inserted = 0;
 
-			for (j = 0; j < data->naccel-1; j++) {
-				if (!inserted && acceleration > data->accel[j]) {
+			for (j = 0; j < data->naccel-1; j++)
+			{
+				if (!inserted && acceleration > data->accel[j])
+				{
 					/* Insert the new bucket here */
 					i = j;
 					newbuckets[j] = newbucket;
@@ -429,7 +436,8 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 				newbuckets[j+inserted] = data->bucket[j];
 				newaccel[j+inserted] = data->accel[j];
 			}
-			if (!inserted) {
+			if (!inserted)
+			{
 				/* Insert it last */
 				newbuckets[data->naccel-1] = newbucket;
 				newaccel[data->naccel-1] = acceleration;
@@ -441,14 +449,17 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 		}
 #if 0
 		fprintf(stderr,"buckets:");
-		for (j = 0; j < data->naccel; j++) {
+		for (j = 0; j < data->naccel; j++)
+		{
 			fprintf(stderr, " %f", data->accel[j]);
 		}
 		fprintf(stderr,"\ninserting %p %f to %d\n", task, acceleration, i);
 #endif
 		_starpu_prio_deque_push_back_task(data->bucket[i],task);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
-	} else {
+	}
+	else
+	{
 		/* Not all archs can run it, will resort to HEFT strategy */
 		acceleration = INFINITY;
 		//fprintf(stderr,"%s: some archs can't do it\n", starpu_task_get_name(task));

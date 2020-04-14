@@ -26,7 +26,8 @@
 
 #define MEMORY_AFFINITY
 
-struct child_data {
+struct child_data
+{
 	double expected_start;
 	double predicted;
 	double predicted_transfer;

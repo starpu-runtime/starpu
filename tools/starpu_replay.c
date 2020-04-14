@@ -180,7 +180,8 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 /* End of settings */
 
 static unsigned long nexecuted_tasks;
-void dumb_kernel(void *buffers[], void *args) {
+void dumb_kernel(void *buffers[], void *args)
+{
 	(void) buffers;
 	(void) args;
 	nexecuted_tasks++;

@@ -129,7 +129,8 @@ void print_archs(FILE* output)
 		{
 			if (starpu_worker_get_memory_node(workerid) == node)
 			{
-				if (!printed) {
+				if (!printed)
+				{
 					fprintf(output, "Workers:");
 					printed = 1;
 				}
