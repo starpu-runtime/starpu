@@ -67,8 +67,8 @@ then
 	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data || true
 	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ] || true
 
-	if [ -x $PREFIX/../../tools/replay/starpu_replay ]; then
-		$STARPU_LAUNCH $PREFIX/../../tools/replay/starpu_replay tasks.rec
+	if [ -x $PREFIX/../../tools/starpu_replay ]; then
+		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay tasks.rec
 	fi
 
 	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump tasks.rec -o perfs2.rec

@@ -137,7 +137,13 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench
+	sendrecv_bench				\
+	sendrecv_parallel_tasks_bench
+
+if !NO_BLAS_LIB
+starpu_mpi_TESTS +=				\
+	sendrecv_gemm_bench
+endif
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -226,7 +232,9 @@ noinst_PROGRAMS =				\
 	starpu_redefine				\
 	load_balancer				\
 	driver					\
-	sendrecv_bench
+	sendrecv_bench				\
+	sendrecv_gemm_bench			\
+	sendrecv_parallel_tasks_bench
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
@@ -256,4 +264,22 @@ mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
+
+sendrecv_bench_SOURCES = sendrecv_bench.c
+sendrecv_bench_SOURCES += bench_helper.c
+sendrecv_bench_SOURCES += abstract_sendrecv_bench.c
+
+sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
+sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
+sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
+
+if !NO_BLAS_LIB
+sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
+sendrecv_gemm_bench_SOURCES += bench_helper.c
+sendrecv_gemm_bench_SOURCES += abstract_sendrecv_bench.c
+sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
+
+sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
+endif
+
 endif

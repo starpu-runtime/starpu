@@ -333,6 +333,7 @@ static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 	ret = MPI_Wait(sim_req->request, sim_req->status);
 
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_error_code(ret));
+	_STARPU_MPI_DEBUG(0, "request %p finished\n", sim_req->request);
 
 	*(sim_req->done) = 1;
 	starpu_pthread_queue_broadcast(sim_req->queue);
@@ -355,6 +356,7 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, star
 	sim_req->done = done;
 	*done = 0;
 
+	_STARPU_MPI_DEBUG(0, "will wait for request %p to finish\n", sim_req->request);
 	starpu_pthread_attr_t attr;
 	starpu_pthread_attr_init(&attr);
 	starpu_pthread_attr_setstacksize(&attr, 32786);
@@ -372,7 +374,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(0, "post MPI isend request %p type %s tag %"PRIi64" src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
+	_STARPU_MPI_DEBUG(0, "post MPI isend request %p type %s tag %"PRIi64" dst %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
 
 	_starpu_mpi_comm_amounts_inc(req->node_tag.node.comm, req->node_tag.node.rank, req->datatype, req->count);
 

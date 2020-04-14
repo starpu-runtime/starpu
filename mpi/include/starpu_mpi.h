@@ -50,9 +50,9 @@ extern "C"
 int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm, struct starpu_conf *conf);
 
 /**
-   Same as starpu_mpi_init_conf(), except that this does not
-   initialize the StarPU library. The caller thus has to call
-   starpu_init() before this.
+   Same as starpu_mpi_init_conf(), except that this does not initialize the
+   StarPU library. The caller thus has to call starpu_init() before this, and it
+   can not reserve a core for the MPI communications.
 */
 int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm);
 
