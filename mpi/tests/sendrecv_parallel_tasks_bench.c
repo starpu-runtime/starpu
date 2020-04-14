@@ -32,7 +32,11 @@
 
 /* We reduce NX_MAX, since some NICs don't support exchanging simultaneously such amount of memory */
 #undef NX_MAX
+#ifdef STARPU_QUICK_CHECK
+#define NX_MAX (1024)
+#else
 #define NX_MAX (64 * 1024 * 1024)
+#endif
 
 
 void cpu_task(void* descr[], void* args)
