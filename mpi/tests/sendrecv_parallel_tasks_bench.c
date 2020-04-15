@@ -112,6 +112,8 @@ void cpu_task(void* descr[], void* args)
 			current_worker, (long long) s, min_lat, bw_million_byte, bw_mbyte, d1_lat, med_lat, avg_lat, d9_lat, max_lat);
 		fflush(stdout);
 	}
+
+	free(lats);
 }
 
 static struct starpu_codelet cl =
