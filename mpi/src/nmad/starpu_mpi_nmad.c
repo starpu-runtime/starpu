@@ -269,14 +269,17 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
-	int ret;
-	//	STARPU_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
-	ret = MPI_Barrier(comm);
 
+	int ret = MPI_Barrier(comm);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %d", ret);
 
 	_STARPU_MPI_LOG_OUT();
 	return ret;
+}
+
+int _starpu_mpi_wait_for_all(MPI_Comm comm)
+{
+	assert(0);
 }
 
 /********************************************************/
