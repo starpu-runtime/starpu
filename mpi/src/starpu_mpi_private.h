@@ -331,7 +331,7 @@ void _starpu_mpi_wait_for_initialization();
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 int _starpu_mpi_barrier(MPI_Comm comm);
-int _starpu_mpi_wait_for_all(MPI_Comm comm);
+int _starpu_mpi_wait_for_all();
 
 /*
  * Specific functions to backend implementation

@@ -435,7 +435,7 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 	return;
 }
 
-int starpu_mpi_wait_for_all(MPI_Comm comm)
+int starpu_mpi_wait_for_all(MPI_Comm comm STARPU_ATTRIBUTE_UNUSED)
 {
-	return _starpu_mpi_wait_for_all(comm);
+	return _starpu_mpi_wait_for_all();
 }

@@ -784,7 +784,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return 0;
 }
 
-int _starpu_mpi_wait_for_all(MPI_Comm comm)
+int _starpu_mpi_wait_for_all()
 {
 	_STARPU_MPI_LOG_IN();
 
