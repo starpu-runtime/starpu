@@ -16,43 +16,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <starpu.h>
-#include "../display.h"
 
 void cpu_mandelbrot(void **, void *);
 void gpu_mandelbrot(void **, void *);
 
-struct Params
+static struct starpu_perfmodel model =
 {
-	float cr;
-	float ci;
-	unsigned taskx;
-	unsigned tasky;
-	unsigned width;
-	unsigned height;
+		.type = STARPU_HISTORY_BASED,
+		.symbol = "history_perf"
 };
 
-
-
-struct starpu_codelet cl =
+static struct starpu_codelet cl =
 {
 	.cpu_funcs = {cpu_mandelbrot},
-	.cuda_funcs = {gpu_mandelbrot},
-	.nbuffers = 1,
-	.modes = {STARPU_RW}
+	//.cuda_funcs = {gpu_mandelbrot},
+	.nbuffers = 2,
+	.modes = {STARPU_W, STARPU_R},
+	.model = &model
 };
 
 
-void mandelbrot_with_starpu(int *pixels, float cr, float ci, unsigned width, unsigned height, unsigned nslicesx, unsigned nslicesy)
+void mandelbrot_with_starpu(long long *pixels, float *params, long long dim, long long nslicesx)
 {
-	starpu_data_handle_t p_handle;
+	starpu_data_handle_t pixels_handle;
+	starpu_data_handle_t params_handle;
 
-	starpu_matrix_data_register(&p_handle, STARPU_MAIN_RAM, (uintptr_t)pixels, width, width, height, sizeof(int));
-
-	struct starpu_data_filter vert =
-	{
-		.filter_func = starpu_matrix_filter_vertical_block,
-		.nchildren = nslicesy
-	};
+	starpu_matrix_data_register(&pixels_handle, STARPU_MAIN_RAM, (uintptr_t)pixels, dim, dim, dim, sizeof(long long));
+	starpu_matrix_data_register(&params_handle, STARPU_MAIN_RAM, (uintptr_t)params, 4*nslicesx, 4*nslicesx, 1, sizeof(float));
 
 	struct starpu_data_filter horiz =
 	{
@@ -60,179 +50,100 @@ void mandelbrot_with_starpu(int *pixels, float cr, float ci, unsigned width, uns
 		.nchildren = nslicesx
 	};
 
-	starpu_data_map_filters(p_handle, 2, &vert, &horiz);
+	starpu_data_partition(pixels_handle, &horiz);
+	starpu_data_partition(params_handle, &horiz);
 
-	unsigned taskx, tasky;
-
-	struct Params *params = malloc(nslicesx*nslicesy*sizeof(struct Params));
+	long long taskx;
 
 	for (taskx = 0; taskx < nslicesx; taskx++){
-		for (tasky = 0; tasky < nslicesy; tasky++){
-			struct starpu_task *task = starpu_task_create();
-			
-			task->cl = &cl;
-			task->handles[0] = starpu_data_get_sub_data(p_handle, 2, tasky, taskx);
-			struct Params param = {cr, ci, taskx, tasky, width, height};
+		struct starpu_task *task = starpu_task_create();
 
-			params[taskx + tasky*nslicesx] = param;
-
-			task->cl_arg = (params + taskx + tasky * nslicesx);
-			task->cl_arg_size = sizeof(struct Params);
-			
-			starpu_task_submit(task);
-		}
+		task->cl = &cl;
+		task->handles[0] = starpu_data_get_child(pixels_handle, taskx);
+		task->handles[1] = starpu_data_get_child(params_handle, taskx);
+		if (starpu_task_submit(task)!=0) fprintf(stderr,"submit task error\n");
 	}
+
 	starpu_task_wait_for_all();
 
-	starpu_data_unpartition(p_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(pixels_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(params_handle, STARPU_MAIN_RAM);
 
-	starpu_data_unregister(p_handle);
+	starpu_data_unregister(pixels_handle);
+	starpu_data_unregister(params_handle);
+}
 
+void pixels2img(long long *pixels, long long width, long long height, const char *filename)
+{
+  FILE *fp = fopen(filename, "w");
+  if (!fp)
+    return;
+
+  int MAPPING[16][3] = {{66,30,15},{25,7,26},{9,1,47},{4,4,73},{0,7,100},{12,44,138},{24,82,177},{57,125,209},{134,181,229},{211,236,248},{241,233,191},{248,201,95},{255,170,0},{204,128,0},{153,87,0},{106,52,3}};
+
+  fprintf(fp, "P3\n%lld %lld\n255\n", width, height);
+  long long i, j;
+  for (i = 0; i < height; ++i) {
+    for (j = 0; j < width; ++j) {
+      fprintf(fp, "%d %d %d ", MAPPING[pixels[j*width+i]][0], MAPPING[pixels[j*width+i]][1], MAPPING[pixels[j*width+i]][2]);
+    }
+  }
+
+  fclose(fp);
+}
+
+double min_times(double cr, double ci, long long dim, long long nslices)
+{
+	long long *pixels = calloc(dim*dim, sizeof(long long));
+	float *params = calloc(4*nslices, sizeof(float));
+
+	double t_min = 0;
+	long long i;
+
+	for (i=0; i<nslices; i++) {
+		params[4*i+0] = cr;
+		params[4*i+1] = ci;
+		params[4*i+2] = i*dim/nslices;
+		params[4*i+3] = dim;
+	}
+
+	double start, stop, exec_t;
+	for (i = 0; i < 10; i++){
+		start = starpu_timing_now(); // starpu_timing_now() gives the time in microseconds.
+		mandelbrot_with_starpu(pixels, params, dim, nslices);
+		stop = starpu_timing_now();
+		exec_t = (stop-start)*1.e3;
+		if (t_min==0 || t_min>exec_t)
+		  t_min = exec_t;
+	}
+
+	char filename[64];
+	snprintf(filename, 64, "out%lld.ppm", dim);
+	pixels2img(pixels,dim,dim,filename);
+
+	free(pixels);
 	free(params);
+
+	return t_min;
 }
 
-void init_zero(int * pixels, unsigned width, unsigned height)
+void display_times(double cr, double ci, long long start_dim, long long step_dim, long long stop_dim, long long nslices)
 {
-	unsigned i,j;
-	for (i = 0; i < height; i++){
-		for (j = 0; j < width; j++){
-			pixels[j + i*width] = 0;
-		}
+
+	long long dim;
+
+	for (dim = start_dim; dim <= stop_dim; dim += step_dim) {
+		printf("Dimension: %lld...\n", dim);
+		double res = min_times(cr, ci, dim, nslices);
+		res = res / dim / dim; // time per pixel
+		printf("%lld %lf\n", dim, res);
 	}
 }
-
-void sort(double *arr, unsigned nbr_tests)
-{
-	unsigned j;
-	
-	int is_sort = 0;
-	
-	while (!is_sort){
-
-		is_sort = 1;
-		
-		for (j = 0; j < nbr_tests - 1; j++){
-			if (arr[j] > arr[j+1]){
-				is_sort = 0;
-				double tmp = arr[j];
-				arr[j] = arr[j+1];
-				arr[j+1] = tmp;
-			}
-		}
-	}
-}
-double median_time(float cr, float ci, unsigned width, unsigned height, unsigned nslicesx, unsigned nslicesy, unsigned nbr_tests)
-{
-	int *Pixels = malloc(width*height*sizeof(int));
-	
-	unsigned i;
-
-	double exec_times[nbr_tests];
-
-	double start, stop, exec_t;
-	for (i = 0; i < nbr_tests; i++){
-		init_zero(Pixels, width, height);
-		
-		start = starpu_timing_now(); // starpu_timing_now() gives the time in microseconds.
-		mandelbrot_with_starpu(Pixels, cr, ci, width, height, nslicesx, nslicesy);
-		stop = starpu_timing_now();
-		
-		exec_t = (stop-start)/1.e6;
-		exec_times[i] = exec_t;
-	}
-	char filename[30];
-	sprintf(filename, "PPM/mandelbrot%d.ppm", width);
-	printf("%s\n", filename);
-
-	mandelbrot_graph(filename, Pixels, width, height);
-
-	free(Pixels);
-
-	sort(exec_times, nbr_tests);
-
-	return exec_times[nbr_tests/2];	
-}
-
-void fluctuation_time(float cr, float ci, unsigned width, unsigned height, unsigned nslicesx, unsigned nslicesy, unsigned nbr_tests, double *exec_times)
-{
-	int *Pixels = malloc(width*height*sizeof(int));
-	
-	unsigned i;
-
-	double start, stop, exec_t;
-	for (i = 0; i < nbr_tests; i++){
-		init_zero(Pixels, width, height);
-		
-		start = starpu_timing_now(); // starpu_timing_now() gives the time in microseconds.
-		mandelbrot_with_starpu(Pixels, cr, ci, width, height, nslicesx, nslicesy);
-		stop = starpu_timing_now();
-		
-		exec_t = (stop-start)/1.e6;
-		exec_times[i] = exec_t;
-
-		/* char filename[33]; */
-		/* sprintf(filename, "../PPM/mandelbrot%d.ppm", i + 1); */
-		/* printf("%s\n", filename); */
-		/* mandelbrot_graph(filename, Pixels, width, height); */
-	}
-
-
-	free(Pixels);
-
-
-
-	
-}
-
-
-void display_times(float cr, float ci, unsigned start_dim, unsigned step_dim, unsigned stop_dim, unsigned nslices, unsigned nbr_tests)
-{
-	
-	unsigned dim;
-
-	FILE *myfile;
-	myfile = fopen("DAT/mandelbrot_c_struct_times.dat", "w");
-
-	for (dim = start_dim; dim <= stop_dim; dim += step_dim){
-		printf("Dimension: %u...\n", dim);
-		double t = median_time(cr, ci, dim, dim, nslices, nslices, nbr_tests);
-		
-		printf("w = %u ; h = %u ; t = %f\n", dim, dim, t);
-		
-		fprintf(myfile, "%f\n", t);
-		}
-	
-	fclose(myfile);
-}
-
-void display_fluctuations(float cr, float ci, unsigned start_dim, unsigned step_dim, unsigned stop_dim, unsigned nslices, unsigned nbr_tests)
-{
-	
-	unsigned dim;
-
-	FILE *myfile;
-	myfile = fopen("DAT/mandelbrot_c_fluctuation.dat", "w");
-
-	double *exec_times = malloc(nbr_tests * sizeof(double));
-	fluctuation_time(cr, ci, start_dim, start_dim, nslices, nslices, nbr_tests, exec_times);
-		
-	/* printf("w = %u ; h = %u ; t = %f\n", dim, dim, t); */
-	unsigned i;
-	for (i = 0; i < nbr_tests; i++){
-		printf("test %u: %f seconds\n", i, exec_times[i]);
-		fprintf(myfile, "%u %f\n", i, exec_times[i]);
-	}
-	
-	fclose(myfile);
-	free(exec_times);
-}
-
 
 int main(int argc, char **argv)
 {
-
-	if (argc != 8){
-		printf("Usage: %s cr ci start_dim step_dim stop_dim nslices(must divide dims) nbr_tests\n", argv[0]);
+	if (argc != 7){
+		printf("Usage: %s cr ci start_dim step_dim stop_dim nslices(must divide dims)\n", argv[0]);
 		return 1;
 	}
 	if (starpu_init(NULL) != EXIT_SUCCESS){
@@ -240,24 +151,16 @@ int main(int argc, char **argv)
 		return 77;
 	}
 
+	double cr = (float) atof(argv[1]);
+	double ci = (float) atof(argv[2]);
+	long long start_dim = atoll(argv[3]);
+	long long step_dim = atoll(argv[4]);
+	long long stop_dim = atoll(argv[5]);
+	long long nslices = atoll(argv[6]);
 
-	
-	float cr = (float) atof(argv[1]);
-	float ci = (float) atof(argv[2]);
-	unsigned start_dim = (unsigned) atoi(argv[3]);
-	unsigned step_dim = (unsigned) atoi(argv[4]);	
-	unsigned stop_dim = (unsigned) atoi(argv[5]);
-	unsigned nslices = (unsigned) atoi(argv[6]);
-	unsigned nbr_tests = (unsigned) atoi(argv[7]);
-
-	display_times(cr, ci, start_dim, step_dim, stop_dim, nslices, nbr_tests);
-	
-	
-	/* display_fluctuations(cr, ci, start_dim, step_dim, stop_dim, nslices, nbr_tests); */
-
+	display_times(cr, ci, start_dim, step_dim, stop_dim, nslices);
 
 	starpu_shutdown();
-
 
 	return 0;
 }
