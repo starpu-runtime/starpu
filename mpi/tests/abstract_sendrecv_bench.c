@@ -25,6 +25,11 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 
 	if (mpi_rank >= 2)
 	{
+		if (thread_barrier != NULL)
+		{
+			STARPU_PTHREAD_BARRIER_WAIT(thread_barrier);
+		}
+
 		for (uint64_t s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 		{
 			iterations = bench_nb_iterations(iterations, s);
