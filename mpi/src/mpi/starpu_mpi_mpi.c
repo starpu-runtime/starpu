@@ -786,15 +786,13 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 
 int _starpu_mpi_wait_for_all(MPI_Comm comm)
 {
-	int ret = posted_requests+ready_requests;
-
 	_STARPU_MPI_LOG_IN();
 
 	/* First wait for *both* all tasks and MPI requests to finish, in case
 	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
 	 */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-	STARPU_MPI_ASSERT_MSG(!mpi_wait_for_all_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
+	STARPU_MPI_ASSERT_MSG(!mpi_wait_for_all_running, "Concurrent starpu_mpi_wait_for_all is not implemented, even on different communicators");
 	mpi_wait_for_all_running = 1;
 	do
 	{
@@ -813,7 +811,7 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 	} while (posted_requests || ready_requests || newer_requests);
 	mpi_wait_for_all_running = 0;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	return ret;
+	return 0;
 }
 
 /********************************************************/
