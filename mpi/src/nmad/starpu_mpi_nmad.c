@@ -281,8 +281,9 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return ret;
 }
 
-int _starpu_mpi_wait_for_all()
+int _starpu_mpi_wait_for_all(MPI_Comm comm)
 {
+	(void) comm;
 	_STARPU_MPI_LOG_IN();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mpi_wait_for_all_running_mutex);
