@@ -58,9 +58,11 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
-EXTRA_DIST = 					\
-	user_defined_datatype_value.h		\
-	helper.h
+EXTRA_DIST = 				\
+	abstract_sendrecv_bench.h	\
+	bench_helper.h			\
+	helper.h			\
+	user_defined_datatype_value.h
 
 examplebindir = $(libdir)/starpu/examples/mpi
 
