@@ -320,13 +320,6 @@ static void* comm_thread_func(void* arg)
 	return NULL;
 }
 
-#ifdef STARPU_USE_MPI_MPI
-int main(int argc, char **argv)
-{
-	FPRINTF(stderr, "This test does not work with the MPI backend.\n");
-	return STARPU_TEST_SKIPPED;
-}
-#else
 int main(int argc, char **argv)
 {
 	double start, end;
@@ -467,4 +460,3 @@ enodev:
 
 	return ret;
 }
-#endif
