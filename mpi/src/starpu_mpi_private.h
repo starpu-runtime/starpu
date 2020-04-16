@@ -306,10 +306,7 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 						  starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
-void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
-void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
-int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
-int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
+void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_argc_argv
 {
@@ -323,17 +320,7 @@ struct _starpu_mpi_argc_argv
 	int world_size;
 };
 
-void _starpu_mpi_progress_shutdown(void **value);
-int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
-#ifdef STARPU_SIMGRID
-void _starpu_mpi_wait_for_initialization();
-#endif
-void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
-
-int _starpu_mpi_barrier(MPI_Comm comm);
-int _starpu_mpi_wait_for_all(MPI_Comm comm);
-
-/*
+/**
  * Specific functions to backend implementation
  */
 struct _starpu_mpi_backend
@@ -347,6 +334,20 @@ struct _starpu_mpi_backend
 	void (*_starpu_mpi_backend_data_clear)(starpu_data_handle_t data_handle);
 	void (*_starpu_mpi_backend_data_register)(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag);
 	void (*_starpu_mpi_backend_comm_register)(MPI_Comm comm);
+
+	int (*_starpu_mpi_backend_progress_init)(struct _starpu_mpi_argc_argv *argc_argv);
+	void (*_starpu_mpi_backend_progress_shutdown)(void **value);
+#ifdef STARPU_SIMGRID
+	void (*_starpu_mpi_backend_wait_for_initialization)();
+#endif
+
+	int (*_starpu_mpi_backend_barrier)(MPI_Comm comm);
+	int (*_starpu_mpi_backend_wait_for_all)(MPI_Comm comm);
+	int (*_starpu_mpi_backend_wait)(starpu_mpi_req *public_req, MPI_Status *status);
+	int (*_starpu_mpi_backend_test)(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
+
+	void (*_starpu_mpi_backend_isend_size_func)(struct _starpu_mpi_req *req);
+	void (*_starpu_mpi_backend_irecv_size_func)(struct _starpu_mpi_req *req);
 };
 
 extern struct _starpu_mpi_backend _mpi_backend;

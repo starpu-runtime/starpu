@@ -68,6 +68,7 @@ noinst_HEADERS =					\
 	starpu_mpi_cache_stats.h			\
 	starpu_mpi_task_insert.h			\
 	starpu_mpi_init.h				\
+	mpi/starpu_mpi_mpi.h				\
 	mpi/starpu_mpi_early_data.h			\
 	mpi/starpu_mpi_early_request.h			\
 	mpi/starpu_mpi_sync_data.h			\
@@ -77,6 +78,7 @@ noinst_HEADERS =					\
 	mpi/starpu_mpi_mpi_backend.h			\
 	nmad/starpu_mpi_nmad_backend.h			\
 	nmad/starpu_mpi_nmad_unknown_datatype.h		\
+	nmad/starpu_mpi_nmad.h				\
 	load_balancer/policy/data_movements_interface.h	\
 	load_balancer/policy/load_data_interface.h	\
 	load_balancer/policy/load_balancer_policy.h
