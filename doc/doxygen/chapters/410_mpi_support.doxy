@@ -34,6 +34,18 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
+\section MPIBuild Building with MPI support
+
+If your <c>mpicc</c> compiler is already in your PATH, StarPU will automatically
+enable MPI support in the build. If your <c>mpicc</c> is not in PATH, you
+can specify it by passing <c>--with-mpicc=/where/there/is/mpicc</c> to
+<c>./configure</c>
+
+It can be useful to enable MPI tests during <c>make check</c> by passing
+<c>--enable-mpi-check</c> to <c>./configure</c>. And similarly to
+<c>mpicc</c>, if <c>mpiexec</c> in not in PATH, you can specify it by passing
+<c>--with-mpiexec=/where/there/is/mpiexec</c> to <c>./configur</c>.
+
 \section ExampleDocumentation Example Used In This Documentation
 
 The example below will be used as the base for this documentation. It
