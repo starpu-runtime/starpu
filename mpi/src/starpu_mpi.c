@@ -437,7 +437,5 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 int starpu_mpi_wait_for_all(MPI_Comm comm)
 {
-	starpu_task_wait_for_all();
-	starpu_mpi_barrier(comm);
-	return 0;
+	return _starpu_mpi_wait_for_all(comm);
 }
