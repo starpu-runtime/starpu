@@ -72,7 +72,7 @@ define starpu-print-task
     printf "\tname:\t\t\t\t<%s>\n", $task->name
   end
   printf "\tcodelet:\t\t\t<%p>\n", $task->cl
-  if $task->cl
+  if $task->cl && $task->cl->name
     printf "\tcodelet name:\t\t\t<%s>\n", $task->cl->name
   end
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
