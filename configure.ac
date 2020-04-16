@@ -3074,10 +3074,15 @@ AC_ARG_WITH([hwloc],
 				if test ! -d "$withval" ; then
 				   AC_MSG_ERROR("Directory specified for hwloc <$withval> does not exist")
 				fi
-				if test ! -d "$withval/lib/pkgconfig" ; then
-				   AC_MSG_ERROR("Hwloc directory <$withval> does not have a subdirectory lib/pkgconfig")
+				if test -d "$withval/lib64/pkgconfig" ; then
+				   export PKG_CONFIG_PATH=$withval/lib64/pkgconfig:$PKG_CONFIG_PATH
+			        else
+				   if test -d "$withval/lib/pkgconfig" ; then
+				      export PKG_CONFIG_PATH=$withval/lib/pkgconfig:$PKG_CONFIG_PATH
+				   else
+				      AC_MSG_ERROR("Hwloc directory <$withval> does not have a subdirectory lib/pkgconfig or lib64/pkgconfig")
+				   fi
 				fi
-				export PKG_CONFIG_PATH=$withval/lib/pkgconfig:$PKG_CONFIG_PATH
 				use_hwloc=yes
 			fi
 		else
