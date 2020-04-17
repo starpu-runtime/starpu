@@ -95,6 +95,11 @@ global CPU_CODELETS=Dict{String,String}()
 export CUDA_CODELETS
 global CUDA_CODELETS=Dict{String,String}()
 
+export CODELETS_SCALARS
+global CODELETS_SCALARS=Dict{String,Any}()
+export CODELETS_PARAMS_STRUCT
+global CODELETS_PARAMS_STRUCT=Dict{String,Any}()
+
 """
 	    Executes @cuda_kernel and @cpu_kernel
         """
@@ -102,6 +107,7 @@ macro codelet(x)
     parsed = starpu_parse(x)
     name=string(x.args[1].args[1].args[1]);
     dump(name)
+    parse_scalar_parameters(parsed, name)
     cpu_expr = transform_to_cpu_kernel(parsed)
     prekernel, kernel = transform_to_cuda_kernel(parsed)
     generated_cpu_kernel_file_name=string("genc_",string(x.args[1].args[1].args[1]),".c")
@@ -113,6 +119,7 @@ macro codelet(x)
             kernel_file = open($(esc(generated_cpu_kernel_file_name)), "w")
             @debugprint "generating " $(generated_cpu_kernel_file_name)
             print(kernel_file, $(esc(cpu_kernel_file_start)))
+            print(kernel_file, generate_c_struct_param_declaration($name))
             print(kernel_file, $cpu_expr)
             close(kernel_file)
             CPU_CODELETS[$name]=$name
@@ -131,4 +138,32 @@ macro codelet(x)
         #starpu_task_library_name="generated_tasks"
         #global starpu_task_library_name
     end
+end
+
+function parse_scalar_parameters(expr :: StarpuExprFunction, name::String)
+    scalar_parameters = []
+    for i in (1 : length(expr.args))
+        type = expr.args[i].typ
+        if (type <: Number || type <: AbstractChar)
+            push!(scalar_parameters, (expr.args[i].name, type))
+        end
+    end
+
+    CODELETS_SCALARS[name] = scalar_parameters
+
+    # declare structure carrying scalar parameters
+    struct_params_name = Symbol("params_", rand_string())
+    structure_decl_str = "mutable struct " * "$struct_params_name\n"
+    for p in scalar_parameters
+        structure_decl_str *= "$(p[1])::$(p[2])\n"
+    end
+    structure_decl_str *= "end"
+    eval(Meta.parse(structure_decl_str))
+
+    # add structure type to dictionnary
+    add_to_dict_str = "starpu_type_traduction_dict[$struct_params_name] = \"struct $struct_params_name\""
+    eval(Meta.parse(add_to_dict_str))
+
+    # save structure name
+    CODELETS_PARAMS_STRUCT[name] = struct_params_name
 end
