@@ -2467,16 +2467,19 @@ enable_build_fortran=no
 if test "x$enable_build_fortran_requested" = "xyes" ; then
    if test "x$FC" != "x"; then
    	if $FC --version|grep -q 'GNU Fortran'; then
-		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-     	         #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
-                 int dummy;
-                 #else
-                 #error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
-                 #endif
-                 ]],
+		 AC_LANG_PUSH([Fortran])
+		 OLD_FCFLAGS="$FCFLAGS"
+		 FCFLAGS="$FCFLAGS -cpp"
+		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
+#endif
+]]
                  )],
                  [enable_build_fortran="yes"],
                  [enable_build_fortran="no"])
+		 FCFLAGS="$OLD_FCFLAGS"
+		 AC_LANG_POP([Fortran])
                  if test "$enable_build_fortran" = "no" ; then
                    AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
                  fi
