@@ -325,13 +325,24 @@ else
 fi
 AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<mpicc name or path to mpicc>], [Name or path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
 case $DEFAULT_MPICC in
-	# Absolute path, avoid AC_PATH_PROG looking in PATH only...
 	/*) mpicc_path="$DEFAULT_MPICC" ;;
+	*)  AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH]) ;;
 esac
-AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
+# We test if the MPICC compiler exists
+if test ! -x $mpicc_path; then
+    AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
+    mpicc_path=no
+fi
+
 AC_MSG_CHECKING(whether mpicc is available)
 AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
+
+if test x$mpicc_path != xno ; then
+    MPIPATH=$(dirname $mpicc_path):$PATH
+else
+    MPIPATH=$PATH
+fi
 
 #Check MPICXX/MPIC++
 if test x$enable_simgrid = xyes ; then
@@ -341,15 +352,14 @@ else
 fi
 AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<mpicxx name or path to mpicxx>], [Name or path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
 case $DEFAULT_MPICXX in
-	# Absolute path, avoid AC_PATH_PROG looking in PATH only...
 	/*) mpicxx_path="$DEFAULT_MPICXX" ;;
+	*)  AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$MPIPATH]) ;;
 esac
-AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
 
 # try with mpic++ if mpicxx was not found
 if test x$mpicxx_path = xno ; then
     DEFAULT_MPICXX=mpic++
-    AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+    AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$MPIPATH])
 fi
 
 # We test if the MPICXX/MPIC++ compiler exists
@@ -498,17 +508,16 @@ if test x$enable_mpi = xyes -a x$running_mpi_check = xyes ; then
     # Check if mpiexec is available
     if test x$enable_simgrid = xyes ; then
 	DEFAULT_MPIEXEC=smpirun
-        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]], [Path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
-	AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$simgrid_dir/bin:$PATH])
+        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
     else
 	DEFAULT_MPIEXEC=mpiexec
-	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<path to mpiexec>], [Path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
-	if test x$mpicc_path = x ; then
-	    AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$PATH])
-	else
-	    AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$(dirname $mpicc_path):$PATH])
-	fi
+	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
     fi
+
+    case $DEFAULT_MPIEXEC in
+	/*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
+	*)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
+    esac
     AC_MSG_CHECKING(whether mpiexec is available)
     AC_MSG_RESULT($mpiexec_path)
 
@@ -2530,8 +2539,10 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 					      else
 						      DEFAULT_MPIFORT=mpif90
 					      fi
-					      # nothing was specified: default value is used
-					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$(dirname $mpicc_path):$simgrid_dir/bin:$PATH])
+					      case $DEFAULT_MPIFORT in
+					      	/*) mpifort_path="$DEFAULT_MPIFORT" ;;
+					        *)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$MPIPATH])
+					      esac
 					      ])
 
 			# We test if the MPIFORT compiler exists
