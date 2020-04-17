@@ -473,7 +473,7 @@ mutable struct StarpuTask
     handles :: Vector{StarpuDataHandle}
     handle_pointers :: Vector{StarpuDataHandlePointer}
     synchronous :: Bool
-    cl_arg :: Union{Ref, Cvoid}
+    cl_arg # type depends on codelet
 
     c_task :: Ptr{Cvoid}
 
@@ -483,7 +483,7 @@ mutable struct StarpuTask
 
         Creates a new task which will run the specified codelet on handle buffers and cl_args data
     """
-    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg :: Union{Ref, Cvoid} = nothing)
+    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = [])
 
         if (cl == nothing)
             error("\"cl\" field can't be empty when creating a StarpuTask")
@@ -493,7 +493,16 @@ mutable struct StarpuTask
 
         output.cl = cl
         output.handles = handles
-        output.cl_arg = cl_arg
+
+        # handle scalar_parameters
+        codelet_name = cl.cpu_func
+        scalar_parameters = CODELETS_SCALARS[codelet_name]
+        nb_scalar_required = length(scalar_parameters)
+        nb_scalar_provided = length(cl_arg)
+        if (nb_scalar_provided != nb_scalar_required)
+            error("$nb_scalar_provided scalar parameters provided but $nb_scalar_required are required by $codelet_name.")
+        end
+        output.cl_arg = create_param_struct_from_clarg(codelet_name, cl_arg)
 
         output.synchronous = false
         output.handle_pointers = StarpuDataHandlePointer[]
@@ -511,6 +520,23 @@ mutable struct StarpuTask
         return output
     end
 
+end
+
+function create_param_struct_from_clarg(codelet_name, cl_arg)
+    struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
+    nb_scalar_provided = length(cl_arg)
+    create_struct_param_str = "output = $struct_params_name("
+    for i in 1:nb_scalar_provided-1
+        arg = cl_arg[i]
+        create_struct_param_str *= "$arg, "
+        end
+    if (nb_scalar_provided > 0)
+        arg = cl_arg[nb_scalar_provided]
+        create_struct_param_str *= "$arg"
+    end
+    create_struct_param_str *= ")"
+    eval(Meta.parse(create_struct_param_str))
+    return output
 end
 
 """
@@ -539,8 +565,8 @@ mutable struct StarpuTaskTranslator
             output.cl_arg = C_NULL
             output.cl_arg_size = 0
         else
-            output.cl_arg = pointer_from_objref(task.cl_arg) #TODO : Libc.malloc and cl_arg_free set to 1 ? but it should be done only when submitting
-            output.cl_arg_size = sizeof(eltype(task.cl_arg))
+            output.cl_arg = pointer_from_objref(task.cl_arg)
+            output.cl_arg_size = sizeof(task.cl_arg)
         end
 
         return output
@@ -815,7 +841,7 @@ end
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
 """
-macro starpu_async_cl(expr,modes)
+macro starpu_async_cl(expr,modes,cl_arg=[])
 
     if (!isa(expr, Expr) || expr.head != :call)
         error("Invalid task submit syntax")
@@ -839,7 +865,7 @@ macro starpu_async_cl(expr,modes)
     handles = Expr(:vect, expr.args[2:end]...)
     #dump(handles)
     quote
-        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)))
+        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)), cl_arg=cl_arg)
         starpu_task_submit(task)
     end
 end
