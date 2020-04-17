@@ -328,7 +328,11 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICC=mpicc
 fi
-AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<path to mpicc>], [Path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
+AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<mpicc name or path to mpicc>], [Name or path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
+case $DEFAULT_MPICC in
+	# Absolute path, avoid AC_PATH_PROG looking in PATH only...
+	/*) mpicc_path="$DEFAULT_MPICC" ;;
+esac
 AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
 AC_MSG_CHECKING(whether mpicc is available)
 AC_MSG_RESULT($mpicc_path)
@@ -340,7 +344,11 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICXX=mpicxx
 fi
-AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<path to mpicxx>], [Path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
+AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<mpicxx name or path to mpicxx>], [Name or path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
+case $DEFAULT_MPICXX in
+	# Absolute path, avoid AC_PATH_PROG looking in PATH only...
+	/*) mpicxx_path="$DEFAULT_MPICXX" ;;
+esac
 AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
 
 # try with mpic++ if mpicxx was not found
