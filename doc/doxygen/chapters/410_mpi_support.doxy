@@ -44,7 +44,11 @@ can specify its location by passing <c>--with-mpicc=/where/there/is/mpicc</c> to
 It can be useful to enable MPI tests during <c>make check</c> by passing
 <c>--enable-mpi-check</c> to <c>./configure</c>. And similarly to
 <c>mpicc</c>, if <c>mpiexec</c> in not in PATH, you can specify its location by passing
-<c>--with-mpiexec=/where/there/is/mpiexec</c> to <c>./configure</c>.
+<c>--with-mpiexec=/where/there/is/mpiexec</c> to <c>./configure</c>, but this is
+not needed if it is next to <c>mpicc</c>, configure will look there in addition to PATH.
+
+Similarly, Fortran examples use <c>mpif90</c>, which can be specified manually
+with <c>--with-mpifort</c> if it can't be found automatically.
 
 \section ExampleDocumentation Example Used In This Documentation
 
