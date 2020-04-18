@@ -8,10 +8,8 @@ using LinearAlgebra
     N :: Int32 = length(v)
     # Naive version
     @parallel for i in (1 : N)
-        v[i] = v[i] * k + l + m
+        v[i] = v[i] * m + l + k
     end
-
-    return 0. :: Float32
 end
 
 
@@ -30,13 +28,13 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
         )
         cl = StarpuCodelet(
             cpu_func = CPU_CODELETS["vector_scal"],
-            #cuda_func = "matrix_mult",
+            # cuda_func = CUDA_CODELETS["vector_scal"],
             #opencl_func="ocl_matrix_mult",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )
 
-        for i in (1 : 10)
+        for i in (1 : 1)
             t=time_ns()
             @starpu_sync_tasks begin
                 handles = [hV]

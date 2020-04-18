@@ -3,7 +3,7 @@ using StarPU
 using LinearAlgebra
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function mandelbrot(pixels ::Matrix{Int64}, params ::Matrix{Float32} ) :: Float32
+@codelet function mandelbrot(pixels ::Matrix{Int64}, params ::Matrix{Float32} ) :: Nothing
     height :: Int64 = height(pixels)
     width :: Int64 = width(pixels)
     zoom :: Float64 = width * 0.25296875
@@ -43,7 +43,8 @@ using LinearAlgebra
             end
         end
     end
-    return 0. :: Float32
+
+    return
 end
 
 @debugprint "starpu_init"

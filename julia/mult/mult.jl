@@ -6,54 +6,54 @@ using LinearAlgebra
 const STRIDE = 72
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Float32
+@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Nothing
 
     width_m2 :: Int32 = width(m2)
     height_m1 :: Int32 = height(m1)
     width_m1 :: Int32 = width(m1)
     # Naive version
-    #@parallel for j in (1 : width_m2)
-    #    @parallel for i in (1 : height_m1)
-    #
-    #          sum :: Float32 = 0.
-
-    #          for k in (1 : width_m1)
-    #              sum = sum + m1[i, k] * m2[k, j]
-    #          end
+    @parallel for j in (1 : width_m2)
+       @parallel for i in (1 : height_m1)
     
-    #          m3[i, j] = sum
-    #      end
-    #  end
-    ##### Tiled and unrolled version 
-    for l in (1 : width_m2)
-        for m in (1 : height_m1)
-            m3[m,l] = 0
-        end
-    end
-    @parallel for i in (1 : STRIDE : height_m1)
-        for k in (1 : STRIDE : width_m1 )
-            for j in (1 : STRIDE : width_m2  )
-                for kk in (k : 4 : k+STRIDE-1)
-                    for jj in (j : 2 : j+STRIDE-1)
-                        alpha00 :: Float32 =m2[kk,jj]
-                        alpha01 :: Float32 =m2[kk,jj+1]
-                        alpha10 :: Float32 =m2[kk+1,jj]
-                        alpha11 :: Float32 =m2[kk+1,jj+1]
-                        alpha20 :: Float32 =m2[kk+2,jj]
-                        alpha21 :: Float32 =m2[kk+2,jj+1]
-                        alpha30 :: Float32 =m2[kk+3,jj]
-                        alpha31 :: Float32 =m2[kk+3,jj+1]
-                        for ii in (i : 1 : i+STRIDE-1) 
-                            m3[ii, jj] = m3[ii, jj] + m1[ii, kk] * alpha00 + m1[ii, kk+1] * alpha10 + m1[ii, kk+2] * alpha20 + m1[ii,kk+3]*alpha30
-                            m3[ii, jj+1] = m3[ii, jj+1] + m1[ii, kk] * alpha01 + m1[ii, kk+1] * alpha11 + m1[ii, kk+2]*alpha21 + m1[ii,kk+3]*alpha31 
-                        end
-                    end
-                end
-            end
-        end
-    end
+             sum :: Float32 = 0.
 
-    return 0. :: Float32
+             for k in (1 : width_m1)
+                 sum = sum + m1[i, k] * m2[k, j]
+             end
+    
+             m3[i, j] = sum
+         end
+     end
+    # ##### Tiled and unrolled version 
+    # for l in (1 : width_m2)
+    #     for m in (1 : height_m1)
+    #         m3[m,l] = 0
+    #     end
+    # end
+    # @parallel for i in (1 : STRIDE : height_m1)
+    #     for k in (1 : STRIDE : width_m1 )
+    #         for j in (1 : STRIDE : width_m2  )
+    #             for kk in (k : 4 : k+STRIDE-1)
+    #                 for jj in (j : 2 : j+STRIDE-1)
+    #                     alpha00 :: Float32 =m2[kk,jj]
+    #                     alpha01 :: Float32 =m2[kk,jj+1]
+    #                     alpha10 :: Float32 =m2[kk+1,jj]
+    #                     alpha11 :: Float32 =m2[kk+1,jj+1]
+    #                     alpha20 :: Float32 =m2[kk+2,jj]
+    #                     alpha21 :: Float32 =m2[kk+2,jj+1]
+    #                     alpha30 :: Float32 =m2[kk+3,jj]
+    #                     alpha31 :: Float32 =m2[kk+3,jj+1]
+    #                     for ii in (i : 1 : i+STRIDE-1) 
+    #                         m3[ii, jj] = m3[ii, jj] + m1[ii, kk] * alpha00 + m1[ii, kk+1] * alpha10 + m1[ii, kk+2] * alpha20 + m1[ii,kk+3]*alpha30
+    #                         m3[ii, jj+1] = m3[ii, jj+1] + m1[ii, kk] * alpha01 + m1[ii, kk+1] * alpha11 + m1[ii, kk+2]*alpha21 + m1[ii,kk+3]*alpha31 
+    #                     end
+    #                 end
+    #             end
+    #         end
+    #     end
+    # end
+
+    return
 end
 
 
@@ -77,7 +77,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
         )
         cl = StarpuCodelet(
             cpu_func = CPU_CODELETS["matrix_mult"],
-            #cuda_func = "matrix_mult",
+            # cuda_func = CUDA_CODELETS["matrix_mult"],
             #opencl_func="ocl_matrix_mult",
             modes = [STARPU_R, STARPU_R, STARPU_W],
             perfmodel = perfmodel

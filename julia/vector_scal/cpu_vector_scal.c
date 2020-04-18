@@ -9,7 +9,7 @@ struct params {
   float l;
 };
 
-float vector_scal(void *buffers[], void *cl_arg)
+float cpu_vector_scal(void *buffers[], void *cl_arg)
 {
   /* get scalar parameters from cl_arg */
   struct params *scalars = (struct params *) cl_arg;
@@ -34,8 +34,8 @@ float vector_scal(void *buffers[], void *cl_arg)
   return 0.0;
 }
 
-char* CPU = "cpu_mult";
-char* GPU = "gpu_mult";
+char* CPU = "cpu_vector_scal";
+char* GPU = "gpu_vector_scal";
 extern char *starpu_find_function(char *name, char *device) {
 	if (!strcmp(device,"gpu")) return GPU;
 	return CPU;
