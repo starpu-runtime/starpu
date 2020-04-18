@@ -496,13 +496,26 @@ mutable struct StarpuTask
 
         # handle scalar_parameters
         codelet_name = cl.cpu_func
-        scalar_parameters = CODELETS_SCALARS[codelet_name]
-        nb_scalar_required = length(scalar_parameters)
-        nb_scalar_provided = length(cl_arg)
-        if (nb_scalar_provided != nb_scalar_required)
-            error("$nb_scalar_provided scalar parameters provided but $nb_scalar_required are required by $codelet_name.")
+        if isempty(codelet_name)
+            codelet_name = cl.cuda_func
         end
-        output.cl_arg = create_param_struct_from_clarg(codelet_name, cl_arg)
+        if isempty(codelet_name)
+            codelet_name = cl.opencl_func
+        end
+        if isempty(codelet_name)
+            error("No function provided with codelet.")
+        end
+        scalar_parameters = get(CODELETS_SCALARS, codelet_name, nothing)
+        if scalar_parameters != nothing
+            nb_scalar_required = length(scalar_parameters)
+            nb_scalar_provided = length(cl_arg)
+            if (nb_scalar_provided != nb_scalar_required)
+                error("$nb_scalar_provided scalar parameters provided but $nb_scalar_required are required by $codelet_name.")
+            end
+            output.cl_arg = create_param_struct_from_clarg(codelet_name, cl_arg)
+        else
+            output.cl_arg = nothing
+        end
 
         output.synchronous = false
         output.handle_pointers = StarpuDataHandlePointer[]
@@ -522,8 +535,13 @@ mutable struct StarpuTask
 
 end
 
-function create_param_struct_from_clarg(codelet_name, cl_arg)
-    struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
+function create_param_struct_from_clarg(name, cl_arg)
+    struct_params_name = CODELETS_PARAMS_STRUCT[name]
+
+    if struct_params_name == false
+        error("structure name not found in CODELET_PARAMS_STRUCT")
+    end
+
     nb_scalar_provided = length(cl_arg)
     create_struct_param_str = "output = $struct_params_name("
     for i in 1:nb_scalar_provided-1
@@ -856,7 +874,7 @@ macro starpu_async_cl(expr,modes,cl_arg=[])
     println(CPU_CODELETS[string(expr.args[1])])
     cl = StarpuCodelet(
         cpu_func = CPU_CODELETS[string(expr.args[1])],
-        #cuda_func = "matrix_mult",
+        # cuda_func = CUDA_CODELETS[string(expr.args[1])],
         #opencl_func="ocl_matrix_mult",
         ### TODO: CORRECT !
         modes = map((x -> starpu_modes(x)),modes.args),
@@ -865,7 +883,7 @@ macro starpu_async_cl(expr,modes,cl_arg=[])
     handles = Expr(:vect, expr.args[2:end]...)
     #dump(handles)
     quote
-        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)), cl_arg=cl_arg)
+        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)), cl_arg=$(esc(cl_arg)))
         starpu_task_submit(task)
     end
 end
