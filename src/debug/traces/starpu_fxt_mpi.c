@@ -26,8 +26,6 @@
 #define STARPU_POTI_STR_LEN 200
 #endif
 
-#define MAX_MPI_NODES 64
-
 LIST_TYPE(mpi_transfer,
 	unsigned matched;
 	int src;
