@@ -2210,9 +2210,9 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-AC_MSG_CHECKING(maximum number of nodes to use)
+AC_MSG_CHECKING(maximum number of memory nodes to use per MPI rank)
 AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
-			[maximum number of nodes])],
+			[maximum number of memory nodes per MPI rank])],
 			maxnodes=$enableval, maxnodes=0)
 
 if test x$maxnodes = x0 ; then
