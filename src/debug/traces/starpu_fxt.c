@@ -1196,8 +1196,8 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
  */
 static int create_ordered_stream_id (int nodeid, int devid)
 {
-	static int stable[STARPU_MAXNODES][STARPU_MAXCUDADEVS];
-	STARPU_ASSERT(nodeid < STARPU_MAXNODES);
+	static int stable[MAX_MPI_NODES][STARPU_MAXCUDADEVS];
+	STARPU_ASSERT(nodeid < MAX_MPI_NODES);
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 	return stable[nodeid][devid]++;
 }
