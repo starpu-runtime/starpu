@@ -1,41 +1,49 @@
-# ICC compiler
-#CC =icc
-#CFLAGS=-restrict -unroll4 -ipo -falign-loops=256 -O3 -DSTRIDE=${STRIDE} -march=native $(shell pkg-config --cflags starpu-1.3)
-# GCC compiler
 CC=gcc
-CFLAGS += -g -O3 -mavx -fomit-frame-pointer -march=native -ffast-math $(shell pkg-config --cflags starpu-1.3)
+NVCC=nvcc
+ENABLE_CUDA=no
+LD=$(CC)
 
+ifeq ($(ENABLE_CUDA),yes)
+        LD := ${NVCC}
+endif
+
+CFLAGS = -O3 -g $(shell pkg-config --cflags starpu-1.3)
+CPU_CFLAGS = ${CFLAGS} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
+CUDA_CFLAGS = ${CFLAGS}
 LDFLAGS +=$(shell pkg-config --libs starpu-1.3)
+
 EXTERNLIB=extern_tasks.so
 GENERATEDLIB=generated_tasks.so
-OBJECTS=$(patsubst %.c,%.o,$(wildcard gen*.c))
+
+C_OBJECTS=$(patsubst %.c,%.o,$(wildcard gen*.c))
+CUDA_OBJECTS=$(patsubst %.cu,%.o,$(wildcard gen*.cu))
+ifneq ($(ENABLE_CUDA),yes)
+	CUDA_OBJECTS:=
+endif
+
 LIBPATH=${PWD}/../StarPU.jl/lib
 
 all: ${EXTERNLIB}
 
 vector_scal: vector_scal.c cpu_vector_scal.o #gpu_vector_scal.o
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-
-gpu_vector_scal.o: gpu_vector_scal.cu
-	nvcc -c $(CFLAGS) $^ -o $@
+	$(CC) $(CPU_CFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $^ -o $@
+	$(CC) -c -fPIC $(CPU_CFLAGS) $^ -o $@
+
+%.o: %.cu
+	$(NVCC) -dc $(CUDA_CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
 
 ${EXTERNLIB}: cpu_vector_scal.c
 	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
 
-gpu_vector_scal.so: gpu_vector_scal.o
-	nvcc $(CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
+${GENERATEDLIB}: $(C_OBJECTS) $(CUDA_OBJECTS)
+	$(LD) -shared $(LDFLAGS) $^ -o $@
 
-cpu_vector_scal_sa: cpu_vector_scal_sa.o
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-
-${GENERATEDLIB}: ${OBJECTS}
-	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
+PHONY: clean
 
 clean:
-	rm -f vector_scal *.so *.o c_*.genc gencuda_*.cu *.dat
+	rm -f vector_scal *.so *.o genc_*.c gencuda_*.cu *.dat
 
 # Performance Tests
 cstarpu.dat: vector_scal

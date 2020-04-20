@@ -1,16 +1,12 @@
 using LinearAlgebra
 
-function mandelbrot(pixels, params) :: Float32
+function mandelbrot(pixels, centerr ::Float64, centeri ::Float64, offset ::Int64, dim ::Int64) :: Nothing
     height :: Int64, width :: Int64 = size(pixels)
     zoom :: Float64 = width * 0.25296875
     iz :: Float64 = 1. / zoom
     diverge :: Float32 = 4.0
     max_iterations :: Float32 = ((width/2) * 0.049715909 * log10(zoom));
-    imi :: Float32 = 1. / max_iterations
-    centerr :: Float32 = params[1]
-    centeri :: Float32 = params[2]
-    offset :: Float32 = params[3]
-    dim :: Float32 = params[4]
+    imi :: Float64 = 1. / max_iterations
     cr :: Float64 = 0.
     zr :: Float64 = 0.
     ci :: Float64 = 0.
@@ -23,7 +19,9 @@ function mandelbrot(pixels, params) :: Float32
             zr = cr
             ci = centeri + (y-1+offset - (dim / 2)) * iz
             zi = ci
-            for n = 0:max_iterations
+            n = 0
+            for i = 0:max_iterations
+                n = i
                 if (zr*zr + zi*zi > diverge)
                     break
                 end
@@ -40,11 +38,10 @@ function mandelbrot(pixels, params) :: Float32
         end
     end
 
-    ret :: Float32 = 0.
-    return ret
+    return
 end
 
-function mandelbrot_without_starpu(A ::Matrix{Int64}, params ::Matrix{Float32}, nslicesx ::Int64)
+function mandelbrot_without_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, dim ::Int64, nslicesx ::Int64)
     width,height = size(A)
     step = height / nslicesx
 
@@ -52,9 +49,9 @@ function mandelbrot_without_starpu(A ::Matrix{Int64}, params ::Matrix{Float32}, 
         start_id = floor(Int64, (taskx-1)*step+1)
         end_id = floor(Int64, (taskx-1)*step+step)
         a = view(A, start_id:end_id, :)
-        p = view(params, (taskx-1)*4+1:(taskx-1)*4+4)
 
-        mandelbrot(a, p)
+        offset ::Int64 = (taskx-1)*dim/nslicesx
+        mandelbrot(a, cr, ci, offset, dim)
     end
 end
 
@@ -75,16 +72,9 @@ function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
     tmin=0;
 
     pixels ::Matrix{Int64} = zeros(dim, dim)
-    params :: Matrix{Float32} = zeros(4*nslices,1)
-    for i=0:(nslices-1)
-        params[4*i+1,1] = cr
-        params[4*i+2,1] = ci
-        params[4*i+3,1] = i*dim/nslices
-        params[4*i+4,1] = dim
-    end
     for i = 1:10
         t = time_ns();
-        mandelbrot_without_starpu(pixels, params, nslices)
+        mandelbrot_without_starpu(pixels, cr, ci, dim, nslices)
         t = time_ns()-t
         if (tmin==0 || tmin>t)
             tmin=t
