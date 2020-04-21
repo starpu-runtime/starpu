@@ -49,6 +49,8 @@ end
 
 export starpu_init
 export starpu_shutdown
+export starpu_memory_pin
+export starpu_memory_unpin
 export starpu_data_unregister
 export starpu_data_register
 export starpu_data_get_sub_data
@@ -654,9 +656,23 @@ end
 
 STARPU_MAIN_RAM = 0 #TODO: ENUM
 
+function starpu_memory_pin(data) :: Nothing
+    data_pointer = pointer(data)
 
+    @starpucall(starpu_memory_pin,
+                Cvoid, (Ptr{Cvoid}, Csize_t),
+                data_pointer,
+                sizeof(data))
+end
 
+function starpu_memory_unpin(data) :: Nothing
+    data_pointer = pointer(data)
 
+    @starpucall(starpu_memory_unpin,
+                Cvoid, (Ptr{Cvoid}, Csize_t),
+                data_pointer,
+                sizeof(data))
+end
 
 function StarpuNewDataHandle(ptr :: StarpuDataHandlePointer, destr :: Function...) :: StarpuDataHandle
     return StarpuDestructible(ptr, destr...)
