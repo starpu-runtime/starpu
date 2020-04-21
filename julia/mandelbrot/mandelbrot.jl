@@ -46,7 +46,6 @@ using LinearAlgebra
     return
 end
 
-@debugprint "starpu_init"
 starpu_init()
 
 function mandelbrot_with_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, dim ::Int64, nslicesx ::Int64)
@@ -101,6 +100,5 @@ end
 
 display_time(-0.800671,-0.158392,32,32,4096,4)
 
-@debugprint "starpu_shutdown"
 starpu_shutdown()
 

@@ -115,8 +115,6 @@ using StarPU
     return 0
 end
 
-
-@debugprint "starpu_init"
 starpu_init()
 
 function black_scholes_starpu(data ::Matrix{Float64}, res ::Matrix{Float64}, nslices ::Int64)

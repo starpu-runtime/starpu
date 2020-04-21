@@ -112,35 +112,33 @@ macro codelet(x)
     parse_scalar_parameters(parsed, cpu_name, cuda_name)
     c_struct_param_decl = generate_c_struct_param_declaration(name)
     cpu_expr = transform_to_cpu_kernel(parsed)
-    prekernel, kernel = transform_to_cuda_kernel(parsed)
+
+    if (starpu_target & STARPU_CUDA != 0)
+        prekernel, kernel = transform_to_cuda_kernel(parsed)
+    end
+
     generated_cpu_kernel_file_name=string("genc_",string(x.args[1].args[1].args[1]),".c")
     generated_cuda_kernel_file_name=string("gencuda_",string(x.args[1].args[1].args[1]),".cu")
-    targets=starpu_target
-    return quote
-        
-        if ($targets&$STARPU_CPU!=0)
-            kernel_file = open($(esc(generated_cpu_kernel_file_name)), "w")
-            @debugprint "generating " $(generated_cpu_kernel_file_name)
-            print(kernel_file, $(esc(cpu_kernel_file_start)))
-            print(kernel_file, $c_struct_param_decl)
-            print(kernel_file, $cpu_expr)
-            close(kernel_file)
-            CPU_CODELETS[$name]=$cpu_name
-        end
-        
-        if ($targets&$STARPU_CUDA!=0)
-            kernel_file = open($(esc(generated_cuda_kernel_file_name)), "w")
-            @debugprint "generating " $(generated_cuda_kernel_file_name)
-            print(kernel_file, $(esc(cuda_kernel_file_start)))
-            print(kernel_file, "__global__ ", $kernel)
-            print(kernel_file, $c_struct_param_decl) # TODO: extern C ?
-            print(kernel_file, "\nextern \"C\" ", $prekernel)
-            close(kernel_file)
-            CUDA_CODELETS[$name]=$cuda_name
-        end
-        print("end generation")
-        #starpu_task_library_name="generated_tasks"
-        #global starpu_task_library_name
+
+    if (starpu_target & STARPU_CPU != 0)
+        kernel_file = open(generated_cpu_kernel_file_name, "w")
+        debug_print("generating ", generated_cpu_kernel_file_name)
+        print(kernel_file, cpu_kernel_file_start)
+        print(kernel_file, c_struct_param_decl)
+        print(kernel_file, cpu_expr)
+        close(kernel_file)
+        CPU_CODELETS[name]=cpu_name
+    end
+
+    if starpu_target & STARPU_CUDA!=0
+        kernel_file = open(generated_cuda_kernel_file_name, "w")
+        debug_print("generating ", generated_cuda_kernel_file_name)
+        print(kernel_file, cuda_kernel_file_start)
+        print(kernel_file, "__global__ ", kernel)
+        print(kernel_file, c_struct_param_decl)
+        print(kernel_file, "\nextern \"C\" ", prekernel)
+        close(kernel_file)
+        CUDA_CODELETS[name]=cuda_name
     end
 end
 

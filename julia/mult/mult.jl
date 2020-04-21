@@ -57,7 +57,6 @@ const STRIDE = 72
 end
 
 
-@debugprint "starpu_init"
 starpu_init()
 
 function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy)
@@ -141,6 +140,6 @@ end
 io=open(ARGS[1],"w")
 compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
 close(io)
-@debugprint "starpu_shutdown"
+
 starpu_shutdown()
 

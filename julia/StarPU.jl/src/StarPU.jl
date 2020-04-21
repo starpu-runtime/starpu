@@ -30,15 +30,10 @@ macro starpucall(func, ret_type, arg_types, args...)
     return Expr(:call, :ccall, (func, starpu_task_library_name), esc(ret_type), esc(arg_types), map(esc, args)...)
 end
 
-export @debugprint
-macro debugprint(x...)
-    quote
-        println("\x1b[32m", $x..., "\x1b[0m")
-        flush(stdout)
-    end
+function debug_print(x...)
+    println("\x1b[32m", x..., "\x1b[0m")
+    flush(stdout)
 end
-
-
 
 function Cstring_from_String(str :: String)
     return Cstring(pointer(str))
@@ -619,9 +614,11 @@ end
     cpu and gpu function names
 """
 function starpu_init()
+    debug_print("starpu_init")
+
     if (get(ENV,"JULIA_TASK_LIB",0)!=0)
         global starpu_tasks_library_handle= Libdl.dlopen(ENV["JULIA_TASK_LIB"])
-        @debugprint "Loading external codelet library"
+        debug_print("Loading external codelet library")
         ff = Libdl.dlsym(starpu_tasks_library_handle,:starpu_find_function)
         dump(ff)
         for k in keys(CUDA_CODELETS)
@@ -629,7 +626,7 @@ function starpu_init()
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else
-        @debugprint "generating codelet library"
+        debug_print("generating codelet library")
         run(`make generated_tasks.so`);
         global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks.so")
     end
@@ -644,6 +641,8 @@ end
     Must be called at the end of the program
 """
 function starpu_shutdown()
+    debug_print("starpu_shutdown")
+
     starpu_exit_block()
     @starpucall starpu_shutdown Cvoid ()
     jlstarpu_free_allocated_structures()
