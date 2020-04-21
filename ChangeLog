@@ -18,6 +18,7 @@ StarPU 1.4.0 (git revision xxxx)
 ==============================================
 New features:
   * Fault tolerance support with starpu_task_ft_failed().
+  * Julia programming interface.
   * Add get_max_size method to data interfaces for applications using data with
     variable size to express their maximal potential size.
   * New offline tool to draw graph showing elapsed time between sent
