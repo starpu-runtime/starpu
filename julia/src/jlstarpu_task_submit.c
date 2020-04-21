@@ -63,6 +63,8 @@ void jlstarpu_codelet_update(const struct jlstarpu_codelet * const input, struct
 {
 	output->where = input->where;
 
+	output->color = input->color;
+
 	output->cpu_funcs[0] = input->cpu_func;
 	output->cpu_funcs_name[0] = input->cpu_func_name;
 
