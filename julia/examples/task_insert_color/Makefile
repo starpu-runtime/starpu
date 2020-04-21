@@ -23,9 +23,9 @@ endif
 
 LIBPATH=${PWD}/../StarPU.jl/lib
 
-all: ${EXTERNLIB}
+all: task_insert_color
 
-mandelbrot: mandelbrot.c cpu_mandelbrot.o #gpu_mandelbrot.o
+task_insert_color: task_insert_color.o
 	$(CC) $(CPU_CFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
@@ -34,25 +34,18 @@ mandelbrot: mandelbrot.c cpu_mandelbrot.o #gpu_mandelbrot.o
 %.o: %.cu
 	$(NVCC) -dc $(CUDA_CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
 
-${EXTERNLIB}: cpu_mandelbrot.c
-	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
-
 ${GENERATEDLIB}: $(C_OBJECTS) $(CUDA_OBJECTS)
 	$(LD) -shared $(LDFLAGS) $^ -o $@
 
-.PHONY: clean
+PHONY: clean
 
 clean:
-	rm -f mandelbrot *.so *.o genc_*.c gencuda_*.cu *.dat
+	rm -f vector_scal *.so *.o genc_*.c gencuda_*.cu *.dat
 
 # Performance Tests
-cstarpu.dat: mandelbrot
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mandelbrot -0.800671 -0.158392 32 32 4096 4 > $@
+cstarpu.dat: task_insert_color
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./task_insert_color > $@
 julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl $@
-julia_native.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot_native.jl $@
-julia_calllib.dat: ${EXTERNLIB}
-	LD_LIBRARY_PATH+=${LIBPATH} JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl julia_calllib.dat
+	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia task_insert_colorl.jl
 
-test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
+test: cstarpu.dat julia_generatedc.dat

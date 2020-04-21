@@ -49,6 +49,8 @@ end
 
 export starpu_init
 export starpu_shutdown
+export starpu_memory_pin
+export starpu_memory_unpin
 export starpu_data_unregister
 export starpu_data_register
 export starpu_data_get_sub_data
@@ -185,6 +187,8 @@ end
 struct StarpuCodelet
     where_to_execute :: UInt32
 
+    color :: UInt32
+
     cpu_func :: String
     cuda_func :: String
     opencl_func :: String
@@ -201,7 +205,8 @@ struct StarpuCodelet
                            opencl_func :: String = "",
                            modes :: Vector{StarpuDataAccessMode} = StarpuDataAccessMode[],
                            perfmodel :: StarpuPerfmodel = StarpuPerfmodel(),
-                           where_to_execute :: Union{Cvoid, UInt32} = nothing
+                           where_to_execute :: Union{Cvoid, UInt32} = nothing,
+                           color :: UInt32 = 0x00000000
                            )
 
         if (length(modes) > STARPU_NMAXBUFS)
@@ -217,7 +222,7 @@ struct StarpuCodelet
             real_where = where_to_execute
         end
 
-        output = new(real_where, cpu_func, cuda_func, opencl_func,modes, perfmodel, real_c_codelet_ptr)
+        output = new(real_where, color, cpu_func, cuda_func, opencl_func,modes, perfmodel, real_c_codelet_ptr)
 
         starpu_c_codelet_update(output)
 
@@ -651,9 +656,23 @@ end
 
 STARPU_MAIN_RAM = 0 #TODO: ENUM
 
+function starpu_memory_pin(data) :: Nothing
+    data_pointer = pointer(data)
 
+    @starpucall(starpu_memory_pin,
+                Cvoid, (Ptr{Cvoid}, Csize_t),
+                data_pointer,
+                sizeof(data))
+end
 
+function starpu_memory_unpin(data) :: Nothing
+    data_pointer = pointer(data)
 
+    @starpucall(starpu_memory_unpin,
+                Cvoid, (Ptr{Cvoid}, Csize_t),
+                data_pointer,
+                sizeof(data))
+end
 
 function StarpuNewDataHandle(ptr :: StarpuDataHandlePointer, destr :: Function...) :: StarpuDataHandle
     return StarpuDestructible(ptr, destr...)
@@ -858,7 +877,7 @@ end
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
 """
-macro starpu_async_cl(expr,modes,cl_arg=[])
+macro starpu_async_cl(expr, modes, cl_arg=[], color ::UInt32=0x00000000)
 
     if (!isa(expr, Expr) || expr.head != :call)
         error("Invalid task submit syntax")
@@ -877,7 +896,8 @@ macro starpu_async_cl(expr,modes,cl_arg=[])
         #opencl_func="ocl_matrix_mult",
         ### TODO: CORRECT !
         modes = map((x -> starpu_modes(x)),modes.args),
-        perfmodel = perfmodel
+        perfmodel = perfmodel,
+        color = color
     )
     handles = Expr(:vect, expr.args[2:end]...)
     #dump(handles)
@@ -1214,6 +1234,8 @@ mutable struct StarpuCodeletTranslator
 
     where_to_execute :: UInt32
 
+    color :: UInt32
+
     cpu_func :: Ptr{Cvoid}
     cpu_func_name :: Cstring
 
@@ -1237,6 +1259,7 @@ mutable struct StarpuCodeletTranslator
         end
 
         output.where_to_execute = cl.where_to_execute
+        output.color = cl.color
 
         cpu_func_ptr = load_starpu_function_pointer(cl.cpu_func)
         cuda_func_ptr = load_starpu_function_pointer(cl.cuda_func)

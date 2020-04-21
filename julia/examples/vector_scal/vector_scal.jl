@@ -55,11 +55,18 @@ end
 function compute_times(io,start_dim, step_dim, stop_dim)
     for size in (start_dim : step_dim : stop_dim)
         V = Array(rand(Cfloat, size))
+        starpu_memory_pin(V)
+
         m :: Int32 = 10
         k :: Float32 = 2.
         l :: Float32 = 3.
+
         println("INPUT ", V[1:10])
+
         mt =  vector_scal_with_starpu(V, m, k, l)
+
+        starpu_memory_unpin(V)
+
         println("OUTPUT ", V[1:10])
         println(io,"$size $mt")
         println("$size $mt")
