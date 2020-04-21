@@ -18,18 +18,16 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NX_MAX (512 * 1024 * 1024) // kB
 #define NX_MIN 0
+
 #ifdef STARPU_QUICK_CHECK
-#define MULT_DEFAULT 4
+	#define MULT_DEFAULT 4
+	#define LOOPS_DEFAULT 100
+	#define NX_MAX (64 * 1024 * 1024) // kB
 #else
-#define MULT_DEFAULT 2
-#endif
-#define INCR_DEFAULT 0
-#ifdef STARPU_QUICK_CHECK
-#define LOOPS_DEFAULT 100
-#else
-#define LOOPS_DEFAULT 100000
+	#define MULT_DEFAULT 2
+	#define LOOPS_DEFAULT 100000
+	#define NX_MAX (512 * 1024 * 1024) // kB
 #endif
 
 int comp_double(const void*_a, const void*_b);

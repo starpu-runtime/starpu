@@ -92,6 +92,30 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 }
 
 static
+void _starpu_mpi_backend_check()
+{
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_init != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_shutdown != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_reserve_core != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_init != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_fill != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_destroy != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_data_clear != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_data_register != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_comm_register != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_progress_init != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_progress_shutdown != NULL);
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_wait_for_initialization != NULL);
+#endif
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_barrier != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_wait_for_all != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_wait != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_test != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_isend_size_func != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_irecv_size_func != NULL);
+}
+static
 int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
 	struct _starpu_mpi_argc_argv *argc_argv;
@@ -102,13 +126,15 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	argc_argv->comm = comm;
 	_starpu_implicit_data_deps_write_hook(_starpu_mpi_data_flush);
 
+	_starpu_mpi_backend_check();
+
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
 	 * before working with mutexes etc. */
 	_starpu_mpi_do_initialize(argc_argv);
 #endif
 
-	return _starpu_mpi_progress_init(argc_argv);
+	return _mpi_backend._starpu_mpi_backend_progress_init(argc_argv);
 }
 
 #ifdef STARPU_SIMGRID
@@ -127,7 +153,7 @@ int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 	(void)argv;
 	(void)initialize_mpi;
 	(void)comm;
-	_starpu_mpi_wait_for_initialization();
+	_mpi_backend._starpu_mpi_backend_wait_for_initialization();
 	return 0;
 #else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi, comm);
@@ -207,7 +233,7 @@ int starpu_mpi_shutdown(void)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
-	_starpu_mpi_progress_shutdown(&value);
+	_mpi_backend._starpu_mpi_backend_progress_shutdown(&value);
 
 #ifdef STARPU_USE_FXT
 	if (starpu_fxt_is_enabled())

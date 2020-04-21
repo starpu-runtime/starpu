@@ -70,7 +70,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 	enum starpu_data_access_mode mode = STARPU_R;
 #endif
 
-	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, sequential_consistency, 0, 0);
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, dest, data_tag, comm, detached, sync, prio, callback, arg, SEND_REQ, _mpi_backend._starpu_mpi_backend_isend_size_func, sequential_consistency, 0, 0);
 	_starpu_mpi_req_willpost(req);
 
 	if (_starpu_mpi_use_coop_sends && detached == 1 && sync == 0 && callback == NULL)
@@ -183,7 +183,7 @@ struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handl
 		return NULL;
 	}
 
-	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _starpu_mpi_irecv_size_func, sequential_consistency, is_internal_req, count);
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _mpi_backend._starpu_mpi_backend_irecv_size_func, sequential_consistency, is_internal_req, count);
 	_starpu_mpi_req_willpost(req);
 	_starpu_mpi_isend_irecv_common(req, STARPU_W, sequential_consistency);
 	return req;
@@ -240,17 +240,17 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
-	return _starpu_mpi_wait(public_req, status);
+	return _mpi_backend._starpu_mpi_backend_wait(public_req, status);
 }
 
 int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
-	return _starpu_mpi_test(public_req, flag, status);
+	return _mpi_backend._starpu_mpi_backend_test(public_req, flag, status);
 }
 
 int starpu_mpi_barrier(MPI_Comm comm)
 {
-	return _starpu_mpi_barrier(comm);
+	return _mpi_backend._starpu_mpi_backend_barrier(comm);
 }
 
 void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
@@ -437,7 +437,5 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 int starpu_mpi_wait_for_all(MPI_Comm comm)
 {
-	starpu_task_wait_for_all();
-	starpu_mpi_barrier(comm);
-	return 0;
+	return _mpi_backend._starpu_mpi_backend_wait_for_all(comm);
 }

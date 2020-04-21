@@ -30,15 +30,10 @@ macro starpucall(func, ret_type, arg_types, args...)
     return Expr(:call, :ccall, (func, starpu_task_library_name), esc(ret_type), esc(arg_types), map(esc, args)...)
 end
 
-export @debugprint
-macro debugprint(x...)
-    quote
-        println("\x1b[32m", $x..., "\x1b[0m")
-        flush(stdout)
-    end
+function debug_print(x...)
+    println("\x1b[32m", x..., "\x1b[0m")
+    flush(stdout)
 end
-
-
 
 function Cstring_from_String(str :: String)
     return Cstring(pointer(str))
@@ -473,7 +468,7 @@ mutable struct StarpuTask
     handles :: Vector{StarpuDataHandle}
     handle_pointers :: Vector{StarpuDataHandlePointer}
     synchronous :: Bool
-    cl_arg :: Union{Ref, Cvoid}
+    cl_arg # type depends on codelet
 
     c_task :: Ptr{Cvoid}
 
@@ -483,7 +478,7 @@ mutable struct StarpuTask
 
         Creates a new task which will run the specified codelet on handle buffers and cl_args data
     """
-    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg :: Union{Ref, Cvoid} = nothing)
+    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = [])
 
         if (cl == nothing)
             error("\"cl\" field can't be empty when creating a StarpuTask")
@@ -493,7 +488,29 @@ mutable struct StarpuTask
 
         output.cl = cl
         output.handles = handles
-        output.cl_arg = cl_arg
+
+        # handle scalar_parameters
+        codelet_name = cl.cpu_func
+        if isempty(codelet_name)
+            codelet_name = cl.cuda_func
+        end
+        if isempty(codelet_name)
+            codelet_name = cl.opencl_func
+        end
+        if isempty(codelet_name)
+            error("No function provided with codelet.")
+        end
+        scalar_parameters = get(CODELETS_SCALARS, codelet_name, nothing)
+        if scalar_parameters != nothing
+            nb_scalar_required = length(scalar_parameters)
+            nb_scalar_provided = length(cl_arg)
+            if (nb_scalar_provided != nb_scalar_required)
+                error("$nb_scalar_provided scalar parameters provided but $nb_scalar_required are required by $codelet_name.")
+            end
+            output.cl_arg = create_param_struct_from_clarg(codelet_name, cl_arg)
+        else
+            output.cl_arg = nothing
+        end
 
         output.synchronous = false
         output.handle_pointers = StarpuDataHandlePointer[]
@@ -511,6 +528,28 @@ mutable struct StarpuTask
         return output
     end
 
+end
+
+function create_param_struct_from_clarg(name, cl_arg)
+    struct_params_name = CODELETS_PARAMS_STRUCT[name]
+
+    if struct_params_name == false
+        error("structure name not found in CODELET_PARAMS_STRUCT")
+    end
+
+    nb_scalar_provided = length(cl_arg)
+    create_struct_param_str = "output = $struct_params_name("
+    for i in 1:nb_scalar_provided-1
+        arg = cl_arg[i]
+        create_struct_param_str *= "$arg, "
+        end
+    if (nb_scalar_provided > 0)
+        arg = cl_arg[nb_scalar_provided]
+        create_struct_param_str *= "$arg"
+    end
+    create_struct_param_str *= ")"
+    eval(Meta.parse(create_struct_param_str))
+    return output
 end
 
 """
@@ -539,8 +578,8 @@ mutable struct StarpuTaskTranslator
             output.cl_arg = C_NULL
             output.cl_arg_size = 0
         else
-            output.cl_arg = pointer_from_objref(task.cl_arg) #TODO : Libc.malloc and cl_arg_free set to 1 ? but it should be done only when submitting
-            output.cl_arg_size = sizeof(eltype(task.cl_arg))
+            output.cl_arg = pointer_from_objref(task.cl_arg)
+            output.cl_arg_size = sizeof(task.cl_arg)
         end
 
         return output
@@ -575,9 +614,11 @@ end
     cpu and gpu function names
 """
 function starpu_init()
+    debug_print("starpu_init")
+
     if (get(ENV,"JULIA_TASK_LIB",0)!=0)
         global starpu_tasks_library_handle= Libdl.dlopen(ENV["JULIA_TASK_LIB"])
-        @debugprint "Loading external codelet library"
+        debug_print("Loading external codelet library")
         ff = Libdl.dlsym(starpu_tasks_library_handle,:starpu_find_function)
         dump(ff)
         for k in keys(CUDA_CODELETS)
@@ -585,7 +626,7 @@ function starpu_init()
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else
-        @debugprint "generating codelet library"
+        debug_print("generating codelet library")
         run(`make generated_tasks.so`);
         global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks.so")
     end
@@ -600,6 +641,8 @@ end
     Must be called at the end of the program
 """
 function starpu_shutdown()
+    debug_print("starpu_shutdown")
+
     starpu_exit_block()
     @starpucall starpu_shutdown Cvoid ()
     jlstarpu_free_allocated_structures()
@@ -815,7 +858,7 @@ end
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
 """
-macro starpu_async_cl(expr,modes)
+macro starpu_async_cl(expr,modes,cl_arg=[])
 
     if (!isa(expr, Expr) || expr.head != :call)
         error("Invalid task submit syntax")
@@ -830,7 +873,7 @@ macro starpu_async_cl(expr,modes)
     println(CPU_CODELETS[string(expr.args[1])])
     cl = StarpuCodelet(
         cpu_func = CPU_CODELETS[string(expr.args[1])],
-        #cuda_func = "matrix_mult",
+        # cuda_func = CUDA_CODELETS[string(expr.args[1])],
         #opencl_func="ocl_matrix_mult",
         ### TODO: CORRECT !
         modes = map((x -> starpu_modes(x)),modes.args),
@@ -839,7 +882,7 @@ macro starpu_async_cl(expr,modes)
     handles = Expr(:vect, expr.args[2:end]...)
     #dump(handles)
     quote
-        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)))
+        task = StarpuTask(cl = $(esc(cl)), handles = $(esc(handles)), cl_arg=$(esc(cl_arg)))
         starpu_task_submit(task)
     end
 end

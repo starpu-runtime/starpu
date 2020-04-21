@@ -33,7 +33,7 @@ int comp_double(const void*_a, const void*_b)
 
 uint64_t bench_next_size(uint64_t len)
 {
-	uint64_t next = len * MULT_DEFAULT + INCR_DEFAULT;
+	uint64_t next = len * MULT_DEFAULT;
 
 	if(next <= len)
 		next++;

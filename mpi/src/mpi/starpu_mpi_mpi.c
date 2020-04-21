@@ -96,7 +96,7 @@ starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static starpu_pthread_mutex_t mutex_ready_requests;
-static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_running = 0;
+static int posted_requests = 0, ready_requests = 0, newer_requests, mpi_wait_for_all_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
 #define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
@@ -761,33 +761,6 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
 	struct _starpu_mpi_req *barrier_req;
-	int ret = posted_requests+ready_requests;
-
-	_STARPU_MPI_LOG_IN();
-
-	/* First wait for *both* all tasks and MPI requests to finish, in case
-	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
-	 */
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-	STARPU_MPI_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
-	barrier_running = 1;
-	do
-	{
-		while (posted_requests || ready_requests)
-			/* Wait for all current MPI requests to finish */
-			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
-		/* No current request, clear flag */
-		newer_requests = 0;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-		/* Now wait for all tasks */
-		starpu_task_wait_for_all();
-		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-		/* Check newer_requests again, in case some MPI requests
-		 * triggered by tasks completed and triggered tasks between
-		 * wait_for_all finished and we take the lock */
-	} while (posted_requests || ready_requests || newer_requests);
-	barrier_running = 0;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	/* Initialize the request structure */
 	_starpu_mpi_request_init(&barrier_req);
@@ -808,7 +781,38 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	_starpu_mpi_request_destroy(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 
-	return ret;
+	return 0;
+}
+
+int _starpu_mpi_wait_for_all(MPI_Comm comm)
+{
+	(void) comm;
+	_STARPU_MPI_LOG_IN();
+
+	/* First wait for *both* all tasks and MPI requests to finish, in case
+	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
+	 */
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_MPI_ASSERT_MSG(!mpi_wait_for_all_running, "Concurrent starpu_mpi_wait_for_all is not implemented, even on different communicators");
+	mpi_wait_for_all_running = 1;
+	do
+	{
+		while (posted_requests || ready_requests)
+			/* Wait for all current MPI requests to finish */
+			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
+		/* No current request, clear flag */
+		newer_requests = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+		/* Now wait for all tasks */
+		starpu_task_wait_for_all();
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+		/* Check newer_requests again, in case some MPI requests
+		 * triggered by tasks completed and triggered tasks between
+		 * wait_for_all finished and we take the lock */
+	} while (posted_requests || ready_requests || newer_requests);
+	mpi_wait_for_all_running = 0;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	return 0;
 }
 
 /********************************************************/
@@ -1269,7 +1273,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
-			if (barrier_running)
+			if (mpi_wait_for_all_running)
 				/* Tell mpi_barrier */
 				STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
 			STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);

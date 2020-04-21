@@ -323,11 +323,26 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICC=mpicc
 fi
-AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<path to mpicc>], [Path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
-AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH])
+AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<mpicc name or path to mpicc>], [Name or path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
+case $DEFAULT_MPICC in
+	/*) mpicc_path="$DEFAULT_MPICC" ;;
+	*)  AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH]) ;;
+esac
+# We test if the MPICC compiler exists
+if test ! -x $mpicc_path; then
+    AC_MSG_RESULT(The mpicc compiler '$mpicc_path' does not have the execute permission)
+    mpicc_path=no
+fi
+
 AC_MSG_CHECKING(whether mpicc is available)
 AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
+
+if test x$mpicc_path != xno ; then
+    MPIPATH=$(dirname $mpicc_path):$PATH
+else
+    MPIPATH=$PATH
+fi
 
 #Check MPICXX/MPIC++
 if test x$enable_simgrid = xyes ; then
@@ -335,13 +350,16 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICXX=mpicxx
 fi
-AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<path to mpicxx>], [Path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
-AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<mpicxx name or path to mpicxx>], [Name or path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
+case $DEFAULT_MPICXX in
+	/*) mpicxx_path="$DEFAULT_MPICXX" ;;
+	*)  AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$MPIPATH]) ;;
+esac
 
 # try with mpic++ if mpicxx was not found
 if test x$mpicxx_path = xno ; then
     DEFAULT_MPICXX=mpic++
-    AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$simgrid_dir/bin:$PATH])
+    AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$MPIPATH])
 fi
 
 # We test if the MPICXX/MPIC++ compiler exists
@@ -490,17 +508,16 @@ if test x$enable_mpi = xyes -a x$running_mpi_check = xyes ; then
     # Check if mpiexec is available
     if test x$enable_simgrid = xyes ; then
 	DEFAULT_MPIEXEC=smpirun
-        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<path to smpirun>]], [Path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
-	AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$simgrid_dir/bin:$PATH])
+        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
     else
 	DEFAULT_MPIEXEC=mpiexec
-	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<path to mpiexec>], [Path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
-	if test x$mpicc_path = x ; then
-	    AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$PATH])
-	else
-	    AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$(dirname $mpicc_path):$PATH])
-	fi
+	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
     fi
+
+    case $DEFAULT_MPIEXEC in
+	/*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
+	*)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
+    esac
     AC_MSG_CHECKING(whether mpiexec is available)
     AC_MSG_RESULT($mpiexec_path)
 
@@ -2193,9 +2210,9 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-AC_MSG_CHECKING(maximum number of nodes to use)
+AC_MSG_CHECKING(maximum number of memory nodes to use per MPI rank)
 AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
-			[maximum number of nodes])],
+			[maximum number of memory nodes per MPI rank])],
 			maxnodes=$enableval, maxnodes=0)
 
 if test x$maxnodes = x0 ; then
@@ -2467,16 +2484,19 @@ enable_build_fortran=no
 if test "x$enable_build_fortran_requested" = "xyes" ; then
    if test "x$FC" != "x"; then
    	if $FC --version|grep -q 'GNU Fortran'; then
-		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-     	         #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
-                 int dummy;
-                 #else
-                 #error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
-                 #endif
-                 ]],
+		 AC_LANG_PUSH([Fortran])
+		 OLD_FCFLAGS="$FCFLAGS"
+		 FCFLAGS="$FCFLAGS -cpp"
+		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
+#endif
+]]
                  )],
                  [enable_build_fortran="yes"],
                  [enable_build_fortran="no"])
+		 FCFLAGS="$OLD_FCFLAGS"
+		 AC_LANG_POP([Fortran])
                  if test "$enable_build_fortran" = "no" ; then
                    AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
                  fi
@@ -2519,8 +2539,10 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 					      else
 						      DEFAULT_MPIFORT=mpif90
 					      fi
-					      # nothing was specified: default value is used
-					      AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$(dirname $mpicc_path):$simgrid_dir/bin:$PATH])
+					      case $DEFAULT_MPIFORT in
+					      	/*) mpifort_path="$DEFAULT_MPIFORT" ;;
+					        *)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$MPIPATH])
+					      esac
 					      ])
 
 			# We test if the MPIFORT compiler exists
@@ -3074,10 +3096,15 @@ AC_ARG_WITH([hwloc],
 				if test ! -d "$withval" ; then
 				   AC_MSG_ERROR("Directory specified for hwloc <$withval> does not exist")
 				fi
-				if test ! -d "$withval/lib/pkgconfig" ; then
-				   AC_MSG_ERROR("Hwloc directory <$withval> does not have a subdirectory lib/pkgconfig")
+				if test -d "$withval/lib64/pkgconfig" ; then
+				   export PKG_CONFIG_PATH=$withval/lib64/pkgconfig:$PKG_CONFIG_PATH
+			        else
+				   if test -d "$withval/lib/pkgconfig" ; then
+				      export PKG_CONFIG_PATH=$withval/lib/pkgconfig:$PKG_CONFIG_PATH
+				   else
+				      AC_MSG_ERROR("Hwloc directory <$withval> does not have a subdirectory lib/pkgconfig or lib64/pkgconfig")
+				   fi
 				fi
-				export PKG_CONFIG_PATH=$withval/lib/pkgconfig:$PKG_CONFIG_PATH
 				use_hwloc=yes
 			fi
 		else

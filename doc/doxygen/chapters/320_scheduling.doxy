@@ -39,33 +39,33 @@ STARPU_SCHED. For instance <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
 get the list of available schedulers.
 
 
-<b>Non Performance Modelling Policies:</b>
+\subsection NonPerformanceModelingPolicies Non Performance Modelling Policies
 
-The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
+- The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
 to work on concurrently. This however does not permit to prefetch data since the scheduling
 decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
 
-The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
+- The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
 overall performance.
 
-The <b>ws</b> (work stealing) scheduler uses a queue per worker, and schedules
+- The <b>ws</b> (work stealing) scheduler uses a queue per worker, and schedules
 a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from the most loaded
 worker.
 
-The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
+- The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
 a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from neighbour workers. It
 also takes into account priorities.
 
-The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
+- The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
 priority specified by the programmer (between -5 and 5).
 
-The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
+- The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
 This scheduler must be configured to work correclty and to expect high-performance
 as described in the corresponding section.
 
-\section DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
+\subsection DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
 
 If (<b>and only if</b>) your application <b>codelets have performance models</b> (\ref
 PerformanceModelExample), you should change the scheduler thanks to the
@@ -87,47 +87,84 @@ family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
 have performance models enabled.
 
-<b>Performance Modelling Policies:</b>
-
-The <b>dm</b> (deque model) scheduler takes task execution performance models into account to
+- The <b>dm</b> (deque model) scheduler takes task execution performance models into account to
 perform a HEFT-similar scheduling strategy: it schedules tasks where their
 termination time will be minimal. The difference with HEFT is that <b>dm</b>
 schedules tasks as soon as they become available, and thus in the order they
 become available, without taking priorities into account.
 
-The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
+- The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
 into account data transfer time.
 
-The <b>dmdap</b> (deque model data aware prio) scheduler is similar to dmda,
+- The <b>dmdap</b> (deque model data aware prio) scheduler is similar to dmda,
 except that it sorts tasks by priority order, which allows to become even closer
 to HEFT by respecting priorities after having made the scheduling decision (but
 it still schedules tasks in the order they become available).
 
-The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
+- The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
 but it also privileges tasks whose data buffers are already available
 on the target device.
 
-The <b>dmdas</b> combines dmdap and dmdas: it sorts tasks by priority order,
+- The <b>dmdas</b> combines dmdap and dmdas: it sorts tasks by priority order,
 but for a given priority it will privilege tasks whose data buffers are already
 available on the target device.
 
-The <b>dmdasd</b> (deque model data aware sorted decision) scheduler is similar
+- The <b>dmdasd</b> (deque model data aware sorted decision) scheduler is similar
 to dmdas, except that when scheduling a task, it takes into account its priority
 when computing the minimum completion time, since this task may get executed
 before others, and thus the latter should be ignored.
 
-The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
+- The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
 alias for <b>dmda</b>.
 
-The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
+- The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
 parallel tasks (still experimental). Should not be used when several contexts using
 it are being executed simultaneously.
 
-The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
+- The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
 supports parallel tasks (still experimental). Should not be used when several 
 contexts using it are being executed simultaneously.
 
-TODO: describe modular schedulers
+\subsection ExistingModularizedSchedulers Modularized Schedulers
+
+StarPU provides a powerful way to implement schedulers, as documented in \ref
+DefiningANewModularSchedulingPolicy . It is currently shipped with the following
+pre-defined Modularized Schedulers :
+
+
+- <b>modular-eager</b> , <b>modular-eager-prefetching</b> are eager-based Schedulers (without and with prefetching)), they are \n
+naive schedulers, which try to map a task on the first available resource
+they find. The prefetching variant queues several tasks in advance to be able to
+do data prefetching. This may however degrade load balancing a bit.
+
+- <b>modular-prio</b>, <b>modular-prio-prefetching</b>, <b>modular-eager-prio</b> are prio-based Schedulers (without / with prefetching):,
+similar to Eager-Based Schedulers. Can handle tasks which have a defined
+priority and schedule them accordingly.
+The <b>modular-eager-prio</b> variant integrates the eager and priority queue in a
+single component. This allows it to do a better job at pushing tasks.
+
+- <b>modular-random</b>, <b>modular-random-prio</b>, <b>modular-random-prefetching</b>, <b>modular-random-prio-prefetching</b> are random-based Schedulers (without/with prefetching) : \n
+Select randomly a resource to be mapped on for each task.
+
+- <b>modular-ws</b>) implements Work Stealing:
+Maps tasks to workers in round robin, but allows workers to steal work from other workers.
+
+- <b>modular-heft</b>, <b>modular-heft2</b>, and <b>modular-heft-prio</b> are
+HEFT Schedulers : \n
+Maps tasks to workers using a heuristic very close to
+Heterogeneous Earliest Finish Time.
+It needs that every task submitted to StarPU have a
+defined performance model (\ref PerformanceModelCalibration)
+to work efficiently, but can handle tasks without a performance
+model. <b>modular-heft</b> just takes tasks by priority order. <b>modular-heft2</b> takes
+at most 5 tasks of the same priority and checks which one fits best.
+<b>modular-heft-prio</b> is similar to <b>modular-heft</b>, but only decides the memory
+node, not the exact worker, just pushing tasks to one central queue per memory
+node.
+
+- <b>modular-heteroprio</b> is a Heteroprio Scheduler: \n
+Maps tasks to worker similarly to HEFT, but first attribute accelerated tasks to
+GPUs, then not-so-accelerated tasks to CPUs.
 
 \section TaskDistributionVsDataTransfer Task Distribution Vs Data Transfer
 
@@ -197,51 +234,6 @@ the estimated consumption of the task in Joules. Such a function can for instanc
 use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
 get Joules.
-
-\section ExistingModularizedSchedulers Modularized Schedulers
-
-StarPU provides a powerful way to implement schedulers, as documented in \ref
-DefiningANewModularSchedulingPolicy . It is currently shipped with the following
-pre-defined Modularized Schedulers :
-
-- Eager-based Schedulers (with/without prefetching : \c modular-eager ,
-\c modular-eager-prefetching) : \n
-Naive scheduler, which tries to map a task on the first available resource
-it finds. The prefecthing variant queues several tasks in advance to be able to
-do data prefetching. This may however degrade load balancing a bit.
-
-- Prio-based Schedulers (with/without prefetching :
-\c modular-prio, \c modular-prio-prefetching , \c modular-eager-prio) : \n
-Similar to Eager-Based Schedulers. Can handle tasks which have a defined
-priority and schedule them accordingly.
-The \c modular-eager-prio variant integrates the eager and priority queue in a
-single component. This allows it to do a better job at pushing tasks.
-
-- Random-based Schedulers (with/without prefetching: \c modular-random,
-\c modular-random-prio, \c modular-random-prefetching, \c
-modular-random-prio-prefetching) : \n
-Selects randomly a resource to be mapped on for each task.
-
-- Work Stealing (\c modular-ws) : \n
-Maps tasks to workers in round robin, but allows workers to steal work from other workers.
-
-- HEFT Scheduler : \n
-Maps tasks to workers using a heuristic very close to
-Heterogeneous Earliest Finish Time.
-It needs that every task submitted to StarPU have a
-defined performance model (\ref PerformanceModelCalibration)
-to work efficiently, but can handle tasks without a performance
-model. \c modular-heft just takes tasks by priority order. \c modular-heft takes
-at most 5 tasks of the same priority and checks which one fits best. \c
-modular-heft-prio is similar to \c modular-heft, but only decides the memory
-node, not the exact worker, just pushing tasks to one central queue per memory
-node.
-
-- Heteroprio Scheduler: \n
-Maps tasks to worker similarly to HEFT, but first attribute accelerated tasks to
-GPUs, then not-so-accelerated tasks to CPUs.
-
-To use one of these schedulers, one can set the environment variable \ref STARPU_SCHED.
 
 \section StaticScheduling Static Scheduling
 

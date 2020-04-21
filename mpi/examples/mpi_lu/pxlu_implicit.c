@@ -57,7 +57,7 @@ static void create_task_11(unsigned k)
 static void create_task_12(unsigned k, unsigned j)
 {
 #ifdef STARPU_DEVEL
-#warning temporary fix 
+#warning temporary fix
 #endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl12),
@@ -79,7 +79,7 @@ static void create_task_12(unsigned k, unsigned j)
 static void create_task_21(unsigned k, unsigned i)
 {
 #ifdef STARPU_DEVEL
-#warning temporary fix 
+#warning temporary fix
 #endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
 			       //&STARPU_PLU(cl21),
@@ -114,13 +114,14 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 }
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  */
 
 double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsigned _no_prio)
 {
 	double start;
 	double end;
+	int ret;
 
 	nblocks = _nblocks;
 	rank = _rank;
@@ -130,7 +131,10 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-	starpu_mpi_barrier(MPI_COMM_WORLD);
+	ret = starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+	ret = starpu_mpi_barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	start = starpu_timing_now();
 
@@ -170,15 +174,16 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 		starpu_iteration_pop();
 	}
 
-	starpu_task_wait_for_all();
-
-	starpu_mpi_barrier(MPI_COMM_WORLD);
+	ret = starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+	ret = starpu_mpi_barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	end = starpu_timing_now();
 
 	double timing = end - start;
-	
+
 //	fprintf(stderr, "RANK %d -> took %f ms\n", rank, timing/1000);
-	
+
 	return timing;
 }
