@@ -26,7 +26,7 @@ LIBPATH=${PWD}/../StarPU.jl/lib
 all: ${EXTERNLIB}
 
 mandelbrot: mandelbrot.c cpu_mandelbrot.o #gpu_mandelbrot.o
-	$(CC) $(CPU_CFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CC) $(CPU_CFLAGS) $^ -o $@ $(LDFLAGS) -lm
 
 %.o: %.c
 	$(CC) -c -fPIC $(CPU_CFLAGS) $^ -o $@
