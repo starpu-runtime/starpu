@@ -30,14 +30,6 @@ macro starpucall(func, ret_type, arg_types, args...)
     return Expr(:call, :ccall, (func, starpu_task_library_name), esc(ret_type), esc(arg_types), map(esc, args)...)
 end
 
-export @debugprint
-macro debugprint(x...)
-    quote
-        println("\x1b[32m", $x..., "\x1b[0m")
-        flush(stdout)
-    end
-end
-
 function debug_print(x...)
     println("\x1b[32m", x..., "\x1b[0m")
     flush(stdout)
