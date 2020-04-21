@@ -172,6 +172,13 @@ function substitute_args(expr :: StarpuExprFunction)
             push!(function_start_affectations, post_affect)
             new_body = substitute_argument_usage(new_body, buffer_id, buffer_arg_name, expr.args[i].name, var_name)
             buffer_id += 1
+        elseif (expr.args[i].typ <: Ref)
+            func_interface = :STARPU_VARIABLE_GET_PTR
+            type_in_arg = eltype(expr.args[i].typ)
+            new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$buffer_id])) )
+            push!(function_start_affectations, new_affect)
+            new_body = substitute_argument_usage(new_body, buffer_id, buffer_arg_name, expr.args[i].name, Symbol("(*$var_name)"))
+            buffer_id += 1
         elseif (expr.args[i].typ <: Number || expr.args[i].typ <: AbstractChar)
             type_in_arg = eltype(expr.args[i].typ)
             field_name = scalar_parameters[scalar_id][1]
@@ -182,7 +189,7 @@ function substitute_args(expr :: StarpuExprFunction)
             push!(function_start_affectations, post_affect)
             scalar_id += 1
         else
-            error("Task arguments must be either vector or matrix or scalr (got $(expr.args[i].typ))")
+            error("Task arguments must be either matrix, vector, ref or scalar (got $(expr.args[i].typ))")
         end
 
 
