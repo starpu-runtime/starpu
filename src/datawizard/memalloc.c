@@ -1432,6 +1432,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	starpu_ssize_t data_size = _starpu_data_get_alloc_size(handle);
 	int told_reclaiming = 0;
 	int reused = 0;
+	static int prefetch_out_of_memory[STARPU_MAXNODES];
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
@@ -1441,14 +1442,17 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-       _STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
+	if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+		_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-               _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
+		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+			_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
 		return data_size;
 	}
-       _STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
+	if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+		_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
 #endif
 	STARPU_ASSERT(handle->ops);
 	STARPU_ASSERT(handle->ops->allocate_data_on_node);
@@ -1469,7 +1473,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-               _STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
+		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+			_STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
@@ -1483,7 +1488,10 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 #endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
-               _STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
+		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+			_STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
+
+		prefetch_out_of_memory[dst_node] = 0;
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1509,8 +1517,13 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 
 			if (is_prefetch)
+			{
 				/* It's just prefetch, don't bother existing allocations */
+				/* And don't bother tracing allocation attempts */
+				prefetch_out_of_memory[dst_node] = 1;
+				/* TODO: ideally we should not even try to allocate when we know we have not freed anything */
 				continue;
+			}
 
 			if (!told_reclaiming)
 			{
