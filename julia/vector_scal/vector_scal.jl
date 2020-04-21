@@ -13,7 +13,6 @@ using LinearAlgebra
 end
 
 
-@debugprint "starpu_init"
 starpu_init()
 
 function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32, l :: Float32)
@@ -71,6 +70,6 @@ end
 io=open(ARGS[1],"w")
 compute_times(io,1024,1024,4096)
 close(io)
-@debugprint "starpu_shutdown"
+
 starpu_shutdown()
 
