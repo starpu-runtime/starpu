@@ -21,7 +21,7 @@ CLIMIT=$(ulimit -c)
 if [ "$CLIMIT" = unlimited ]
 then
 	# valgrind cores are often *huge*, 100MB will already be quite big...
-	ulimit -c 100000000
+	ulimit -c 100000
 fi
 
 if test "$EXEC" == "valgrind"
