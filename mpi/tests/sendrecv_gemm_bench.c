@@ -287,14 +287,15 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-spmd] [-comm_thread_cpuid cpuid]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-spmd] [-comm-thread-cpuid cpuid]\n", argv[0]);
 			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks\n", matrix_dim, nslices);
-			fprintf(stderr, "Use -comm_thread_cpuid to specifiy where to bind the comm benchmarking thread\n");
+			fprintf(stderr, "Use -comm-thread-cpuid to specifiy where to bind the comm benchmarking thread\n");
 			exit(EXIT_SUCCESS);
 		}
+
 		else
 		{
-			fprintf(stderr,"Unrecognized option %s", argv[i]);
+			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
 			exit(EXIT_FAILURE);
 		}
 	}

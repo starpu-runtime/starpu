@@ -422,6 +422,10 @@ end
 function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
 
     print_newline(io, indent)
+    print(io, "{")
+    indent += starpu_indent_size
+    print_newline(io, indent)
+
     print(io, StarpuExprBlock(x.set_declarations), indent = indent)
 
     id = x.set.id
@@ -449,12 +453,20 @@ function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
 
     print_newline(io, indent)
     print(io, "{")
-    print_newline(io, indent + starpu_indent_size)
-    print(io, x.body, indent = indent + starpu_indent_size)
+    indent += starpu_indent_size
+
+    print_newline(io, indent)
+    print(io, x.body, indent = indent)
+
+    indent -= starpu_indent_size
     print_newline(io, indent)
     print(io, "}")
-    print_newline(io, indent)
 
+    indent -= starpu_indent_size
+    print_newline(io, indent)
+    print(io, "}")
+
+    print_newline(io, indent)
 end
 
 
