@@ -51,7 +51,10 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
+#endif
+
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #ifdef STARPU_MPI_VERBOSE
@@ -1532,9 +1535,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	int ret;
@@ -1563,8 +1566,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-#endif
 }
+#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
