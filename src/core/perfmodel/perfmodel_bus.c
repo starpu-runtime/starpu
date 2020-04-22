@@ -80,8 +80,8 @@ struct dev_timing
 };
 
 /* TODO: measure latency */
-static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
-static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES]; /* MB/s */
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES]; /* µs */
 static unsigned was_benchmarked = 0;
 #ifndef STARPU_SIMGRID
 static unsigned ncpus = 0;
@@ -1542,6 +1542,20 @@ static int load_bus_bandwidth_file_content(void)
 				_STARPU_DISP("bogus character '%c' (%d) in bandwidth file %s\n", n, n, path);
 				fclose(f);
 				return 0;
+			}
+
+			int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
+			if (limit_bandwidth >= 0)
+			{
+#ifndef STARPU_SIMGRID
+				_STARPU_DISP("Warning: STARPU_LIMIT_BANDWIDTH set to %d but simgrid not enabled, thus ignored\n", limit_bandwidth);
+#else
+#ifdef HAVE_SG_LINK_BANDWIDTH_SET
+				bandwidth = limit_bandwidth;
+#else
+				_STARPU_DISP("Warning: STARPU_LIMIT_BANDWIDTH set to %d but this requires simgrid 3.26\n", limit_bandwidth);
+#endif
+#endif
 			}
 
 			bandwidth_matrix[src][dst] = bandwidth;

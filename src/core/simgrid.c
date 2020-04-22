@@ -332,6 +332,19 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #else
 	MSG_create_environment(path);
 #endif
+	int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
+	if (limit_bandwidth >= 0)
+	{
+#ifdef HAVE_SG_LINK_BANDWIDTH_SET
+		sg_link_t *links = sg_link_list();
+		int count = sg_link_count(), i;
+		for (i = 0; i < count; i++) {
+			sg_link_bandwidth_set(links[i], limit_bandwidth * 1000000.);
+		}
+#else
+		_STARPU_DISP("Warning: STARPU_LIMIT_BANDWIDTH set to %d but this requires simgrid 3.26, thus ignored\n", limit_bandwidth);
+#endif
+	}
 
 	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
