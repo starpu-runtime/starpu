@@ -1176,6 +1176,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	starpu_pthread_setname("MPI");
 
+	_starpu_mpi_env_init();
+
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
@@ -1190,11 +1192,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
-#endif
-
-	_starpu_mpi_env_init();
-
-#ifdef STARPU_SIMGRID
+#else
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
 	char **argv_cpy;
 	_STARPU_MPI_MALLOC(argv_cpy, *(argc_argv->argc) * sizeof(char*));
