@@ -28,9 +28,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: ${EXTERNLIB}
 
 mult: mult.c cpu_mult.o #gpu_mult.o
@@ -53,6 +50,7 @@ ${GENERATEDLIB}: $(C_OBJECTS) $(CUDA_OBJECTS)
 clean:
 	rm -f mult *.so *.o genc_*.c gencuda_*.cu *.dat
 
+tjulia: julia_generatedc.dat
 # Performance Tests
 cstarpu.dat: mult
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mult > $@

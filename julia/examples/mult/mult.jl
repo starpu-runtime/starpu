@@ -137,6 +137,9 @@ function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
 end
 
 
+if size(ARGS, 1) == 0
+    error("Argument missing")
+end
 io=open(ARGS[1],"w")
 compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
 close(io)

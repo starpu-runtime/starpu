@@ -1,0 +1,12 @@
+#!@REALBASH@
+
+dirfile=@STARPU_SRC_DIR@/julia/examples/mult/
+srcfile=mult.jl
+if test ! -f $dirfile/$srcfile
+then
+    echo "Error. File $dirfile/$srcfile not found"
+    exit 1
+fi
+cd $dirfile/
+@JULIA@ $srcfile julia_generatedc.dat
+

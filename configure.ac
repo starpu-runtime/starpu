@@ -59,6 +59,9 @@ AC_SUBST([LIBSTARPURM_INTERFACE_AGE])
 AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
 AC_SUBST([LIBSOCL_INTERFACE_REVISION])
 AC_SUBST([LIBSOCL_INTERFACE_AGE])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_AGE])
 
 AC_CANONICAL_SYSTEM
 
@@ -3408,6 +3411,27 @@ AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 
 ###############################################################################
 #                                                                             #
+#                                Julia                                        #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(julia, [AS_HELP_STRING([--enable-julia],
+			[enable the Julia extension])],
+			enable_julia=$enableval, enable_julia=no)
+if test "$enable_julia" = "yes" ; then
+   # Check whether the julia compiler is available
+   AC_PATH_PROG(juliapath, julia)
+   AC_MSG_CHECKING(whether julia is available)
+   AC_MSG_RESULT($juliapath)
+   if test ! -x $julia_path ; then
+      AC_MSG_ERROR(Julia compiler '$julia_path' is not valid)
+      enable_julia=no
+   fi
+fi
+AM_CONDITIONAL([STARPU_USE_JULIA], [test "x$enable_julia" = "xyes"])
+AC_SUBST(JULIA, $juliapath)
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
@@ -3486,6 +3510,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
+  chmod +x julia/examples/mult/mult_starpu.sh
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3575,6 +3600,11 @@ AC_OUTPUT([
 	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
+	julia/Makefile
+	julia/src/Makefile
+	julia/src/dynamic_compiler/Makefile
+	julia/examples/Makefile
+	julia/examples/mult/mult_starpu.sh
 ])
 
 AC_MSG_NOTICE([
@@ -3627,6 +3657,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
+	       JULIA enabled:                                 $enable_julia
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

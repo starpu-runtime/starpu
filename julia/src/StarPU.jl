@@ -12,11 +12,19 @@ export STARPU_CUDA
 const  STARPU_CPU = 1 << 1
 const  STARPU_CUDA = 1 << 3
 
-const starpu_task_library_name="libjlstarpu_c_wrapper.so"
 global starpu_tasks_library_handle = C_NULL
 global starpu_target=STARPU_CPU
 
 include("compiler/include.jl")
+
+function fstarpu_task_library_name()
+    x=get(ENV, "STARPU_JULIA_LIB", C_NULL)
+    if (x == C_NULL)
+        error("Environment variable STARPU_JULIA_LIB must be defined")
+    end
+    return x
+end
+const starpu_task_library_name=fstarpu_task_library_name()
 
 macro starpufunc(symbol)
     :($symbol, starpu_task_library_name)
@@ -631,8 +639,14 @@ function starpu_init()
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else
-        debug_print("generating codelet library")
-        run(`make generated_tasks.so`);
+        srcdir=get(ENV,"STARPU_JULIA_SRC",0)
+        if (srcdir == 0)
+            error("Must define environment variable STARPU_JULIA_SRC")
+        end
+        makefile=string(srcdir, "/Makefile.julia")
+        debug_print("generating codelet library with ")
+        debug_print(makefile)
+        run(`make -f $makefile generated_tasks.so`)
         global starpu_tasks_library_handle=Libdl.dlopen("generated_tasks.so")
     end
     output = @starpucall jlstarpu_init Cint ()
