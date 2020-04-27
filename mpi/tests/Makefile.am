@@ -235,8 +235,12 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
-	sendrecv_gemm_bench			\
 	sendrecv_parallel_tasks_bench
+
+if !NO_BLAS_LIB
+noinst_PROGRAMS +=				\
+	sendrecv_gemm_bench
+endif
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
