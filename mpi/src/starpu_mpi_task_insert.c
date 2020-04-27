@@ -702,8 +702,12 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 	// need to count how many nodes have the data in redux mode
 	if (me == rank)
 	{
-		int i, j=0;
-		struct starpu_task *taskBs[nb_nodes];
+		int i;
+
+		// taskC depends on all taskBs created
+		struct starpu_task *taskC = starpu_task_create();
+		taskC->cl = &_starpu_mpi_redux_data_readwrite_cl;
+		STARPU_TASK_SET_HANDLE(taskC, data_handle, 0);
 
 		for(i=0 ; i<nb_nodes ; i++)
 		{
@@ -741,8 +745,8 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				args->taskB->cl = args->data_handle->redux_cl;
 				args->taskB->sequential_consistency = 0;
 				STARPU_TASK_SET_HANDLE(args->taskB, args->data_handle, 0);
-				taskBs[j] = args->taskB;
-				j++;
+
+				starpu_task_declare_deps_array(taskC, 1, &args->taskB);
 
 				// Submit taskA
 				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,
@@ -752,11 +756,6 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 			}
 		}
 
-		// Submit taskC which depends on all taskBs created
-		struct starpu_task *taskC = starpu_task_create();
-		taskC->cl = &_starpu_mpi_redux_data_readwrite_cl;
-		STARPU_TASK_SET_HANDLE(taskC, data_handle, 0);
-		starpu_task_declare_deps_array(taskC, j, taskBs);
 		int ret = starpu_task_submit(taskC);
 		STARPU_ASSERT(ret == 0);
 	}
