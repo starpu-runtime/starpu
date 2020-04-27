@@ -2824,7 +2824,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					config->nbindid = STARPU_NMAXWORKERS;
 				else
 					config->nbindid = 2 * old_nbindid;
-				if (bindid > config->nbindid)
+				if (bindid >= config->nbindid)
 				{
 					config->nbindid = bindid+1;
 				}
