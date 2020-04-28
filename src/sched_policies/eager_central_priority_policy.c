@@ -35,7 +35,7 @@ struct _starpu_eager_central_prio_data
 {
 	struct _starpu_prio_deque taskq;
 	starpu_pthread_mutex_t policy_mutex;
-	struct starpu_bitmap *waiters;
+	struct starpu_bitmap waiters;
 };
 
 /*
@@ -49,7 +49,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* only a single queue (even though there are several internaly) */
 	_starpu_prio_deque_init(&data->taskq);
-	data->waiters = starpu_bitmap_create();
+	starpu_bitmap_init(&data->waiters);
 
 	/* Tell helgrind that it's fine to check for empty fifo in
 	 * _starpu_priority_pop_task without actual mutex (it's just an
@@ -72,7 +72,6 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* deallocate the job queue */
 	_starpu_prio_deque_destroy(&data->taskq);
-	starpu_bitmap_destroy(data->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
@@ -115,7 +114,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (!starpu_bitmap_get(data->waiters, worker))
+		if (!starpu_bitmap_get(&data->waiters, worker))
 			/* This worker is not waiting for a task */
 			continue;
 #endif
@@ -124,7 +123,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		{
 			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-			starpu_bitmap_unset(data->waiters, worker);
+			starpu_bitmap_unset(&data->waiters, worker);
 			/* We really woke at least somebody, no need to wake somebody else */
 			break;
 #else
@@ -170,7 +169,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	}
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(&data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 	{
 		return NULL;
@@ -197,7 +196,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 			if(worker != workerid)
 			{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				starpu_bitmap_unset(data->waiters, worker);
+				starpu_bitmap_unset(&data->waiters, worker);
 #else
 				starpu_wake_worker_relax_light(worker);
 #endif
@@ -208,7 +207,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
-		starpu_bitmap_set(data->waiters, workerid);
+		starpu_bitmap_set(&data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	if(chosen_task &&_starpu_get_nsched_ctxs() > 1)

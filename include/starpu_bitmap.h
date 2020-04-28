@@ -35,13 +35,15 @@ extern "C"
    @{
  */
 #ifndef _STARPU_LONG_BIT
-#define _STARPU_LONG_BIT (sizeof(unsigned long) * 8)
+#define _STARPU_LONG_BIT ((int)(sizeof(unsigned long) * 8))
 #endif
 
 #define _STARPU_BITMAP_SIZE ((STARPU_NMAXWORKERS - 1)/_STARPU_LONG_BIT) + 1
 
 /** create a empty starpu_bitmap */
 static inline struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
+/** zero a starpu_bitmap */
+static inline void starpu_bitmap_init(struct starpu_bitmap *b);
 /** free \p b */
 static inline void starpu_bitmap_destroy(struct starpu_bitmap *b);
 
@@ -123,12 +125,14 @@ static inline struct starpu_bitmap *starpu_bitmap_create()
 	return (struct starpu_bitmap *) calloc(1, sizeof(struct starpu_bitmap));
 }
 
+static inline void starpu_bitmap_init(struct starpu_bitmap *b)
+{
+	memset(b, 0, sizeof(*b));
+}
+
 static inline void starpu_bitmap_destroy(struct starpu_bitmap * b)
 {
-	if(b)
-	{
-		free(b);
-	}
+	free(b);
 }
 
 static inline void starpu_bitmap_set(struct starpu_bitmap * b, int e)

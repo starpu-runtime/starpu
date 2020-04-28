@@ -31,7 +31,7 @@ struct _starpu_eager_center_policy_data
 {
 	struct _starpu_fifo_taskq *fifo;
 	starpu_pthread_mutex_t policy_mutex;
-	struct starpu_bitmap *waiters;
+	struct starpu_bitmap waiters;
 };
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
@@ -41,7 +41,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
-	data->waiters = starpu_bitmap_create();
+	starpu_bitmap_init(&data->waiters);
 
 	 /* Tell helgrind that it's fine to check for empty fifo in
 	  * pop_task_eager_policy without actual mutex (it's just an integer)
@@ -61,7 +61,6 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(fifo);
-	starpu_bitmap_destroy(data->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
@@ -105,7 +104,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (!starpu_bitmap_get(data->waiters, worker))
+		if (!starpu_bitmap_get(&data->waiters, worker))
 			/* This worker is not waiting for a task */
 			continue;
 #endif
@@ -114,7 +113,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 		{
 			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-			starpu_bitmap_unset(data->waiters, worker);
+			starpu_bitmap_unset(&data->waiters, worker);
 			/* We really woke at least somebody, no need to wake somebody else */
 			break;
 #else
@@ -169,7 +168,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	}
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(&data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 	{
 		return NULL;
@@ -183,7 +182,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	chosen_task = _starpu_fifo_pop_task(data->fifo, workerid);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
-		starpu_bitmap_set(data->waiters, workerid);
+		starpu_bitmap_set(&data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	if(chosen_task &&_starpu_get_nsched_ctxs() > 1)

@@ -128,9 +128,9 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 		for (i = 0; i < component->nchildren; i++)
 		{
 			int idworker;
-			for(idworker = starpu_bitmap_first(component->children[i]->workers);
+			for(idworker = starpu_bitmap_first(&component->children[i]->workers);
 				idworker != -1;
-				idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
+				idworker = starpu_bitmap_next(&component->children[i]->workers, idworker))
 			{
 				if (starpu_worker_get_type(idworker) == archtype)
 					break;
@@ -173,9 +173,9 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 	best_component = component->children[best_icomponent];
 
 	int idworker;
-	for(idworker = starpu_bitmap_first(best_component->workers);
+	for(idworker = starpu_bitmap_first(&best_component->workers);
 		idworker != -1;
-		idworker = starpu_bitmap_next(best_component->workers, idworker))
+		idworker = starpu_bitmap_next(&best_component->workers, idworker))
 	{
 		if (starpu_worker_get_type(idworker) == archtype)
 			break;
@@ -356,9 +356,9 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 
 	/* Compute acceleration between best-performing arch and least-performing arch */
 	int workerid;
-	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
 	    workerid != -1;
-	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(&component->workers_in_ctx, workerid))
 	{
 		unsigned impl_mask;
 		if (!starpu_worker_can_execute_task_impl(workerid, task, &impl_mask))

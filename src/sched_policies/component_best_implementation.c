@@ -85,7 +85,7 @@ static void select_best_implementation_and_set_preds(unsigned sched_ctx_id, stru
 static int best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component->nchildren == 1);
-	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, component->workers_in_ctx, task);
+	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, &component->workers_in_ctx, task);
 	return starpu_sched_component_push_task(component,component->children[0],task);
 }
 

@@ -123,7 +123,7 @@ static inline unsigned select_worker(struct starpu_sched_component * component)
 
 static int is_worker_of_component(struct starpu_sched_component * component, int workerid)
 {
-	return starpu_bitmap_get(component->workers, workerid);
+	return starpu_bitmap_get(&component->workers, workerid);
 }
 
 
@@ -202,7 +202,7 @@ double _ws_estimated_end(struct starpu_sched_component * component)
 		STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	}
-	int nb_workers = starpu_bitmap_cardinal(component->workers_in_ctx);
+	int nb_workers = starpu_bitmap_cardinal(&component->workers_in_ctx);
 
 	return (sum_start + sum_len) / nb_workers;
 }
@@ -221,9 +221,9 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 	}
 	double speedup = 0.0;
 	int workerid;
-	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
 	    -1 != workerid;
-	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(&component->workers_in_ctx, workerid))
 	{
 		speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id));
 	}
@@ -243,9 +243,9 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	while(1)
 	{
 		int workerid;
-		for(workerid = starpu_bitmap_first(component->children[i]->workers_in_ctx);
+		for(workerid = starpu_bitmap_first(&component->children[i]->workers_in_ctx);
 		    -1 != workerid;
-		    workerid = starpu_bitmap_next(component->children[i]->workers_in_ctx, workerid))
+		    workerid = starpu_bitmap_next(&component->children[i]->workers_in_ctx, workerid))
 		{
 			unsigned impl;
 			int can_execute = starpu_worker_can_execute_task_first_impl(workerid, task, &impl);

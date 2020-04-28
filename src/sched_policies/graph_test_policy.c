@@ -40,7 +40,7 @@ struct _starpu_graph_test_policy_data
 	struct _starpu_prio_deque prio_cpu;
 	struct _starpu_prio_deque prio_gpu;
 	starpu_pthread_mutex_t policy_mutex;
-	struct starpu_bitmap *waiters;
+	struct starpu_bitmap waiters;
 	unsigned computed;
 	unsigned descendants;			/* Whether we use descendants, or depths, for priorities */
 };
@@ -54,7 +54,7 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 	data->fifo =  _starpu_create_fifo();
 	 _starpu_prio_deque_init(&data->prio_cpu);
 	 _starpu_prio_deque_init(&data->prio_gpu);
-	data->waiters = starpu_bitmap_create();
+	starpu_bitmap_init(&data->waiters);
 	data->computed = 0;
 	data->descendants = starpu_get_env_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
 
@@ -80,7 +80,6 @@ static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 	_starpu_destroy_fifo(fifo);
 	 _starpu_prio_deque_destroy(&data->prio_cpu);
 	 _starpu_prio_deque_destroy(&data->prio_gpu);
-	starpu_bitmap_destroy(data->waiters);
 
 	_starpu_graph_record = 0;
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
@@ -210,7 +209,7 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	{
 		/* Tell each worker is shouldn't sleep any more */
 		unsigned worker = workers->get_next(workers, &it);
-		starpu_bitmap_unset(data->waiters, worker);
+		starpu_bitmap_unset(&data->waiters, worker);
 	}
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -266,7 +265,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (!starpu_bitmap_get(data->waiters, worker))
+		if (!starpu_bitmap_get(&data->waiters, worker))
 			/* This worker is not waiting for a task */
 			continue;
 #endif
@@ -281,7 +280,7 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 		{
 			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-			starpu_bitmap_unset(data->waiters, worker);
+			starpu_bitmap_unset(&data->waiters, worker);
 			/* We really woke at least somebody, no need to wake somebody else */
 			break;
 #else
@@ -333,7 +332,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 	if (!STARPU_RUNNING_ON_VALGRIND && !data->computed)
 		/* Not computed yet */
 		return NULL;
-	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(data->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(&data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
 #endif
@@ -350,7 +349,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid, NULL);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
-		starpu_bitmap_set(data->waiters, workerid);
+		starpu_bitmap_set(&data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
