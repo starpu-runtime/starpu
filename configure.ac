@@ -88,11 +88,21 @@ AC_CHECK_PROGS(PROG_DATE,gdate date)
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
 
+AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
+			[Enable simulating execution in simgrid])],
+			enable_simgrid=$enableval, enable_simgrid=no)
+
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
+
 default_enable_mpi_check=maybe
-default_enable_mpi=maybe
+
+if test x$enable_simgrid = xyes ; then
+	default_enable_mpi=no
+else
+	default_enable_mpi=maybe
+fi
 
 ###############################################################################
 #                                                                             #
@@ -135,9 +145,6 @@ AC_ARG_WITH(simgrid-lib-dir,
 		enable_simgrid=yes
 	], [simgrid_lib_dir=no])
 
-AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
-			[Enable simulating execution in simgrid])],
-			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
