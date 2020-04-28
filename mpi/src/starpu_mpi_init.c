@@ -201,6 +201,10 @@ int starpu_mpi_shutdown(void)
 	void *value;
 	int rank, world_size;
 
+	/* Make sure we do not have MPI communications pending in the task graph
+	 * before shutting down MPI */
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
