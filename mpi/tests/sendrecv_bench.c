@@ -27,6 +27,30 @@ int main(int argc, char **argv)
 {
 	int ret, rank, worldsize;
 	int mpi_init;
+	int pause_workers = 0;
+
+
+	for (int i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-p") == 0)
+		{
+			pause_workers = 1;
+			printf("Workers will be paused during benchmark.\n");
+		}
+		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+		{
+			fprintf(stderr, "Options:\n");
+			fprintf(stderr, "\t-h --help   display this help\n");
+			fprintf(stderr, "\t-p          pause workers during benchmark\n");
+			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
+			exit(EXIT_FAILURE);
+		}
+	}
+
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
@@ -46,12 +70,20 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	/* Pause workers for this bench: all workers polling for tasks has a strong impact on performances */
-	starpu_pause();
+
+	if (pause_workers)
+	{
+		/* Pause workers for this bench: all workers polling for tasks has a strong impact on performances */
+		starpu_pause();
+	}
 
 	sendrecv_bench(rank, NULL);
 
-	starpu_resume();
+	if (pause_workers)
+	{
+		starpu_resume();
+	}
+
 	starpu_mpi_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();
