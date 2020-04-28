@@ -382,6 +382,7 @@ int main(int argc, char **argv)
 		unsigned x, y, iter;
 		for (iter = 0; iter < niter; iter++)
 		{
+			starpu_pause();
 			for (x = 0; x < nslicesx; x++)
 			for (y = 0; y < nslicesy; y++)
 			{
@@ -404,6 +405,7 @@ int main(int argc, char **argv)
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
 			}
+			starpu_resume();
 
 			starpu_task_wait_for_all();
 		}

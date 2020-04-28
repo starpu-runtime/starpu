@@ -404,11 +404,11 @@ static int basic_push_task(struct starpu_sched_component *component, struct star
 static struct starpu_task *basic_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
 	struct basic_sched_data *data = component->data;
-	printf("Debut pull_task\n");
+	printf("Debut de basic_pull_task\n");
 		
-	int i =1; int nb_pop = 0; int temp_nb_pop = 0;
-	int taille_tache = 0;;		
+	int i = 0; int nb_pop = 0; int temp_nb_pop = 0;
 	
+//Marche pas dans mon cas	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (starpu_task_list_empty(&data->sched_list))
 		return NULL;
@@ -419,14 +419,34 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	struct starpu_task *task_temp_1 = NULL;
 	struct starpu_task *task_temp_2 = NULL;
 	
-	if (!starpu_task_list_empty(&data->sched_list)) {
-		task1 = starpu_task_list_pop_back(&data->sched_list);
-		printf("Pull la tâche : %p\n",task1);
-		nb_pop++;
-		printf("Il y a eu %d pop \n",nb_pop);
-		starpu_task_list_push_back(&data->tache_pop,task1);
+	if (starpu_task_list_empty(&data->tache_pop)) {
+		if (!starpu_task_list_empty(&data->sched_list)) {
+			while (!starpu_task_list_empty(&data->sched_list)) {
+				task1 = starpu_task_list_pop_back(&data->sched_list);
+				printf("Pull la tâche : %p\n",task1);
+				nb_pop++;
+				printf("Il y a eu %d pop(s) \n",nb_pop);
+				starpu_task_list_push_back(&data->tache_pop,task1);
+			}
+			if (nb_pop > 2) {
+				int *handles[nb_pop*3];
+				for (i = 0; i < nb_pop; i++) {
+					task1 = starpu_task_list_pop_front(&data->tache_pop);
+				}
+				
+				//~ handles[0] = STARPU_TASK_GET_HANDLE(task1, 0);
+				//~ handles[1] = STARPU_TASK_GET_HANDLE(task1, 1);
+				//~ printf("Le handle 0 est %d\n",handles[0]);
+				//~ printf("Le handle 1 est %d\n",handles[1]);
+			}
+			else {
+				task1 = starpu_task_list_pop_front(&data->tache_pop);
+			}
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		return task1;
 	}
-	task1 = starpu_task_list_pop_back(&data->tache_pop);
+	task1 = starpu_task_list_pop_front(&data->tache_pop);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task1;
 		
