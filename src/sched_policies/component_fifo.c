@@ -23,7 +23,7 @@
 
 struct _starpu_fifo_data
 {
-	struct _starpu_fifo_taskq * fifo;
+	struct _starpu_fifo_taskq fifo;
 	starpu_pthread_mutex_t mutex;
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
@@ -35,7 +35,6 @@ static void fifo_component_deinit_data(struct starpu_sched_component * component
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * f = component->data;
-	_starpu_destroy_fifo(f->fifo);
 	STARPU_PTHREAD_MUTEX_DESTROY(&f->mutex);
 	free(f);
 }
@@ -44,7 +43,7 @@ static double fifo_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = data->fifo;
+	struct _starpu_fifo_taskq * queue = &data->fifo;
 	return starpu_sched_component_estimated_end_min_add(component, queue->exp_len);
 }
 
@@ -53,7 +52,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(&component->workers_in_ctx) != 0);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = data->fifo;
+	struct _starpu_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
@@ -87,7 +86,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	STARPU_ASSERT(component && component->data && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = data->fifo;
+	struct _starpu_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
 	const double now = starpu_timing_now();
@@ -169,7 +168,7 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = data->fifo;
+	struct _starpu_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
 
@@ -269,7 +268,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
 	struct _starpu_fifo_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
-	data->fifo = _starpu_create_fifo();
+	_starpu_init_fifo(&data->fifo);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;
 	component->estimated_end = fifo_estimated_end;

@@ -37,7 +37,7 @@ struct _starpu_component_work_stealing_data
  */
 	unsigned performed_total, last_pop_child, last_push_child;
 
-	struct _starpu_prio_deque ** fifos;
+	struct _starpu_prio_deque * fifos;
 	starpu_pthread_mutex_t ** mutexes;
 	unsigned size;
 };
@@ -59,7 +59,7 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 	struct starpu_task * task = NULL;
 	while (1)
 	{
-		struct _starpu_prio_deque * fifo = wsd->fifos[i];
+		struct _starpu_prio_deque * fifo = &wsd->fifos[i];
 
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 		task = _starpu_prio_deque_deque_task_for_worker(fifo, workerid, NULL);
@@ -141,17 +141,17 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-	struct starpu_task * task = _starpu_prio_deque_pop_task(wsd->fifos[i]);
+	struct starpu_task * task = _starpu_prio_deque_pop_task(&wsd->fifos[i]);
 	if(task)
 	{
 		if(!isnan(task->predicted))
 		{
-			wsd->fifos[i]->exp_len -= task->predicted;
-			wsd->fifos[i]->exp_start = now + task->predicted;
+			wsd->fifos[i].exp_len -= task->predicted;
+			wsd->fifos[i].exp_start = now + task->predicted;
 		}
 	}
 	else
-		wsd->fifos[i]->exp_len = 0.0;
+		wsd->fifos[i].exp_len = 0.0;
 
 	STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 	if(task)
@@ -163,7 +163,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 	if(task)
 	{
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-		wsd->fifos[i]->nprocessed++;
+		wsd->fifos[i].nprocessed++;
 		STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 		return task;
@@ -196,9 +196,9 @@ double _ws_estimated_end(struct starpu_sched_component * component)
 	for(i = 0; i < component->nchildren; i++)
 	{
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-		sum_len += wsd->fifos[i]->exp_len;
-		wsd->fifos[i]->exp_start = STARPU_MAX(now, wsd->fifos[i]->exp_start);
-		sum_start += wsd->fifos[i]->exp_start;
+		sum_len += wsd->fifos[i].exp_len;
+		wsd->fifos[i].exp_start = STARPU_MAX(now, wsd->fifos[i].exp_start);
+		sum_start += wsd->fifos[i].exp_start;
 		STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	}
@@ -216,7 +216,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 	for(i = 0; i < component->nchildren; i++)
 	{
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-		ntasks += wsd->fifos[i]->ntasks;
+		ntasks += wsd->fifos[i].ntasks;
 		STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 	}
 	double speedup = 0.0;
@@ -265,7 +265,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 	starpu_sched_task_break(task);
-	ret = _starpu_prio_deque_push_front_task(wsd->fifos[i], task);
+	ret = _starpu_prio_deque_push_front_task(&wsd->fifos[i], task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	wsd->last_push_child = i;
@@ -308,9 +308,9 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 
 			struct _starpu_component_work_stealing_data * wsd = component->data;
 			STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-			int ret = _starpu_prio_deque_push_front_task(wsd->fifos[i] , task);
+			int ret = _starpu_prio_deque_push_front_task(&wsd->fifos[i] , task);
 			if(ret == 0 && !isnan(task->predicted))
-				wsd->fifos[i]->exp_len += task->predicted;
+				wsd->fifos[i].exp_len += task->predicted;
 			STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 			component->can_pull(component);
@@ -334,10 +334,7 @@ void _ws_add_child(struct starpu_sched_component * component, struct starpu_sche
 		wsd->size = component->nchildren;
 	}
 
-	struct _starpu_prio_deque *fifo;
-	_STARPU_MALLOC(fifo, sizeof(*fifo));
-	_starpu_prio_deque_init(fifo);
-	wsd->fifos[component->nchildren - 1] = fifo;
+	_starpu_prio_deque_init(&wsd->fifos[component->nchildren - 1]);
 
 	starpu_pthread_mutex_t *mutex;
 	_STARPU_MALLOC(mutex, sizeof(*mutex));
@@ -359,19 +356,17 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 			break;
 	}
 	STARPU_ASSERT(i_component != component->nchildren);
-	struct _starpu_prio_deque * tmp_fifo = wsd->fifos[i_component];
+	struct _starpu_prio_deque tmp_fifo = wsd->fifos[i_component];
 	wsd->fifos[i_component] = wsd->fifos[component->nchildren - 1];
 
 
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;
 	struct starpu_task * task;
-	while ((task = _starpu_prio_deque_pop_task(tmp_fifo)))
+	while ((task = _starpu_prio_deque_pop_task(&tmp_fifo)))
 	{
 		starpu_sched_component_push_task(NULL, component, task);
 	}
-	_starpu_prio_deque_destroy(tmp_fifo);
-	free(tmp_fifo);
 }
 
 void _work_stealing_component_deinit_data(struct starpu_sched_component * component)
