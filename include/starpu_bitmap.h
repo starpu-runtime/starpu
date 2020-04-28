@@ -1,20 +1,42 @@
-#ifndef __STARPU_STATIC_INLINE_BITMAP_H__
-#define __STARPU_STATIC_INLINE_BITMAP_H__
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013       Simon Archipoff
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
 
-#include <common/utils.h>
+#ifndef __STARPU_BITMAP_H__
+#define __STARPU_BITMAP_H__
+
+#include <starpu_util.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+/**
+   @defgroup API_Bitmap Bitmap
+   @brief This is the interface for the bitmap utilities provided by StarPU.
+   @{
+ */
 #ifndef LONG_BIT
 #define LONG_BIT (sizeof(unsigned long) * 8)
 #endif
 
 #define BITMAP_SIZE ((STARPU_NMAXWORKERS - 1)/LONG_BIT) + 1
 
-/** */
+/** create a empty starpu_bitmap */
 static inline struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
 /** free \p b */
 static inline void starpu_bitmap_destroy(struct starpu_bitmap *b);
@@ -46,7 +68,7 @@ static inline int starpu_bitmap_next(struct starpu_bitmap *b, int e);
 /** todo */
 static inline int starpu_bitmap_has_next(struct starpu_bitmap *b, int e);
 
-
+/** @} */
 
 struct starpu_bitmap
 {
@@ -94,11 +116,7 @@ static int _count_bit_static(unsigned long e)
 
 static inline struct starpu_bitmap *starpu_bitmap_create()
 {
-	struct starpu_bitmap *b;
-	_STARPU_CALLOC(b, 1, sizeof(*b));
-	for(int i=0 ; i < BITMAP_SIZE; i++)
-		b->bits[i] = 0;	
-	return b;
+	return (struct starpu_bitmap *) calloc(1, sizeof(struct starpu_bitmap));
 }
 
 static inline void starpu_bitmap_destroy(struct starpu_bitmap * b)
@@ -272,4 +290,4 @@ static inline int starpu_bitmap_next(struct starpu_bitmap *b, int e)
 }
 #endif
 
-#endif /* __STARPU_STATIC_INLINE_BITMAP_H__ */
+#endif /* __STARPU_BITMAP_H__ */

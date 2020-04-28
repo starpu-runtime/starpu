@@ -68,6 +68,7 @@ versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_helper.h			\
+	include/starpu_bitmap.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
 	include/starpu_worker.h			\

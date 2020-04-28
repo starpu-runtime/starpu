@@ -20,7 +20,6 @@
 #define __STARPU_SCHED_COMPONENT_H__
 
 #include <starpu.h>
-#include <common/starpu_bitmap.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
