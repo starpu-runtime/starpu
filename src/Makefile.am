@@ -130,6 +130,7 @@ noinst_HEADERS = 						\
 	common/prio_list.h					\
 	common/graph.h						\
 	common/knobs.h						\
+	common/starpu_bitmap.h					\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
@@ -160,7 +161,6 @@ noinst_HEADERS = 						\
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
 	common/barrier_counter.c				\
-	common/bitmap.c						\
 	common/hash.c 						\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\

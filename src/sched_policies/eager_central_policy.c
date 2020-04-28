@@ -24,7 +24,7 @@
 #include <starpu_scheduler.h>
 #include <sched_policies/fifo_queues.h>
 #include <common/thread.h>
-#include <starpu_bitmap.h>
+#include <common/starpu_bitmap.h>
 #include <core/workers.h>
 
 struct _starpu_eager_center_policy_data

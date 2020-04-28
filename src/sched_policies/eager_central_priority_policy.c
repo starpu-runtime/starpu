@@ -24,7 +24,7 @@
 
 #include <starpu.h>
 #include <starpu_scheduler.h>
-#include <starpu_bitmap.h>
+#include <common/starpu_bitmap.h>
 #include "prio_deque.h"
 #include <limits.h>
 
