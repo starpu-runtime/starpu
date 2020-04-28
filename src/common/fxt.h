@@ -601,7 +601,7 @@ do {									\
 	{								\
 		/* we include the task name */			\
 		_STARPU_FUT_DO_PROBE5STR(_STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 1, name); \
-		if (model_name && strcmp(model_name, name))				\
+		if (model_name)						\
 			_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 	}								\
 	else {                                                          \

@@ -188,8 +188,6 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	if (task->name)
 	{
 		fprintf(tasks_file, "Name: %s\n", task->name);
-		if (!task->model_name)
-			fprintf(tasks_file, "Model: %s\n", task->name);
 		free(task->name);
 	}
 	if (task->model_name)
