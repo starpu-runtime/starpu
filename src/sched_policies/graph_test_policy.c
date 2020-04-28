@@ -30,7 +30,7 @@
 #include <sched_policies/prio_deque.h>
 #include <common/graph.h>
 #include <common/thread.h>
-#include <starpu_bitmap.h>
+#include <common/starpu_bitmap.h>
 #include <core/task.h>
 #include <core/workers.h>
 

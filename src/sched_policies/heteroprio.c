@@ -25,6 +25,7 @@
 #include <core/task.h>
 #include <core/workers.h>
 #include <core/debug.h>
+#include <common/starpu_bitmap.h>
 
 #include <sched_policies/prio_deque.h>
 #include <limits.h>
