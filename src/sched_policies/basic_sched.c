@@ -348,40 +348,6 @@ struct basic_sched_data
      	starpu_pthread_mutex_t policy_mutex;
 };
 
-//~ struct liste_taches
-//~ {
-	//~ //struct basic_sched_data tache;
-	//~ struct starpu_task_list tache;
-	//~ liste_taches* next_task;
-//~ };
-
-//~ typedef struct liste_taches liste_taches;
-//~ struct liste_taches
-//~ {
-	//~ //struct basic_sched_data tache;
-	//~ struct starpu_task_list tache;
-	//~ liste_taches* next_task;
-//~ };
-
-//~ liste_taches *add(liste_taches *l,  tache *t) {
-	//~ liste_taches l2;
-	//~ l2.tache = t;
-	//~ l2.next = null;
-	//~ while (l.next_task != null) {
-		//~ l = l->next_task;
-	//~ }
-	//~ l.next = l2;
-	//~ return l;
-//~ }
-
-//~ liste_taches list_init() {
-
-	//~ liste_taches l
-	//~ l.next = malloc(sizeof(liste_taches));
-	//~ l.tache = malloc(sizeof(tache));
-	//~ return l;
-//~ }
-
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {	printf("Dans le push\n");
 	struct basic_sched_data *data = component->data;
@@ -403,10 +369,9 @@ static int basic_push_task(struct starpu_sched_component *component, struct star
 
 static struct starpu_task *basic_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	struct basic_sched_data *data = component->data;
+	struct basic_sched_data *data = component->data;	
 	printf("Debut de basic_pull_task\n");
-		
-	int i = 0; int nb_pop = 0; int temp_nb_pop = 0;
+	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0;
 	
 //Marche pas dans mon cas	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -415,9 +380,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 #endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
-	struct starpu_task *task2 = NULL;
-	struct starpu_task *task_temp_1 = NULL;
-	struct starpu_task *task_temp_2 = NULL;
+	//struct starpu_task *task2 = NULL;
+	//struct starpu_task *task_temp_1 = NULL;
+	//struct starpu_task *task_temp_2 = NULL;
 	
 	if (starpu_task_list_empty(&data->tache_pop)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
@@ -429,15 +394,58 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			}
 			if (nb_pop > 2) {
-				int *handles[nb_pop*3];
+				struct starpu_task *task_tab [nb_pop];
+				int *handles[nb_pop*3]; for (i = 0; i < nb_pop*3; i++) { handles[i] = 0; }
 				for (i = 0; i < nb_pop; i++) {
 					task1 = starpu_task_list_pop_front(&data->tache_pop);
+					handles[tab_runner] = STARPU_TASK_GET_HANDLE(task1, 0);
+					handles[tab_runner + 1] = STARPU_TASK_GET_HANDLE(task1, 1);
+					handles[tab_runner + 2] = STARPU_TASK_GET_HANDLE(task1, 2);
+					tab_runner += 3;
+					starpu_task_list_push_back(&data->tache_pop,task1);
+					//Remplissage dans un tableau
+					//task_tab[i]
+				}
+				printf("Tableau des handles : \n");
+				for (i = 0; i < nb_pop*3; i++) {
+					printf("%p\n",handles[i]);
+				}
+				tab_runner = 0;
+				int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+				for (i = 0; i < nb_pop - 1; i++) {
+					//Compare les HANDLE(tâches,i)
+					//Compare par rapport à la tâche 1 puis la 2 au deuxième tour du for ci-dessus
+					for (tab_runner = i+1; tab_runner < nb_pop; tab_runner++) {
+						if (handles[i*3] == handles[tab_runner*3]) { matrice_donnees_commune[i][tab_runner] += 1; }
+						if (handles[i*3 + 1] == handles[tab_runner*3 + 1]) { matrice_donnees_commune[i][tab_runner] += 1; }
+						if (handles[i*3 + 2] == handles[tab_runner*3 + 2]) { matrice_donnees_commune[i][tab_runner] += 1; }
+					}				
+				}
+				printf("Matrice de données communes remplite : \n");
+				for (i = 0; i < nb_pop; i++) {
+					for (j = 0; j < nb_pop; j++) {
+						printf (" %d ",matrice_donnees_commune[i][j]);
+					}
+					printf("\n");
+				}
+				//met dans un tableau
+				for (i = 0; i < nb_pop; i++) {
+					task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
 				}
 				
-				//~ handles[0] = STARPU_TASK_GET_HANDLE(task1, 0);
-				//~ handles[1] = STARPU_TASK_GET_HANDLE(task1, 1);
-				//~ printf("Le handle 0 est %d\n",handles[0]);
-				//~ printf("Le handle 1 est %d\n",handles[1]);
+				for (i = 0; i < nb_pop; i++) {
+					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
+					for (j = i + 1; j< nb_pop; j++) {
+						if (matrice_donnees_commune[i][j] == 4) {
+							printf ("Une donnée en commun\n");
+							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[j]); task_tab[j] = 0; }
+						}
+					}
+				}
+				for (i = 0; i < nb_pop; i++) {
+					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
+				}
+				task1 = starpu_task_list_pop_front(&data->tache_pop);
 			}
 			else {
 				task1 = starpu_task_list_pop_front(&data->tache_pop);
@@ -449,29 +457,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	task1 = starpu_task_list_pop_front(&data->tache_pop);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task1;
-		
-	//~ if (data->mem == 1) {
-		//~ printf("data->mem vaut 1, i.e on a bien tout push sauf la tache courante\n");
-		//~ if (!starpu_task_list_empty(&data->sched_list)) {
-			//~ task1 = starpu_task_list_pop_back(&data->sched_list);
-			
-			//~ if (!starpu_task_list_empty(&data->sched_list)) { starpu_task_list_push_back(&data->tache_pop,task1); }
-			//~ while (!starpu_task_list_empty(&data->sched_list)) {
-				//~ task2 = starpu_task_list_pop_back(&data->sched_list);
-				//~ nb_pop++;
-				//~ printf("Il y a eu %d pop \n",nb_pop);
-				//~ starpu_task_list_push_back(&data->tache_pop,task2);
-				//~ data->mem = nb_pop;
-			//~ }
-		//~ }			
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ return task1;
-	//~ }
-	//~ printf("data->mem ne vaut pas 1, on a des trucs à push de la liste tache_pop\n");
-	//~ data->mem--;
-	//~ task1 = starpu_task_list_pop_back(&data->tache_pop);
-	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	//~ return task1;
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
@@ -536,7 +521,7 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->tache_pop);
-	//data->verbose = params->verbose;
+	//starpu_task_list_init(&data->temp_list);
 	
 	component->data = data;
 	component->push_task = basic_push_task;
