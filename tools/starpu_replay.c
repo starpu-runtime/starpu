@@ -431,7 +431,7 @@ static void arrays_managing(int mode)
 	{
 		_STARPU_MALLOC(handles_ptr, sizeof(*handles_ptr) * nb_parameters);
 		_STARPU_MALLOC(modes_ptr, sizeof(*modes_ptr) * nb_parameters);
-		_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char *));
+		_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char));
 
 	}
 }
