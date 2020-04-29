@@ -25,10 +25,6 @@ endif
 
 SUBDIRS += src
 
-if STARPU_USE_MPI
-SUBDIRS += mpi/src
-endif
-
 SUBDIRS += tools
 
 if BUILD_TESTS

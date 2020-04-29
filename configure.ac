@@ -3519,7 +3519,6 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
-	tools/replay-mpi/Makefile
 	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
@@ -3570,6 +3569,7 @@ AC_OUTPUT([
 	mpi/src/Makefile
 	mpi/tests/Makefile
 	mpi/examples/Makefile
+	mpi/tools/Makefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
