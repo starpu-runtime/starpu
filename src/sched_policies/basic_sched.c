@@ -350,26 +350,15 @@ struct basic_sched_data
 
 struct Linked_task_list
 {
-	struct starpu_task_list sous_liste;
+	struct starpu_task_list sub_list;
 	struct Linked_task_list *next;
 };
 
 
 struct Control_linked_task_list
 {
-	struct Linked_task_list *premier;
+	struct Linked_task_list *first;
 };
-
-//~ struct Controle_liste_tache *init_liste_tache(struct starpu_sched_component *component)
-//~ {
-	//~ struct Liste_tache *data_liste = component->data;
-	//~ struct Controle_liste_tache *data_controle = component->data;
-
-   //~ data_liste->next = NULL;
-   //~ data_controle->premier = &data_liste->sous_liste;
-
-    //~ return data_controle;
-//~ }
 
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -399,7 +388,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	
 	int taille_tache = 0;
 	
-//Marche pas dans mon cas	
+//Doesn't work for me	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (starpu_task_list_empty(&data->sched_list))
 		return NULL;
@@ -411,23 +400,35 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//struct starpu_task *task_temp_2 = NULL;
 	
 	//If the list is not empty, it means that we have task to get out of pull before pulling more tasks
-	if (starpu_task_list_empty(&data->tache_pop)) {
+	//If we use a linked list we need to go to the next one and verify it's not equal to NULL
+	//Else we can pull tasks
+	
+	//Version 1 liste---------------------------------------------------------------------------------
+	//~ if (starpu_task_list_empty(&data->tache_pop)) {
+	//------------------------------------------------------------------------------------------------
+	
+	//Version liste chainée --------------------------------------------------------------------------
+	//Si le next est null et que la liste est vide, alors on peut pull à nouveau des tâches
+	if ((data_liste->next == NULL) && (starpu_task_list_empty(&data_liste->sub_list))) {
+		data_liste = data_controle->first;
+	//------------------------------------------------------------------------------------------------
+	
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			while (!starpu_task_list_empty(&data->sched_list)) {
-				//pulling all tasks and counting them
+				//Pulling all tasks and counting them
 				task1 = starpu_task_list_pop_back(&data->sched_list);
-				//Getting the "size" of a task for later
+				//Getting the "size" of a task for later, it's bad here cause it's in a while loop
 				taille_tache = STARPU_TASK_GET_NBUFFERS(task1);
 				printf("taille = %d\n",taille_tache);
 				printf("Pulling task %p\n",task1);
 				nb_pop++;
 				printf("%d task(s) have been poped \n",nb_pop);
 				
-				//Vrai ligne
+				//True line
 				starpu_task_list_push_back(&data->tache_pop,task1);
 				
 				//Test
-				//~ starpu_task_list_push_back(&data_liste->sous_liste,task1);
+				//~ starpu_task_list_push_back(&data_liste->sub_list,task1);
 				//~ &data_liste->next;
 			}
 			if (nb_pop > 2) {
@@ -464,9 +465,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					printf("\n");
 				}
 				
-				//~ //Version avec une seule liste et un tableau 
-				//~ //Using a temp tab to reorder tasks
-				//~ //Here we put every task in the tab
+				//Pour l'instant vu que les comparaisons ne trouvait que 1 point commun entre les taches, je fonctionne comme ca. 
+				//Plus tard il y aura plus que 1 point commun, il faudra donc comparer et voir qui a le plus de points commun
+				
+				//Version avec une seule liste et un tableau -----------------------------------------------------------------------------
+				//Using a temp tab to reorder tasks
+				//Here we put every task in the tab
 				//~ for (i = 0; i < nb_pop; i++) {
 					//~ task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
 				//~ }
@@ -480,29 +484,79 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						//~ }
 					//~ }
 				//~ }
+				//------------------------------------------------------------------------------------------------------------------------
 				
-				//Version avec la liste chainée
+				//Version avec la liste chainée ------------------------------------------------------------------------------------------
 				//Here we put every task in the tab
 				for (i = 0; i < nb_pop; i++) {
 					task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
 				}
-				
-				
+				printf("test 1 ok\n");
+				//Here, if a tab has 0 in it, it means that a linked task got put in the tab so we have to put this one too next to it
 				for (i = 0; i < nb_pop; i++) {
-					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
+					if (task_tab[i] != 0) { starpu_task_list_push_back(&data_liste->sub_list,task_tab[i]); task_tab[i] = 0; }
+					printf("test 2 ok\n");
+					for (j = i + 1; j< nb_pop; j++) {
+						if (matrice_donnees_commune[i][j] == 4) {
+							printf ("Data in common\n");
+							if (task_tab[j] != 0) { starpu_task_list_push_back(&data_liste->sub_list,task_tab[j]); task_tab[j] = 0; }
+						}
+					}
+					//Here we go on the next list of our linked list of task
+					data_liste = data_liste->next;
 				}
-				task1 = starpu_task_list_pop_front(&data->tache_pop);
+				//------------------------------------------------------------------------------------------------------------------------
+
+				//Now tasks are in sub_list
+				//Need to get back to the beggining of the list
+				data_liste = data_controle->first;
+				
+				
+				//Pas utile normalement, ca sert juste a voir si toutes les taches ont bien été mise dans la liste, qu'il reste rien dans me tableau
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
+				//~ }
+				
+				//Version 1 liste
+				//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
+				
+				//Version liste chainée
+				task1 = starpu_task_list_pop_front(&data_liste->sub_list);
 			}
+			//Else here means that we have only 2 task or less, so no need to compare the handles
+			//A voir si il faut le garder ou pas dans le cas des liste chainées
 			else {
 				task1 = starpu_task_list_pop_front(&data->tache_pop);
 			}
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
-	task1 = starpu_task_list_pop_front(&data->tache_pop);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	return task1;
+	//Version 1 liste -----------------------------------------------------------------------------------------------------------------------
+	//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	//~ return task1;
+	//---------------------------------------------------------------------------------------------------------------------------------------
+	
+	//Version liste chainée -----------------------------------------------------------------------------------------------------------------
+	if (starpu_task_list_empty(&data_liste->sub_list)) {
+		//la liste est vide on passe au prochain maillon, qui n'est pas NULL car on a check plus haut
+		data_liste = data_liste->next;
+		task1 = starpu_task_list_pop_front(&data_liste->sub_list);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		printf("Task %p is getting out of pull_task\n",task1);
+		return task1;
+	}
+	else {
+		task1 = starpu_task_list_pop_front(&data_liste->sub_list);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		printf("Task %p is getting out of pull_task\n",task1);
+		return task1;
+	}
+	//---------------------------------------------------------------------------------------------------------------------------------------
+		
+		
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
@@ -565,7 +619,7 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	
 	//Init de la liste chainée
 	data_liste->next = NULL;
-	data_controle->premier = data_liste;
+	data_controle->first = data_liste;
 	
 
 	//_starpu_prio_deque_init(&data->prio);
@@ -576,7 +630,7 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->tache_pop);
-	starpu_task_list_init(&data_liste->sous_liste);
+	starpu_task_list_init(&data_liste->sub_list);
 	
 	component->data = data;
 	component->push_task = basic_push_task;
