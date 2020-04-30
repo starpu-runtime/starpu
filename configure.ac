@@ -1281,7 +1281,9 @@ AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
 AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
+cc_or_nvcc=$CC
 if test x$enable_cuda = xyes; then
+   	cc_or_nvcc=$NVCC
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
 	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
@@ -1368,6 +1370,8 @@ if test x$enable_cuda = xyes; then
 	LDFLAGS="${SAVED_LDFLAGS}"
 	LIBS="${SAVED_LIBS}"
 fi
+
+AC_SUBST(CC_OR_NVCC, $cc_or_nvcc)
 
 have_magma=no
 if test x$enable_cuda = xyes; then

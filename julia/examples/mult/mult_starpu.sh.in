@@ -1,5 +1,8 @@
 #!@REALBASH@
 
+export JULIA_LOAD_PATH=@STARPU_SRC_DIR@/julia/src:$JULIA_LOAD_PATH
+export STARPU_JULIA_LIB=@STARPU_BUILD_DIR@/julia/src/.libs/libstarpujulia-1.3.so
+export STARPU_JULIA_BUILD=@STARPU_BUILD_DIR@/julia
 dirfile=@STARPU_SRC_DIR@/julia/examples/mult/
 srcfile=mult.jl
 if test ! -f $dirfile/$srcfile

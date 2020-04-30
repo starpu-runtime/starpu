@@ -639,11 +639,11 @@ function starpu_init()
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else
-        srcdir=get(ENV,"STARPU_JULIA_SRC",0)
+        srcdir=get(ENV,"STARPU_JULIA_BUILD",0)
         if (srcdir == 0)
-            error("Must define environment variable STARPU_JULIA_SRC")
+            error("Must define environment variable STARPU_JULIA_BUILD")
         end
-        makefile=string(srcdir, "/Makefile.julia")
+        makefile=string(srcdir, "/src/dynamic_compiler/Makefile")
         debug_print("generating codelet library with ")
         debug_print(makefile)
         run(`make -f $makefile generated_tasks.so`)

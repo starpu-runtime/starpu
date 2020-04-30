@@ -23,7 +23,7 @@ LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/julia/src
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) -no-undefined
 
-SUBDIRS =
+SUBDIRS = dynamic_compiler
 
 lib_LTLIBRARIES = libstarpujulia-@STARPU_EFFECTIVE_VERSION@.la
 

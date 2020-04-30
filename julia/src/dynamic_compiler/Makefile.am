@@ -14,28 +14,26 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+#LD=$(CC_OR_NVCC)
 LD=$(CC)
-
-ifeq ($(STARPU_USE_CUDA),yes)
-        LD := ${NVCC}
-endif
-
-AM_CFLAGS = -O3 -g -DSTRIDE=${STRIDE} $(shell pkg-config --cflags starpu-1.3)
-AM_CFLAGS += ${CFLAGS} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
-CUDA_CFLAGS = ${CFLAGS}
-#LDFLAGS +=$(shell pkg-config --libs starpu-1.3)
+AM_CPPFLAGS = -I$(abs_top_srcdir)/include/ -I$(abs_top_builddir)/src -I$(abs_top_builddir)/include
+AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
+AM_CFLAGS += -fPIC -O3 -g -DSTRIDE=${STRIDE} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@
+#CUDA_CFLAGS = ${CFLAGS}
 
 EXTERNLIB=extern_tasks.so
 GENERATEDLIB=generated_tasks.so
 
 C_OBJECTS=$(patsubst %.c,%.o,$(wildcard gen*.c))
-CUDA_OBJECTS=$(patsubst %.cu,%.o,$(wildcard gen*.cu))
-ifneq ($(STARPU_USE_CUDA_CUDA),yes)
-	CUDA_OBJECTS:=
-endif
+#if STARPU_USE_CUDA
+#CUDA_OBJECTS=$(patsubst %.cu,%.o,$(wildcard gen*.cu))
+#else
+CUDA_OBJECTS=
+#endif
 
 %.o: %.c
-	$(CC) -c -fPIC $(CPU_CFLAGS) $^ -o $@
+	$(CC) -c $(AM_CPPFLAGS) $(AM_CFLAGS) $^ -o $@
 
 %.o: %.cu
 	$(NVCC) -dc $(CUDA_CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
