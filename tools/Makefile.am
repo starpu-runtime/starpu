@@ -107,15 +107,15 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	perfmodels/README		\
-	valgrind/libc.suppr		\
-	valgrind/hwloc.suppr		\
-	valgrind/libnuma.suppr		\
-	valgrind/openmpi.suppr		\
-	valgrind/opencl.suppr		\
-	valgrind/pthread.suppr		\
-	valgrind/starpu.suppr		\
-	valgrind/libgomp.suppr		\
-	valgrind/helgrind.sh		\
+	dev/valgrind/libc.suppr		\
+	dev/valgrind/hwloc.suppr	\
+	dev/valgrind/libnuma.suppr	\
+	dev/valgrind/openmpi.suppr	\
+	dev/valgrind/opencl.suppr	\
+	dev/valgrind/pthread.suppr	\
+	dev/valgrind/starpu.suppr	\
+	dev/valgrind/libgomp.suppr	\
+	dev/valgrind/helgrind.sh	\
 	dev/tsan/starpu.suppr		\
 	dev/lsan/suppressions		\
 	msvc/starpu_clean.bat		\
