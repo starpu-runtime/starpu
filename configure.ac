@@ -91,11 +91,21 @@ AC_CHECK_PROGS(PROG_DATE,gdate date)
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
 
+AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
+			[Enable simulating execution in simgrid])],
+			enable_simgrid=$enableval, enable_simgrid=no)
+
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
+
 default_enable_mpi_check=maybe
-default_enable_mpi=maybe
+
+if test x$enable_simgrid = xyes ; then
+	default_enable_mpi=no
+else
+	default_enable_mpi=maybe
+fi
 
 ###############################################################################
 #                                                                             #
@@ -138,9 +148,6 @@ AC_ARG_WITH(simgrid-lib-dir,
 		enable_simgrid=yes
 	], [simgrid_lib_dir=no])
 
-AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
-			[Enable simulating execution in simgrid])],
-			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
@@ -375,6 +382,30 @@ AC_MSG_CHECKING(whether mpicxx is available)
 AC_MSG_RESULT($mpicxx_path)
 AC_SUBST(MPICXX, $mpicxx_path)
 
+# Check if mpiexec is available
+if test x$enable_simgrid = xyes ; then
+    DEFAULT_MPIEXEC=smpirun
+    AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
+else
+    DEFAULT_MPIEXEC=mpiexec
+    AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
+fi
+
+case $DEFAULT_MPIEXEC in
+    /*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
+    *)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
+esac
+AC_MSG_CHECKING(whether mpiexec is available)
+AC_MSG_RESULT($mpiexec_path)
+
+# We test if MPIEXEC exists
+if test ! -x $mpiexec_path; then
+    AC_MSG_RESULT(The mpiexec script '$mpiexec_path' is not valid)
+    default_enable_mpi_check=no
+    mpiexec_path=""
+fi
+AC_SUBST(MPIEXEC,$mpiexec_path)
+
 ###############################################################################
 #                                                                             #
 #                                    MPI                                      #
@@ -507,32 +538,6 @@ if test x$enable_mpi = xno ; then
     running_mpi_check=no
 fi
 
-if test x$enable_mpi = xyes -a x$running_mpi_check = xyes ; then
-    # Check if mpiexec is available
-    if test x$enable_simgrid = xyes ; then
-	DEFAULT_MPIEXEC=smpirun
-        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
-    else
-	DEFAULT_MPIEXEC=mpiexec
-	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
-    fi
-
-    case $DEFAULT_MPIEXEC in
-	/*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
-	*)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
-    esac
-    AC_MSG_CHECKING(whether mpiexec is available)
-    AC_MSG_RESULT($mpiexec_path)
-
-    # We test if MPIEXEC exists
-    if test ! -x $mpiexec_path; then
-        AC_MSG_RESULT(The mpiexec script '$mpiexec_path' is not valid)
-        running_mpi_check=no
-        mpiexec_path=""
-    fi
-    AC_SUBST(MPIEXEC,$mpiexec_path)
-fi
-
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
 AC_MSG_CHECKING(whether MPI tests should be run)
 AC_MSG_RESULT($running_mpi_check)
@@ -555,7 +560,7 @@ fi
 if test x$enable_mpi = xyes ; then
     if test x$enable_simgrid = xyes ; then
         if test x$enable_shared = xyes ; then
-	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, theb use --disable-shared to fix this, else disable MPI with --disable-mpi])
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, then use --disable-shared to fix this, else disable MPI with --disable-mpi])
         else
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
@@ -3537,7 +3542,6 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
-	tools/replay-mpi/Makefile
 	tools/starpu_env
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
@@ -3588,6 +3592,7 @@ AC_OUTPUT([
 	mpi/src/Makefile
 	mpi/tests/Makefile
 	mpi/examples/Makefile
+	mpi/tools/Makefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile

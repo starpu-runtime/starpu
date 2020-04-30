@@ -35,8 +35,8 @@ struct _starpu_peager_common_data *_peager_common_data = NULL;
 struct _starpu_peager_data
 {
 	starpu_pthread_mutex_t policy_mutex;
-	struct _starpu_fifo_taskq *fifo;
-	struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
+	struct _starpu_fifo_taskq fifo;
+	struct _starpu_fifo_taskq local_fifo[STARPU_NMAXWORKERS];
 };
 
 static void initialize_peager_common(void)
@@ -136,22 +136,12 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 		/* slaves pick up tasks from their local queue, their master
 		 * will put tasks directly in that local list when a parallel
 		 * tasks comes. */
-		data->local_fifo[workerid] = _starpu_create_fifo();
+		_starpu_init_fifo(&data->local_fifo[workerid]);
 	}
 }
 
-static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+static void peager_remove_workers(unsigned sched_ctx_id, int *workerids STARPU_ATTRIBUTE_UNUSED, unsigned nworkers STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	for(i = 0; i < nworkers; i++)
-        {
-		int workerid = workerids[i];
-		if(!starpu_worker_is_combined_worker(workerid))
-		{
-			_starpu_destroy_fifo(data->local_fifo[workerid]);
-		}
-	}
 	if (sched_ctx_id == 0)
 	{
 		deinitialize_peager_common();
@@ -166,7 +156,7 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized\n");
 
 	/* masters pick tasks from that queue */
-	data->fifo = _starpu_create_fifo();
+	_starpu_init_fifo(&data->fifo);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
         STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
@@ -176,9 +166,6 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 {
 	/* TODO check that there is no task left in the queue */
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	/* deallocate the job queue */
-	_starpu_destroy_fifo(data->fifo);
 
         STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
@@ -193,7 +180,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	ret_val = _starpu_fifo_push_task(data->fifo, task);
+	ret_val = _starpu_fifo_push_task(&data->fifo, task);
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	int is_parallel_task = task->cl && task->cl->max_parallelism > 1;
 #endif
@@ -249,7 +236,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		starpu_worker_relax_on();
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		starpu_worker_relax_off();
-		task = _starpu_fifo_pop_task(data->fifo, workerid);
+		task = _starpu_fifo_pop_task(&data->fifo, workerid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 		return task;
@@ -261,11 +248,11 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
 	/* check if a slave task is available in the local queue */
-	task = _starpu_fifo_pop_task(data->local_fifo[workerid], workerid);
+	task = _starpu_fifo_pop_task(&data->local_fifo[workerid], workerid);
 	if (!task)
 	{
 		/* no slave task, try to pop a task as master */
-		task = _starpu_fifo_pop_task(data->fifo, workerid);
+		task = _starpu_fifo_pop_task(&data->fifo, workerid);
 		if (task)
 		{
 			_STARPU_DEBUG("poping master task %p\n", task);
@@ -277,7 +264,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		{
 			/* task is potentially parallel, leave it for a combined worker master */
 			_STARPU_DEBUG("pushing back master task %p\n", task);
-			_starpu_fifo_push_back_task(data->fifo, task);
+			_starpu_fifo_push_back_task(&data->fifo, task);
 			task = NULL;
 		}
 #endif
@@ -339,7 +326,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		int local_worker = combined_workerid[i];
 		alias->destroy = 1;
 		_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
-		_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
+		_starpu_fifo_push_task(&data->local_fifo[local_worker], alias);
 	}
 
 	/* The master also manipulated an alias */

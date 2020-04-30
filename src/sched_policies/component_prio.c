@@ -70,7 +70,7 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 static double prio_estimated_load(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
-	STARPU_ASSERT(starpu_bitmap_cardinal(component->workers_in_ctx) != 0);
+	STARPU_ASSERT(starpu_bitmap_cardinal(&component->workers_in_ctx) != 0);
 	struct _starpu_prio_data * data = component->data;
 	struct _starpu_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
@@ -78,7 +78,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	double load = starpu_sched_component_estimated_load(component);
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
 	{
-		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
+		int first_worker = starpu_bitmap_first(&component->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += queue->ntasks / relative_speedup;
@@ -88,11 +88,11 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	else
 	{
 		int i;
-		for(i = starpu_bitmap_first(component->workers_in_ctx);
+		for(i = starpu_bitmap_first(&component->workers_in_ctx);
 		    i != -1;
-		    i = starpu_bitmap_next(component->workers_in_ctx, i))
+		    i = starpu_bitmap_next(&component->workers_in_ctx, i))
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
-		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
+		relative_speedup /= starpu_bitmap_cardinal(&component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		load += queue->ntasks / relative_speedup;
@@ -204,7 +204,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
-		task = _starpu_prio_deque_deque_first_ready_task(queue, starpu_bitmap_first(to->workers_in_ctx));
+		task = _starpu_prio_deque_deque_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
 		task = _starpu_prio_deque_pop_task(queue);
 	if(task && data->exp)

@@ -88,7 +88,7 @@ struct _heteroprio_worker_wrapper
 struct _starpu_heteroprio_data
 {
 	starpu_pthread_mutex_t policy_mutex;
-	struct starpu_bitmap *waiters;
+	struct starpu_bitmap waiters;
 	/* The bucket to store the tasks */
 	struct _heteroprio_bucket buckets[STARPU_HETEROPRIO_MAX_PRIO];
 	/* The number of buckets for each arch */
@@ -216,7 +216,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(hp, sizeof(struct _starpu_heteroprio_data));
 	memset(hp, 0, sizeof(*hp));
 
-	hp->waiters = starpu_bitmap_create();
+	starpu_bitmap_init(&hp->waiters);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hp);
 
@@ -294,8 +294,6 @@ static void deinitialize_heteroprio_policy(unsigned sched_ctx_id)
 	{
 		_heteroprio_bucket_release(&hp->buckets[idx_prio]);
 	}
-
-	starpu_bitmap_destroy(hp->waiters);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&hp->policy_mutex);
 	free(hp);
@@ -404,7 +402,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 		unsigned worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (!starpu_bitmap_get(hp->waiters, worker))
+		if (!starpu_bitmap_get(&hp->waiters, worker))
 			/* This worker is not waiting for a task */
 			continue;
 #endif
@@ -413,7 +411,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 		{
 			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-			starpu_bitmap_unset(hp->waiters, worker);
+			starpu_bitmap_unset(&hp->waiters, worker);
 			/* We really woke at least somebody, no need to wake somebody else */
 			break;
 #else
@@ -455,7 +453,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 
-	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(hp->waiters, workerid))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_bitmap_get(&hp->waiters, workerid))
 	{
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
@@ -602,7 +600,7 @@ done:		;
 	if (!task)
 	{
 		/* Tell pushers that we are waiting for tasks_queue for us */
-		starpu_bitmap_set(hp->waiters, workerid);
+		starpu_bitmap_set(&hp->waiters, workerid);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 

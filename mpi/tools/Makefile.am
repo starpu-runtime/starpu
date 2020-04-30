@@ -29,14 +29,14 @@ CC=$(CC_OR_MPICC)
 CCLD=$(CC_OR_MPICC)
 
 if STARPU_USE_MPI
-LIBS += ../../mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
 endif
 
 bin_PROGRAMS = starpu_replay_mpi
 
 starpu_replay.c starpu_replay_sched.c:
-	$(LN_S) $(abs_srcdir)/../$(notdir $@) $@
+	$(LN_S) $(top_srcdir)/tools/$(notdir $@) $@
 
 starpu_replay_mpi_SOURCES = \
 	starpu_replay.c \

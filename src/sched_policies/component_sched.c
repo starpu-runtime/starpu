@@ -45,9 +45,9 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 
 
 	int workerid;
-	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
 	    workerid != -1;
-	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(&component->workers_in_ctx, workerid))
 	{
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -100,9 +100,9 @@ int starpu_sched_component_can_execute_task(struct starpu_sched_component * comp
 	unsigned nimpl;
 	int worker;
 	for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		for(worker = starpu_bitmap_first(component->workers_in_ctx);
+		for(worker = starpu_bitmap_first(&component->workers_in_ctx);
 		    -1 != worker;
-		    worker = starpu_bitmap_next(component->workers_in_ctx, worker))
+		    worker = starpu_bitmap_next(&component->workers_in_ctx, worker))
 			if (starpu_worker_can_execute_task(worker, task, nimpl)
 			     || starpu_combined_worker_can_execute_task(worker, task, nimpl))
 			    return 1;
@@ -115,21 +115,21 @@ int starpu_sched_component_can_execute_task(struct starpu_sched_component * comp
 double starpu_sched_component_transfer_length(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component && task);
-	int nworkers = starpu_bitmap_cardinal(component->workers_in_ctx);
+	int nworkers = starpu_bitmap_cardinal(&component->workers_in_ctx);
 	double sum = 0.0;
 	int worker;
 	if(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component))
 	{
-		unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(component->workers_in_ctx));
+		unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx));
 		if(task->bundle)
 			return starpu_task_bundle_expected_data_transfer_time(task->bundle,memory_node);
 		else
 			return starpu_task_expected_data_transfer_time(memory_node, task);
 	}
 
-	for(worker = starpu_bitmap_first(component->workers_in_ctx);
+	for(worker = starpu_bitmap_first(&component->workers_in_ctx);
 	    worker != -1;
-	    worker = starpu_bitmap_next(component->workers_in_ctx, worker))
+	    worker = starpu_bitmap_next(&component->workers_in_ctx, worker))
 	{
 		unsigned memory_node  = starpu_worker_get_memory_node(worker);
 		if(task->bundle)
@@ -156,7 +156,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 	if (starpu_get_prefetch_flag() && (!task->prefetched)
 		&& (component->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE))
 	{
-		int worker = starpu_bitmap_first(component->workers_in_ctx);
+		int worker = starpu_bitmap_first(&component->workers_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		starpu_prefetch_task_input_on_node(task, memory_node);
 		task->prefetched = 1;
@@ -195,8 +195,6 @@ void starpu_sched_component_destroy(struct starpu_sched_component *component)
 	free(component->children);
 	free(component->parents);
 	free(component->name);
-	starpu_bitmap_destroy(component->workers);
-	starpu_bitmap_destroy(component->workers_in_ctx);
 	free(component);
 }
 
@@ -223,7 +221,7 @@ void set_properties(struct starpu_sched_component * component)
 	STARPU_ASSERT(component);
 	component->properties = 0;
 
-	int worker = starpu_bitmap_first(component->workers_in_ctx);
+	int worker = starpu_bitmap_first(&component->workers_in_ctx);
 	if (worker == -1)
 		return;
 	if (starpu_worker_is_combined_worker(worker))
@@ -237,7 +235,7 @@ void set_properties(struct starpu_sched_component * component)
 	int is_all_same_component = 1;
 	for(;
 	    worker != -1;
-	    worker = starpu_bitmap_next(component->workers_in_ctx, worker))
+	    worker = starpu_bitmap_next(&component->workers_in_ctx, worker))
 	{
 		if(starpu_worker_is_combined_worker(worker))
 			continue;
@@ -262,12 +260,12 @@ void _starpu_sched_component_update_workers(struct starpu_sched_component * comp
 	STARPU_ASSERT(component);
 	if(starpu_sched_component_is_worker(component))
 		return;
-	starpu_bitmap_unset_all(component->workers);
+	starpu_bitmap_unset_all(&component->workers);
 	unsigned i;
 	for(i = 0; i < component->nchildren; i++)
 	{
 		_starpu_sched_component_update_workers(component->children[i]);
-		starpu_bitmap_or(component->workers, component->children[i]->workers);
+		starpu_bitmap_or(&component->workers, &component->children[i]->workers);
 	}
 	component->notify_change_workers(component);
 }
@@ -282,11 +280,11 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 	if(starpu_sched_component_is_worker(component))
 		return;
 	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
-	starpu_bitmap_unset_and(component->workers_in_ctx,component->workers, workers_in_ctx);
+	starpu_bitmap_unset_and(&component->workers_in_ctx,&component->workers, workers_in_ctx);
 	unsigned i,j;
 	for(i = starpu_worker_get_count(); i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		if (starpu_bitmap_get(component->workers, i))
+		if (starpu_bitmap_get(&component->workers, i))
 		{
 			/* Component has this combined worker, check whether the
 			 * context has all the corresponding workers */
@@ -297,7 +295,7 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 				if (!starpu_bitmap_get(workers_in_ctx, combined_workerid[j]))
 					goto nocombined;
 			/* We have all workers, add it */
-			starpu_bitmap_set(component->workers_in_ctx, i);
+			starpu_bitmap_set(&component->workers_in_ctx, i);
 		}
 nocombined:
 		(void)0;
@@ -324,7 +322,7 @@ struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_ASSERT(t);
-	return t->workers;
+	return &t->workers;
 }
 
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t)
@@ -442,7 +440,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
-		starpu_bitmap_set(t->workers, workerids[i]);
+		starpu_bitmap_set(&t->workers, workerids[i]);
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
@@ -461,7 +459,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
-		starpu_bitmap_unset(t->workers, workerids[i]);
+		starpu_bitmap_unset(&t->workers, workerids[i]);
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
@@ -478,7 +476,7 @@ struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
 	struct starpu_sched_tree *t;
 	_STARPU_CALLOC(t, 1, sizeof(*t));
 	t->sched_ctx_id = sched_ctx_id;
-	t->workers = starpu_bitmap_create();
+	starpu_bitmap_init(&t->workers);
 	STARPU_PTHREAD_MUTEX_INIT(&t->lock,NULL);
 	trees[sched_ctx_id] = t;
 	return t;
@@ -491,7 +489,6 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 	trees[tree->sched_ctx_id] = NULL;
 	if(tree->root)
 		starpu_sched_component_destroy_rec(tree->root);
-	starpu_bitmap_destroy(tree->workers);
 	STARPU_PTHREAD_MUTEX_DESTROY(&tree->lock);
 	free(tree);
 }
@@ -694,7 +691,7 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 	{
 		/* We don't know which workers will do this, assume it will be
 		 * evenly distributed to existing work */
-		int card = starpu_bitmap_cardinal(component->workers_in_ctx);
+		int card = starpu_bitmap_cardinal(&component->workers_in_ctx);
 		if (card == 0)
 			/* Oops, no resources to compute our tasks. Let's just hope that
 			 * we will be given one at some point */
@@ -732,8 +729,8 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	struct starpu_sched_component *component;
 	_STARPU_CALLOC(component, 1, sizeof(*component));
 	component->tree = tree;
-	component->workers = starpu_bitmap_create();
-	component->workers_in_ctx = starpu_bitmap_create();
+	starpu_bitmap_init(&component->workers);
+	starpu_bitmap_init(&component->workers_in_ctx);
 	component->add_child = starpu_sched_component_add_child;
 	component->remove_child = starpu_sched_component_remove_child;
 	component->add_parent = starpu_sched_component_add_parent;
