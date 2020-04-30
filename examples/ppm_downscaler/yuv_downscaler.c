@@ -141,14 +141,16 @@ int main(int argc, char **argv)
 
 	/* fetch input data */
 	FILE *f_in = fopen(filename_in, "r");
-	if (!f_in) {
+	if (!f_in)
+	{
 		fprintf(stderr, "couldn't open input file %s\n", filename_in);
 		exit(EXIT_FAILURE);
 	}
 
 	/* allocate room for an output buffer */
 	FILE *f_out = fopen(filename_out, "w+");
-	if (!f_out) {
+	if (!f_out)
+	{
 		fprintf(stderr, "couldn't open output file %s\n", filename_out);
 		exit(EXIT_FAILURE);
 	}

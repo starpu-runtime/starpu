@@ -1,0 +1,20 @@
+You first need to compile StarPU.jl
+Now, type
+> make
+> make test
+> gnuplot mult.plot
+
+During the test, several versions are compared:
+- mult.c: this is the original C+starpu code
+- mult_native.jl: this is the native julia way of multiplying 2 matrices. There is a call to openBLAS
+- mult_generatedc.jl: generates a C file, genc_matrix_mult.c. This file is compiled into a library, that is loaded and a function is executed.
+- mult_calllib.jl: the env variable JULIA_TASK_LIB should point to a library containing the function matrix_mult. This function is called.
+
+Examples of how to launch mult.jl are given in test rules.
+	 
+A CUDA version is generated too. Untested so far (no nvidia gpu on my laptop!)
+
+
+
+
+

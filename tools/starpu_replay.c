@@ -165,7 +165,8 @@ static void replay_data_register(starpu_data_handle_t *handleptr, starpu_data_ha
 	{
 		replay_interface_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
-	struct replay_interface interface = {
+	struct replay_interface interface =
+	{
 		.id = replay_interface_ops.interfaceid,
 		.orig_handle = orig_handle,
 		.size = size,
@@ -337,7 +338,8 @@ double arch_cost_function(struct starpu_task *task, struct starpu_perfmodel_arch
 /* End of settings */
 
 static unsigned long nexecuted_tasks;
-void dumb_kernel(void *buffers[], void *args) {
+void dumb_kernel(void *buffers[], void *args)
+{
 	(void) buffers;
 	(void) args;
 	nexecuted_tasks++;
@@ -429,9 +431,23 @@ static void arrays_managing(int mode)
 	{
 		_STARPU_MALLOC(handles_ptr, sizeof(*handles_ptr) * nb_parameters);
 		_STARPU_MALLOC(modes_ptr, sizeof(*modes_ptr) * nb_parameters);
-		_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char *));
+		_STARPU_CALLOC(reg_signal, nb_parameters, sizeof(char));
 
 	}
+}
+
+static unsigned count_number_tokens(const char* buffer, const char* delim)
+{
+	char* dup = strdup(buffer);
+	int result = 0;
+	char* token = strtok(dup, delim);
+	while(token != NULL)
+	{
+		++result;
+		token = strtok(NULL, delim); 
+	}
+	free(dup);
+	return result; 
 }
 
 /* Check if a handle hasn't been registered yet */
@@ -633,10 +649,6 @@ int submit_tasks(void)
 		else
 		{
 			fix_wontuse_handle(currentTask); /* Add the handle in the wontuse task */
-                        /* FIXME: can not actually work properly since we have
-                         * disabled sequential consistency, so we don't have any
-                         * easy way to make this wait for the last task that
-                         * wrote to the handle. */
 			if (currentTask->task.handles[0])
 				starpu_data_wont_use(currentTask->task.handles[0]);
 		}
@@ -662,8 +674,6 @@ static void usage(const char *program)
 
 int main(int argc, char **argv)
 {
-	starpu_data_set_default_sequential_consistency_flag(0);
-
 	FILE *rec;
 	char *s;
 	const char *tasks_rec = NULL;
@@ -672,6 +682,8 @@ int main(int argc, char **argv)
 	size_t s_allocated = 128;
 
 	unsigned long nread_tasks = 0;
+
+	/* FIXME: we do not support data with sequential consistency disabled */
 
 	_STARPU_MALLOC(s, s_allocated);
 	dependson_size = REPLAY_NMAX_DEPENDENCIES; /* Change the value of REPLAY_NMAX_DEPENCIES to modify the number of dependencies */
@@ -987,31 +999,24 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Parameters"))
 		{
-			/* Parameters line format is PARAM1 PARAM2 (...)PARAMi (...)PARAMn */
-			char * param_str = s + 12;
-			int count = 0;
-
-			for (i = 0 ; param_str[i] != '\n'; i++)
-			{
-				if (param_str[i] == ' ') /* Checking the number of ' ' (space), assuming that the file is not corrupted */
-				{
-					count++;
-				}
-			}
-
-			nb_parameters = count + 1; /* There is one space per paramater except for the last one, that's why we have to add +1 (dirty programming) */
-
-			/* This part of the algorithm will determine if it needs static or dynamic arrays */
-			alloc_mode = set_alloc_mode(nb_parameters);
-			arrays_managing(alloc_mode);
-
+			/* Nothing to do */
 		}
 		else if (TEST("Handles"))
 		{
+			*ln = 0; 
 			char *buffer = s + 9;
 			const char *delim = " ";
-			char *token = strtok(buffer, delim);
-
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
+			
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
+			
+			char* token = strtok(buffer, delim); 
 			for (i = 0 ; i < nb_parameters ; i++)
 			{
 				STARPU_ASSERT(token);
@@ -1038,10 +1043,21 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Modes"))
 		{
+			*ln = 0; 
 			char * buffer = s + 7;
 			unsigned mode_i = 0;
 			const char * delim = " ";
-			char * token = strtok(buffer, delim);
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
+			
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
+
+			char* token = strtok(buffer, delim); 
 
 			while (token != NULL && mode_i < nb_parameters)
 			{
@@ -1071,13 +1087,23 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Sizes"))
 		{
+			*ln = 0;
 			char *  buffer = s + 7;
 			const char * delim = " ";
-			char * token = strtok(buffer, delim);
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
 			unsigned k = 0;
+
+			if(nb_parameters == 0)
+			{
+				nb_parameters = nb_parameters_line; 
+				arrays_managing(set_alloc_mode(nb_parameters));
+			}
+			else
+				STARPU_ASSERT(nb_parameters == nb_parameters_line);
 
 			_STARPU_MALLOC(sizes_set, nb_parameters * sizeof(size_t));
 
+			char * token = strtok(buffer, delim);
 			while (token != NULL && k < nb_parameters)
 			{
 				sizes_set[k] = strtol(token, NULL, 10);

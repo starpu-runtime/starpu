@@ -402,7 +402,8 @@ void _starpu_enforce_data_deps_notify_job_ready_soon(struct _starpu_job *j, _sta
 {
 	unsigned buf;
 
-	if (j->task->cl) {
+	if (j->task->cl)
+	{
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 
 		for (buf = 0; buf < nbuffers; buf++)
@@ -415,7 +416,8 @@ void _starpu_enforce_data_deps_notify_job_ready_soon(struct _starpu_job *j, _sta
 
 		/* We need to check data availability only if sequential consistency
 		 * dependencies have not been used */
-		if (!j->sequential_consistency) {
+		if (!j->sequential_consistency)
+		{
 			for (buf = 0; buf < nbuffers; buf++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, buf);

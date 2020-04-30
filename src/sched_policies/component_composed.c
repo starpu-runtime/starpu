@@ -168,16 +168,16 @@ static void composed_component_remove_child(struct starpu_sched_component * comp
 static void composed_component_notify_change_workers(struct starpu_sched_component * component)
 {
 	struct composed_component * c = component->data;
-	struct starpu_bitmap * workers = component->workers;
-	struct starpu_bitmap * workers_in_ctx = component->workers_in_ctx;
+	struct starpu_bitmap * workers = &component->workers;
+	struct starpu_bitmap * workers_in_ctx = &component->workers_in_ctx;
 	struct starpu_sched_component * n;
 	for(n = c->top; ;n = n->children[0])
 	{
-		starpu_bitmap_unset_all(n->workers);
-		starpu_bitmap_or(n->workers, workers);
+		starpu_bitmap_unset_all(&n->workers);
+		starpu_bitmap_or(&n->workers, workers);
 
-		starpu_bitmap_unset_all(n->workers_in_ctx);
-		starpu_bitmap_or(n->workers_in_ctx, workers_in_ctx);
+		starpu_bitmap_unset_all(&n->workers_in_ctx);
+		starpu_bitmap_or(&n->workers_in_ctx, workers_in_ctx);
 
 		n->properties = component->properties;
 		if(n == c->bottom)
@@ -195,7 +195,6 @@ void composed_component_deinit_data(struct starpu_sched_component * _component)
 	do
 	{
 		component = next;
-		component->workers = NULL;
 		next = component->children ? component->children[0] : NULL;
 		starpu_sched_component_destroy(component);
 	}

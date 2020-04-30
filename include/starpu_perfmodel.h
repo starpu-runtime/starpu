@@ -165,6 +165,7 @@ struct starpu_perfmodel_per_arch
 enum starpu_perfmodel_type
 {
         STARPU_PERFMODEL_INVALID=0,
+	STARPU_PER_WORKER,                /**< Application-provided per-worker cost model function */
 	STARPU_PER_ARCH,                  /**< Application-provided per-arch cost model function */
 	STARPU_COMMON,                    /**< Application-provided common cost model function, with per-arch factor */
 	STARPU_HISTORY_BASED,             /**< Automatic history-based cost model */
@@ -226,11 +227,17 @@ struct starpu_perfmodel
 	*/
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 	/**
-	   Used by ::STARPU_COMMON. Take a task, an arch and implementation
+	   Used by ::STARPU_PER_ARCH. Take a task, an arch and implementation
 	   number, and must return a task duration estimation in
 	   micro-seconds on that arch.
 	*/
 	double (*arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch * arch, unsigned nimpl);
+	/**
+	   Used by ::STARPU_PER_WORKER. Take a task, a worker id and implementation
+	   number, and must return a task duration estimation in
+	   micro-seconds on that worker.
+	*/
+	double (*worker_cost_function)(struct starpu_task *, unsigned workerid, unsigned nimpl);
 
 	/**
 	   Used by ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED and

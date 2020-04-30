@@ -129,12 +129,13 @@ int main(int argc, char **argv)
 	starpu_data_unregister(tmp);
 	starpu_data_unregister(tmp2);
 
-skip:
+	if (rank == 0)
+		STARPU_ASSERT_MSG(val0 == 24, "[rank 0] %d should be %d\n", val0, 24);
+	if (rank == 1)
+		STARPU_ASSERT_MSG(val1 == 24, "[rank 1] %d should be %d\n", val1, 24);
+
+ skip:
 	starpu_mpi_shutdown();
 
-	if (rank == 0)
-		STARPU_ASSERT_MSG(val0 == 24, "%d should be %d\n", val0, 16 * size);
-	if (rank == 1)
-		STARPU_ASSERT_MSG(val1 == 24, "%d should be %d\n", val0, 16 * size);
 	return 0;
 }

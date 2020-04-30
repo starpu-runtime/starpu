@@ -199,8 +199,6 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	if (task->name)
 	{
 		fprintf(tasks_file, "Name: %s\n", task->name);
-		if (!task->model_name)
-			fprintf(tasks_file, "Model: %s\n", task->name);
 		free(task->name);
 	}
 	if (task->model_name)
@@ -343,7 +341,8 @@ static void handle_papi_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	long long int value = ev->param[2];
 	//char *prefix = options->file_prefix;
 
-	if (papi_file){
+	if (papi_file)
+	{
 		char event_str[PAPI_MAX_STR_LEN];
 		PAPI_event_code_to_name(event_code, event_str);
 		fprintf(papi_file, "JobId: %lu\n", task);
@@ -1195,8 +1194,8 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
  */
 static int create_ordered_stream_id (int nodeid, int devid)
 {
-	static int stable[STARPU_MAXNODES][STARPU_MAXCUDADEVS];
-	STARPU_ASSERT(nodeid < STARPU_MAXNODES);
+	static int stable[MAX_MPI_NODES][STARPU_MAXCUDADEVS];
+	STARPU_ASSERT(nodeid < MAX_MPI_NODES);
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 	return stable[nodeid][devid]++;
 }
@@ -1700,10 +1699,10 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[0];
 
-		/* Paje won't like spaces, replace with underscores */
+		/* Paje won't like spaces or tabs, replace with underscores */
 		char *c;
 		for (c = parameters; *c; c++)
-			if (*c == ' ')
+			if ((*c == ' ') || (*c == '\t'))
 				*c = '_';
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], options);
@@ -2470,47 +2469,55 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
-static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
 	unsigned memnode = ev->param[0];
-       unsigned size = ev->param[2];
-       unsigned long handle = ev->param[3];
+	unsigned size = ev->param[2];
+	unsigned long handle = ev->param[3];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, size, memnode, options);
 }
 
-static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
-       unsigned memnode = ev->param[0];
-       unsigned dest = ev->param[1];
-       if(strcmp(eventstr, "rc")==0){
-               //If it is a Request Create, use dest normally
-       }else{
-               dest = memnode;
-       }
-       unsigned size = ev->param[2];
-       unsigned long handle = ev->param[3];
-       unsigned prefe = ev->param[4];
+static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
+	unsigned memnode = ev->param[0];
+	unsigned dest = ev->param[1];
+	if(strcmp(eventstr, "rc")==0)
+	{
+		//If it is a Request Create, use dest normally
+	}
+	else
+	{
+		dest = memnode;
+	}
+	unsigned size = ev->param[2];
+	unsigned long handle = ev->param[3];
+	unsigned prefe = ev->param[4];
 
-       memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, prefe, size, dest, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, prefe, size, dest, options);
 }
 
-static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
 	unsigned memnode = ev->param[0];
-       unsigned long handle = ev->param[2];
-       unsigned info = ev->param[3];
+	unsigned long handle = ev->param[2];
+	unsigned info = ev->param[3];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, info, 0, memnode, options);
 }
 
-static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
 	unsigned memnode = ev->param[0];
-       unsigned long handle = ev->param[2];
+	unsigned long handle = ev->param[2];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
 }
 
-static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr){
+static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
 	unsigned memnode = ev->param[0];
-       unsigned long handle = ev->param[2];
+	unsigned long handle = ev->param[2];
 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
 }

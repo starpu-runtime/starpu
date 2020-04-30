@@ -212,6 +212,12 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 				}
 				coop_sends = mpi_data->coop_sends;
 				_STARPU_MPI_DEBUG(0, "%p: add to cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
+
+				/* Get the pre_sync_jobid of the first send request, to build a coherent DAG in the traces: */
+				struct _starpu_mpi_req *firstreq;
+				firstreq = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
+				req->pre_sync_jobid = firstreq->pre_sync_jobid;
+
 				_starpu_mpi_req_multilist_push_back_coop_sends(&coop_sends->reqs, req);
 				coop_sends->n++;
 				req->coop_sends_head = coop_sends;
@@ -221,7 +227,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 			else
 			{
 				/* Nope, incompatible, put ours instead */
-				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
+				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p for tag %"PRIi64", dest %d\n", data_handle, coop_sends, req->node_tag.data_tag, req->node_tag.node.rank);
 				mpi_data->coop_sends = coop_sends;
 				first = 1;
 				_starpu_spin_unlock(&mpi_data->coop_lock);
@@ -233,7 +239,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 		else if (coop_sends)
 		{
 			/* Nobody else and we have allocated one, we're first! */
-			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p, dest %d\n", data_handle, coop_sends, req->node_tag.node.rank);
+			_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p for tag %"PRIi64", dest %d\n", data_handle, coop_sends, req->node_tag.data_tag, req->node_tag.node.rank);
 			mpi_data->coop_sends = coop_sends;
 			first = 1;
 			done = 1;

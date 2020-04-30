@@ -92,7 +92,8 @@ int main(void)
 
 	unsigned iter, worker, n;
 	n = N;
-	if (STARPU_RUNNING_ON_VALGRIND) {
+	if (STARPU_RUNNING_ON_VALGRIND)
+	{
 		n /= 300;
 	}
 	for (iter = 0; iter < n; iter++)

@@ -135,7 +135,9 @@ static void wake_up_and_unlock_task(struct starpu_omp_task *task)
 		weak_task_unlock(task);
 		int ret = starpu_task_submit(task->starpu_task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	} else {
+	}
+	else
+	{
 		weak_task_unlock(task);
 	}
 }
@@ -379,36 +381,37 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
-   /* XXX on work */
-   if (task->is_loop) {
-      starpu_omp_for_inline_first_alt(task->nb_iterations, task->chunk, starpu_omp_sched_static, 1, &task->begin_i, &task->end_i);
-   }
-   if (starpu_worker->arch == STARPU_CPU_WORKER)
-   {
-      task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
-   }
+	/* XXX on work */
+	if (task->is_loop)
+	{
+		starpu_omp_for_inline_first_alt(task->nb_iterations, task->chunk, starpu_omp_sched_static, 1, &task->begin_i, &task->end_i);
+	}
+	if (starpu_worker->arch == STARPU_CPU_WORKER)
+	{
+		task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
 #ifdef STARPU_USE_CUDA
-   else if (starpu_worker->arch == STARPU_CUDA_WORKER)
-   {
-      task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
-   }
+	else if (starpu_worker->arch == STARPU_CUDA_WORKER)
+	{
+		task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
 #endif
 #ifdef STARPU_USE_OPENCL
-   else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
-   {
-      task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
-   }
+	else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
+	{
+		task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
 #endif
-   else
-      _STARPU_ERROR("invalid worker architecture");
-   /**/
+	else
+		_STARPU_ERROR("invalid worker architecture");
+	/**/
 	_starpu_omp_unregister_task_handles(task);
 	_starpu_spin_lock(&task->lock);
 	task->state = starpu_omp_task_state_terminated;
 	task->transaction_pending=1;
 	_starpu_spin_unlock(&task->lock);
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
-	/* 
+	/*
 	 * the task reached the terminated state, definitively give hand back to the worker code.
 	 *
 	 * about to run on the worker stack...
@@ -428,7 +431,7 @@ static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 		_starpu_omp_unregister_region_handles(task->owner_region);
 	}
 	task->state = starpu_omp_task_state_terminated;
-	/* 
+	/*
 	 * the task reached the terminated state, definitively give hand back to the worker code.
 	 *
 	 * about to run on the worker stack...
@@ -447,7 +450,7 @@ static void starpu_omp_task_preempt(void)
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
 	task->state = starpu_omp_task_state_preempted;
 
-	/* 
+	/*
 	 * the task reached a blocked state, give hand back to the worker code.
 	 *
 	 * about to run on the worker stack...
@@ -486,7 +489,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 
 	task->state = starpu_omp_task_state_clear;
 
-	/* 
+	/*
 	 * start the task execution, or restore a previously preempted task.
 	 * about to run on the task stack...
 	 * */
@@ -655,7 +658,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 	}
 	task->state = starpu_omp_task_state_clear;
 
-	/* 
+	/*
 	 * start the task execution, or restore a previously preempted task.
 	 * about to run on the task stack...
 	 * */
@@ -694,11 +697,11 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 		task->flags |= STARPU_OMP_TASK_FLAGS_IMPLICIT;
 	}
 	_starpu_spin_init(&task->lock);
-	/* TODO: initialize task->data_env_icvs with proper values */ 
+	/* TODO: initialize task->data_env_icvs with proper values */
 	memset(&task->data_env_icvs, 0, sizeof(task->data_env_icvs));
 	if (is_implicit)
 	{
-	  /* TODO: initialize task->implicit_task_icvs with proper values */ 
+	  /* TODO: initialize task->implicit_task_icvs with proper values */
 		memset(&task->implicit_task_icvs, 0, sizeof(task->implicit_task_icvs));
 	}
 
@@ -1037,7 +1040,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	struct starpu_omp_region *generating_region = task->owner_region;
 	const int max_active_levels = generating_region->owner_device->icvs.max_active_levels_var;
-	struct starpu_omp_region *new_region = 
+	struct starpu_omp_region *new_region =
 		create_omp_region_struct(generating_region, _global_state.initial_device);
 	int ret;
 	int nb_threads = 1;
@@ -1166,7 +1169,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	}
 	STARPU_ASSERT(new_region->nb_threads == nb_threads);
 
-	/* 
+	/*
 	 * if task == initial_task, create a starpu task as a continuation to all the implicit
 	 * tasks of the new region, else prepare the task for preemption,
 	 * to become itself a continuation to the implicit tasks of the new region
@@ -1194,7 +1197,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	 * create the starpu tasks for the implicit omp tasks,
 	 * create explicit dependencies between these starpu tasks and the continuation starpu task
 	 */
-	for (i = 0; i < nb_threads; i++) 
+	for (i = 0; i < nb_threads; i++)
 	{
 		struct starpu_omp_task * implicit_task = new_region->implicit_task_array[i];
 		implicit_task->cl = attr->cl;
@@ -1234,7 +1237,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	/*
 	 * submit all the region implicit starpu tasks
 	 */
-	for (i = 0; i < nb_threads; i++) 
+	for (i = 0; i < nb_threads; i++)
 	{
 		struct starpu_omp_task * implicit_task = new_region->implicit_task_array[i];
 		ret = starpu_task_submit(implicit_task->starpu_task);
@@ -1292,7 +1295,7 @@ static void wake_up_barrier(struct starpu_omp_region *parallel_region)
 {
 	struct starpu_omp_task *task = _starpu_omp_get_task();
 	int i;
-	for (i = 0; i < parallel_region->nb_threads; i++) 
+	for (i = 0; i < parallel_region->nb_threads; i++)
 	{
 		struct starpu_omp_task * implicit_task = parallel_region->implicit_task_array[i];
 		if (implicit_task == task)
@@ -1343,7 +1346,7 @@ void starpu_omp_barrier(void)
 	{
 		ANNOTATE_HAPPENS_BEFORE(&parallel_region->barrier_count);
 		/* not the last task reaching the barrier
-		 * . prepare for conditional continuation 
+		 * . prepare for conditional continuation
 		 * . sleep
 		 */
 
@@ -1826,40 +1829,46 @@ void starpu_omp_taskgroup_inline_end(void)
 // XXX on work
 void starpu_omp_taskloop_inline_begin(struct starpu_omp_task_region_attr *attr)
 {
-   if (!attr->nogroup_clause)
-   {
-      starpu_omp_taskgroup_inline_begin();
-   }
+	if (!attr->nogroup_clause)
+	{
+		starpu_omp_taskgroup_inline_begin();
+	}
 
-   int nb_subloop;
-   if (attr->num_tasks) {
-      nb_subloop = attr->num_tasks;
-   } else if (attr->grainsize) {
-      nb_subloop = attr->nb_iterations / attr->grainsize;
-   } else {
-      nb_subloop = 4;
-   }
+	int nb_subloop;
+	if (attr->num_tasks)
+	{
+		nb_subloop = attr->num_tasks;
+	}
+	else if (attr->grainsize)
+	{
+		nb_subloop = attr->nb_iterations / attr->grainsize;
+	}
+	else
+	{
+		nb_subloop = 4;
+	}
 
-   attr->is_loop = 1;
+	attr->is_loop = 1;
 
-   int i;
-   int nb_iter_i = attr->nb_iterations / nb_subloop;
-   for (i = 0; i < nb_subloop; i++)
-   {
-      attr->begin_i = nb_iter_i * i;
-      attr->end_i = attr->begin_i + nb_iter_i;
-      attr->end_i += (i+1 != nb_subloop) ? 0 : (attr->nb_iterations % nb_subloop);
-      attr->chunk = attr->end_i - attr->begin_i;
-      starpu_omp_task_region(attr);
-   }
+	int i;
+	int nb_iter_i = attr->nb_iterations / nb_subloop;
+	for (i = 0; i < nb_subloop; i++)
+	{
+		attr->begin_i = nb_iter_i * i;
+		attr->end_i = attr->begin_i + nb_iter_i;
+		attr->end_i += (i+1 != nb_subloop) ? 0 : (attr->nb_iterations % nb_subloop);
+		attr->chunk = attr->end_i - attr->begin_i;
+		starpu_omp_task_region(attr);
+	}
 }
 
 // XXX on work
 void starpu_omp_taskloop_inline_end(const struct starpu_omp_task_region_attr *attr)
 {
-   if (!attr->nogroup_clause) {
-      starpu_omp_taskgroup_inline_end();
-   }
+	if (!attr->nogroup_clause)
+	{
+		starpu_omp_taskgroup_inline_end();
+	}
 }
 
 static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
@@ -2170,7 +2179,7 @@ void starpu_omp_ordered_inline_end(void)
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
 
-	loop->ordered_iteration++;	
+	loop->ordered_iteration++;
 	condition_broadcast(&loop->ordered_cond, starpu_omp_task_wait_on_ordered);
 	_starpu_spin_unlock(&loop->ordered_lock);
 }

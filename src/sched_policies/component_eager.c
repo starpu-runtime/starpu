@@ -35,9 +35,9 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	{
 		/* target told us we could push to it, try to */
 		int idworker;
-		for(idworker = starpu_bitmap_first(target->workers);
+		for(idworker = starpu_bitmap_first(&target->workers);
 			idworker != -1;
-			idworker = starpu_bitmap_next(target->workers, idworker))
+			idworker = starpu_bitmap_next(&target->workers, idworker))
 		{
 			int nimpl;
 			for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -55,9 +55,9 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 
 	/* FIXME: should rather just loop over children before looping over its workers */
 	int workerid;
-	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
 	    workerid != -1;
-	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(&component->workers_in_ctx, workerid))
 	{
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -70,9 +70,9 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 				for (i = 0; i < component->nchildren; i++)
 				{
 					int idworker;
-					for(idworker = starpu_bitmap_first(component->children[i]->workers);
+					for(idworker = starpu_bitmap_first(&component->children[i]->workers);
 						idworker != -1;
-						idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
+						idworker = starpu_bitmap_next(&component->children[i]->workers, idworker))
 					{
 						if (idworker == workerid)
 						{

@@ -149,7 +149,8 @@ struct _starpu_worker_component_data
 	union
 	{
 		struct _starpu_worker * worker;
-		struct {
+		struct
+		{
 			unsigned worker_size;
 			unsigned workerids[STARPU_NMAXWORKERS];
 		} parallel_worker;
@@ -407,7 +408,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	t->task = task;
 	t->ntasks = 1;
 
-	task->workerid = starpu_bitmap_first(component->workers);
+	task->workerid = starpu_bitmap_first(&component->workers);
 #if 1 /* dead lock problem? */
 	if (starpu_get_prefetch_flag() && !task->prefetched)
 		starpu_prefetch_task_input_for(task, task->workerid);
@@ -521,7 +522,7 @@ static double simple_worker_estimated_load(struct starpu_sched_component * compo
 	int ntasks_in_fifo = l ? l->ntasks : 0;
 	return (double) (nb_task + ntasks_in_fifo)
 		/ starpu_worker_get_relative_speedup(
-				starpu_worker_get_perf_archtype(starpu_bitmap_first(component->workers), component->tree->sched_ctx_id));
+				starpu_worker_get_perf_archtype(starpu_bitmap_first(&component->workers), component->tree->sched_ctx_id));
 }
 
 static void _worker_component_deinit_data(struct starpu_sched_component * component)
@@ -566,8 +567,8 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	component->estimated_end = simple_worker_estimated_end;
 	component->estimated_load = simple_worker_estimated_load;
 	component->deinit_data = _worker_component_deinit_data;
-	starpu_bitmap_set(component->workers, workerid);
-	starpu_bitmap_or(component->workers_in_ctx, component->workers);
+	starpu_bitmap_set(&component->workers, workerid);
+	starpu_bitmap_or(&component->workers_in_ctx, &component->workers);
 	_worker_components[tree->sched_ctx_id][workerid] = component;
 
 	/*
@@ -615,7 +616,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	struct _starpu_worker_component_data * data = component->data;
 	STARPU_ASSERT(data->parallel_worker.worker_size >= 1);
 	struct _starpu_task_grid * task_alias[data->parallel_worker.worker_size];
-	starpu_parallel_task_barrier_init(task, starpu_bitmap_first(component->workers));
+	starpu_parallel_task_barrier_init(task, starpu_bitmap_first(&component->workers));
 	task_alias[0] = _starpu_task_grid_create();
 	task_alias[0]->task = starpu_task_dup(task);
 	task_alias[0]->task->workerid = data->parallel_worker.workerids[0];
@@ -749,8 +750,8 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 
 	struct starpu_sched_component *component = starpu_sched_component_parallel_worker_create(tree, combined_worker->worker_size, (unsigned *) combined_worker->combined_workerid);
 
-	starpu_bitmap_set(component->workers, workerid);
-	starpu_bitmap_or(component->workers_in_ctx, component->workers);
+	starpu_bitmap_set(&component->workers, workerid);
+	starpu_bitmap_or(&component->workers_in_ctx, &component->workers);
 
 	_worker_components[tree->sched_ctx_id][workerid] = component;
 
@@ -802,8 +803,8 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 #ifndef STARPU_NO_ASSERT
 	STARPU_ASSERT(_worker_consistant(worker_component));
 #endif
-	STARPU_ASSERT(1 == starpu_bitmap_cardinal(worker_component->workers));
-	return starpu_bitmap_first(worker_component->workers);
+	STARPU_ASSERT(1 == starpu_bitmap_cardinal(&worker_component->workers));
+	return starpu_bitmap_first(&worker_component->workers);
 }
 
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
