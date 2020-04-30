@@ -5,9 +5,6 @@ using LinearAlgebra
 #shoud be the same as in the makefile
 const STRIDE = 72
 
-@debugprint "starpu_init"
-starpu_init()
-
 function multiply_without_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy)
     tmin = 0
     for i in (1 : 10 )
@@ -39,6 +36,4 @@ end
 io=open(ARGS[1],"w")
 compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
 close(io)
-@debugprint "starpu_shutdown"
-starpu_shutdown()
 

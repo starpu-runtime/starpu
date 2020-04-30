@@ -1,33 +1,27 @@
-import Libdl
-using StarPU
 using LinearAlgebra
 
-@target STARPU_CPU+STARPU_CUDA
-@codelet function mandelbrot(pixels ::Matrix{Int64}, params ::Matrix{Float32} ) :: Float32
-    height :: Int64 = height(pixels)
-    width :: Int64 = width(pixels)
+function mandelbrot(pixels, centerr ::Float64, centeri ::Float64, offset ::Int64, dim ::Int64) :: Nothing
+    height :: Int64, width :: Int64 = size(pixels)
     zoom :: Float64 = width * 0.25296875
     iz :: Float64 = 1. / zoom
     diverge :: Float32 = 4.0
     max_iterations :: Float32 = ((width/2) * 0.049715909 * log10(zoom));
-    imi :: Float32 = 1. / max_iterations
-    centerr :: Float32 = params[1,1]
-    centeri :: Float32 = params[2,1]
-    offset :: Float32 = params[3,1]
-    dim :: Float32 = params[4,1]
+    imi :: Float64 = 1. / max_iterations
     cr :: Float64 = 0.
     zr :: Float64 = 0.
     ci :: Float64 = 0.
     zi :: Float64 = 0.
     n :: Int64 = 0
     tmp :: Float64 = 0.
-    @parallel for y = 1:height
+    for y = 1:height
         for x = 1:width
             cr = centerr + (x-1 - (dim / 2)) * iz
             zr = cr
             ci = centeri + (y-1+offset - (dim / 2)) * iz
             zi = ci
-            for n = 0:max_iterations
+            n = 0
+            for i = 0:max_iterations
+                n = i
                 if (zr*zr + zi*zi > diverge)
                     break
                 end
@@ -35,7 +29,7 @@ using LinearAlgebra
                 zi = 2*zr*zi + ci
                 zr = tmp
             end
-            
+
             if (n < max_iterations)
                 pixels[y,x] = round(15 * n * imi)
             else
@@ -43,22 +37,21 @@ using LinearAlgebra
             end
         end
     end
-    return 0. :: Float32
+
+    return
 end
 
-@debugprint "starpu_init"
-starpu_init()
+function mandelbrot_without_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, dim ::Int64, nslicesx ::Int64)
+    width,height = size(A)
+    step = height / nslicesx
 
-function mandelbrot_with_starpu(A ::Matrix{Int64}, params ::Matrix{Float32}, nslicesx ::Int64)
-    horiz = StarpuDataFilter(STARPU_MATRIX_FILTER_BLOCK, nslicesx)
-    @starpu_block let
-	hA, hP = starpu_data_register(A,params)
-	starpu_data_partition(hA,horiz)
-        starpu_data_partition(hP,horiz)
-        
-	@starpu_sync_tasks for taskx in (1 : nslicesx)
-                @starpu_async_cl mandelbrot(hA[taskx], hP[taskx]) [STARPU_W, STARPU_R]
-	end
+    for taskx in (1 : nslicesx)
+        start_id = floor(Int64, (taskx-1)*step+1)
+        end_id = floor(Int64, (taskx-1)*step+step)
+        a = view(A, start_id:end_id, :)
+
+        offset ::Int64 = (taskx-1)*dim/nslicesx
+        mandelbrot(a, cr, ci, offset, dim)
     end
 end
 
@@ -77,18 +70,11 @@ end
 
 function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
     tmin=0;
-    
+
     pixels ::Matrix{Int64} = zeros(dim, dim)
-    params :: Matrix{Float32} = zeros(4*nslices,1)
-    for i=0:(nslices-1)
-        params[4*i+1,1] = cr
-        params[4*i+2,1] = ci
-        params[4*i+3,1] = i*dim/nslices
-        params[4*i+4,1] = dim
-    end
     for i = 1:10
         t = time_ns();
-        mandelbrot_with_starpu(pixels, params, nslices)
+        mandelbrot_without_starpu(pixels, cr, ci, dim, nslices)
         t = time_ns()-t
         if (tmin==0 || tmin>t)
             tmin=t
@@ -108,7 +94,3 @@ end
 
 
 display_time(-0.800671,-0.158392,32,32,4096,4)
-
-@debugprint "starpu_shutdown"
-starpu_shutdown()
-

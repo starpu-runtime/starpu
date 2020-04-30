@@ -1,3 +1,14 @@
+global starpu_type_traduction_dict = Dict(
+    Int32 => "int32_t",
+    UInt32 => "uint32_t",
+    Float32 => "float",
+    Int64 => "int64_t",
+    UInt64 => "uint64_t",
+    Float64 => "double",
+    Nothing => "void"
+)
+export starpu_type_traduction_dict
+
 
 #======================================================
                 AFFECTATION
@@ -411,6 +422,10 @@ end
 function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
 
     print_newline(io, indent)
+    print(io, "{")
+    indent += starpu_indent_size
+    print_newline(io, indent)
+
     print(io, StarpuExprBlock(x.set_declarations), indent = indent)
 
     id = x.set.id
@@ -438,12 +453,20 @@ function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
 
     print_newline(io, indent)
     print(io, "{")
-    print_newline(io, indent + starpu_indent_size)
-    print(io, x.body, indent = indent + starpu_indent_size)
+    indent += starpu_indent_size
+
+    print_newline(io, indent)
+    print(io, x.body, indent = indent)
+
+    indent -= starpu_indent_size
     print_newline(io, indent)
     print(io, "}")
-    print_newline(io, indent)
 
+    indent -= starpu_indent_size
+    print_newline(io, indent)
+    print(io, "}")
+
+    print_newline(io, indent)
 end
 
 
@@ -840,22 +863,6 @@ function starpu_parse_typed(x :: Expr)
 
     return StarpuExprTypedExpr(expr, typ)
 end
-
-
-
-
-
-starpu_type_traduction_dict = Dict(
-    Int32 => "int32_t",
-    UInt32 => "uint32_t",
-    Float32 => "float",
-    Int64 => "int64_t",
-    UInt64 => "uint64_t",
-    Float64 => "double",
-    Nothing => "void"
-)
-
-
 
 function starpu_type_traduction(x)
     if x <: Array

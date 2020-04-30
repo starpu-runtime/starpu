@@ -334,7 +334,7 @@ static void parse_args(int argc, char **argv)
 		}
 		else
 		{
-			fprintf(stderr,"Unrecognized option %s", argv[i]);
+			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
 			exit(EXIT_FAILURE);
 		}
 	}

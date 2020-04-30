@@ -69,14 +69,14 @@ struct starpu_sched_component
 	/** The tree containing the component*/
 	struct starpu_sched_tree *tree;
 	/** set of underlying workers */
-	struct starpu_bitmap *workers;
+	struct starpu_bitmap workers;
 	/**
 	   subset of starpu_sched_component::workers that is currently available in the context
 	   The push method should take this value into account, it is set with:
 	   component->workers UNION tree->workers UNION
 	   component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
 	*/
-	struct starpu_bitmap *workers_in_ctx;
+	struct starpu_bitmap workers_in_ctx;
 	/** private data */
 	void *data;
 	char *name;
@@ -188,7 +188,7 @@ struct starpu_sched_tree
 	/**
 	   set of workers available in this context, this value is used to mask workers in modules
 	*/
-	struct starpu_bitmap *workers;
+	struct starpu_bitmap workers;
 	/**
 	   context id of the scheduler
 	*/

@@ -344,6 +344,8 @@ void schedRecInit(const char * filename)
 	}
 
 	fclose(f);
+
+	free(s);
 }
 
 static void do_prefetch(void *arg)

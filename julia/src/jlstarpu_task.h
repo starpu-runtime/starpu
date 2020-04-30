@@ -30,6 +30,8 @@ struct jlstarpu_codelet
 {
 	uint32_t where;
 
+  	uint32_t color;
+
 	starpu_cpu_func_t cpu_func;
 	char * cpu_func_name;
 

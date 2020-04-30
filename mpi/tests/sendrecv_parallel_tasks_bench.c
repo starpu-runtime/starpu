@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 /*
  * sendrecv benchmark from different tasks, executed simultaneously on serveral
  * workers.
@@ -21,6 +22,13 @@
  * The goal is to measure impact of calls to starpu_mpi_* from different threads.
  *
  * Use STARPU_NCPU to set the number of parallel ping pongs
+ *
+ *
+ * Note: This currently can not work with the MPI backend with more than 1 CPU,
+ * since with big sizes, the MPI_Wait call in the MPI thread may block waiting
+ * for the peer to call MPI_Recv+Wait, and there is no guarantee that the peer
+ * will call MPI_Recv+Wait for the same data since tasks can proceed in any
+ * order.
  */
 
 #include <starpu_mpi.h>
@@ -112,6 +120,8 @@ void cpu_task(void* descr[], void* args)
 			current_worker, (long long) s, min_lat, bw_million_byte, bw_mbyte, d1_lat, med_lat, avg_lat, d9_lat, max_lat);
 		fflush(stdout);
 	}
+
+	free(lats);
 }
 
 static struct starpu_codelet cl =

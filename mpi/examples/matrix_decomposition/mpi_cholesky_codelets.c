@@ -115,6 +115,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		}
 	}
 
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	start = starpu_timing_now();
 
@@ -159,9 +160,9 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		starpu_iteration_pop();
 	}
 
-	starpu_task_wait_for_all();
-
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
+
 	end = starpu_timing_now();
 
 	for (m = 0; m < nblocks; m++)

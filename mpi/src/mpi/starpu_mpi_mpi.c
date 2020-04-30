@@ -51,7 +51,10 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
+#endif
+
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #ifdef STARPU_MPI_VERBOSE
@@ -96,7 +99,7 @@ starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static starpu_pthread_mutex_t mutex_ready_requests;
-static int posted_requests = 0, ready_requests = 0, newer_requests, barrier_running = 0;
+static int posted_requests = 0, ready_requests = 0, newer_requests, mpi_wait_for_all_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
 #define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
@@ -761,33 +764,6 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 int _starpu_mpi_barrier(MPI_Comm comm)
 {
 	struct _starpu_mpi_req *barrier_req;
-	int ret = posted_requests+ready_requests;
-
-	_STARPU_MPI_LOG_IN();
-
-	/* First wait for *both* all tasks and MPI requests to finish, in case
-	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
-	 */
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-	STARPU_MPI_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
-	barrier_running = 1;
-	do
-	{
-		while (posted_requests || ready_requests)
-			/* Wait for all current MPI requests to finish */
-			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
-		/* No current request, clear flag */
-		newer_requests = 0;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-		/* Now wait for all tasks */
-		starpu_task_wait_for_all();
-		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-		/* Check newer_requests again, in case some MPI requests
-		 * triggered by tasks completed and triggered tasks between
-		 * wait_for_all finished and we take the lock */
-	} while (posted_requests || ready_requests || newer_requests);
-	barrier_running = 0;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	/* Initialize the request structure */
 	_starpu_mpi_request_init(&barrier_req);
@@ -808,7 +784,38 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	_starpu_mpi_request_destroy(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 
-	return ret;
+	return 0;
+}
+
+int _starpu_mpi_wait_for_all(MPI_Comm comm)
+{
+	(void) comm;
+	_STARPU_MPI_LOG_IN();
+
+	/* First wait for *both* all tasks and MPI requests to finish, in case
+	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
+	 */
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_MPI_ASSERT_MSG(!mpi_wait_for_all_running, "Concurrent starpu_mpi_wait_for_all is not implemented, even on different communicators");
+	mpi_wait_for_all_running = 1;
+	do
+	{
+		while (posted_requests || ready_requests)
+			/* Wait for all current MPI requests to finish */
+			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
+		/* No current request, clear flag */
+		newer_requests = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+		/* Now wait for all tasks */
+		starpu_task_wait_for_all();
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+		/* Check newer_requests again, in case some MPI requests
+		 * triggered by tasks completed and triggered tasks between
+		 * wait_for_all finished and we take the lock */
+	} while (posted_requests || ready_requests || newer_requests);
+	mpi_wait_for_all_running = 0;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	return 0;
 }
 
 /********************************************************/
@@ -1169,6 +1176,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	starpu_pthread_setname("MPI");
 
+	_starpu_mpi_env_init();
+
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
@@ -1185,11 +1194,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
-#endif
-
-	_starpu_mpi_env_init();
-
-#ifdef STARPU_SIMGRID
+#else
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
 	char **argv_cpy;
 	_STARPU_MPI_MALLOC(argv_cpy, *(argc_argv->argc) * sizeof(char*));
@@ -1269,7 +1274,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
-			if (barrier_running)
+			if (mpi_wait_for_all_running)
 				/* Tell mpi_barrier */
 				STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
 			STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
@@ -1528,9 +1533,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	int ret;
@@ -1559,8 +1564,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-#endif
 }
+#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {

@@ -6,40 +6,52 @@ STRIDE=72
 #CFLAGS=-restrict -unroll4 -ipo -falign-loops=256 -O3 -DSTRIDE=${STRIDE} -march=native $(shell pkg-config --cflags starpu-1.3)
 # GCC compiler
 CC=gcc
-CFLAGS += -O3 -DSTRIDE=${STRIDE} -mavx -fomit-frame-pointer -march=native -ffast-math $(shell pkg-config --cflags starpu-1.3)
+NVCC=nvcc
+ENABLE_CUDA=no
+LD=$(CC)
 
+ifeq ($(ENABLE_CUDA),yes)
+        LD := ${NVCC}
+endif
+
+CFLAGS = -O3 -g -DSTRIDE=${STRIDE} $(shell pkg-config --cflags starpu-1.3)
+CPU_CFLAGS = ${CFLAGS} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
+CUDA_CFLAGS = ${CFLAGS}
 LDFLAGS +=$(shell pkg-config --libs starpu-1.3)
+
 EXTERNLIB=extern_tasks.so
 GENERATEDLIB=generated_tasks.so
-#OBJECTS=$(patsubst %.c,%.o,$(wildcard gen*.c))
-OBJECTS=$(wildcard gen*.c)
+
+C_OBJECTS=$(patsubst %.c,%.o,$(wildcard gen*.c))
+CUDA_OBJECTS=$(patsubst %.cu,%.o,$(wildcard gen*.cu))
+ifneq ($(ENABLE_CUDA),yes)
+	CUDA_OBJECTS:=
+endif
+
+
 LIBPATH=${PWD}/../StarPU.jl/lib
 
 all: ${EXTERNLIB}
 
 mult: mult.c cpu_mult.o #gpu_mult.o
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-
-gpu_mult.o: gpu_mult.cu
-	nvcc -c $(CFLAGS) $^ -o $@
+	$(CC) $(CPU_CFLAGS) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $^ -o $@
+	$(CC) -c -fPIC $(CPU_CFLAGS) $^ -o $@
+
+%.o: %.cu
+	$(NVCC) -dc $(CUDA_CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
 
 ${EXTERNLIB}: cpu_mult.c
 	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
 
-gpu_mult.so: gpu_mult.o
-	nvcc $(CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
+${GENERATEDLIB}: $(C_OBJECTS) $(CUDA_OBJECTS)
+	$(LD) -shared $(LDFLAGS) $^ -o $@
 
-cpu_mult_sa: cpu_mult_sa.o
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-
-${GENERATEDLIB}: ${OBJECTS}
-	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
+.PHONY: clean
 
 clean:
-	rm -f mult *.so *.o c_*.genc gencuda_*.cu *.dat
+	rm -f mult *.so *.o genc_*.c gencuda_*.cu *.dat
 
 # Performance Tests
 cstarpu.dat: mult

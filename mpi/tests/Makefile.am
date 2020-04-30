@@ -139,8 +139,12 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench				\
+	sendrecv_bench
+
+if !STARPU_USE_MPI_MPI
+starpu_mpi_TESTS +=				\
 	sendrecv_parallel_tasks_bench
+endif
 
 if !NO_BLAS_LIB
 starpu_mpi_TESTS +=				\
@@ -235,8 +239,12 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
-	sendrecv_gemm_bench			\
 	sendrecv_parallel_tasks_bench
+
+if !NO_BLAS_LIB
+noinst_PROGRAMS +=				\
+	sendrecv_gemm_bench
+endif
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

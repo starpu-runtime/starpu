@@ -1,5 +1,3 @@
-
-
 """
     Returns the list of instruction that will be added before for loop of shape
         "for for_index_var in set ..."
@@ -56,12 +54,7 @@ function add_for_loop_declarations(expr :: StarpuExpr)
     return apply(func_to_apply, expr)
 end
 
-
-
-
-
 function transform_to_cpu_kernel(expr :: StarpuExprFunction)
-
     output = add_for_loop_declarations(expr)
     output = substitute_args(output)
     output = substitute_func_calls(output)
@@ -71,7 +64,20 @@ function transform_to_cpu_kernel(expr :: StarpuExprFunction)
     return output
 end
 
+function generate_c_struct_param_declaration(funcname)
+    scalar_parameters = CODELETS_SCALARS[funcname]
+    struct_params_name = CODELETS_PARAMS_STRUCT[funcname]
 
+    output = "struct $struct_params_name {\n"
+    for p in scalar_parameters
+        arg_name = p[1]
+        arg_type = p[2]
+        output *= "\t" * starpu_type_traduction(arg_type) * " $arg_name;\n"
+    end
+    output *= "};\n\n"
+
+    return output
+end
 
 function flatten_blocks(expr :: StarpuExpr)
 
@@ -130,46 +136,62 @@ end
 
 
 function substitute_args(expr :: StarpuExprFunction)
-
     new_body = expr.body
     func_id = rand_string()
     buffer_arg_name = Symbol("buffers_", func_id)
     cl_arg_name = Symbol("cl_arg_", func_id)
-    post = false
     function_start_affectations = StarpuExpr[]
+
+    buffer_id = 1
+    scalar_id = 1
+
+    # get scalar parameters and structure name
+    scalar_parameters = CODELETS_SCALARS[string(expr.func)]
+    struct_params_name = CODELETS_PARAMS_STRUCT[string(expr.func)]
 
     for i in (1 : length(expr.args))
 
         var_id = rand_string()
         ptr = Symbol(:ptr_, var_id)
         var_name = ptr
-        
+
         if (expr.args[i].typ <: Vector)
             func_interface = :STARPU_VECTOR_GET_PTR
+            type_in_arg = eltype(expr.args[i].typ)
+            new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$buffer_id])) )
+            push!(function_start_affectations, new_affect)
+            new_body = substitute_argument_usage(new_body, buffer_id, buffer_arg_name, expr.args[i].name, var_name)
+            buffer_id += 1
         elseif (expr.args[i].typ <: Matrix)
             func_interface = :STARPU_MATRIX_GET_PTR
             ld_name = Symbol("ld_", var_id)
-            post_affect = starpu_parse( :($ld_name :: UInt32 = STARPU_MATRIX_GET_LD($buffer_arg_name[$i])) )
-            post=true
-            
-        elseif (expr.args[i].typ <: Float32)
-            func_interface = :STARPU_VARIABLE_GET_PTR
-            var_name = Symbol("scal_", var_id)
-            post_affect = starpu_parse( :($var_name :: Float32 = ($ptr[0])) )
-            post = true
-            
-        end
-        #else
-            #error("Task arguments must be either vector or matrix (got $(expr.args[i].typ))") #TODO : cl_args, variable ?
-        #end
-
-        type_in_arg = eltype(expr.args[i].typ)
-        new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$i])) )
-        push!(function_start_affectations, new_affect)
-        if (post)
+            post_affect = starpu_parse( :($ld_name :: UInt32 = STARPU_MATRIX_GET_LD($buffer_arg_name[$buffer_id])) )
+            type_in_arg = eltype(expr.args[i].typ)
+            new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$buffer_id])) )
+            push!(function_start_affectations, new_affect)
             push!(function_start_affectations, post_affect)
+            new_body = substitute_argument_usage(new_body, buffer_id, buffer_arg_name, expr.args[i].name, var_name)
+            buffer_id += 1
+        elseif (expr.args[i].typ <: Ref)
+            func_interface = :STARPU_VARIABLE_GET_PTR
+            type_in_arg = eltype(expr.args[i].typ)
+            new_affect = starpu_parse( :($ptr :: Ptr{$type_in_arg} = $func_interface($buffer_arg_name[$buffer_id])) )
+            push!(function_start_affectations, new_affect)
+            new_body = substitute_argument_usage(new_body, buffer_id, buffer_arg_name, expr.args[i].name, Symbol("(*$var_name)"))
+            buffer_id += 1
+        elseif (expr.args[i].typ <: Number || expr.args[i].typ <: AbstractChar)
+            type_in_arg = eltype(expr.args[i].typ)
+            field_name = scalar_parameters[scalar_id][1]
+            var_name = field_name
+            post_affect = starpu_parse( :($var_name :: $type_in_arg = *($ptr).$field_name))
+            new_affect = starpu_parse( :($ptr :: Ptr{$struct_params_name} = $cl_arg_name))
+            push!(function_start_affectations, new_affect)
+            push!(function_start_affectations, post_affect)
+            scalar_id += 1
+        else
+            error("Task arguments must be either matrix, vector, ref or scalar (got $(expr.args[i].typ))")
         end
-        new_body = substitute_argument_usage(new_body, i, buffer_arg_name, expr.args[i].name, var_name)
+
 
     end
 
@@ -182,8 +204,6 @@ function substitute_args(expr :: StarpuExprFunction)
 
     return StarpuExprFunction(expr.ret_type, expr.func, new_args, new_body)
 end
-
-
 
 func_substitution = Dict(
     :width => :STARPU_MATRIX_GET_NY,
