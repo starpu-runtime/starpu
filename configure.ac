@@ -557,7 +557,7 @@ fi
 if test x$enable_mpi = xyes ; then
     if test x$enable_simgrid = xyes ; then
         if test x$enable_shared = xyes ; then
-	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, theb use --disable-shared to fix this, else disable MPI with --disable-mpi])
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, then use --disable-shared to fix this, else disable MPI with --disable-mpi])
         else
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
