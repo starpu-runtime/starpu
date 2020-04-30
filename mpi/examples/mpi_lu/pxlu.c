@@ -899,6 +899,8 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 		starpu_iteration_pop();
 	}
 
+	int wait_ret = starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	STARPU_ASSERT(wait_ret == MPI_SUCCESS);
 	int barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 

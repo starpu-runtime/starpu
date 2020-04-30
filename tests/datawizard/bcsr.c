@@ -41,7 +41,8 @@ void cpu_show_bcsr(void *descr[], void *arg)
 
 	printf("nnz %d elemsize %d\n", nnz, elemsize);
 
-	for (i = 0; i < nrow; i++) {
+	for (i = 0; i < nrow; i++)
+	{
 		uint32_t row_start = rowptr[i] - firstentry;
 		uint32_t row_end = rowptr[i+1] - firstentry;
 
@@ -73,7 +74,7 @@ struct starpu_codelet show_cl =
 };
 
 /*
- * In this test, we use the following matrix: 
+ * In this test, we use the following matrix:
  *
  *   +----------------+
  *   |  0   1   0   0 |
@@ -129,7 +130,8 @@ int main(int argc, char **argv)
 
 	starpu_task_insert(&show_cl, STARPU_R, bcsr_handle, 0);
 
-	struct starpu_data_filter filter = {
+	struct starpu_data_filter filter =
+	{
 		.filter_func = starpu_bcsr_filter_vertical_block,
 		.nchildren = 2,
 	};

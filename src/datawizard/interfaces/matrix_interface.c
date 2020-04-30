@@ -213,7 +213,8 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 
 //#define DYNAMIC_MATRICES
 
-struct pack_matrix_header {
+struct pack_matrix_header
+{
 #ifdef DYNAMIC_MATRICES
 	/* Receiving matrices with different sizes from MPI */
 	/* FIXME: that would break alignment for O_DIRECT disk access...

@@ -129,7 +129,8 @@ void print_archs(FILE* output)
 		{
 			if (starpu_worker_get_memory_node(workerid) == node)
 			{
-				if (!printed) {
+				if (!printed)
+				{
 					fprintf(output, "Workers:");
 					printed = 1;
 				}
@@ -145,7 +146,8 @@ void print_archs(FILE* output)
 	{
 		for (dst = 0; dst < starpu_memory_nodes_get_count(); dst++)
 		{
-			if (src != dst) {
+			if (src != dst)
+			{
 				fprintf(output, "MemoryNodeSrc: %d\n", src);
 				fprintf(output, "MemoryNodeDst: %d\n", dst);
 				fprintf(output, "Bandwidth: %f\n", starpu_transfer_bandwidth(src, dst));

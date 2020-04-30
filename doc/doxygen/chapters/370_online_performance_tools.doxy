@@ -401,6 +401,11 @@ filled with pointers to functions which return the expected duration
 of the task in micro-seconds, one per architecture, see for instance
 <c>tests/datawizard/locality.c</c>
 </li>
+
+<li>
+Provided explicitly by the application (model type ::STARPU_PER_WORKER)
+similarly with the starpu_perfmodel::worker_cost_function field.
+</li>
 </ul>
 
 For ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED, and

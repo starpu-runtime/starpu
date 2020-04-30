@@ -22,7 +22,8 @@
 
 static void initialize_heteroprio_heft_center_policy(unsigned sched_ctx_id)
 {
-	struct starpu_sched_component_heteroprio_data heteroprio_data = {
+	struct starpu_sched_component_heteroprio_data heteroprio_data =
+	{
 		.mct = NULL,
 		.batch = 1,
 	};

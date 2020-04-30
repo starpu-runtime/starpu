@@ -428,7 +428,8 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 
 /* Test if this task can be processed on this worker, regardless of the implementation */
 /* must be called with sched_mutex locked to protect state_blocked */
-static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct starpu_task *task) {
+static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct starpu_task *task)
+{
 
 	if (!_starpu_config.workers[workerid].enable_knob)
 		return 0;
@@ -440,7 +441,6 @@ static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct st
 			return 0;
 	}
 
-	
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
 #ifdef STARPU_DEVEL
 #warning FIXME: this is very expensive, while can_execute is supposed to be not very costly so schedulers can call it a lot
@@ -451,7 +451,7 @@ static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct st
 	if (!(task->where & _starpu_config.workers[workerid].worker_mask))
 		return 0;
 
-	return 1; 
+	return 1;
 }
 
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */

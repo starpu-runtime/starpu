@@ -38,26 +38,26 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 		len = 0.0;
 	}
 	else
-	{	
-	    struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
-	    for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
-	    {
-		if(starpu_worker_can_execute_task(workerid, task, impl))
+	{
+		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
+		for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
 		{
-			double d = starpu_task_expected_length(task, archtype, impl);
-			if(isnan(d))
+			if(starpu_worker_can_execute_task(workerid, task, impl))
 			{
-				best_impl = impl;
-				len = 0.0;
-				break;
-			}
-			if(d < len)
-			{
-				len = d;
-				best_impl = impl;
+				double d = starpu_task_expected_length(task, archtype, impl);
+				if(isnan(d))
+				{
+					best_impl = impl;
+					len = 0.0;
+					break;
+				}
+				if(d < len)
+				{
+					len = d;
+					best_impl = impl;
+				}
 			}
 		}
-	    }
 	}
 	if(best_impl == -1)
 		return 0;
@@ -85,7 +85,7 @@ static void select_best_implementation_and_set_preds(unsigned sched_ctx_id, stru
 static int best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component->nchildren == 1);
-	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, component->workers_in_ctx, task);
+	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, &component->workers_in_ctx, task);
 	return starpu_sched_component_push_task(component,component->children[0],task);
 }
 

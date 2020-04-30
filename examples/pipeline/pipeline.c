@@ -176,7 +176,8 @@ static struct starpu_codelet pipeline_codelet_sum =
 	.model = &pipeline_model_sum
 };
 
-static void release_sem(void *arg) {
+static void release_sem(void *arg)
+{
 	sem_post(arg);
 };
 

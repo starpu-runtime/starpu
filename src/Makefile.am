@@ -160,7 +160,6 @@ noinst_HEADERS = 						\
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
 	common/barrier_counter.c				\
-	common/bitmap.c						\
 	common/hash.c 						\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\

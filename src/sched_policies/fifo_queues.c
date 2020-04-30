@@ -44,14 +44,14 @@ static int is_sorted_task_list(struct starpu_task * task)
 }
 */
 
-struct _starpu_fifo_taskq *_starpu_create_fifo(void)
+void _starpu_init_fifo(struct _starpu_fifo_taskq *fifo)
 {
-	struct _starpu_fifo_taskq *fifo;
-	_STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
-
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
 	fifo->ntasks = 0;
+	/* Tell helgrind that it's fine to check for empty fifo in
+	 * pop_task_graph_test_policy without actual mutex (it's just an integer)
+	 */
 	STARPU_HG_DISABLE_CHECKING(fifo->ntasks);
 	fifo->nprocessed = 0;
 
@@ -60,6 +60,14 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	fifo->exp_end = fifo->exp_start;
 	fifo->exp_len_per_priority = NULL;
 	fifo->pipeline_len = 0.0;
+}
+
+struct _starpu_fifo_taskq *_starpu_create_fifo(void)
+{
+	struct _starpu_fifo_taskq *fifo;
+	_STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
+
+	_starpu_init_fifo(fifo);
 
 	return fifo;
 }

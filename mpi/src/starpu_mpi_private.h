@@ -181,21 +181,21 @@ struct _starpu_mpi_node_tag
 };
 
 MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
-/* One bag of cooperative sends */
+/** One bag of cooperative sends */
 struct _starpu_mpi_coop_sends
 {
-	/* List of send requests */
+	/** List of send requests */
 	struct _starpu_mpi_req_multilist_coop_sends reqs;
 	struct _starpu_mpi_data *mpi_data;
 
-	/* Array of send requests, after sorting out */
+	/** Array of send requests, after sorting out */
 	struct _starpu_spinlock lock;
 	struct _starpu_mpi_req **reqs_array;
 	unsigned n;
 	unsigned redirects_sent;
 };
 
-/* Initialized in starpu_mpi_data_register_comm */
+/** Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
 	int magic;
@@ -203,9 +203,11 @@ struct _starpu_mpi_data
 	int *cache_sent;
 	int cache_received;
 
-	/* Rendez-vous data for opportunistic cooperative sends */
-	struct _starpu_spinlock coop_lock; /* Needed to synchronize between submit thread and workers */
-	struct _starpu_mpi_coop_sends *coop_sends; /* Current cooperative send bag */
+	/** Rendez-vous data for opportunistic cooperative sends */
+	/** Needed to synchronize between submit thread and workers */
+	struct _starpu_spinlock coop_lock;
+	/** Current cooperative send bag */
+	struct _starpu_mpi_coop_sends *coop_sends;
 };
 
 struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
@@ -213,12 +215,12 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
 struct _starpu_mpi_req_backend;
 struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
-	/* description of the data at StarPU level */
+	/** description of the data at StarPU level */
 	starpu_data_handle_t data_handle;
 
 	int prio;
 
-	/* description of the data to be sent/received */
+	/** description of the data to be sent/received */
 	MPI_Datatype datatype;
 	char *datatype_name;
 	void *ptr;
@@ -227,7 +229,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	struct _starpu_mpi_req_backend *backend;
 
-	/* who are we talking to ? */
+	/** who are we talking to ? */
 	struct _starpu_mpi_node_tag node_tag;
 	void (*func)(struct _starpu_mpi_req *);
 
@@ -238,7 +240,7 @@ LIST_TYPE(_starpu_mpi_req,
 	int *flag;
 	unsigned sync;
 
-	/* Amount of memory pre-reserved for the reception buffer */
+	/** Amount of memory pre-reserved for the reception buffer */
 	size_t reserved_size;
 
 	int ret;
@@ -249,12 +251,10 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned completed;
 	unsigned posted;
 
-	/* in the case of detached requests */
+	/** in the case of detached requests */
 	int detached;
 	void *callback_arg;
 	void (*callback)(void *);
-
-        /* in the case of user-defined datatypes, we need to send the size of the data */
 
 	int sequential_consistency;
 
@@ -271,21 +271,21 @@ PRIO_LIST_TYPE(_starpu_mpi_req, prio)
 
 MULTILIST_CREATE_INLINES(struct _starpu_mpi_req, _starpu_mpi_req, coop_sends)
 
-/* To be called before actually queueing a request, so the communication layer knows it has something to look at */
+/** To be called before actually queueing a request, so the communication layer knows it has something to look at */
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req);
-/* To be called to actually submit the request */
+/** To be called to actually submit the request */
 void _starpu_mpi_submit_ready_request(void *arg);
-/* To be called when request is completed */
+/** To be called when request is completed */
 void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
 
 #if 0
-/* Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
+/** Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends);
 #endif
-/* Try to merge with send request with other send requests */
+/** Try to merge with send request with other send requests */
 void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
 
-/* Actually submit the coop_sends bag to MPI.
+/** Actually submit the coop_sends bag to MPI.
  * At least one of submit_control or submit_data is true.
  * _starpu_mpi_submit_coop_sends may be called either
  * - just once with both parameters being true,
@@ -306,11 +306,7 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 						  starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
-void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
-void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
-int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
-int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
-int _starpu_mpi_barrier(MPI_Comm comm);
+void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_argc_argv
 {
@@ -324,14 +320,7 @@ struct _starpu_mpi_argc_argv
 	int world_size;
 };
 
-void _starpu_mpi_progress_shutdown(void **value);
-int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv);
-#ifdef STARPU_SIMGRID
-void _starpu_mpi_wait_for_initialization();
-#endif
-void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
-
-/*
+/**
  * Specific functions to backend implementation
  */
 struct _starpu_mpi_backend
@@ -345,6 +334,20 @@ struct _starpu_mpi_backend
 	void (*_starpu_mpi_backend_data_clear)(starpu_data_handle_t data_handle);
 	void (*_starpu_mpi_backend_data_register)(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag);
 	void (*_starpu_mpi_backend_comm_register)(MPI_Comm comm);
+
+	int (*_starpu_mpi_backend_progress_init)(struct _starpu_mpi_argc_argv *argc_argv);
+	void (*_starpu_mpi_backend_progress_shutdown)(void **value);
+#ifdef STARPU_SIMGRID
+	void (*_starpu_mpi_backend_wait_for_initialization)();
+#endif
+
+	int (*_starpu_mpi_backend_barrier)(MPI_Comm comm);
+	int (*_starpu_mpi_backend_wait_for_all)(MPI_Comm comm);
+	int (*_starpu_mpi_backend_wait)(starpu_mpi_req *public_req, MPI_Status *status);
+	int (*_starpu_mpi_backend_test)(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
+
+	void (*_starpu_mpi_backend_isend_size_func)(struct _starpu_mpi_req *req);
+	void (*_starpu_mpi_backend_irecv_size_func)(struct _starpu_mpi_req *req);
 };
 
 extern struct _starpu_mpi_backend _mpi_backend;

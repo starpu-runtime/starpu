@@ -29,3 +29,4 @@ leak:hwloc_topology_load
 leak:hwloc_topology_set_xml
 leak:hwloc_components_init
 leak:hwloc_plugins_init
+leak:hwloc_plugins_exit
