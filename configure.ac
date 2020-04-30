@@ -377,6 +377,30 @@ AC_MSG_CHECKING(whether mpicxx is available)
 AC_MSG_RESULT($mpicxx_path)
 AC_SUBST(MPICXX, $mpicxx_path)
 
+# Check if mpiexec is available
+if test x$enable_simgrid = xyes ; then
+    DEFAULT_MPIEXEC=smpirun
+    AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
+else
+    DEFAULT_MPIEXEC=mpiexec
+    AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
+fi
+
+case $DEFAULT_MPIEXEC in
+    /*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
+    *)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
+esac
+AC_MSG_CHECKING(whether mpiexec is available)
+AC_MSG_RESULT($mpiexec_path)
+
+# We test if MPIEXEC exists
+if test ! -x $mpiexec_path; then
+    AC_MSG_RESULT(The mpiexec script '$mpiexec_path' is not valid)
+    default_enable_mpi_check=no
+    mpiexec_path=""
+fi
+AC_SUBST(MPIEXEC,$mpiexec_path)
+
 ###############################################################################
 #                                                                             #
 #                                    MPI                                      #
@@ -507,32 +531,6 @@ if test x$enable_mpi_check = xno ; then
 fi
 if test x$enable_mpi = xno ; then
     running_mpi_check=no
-fi
-
-if test x$enable_mpi = xyes -a x$running_mpi_check = xyes ; then
-    # Check if mpiexec is available
-    if test x$enable_simgrid = xyes ; then
-	DEFAULT_MPIEXEC=smpirun
-        AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
-    else
-	DEFAULT_MPIEXEC=mpiexec
-	AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
-    fi
-
-    case $DEFAULT_MPIEXEC in
-	/*) mpiexec_path="$DEFAULT_MPIEXEC" ;;
-	*)  AC_PATH_PROG(mpiexec_path, $DEFAULT_MPIEXEC, [no], [$MPIPATH])
-    esac
-    AC_MSG_CHECKING(whether mpiexec is available)
-    AC_MSG_RESULT($mpiexec_path)
-
-    # We test if MPIEXEC exists
-    if test ! -x $mpiexec_path; then
-        AC_MSG_RESULT(The mpiexec script '$mpiexec_path' is not valid)
-        running_mpi_check=no
-        mpiexec_path=""
-    fi
-    AC_SUBST(MPIEXEC,$mpiexec_path)
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
