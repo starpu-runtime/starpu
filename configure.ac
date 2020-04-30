@@ -3519,7 +3519,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
-  chmod +x julia/examples/mult/mult_starpu.sh
+  chmod +x julia/examples/execute.sh
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3613,7 +3613,7 @@ AC_OUTPUT([
 	julia/src/Makefile
 	julia/src/dynamic_compiler/Makefile
 	julia/examples/Makefile
-	julia/examples/mult/mult_starpu.sh
+	julia/examples/execute.sh
 ])
 
 AC_MSG_NOTICE([
