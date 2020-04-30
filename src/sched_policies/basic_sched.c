@@ -348,16 +348,16 @@ struct basic_sched_data
 };
 
 
-struct Liste_tache
+struct Linked_task_list
 {
 	struct starpu_task_list sous_liste;
-	struct Liste_tache *next;
+	struct Linked_task_list *next;
 };
 
 
-struct Controle_liste_tache
+struct Control_linked_task_list
 {
-	struct Liste_tache *premier;
+	struct Linked_task_list *premier;
 };
 
 //~ struct Controle_liste_tache *init_liste_tache(struct starpu_sched_component *component)
@@ -391,8 +391,8 @@ static int basic_push_task(struct starpu_sched_component *component, struct star
 
 static struct starpu_task *basic_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	struct Liste_tache *data_liste = component->data;
-	struct Controle_liste_tache *data_controle = component->data;
+	struct Linked_task_list *data_liste = component->data;
+	struct Control_linked_task_list *data_controle = component->data;
 	
 	struct basic_sched_data *data = component->data;	
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0;
@@ -427,7 +427,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				starpu_task_list_push_back(&data->tache_pop,task1);
 				
 				//Test
-				//starpu_task_list_push_back(&data_liste->sous_liste,task1);
+				//~ starpu_task_list_push_back(&data_liste->sous_liste,task1);
+				//~ &data_liste->next;
 			}
 			if (nb_pop > 2) {
 				//Filling a tab with every handles of every tasks
@@ -462,20 +463,31 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					}
 					printf("\n");
 				}
-				//Using a temp tab to reorder tasks
+				
+				//~ //Version avec une seule liste et un tableau 
+				//~ //Using a temp tab to reorder tasks
+				//~ //Here we put every task in the tab
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
+				//~ }
+				//~ //Here, if a tab has 0 in it, it means that a linked task got put in the tab so we have to put this one too next to it
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
+					//~ for (j = i + 1; j< nb_pop; j++) {
+						//~ if (matrice_donnees_commune[i][j] == 4) {
+							//~ printf ("Data in common\n");
+							//~ if (task_tab[j] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[j]); task_tab[j] = 0; }
+						//~ }
+					//~ }
+				//~ }
+				
+				//Version avec la liste chainée
+				//Here we put every task in the tab
 				for (i = 0; i < nb_pop; i++) {
 					task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
 				}
 				
-				for (i = 0; i < nb_pop; i++) {
-					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
-					for (j = i + 1; j< nb_pop; j++) {
-						if (matrice_donnees_commune[i][j] == 4) {
-							printf ("Data in common\n");
-							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[j]); task_tab[j] = 0; }
-						}
-					}
-				}
+				
 				for (i = 0; i < nb_pop; i++) {
 					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
 				}
@@ -544,8 +556,8 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;
-	struct Liste_tache *data_liste;
-	struct Controle_liste_tache *data_controle;
+	struct Linked_task_list *data_liste;
+	struct Control_linked_task_list *data_controle;
 	_STARPU_MALLOC(data, sizeof(*data));
 	_STARPU_MALLOC(data_liste, sizeof(*data_liste));
 	_STARPU_MALLOC(data_controle, sizeof(*data_controle));
