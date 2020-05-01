@@ -222,6 +222,12 @@ int main(int argc, char **argv)
 {
 	int ret;
 
+	if (RUNNING_ON_VALGRIND) {
+		ni /= 2;
+		nj /= 2;
+		nk /= 2;
+	}
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		exit(77);
