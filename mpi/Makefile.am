@@ -26,3 +26,15 @@ versinclude_HEADERS = 					\
 	include/starpu_mpi.h				\
 	include/starpu_mpi_lb.h				\
 	include/fstarpu_mpi_mod.f90
+
+check-recursive:
+	RET=0 ; \
+	NJOBS=`printf %s "$(MAKEFLAGS)" | sed -ne 's/.*-j \?\([0-9]\+\).*/\1/p'` ; \
+	JOBS="" ; \
+	if [ -n "$$NJOBS" ] ; then \
+		JOBS="-j$$(($$NJOBS / 4))" ; \
+	fi ; \
+	for i in $(SUBDIRS) ; do \
+		$(MAKE) check -C $$i MAKEFLAGS="$(MAKEFLAGS) $$JOBS" || RET=1; \
+	done ; \
+	exit $$RET
