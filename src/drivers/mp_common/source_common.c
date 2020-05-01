@@ -926,6 +926,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		/* We send all buffers to execute the task */
 		if (task != NULL && worker_set->workers[i].nb_buffers_transferred == worker_set->workers[i].nb_buffers_totransfer)
 		{
+			STARPU_RMB();
 			struct _starpu_job * j = _starpu_get_job_associated_to_task(task);
 
 			_STARPU_TRACE_END_PROGRESS(memnode);
