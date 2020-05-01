@@ -31,7 +31,11 @@ check-recursive:
 	NJOBS=`printf %s "$(MAKEFLAGS)" | sed -ne 's/.*-j \?\([0-9]\+\).*/\1/p'` ; \
 	JOBS="" ; \
 	if [ -n "$$NJOBS" ] ; then \
-		JOBS="-j$$(($$NJOBS / 4))" ; \
+		if [ "$$NJOBS" -ge 4 ] ; then \
+			JOBS="-j$$(($$NJOBS / 4))" ; \
+		else \
+			JOBS="-j1" ; \
+		fi ; \
 	fi ; \
 	for i in $(SUBDIRS) ; do \
 		$(MAKE) check -C $$i MAKEFLAGS="$(MAKEFLAGS) $$JOBS" || RET=1; \
