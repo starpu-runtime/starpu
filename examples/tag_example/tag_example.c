@@ -220,11 +220,13 @@ int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 
+#ifdef STARPU_HAVE_HELGRIND_H
 	if (RUNNING_ON_VALGRIND) {
 		ni /= 2;
 		nj /= 2;
 		nk /= 2;
 	}
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
