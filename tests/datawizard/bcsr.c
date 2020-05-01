@@ -113,8 +113,13 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0 || starpu_memory_nodes_get_count() > 1)
+	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV)
 		return STARPU_TEST_SKIPPED;
+
+	if (starpu_cpu_worker_get_count() == 0 || starpu_memory_nodes_get_count() > 1) {
+		starpu_shutdown()
+		return STARPU_TEST_SKIPPED;
+	}
 
 	starpu_bcsr_data_register(&bcsr_handle,
 				  STARPU_MAIN_RAM,
