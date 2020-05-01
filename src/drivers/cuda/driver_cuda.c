@@ -825,6 +825,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		task = worker->task_transferring;
 		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 		{
+			STARPU_RMB();
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			j = _starpu_get_job_associated_to_task(task);
 
