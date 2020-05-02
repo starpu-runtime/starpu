@@ -325,6 +325,8 @@ static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, unsign
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
+	STARPU_ASSERT_MSG(r && c, "partitioning bcsr with several memory nodes is not supported yet");
+
 	addr_nzval = starpu_malloc_on_node(dst_node, nnz*r*c*elemsize);
 	if (!addr_nzval)
 		goto fail_nzval;

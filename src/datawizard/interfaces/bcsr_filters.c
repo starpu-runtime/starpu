@@ -37,7 +37,9 @@ void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_inter
 
 	bcsr_child->id = bcsr_father->id;
 
-	STARPU_ASSERT_MSG(bcsr_father->nzval, "multiple memory nodes is not supported yet\n");
+	if (!bcsr_father->nzval)
+		/* Not supported yet */
+		return;
 
 	starpu_filter_nparts_compute_chunk_size_and_offset(bcsr_father->nrow, nparts, 1, id, 1, &child_nrow, &child_rowoffset);
 
