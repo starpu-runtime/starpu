@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 
 	if (starpu_cpu_worker_get_count() == 0 || starpu_memory_nodes_get_count() > 1) {
-		starpu_shutdown()
+		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
