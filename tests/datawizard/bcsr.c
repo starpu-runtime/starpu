@@ -39,7 +39,7 @@ void cpu_show_bcsr(void *descr[], void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-	printf("nnz %d elemsize %d\n", nnz, elemsize);
+	printf("\nnnz %d elemsize %d\n", nnz, elemsize);
 
 	for (i = 0; i < nrow; i++)
 	{
@@ -81,11 +81,13 @@ struct starpu_codelet show_cl =
  *   |  2   3   0   0 |
  *   |  4   5   8   9 |
  *   |  6   7  10  11 |
+ *   |  0   0   0   0 |
+ *   |  0   0   0   0 |
  *   +----------------+
  *
  * nzval  = [0, 1, 2, 3] ++ [4, 5, 6, 7] ++ [8, 9, 10, 11]
- * colind = [0, 0, 1]
- * rowptr = [0, 1, 3 ]
+ * colind = [0, 0, 1] (column index of each non-zero block)
+ * rowptr = [0, 1, 3] (index of first non-zero block for each row)
  * r = c = 2
  */
 
@@ -93,10 +95,10 @@ struct starpu_codelet show_cl =
 #define R              2
 #define C              2
 
-#define NNZ_BLOCKS     3   /* out of 4 */
+#define NNZ_BLOCKS     3   /* out of 6 */
 #define NZVAL_SIZE     (R*C*NNZ_BLOCKS)
 
-#define NROWS          2
+#define NROWS          3
 
 static int nzval[NZVAL_SIZE]  =
 {
@@ -106,7 +108,7 @@ static int nzval[NZVAL_SIZE]  =
 };
 static uint32_t colind[NNZ_BLOCKS] = { 0, 0, 1 };
 
-static uint32_t rowptr[NROWS+1] = { 0, 1, NNZ_BLOCKS };
+static uint32_t rowptr[NROWS+1] = { 0, 1, NNZ_BLOCKS, NNZ_BLOCKS };
 
 int main(int argc, char **argv)
 {
@@ -138,12 +140,14 @@ int main(int argc, char **argv)
 	struct starpu_data_filter filter =
 	{
 		.filter_func = starpu_bcsr_filter_vertical_block,
-		.nchildren = 2,
+		.nchildren = 3,
 	};
 	starpu_data_partition(bcsr_handle, &filter);
 
 	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 0), 0);
 	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 1), 0);
+	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 2), 0);
+
 	starpu_data_unpartition(bcsr_handle, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(bcsr_handle);
