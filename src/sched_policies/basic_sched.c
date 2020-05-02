@@ -52,20 +52,27 @@ static int compar(const void *_a, const void *_b)
 	return 1;
 }
 
+//~ struct basic_sched_data *next;
+//~ struct starpu_task_list sub_list *next;
 
 //Dummy
 struct basic_sched_data
 {
 	struct starpu_task_list tache_pop;
-	struct starpu_task_list sub_list;
 	
-	//~ struct basic_sched_data *next;
-	struct starpu_task_list *next;
-	
-	struct starpu_task_list first;
+	//Ma liste
+	struct my_list *head;
+	struct my_list *first_link;
 	
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;
+};
+
+struct my_list
+{
+	struct starpu_task_list sub_list;
+		//~ starpu_pthread_mutex_t policy_mutex;
+	struct my_list *next;
 };
 
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -88,6 +95,7 @@ static int basic_push_task(struct starpu_sched_component *component, struct star
 
 static struct starpu_task *basic_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	printf("Pull breakpoint 1\n");
 	struct basic_sched_data *data = component->data;	
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0;
 	
@@ -111,13 +119,17 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//Version 1 liste---------------------------------------------------------------------------------
 	//~ if (starpu_task_list_empty(&data->tache_pop)) {
 	//------------------------------------------------------------------------------------------------
-	
+
 	//Version liste chainée --------------------------------------------------------------------------
 	//Si le next est null et que la liste est vide, alors on peut pull à nouveau des tâches
-	if ((data->next == NULL) && (starpu_task_list_empty(&data->sub_list))) {
-		data->sub_list = data->first;
+	printf("Pull breakpoint 2\n");
+	//~ if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
+		//~ data->head->next = NULL;
+		if (data->head->next == NULL) {
+		//Je dois passer au premier elem de la liste ici A FAIRE
+		//~ data->sub_list = data->first;
 	//------------------------------------------------------------------------------------------------
-	
+		printf("Pull breakpoint 3\n");
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				//Pulling all tasks and counting them
@@ -199,19 +211,19 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				printf("test 1 ok\n");
 				//Here, if a tab has 0 in it, it means that a linked task got put in the tab so we have to put this one too next to it
 				for (i = 0; i < nb_pop; i++) {
-					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->sub_list,task_tab[i]); task_tab[i] = 0; }
+					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->head->sub_list,task_tab[i]); task_tab[i] = 0; }
 					printf("test 2 ok\n");
 					for (j = i + 1; j< nb_pop; j++) {
 						if (matrice_donnees_commune[i][j] == 4) {
 							printf ("Data in common\n");
-							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->sub_list,task_tab[j]); task_tab[j] = 0; }
+							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->head->sub_list,task_tab[j]); task_tab[j] = 0; }
 						}
 					}
 					//Here we go on the next list of our linked list of task
-					data->sub_list = data->next;
+					data->head = data->head->next;
 				}
 				//Now tasks are in sub_list
-				//Need to get back to the beggining of the list without erasing everything ???
+				//Need to get back to the beggining of the list without erasing everything A FAIRE
 				//data->sub_list = data_controle->first;
 				//-------------------------------------------------------------------------------------------------------------------------
 				
@@ -221,13 +233,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					//~ if (task_tab[i] != 0) { starpu_task_list_push_back(&data->tache_pop,task_tab[i]); task_tab[i] = 0; }
 				//~ }
 				
-				//Version 1 liste
+				//Version 1 liste ----------------------------------------
 				//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
 				
-				//Version liste chainée
-				task1 = starpu_task_list_pop_front(&data->sub_list);
+				//Version liste chainée ----------------------------------
+				task1 = starpu_task_list_pop_front(&data->head->sub_list);
 			}
-			//Else here means that we have only 2 task or less, so no need to compare the handles
+			//Else here means that we have only 2 task or less, so no need to compare the handles A FAIRE
 			//A voir si il faut le garder ou pas dans le cas des liste chainées
 			else {
 				task1 = starpu_task_list_pop_front(&data->tache_pop);
@@ -236,7 +248,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
-	}
+	} printf("else\n");
 	//Version 1 liste -----------------------------------------------------------------------------------------------------------------------
 	//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -244,16 +256,16 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//---------------------------------------------------------------------------------------------------------------------------------------
 	
 	//Version liste chainée -----------------------------------------------------------------------------------------------------------------
-	if (starpu_task_list_empty(&data->sub_list)) {
+	if (starpu_task_list_empty(&data->head->sub_list)) {
 		//la liste est vide on passe au prochain maillon, qui n'est pas NULL car on a check plus haut
-		data->sub_list = data->next;
-		task1 = starpu_task_list_pop_front(&data->sub_list);
+		data->head = data->head->next;
+		task1 = starpu_task_list_pop_front(&data->head->sub_list);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
 	else {
-		task1 = starpu_task_list_pop_front(&data->sub_list);
+		task1 = starpu_task_list_pop_front(&data->head->sub_list);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
@@ -269,7 +281,7 @@ static int basic_can_push(struct starpu_sched_component * component, struct star
 	int didwork = 0;
 
 	//if (data->verbose)
-		fprintf(stderr, "tells me I can push to him\n");
+		fprintf(stderr, "Can push breakpoint 1\n");
 
 	struct starpu_task *task;
 	task = starpu_sched_component_pump_to(component, to, &didwork);
@@ -295,6 +307,7 @@ static int basic_can_push(struct starpu_sched_component * component, struct star
 	}
 
 	/* There is room now */
+	printf("Can push OK!\n");
 	return didwork || starpu_sched_component_can_push(component, to);
 }
 
@@ -314,28 +327,29 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;
+	struct my_list *my_data;
 	_STARPU_MALLOC(data, sizeof(*data));
-	//data_controle = init_liste_tache(component);
+	_STARPU_MALLOC(data, sizeof(*my_data));
+	printf("Create breakpoint 1\n");
 	
-	//Init de la liste chainée
-	data->next = NULL;
-	data->first = data->sub_list;
-	
-	//~ data_liste->next = NULL;
-	//~ data_controle->first = data_liste;
-	//~ data_liste->sub_list = data_liste;
-	
-
-	//_starpu_prio_deque_init(&data->prio);
-	//STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
-	//data->mct_data = mct_data;
-	
-	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+	//~ STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+	printf("Create breakpoint 2\n");
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->tache_pop);
-	starpu_task_list_init(&data->sub_list);
-	starpu_task_list_init(&data->first);
+	printf("Create breakpoint 3\n");
+	starpu_task_list_init(&my_data->sub_list);
+	printf("Create breakpoint 4\n");
+	
+	//La je dois initialiser ma liste chainée
+	//~ struct my_list->next = NULL;
+	data->head = my_data;
+	//~ my_data->next = NULL;
+	data->head->next = NULL;
+	//~ data->head = data->head->next;
+	printf("Create breakpoint 5\n");
+	//Bon ca je suppose que ca m'enregistre le premier maillon de la chaine
+	//~ data->first_link = data->head;
 	
 	component->data = data;
 	component->push_task = basic_push_task;
@@ -343,31 +357,12 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	component->can_push = basic_can_push;
 	component->can_pull = basic_can_pull;
 
-	//~ struct basic_sched_data *data = malloc(sizeof(*data));
-	//~ STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
-	/* Create a linked-list of tasks and a condition variable to protect it */
-	//~ starpu_task_list_init(&data->sched_list);
-	//~ data->verbose = params->verbose;
-	//Fifo
-	// struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
-	// struct _starpu_fifo_data *data;
-	// _STARPU_MALLOC(data, sizeof(*data));
-	// data->fifo = _starpu_create_fifo();
-	// STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
-	// //Fin fifo
-	// component->data = data;
-	// component->push_task = fifo_push_task;
-	// component->pull_task = fifo_pull_task;
-	// component->can_push = fifo_can_push;
-	// component->can_pull = fifo_can_pull;
-	//~ component->deinit_data = basic_deinit_data;
-
+	printf("Create OK!\n");
 	return component;
 }
 
 static void initialize_basic_center_policy(unsigned sched_ctx_id)
 {
-	printf("Debut initialize\n");
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_basic_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
@@ -377,7 +372,7 @@ static void initialize_basic_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-
+	printf("Initialize OK!\n");
 }
 
 static void deinitialize_basic_center_policy(unsigned sched_ctx_id)
