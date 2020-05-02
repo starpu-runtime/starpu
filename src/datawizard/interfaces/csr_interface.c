@@ -286,7 +286,8 @@ static starpu_ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigne
 	}
 	else
 	{
-		addr_nzval = addr_colind = NULL;
+		addr_nzval = 0;
+		addr_colind = NULL;
 	}
 	addr_rowptr = (uint32_t*) starpu_malloc_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
 	if (!addr_rowptr)
@@ -383,7 +384,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 	{
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		char *tmp = *ptr;
-		if (nnz)
+		if (csr->nnz)
 		{
 			memcpy(tmp, (void*)csr->colind, csr->nnz * sizeof(csr->colind[0]));
 			tmp += csr->nnz * sizeof(csr->colind[0]);
@@ -405,7 +406,7 @@ static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, si
 	STARPU_ASSERT(count == (csr->nnz * sizeof(csr->colind[0]))+((csr->nrow + 1) * sizeof(csr->rowptr[0]))+(csr->nnz * csr->elemsize));
 
 	char *tmp = ptr;
-	if (nnz)
+	if (csr->nnz)
 	{
 		memcpy((void*)csr->colind, tmp, csr->nnz * sizeof(csr->colind[0]));
 		tmp += csr->nnz * sizeof(csr->colind[0]);
