@@ -879,7 +879,7 @@ end
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
 """
-macro starpu_async_cl(expr, modes, cl_arg=[], color ::UInt32=0x00000000)
+macro starpu_async_cl(expr, modes, cl_arg=(), color ::UInt32=0x00000000)
 
     if (!isa(expr, Expr) || expr.head != :call)
         error("Invalid task submit syntax")
