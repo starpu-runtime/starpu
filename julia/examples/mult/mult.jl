@@ -2,9 +2,6 @@ import Libdl
 using StarPU
 using LinearAlgebra
 
-#shoud be the same as in the makefile
-const STRIDE = 72
-
 @target STARPU_CPU+STARPU_CUDA
 @codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Nothing
 
@@ -59,7 +56,7 @@ end
 
 starpu_init()
 
-function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy)
+function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy, stride)
     scale= 3
     tmin=0
     vert = StarpuDataFilter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
@@ -88,7 +85,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
                         handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = StarpuTask(cl = cl, handles = handles)
+                        task = StarpuTask(cl = cl, handles = handles, cl_arg=(stride))
                         starpu_task_submit(task)
                         #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
                     end
@@ -123,12 +120,12 @@ function approximately_equals(
     return true
 end
 
-function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
+function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy, stride)
     for dim in (start_dim : step_dim : stop_dim)
         A = Array(rand(Cfloat, dim, dim))
         B = Array(rand(Cfloat, dim, dim))
         C = zeros(Float32, dim, dim)
-        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy)
+        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy, stride)
         flops = (2*dim-1)*dim*dim/mt
         size=dim*dim*4*3/1024/1024
         println(io,"$size $flops")
@@ -136,12 +133,15 @@ function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
     end
 end
 
-
-if size(ARGS, 1) == 0
-    error("Argument missing")
+if size(ARGS, 1) < 2
+    stride=4
+    filename="x.dat"
+else
+    stride=parse(Int, ARGS[1])
+    filename=ARGS[2]
 end
-io=open(ARGS[1],"w")
-compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
+io=open(filename,"w")
+compute_times(io,16*stride,4*stride,128*stride,2,2,stride)
 close(io)
 
 starpu_shutdown()

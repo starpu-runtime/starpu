@@ -133,10 +133,13 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, int home_node,
 #ifndef STARPU_SIMGRID
 	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
-		STARPU_ASSERT_ACCESSIBLE(nzval);
-		STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize*r*c - 1);
-		STARPU_ASSERT_ACCESSIBLE(colind);
-		STARPU_ASSERT_ACCESSIBLE((uintptr_t) colind + nnz*sizeof(uint32_t) - 1);
+		if (nnz)
+		{
+			STARPU_ASSERT_ACCESSIBLE(nzval);
+			STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize*r*c - 1);
+			STARPU_ASSERT_ACCESSIBLE(colind);
+			STARPU_ASSERT_ACCESSIBLE((uintptr_t) colind + nnz*sizeof(uint32_t) - 1);
+		}
 		STARPU_ASSERT_ACCESSIBLE(rowptr);
 		STARPU_ASSERT_ACCESSIBLE((uintptr_t) rowptr + (nrow+1)*sizeof(uint32_t) - 1);
 	}
@@ -325,12 +328,21 @@ static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, unsign
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
-	addr_nzval = starpu_malloc_on_node(dst_node, nnz*r*c*elemsize);
-	if (!addr_nzval)
-		goto fail_nzval;
-	addr_colind = starpu_malloc_on_node(dst_node, nnz*sizeof(uint32_t));
-	if (!addr_colind)
-		goto fail_colind;
+	STARPU_ASSERT_MSG(r && c, "partitioning bcsr with several memory nodes is not supported yet");
+
+	if (nnz)
+	{
+		addr_nzval = starpu_malloc_on_node(dst_node, nnz*r*c*elemsize);
+		if (!addr_nzval)
+			goto fail_nzval;
+		addr_colind = starpu_malloc_on_node(dst_node, nnz*sizeof(uint32_t));
+		if (!addr_colind)
+			goto fail_colind;
+	}
+	else
+	{
+		addr_nzval = addr_colind = 0;
+	}
 	addr_rowptr = starpu_malloc_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
 	if (!addr_rowptr)
 		goto fail_rowptr;
@@ -347,9 +359,11 @@ static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, unsign
 	return allocated_memory;
 
 fail_rowptr:
-	starpu_free_on_node(dst_node, addr_colind, nnz*sizeof(uint32_t));
+	if (nnz)
+		starpu_free_on_node(dst_node, addr_colind, nnz*sizeof(uint32_t));
 fail_colind:
-	starpu_free_on_node(dst_node, addr_nzval, nnz*r*c*elemsize);
+	if (nnz)
+		starpu_free_on_node(dst_node, addr_nzval, nnz*r*c*elemsize);
 fail_nzval:
 	/* allocation failed */
 	return -ENOMEM;
@@ -364,8 +378,11 @@ static void free_bcsr_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
-	starpu_free_on_node(node, bcsr_interface->nzval, nnz*r*c*elemsize);
-	starpu_free_on_node(node, (uintptr_t) bcsr_interface->colind, nnz*sizeof(uint32_t));
+	if (nnz)
+	{
+		starpu_free_on_node(node, bcsr_interface->nzval, nnz*r*c*elemsize);
+		starpu_free_on_node(node, (uintptr_t) bcsr_interface->colind, nnz*sizeof(uint32_t));
+	}
 	starpu_free_on_node(node, (uintptr_t) bcsr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
@@ -383,11 +400,14 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 	int ret = 0;
 
-	if (starpu_interface_copy(src_bcsr->nzval, 0, src_node, dst_bcsr->nzval, 0, dst_node, nnz*elemsize*r*c, async_data))
-		ret = -EAGAIN;
+	if (nnz)
+	{
+		if (starpu_interface_copy(src_bcsr->nzval, 0, src_node, dst_bcsr->nzval, 0, dst_node, nnz*elemsize*r*c, async_data))
+			ret = -EAGAIN;
 
-	if (starpu_interface_copy((uintptr_t)src_bcsr->colind, 0, src_node, (uintptr_t)dst_bcsr->colind, 0, dst_node, nnz*sizeof(uint32_t), async_data))
-		ret = -EAGAIN;
+		if (starpu_interface_copy((uintptr_t)src_bcsr->colind, 0, src_node, (uintptr_t)dst_bcsr->colind, 0, dst_node, nnz*sizeof(uint32_t), async_data))
+			ret = -EAGAIN;
+	}
 
 	if (starpu_interface_copy((uintptr_t)src_bcsr->rowptr, 0, src_node, (uintptr_t)dst_bcsr->rowptr, 0, dst_node, (nrow+1)*sizeof(uint32_t), async_data))
 		ret = -EAGAIN;
@@ -425,10 +445,13 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 	{
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 		char *tmp = *ptr;
-		memcpy(tmp, (void*)bcsr->colind, bcsr->nnz * sizeof(bcsr->colind[0]));
-		tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
-		memcpy(tmp, (void*)bcsr->rowptr, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
-		tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+		if (bcsr->nnz)
+		{
+			memcpy(tmp, (void*)bcsr->colind, bcsr->nnz * sizeof(bcsr->colind[0]));
+			tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
+			memcpy(tmp, (void*)bcsr->rowptr, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
+			tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+		}
 		memcpy(tmp, (void*)bcsr->nzval, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
 	}
 
@@ -444,10 +467,13 @@ static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, si
 	STARPU_ASSERT(count == (bcsr->nnz * sizeof(bcsr->colind[0]))+((bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]))+(bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize));
 
 	char *tmp = ptr;
-	memcpy((void*)bcsr->colind, tmp, bcsr->nnz * sizeof(bcsr->colind[0]));
-	tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
-	memcpy((void*)bcsr->rowptr, tmp, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
-	tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+	if (bcsr->nnz)
+	{
+		memcpy((void*)bcsr->colind, tmp, bcsr->nnz * sizeof(bcsr->colind[0]));
+		tmp += bcsr->nnz * sizeof(bcsr->colind[0]);
+		memcpy((void*)bcsr->rowptr, tmp, (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]));
+		tmp += (bcsr->nrow + 1) * sizeof(bcsr->rowptr[0]);
+	}
 	memcpy((void*)bcsr->nzval, tmp, bcsr->r * bcsr->c * bcsr->nnz * bcsr->elemsize);
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);

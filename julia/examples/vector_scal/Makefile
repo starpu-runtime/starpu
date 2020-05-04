@@ -49,10 +49,11 @@ clean:
 cstarpu.dat: vector_scal
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./vector_scal > $@
 julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal.jl $@
 julia_native.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal_native.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal_native.jl $@
 julia_calllib.dat: ${EXTERNLIB}
-	LD_LIBRARY_PATH+=${LIBPATH} JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal.jl julia_calllib.dat
+	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia vector_scal.jl julia_calllib.dat
 
-test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
+#test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
+test: julia_generatedc.dat julia_calllib.dat
