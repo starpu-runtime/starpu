@@ -3,7 +3,7 @@ using StarPU
 using LinearAlgebra
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Nothing
+@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}, stride ::Int32) :: Nothing
 
     width_m2 :: Int32 = width(m2)
     height_m1 :: Int32 = height(m1)
@@ -85,7 +85,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
                         handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = StarpuTask(cl = cl, handles = handles, cl_arg=(stride))
+                        task = StarpuTask(cl = cl, handles = handles, cl_arg=(Int32(stride),))
                         starpu_task_submit(task)
                         #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
                     end
