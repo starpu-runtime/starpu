@@ -116,7 +116,8 @@ void multiply_with_starpu(float *A, float *B, float *C,  unsigned xdim,  unsigne
 			task->cl_arg = &stride;
 			task->cl_arg_size = sizeof(stride);
 
-			if (starpu_task_submit(task)!=0) fprintf(stderr,"submit task error\n");
+			int ret = starpu_task_submit(task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 	}
 

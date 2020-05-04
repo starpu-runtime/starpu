@@ -5,6 +5,16 @@ export JULIA_LOAD_PATH=@STARPU_SRC_DIR@/julia/src:$JULIA_LOAD_PATH
 export STARPU_JULIA_LIB=@STARPU_BUILD_DIR@/julia/src/.libs/libstarpujulia-1.3.so
 export STARPU_JULIA_BUILD=@STARPU_BUILD_DIR@/julia
 srcdir=@STARPU_SRC_DIR@/julia/examples
+
+if test "$1" == "-calllib"
+then
+    shift
+    pwd
+    make -f @STARPU_BUILD_DIR@/julia/src/dynamic_compiler/Makefile extern_tasks.so SOURCES_CPU=$srcdir/$1
+    shift
+    export JULIA_TASK_LIB=extern_tasks.so
+fi
+
 srcfile=$1
 if test ! -f $srcdir/$srcfile
 then
@@ -12,6 +22,7 @@ then
     exit 1
 fi
 shift
-cd $srcdir/$(dirname $srcfile)
-@JULIA@ $(basename $srcfile) $*
+#cd $srcdir/$(dirname $srcfile)
+#@JULIA@ $(basename $srcfile) $*
+@JULIA@ $srcdir/$srcfile $*
 

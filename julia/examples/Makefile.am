@@ -73,12 +73,18 @@ TESTS			=	$(SHELL_TESTS) $(STARPU_JULIA_EXAMPLES)
 endif
 
 ######################
-#    Mult example    #
+#      Examples      #
 ######################
 
 STARPU_JULIA_EXAMPLES	+=	mult/mult
 SHELL_TESTS		+=	mult/mult_starpu.sh
-
 mult_mult_SOURCES =	mult/mult.c mult/cpu_mult.c
-mult_mult_CPPFLAGS = $(AM_CPPFLAGS) -DSTRIDE=72
+#mult_mult_CPPFLAGS = $(AM_CPPFLAGS)
+
+STARPU_JULIA_EXAMPLES				+=	task_insert_color/task_insert_color
+task_insert_color_task_insert_color_SOURCES	=	task_insert_color/task_insert_color.c
+SHELL_TESTS					+=	task_insert_color/task_insert_color.sh
+
+SHELL_TESTS	+=	variable/variable.sh
+SHELL_TESTS	+=	vector_scal/vector_scal.sh
 

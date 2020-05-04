@@ -73,8 +73,13 @@ function compute_times(io,start_dim, step_dim, stop_dim)
     end
 end
 
+if size(ARGS, 1) < 1
+    filename="x.dat"
+else
+    filename=ARGS[1]
+end
 
-io=open(ARGS[1],"w")
+io=open(filename,"w")
 compute_times(io,1024,1024,4096)
 close(io)
 

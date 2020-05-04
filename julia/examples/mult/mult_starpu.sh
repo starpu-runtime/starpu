@@ -1,3 +1,7 @@
 #!/bin/bash
 
-./execute.sh mult/mult.jl toto.dat
+$(dirname $0)/../execute.sh mult/mult.jl
+$(dirname $0)/../execute.sh mult/mult_native.jl
+$(dirname $0)/../execute.sh -calllib mult/cpu_mult.c mult/mult.jl $stride julia_calllib.dat
+
+

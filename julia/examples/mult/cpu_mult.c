@@ -25,12 +25,12 @@
  * in the case of CPU, GPU frame buffer in the case of GPU etc.). Since we have
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
-void cpu_mult(void *descr[], void *arg)
+void cpu_mult(void *descr[], void *cl_arg)
 {
 	int stride;
 	float *subA, *subB, *subC;
 
-	stride = *((int *)arg);
+	stride = *((int *)cl_arg);
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);

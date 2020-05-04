@@ -38,8 +38,8 @@ CUDA_OBJECTS=
 %.o: %.cu
 	$(NVCC) -dc $(CUDA_CFLAGS) $^ --shared --compiler-options '-fPIC' -o $@ $(LDFLAGS)
 
-#${EXTERNLIB}: cpu_mult.c
-#	$(CC) $(CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
+${EXTERNLIB}: $(SOURCES_CPU)
+	$(CC) $(AM_CPPFLAGS) $(AM_CFLAGS) -shared -fPIC $(LDFLAGS) $^ -o $@
 
 ${GENERATEDLIB}: $(C_OBJECTS) $(CUDA_OBJECTS)
 	$(LD) -shared $(LDFLAGS) $^ -o $@
