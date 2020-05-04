@@ -55,7 +55,7 @@ function mandelbrot_with_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, d
 	starpu_data_partition(hA,horiz)
 
 	@starpu_sync_tasks for taskx in (1 : nslicesx)
-                @starpu_async_cl mandelbrot(hA[taskx]) [STARPU_W] [cr, ci, (taskx-1)*dim/nslicesx, dim]
+                @starpu_async_cl mandelbrot(hA[taskx]) [STARPU_W] (cr, ci, Int64((taskx-1)*dim/nslicesx), dim)
 	end
     end
 end

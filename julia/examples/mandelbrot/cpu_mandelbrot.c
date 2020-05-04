@@ -2,30 +2,37 @@
 #include <starpu.h>
 #include <math.h>
 
+struct params {
+        double centerr;
+        double centeri;
+        long offset;
+        long dim;
+};
+
+
 void cpu_mandelbrot(void *descr[], void *cl_arg)
 {
         long long *pixels;
-        float *params;
 
         pixels = (long long int *)STARPU_MATRIX_GET_PTR(descr[0]);
-        params = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+        struct params *params = (struct params *) cl_arg;
 
-        long long width = STARPU_MATRIX_GET_NY(descr[0]);
-        long long height = STARPU_MATRIX_GET_NX(descr[0]);
+        long width = STARPU_MATRIX_GET_NY(descr[0]);
+        long height = STARPU_MATRIX_GET_NX(descr[0]);
         double zoom = width * 0.25296875;
         double iz = 1. / zoom;
         float diverge = 4.0;
         float max_iterations = (width/2) * 0.049715909 * log10(zoom);
         float imi = 1. / max_iterations;
-        float centerr = params[0];
-        float centeri = params[1];
-        float offset = params[2];
-        float dim = params[3];
+        double centerr = params->centerr;
+        double centeri = params->centeri;
+        long offset = params->offset;
+        long dim = params->dim;
         double cr = 0;
         double zr = 0;
         double ci = 0;
         double zi = 0;
-        long long n = 0;
+        long n = 0;
         double tmp = 0;
         int ldP = STARPU_MATRIX_GET_LD(descr[0]);
 
