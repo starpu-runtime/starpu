@@ -10,9 +10,10 @@ if test "$1" == "-calllib"
 then
     shift
     pwd
+    rm -f extern_tasks.so
     make -f @STARPU_BUILD_DIR@/julia/src/dynamic_compiler/Makefile extern_tasks.so SOURCES_CPU=$srcdir/$1
     shift
-    export JULIA_TASK_LIB=extern_tasks.so
+    export JULIA_TASK_LIB=$PWD/extern_tasks.so
 fi
 
 srcfile=$1
