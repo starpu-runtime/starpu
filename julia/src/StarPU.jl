@@ -47,6 +47,8 @@ function jlstarpu_set_to_zero(x :: T) :: Ptr{Cvoid} where {T}
         )
 end
 
+tuple_len(::NTuple{N, Any}) where {N} = N
+
 export starpu_init
 export starpu_shutdown
 export starpu_memory_pin
@@ -483,7 +485,7 @@ mutable struct StarpuTask
 
         Creates a new task which will run the specified codelet on handle buffers and cl_args data
     """
-    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = [])
+    function StarpuTask(; cl :: Union{Cvoid, StarpuCodelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = ())
 
         if (cl == nothing)
             error("\"cl\" field can't be empty when creating a StarpuTask")
@@ -508,13 +510,13 @@ mutable struct StarpuTask
         scalar_parameters = get(CODELETS_SCALARS, codelet_name, nothing)
         if scalar_parameters != nothing
             nb_scalar_required = length(scalar_parameters)
-            nb_scalar_provided = length(cl_arg)
+            nb_scalar_provided = tuple_len(cl_arg)
             if (nb_scalar_provided != nb_scalar_required)
                 error("$nb_scalar_provided scalar parameters provided but $nb_scalar_required are required by $codelet_name.")
             end
             output.cl_arg = create_param_struct_from_clarg(codelet_name, cl_arg)
         else
-            output.cl_arg = nothing
+            output.cl_arg = cl_arg
         end
 
         output.synchronous = false
@@ -583,7 +585,7 @@ mutable struct StarpuTaskTranslator
             output.cl_arg = C_NULL
             output.cl_arg_size = 0
         else
-            output.cl_arg = pointer_from_objref(task.cl_arg)
+            output.cl_arg = Base.unsafe_convert(Ptr{Cvoid}, Ref(task.cl_arg))
             output.cl_arg_size = sizeof(task.cl_arg)
         end
 
