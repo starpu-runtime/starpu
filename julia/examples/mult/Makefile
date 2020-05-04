@@ -28,9 +28,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: ${EXTERNLIB}
 
 mult: mult.c cpu_mult.o #gpu_mult.o
@@ -56,11 +53,11 @@ clean:
 # Performance Tests
 cstarpu.dat: mult
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mult > $@
-julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl $@
-julia_native.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult_native.jl $@
-julia_calllib.dat: ${EXTERNLIB}
-	LD_LIBRARY_PATH+=${LIBPATH} JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl julia_calllib.dat
+julia_generatedc.dat: mult.jl
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl $@
+julia_native.dat: mult_native.jl
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult_native.jl $@
+julia_calllib.dat: ${EXTERNLIB} mult.jl
+	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl julia_calllib.dat
 
 test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
