@@ -1,9 +1,6 @@
-# tile size. Should be changed in mult.jl as well
-STRIDE=72
-
 # ICC compiler
 #CC =icc
-#CFLAGS=-restrict -unroll4 -ipo -falign-loops=256 -O3 -DSTRIDE=${STRIDE} -march=native $(shell pkg-config --cflags starpu-1.3)
+#CFLAGS=-restrict -unroll4 -ipo -falign-loops=256 -O3 -march=native $(shell pkg-config --cflags starpu-1.3)
 # GCC compiler
 CC=gcc
 NVCC=nvcc
@@ -14,7 +11,7 @@ ifeq ($(ENABLE_CUDA),yes)
         LD := ${NVCC}
 endif
 
-CFLAGS = -O3 -g -DSTRIDE=${STRIDE} $(shell pkg-config --cflags starpu-1.3)
+CFLAGS = -O3 -g $(shell pkg-config --cflags starpu-1.3)
 CPU_CFLAGS = ${CFLAGS} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
 CUDA_CFLAGS = ${CFLAGS}
 LDFLAGS +=$(shell pkg-config --libs starpu-1.3)
@@ -51,13 +48,14 @@ clean:
 	rm -f mult *.so *.o genc_*.c gencuda_*.cu *.dat
 
 # Performance Tests
+STRIDE=72
 cstarpu.dat: mult
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mult > $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mult $(STRIDE) > $@
 julia_generatedc.dat: mult.jl
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl $(STRIDE) $@
 julia_native.dat: mult_native.jl
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult_native.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult_native.jl $(STRIDE) $@
 julia_calllib.dat: ${EXTERNLIB} mult.jl
-	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl julia_calllib.dat
+	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mult.jl $(STRIDE) julia_calllib.dat
 
 test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
