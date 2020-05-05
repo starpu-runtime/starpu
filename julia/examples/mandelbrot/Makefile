@@ -21,8 +21,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: ${EXTERNLIB}
 
 mandelbrot: mandelbrot.c cpu_mandelbrot.o #gpu_mandelbrot.o
@@ -47,12 +45,12 @@ clean:
 
 # Performance Tests
 cstarpu.dat: mandelbrot
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mandelbrot -0.800671 -0.158392 32 32 4096 4 > $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mandelbrot > $@
 julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl $@
 julia_native.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot_native.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot_native.jl $@
 julia_calllib.dat: ${EXTERNLIB}
-	LD_LIBRARY_PATH+=${LIBPATH} JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl julia_calllib.dat
+	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl julia_calllib.dat
 
 test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat

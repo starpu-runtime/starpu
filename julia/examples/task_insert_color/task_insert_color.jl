@@ -34,7 +34,7 @@ function task_insert_color_with_starpu(val ::Ref{Int32})
             starpu_task_submit(StarpuTask(cl = cl2, handles = [hVal]))
 
             # In the trace file, the following tasks will be red as specified in @starpu_async_cl
-            @starpu_async_cl task_insert_color(hVal) [STARPU_RW] [] 0xFF0000
+            @starpu_async_cl task_insert_color(hVal) [STARPU_RW] () 0xFF0000
 
 	end
     end

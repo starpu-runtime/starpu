@@ -34,7 +34,7 @@ using LinearAlgebra
                 zi = 2*zr*zi + ci
                 zr = tmp
             end
-            
+
             if (n < max_iterations)
                 pixels[y,x] = round(15 * n * imi)
             else
@@ -55,7 +55,7 @@ function mandelbrot_with_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, d
 	starpu_data_partition(hA,horiz)
 
 	@starpu_sync_tasks for taskx in (1 : nslicesx)
-                @starpu_async_cl mandelbrot(hA[taskx]) [STARPU_W] [cr, ci, (taskx-1)*dim/nslicesx, dim]
+                @starpu_async_cl mandelbrot(hA[taskx]) [STARPU_W] (cr, ci, Int64((taskx-1)*dim/nslicesx), dim)
 	end
     end
 end
@@ -73,9 +73,9 @@ function pixels2img(pixels ::Matrix{Int64}, width ::Int64, height ::Int64, filen
     end
 end
 
-function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
+function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64, gen_images)
     tmin=0;
-    
+
     pixels ::Matrix{Int64} = zeros(dim, dim)
     for i = 1:10
         t = time_ns();
@@ -85,20 +85,21 @@ function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
             tmin=t
         end
     end
-    pixels2img(pixels,dim,dim,"out$(dim).ppm")
+    if (gen_images == 1)
+        pixels2img(pixels,dim,dim,"out$(dim).ppm")
+    end
     return tmin
 end
 
-function display_time(cr ::Float64, ci ::Float64, start_dim ::Int64, step_dim ::Int64, stop_dim ::Int64, nslices ::Int64)
+function display_time(cr ::Float64, ci ::Float64, start_dim ::Int64, step_dim ::Int64, stop_dim ::Int64, nslices ::Int64, gen_images)
     for dim in (start_dim : step_dim : stop_dim)
-        res = min_times(cr, ci, dim, nslices)
+        res = min_times(cr, ci, dim, nslices, gen_images)
         res=res/dim/dim; # time per pixel
         println("$(dim) $(res)")
     end
 end
 
 
-display_time(-0.800671,-0.158392,32,32,4096,4)
+display_time(-0.800671,-0.158392,32,32,512,4, 0)
 
 starpu_shutdown()
-

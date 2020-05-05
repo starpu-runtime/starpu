@@ -13,10 +13,12 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <starpu.h>
+
 /*
  * The codelet is passed 3 matrices, the "descr" union-type field gives a
  * description of the layout of those 3 matrices in the local memory (ie. RAM
@@ -25,13 +27,15 @@
  */
 void cpu_mult(void *descr[], void *arg)
 {
-	(void)arg;
+	int stride;
 	float *subA, *subB, *subC;
+
+	stride = *((int *)arg);
+
 	/* .blas.ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	subB = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	subC = (float *)STARPU_MATRIX_GET_PTR(descr[2]);
-
 
 	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
 	 * is the number of lines that are separated by .blas.ld elements (ld
@@ -50,14 +54,18 @@ void cpu_mult(void *descr[], void *arg)
 	int i,j,k,ii,jj,kk;
 	for (i = 0; i < nyC*nxC; i++) subC[i] = 0;
 	//fprintf(stderr,"inside cpu_mult %dx%dx%d %d/%d on %d\n",nyC,nyA,nxC,starpu_worker_get_id(),STARPU_NMAXWORKERS,starpu_worker_get_devid(starpu_worker_get_id()));
-	for (i=0;i<nyC;i+=STRIDE) {
-		for (k=0;k<nyA;k+=STRIDE) {
-			for (j=0;j<nxC;j+=STRIDE) {
-				
-				for (ii = i; ii < i+STRIDE; ii+=2) {
+	for (i=0;i<nyC;i+=stride)
+	{
+		for (k=0;k<nyA;k+=stride)
+		{
+			for (j=0;j<nxC;j+=stride)
+			{
+				for (ii = i; ii < i+stride; ii+=2)
+				{
 					float *sC0=subC+ii*ldC+j;
 					float *sC1=subC+ii*ldC+ldC+j;
-					for (kk = k; kk < k+STRIDE; kk+=4) {
+					for (kk = k; kk < k+stride; kk+=4)
+					{
 						float alpha00=subB[kk +  ii*ldB];
 						float alpha01=subB[kk+1+ii*ldB];
 						float alpha10=subB[kk+  ii*ldB+ldB];
@@ -70,7 +78,8 @@ void cpu_mult(void *descr[], void *arg)
 						float *sA1=subA+kk*ldA+ldA+j;
 						float *sA2=subA+kk*ldA+2*ldA+j;
 						float *sA3=subA+kk*ldA+3*ldA+j;
-						for (jj = 0; jj < STRIDE; jj+=1) {
+						for (jj = 0; jj < stride; jj+=1)
+						{
 							sC0[jj] += alpha00*sA0[jj]+alpha01*sA1[jj]+alpha02*sA2[jj]+alpha03*sA3[jj];
 							sC1[jj] += alpha10*sA0[jj]+alpha11*sA1[jj]+alpha12*sA2[jj]+alpha13*sA3[jj];
 						}
@@ -80,11 +89,12 @@ void cpu_mult(void *descr[], void *arg)
 		}
 	}
 	//fprintf(stderr,"inside cpu_mult %dx%dx%d\n",nyC,nyA,nxC);
-
 }
+
 char* CPU = "cpu_mult";
 char* GPU = "gpu_mult";
-extern char *starpu_find_function(char *name, char *device) {
+extern char *starpu_find_function(char *name, char *device)
+{
 	if (!strcmp(device,"gpu")) return GPU;
 	return CPU;
 }

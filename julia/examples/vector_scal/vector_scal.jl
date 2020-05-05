@@ -37,7 +37,7 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
             t=time_ns()
             @starpu_sync_tasks begin
                 handles = [hV]
-                task = StarpuTask(cl = cl, handles = handles, cl_arg=[m, k, l])
+                task = StarpuTask(cl = cl, handles = handles, cl_arg=(m, k, l))
                 starpu_task_submit(task)
             end
             # @starpu_sync_tasks for task in (1:1)

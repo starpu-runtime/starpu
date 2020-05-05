@@ -29,7 +29,7 @@ float cpu_vector_scal(void *buffers[], void *cl_arg)
 
   /* scale the vector */
   for (unsigned i = 0; i < n; i++)
-    val[i] = val[i] * k + l + m;
+    val[i] = val[i] * m + l + k;
 
   return 0.0;
 }

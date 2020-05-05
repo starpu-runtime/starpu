@@ -21,8 +21,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: ${EXTERNLIB}
 
 variable: variable.c cpu_variable.o #gpu_variable.o
@@ -49,10 +47,10 @@ clean:
 cstarpu.dat: variable
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./variable -0.800671 -0.158392 32 32 4096 4 > $@
 julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable.jl $@
 julia_native.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable_native.jl $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable_native.jl $@
 julia_calllib.dat: ${EXTERNLIB}
-	LD_LIBRARY_PATH+=${LIBPATH} JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable.jl julia_calllib.dat
+	JULIA_TASK_LIB="${EXTERNLIB}" STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia variable.jl julia_calllib.dat
 
 test: cstarpu.dat julia_generatedc.dat julia_native.dat julia_calllib.dat
