@@ -34,7 +34,7 @@ using LinearAlgebra
                 zi = 2*zr*zi + ci
                 zr = tmp
             end
-            
+
             if (n < max_iterations)
                 pixels[y,x] = round(15 * n * imi)
             else
@@ -75,7 +75,7 @@ end
 
 function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
     tmin=0;
-    
+
     pixels ::Matrix{Int64} = zeros(dim, dim)
     for i = 1:10
         t = time_ns();
@@ -101,4 +101,3 @@ end
 display_time(-0.800671,-0.158392,32,32,4096,4)
 
 starpu_shutdown()
-
