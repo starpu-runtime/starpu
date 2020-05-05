@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <starpu.h>
@@ -90,7 +91,7 @@ void pixels2img(long long *pixels, long long width, long long height, const char
 	fclose(fp);
 }
 
-double min_times(double cr, double ci, long long dim, long long nslices)
+double min_times(double cr, double ci, long long dim, long long nslices, int gen_images)
 {
 	long long *pixels = calloc(dim*dim, sizeof(long long));
 	struct params *p = calloc(nslices, sizeof(struct params));
@@ -117,9 +118,12 @@ double min_times(double cr, double ci, long long dim, long long nslices)
 		  t_min = exec_t;
 	}
 
-	char filename[64];
-	snprintf(filename, 64, "out%lld.ppm", dim);
-	pixels2img(pixels,dim,dim,filename);
+	if (gen_images == 1)
+	{
+		char filename[64];
+		snprintf(filename, 64, "out%lld.ppm", dim);
+		pixels2img(pixels,dim,dim,filename);
+	}
 
 	free(pixels);
 	free(p);
@@ -127,14 +131,14 @@ double min_times(double cr, double ci, long long dim, long long nslices)
 	return t_min;
 }
 
-void display_times(double cr, double ci, long long start_dim, long long step_dim, long long stop_dim, long long nslices)
+void display_times(double cr, double ci, long long start_dim, long long step_dim, long long stop_dim, long long nslices, int gen_images)
 {
 	long long dim;
 
 	for (dim = start_dim; dim <= stop_dim; dim += step_dim)
 	{
 		printf("Dimension: %lld...\n", dim);
-		double res = min_times(cr, ci, dim, nslices);
+		double res = min_times(cr, ci, dim, nslices, gen_images);
 		res = res / dim / dim; // time per pixel
 		printf("%lld %lf\n", dim, res);
 	}
@@ -142,25 +146,40 @@ void display_times(double cr, double ci, long long start_dim, long long step_dim
 
 int main(int argc, char **argv)
 {
-	if (argc != 7)
+	double cr, ci;
+	long long start_dim, step_dim, stop_dim, nslices;
+	int gen_images;
+
+	if (argc != 8)
 	{
-		printf("Usage: %s cr ci start_dim step_dim stop_dim nslices(must divide dims)\n", argv[0]);
-		return 1;
+		printf("Usage: %s cr ci start_dim step_dim stop_dim nslices(must divide dims) gen_images. Using default parameters\n", argv[0]);
+
+		cr = -0.800671;
+		ci = -0.158392;
+		start_dim = 32;
+		step_dim = 32;
+		stop_dim = 512;
+		nslices = 4;
+		gen_images = 0;
 	}
+	else
+	{
+		cr = (float) atof(argv[1]);
+		ci = (float) atof(argv[2]);
+		start_dim = atoll(argv[3]);
+		step_dim = atoll(argv[4]);
+		stop_dim = atoll(argv[5]);
+		nslices = atoll(argv[6]);
+		gen_images = atoi(argv[7]);
+	}
+
 	if (starpu_init(NULL) != EXIT_SUCCESS)
 	{
 		fprintf(stderr, "ERROR\n");
 		return 77;
 	}
 
-	double cr = (float) atof(argv[1]);
-	double ci = (float) atof(argv[2]);
-	long long start_dim = atoll(argv[3]);
-	long long step_dim = atoll(argv[4]);
-	long long stop_dim = atoll(argv[5]);
-	long long nslices = atoll(argv[6]);
-
-	display_times(cr, ci, start_dim, step_dim, stop_dim, nslices);
+	display_times(cr, ci, start_dim, step_dim, stop_dim, nslices, gen_images);
 
 	starpu_shutdown();
 

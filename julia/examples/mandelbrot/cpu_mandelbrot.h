@@ -1,4 +1,5 @@
-struct params {
+struct params
+{
         double centerr;
         double centeri;
         long offset;

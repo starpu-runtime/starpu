@@ -68,7 +68,7 @@ function pixels2img(pixels ::Matrix{Int64}, width ::Int64, height ::Int64, filen
     end
 end
 
-function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
+function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64, gen_images)
     tmin=0;
 
     pixels ::Matrix{Int64} = zeros(dim, dim)
@@ -80,17 +80,19 @@ function min_times(cr ::Float64, ci ::Float64, dim ::Int64, nslices ::Int64)
             tmin=t
         end
     end
-    pixels2img(pixels,dim,dim,"out$(dim).ppm")
+    if (gen_images == 1)
+        pixels2img(pixels,dim,dim,"out$(dim).ppm")
+    end
     return tmin
 end
 
-function display_time(cr ::Float64, ci ::Float64, start_dim ::Int64, step_dim ::Int64, stop_dim ::Int64, nslices ::Int64)
+function display_time(cr ::Float64, ci ::Float64, start_dim ::Int64, step_dim ::Int64, stop_dim ::Int64, nslices ::Int64, gen_images)
     for dim in (start_dim : step_dim : stop_dim)
-        res = min_times(cr, ci, dim, nslices)
+        res = min_times(cr, ci, dim, nslices, gen_images)
         res=res/dim/dim; # time per pixel
         println("$(dim) $(res)")
     end
 end
 
 
-display_time(-0.800671,-0.158392,32,32,4096,4)
+display_time(-0.800671,-0.158392,32,32,512,4, 0)
