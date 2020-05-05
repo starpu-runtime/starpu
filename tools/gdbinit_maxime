@@ -1,0 +1,10 @@
+define starpu-print-tasks-basic-sched
+  set language c
+  if ! _starpu_debug
+    printf "you need to configure with --enable-debug to get starpu-print-all-tasks working\n"
+  else
+    set $p = variable_globale->head
+	while $p != NULL
+		printf "%p\n", $p->sub_list->_head
+   set $p = $p->next
+end

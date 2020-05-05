@@ -3,7 +3,11 @@ TODO
 Maxime
 
 Vérifier que je met bien les taches qui partagent le plus de données ensemble ensemble, la pour le moment je crois que je met juste ensemble celle qui partage 1 données, sans regarder si y en a qui en on 2 en commun.
-Tester avec d'autres exemples : STARPU_GENERATE_TRACE=1 STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*16)) -nblocks 16 -iter 1
+Tester avec d'autres exemples Marche pour 4 mais pas au dessus STARPU_GENERATE_TRACE=1 STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*16)) -nblocks 16 -iter 1
 Mettre les noms de variables et fonctions en anglais
 Mettre les commentaires en anglais
 Enlever les commentaires inutiles
+
+Simplifier le filling :
+note dans la partie "Filling" je vois que tu parcours la liste en faisant du pop_front/push_back, il n'y a pas besoin d'enlever les tâches pour parcourir la liste, tu peux utiliser stapru_task_list_begin/end/next, 
+voir par exemple dans fifo_queues.c la fonction _starpu_fifo_pop_task
