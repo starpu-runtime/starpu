@@ -280,21 +280,23 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	
 	//Version liste chainée -----------------------------------------------------------------------------------------------------------------
 	if (!starpu_task_list_empty(&data->head->sub_list)) {
+		printf("premier if\n");
 		task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		printf("Task %p is getting out of pull_task\n",task1);
-		printf("premier if\n");
+		
 		return task1;
 	}
 	if ((data->head->next != NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 		//The list is empty and it's not the last one, so we go on the next link
 		data->head = data->head->next;
-		//SUSPECT NUMERO 2 : C'est lui commissaire! Il pop sur une liste vide probablement
-		task1 = starpu_task_list_pop_front(&data->head->sub_list); 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		printf("Task %p is getting out of pull_task\n",task1);
 		printf("deuxieme if\n");
-		return task1;
+		//SUSPECT NUMERO 2 : C'est lui commissaire! Il pop sur une liste vide probablement
+		while (starpu_task_list_empty(&data->head->sub_list)) { data->head = data->head->next; }
+			task1 = starpu_task_list_pop_front(&data->head->sub_list); 
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			printf("Task %p is getting out of pull_task\n",task1);
+			return task1;
 	}
 	if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 		printf("On est pas censé entrer dans ce if\n");
