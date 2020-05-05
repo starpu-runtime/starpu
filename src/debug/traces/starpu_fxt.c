@@ -200,8 +200,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	fprintf(tasks_file, "JobId: %s%lu\n", prefix, task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
-	if (task->priority)
-		fprintf(tasks_file, "Priority: %ld\n", task->priority);
+	fprintf(tasks_file, "Priority: %ld\n", task->priority);
 	if (task->dependencies)
 	{
 		fprintf(tasks_file, "DependsOn:");
