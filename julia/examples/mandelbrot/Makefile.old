@@ -45,7 +45,7 @@ clean:
 
 # Performance Tests
 cstarpu.dat: mandelbrot
-	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mandelbrot -0.800671 -0.158392 32 32 4096 4 > $@
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./mandelbrot > $@
 julia_generatedc.dat:
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia mandelbrot.jl $@
 julia_native.dat:
