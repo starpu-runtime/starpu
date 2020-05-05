@@ -1,14 +1,7 @@
 #include <stdio.h>
 #include <starpu.h>
 #include <math.h>
-
-struct params {
-        double centerr;
-        double centeri;
-        long offset;
-        long dim;
-};
-
+#include "cpu_mandelbrot.h"
 
 void cpu_mandelbrot(void *descr[], void *cl_arg)
 {
@@ -38,14 +31,17 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
 
         long long x,y;
 
-        for (y = 0; y < height; y++){
-                for (x = 0; x < width; x++){
+        for (y = 0; y < height; y++)
+	{
+                for (x = 0; x < width; x++)
+		{
                         cr = centerr + (x - (dim/2)) * iz;
 			zr = cr;
                         ci = centeri + (y+offset - (dim/2)) * iz;
                         zi = ci;
 
-                        for (n = 0; n <= max_iterations; n++) {
+                        for (n = 0; n <= max_iterations; n++)
+			{
 				if (zr*zr + zi*zi>diverge) break;
                                 tmp = zr*zr - zi*zi + cr;
                                 zi = 2*zr*zi + ci;
@@ -61,7 +57,8 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
 
 char* CPU = "cpu_mandelbrot";
 char* GPU = "gpu_mandelbrot";
-extern char *starpu_find_function(char *name, char *device) {
+extern char *starpu_find_function(char *name, char *device)
+{
 	if (!strcmp(device,"gpu")) return GPU;
 	return CPU;
 }

@@ -21,8 +21,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: task_insert_color
 
 task_insert_color: task_insert_color.o
@@ -46,6 +44,6 @@ clean:
 cstarpu.dat: task_insert_color
 	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./task_insert_color > $@
 julia_generatedc.dat:
-	LD_LIBRARY_PATH+=${LIBPATH} STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia task_insert_colorl.jl
+	STARPU_NOPENCL=0 STARPU_SCHED=dmda STARPU_CALIBRATE=1 julia task_insert_color.jl
 
 test: cstarpu.dat julia_generatedc.dat

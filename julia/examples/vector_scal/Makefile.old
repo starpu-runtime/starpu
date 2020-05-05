@@ -21,8 +21,6 @@ ifneq ($(ENABLE_CUDA),yes)
 	CUDA_OBJECTS:=
 endif
 
-LIBPATH=${PWD}/../StarPU.jl/lib
-
 all: ${EXTERNLIB}
 
 vector_scal: vector_scal.c cpu_vector_scal.o #gpu_vector_scal.o
