@@ -77,9 +77,8 @@ endif
 ######################
 
 STARPU_JULIA_EXAMPLES	+=	mult/mult
+mult_mult_SOURCES	=	mult/mult.c mult/cpu_mult.c
 SHELL_TESTS		+=	mult/mult_starpu.sh
-mult_mult_SOURCES =	mult/mult.c mult/cpu_mult.c
-#mult_mult_CPPFLAGS = $(AM_CPPFLAGS)
 
 STARPU_JULIA_EXAMPLES				+=	task_insert_color/task_insert_color
 task_insert_color_task_insert_color_SOURCES	=	task_insert_color/task_insert_color.c
@@ -88,3 +87,6 @@ SHELL_TESTS					+=	task_insert_color/task_insert_color.sh
 SHELL_TESTS	+=	variable/variable.sh
 SHELL_TESTS	+=	vector_scal/vector_scal.sh
 
+STARPU_JULIA_EXAMPLES		+=	mandelbrot/mandelbrot
+mandelbrot_mandelbrot_SOURCES	=	mandelbrot/mandelbrot.c mandelbrot/cpu_mandelbrot.c mandelbrot/cpu_mandelbrot.h
+SHELL_TESTS			+=	mandelbrot/mandelbrot.sh
