@@ -74,9 +74,9 @@ class Worker():
             return # Will look later to find a PopState event.
         elif curr_event._type == "PopState":
             if len(self._stack) == 0:
-                sys.exit("ERROR: The trace is most likely corrupted "
-                         "because a PopState event has been found without "
-                         "a PushState!")
+                print("warning: PopState without a PushState, probably a trace with start/stop profiling")
+                self._current_state = None
+                return
             next_event = curr_event
             curr_event = self._stack.pop()
         elif curr_event._type == "SetState":
