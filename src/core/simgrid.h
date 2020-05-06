@@ -63,6 +63,7 @@ void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_deinit(void);
 void _starpu_simgrid_deinit_late(void);
+void _starpu_simgrid_actor_setup(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 struct _starpu_job;
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished);
