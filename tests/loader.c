@@ -378,15 +378,15 @@ int main(int argc, char *argv[])
 		}
 
 		launcher_argv[i++] = test_name;
-#ifdef STARPU_SIMGRID
-		launcher_argv[i++] = "--cfg=contexts/factory:thread";
-#endif
 		if (test_args)
 			launcher_argv[i++] = test_args;
 		else while (argv[x])
 		{
 			launcher_argv[i++] = argv[x++];
 		}
+#ifdef STARPU_SIMGRID
+		launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
 		launcher_argv[i++] = NULL;
 		execvp(*launcher_argv, launcher_argv);
 
