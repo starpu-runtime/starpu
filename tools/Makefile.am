@@ -432,6 +432,7 @@ dist_bin_SCRIPTS +=				\
 	starpu_mlr_analysis			\
 	starpu_mlr_analysis.Rmd			\
 	starpu_paje_state_stats			\
+	starpu_paje_state_stats.R			\
 	starpu_send_recv_data_use.py 		\
 	starpu_trace_state_stats.py
 
