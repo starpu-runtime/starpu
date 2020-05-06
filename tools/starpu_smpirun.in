@@ -51,8 +51,8 @@ fi
 
 if [ -n "$TEST_LOGS" ]
 then
-	# Testsuite, use thread factory to let gdb get all traces
-	EXTRA_OPT+=" --cfg=contexts/factory:thread"
+	# Testsuite, use our loader
+	WRAPPER="-wrapper $BUILDDIR/../tests/loader"
 fi
 
 # When executed from source, take xslt from source
@@ -133,7 +133,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN $GDB -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" $EXTRA_OPT --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
+$SMPIRUN $WRAPPER $GDB -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" $EXTRA_OPT --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM
