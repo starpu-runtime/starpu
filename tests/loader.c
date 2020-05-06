@@ -360,32 +360,42 @@ int main(int argc, char *argv[])
 			if (top_builddir != NULL)
 			{
 				char *launcher_argv[100];
-				int i=3;
+				int i=0;
 
-				launcher_argv[0] = libtool;
-				launcher_argv[1] = "--mode=execute";
-				launcher_argv[2] = launcher;
+				launcher_argv[i++] = libtool;
+				launcher_argv[i++] = "--mode=execute";
+				launcher_argv[i++] = launcher;
 				if (launcher_args)
 				{
-					launcher_argv[i] = strtok(launcher_args, " ");
-					while (launcher_argv[i])
+					launcher_argv[i++] = strtok(launcher_args, " ");
+					while (launcher_argv[i-1])
 					{
-						i++;
-						launcher_argv[i] = strtok(NULL, " ");
+						launcher_argv[i++] = strtok(NULL, " ");
 					}
 				}
-				launcher_argv[i] = test_name;
-				launcher_argv[i+1] = test_args;
-				launcher_argv[i+2] = NULL;
+				launcher_argv[i++] = test_name;
+#ifdef STARPU_SIMGRID
+				launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
+				launcher_argv[i++] = test_args;
+				launcher_argv[i++] = NULL;
 				execvp(*launcher_argv, launcher_argv);
 			}
 			else
 			{
-				execl(test_name, test_name, test_args, NULL);
+				execl(test_name, test_name,
+#ifdef STARPU_SIMGRID
+					"--cfg=contexts/factory:thread",
+#endif
+					test_args, NULL);
 			}
 		}
 		else
-			execl(test_name, test_name, test_args, NULL);
+			execl(test_name, test_name,
+#ifdef STARPU_SIMGRID
+				"--cfg=contexts/factory:thread",
+#endif
+				test_args, NULL);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
