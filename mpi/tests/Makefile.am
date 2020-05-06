@@ -140,8 +140,7 @@ starpu_mpi_TESTS +=				\
 	user_defined_datatype			\
 	early_stuff				\
 	sendrecv_bench				\
-	burst					\
-	nothing
+	burst
 
 if !STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
