@@ -11,3 +11,14 @@ Enlever les commentaires inutiles
 Simplifier le filling :
 note dans la partie "Filling" je vois que tu parcours la liste en faisant du pop_front/push_back, il n'y a pas besoin d'enlever les tâches pour parcourir la liste, tu peux utiliser stapru_task_list_begin/end/next, 
 voir par exemple dans fifo_queues.c la fonction _starpu_fifo_pop_task
+
+Supporter le fait que les tâches on des nombres de données variable
+il faut donc intégrer au code des boucles pour supporter un nombre de paramètres variable et le fait que les tâches peuvent ne pas toutes avoir le même nombre de paramètres. 
+Il faut aussi supporter le fait que les tâches peuvent ne pas être dans le même ordre (données 1 de la tache 1 à comparer avec toutes les données, pas seulement les données 1 de chaque tâche.
+
+Gérer la taille max des paquets :
+include/starpu_stdlib.h:starpu_ssize_t starpu_memory_get_total(unsigned node);
+faut lui donner, STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component))
+unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx));
+ça s'assure qu'on ne gère qu'un nœud mémoire et tu le donnes ensuite à  starpu_memory_get_total
+écris starpu_ssize_t dans ton code car windows n'a pas le type ssize_t
