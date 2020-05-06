@@ -17,7 +17,7 @@
 # Script for running starpu-mpi application in simgrid mode
 
 prefix=@prefix@
-SMPIRUN=@smpirun_path@
+SMPIRUN=@mpiexec_path@
 STARPU_DATADIR=@datarootdir@
 STARPU_XSLTDIR=$STARPU_DATADIR/starpu
 SOURCE_DATADIR=@abs_srcdir@
