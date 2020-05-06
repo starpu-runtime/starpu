@@ -139,7 +139,8 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench
+	sendrecv_bench				\
+	burst
 
 if !STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -239,7 +240,8 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
-	sendrecv_parallel_tasks_bench
+	sendrecv_parallel_tasks_bench		\
+	burst
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
