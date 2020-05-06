@@ -133,8 +133,11 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
 #if (!defined(STARPU_SIMGRID) && !defined(STARPU_OPENMP))
 	if (home_node == STARPU_MAIN_RAM)
 	{
-		STARPU_ASSERT_ACCESSIBLE(ptr);
-		STARPU_ASSERT_ACCESSIBLE(ptr + nx*elemsize - 1);
+		if (nx && elemsize)
+		{
+			STARPU_ASSERT_ACCESSIBLE(ptr);
+			STARPU_ASSERT_ACCESSIBLE(ptr + nx*elemsize - 1);
+		}
 	}
 #endif
 

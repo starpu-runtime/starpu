@@ -124,8 +124,11 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_nod
 #ifndef STARPU_SIMGRID
 	if (home_node == STARPU_MAIN_RAM)
 	{
-		STARPU_ASSERT_ACCESSIBLE(ptr);
-		STARPU_ASSERT_ACCESSIBLE(ptr + elemsize - 1);
+		if (elemsize)
+		{
+			STARPU_ASSERT_ACCESSIBLE(ptr);
+			STARPU_ASSERT_ACCESSIBLE(ptr + elemsize - 1);
+		}
 	}
 #endif
 
