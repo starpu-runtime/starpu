@@ -27,6 +27,7 @@ versinclude_HEADERS = 					\
 	include/starpu_mpi_lb.h				\
 	include/fstarpu_mpi_mod.f90
 
+if !STARPU_SIMGRID
 check-recursive:
 	RET=0 ; \
 	NJOBS=`printf %s "$(MAKEFLAGS)" | sed -ne 's/.*-j \?\([0-9]\+\).*/\1/p'` ; \
@@ -42,3 +43,4 @@ check-recursive:
 		$(MAKE) check -C $$i MAKEFLAGS="$(MAKEFLAGS) $$JOBS" || RET=1; \
 	done ; \
 	exit $$RET
+endif
