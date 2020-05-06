@@ -28,11 +28,11 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS
 CC=$(CC_OR_MPICC)
 CCLD=$(CC_OR_MPICC)
 
-if STARPU_SIMGRID
-bin_PROGRAMS = starpu_replay_mpi
-
 starpu_replay.c starpu_replay_sched.c:
 	$(LN_S) $(top_srcdir)/tools/$(notdir $@) $@
+
+if STARPU_SIMGRID
+bin_PROGRAMS = starpu_replay_mpi
 
 starpu_replay_mpi_SOURCES = \
 	starpu_replay.c \
