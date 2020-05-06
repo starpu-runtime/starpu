@@ -73,6 +73,13 @@ _starpu_simgrid_thread_start(int argc, char *argv[])
 	return 0;
 }
 
+size_t _starpu_default_stack_size = 8192;
+
+void
+_starpu_simgrid_set_stack_size(size_t stack_size)
+{
+}
+
 static void _starpu_clock_gettime(struct timespec *ts)
 {
 #ifdef HAVE_SIMGRID_GET_CLOCK
