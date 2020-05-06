@@ -23,7 +23,11 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
+#ifdef STARPU_SIMGRID
+#define NB_REQUESTS 10
+#else
 #define NB_REQUESTS 500
+#endif
 #define NX_ARRAY (320 * 320)
 
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
