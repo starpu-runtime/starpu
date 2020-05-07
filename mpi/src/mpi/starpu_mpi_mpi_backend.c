@@ -83,6 +83,7 @@ void _starpu_mpi_mpi_backend_request_destroy(struct _starpu_mpi_req *req)
 	STARPU_PTHREAD_MUTEX_DESTROY(&req->backend->posted_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&req->backend->posted_cond);
 	free(req->backend);
+	req->backend = NULL;
 }
 
 void _starpu_mpi_mpi_backend_data_clear(starpu_data_handle_t data_handle)
