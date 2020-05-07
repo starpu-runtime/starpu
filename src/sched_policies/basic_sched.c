@@ -311,7 +311,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		//~ return task1;
 	//~ }
 	//---------------------------------------------------------------------------------------------------------------------------------------	
-	printf("rien n'a été return\n");
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
