@@ -75,6 +75,11 @@ define starpu-print-task
   if $task->cl && $task->cl->name
     printf "\tcodelet name:\t\t\t<%s>\n", $task->cl->name
   end
+  set $nbuffers = $task->nbuffers
+  if $task->cl && $task->cl->nbuffers != -1
+    set $nbuffers = $task->cl->nbuffers
+  end
+  printf "\tnbuffers:\t\t\t<%d>\n", $nbuffers
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
