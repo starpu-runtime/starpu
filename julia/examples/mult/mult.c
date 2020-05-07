@@ -193,11 +193,7 @@ void display_times(unsigned start_dim, unsigned step_dim, unsigned stop_dim, uns
 	}
 }
 
-#ifdef STARPU_QUICK_CHECK
-#define STRIDE_DEFAULT 4
-#else
-#define STRIDE_DEFAULT 72
-#endif
+#define STRIDE_DEFAULT 8
 
 int main(int argc, char * argv[])
 {
