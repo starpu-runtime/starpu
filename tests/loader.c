@@ -242,6 +242,9 @@ int main(int argc, char *argv[])
 	}
 	if (timeout <= 0)
 		timeout = DEFAULT_TIMEOUT;
+#ifdef STARPU_SIMGRID
+	timeout *= 10;
+#endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* compare values between the 2 values of timeout */
@@ -257,9 +260,13 @@ int main(int argc, char *argv[])
 	{
 		test_name = malloc(strlen(argv[x+1]) + 1 + strlen(argv[x+2]) + 1);
 		sprintf(test_name, "%s/%s", argv[x+1], argv[x+2]);
+		x += 3;
 	}
 	else
+	{
 		test_name = argv[x];
+		x += 1;
+	}
 
 	if (!test_name)
 	{
@@ -352,40 +359,39 @@ int main(int argc, char *argv[])
 	child_pid = fork();
 	if (child_pid == 0)
 	{
-		if (launcher)
-		{
-			/* "Launchers" such as Valgrind need to be inserted
-			 * after the Libtool-generated wrapper scripts, hence
-			 * this special-case.  */
-			if (top_builddir != NULL)
-			{
-				char *launcher_argv[100];
-				int i=3;
+		char *launcher_argv[100];
+		int i=0;
 
-				launcher_argv[0] = libtool;
-				launcher_argv[1] = "--mode=execute";
-				launcher_argv[2] = launcher;
-				if (launcher_args)
-				{
-					launcher_argv[i] = strtok(launcher_args, " ");
-					while (launcher_argv[i])
-					{
-						i++;
-						launcher_argv[i] = strtok(NULL, " ");
-					}
-				}
-				launcher_argv[i] = test_name;
-				launcher_argv[i+1] = test_args;
-				launcher_argv[i+2] = NULL;
-				execvp(*launcher_argv, launcher_argv);
-			}
-			else
+		/* "Launchers" such as Valgrind need to be inserted
+		 * after the Libtool-generated wrapper scripts, hence
+		 * this special-case.  */
+		if (launcher && top_builddir != NULL)
+		{
+			launcher_argv[i++] = libtool;
+			launcher_argv[i++] = "--mode=execute";
+			launcher_argv[i++] = launcher;
+			if (launcher_args)
 			{
-				execl(test_name, test_name, test_args, NULL);
+				launcher_argv[i++] = strtok(launcher_args, " ");
+				while (launcher_argv[i-1])
+				{
+					launcher_argv[i++] = strtok(NULL, " ");
+				}
 			}
 		}
-		else
-			execl(test_name, test_name, test_args, NULL);
+
+		launcher_argv[i++] = test_name;
+		if (test_args)
+			launcher_argv[i++] = test_args;
+		else while (argv[x])
+		{
+			launcher_argv[i++] = argv[x++];
+		}
+#ifdef STARPU_SIMGRID
+		launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
+		launcher_argv[i++] = NULL;
+		execvp(*launcher_argv, launcher_argv);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);

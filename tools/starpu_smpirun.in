@@ -17,7 +17,7 @@
 # Script for running starpu-mpi application in simgrid mode
 
 prefix=@prefix@
-SMPIRUN=@smpirun_path@
+SMPIRUN=@mpiexec_path@
 STARPU_DATADIR=@datarootdir@
 STARPU_XSLTDIR=$STARPU_DATADIR/starpu
 SOURCE_DATADIR=@abs_srcdir@
@@ -40,11 +40,19 @@ else
 	DASH=_
 fi
 
+EXTRA_OPT=""
+
 if [ "$SMPI_MAJOR" -ge 4 -o \( "$SMPI_MAJOR" = 3 -a "$SMPI_MINOR" -ge 16 \) ]
 then
-	PRIV_OPT="--cfg=smpi/privatization:yes"
+	EXTRA_OPT+=" --cfg=smpi/privatization:yes"
 else
-	PRIV_OPT="--cfg=smpi/privatize${DASH}global${DASH}variables:yes"
+	EXTRA_OPT+=" --cfg=smpi/privatize${DASH}global${DASH}variables:yes"
+fi
+
+if [ -n "$TEST_LOGS" ]
+then
+	# Testsuite, use our loader
+	WRAPPER="-wrapper $BUILDDIR/../tests/loader"
 fi
 
 # When executed from source, take xslt from source
@@ -125,7 +133,7 @@ EOF
 
 STACKSIZE=$(ulimit -s)
 [ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
-$SMPIRUN $GDB -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" $PRIV_OPT --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
+$SMPIRUN $WRAPPER $GDB -platform $PLATFORM -hostfile $MPI_HOSTFILE -np $NP "$@" $EXTRA_OPT --cfg=smpi/simulate${DASH}computation:no --cfg=contexts/stack${DASH}size:$STACKSIZE
 RET=$?
 
 rm -f $PLATFORM

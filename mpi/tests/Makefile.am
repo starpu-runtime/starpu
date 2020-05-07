@@ -139,7 +139,8 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench
+	sendrecv_bench				\
+	burst
 
 if !STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -239,7 +240,9 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
-	sendrecv_parallel_tasks_bench
+	sendrecv_parallel_tasks_bench		\
+	burst					\
+	nothing
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
@@ -249,7 +252,8 @@ endif
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\
-	starpu_redefine
+	starpu_redefine				\
+	nothing
 
 ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c

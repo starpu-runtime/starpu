@@ -135,8 +135,11 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, int home_node,
 	{
 		if (nnz)
 		{
-			STARPU_ASSERT_ACCESSIBLE(nzval);
-			STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize*r*c - 1);
+			if (r && c && elemsize)
+			{
+				STARPU_ASSERT_ACCESSIBLE(nzval);
+				STARPU_ASSERT_ACCESSIBLE(nzval + nnz*elemsize*r*c - 1);
+			}
 			STARPU_ASSERT_ACCESSIBLE(colind);
 			STARPU_ASSERT_ACCESSIBLE((uintptr_t) colind + nnz*sizeof(uint32_t) - 1);
 		}
