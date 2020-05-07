@@ -64,7 +64,7 @@ end
 starpu_init()
 
 function mandelbrot_with_starpu(A ::Matrix{Int64}, cr ::Float64, ci ::Float64, dim ::Int64, nslicesx ::Int64)
-    horiz = StarpuDataFilter(STARPU_MATRIX_FILTER_BLOCK, nslicesx)
+    horiz = starpu_data_filter(STARPU_MATRIX_FILTER_BLOCK, nslicesx)
     @starpu_block let
 	hA = starpu_data_register(A)
 	starpu_data_partition(hA,horiz)

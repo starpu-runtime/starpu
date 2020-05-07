@@ -33,6 +33,4 @@ libstarpujulia_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined	
   -version-info $(LIBSTARPUJULIA_INTERFACE_CURRENT):$(LIBSTARPUJULIA_INTERFACE_REVISION):$(LIBSTARPUJULIA_INTERFACE_AGE)
 
 libstarpujulia_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
-	jlstarpu_task_submit.c		\
-	jlstarpu_simple_functions.c 	\
-	jlstarpu_data_handles.c
+	dummy.c

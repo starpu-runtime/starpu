@@ -36,11 +36,11 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
     @starpu_block let
         hV = starpu_data_register(v)
         tmin=0
-        perfmodel = StarpuPerfmodel(
-            perf_type = STARPU_HISTORY_BASED,
+        perfmodel = starpu_perfmodel(
+            perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
             symbol = "history_perf"
         )
-        cl = StarpuCodelet(
+        cl = starpu_codelet(
             cpu_func = CPU_CODELETS["vector_scal"],
             # cuda_func = CUDA_CODELETS["vector_scal"],
             #opencl_func="ocl_matrix_mult",
@@ -52,7 +52,7 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
             t=time_ns()
             @starpu_sync_tasks begin
                 handles = [hV]
-                task = StarpuTask(cl = cl, handles = handles, cl_arg=(m, k, l))
+                task = starpu_task(cl = cl, handles = handles, cl_arg=(m, k, l))
                 starpu_task_submit(task)
             end
             # @starpu_sync_tasks for task in (1:1)

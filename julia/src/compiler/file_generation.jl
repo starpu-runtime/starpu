@@ -13,15 +13,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-
-
-
-global generated_cuda_kernel_file_name = "PRINT TO STDOUT"
-
-
-
-global generated_cpu_kernel_file_name = "PRINT TO STDOUT"
-
 const cpu_kernel_file_start = "#include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
@@ -104,16 +95,6 @@ macro target(x)
         global starpu_target
     end
 end
-
-export CPU_CODELETS
-global CPU_CODELETS=Dict{String,String}()
-export CUDA_CODELETS
-global CUDA_CODELETS=Dict{String,String}()
-
-export CODELETS_SCALARS
-global CODELETS_SCALARS=Dict{String,Any}()
-export CODELETS_PARAMS_STRUCT
-global CODELETS_PARAMS_STRUCT=Dict{String,Any}()
 
 """
 	    Executes @cuda_kernel and @cpu_kernel

@@ -74,19 +74,19 @@ starpu_init()
 function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy, stride)
     scale= 3
     tmin=0
-    vert = StarpuDataFilter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
-    horiz = StarpuDataFilter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
+    vert = starpu_data_filter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
+    horiz = starpu_data_filter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
     @starpu_block let
         hA,hB,hC = starpu_data_register(A, B, C)
         starpu_data_partition(hB, vert)
         starpu_data_partition(hA, horiz)
         starpu_data_map_filters(hC, vert, horiz)
         tmin=0
-        perfmodel = StarpuPerfmodel(
-            perf_type = STARPU_HISTORY_BASED,
+        perfmodel = starpu_perfmodel(
+            perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
             symbol = "history_perf"
         )
-        cl = StarpuCodelet(
+        cl = starpu_codelet(
             cpu_func = CPU_CODELETS["matrix_mult"],
             # cuda_func = CUDA_CODELETS["matrix_mult"],
             #opencl_func="ocl_matrix_mult",
@@ -100,7 +100,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
                         handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = StarpuTask(cl = cl, handles = handles, cl_arg=(Int32(stride),))
+                        task = starpu_task(cl = cl, handles = handles, cl_arg=(Int32(stride),))
                         starpu_task_submit(task)
                         #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
                     end

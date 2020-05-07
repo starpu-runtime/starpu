@@ -13,18 +13,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-global starpu_type_traduction_dict = Dict(
-    Int32 => "int32_t",
-    UInt32 => "uint32_t",
-    Float32 => "float",
-    Int64 => "int64_t",
-    UInt64 => "uint64_t",
-    Float64 => "double",
-    Nothing => "void"
-)
-export starpu_type_traduction_dict
-
-
 #======================================================
                 AFFECTATION
 ======================================================#

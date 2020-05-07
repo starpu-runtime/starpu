@@ -76,6 +76,8 @@ endif
 #      Examples      #
 ######################
 
+SHELL_TESTS	+=	check_deps/check_deps.sh
+
 STARPU_JULIA_EXAMPLES	+=	mult/mult
 mult_mult_SOURCES	=	mult/mult.c mult/cpu_mult.c
 SHELL_TESTS		+=	mult/mult_starpu.sh
