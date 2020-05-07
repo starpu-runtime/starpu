@@ -29,7 +29,23 @@ for STARPU_SCHED in $STARPU_SCHEDS ; do
 done
 echo
 
-for size in `seq 2 2 30` ; do
+INCR=2
+
+if [ -n "$STARPU_SIMGRID" ]
+then
+	INCR=8
+	# These use the thread factory, and are thus much longer
+	if [ -n "$STARPU_QUICK_CHECK" ]
+	then
+		INCR=16
+	fi
+	if [ -n "$STARPU_LONG_CHECK" ]
+	then
+		INCR=4
+	fi
+fi
+
+for size in `seq 2 $INCR 30` ; do
 	echo -n "$((size * 960))"
 	for STARPU_SCHED in $STARPU_SCHEDS
 	do
