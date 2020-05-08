@@ -67,10 +67,15 @@
 #include <xbt/synchro_core.h>
 #endif
 
+/* common/thread.c references these, but doesn't need to have them working anyway */
 int
 _starpu_simgrid_thread_start(int argc, char *argv[])
 {
 	return 0;
+}
+
+starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)
+{
 }
 
 static void _starpu_clock_gettime(struct timespec *ts)
