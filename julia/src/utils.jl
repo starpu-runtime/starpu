@@ -76,6 +76,21 @@ function load_starpu_function_pointer(func_name :: String)
     return func_pointer
 end
 
+function load_wrapper_function_pointer(func_name :: String)
+    if (isempty(func_name))
+        return C_NULL
+    end
+
+    func_pointer=Libdl.dlsym(starpu_wrapper_library_handle, func_name)
+
+    if (func_pointer == C_NULL)
+        error("Couldn't find function symbol $func_name into extern library file $starpu_tasks_library")
+    end
+
+    return func_pointer
+end
+
+
 """
     Declares a Julia function which is just calling the StarPU function
     having the same name.

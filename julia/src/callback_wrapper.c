@@ -22,3 +22,13 @@ void  *dummy_function_list[] = {
 				starpu_init,
 };
 
+void julia_callback_func(void *user_data)
+{
+  volatile int *signal = (int *) user_data;
+
+  // Wakeup callback
+  *(signal) = 1;
+
+  // Wait for callback to end.
+  while ((*signal) != 0);
+}

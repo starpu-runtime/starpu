@@ -92,3 +92,7 @@ SHELL_TESTS	+=	vector_scal/vector_scal.sh
 STARPU_JULIA_EXAMPLES		+=	mandelbrot/mandelbrot
 mandelbrot_mandelbrot_SOURCES	=	mandelbrot/mandelbrot.c mandelbrot/cpu_mandelbrot.c mandelbrot/cpu_mandelbrot.h
 SHELL_TESTS			+=	mandelbrot/mandelbrot.sh
+
+STARPU_JULIA_EXAMPLES		+= callback/callback
+callback_callback_SOURCES	=	callback/callback.c
+SHELL_TESTS			+=	callback/callback.sh
