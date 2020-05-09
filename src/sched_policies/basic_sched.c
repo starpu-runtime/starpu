@@ -89,6 +89,18 @@ void insertion(struct basic_sched_data *a)
     a->head = nouveau;
 }
 
+//Fifo queue begin/end/next
+//~ struct starpu_task *task;
+
+	//~ for (task  = starpu_task_list_begin(&fifo_queue->taskq);
+	     //~ task != starpu_task_list_end(&fifo_queue->taskq);
+	     //~ task  = starpu_task_list_next(task))
+	//~ {
+		//~ if (_starpu_fifo_pop_this_task(fifo_queue, workerid, task))
+			//~ return task;
+	//~ }
+//Fin fifo queue begin/end/next
+
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 	struct basic_sched_data *data = component->data;
@@ -112,8 +124,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//~ printf("Pull breakpoint 1\n");
 	struct basic_sched_data *data = component->data;	
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0; int nb_data_commun = 0; int nb_tasks_in_linked_list = 0;
-	
-	int taille_tache = 0;
+	int je_suis_ou = 0;
+	int nb_data_in_task = 0;
 	
 //Doesn't work for me	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -122,6 +134,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 #endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
+	struct starpu_task *temp_task2 = NULL;
 	
 	//If the list is not empty, it means that we have task to get out of pull before pulling more tasks
 	//If we use a linked list we need to go to the next one and verify it's not equal to NULL
@@ -141,7 +154,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//Pulling all tasks and counting them
 				task1 = starpu_task_list_pop_back(&data->sched_list);
 				//Getting the "size" of a task for later, it's bad here cause it's in a while loop
-				taille_tache = STARPU_TASK_GET_NBUFFERS(task1);
+				nb_data_in_task = STARPU_TASK_GET_NBUFFERS(task1);
 				//~ printf("Pulling task %p\n",task1);
 				nb_pop++;
 				//True line
@@ -150,38 +163,86 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//Test
 				//~ starpu_task_list_push_back(&data_liste->sub_list,task1);
 				//~ &data_liste->next;
-			} printf("%d task(s) have been pulled\n",nb_pop);
-			//~ if (nb_pop > 2) {
+			} 
+			printf("%d task(s) have been pulled\n",nb_pop);
+			
 			if (nb_pop > 0) {
-				//Filling a tab with every handles of every tasks
 				struct starpu_task *task_tab [nb_pop];
-				int *handles[nb_pop*taille_tache]; for (i = 0; i < nb_pop*taille_tache; i++) { handles[i] = 0; }
-				for (i = 0; i < nb_pop; i++) {
-					task1 = starpu_task_list_pop_front(&data->tache_pop);
-					handles[tab_runner] = STARPU_TASK_GET_HANDLE(task1, 0);
-					handles[tab_runner + 1] = STARPU_TASK_GET_HANDLE(task1, 1);
-					handles[tab_runner + 2] = STARPU_TASK_GET_HANDLE(task1, 2);
-					tab_runner += taille_tache;
-					starpu_task_list_push_back(&data->tache_pop,task1);
-				}
+				
+				//Version 1 seule taille de tâches ----------------------------------------------------------------------------------------------------------
+				//Filling a tab with every handles of every tasks
+				//~ int *handles[nb_pop*nb_data_in_task]; for (i = 0; i < nb_pop*nb_data_in_task; i++) { handles[i] = 0; }
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
+					//~ handles[tab_runner] = STARPU_TASK_GET_HANDLE(task1, 0);
+					//~ handles[tab_runner + 1] = STARPU_TASK_GET_HANDLE(task1, 1);
+					//~ handles[tab_runner + 2] = STARPU_TASK_GET_HANDLE(task1, 2);
+					//~ tab_runner += nb_data_in_task;
+					//~ starpu_task_list_push_back(&data->tache_pop,task1);
+				//~ }
 				
 				//Here is code to print the handles tab ------------------------
 				//~ printf("Handles tab : \n");
-				//~ for (i = 0; i < nb_pop*taille_tache; i++) {
+				//~ for (i = 0; i < nb_pop*nb_data_in_task; i++) {
 					//~ printf("%p\n",handles[i]);
 				//~ }
 				//--------------------------------------------------------------
 				
+				//~ tab_runner = 0;
+				//~ int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+				//~ for (i = 0; i < nb_pop - 1; i++) {
+					//~ //Compare handles of every task and put the result in a matrix
+					//~ for (tab_runner = i+1; tab_runner < nb_pop; tab_runner++) {
+						//~ if (handles[i*nb_data_in_task] == handles[tab_runner*nb_data_in_task]) { matrice_donnees_commune[i][tab_runner] += 1; }
+						//~ if (handles[i*nb_data_in_task + 1] == handles[tab_runner*nb_data_in_task + 1]) { matrice_donnees_commune[i][tab_runner] += 1; }
+						//~ if (handles[i*nb_data_in_task + 2] == handles[tab_runner*nb_data_in_task + 2]) { matrice_donnees_commune[i][tab_runner] += 1; }
+					//~ }				
+				//~ }
+				//-------------------------------------------------------------------------------------------------------------------------------------------
+				
+				//Version avec des tâches de tailles différentes --------------------------------------------------------------------------------------------
+				//Table that store the number of data in every task
+				int tab_nb_data_in_task[nb_pop]; 
+				for (i = 0; i < nb_pop; i++) { tab_nb_data_in_task[i] = 0; }
+				struct starpu_task *temp_task;
+				i = 0;
+				for (temp_task  = starpu_task_list_begin(&data->tache_pop);
+					temp_task != starpu_task_list_end(&data->tache_pop);
+					temp_task  = starpu_task_list_next(temp_task))
+				{
+					tab_nb_data_in_task[i] = STARPU_TASK_GET_NBUFFERS(temp_task);
+					i++;
+				}
+				
 				tab_runner = 0;
 				int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
-				for (i = 0; i < nb_pop - 1; i++) {
-					//Compare handles of every task and put the result in a matrix
-					for (tab_runner = i+1; tab_runner < nb_pop; tab_runner++) {
-						if (handles[i*taille_tache] == handles[tab_runner*taille_tache]) { matrice_donnees_commune[i][tab_runner] += 1; }
-						if (handles[i*taille_tache + 1] == handles[tab_runner*taille_tache + 1]) { matrice_donnees_commune[i][tab_runner] += 1; }
-						if (handles[i*taille_tache + 2] == handles[tab_runner*taille_tache + 2]) { matrice_donnees_commune[i][tab_runner] += 1; }
-					}				
+				temp_task  = starpu_task_list_begin(&data->tache_pop);
+				//~ printf ("temp_task est : %p\n",temp_task);
+				je_suis_ou = 1;
+				for (i = 0; i < nb_pop; i++) {
+					//tab_runner is going to run through all the task(s) of a task
+					for (tab_runner = 0; tab_runner < tab_nb_data_in_task[i]; tab_runner++) {
+							//la temp task 2 dois se decaler de 1
+							temp_task2  = starpu_task_list_begin(&data->tache_pop);
+							temp_task2 = starpu_task_list_next(temp_task2);
+							//~ printf ("temp_task2 est : %p\n",temp_task2);
+							while (temp_task2 != starpu_task_list_end(&data->tache_pop))
+							{ 
+								je_suis_ou++;
+								//~ printf ("temp_task2 dans le for est : %p\n",temp_task);
+								for (j = 0; j < tab_nb_data_in_task[i+1]; j++) { 
+									printf("Je compare %p et %p !\n",temp_task,temp_task2);
+									if (STARPU_TASK_GET_HANDLE(temp_task, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task2, j)) {
+										matrice_donnees_commune[i][je_suis_ou] += 1;
+										//a verifier
+										//Pour le moment je compare bien 1 donnée de la tache 1 avec tt les données de tt les autres et apres je boucle trop a l'infini
+									}
+								}
+								temp_task2  = starpu_task_list_next(temp_task2);
+							}	
+					}
 				}
+				//-------------------------------------------------------------------------------------------------------------------------------------------
 				
 				//Here is code to print the common data matrix  ----------------
 				//~ printf("Common data matrix : \n");
