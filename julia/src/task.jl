@@ -91,7 +91,8 @@ task_list = Vector{jl_starpu_task}()
             Creates a new task which will run the specified codelet on handle buffers and cl_args data
         """
 function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = (),
-                     callback :: Union{Cvoid, Function} = nothing, callback_arg = nothing)
+                     callback :: Union{Cvoid, Function} = nothing, callback_arg = nothing, tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                     sequential_consistency = true)
     if (cl == nothing)
         error("\"cl\" field can't be empty when creating a StarpuTask")
     end
@@ -124,6 +125,7 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
     starpu_task_init(Ref(output.c_task))
     output.c_task.cl = pointer_from_objref(cl.c_codelet)
     output.c_task.synchronous = false
+    output.c_task.sequential_consistency = sequential_consistency
 
     ## TODO: check num handles equals num codelet buffers
     for i in 1:length(handles)
@@ -139,6 +141,11 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
         output.callback_signal[1] = 0
         output.c_task.callback_arg = Base.unsafe_convert(Ptr{Cvoid}, output.callback_signal)
         output.c_task.callback_func = load_wrapper_function_pointer("julia_callback_func")
+    end
+
+    if tag != nothing
+        output.c_task.tag_id = tag
+        output.c_task.use_tag = 1
     end
 
     # Tasks must not be garbage collected before starpu_task_wait_for_all is called.

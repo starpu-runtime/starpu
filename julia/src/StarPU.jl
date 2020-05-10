@@ -20,7 +20,6 @@ module StarPU
 import Libdl
 using CBinding
 
-
 include("utils.jl")
 
 const starpu_wrapper_library_name=fstarpu_task_library_name()
@@ -67,10 +66,12 @@ export @starpu_filter
 export STARPU_PERFMODEL_INVALID, STARPU_PER_ARCH, STARPU_COMMON
 export STARPU_HISTORY_BASED, STARPU_REGRESSION_BASED
 export STARPU_NL_REGRESSION_BASED, STARPU_MULTIPLE_REGRESSION_BASED
+export starpu_tag_t
 export starpu_task_declare_deps
 export starpu_task_wait_for_n_submitted
 export starpu_task_destroy
 export starpu_tag_wait
+export starpu_tag_notify_from_apps
 export starpu_iteration_pop
 export starpu_iteration_push
 export starpu_tag_declare_deps

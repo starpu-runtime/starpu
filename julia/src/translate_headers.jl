@@ -63,6 +63,7 @@ function translate_starpu_headers()
                                "starpu_task_wait_for_n_submitted",
                                "starpu_tag_wait",
                                "starpu_tag_declare_deps_array",
+                               "starpu_tag_notify_from_apps",
                                "starpu_task_declare_deps_array",
                                "starpu_iteration_push",
                                "starpu_iteration_pop",
