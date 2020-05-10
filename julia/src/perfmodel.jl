@@ -13,6 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+perfmodel_list = Vector{starpu_perfmodel}()
+
 function starpu_perfmodel(; perf_type::starpu_perfmodel_type, symbol::String)
     output = starpu_perfmodel(zero)
     output.type = perf_type
@@ -20,7 +23,9 @@ function starpu_perfmodel(; perf_type::starpu_perfmodel_type, symbol::String)
 
     # Performance models must not be garbage collected before starpu_shutdown
     # is called.
-    push!(perfmodels, output)
+    lock(mutex)
+    push!(perfmodel_list, output)
+    unlock(mutex)
 
     return output
 end

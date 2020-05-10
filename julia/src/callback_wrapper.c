@@ -26,9 +26,14 @@ void julia_callback_func(void *user_data)
 {
   volatile int *signal = (int *) user_data;
 
-  // Wakeup callback
+  // wakeup callback
   *(signal) = 1;
 
   // Wait for callback to end.
   while ((*signal) != 0);
+}
+
+void julia_wait_signal(volatile int *signal)
+{
+  while ((*signal) == 0);
 }

@@ -44,6 +44,8 @@ function starpu_init()
     global starpu_wrapper_library_handle= Libdl.dlopen(starpu_wrapper_library_name)
     output = starpu_init(C_NULL)
 
+    global task_pool = ThreadPools.QueuePool(2)
+
     starpu_enter_new_block()
 
     return output
@@ -57,5 +59,12 @@ function starpu_shutdown()
 
     starpu_exit_block()
     @starpucall starpu_shutdown Cvoid ()
+
+    lock(mutex)
+    empty!(perfmodel_list)
+    empty!(codelet_list)
+    empty!(task_list)
+    unlock(mutex)
+
     return nothing
 end

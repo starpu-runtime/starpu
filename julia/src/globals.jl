@@ -46,4 +46,4 @@ global starpu_type_traduction_dict = Dict(
 )
 export starpu_type_traduction_dict
 
-global perfmodels = Vector{starpu_perfmodel}()
+global mutex = Threads.SpinLock()
