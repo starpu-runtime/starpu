@@ -216,31 +216,41 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				tab_runner = 0;
 				int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
-				temp_task  = starpu_task_list_begin(&data->tache_pop);
-				//~ printf ("temp_task est : %p\n",temp_task);
 				je_suis_ou = 1;
-				for (i = 0; i < nb_pop; i++) {
-					//tab_runner is going to run through all the task(s) of a task
-					for (tab_runner = 0; tab_runner < tab_nb_data_in_task[i]; tab_runner++) {
+				int get_on_the_right_task = 0;
+				//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
+				//~ temp_task2 = starpu_task_list_next(temp_task2);
+				//Here need to loop on the next temp_task1
+				for (temp_task  = starpu_task_list_begin(&data->tache_pop); temp_task != starpu_task_list_end(&data->tache_pop); temp_task  = starpu_task_list_next(temp_task)) {
+					//Go on next temp_task2
+					//~ get_on_the_right_task++;
+					//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
+					//~ for (k = 0; k < get_on_the_right_task; k++) { temp_task2 = starpu_task_list_next(temp_task2); }
+					for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task); tab_runner++) {
+						printf("Debut du for\n");
+						je_suis_ou = 0;
+						temp_task2  = starpu_task_list_begin(&data->tache_pop);
+						//~ temp_task2 = starpu_task_list_next(temp_task2);
+						
 							//la temp task 2 dois se decaler de 1
-							temp_task2  = starpu_task_list_begin(&data->tache_pop);
-							temp_task2 = starpu_task_list_next(temp_task2);
-							//~ printf ("temp_task2 est : %p\n",temp_task2);
-							while (temp_task2 != starpu_task_list_end(&data->tache_pop))
-							{ 
+							//~ temp_task2  = starpu_task_list_begin(&data->tache_pop); 
+							//tab_runner is going to run through all the task(s) of a task
+							while (temp_task2 != starpu_task_list_end(&data->tache_pop)) {
+							//~ for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task); tab_runner++) {
 								je_suis_ou++;
-								//~ printf ("temp_task2 dans le for est : %p\n",temp_task);
-								for (j = 0; j < tab_nb_data_in_task[i+1]; j++) { 
-									printf("Je compare %p et %p !\n",temp_task,temp_task2);
+								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(temp_task2); j++) { 
+									printf("Je compare la donnée %d de %p et la donnée %d de %p !\n",tab_runner,temp_task,j,temp_task2);
 									if (STARPU_TASK_GET_HANDLE(temp_task, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task2, j)) {
 										matrice_donnees_commune[i][je_suis_ou] += 1;
-										//a verifier
-										//Pour le moment je compare bien 1 donnée de la tache 1 avec tt les données de tt les autres et apres je boucle trop a l'infini
+										//a verifier ou je met les données dans la matrice
+										//Faire gaffe a pas incréementer une case de une tache avec elle meme car je compare tout
+										//Ca marche pour le moment mais je compare tt les données entre elle au lieu de simplifier quand on avance dans les iterations + matrice pas bien rempli + verifier que 
+										//la fonction qui met ensemble reconnait bien
 									}
 								}
 								temp_task2  = starpu_task_list_next(temp_task2);
-							}	
-					}
+							} printf("On sort du while temp_task2 !=\n");
+					} printf("On sort du for tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task)\n");
 				}
 				//-------------------------------------------------------------------------------------------------------------------------------------------
 				
