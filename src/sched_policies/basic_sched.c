@@ -202,6 +202,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				//Version avec des tâches de tailles différentes --------------------------------------------------------------------------------------------
 				//Table that store the number of data in every task
+				//Sert a RIEN pour le moment
 				int tab_nb_data_in_task[nb_pop]; 
 				for (i = 0; i < nb_pop; i++) { tab_nb_data_in_task[i] = 0; }
 				struct starpu_task *temp_task;
@@ -213,6 +214,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					tab_nb_data_in_task[i] = STARPU_TASK_GET_NBUFFERS(temp_task);
 					i++;
 				}
+				//
 				
 				tab_runner = 0;
 				int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
@@ -229,8 +231,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task); tab_runner++) {
 						printf("Debut du for\n");
 						je_suis_ou = 0;
-						temp_task2  = starpu_task_list_begin(&data->tache_pop);
-						//~ temp_task2 = starpu_task_list_next(temp_task2);
+						//Vrai ligne
+						//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
+						//Test : ca marche !
+						temp_task2 = temp_task;
+						temp_task2 = starpu_task_list_next(temp_task2);
 						
 							//la temp task 2 dois se decaler de 1
 							//~ temp_task2  = starpu_task_list_begin(&data->tache_pop); 
@@ -243,9 +248,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									if (STARPU_TASK_GET_HANDLE(temp_task, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task2, j)) {
 										matrice_donnees_commune[i][je_suis_ou] += 1;
 										//a verifier ou je met les données dans la matrice
-										//Faire gaffe a pas incréementer une case de une tache avec elle meme car je compare tout
-										//Ca marche pour le moment mais je compare tt les données entre elle au lieu de simplifier quand on avance dans les iterations + matrice pas bien rempli + verifier que 
-										//la fonction qui met ensemble reconnait bien
+										//la fonction qui met ensemble les taches reconnait bien les data communes
 									}
 								}
 								temp_task2  = starpu_task_list_next(temp_task2);
