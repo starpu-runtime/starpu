@@ -16,16 +16,12 @@
 using Clang
 using Clang.LibClang.LLVM_jll
 
-function translate_starpu_headers()
-    if isfile((@__DIR__)*"/../gen/libstarpu_common.jl") && isfile((@__DIR__)*"/../gen/libstarpu_api.jl")
-        return
-    end
+function starpu_translate_headers()
+    debug_print("Translating StarPU headers...")
 
     if !isdir((@__DIR__)*"/../gen")
         mkdir((@__DIR__)*"/../gen")
     end
-
-    debug_print("Translating StarPU headers...")
 
     STARPU_INCLUDE=fstarpu_include_dir()
     STARPU_HEADERS = [joinpath(STARPU_INCLUDE, header) for header in readdir(STARPU_INCLUDE) if endswith(header, ".h")]

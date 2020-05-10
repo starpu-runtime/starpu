@@ -11,3 +11,7 @@ catch
     using CBinding
     using ThreadPools
 end
+
+using StarPU
+
+starpu_translate_headers()

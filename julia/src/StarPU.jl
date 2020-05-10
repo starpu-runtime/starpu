@@ -26,7 +26,9 @@ const starpu_wrapper_library_name=fstarpu_task_library_name()
 
 include("translate_headers.jl")
 
-translate_starpu_headers()
+if !isfile((@__DIR__)*"/../gen/libstarpu_common.jl") || !isfile((@__DIR__)*"/../gen/libstarpu_api.jl")
+    starpu_translate_headers()
+end
 
 include("../gen/libstarpu_common.jl")
 include("../gen/libstarpu_api.jl")
@@ -82,5 +84,6 @@ export STARPU_ACCESS_MODE_MAX
 export starpu_codelet
 export starpu_perfmodel
 export starpu_perfmodel_type
+export starpu_translate_headers
 
 end
