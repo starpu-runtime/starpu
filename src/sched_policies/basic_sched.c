@@ -100,6 +100,7 @@ void insertion(struct basic_sched_data *a)
 			//~ return task;
 	//~ }
 //Fin fifo queue begin/end/next
+		
 
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -126,6 +127,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0; int nb_data_commun = 0; int nb_tasks_in_linked_list = 0;
 	int je_suis_ou = 0;
 	int nb_data_in_task = 0;
+	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
+	int i_bis = 0; int j_bis = 0;
 	
 //Doesn't work for me	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -134,7 +137,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 #endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
-	struct starpu_task *temp_task2 = NULL;
+	struct starpu_task *temp_task_2 = NULL;
+	struct starpu_task *temp_task_1 = NULL;
 	
 	//If the list is not empty, it means that we have task to get out of pull before pulling more tasks
 	//If we use a linked list we need to go to the next one and verify it's not equal to NULL
@@ -171,7 +175,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				//Version 1 seule taille de tâches ----------------------------------------------------------------------------------------------------------
 				//Filling a tab with every handles of every tasks
-				//~ int *handles[nb_pop*nb_data_in_task]; for (i = 0; i < nb_pop*nb_data_in_task; i++) { handles[i] = 0; }
+				//~ int handles[nb_pop*nb_data_in_task]; for (i = 0; i < nb_pop*nb_data_in_task; i++) { handles[i] = 0; }
 				//~ for (i = 0; i < nb_pop; i++) {
 					//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
 					//~ handles[tab_runner] = STARPU_TASK_GET_HANDLE(task1, 0);
@@ -186,10 +190,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//~ for (i = 0; i < nb_pop*nb_data_in_task; i++) {
 					//~ printf("%p\n",handles[i]);
 				//~ }
-				//--------------------------------------------------------------
+				//~ //--------------------------------------------------------------
 				
 				//~ tab_runner = 0;
-				//~ int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+				//~ int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 				//~ for (i = 0; i < nb_pop - 1; i++) {
 					//~ //Compare handles of every task and put the result in a matrix
 					//~ for (tab_runner = i+1; tab_runner < nb_pop; tab_runner++) {
@@ -200,81 +204,55 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//~ }
 				//-------------------------------------------------------------------------------------------------------------------------------------------
 				
-				//Version avec des tâches de tailles différentes --------------------------------------------------------------------------------------------
-				//Table that store the number of data in every task
-				//Sert a RIEN pour le moment
-				int tab_nb_data_in_task[nb_pop]; 
-				for (i = 0; i < nb_pop; i++) { tab_nb_data_in_task[i] = 0; }
-				struct starpu_task *temp_task;
-				i = 0;
-				for (temp_task  = starpu_task_list_begin(&data->tache_pop);
-					temp_task != starpu_task_list_end(&data->tache_pop);
-					temp_task  = starpu_task_list_next(temp_task))
-				{
-					tab_nb_data_in_task[i] = STARPU_TASK_GET_NBUFFERS(temp_task);
-					i++;
-				}
-				//
-				
+				//Version avec des tâches de tailles différentes --------------------------------------------------------------------------------------------		
 				tab_runner = 0;
-				int *matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+				int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 				je_suis_ou = 1;
 				int get_on_the_right_task = 0;
-				//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
-				//~ temp_task2 = starpu_task_list_next(temp_task2);
 				//Here need to loop on the next temp_task1
-				for (temp_task  = starpu_task_list_begin(&data->tache_pop); temp_task != starpu_task_list_end(&data->tache_pop); temp_task  = starpu_task_list_next(temp_task)) {
+				index_temp_task_1;
+				for (temp_task_1  = starpu_task_list_begin(&data->tache_pop); temp_task_1 != starpu_task_list_end(&data->tache_pop); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 					//Go on next temp_task2
-					//~ get_on_the_right_task++;
-					//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
-					//~ for (k = 0; k < get_on_the_right_task; k++) { temp_task2 = starpu_task_list_next(temp_task2); }
-					for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task); tab_runner++) {
-						printf("Debut du for\n");
-						je_suis_ou = 0;
-						//Vrai ligne
-						//~ temp_task2  = starpu_task_list_begin(&data->tache_pop);
-						//Test : ca marche !
-						temp_task2 = temp_task;
-						temp_task2 = starpu_task_list_next(temp_task2);
+					for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task_1); tab_runner++) {
+						temp_task_2 = temp_task_1;
+						temp_task_2 = starpu_task_list_next(temp_task_2);
+						index_temp_task_2 = index_temp_task_1 + 1;
 						
 							//la temp task 2 dois se decaler de 1
-							//~ temp_task2  = starpu_task_list_begin(&data->tache_pop); 
 							//tab_runner is going to run through all the task(s) of a task
-							while (temp_task2 != starpu_task_list_end(&data->tache_pop)) {
-							//~ for (tab_runner = 0; tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task); tab_runner++) {
-								je_suis_ou++;
-								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(temp_task2); j++) { 
-									printf("Je compare la donnée %d de %p et la donnée %d de %p !\n",tab_runner,temp_task,j,temp_task2);
-									if (STARPU_TASK_GET_HANDLE(temp_task, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task2, j)) {
-										matrice_donnees_commune[i][je_suis_ou] += 1;
-										//a verifier ou je met les données dans la matrice
-										//la fonction qui met ensemble les taches reconnait bien les data communes
+							while (temp_task_2 != starpu_task_list_end(&data->tache_pop)) {
+								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(temp_task_2); j++) { 
+									//~ printf("Je compare la donnée %d de %p : %p ET la donnée %d de %p : %p !\n",tab_runner,temp_task_1,STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner),j,temp_task_2,STARPU_TASK_GET_HANDLE(temp_task_2, j));
+									if (STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task_2, j)) {
+										matrice_donnees_commune[index_temp_task_1][index_temp_task_2] ++;
+										printf("Point commun entre la tâche %p et la tâche %p\n",temp_task_1,temp_task_2); 
 									}
 								}
-								temp_task2  = starpu_task_list_next(temp_task2);
-							} printf("On sort du while temp_task2 !=\n");
-					} printf("On sort du for tab_runner < STARPU_TASK_GET_NBUFFERS(temp_task)\n");
+								temp_task_2  = starpu_task_list_next(temp_task_2);
+								index_temp_task_2++;
+							} 
+					} 
+					index_temp_task_1++;
 				}
 				//-------------------------------------------------------------------------------------------------------------------------------------------
 				
 				//Here is code to print the common data matrix  ----------------
-				//~ printf("Common data matrix : \n");
-				//~ for (i = 0; i < nb_pop; i++) {
-					//~ for (j = 0; j < nb_pop; j++) {
-						//~ printf (" %d ",matrice_donnees_commune[i][j]);
-					//~ }
-					//~ printf("\n");
-				//~ }
+				printf("Common data matrix : \n");
+				for (i = 0; i < nb_pop; i++) {
+					for (j = 0; j < nb_pop; j++) {
+						printf (" %d ",matrice_donnees_commune[i][j]);
+					}
+					printf("\n");
+				}
 				//--------------------------------------------------------------
 				for (i = 0; i < nb_pop; i++) {
 					for (j = 0; j < nb_pop; j++) {
-						if (matrice_donnees_commune[i][j] == 4) { nb_data_commun++; }
+						if (matrice_donnees_commune[i][j] == 1) { nb_data_commun++; }
 					}
 				}
-				printf("Nb data en commun : %d\n",nb_data_commun);
+				//~ printf("Nb data en commun : %d\n",nb_data_commun);
 				
-				//A FAIRE : Pour l'instant vu que les comparaisons ne trouvait que 1 point commun entre les taches, je fonctionne comme ca. 
-				//A FAIRE : Plus tard il y aura plus que 1 point commun, il faudra donc comparer et voir qui a le plus de points commun
+
 				
 				//Version avec une seule liste et un tableau -----------------------------------------------------------------------------
 				//Using a temp tab to reorder tasks
@@ -294,17 +272,25 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//~ }
 				//------------------------------------------------------------------------------------------------------------------------
 				
+				//A FAIRE : Pour l'instant vu que les comparaisons ne trouvait que 1 point commun entre les taches, je fonctionne comme ca. 
+				//A FAIRE : Plus tard il y aura plus que 1 point commun, il faudra donc comparer et voir qui a le plus de points commun
+				
 				//Version avec la liste chainée ------------------------------------------------------------------------------------------
 				//Here we put every task in the tab
 				for (i = 0; i < nb_pop; i++) {
 					task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
 				}
 				//Here, if a tab has 0 in it, it means that a linked task got put in the tab so we have to put this one too next to it
-	
+				int max_value_common_data_matrix = 0;
 				for (i = 0; i < nb_pop; i++) {
 					if (task_tab[i] != 0) { starpu_task_list_push_back(&data->head->sub_list,task_tab[i]); nb_tasks_in_linked_list++; task_tab[i] = 0; }
 					for (j = i + 1; j< nb_pop; j++) {
-						if (matrice_donnees_commune[i][j] == 4) {
+						max_value_common_data_matrix = 0;
+						for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
+						
+						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
+						//~ if (matrice_donnees_commune[i][j] == 1) {
+							matrice_donnees_commune[i][j] = 0;
 							//~ printf ("Data in common\n");
 							nb_data_commun--;
 							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->head->sub_list,task_tab[j]); nb_tasks_in_linked_list++; task_tab[j] = 0; }
@@ -313,7 +299,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					} if (nb_tasks_in_linked_list == nb_pop) { break; }
 					if (nb_data_commun > 1) {
 					insertion(data);
-					printf("Pull breakpoint 3\n"); 
+					//~ printf("Pull breakpoint 3\n"); 
 					} 
 				}
 				printf("Il y a %d tâches qui ont été mises dans la liste chainée\n",nb_tasks_in_linked_list);
@@ -327,9 +313,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//~ task1 = starpu_task_list_pop_front(&data->tache_pop);
 				
 				//Version liste chainée ----------------------------------
-				printf("Pull breakpoint 4\n");
+				//~ printf("Pull breakpoint 4\n");
 				task1 = starpu_task_list_pop_front(&data->head->sub_list);
-				printf("Pull breakpoint 5\n");
+				//~ printf("Pull breakpoint 5\n");
 			}
 			//Else here means that we have only 2 task or less, so no need to compare the handles A FAIRE
 			//A voir si il faut le garder ou pas dans le cas des liste chainées
@@ -354,7 +340,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	
 	//Version liste chainée -----------------------------------------------------------------------------------------------------------------
 	if (!starpu_task_list_empty(&data->head->sub_list)) {
-		printf("premier if\n");
+		//~ printf("premier if\n");
 		task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		printf("Task %p is getting out of pull_task\n",task1);
@@ -364,7 +350,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	if ((data->head->next != NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 		//The list is empty and it's not the last one, so we go on the next link
 		data->head = data->head->next;
-		printf("deuxieme if\n");
+		//~ printf("deuxieme if\n");
 		//SUSPECT NUMERO 2 : C'est lui commissaire! Il pop sur une liste vide probablement
 		while (starpu_task_list_empty(&data->head->sub_list)) { data->head = data->head->next; }
 			task1 = starpu_task_list_pop_front(&data->head->sub_list); 

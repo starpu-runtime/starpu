@@ -1,5 +1,3 @@
-Vérifier que je met bien les taches qui partagent le plus de données ensemble ensemble, la pour le moment je crois que je met juste ensemble celle qui partage 1 données, sans regarder si y en a qui en on 2 en commun.
-Tester avec d'autres exemples Marche pour 4 mais pas au dessus STARPU_GENERATE_TRACE=1 STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*16)) -nblocks 16 -iter 1
 Mettre les noms de variables et fonctions en anglais
 Mettre les commentaires en anglais
 Enlever les commentaires inutiles
@@ -14,9 +12,12 @@ struct starpu_task *task;
 					task  = starpu_task_list_next(task))
 				{ }
 
-Supporter le fait que les tâches on des nombres de données variable et qu'il faut comparer tt les données entre elle
-il faut donc intégrer au code des boucles pour supporter un nombre de paramètres variable et le fait que les tâches peuvent ne pas toutes avoir le même nombre de paramètres. 
-Il faut aussi supporter le fait que les tâches peuvent ne pas être dans le même ordre (données 1 de la tache 1 à comparer avec toutes les données, pas seulement les données 1 de chaque tâche.
+Supporter le fait que les tâches on des nombres de données variable : FAIT! 
+Supporter le fait qu'il faut comparer toutes les données entre elle : FAIT!
+Supporter le fait qu'il peut y avoir plus que 1 point commun entre deux tâches : FAIT!
+Vérifier que les tâches sont bien mises dans le bon ordre dans la liste chainée : FAIT, ca marche mais faut voir avec des exemples qui ont plus que 1 point commun entre 2 tâches.
+
+Faire des paquets. Pour le moment je met dans une liste chainée mais je ne compare pas 1 tache avec d'autres paquets déjà fais pour voir si la tâche a plus de point commun avec ce paquet qu'avec une autre tâche.
 
 Gérer la taille max des paquets ca faut compter le poids de chaque donnée:
 include/starpu_stdlib.h:starpu_ssize_t starpu_memory_get_total(unsigned node);
@@ -25,7 +26,7 @@ unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(&compo
 ça s'assure qu'on ne gère qu'un nœud mémoire et tu le donnes ensuite à  starpu_memory_get_total
 écris starpu_ssize_t dans ton code car windows n'a pas le type ssize_t
 
-Comparer les taches et les paquets ensemble maintenant + si possible 
+
 
 LIMIT_CUDA_MEM = 30*960*4 et on prend 1 quart de ca tester pour un grand nb de blocks : Même problème, crash apres tout les push
 
