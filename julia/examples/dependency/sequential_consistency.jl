@@ -113,6 +113,10 @@ function main()
     println("Value = ", value[])
 end
 
+# Disable garbage collector because of random segfault/hang when using mutex.
+# This issue should be solved with Julia release 1.5.
+GC.enable(false)
 starpu_init()
 main()
 starpu_shutdown()
+GC.enable(true)

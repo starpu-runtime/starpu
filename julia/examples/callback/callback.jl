@@ -22,8 +22,6 @@ using StarPU
     return
 end
 
-starpu_init()
-
 function callback(args)
     cl = args[1]
     handles = args[2]
@@ -69,6 +67,10 @@ function display()
     end
 end
 
+# Disable garbage collector because of random segfault/hang when using mutex.
+# This issue should be solved with Julia release 1.5.
+GC.enable(false)
+starpu_init()
 display()
-
 starpu_shutdown()
+GC.enable(true)
