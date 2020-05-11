@@ -126,7 +126,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//Else we can pull tasks
 
 //Verif au cas où une tache est passé dans le oops et a été refusé
-if (starpu_task_list_empty(&data->list_if_fifo_full)) {
+if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
+		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
+		printf("La tâche %p a été refusé, je la fais sortir du pull_task\n",task1);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		return task1;
+	}
 
 	//Version liste chainée --------------------------------------------------------------------------
 	//Si le next est null et que la liste est vide, alors on peut pull à nouveau des tâches
@@ -342,15 +347,7 @@ if (starpu_task_list_empty(&data->list_if_fifo_full)) {
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------------	
 	
-	}
-	//Else de if (starpu_task_list_empty(&data->list_if_fifo_full))
-	else { 
-		
-		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
-		printf("La tâche %p a été refusé, je la fais sortir du pull_task\n",task1);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		return task1;
-	}
+	
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
