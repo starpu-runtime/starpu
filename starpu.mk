@@ -29,6 +29,16 @@ V_icc_0 = @echo "  ICC     " $@;
 V_icc_1 =
 V_icc   = $(V_icc_$(V))
 
+V_ln_  = $(V_ln_$(AM_DEFAULT_VERBOSITY))
+V_ln_0 = @echo "  LN      " $@;
+V_ln_1 =
+V_ln   = $(V_ln_$(V))
+
+V_help2man_  = $(V_help2man_$(AM_DEFAULT_VERBOSITY))
+V_help2man_0 = @echo "  HELP2MAN" $@;
+V_help2man_1 =
+V_help2man   = $(V_help2man_$(V))
+
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
 	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null

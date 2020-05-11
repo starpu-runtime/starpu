@@ -1118,10 +1118,10 @@ endif
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
+	$(V_ln) $(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
 native_fortran/fstarpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
+	$(V_ln) $(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
 
 if STARPU_HAVE_FC
 # Fortran90 example

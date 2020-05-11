@@ -29,7 +29,7 @@ CC=$(CC_OR_MPICC)
 CCLD=$(CC_OR_MPICC)
 
 starpu_replay.c starpu_replay_sched.c:
-	$(LN_S) $(top_srcdir)/tools/$(notdir $@) $@
+	$(V_ln) $(LN_S) $(top_srcdir)/tools/$(notdir $@) $@
 
 if STARPU_SIMGRID
 bin_PROGRAMS = starpu_replay_mpi
