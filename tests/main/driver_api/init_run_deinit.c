@@ -18,14 +18,6 @@
 
 #include "../../helper.h"
 
-#if !defined(STARPU_HAVE_UNSETENV)
-#warning unsetenv is not defined. Skipping test
-int main(void)
-{
-	return STARPU_TEST_SKIPPED;
-}
-#else
-
 #define NTASKS 8
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -236,6 +228,7 @@ static int test_opencl(void)
 		.id.opencl_id = device_id
 	};
 
+	conf.ignore_environment_variables = 1;
 	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 1;
@@ -284,11 +277,6 @@ int main(void)
 {
 	int ret = STARPU_TEST_SKIPPED;
 
-	// Ignore environment variables as we want to force the exact number of workers
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
-	unsetenv("STARPU_NCPUS");
-
 #ifdef STARPU_USE_CPU
 	ret = test_cpu();
 	if (ret == 1)
@@ -307,4 +295,4 @@ int main(void)
 
 	return ret;
 }
-#endif
+

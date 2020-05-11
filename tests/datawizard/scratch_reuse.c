@@ -17,8 +17,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
-#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
-#warning unsetenv is not defined or no cpu are available. Skipping test
+#if !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
+#warning setenv is not defined or no cpu are available. Skipping test
 int main(void)
 {
 	return STARPU_TEST_SKIPPED;
