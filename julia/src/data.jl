@@ -144,6 +144,22 @@ function starpu_data_map_filters(handle :: StarpuDataHandle, filter_1 :: starpu_
     starpu_data_map_filters(handle.object, 2, pointer_from_objref(filter_1), pointer_from_objref(filter_2))
 end
 
+function starpu_data_get_sequential_consistency_flag(handle :: StarpuDataHandle)
+    return starpu_data_get_sequential_consistency_flag(handle.object)
+end
+
+function starpu_data_set_sequential_consistency_flag(handle :: StarpuDataHandle, flag :: Int)
+    starpu_data_set_sequential_consistency_flag(handle.object, flag)
+end
+
+function starpu_data_acquire_on_node(handle :: StarpuDataHandle, node :: Int, mode)
+    starpu_data_acquire_on_node(handle.object, node, mode)
+end
+
+function starpu_data_release_on_node(handle :: StarpuDataHandle, node :: Int)
+    starpu_data_release_on_node(handle.object, node)
+end
+
 function repl(x::Symbol)
     return x
 end

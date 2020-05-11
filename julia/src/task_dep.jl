@@ -29,6 +29,20 @@ end
 """
 function starpu_task_declare_deps(task :: jl_starpu_task, dep :: jl_starpu_task, other_deps :: jl_starpu_task...)
 
-    task_array = [dep.c_task, map((t -> t.c_task), other_deps)...]
-    starpu_task_declare_deps_array(task.c_task, length(task_array), pointer(task_array))
+    task_array = [pointer_from_objref(dep.c_task), map((t -> pointer_from_objref(t.c_task)), other_deps)...]
+    starpu_task_declare_deps_array(pointer_from_objref(task.c_task), length(task_array), task_array)
+end
+
+function starpu_task_end_dep_add(task :: jl_starpu_task, nb_deps :: Int)
+    starpu_task_end_dep_add(Ref(task.c_task), nb_deps)
+end
+
+function starpu_task_end_dep_release(task :: jl_starpu_task)
+    starpu_task_end_dep_release(Ref(task.c_task))
+end
+
+function starpu_task_declare_end_deps(task :: jl_starpu_task, dep :: jl_starpu_task, other_deps :: jl_starpu_task...)
+
+    task_array = [pointer_from_objref(dep.c_task), map((t -> pointer_from_objref(t.c_task)), other_deps)...]
+    starpu_task_declare_end_deps_array(pointer_from_objref(task.c_task), length(task_array), pointer(task_array))
 end

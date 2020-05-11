@@ -15,4 +15,4 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-$(dirname $0)/../execute.sh dependency/sequential_consistency.jl
+$(dirname $0)/../execute.sh dependency/tag_dep.jl

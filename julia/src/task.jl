@@ -92,7 +92,7 @@ task_list = Vector{jl_starpu_task}()
         """
 function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = (),
                      callback :: Union{Cvoid, Function} = nothing, callback_arg = nothing, tag :: Union{Cvoid, starpu_tag_t} = nothing,
-                     sequential_consistency = true)
+                     sequential_consistency = true, detach = 1)
     if (cl == nothing)
         error("\"cl\" field can't be empty when creating a StarpuTask")
     end
@@ -126,6 +126,7 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
     output.c_task.cl = pointer_from_objref(cl.c_codelet)
     output.c_task.synchronous = false
     output.c_task.sequential_consistency = sequential_consistency
+    output.c_task.detach = detach
 
     ## TODO: check num handles equals num codelet buffers
     for i in 1:length(handles)
@@ -254,6 +255,14 @@ macro starpu_async_cl(expr, modes, cl_arg=(), color ::UInt32=0x00000000)
         starpu_task_submit(task)
     end
 end
+
+function starpu_task_wait(task :: jl_starpu_task)
+    @threadcall(@starpufunc(:starpu_task_wait),
+                Cint, (Ptr{Cvoid},), Ref(task.c_task))
+
+    # starpu_task_wait(Ref(task.c_task))
+end
+
 
 """
     Blocks until every submitted task has finished.

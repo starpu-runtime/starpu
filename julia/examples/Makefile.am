@@ -97,4 +97,6 @@ STARPU_JULIA_EXAMPLES		+= callback/callback
 callback_callback_SOURCES	=	callback/callback.c
 SHELL_TESTS			+=	callback/callback.sh
 
-SHELL_TESTS			+=	dependency/sequential_consistency.sh
+SHELL_TESTS			+=	dependency/tag_dep.sh
+SHELL_TESTS			+=	dependency/task_dep.sh
+SHELL_TESTS			+=	dependency/end_dep.sh

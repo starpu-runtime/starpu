@@ -43,33 +43,47 @@ include("task.jl")
 include("task_dep.jl")
 include("init.jl")
 
+# macro
+export @starpu_filter
+export @starpu_block
+export @starpu_async_cl
+export @starpu_sync_tasks
+
+# enum / define
 export STARPU_CPU
+export STARPU_CUDA
+export STARPU_OPENCL
+export STARPU_MAIN_RAM
+export StarpuDataFilterFunc
+export STARPU_MATRIX_FILTER_VERTICAL_BLOCK, STARPU_MATRIX_FILTER_BLOCK
+export STARPU_PERFMODEL_INVALID, STARPU_PER_ARCH, STARPU_COMMON
+export STARPU_HISTORY_BASED, STARPU_REGRESSION_BASED
+export STARPU_NL_REGRESSION_BASED, STARPU_MULTIPLE_REGRESSION_BASED
+export starpu_tag_t
+export STARPU_NONE,STARPU_R,STARPU_W,STARPU_RW, STARPU_SCRATCH
+export STARPU_REDUX,STARPU_COMMUTE, STARPU_SSEND, STARPU_LOCALITY
+export STARPU_ACCESS_MODE_MAX
+
+# functions
 export starpu_init
 export starpu_shutdown
 export starpu_memory_pin
 export starpu_memory_unpin
 export starpu_data_access_mode
+export starpu_data_acquire_on_node
+export starpu_data_release_on_node
 export starpu_data_unregister
 export starpu_data_register
 export starpu_data_get_sub_data
-export StarpuDataFilterFunc
-export STARPU_MATRIX_FILTER_VERTICAL_BLOCK, STARPU_MATRIX_FILTER_BLOCK
-export StarpuDataFilter
 export starpu_data_partition
 export starpu_data_unpartition
 export starpu_data_map_filters
-export @starpu_sync_tasks
 export starpu_task_wait_for_all
-export @starpu_async_cl
 export starpu_task_submit
-export @starpu_block
-export StarpuPerfmodel
-export @starpu_filter
-export STARPU_PERFMODEL_INVALID, STARPU_PER_ARCH, STARPU_COMMON
-export STARPU_HISTORY_BASED, STARPU_REGRESSION_BASED
-export STARPU_NL_REGRESSION_BASED, STARPU_MULTIPLE_REGRESSION_BASED
-export starpu_tag_t
+export starpu_task_end_dep_add
+export starpu_task_end_dep_release
 export starpu_task_declare_deps
+export starpu_task_declare_end_deps
 export starpu_task_wait_for_n_submitted
 export starpu_task_destroy
 export starpu_tag_wait
@@ -78,12 +92,14 @@ export starpu_iteration_pop
 export starpu_iteration_push
 export starpu_tag_declare_deps
 export starpu_task
-export STARPU_NONE,STARPU_R,STARPU_W,STARPU_RW, STARPU_SCRATCH
-export STARPU_REDUX,STARPU_COMMUTE, STARPU_SSEND, STARPU_LOCALITY
-export STARPU_ACCESS_MODE_MAX
+export starpu_task_wait
 export starpu_codelet
 export starpu_perfmodel
 export starpu_perfmodel_type
 export starpu_translate_headers
+export starpu_data_get_default_sequential_consistency_flag
+export starpu_data_set_default_sequential_consistency_flag
+export starpu_data_get_sequential_consistency_flag
+export starpu_data_set_sequential_consistency_flag
 
 end
