@@ -150,6 +150,11 @@ static void partition_mult_data(void)
 	starpu_data_partition(A_handle, &horiz);
 
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+
+	unsigned x, y;
+	for (x = 0; x < nslicesx; x++)
+	for (y = 0; y < nslicesy; y++)
+		starpu_data_set_coordinates(starpu_data_get_sub_data(C_handle, 2, x, y), 2, x, y);
 }
 
 #ifdef STARPU_USE_CUDA
