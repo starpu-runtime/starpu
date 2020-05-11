@@ -65,7 +65,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;

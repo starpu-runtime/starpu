@@ -50,7 +50,7 @@ int main(void)
 	/* We force StarPU to use 1 CPU only */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 1;
 	conf.nopencl = 0;
 	conf.ncuda = 0;

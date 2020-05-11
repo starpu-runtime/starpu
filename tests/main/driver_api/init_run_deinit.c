@@ -228,7 +228,7 @@ static int test_opencl(void)
 		.id.opencl_id = device_id
 	};
 
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 1;

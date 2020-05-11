@@ -101,7 +101,7 @@ static int test_combination(long *combination, unsigned n)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;

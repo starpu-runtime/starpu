@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	/* We try to initialize StarPU without any worker */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 0;

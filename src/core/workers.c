@@ -1148,9 +1148,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 	return 0;
 }
 
-static void _starpu_conf_set_value_against_environment(char *name, int *value, int ignore_env)
+static void _starpu_conf_set_value_against_environment(char *name, int *value, int precedence_over_env)
 {
-	if (ignore_env == 0)
+	if (precedence_over_env == 0)
 	{
 		int number;
 		number = starpu_get_env_number(name);
@@ -1169,16 +1169,16 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		conf->sched_policy_name = sched;
 	}
 
-	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus, conf->ignore_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus, conf->precedence_over_environment_variables);
 	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
 		conf->reserve_ncpus++;
-	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->ignore_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
 #ifdef STARPU_SIMGRID
 	if (conf->calibrate == 2)
 	{
@@ -1189,12 +1189,12 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		_STARPU_DISP("Warning: Bus calibration will be cleared due to bus_calibrate or STARPU_BUS_CALIBRATE being set. This will prevent simgrid from having data transfer simulation times!");
 	}
 #endif
-	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy, conf->ignore_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->ignore_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
 }
 
 struct starpu_tree* starpu_workers_get_tree(void)
