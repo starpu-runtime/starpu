@@ -128,11 +128,11 @@ struct starpu_conf
 	   also be set with environment variables, by default,
 	   StarPU chooses the value of the environment variable
 	   against the value set in starpu_conf. Setting the parameter
-	   starpu_conf::ignore_environment_variables to 1 allows to give precedence
+	   starpu_conf::precedence_over_environment_variables to 1 allows to give precedence
 	   to the value set in the structure over the environment
 	   variable.
 	 */
-	int ignore_environment_variables;
+	int precedence_over_environment_variables;
 
 	/**
 	   Number of CPU cores that StarPU can use. This can also be

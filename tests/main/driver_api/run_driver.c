@@ -220,7 +220,7 @@ static int test_opencl(void)
 	};
 
 	starpu_conf_init(&conf);
-	conf.ignore_environment_variables = 1;
+	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	conf.ncpus = 1;

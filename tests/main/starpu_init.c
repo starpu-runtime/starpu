@@ -31,12 +31,11 @@ int main(void)
 }
 #else
 
-
-static int check_cpu(int env_cpu, int conf_cpu, int ignore_env, int expected_cpu, int *cpu)
+static int check_cpu(int env_cpu, int conf_cpu, int precedence_over_env, int expected_cpu, int *cpu)
 {
 	int ret;
 
-	FPRINTF(stderr, "\nTesting with env=%d - conf=%d - expected %d (ignore env %d)\n", env_cpu, conf_cpu, expected_cpu, ignore_env);
+	FPRINTF(stderr, "\nTesting with env=%d - conf=%d - expected %d (ignore env %d)\n", env_cpu, conf_cpu, expected_cpu, precedence_over_env);
 
 	if (env_cpu != -1)
 	{
@@ -47,7 +46,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int ignore_env, int expected_cpu
 
 	struct starpu_conf user_conf;
 	starpu_conf_init(&user_conf);
-	user_conf.ignore_environment_variables = ignore_env;
+	user_conf.precedence_over_environment_variables = precedence_over_env;
 
 	if (conf_cpu != -1)
 	{
@@ -110,6 +109,7 @@ int main(void)
 	ret = check_cpu(cpu_test1, -1, 0, cpu_test1, &cpu);
 	if (ret) return ret;
 
+	// Do not set anything --> default value
 	ret = check_cpu(-1, -1, 0, -1, &cpu);
 	if (ret) return ret;
 	if (cpu != cpu_init)
@@ -118,13 +118,24 @@ int main(void)
 		return 1;
 	}
 
+	// Do not set environment variable, set starpu_conf::ncpus --> starpu_conf::ncpus
 	ret = check_cpu(-1, cpu_test2, 0, cpu_test2, &cpu);
 	if (ret) return ret;
 
+	// Set environment variable, and do not set starpu_conf::ncpus --> starpu_conf::ncpus
+	ret = check_cpu(cpu_test2, -1, 0, cpu_test2, &cpu);
+	if (ret) return ret;
+
+	// Set both environment variable and starpu_conf::ncpus --> environment variable
 	ret = check_cpu(cpu_test3, cpu_test1, 0, cpu_test3, &cpu);
 	if (ret) return ret;
 
+	// Set both environment variable and starpu_conf::ncpus AND prefer starpu_conf over env --> starpu_conf::ncpus
 	ret = check_cpu(cpu_test3, cpu_test1, 1, cpu_test1, &cpu);
+	if (ret) return ret;
+
+	// Set environment variable, and do no set starpu_conf, AND prefer starpu_conf over env --> environment variable
+	ret = check_cpu(cpu_test2, -1, 1, cpu_test2, &cpu);
 	if (ret) return ret;
 
 	return 0;
