@@ -57,8 +57,7 @@ int socl_init_starpu(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_socl_mutex);
 
 	starpu_conf_init(&conf);
-	unsetenv("STARPU_NCPU");
-	unsetenv("STARPU_NCUDA");
+	conf.ignore_environment_variables = 1;
 	conf.ncuda = 0;
 	conf.ncpus = 0;
 

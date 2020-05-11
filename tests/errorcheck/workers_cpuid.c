@@ -22,8 +22,8 @@
  * expected binding does happen
  */
 
-#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
-#warning unsetenv is not defined or no cpu are available. Skipping test
+#if !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
+#warning no cpu are available. Skipping test
 int main(void)
 {
 	return STARPU_TEST_SKIPPED;
@@ -44,8 +44,6 @@ int nhwpus;
 long workers_cpuid[STARPU_NMAXWORKERS];
 int workers_id[STARPU_NMAXWORKERS];
 
-
-
 static int check_workers_mapping(long *cpuid, int *workerids, int nb_workers)
 {
 	int i;
@@ -63,7 +61,6 @@ static int check_workers_mapping(long *cpuid, int *workerids, int nb_workers)
 	}
 	return 1;
 }
-
 
 static void copy_cpuid_array(long *dst, long *src, unsigned n)
 {
@@ -102,7 +99,15 @@ static int test_combination(long *combination, unsigned n)
 	setenv("STARPU_WORKERS_CPUID", str, 1);
 	free(str);
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.ignore_environment_variables = 1;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
+	conf.nmic = 0;
+	conf.nmpi_ms = 0;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -160,12 +165,6 @@ int main(void)
 	nhwpus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
 	if (nhwpus > STARPU_NMAXWORKERS)
 		nhwpus = STARPU_NMAXWORKERS;
-
-	setenv("STARPU_NCUDA","0",1);
-	setenv("STARPU_NOPENCL","0",1);
-	setenv("STARPU_NMIC","0",1);
-	setenv("STARPU_NMPI_MS","0",1);
-	unsetenv("STARPU_NCPUS");
 
 	for (i=0; i<STARPU_NMAXWORKERS; i++)
 		workers_id[i] = -1;

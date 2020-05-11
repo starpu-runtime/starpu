@@ -124,6 +124,17 @@ struct starpu_conf
 	void (*sched_policy_init)(unsigned);
 
 	/**
+	   For all parameters specified in this structure that can
+	   also be set with environment variables, by default,
+	   StarPU chooses the value of the environment variable
+	   against the value set in starpu_conf. Setting the parameter
+	   starpu_conf::ignore_environment_variables to 1 allows to give precedence
+	   to the value set in the structure over the environment
+	   variable.
+	 */
+	int ignore_environment_variables;
+
+	/**
 	   Number of CPU cores that StarPU can use. This can also be
 	   specified with the environment variable \ref STARPU_NCPU.
 	   (default = -1)
