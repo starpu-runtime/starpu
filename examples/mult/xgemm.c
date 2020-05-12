@@ -63,7 +63,7 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 
-static void check_output(void)
+static int check_output(void)
 {
 	/* compute C = C - AB */
 	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0f, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
@@ -75,6 +75,7 @@ static void check_output(void)
 	if (err < xdim*ydim*0.001)
 	{
 		FPRINTF(stderr, "Results are OK\n");
+		return 0;
 	}
 	else
 	{
@@ -83,6 +84,7 @@ static void check_output(void)
 
 		FPRINTF(stderr, "There were errors ... err = %f\n", err);
 		FPRINTF(stderr, "Max error : %e\n", C[max]);
+		return 1;
 	}
 }
 
@@ -416,8 +418,10 @@ enodev:
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 
+#ifndef STARPU_SIMGRID
 	if (check)
-		check_output();
+		ret = check_output();
+#endif
 
 	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_free_flags(B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
