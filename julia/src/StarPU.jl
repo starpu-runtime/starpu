@@ -39,6 +39,7 @@ include("linked_list.jl")
 include("destructible.jl")
 include("perfmodel.jl")
 include("data.jl")
+include("blas.jl")
 include("task.jl")
 include("task_dep.jl")
 include("init.jl")
@@ -52,10 +53,12 @@ export @starpu_sync_tasks
 # enum / define
 export STARPU_CPU
 export STARPU_CUDA
+export STARPU_CUDA_ASYNC
 export STARPU_OPENCL
 export STARPU_MAIN_RAM
 export StarpuDataFilterFunc
 export STARPU_MATRIX_FILTER_VERTICAL_BLOCK, STARPU_MATRIX_FILTER_BLOCK
+export STARPU_VECTOR_FILTER_BLOCK
 export STARPU_PERFMODEL_INVALID, STARPU_PER_ARCH, STARPU_COMMON
 export STARPU_HISTORY_BASED, STARPU_REGRESSION_BASED
 export STARPU_NL_REGRESSION_BASED, STARPU_MULTIPLE_REGRESSION_BASED
@@ -64,7 +67,11 @@ export STARPU_NONE,STARPU_R,STARPU_W,STARPU_RW, STARPU_SCRATCH
 export STARPU_REDUX,STARPU_COMMUTE, STARPU_SSEND, STARPU_LOCALITY
 export STARPU_ACCESS_MODE_MAX
 
+# BLAS
+export STARPU_SAXPY
+
 # functions
+export starpu_cublas_init
 export starpu_init
 export starpu_shutdown
 export starpu_memory_pin

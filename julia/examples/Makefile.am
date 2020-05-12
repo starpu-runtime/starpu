@@ -100,3 +100,7 @@ SHELL_TESTS			+=	callback/callback.sh
 SHELL_TESTS			+=	dependency/tag_dep.sh
 SHELL_TESTS			+=	dependency/task_dep.sh
 SHELL_TESTS			+=	dependency/end_dep.sh
+
+if !NO_BLAS_LIB
+SHELL_TESTS			+= axpy/axpy.sh
+endif

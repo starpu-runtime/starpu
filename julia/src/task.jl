@@ -15,11 +15,11 @@
 #
 using ThreadPools
 
-struct jl_starpu_codelet
+mutable struct jl_starpu_codelet
     c_codelet :: starpu_codelet
     perfmodel :: starpu_perfmodel
-    cpu_func :: String
-    cuda_func :: String
+    cpu_func :: Union{String, STARPU_BLAS}
+    cuda_func :: Union{String, STARPU_BLAS}
     opencl_func :: String
     modes
 end
@@ -27,8 +27,8 @@ end
 global codelet_list = Vector{jl_starpu_codelet}()
 
 function starpu_codelet(;
-                        cpu_func :: String = "",
-                        cuda_func :: String = "",
+                        cpu_func :: Union{String, STARPU_BLAS} = "",
+                        cuda_func :: Union{String, STARPU_BLAS} = "",
                         opencl_func :: String = "",
                         modes = [],
                         perfmodel :: starpu_perfmodel,
@@ -58,8 +58,22 @@ function starpu_codelet(;
     output.c_codelet.nbuffers = length(modes)
     output.c_codelet.model = pointer_from_objref(perfmodel)
     output.c_codelet.color = color
-    output.c_codelet.cpu_func = load_starpu_function_pointer(cpu_func)
-    output.c_codelet.cuda_func = load_starpu_function_pointer(cuda_func)
+
+    if typeof(cpu_func) == STARPU_BLAS
+        output.cpu_func = cpu_blas_codelets[cpu_func]
+        output.c_codelet.cpu_func = load_wrapper_function_pointer(output.cpu_func)
+    else
+        output.c_codelet.cpu_func = load_starpu_function_pointer(cpu_func)
+    end
+
+    if typeof(cuda_func) == STARPU_BLAS
+        output.cuda_func = cuda_blas_codelets[cuda_func]
+        output.c_codelet.cuda_func = load_wrapper_function_pointer(output.cuda_func)
+        output.c_codelet.cuda_flags[1] = STARPU_CUDA_ASYNC
+    else
+        output.c_codelet.cuda_func = load_starpu_function_pointer(cuda_func)
+    end
+
     output.c_codelet.opencl_func = load_starpu_function_pointer(opencl_func)
 
     # Codelets must not be garbage collected before starpu shutdown is called.
