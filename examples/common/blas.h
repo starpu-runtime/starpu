@@ -118,7 +118,7 @@ extern void dtrsm_ (const char *side, const char *uplo, const char *transa,
                    const char *diag, const int *m, const int *n,
                    const double *alpha, const double *A, const int *lda,
                    double *B, const int *ldb);
-extern double sasum_ (const int *n, const float *x, const int *incx);
+extern float sasum_ (const int *n, const float *x, const int *incx);
 extern double dasum_ (const int *n, const double *x, const int *incx);
 extern void sscal_ (const int *n, const float *alpha, float *x,
                    const int *incx);
