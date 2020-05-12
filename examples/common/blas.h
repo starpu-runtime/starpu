@@ -88,6 +88,14 @@ void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda);
 
 #if defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
+#if _STARPU_F2C_COMPATIBILITY
+/* for compatibility with F2C, FLOATRET may not be a float but a double in GOTOBLAS */
+/* Don't know how to detect this automatically */
+#define _STARPU_FLOATRET double
+#else
+#define _STARPU_FLOATRET float
+#endif
+
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
                    const int *n, const int *k, const float *alpha, 
                    const float *A, const int *lda, const float *B, 
@@ -118,7 +126,7 @@ extern void dtrsm_ (const char *side, const char *uplo, const char *transa,
                    const char *diag, const int *m, const int *n,
                    const double *alpha, const double *A, const int *lda,
                    double *B, const int *ldb);
-extern float sasum_ (const int *n, const float *x, const int *incx);
+extern _STARPU_FLOATRET sasum_ (const int *n, const float *x, const int *incx);
 extern double dasum_ (const int *n, const double *x, const int *incx);
 extern void sscal_ (const int *n, const float *alpha, float *x,
                    const int *incx);
@@ -150,8 +158,7 @@ extern void daxpy_(const int *n, const double *alpha, const double *X, const int
 		double *Y, const int *incy);
 extern int isamax_(const int *n, const float *X, const int *incX);
 extern int idamax_(const int *n, const double *X, const int *incX);
-/* for some reason, FLOATRET is not a float but a double in GOTOBLAS */
-extern double sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
+extern _STARPU_FLOATRET sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
 extern double ddot_(const int *n, const double *x, const int *incx, const double *y, const int *incy);
 extern void sswap_(const int *n, float *x, const int *incx, float *y, const int *incy);
 extern void dswap_(const int *n, double *x, const int *incx, double *y, const int *incy);
