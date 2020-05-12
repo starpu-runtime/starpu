@@ -84,6 +84,7 @@ static int test_cpu(void)
 		.id.cpu_id = 0
 	};
 
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
@@ -143,6 +144,7 @@ static int test_cuda(void)
 		.id.cuda_id = 0
 	};
 
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 0;
 	conf.ncuda = 1;
 	conf.nopencl = 0;
