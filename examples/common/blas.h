@@ -88,7 +88,7 @@ void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda);
 
 #if defined(STARPU_GOTO) || defined(STARPU_OPENBLAS) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL) || defined(STARPU_ARMPL)
 
-#if _STARPU_F2C_COMPATIBILITY
+#ifdef _STARPU_F2C_COMPATIBILITY
 /* for compatibility with F2C, FLOATRET may not be a float but a double in GOTOBLAS */
 /* Don't know how to detect this automatically */
 #define _STARPU_FLOATRET double
