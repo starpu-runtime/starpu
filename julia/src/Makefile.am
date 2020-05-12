@@ -33,4 +33,6 @@ libstarpujulia_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined	
   -version-info $(LIBSTARPUJULIA_INTERFACE_CURRENT):$(LIBSTARPUJULIA_INTERFACE_REVISION):$(LIBSTARPUJULIA_INTERFACE_AGE)
 
 libstarpujulia_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
-	callback_wrapper.c
+	callback_wrapper.c \
+	blas_wrapper.c \
+	blas.c

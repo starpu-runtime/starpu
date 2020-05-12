@@ -35,6 +35,7 @@ function starpu_translate_headers()
     end
 
     only_select_symbols = Set(["starpu_task",
+                               "starpu_cublas_init",
                                "starpu_codelet",
                                "starpu_data_filter",
                                "starpu_tag_t",
@@ -75,6 +76,7 @@ function starpu_translate_headers()
                                "starpu_iteration_pop",
                                "STARPU_CPU",
                                "STARPU_CUDA",
+                               "STARPU_CUDA_ASYNC",
                                "STARPU_OPENCL",
                                "STARPU_MAIN_RAM",
                                "STARPU_NMAXBUFS"])
