@@ -175,8 +175,6 @@ static void cublas_mult(void *descr[], void *arg)
 	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
-	cudaStream_t stream = starpu_cuda_get_local_stream();
-
 	cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
 			CUBLAS_OP_N, CUBLAS_OP_N,
 			nxC, nyC, nyA,
