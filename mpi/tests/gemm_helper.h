@@ -19,10 +19,10 @@
 
 #include <starpu_config.h>
 
-unsigned nslices;
-unsigned matrix_dim;
-unsigned check;
-int comm_thread_cpuid;
+extern unsigned nslices;
+extern unsigned matrix_dim;
+extern unsigned check;
+extern int comm_thread_cpuid;
 
 
 void gemm_alloc_data();
