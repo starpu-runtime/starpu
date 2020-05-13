@@ -230,6 +230,9 @@ int main(int argc, char *argv[])
 	test_args = NULL;
 	timeout = 0;
 
+	launcher=getenv("STARPU_CHECK_LAUNCHER");
+	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+
 	if (argv[x] && strcmp(argv[x], "-t") == 0)
 	{
 		timeout = strtol(argv[x+1], NULL, 10);
@@ -241,7 +244,18 @@ int main(int argc, char *argv[])
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
 	}
 	if (timeout <= 0)
+	{
 		timeout = DEFAULT_TIMEOUT;
+		if ((launcher && strstr(launcher, "valgrind")) ||
+		    (launcher && strstr(launcher, "helgrind")) ||
+		    getenv("TSAN_OPTIONS") != NULL)
+			timeout *= 10;
+		if (getenv("ASAN_OPTIONS") != NULL ||
+		    getenv("USAN_OPTIONS") != NULL ||
+		    getenv("LSAN_OPTIONS") != NULL)
+			timeout *= 2;
+	}
+
 #ifdef STARPU_SIMGRID
 	timeout *= 10;
 #endif
@@ -293,8 +307,6 @@ int main(int argc, char *argv[])
 	}
 
 	/* get launcher program */
-	launcher=getenv("STARPU_CHECK_LAUNCHER");
-	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
