@@ -17,3 +17,11 @@ Faire des paquets. Pour le moment je met dans une liste chainée mais je ne comp
 LIMIT_CUDA_MEM = 30*960*4 et on prend 1 quart de ca tester pour un grand nb de blocks : Même problème, crash apres tout les push
 
 OK! / Comparer eager et dmdar : dans starpu-text/comparaisons.txt. Ca n'améliore pas.
+
+et quand tu merges deux paquets il faut merger les ensembles de données
+au passage, tu peux garder des tableaux de données triés par ordre croissant
+pour que le merge sans doublon se fasse en O(n) tant qu'à faire :)
+MaximeAujourd’hui à 16:38
+Ah oui en effet
+SamuelAujourd’hui à 16:39
+tu peux utiliser la fonction qsort pour trier la liste au départ (les données venant d'une tâche)
