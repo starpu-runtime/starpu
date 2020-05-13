@@ -228,6 +228,38 @@ int main(int argc, char *argv[])
 	(void) argc;
 	test_args = NULL;
 	timeout = 0;
+
+	launcher=getenv("STARPU_CHECK_LAUNCHER");
+	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+
+	if (getenv("STARPU_TIMEOUT_ENV"))
+	{
+		/* get user-defined iter_max value */
+		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
+	}
+	if (timeout <= 0)
+	{
+		timeout = DEFAULT_TIMEOUT;
+		if ((launcher && strstr(launcher, "valgrind")) ||
+		    (launcher && strstr(launcher, "helgrind")) ||
+		    getenv("TSAN_OPTIONS") != NULL)
+			timeout *= 10;
+		if (getenv("ASAN_OPTIONS") != NULL ||
+		    getenv("USAN_OPTIONS") != NULL ||
+		    getenv("LSAN_OPTIONS") != NULL)
+			timeout *= 2;
+	}
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	/* compare values between the 2 values of timeout */
+	if (getenv("MPIEXEC_TIMEOUT"))
+	{
+		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);
+		if (mpiexec_timeout != timeout)
+			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
+	}
+#endif
+
 	test_name = argv[1];
 
 	if (!test_name)
@@ -235,6 +267,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "[error] Need name of program to start\n");
 		exit(EXIT_FAILURE);
 	}
+
+	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
+		/* This extensively tests various schedulers, let it run longer */
+		timeout *= 10;
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
@@ -251,8 +287,6 @@ int main(int argc, char *argv[])
 	}
 
 	/* get launcher program */
-	launcher=getenv("STARPU_CHECK_LAUNCHER");
-	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
@@ -304,36 +338,6 @@ int main(int argc, char *argv[])
 		launcher = NULL;
 		launcher_args = NULL;
 	}
-
-	/* get user-defined iter_max value */
-	if (getenv("STARPU_TIMEOUT_ENV"))
-		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
-	if (timeout <= 0)
-	{
-		timeout = DEFAULT_TIMEOUT;
-		if ((launcher && strstr(launcher, "valgrind")) ||
-		    (launcher && strstr(launcher, "helgrind")) ||
-		    getenv("TSAN_OPTIONS") != NULL)
-			timeout *= 10;
-		if (getenv("ASAN_OPTIONS") != NULL ||
-		    getenv("USAN_OPTIONS") != NULL ||
-		    getenv("LSAN_OPTIONS") != NULL)
-			timeout *= 2;
-	}
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* compare values between the 2 values of timeout */
-	if (getenv("MPIEXEC_TIMEOUT"))
-	{
-		int mpiexec_timeout = strtol(getenv("MPIEXEC_TIMEOUT"), NULL, 10);
-		if (mpiexec_timeout != timeout)
-			fprintf(stderr, "[warning] MPIEXEC_TIMEOUT and STARPU_TIMEOUT_ENV values are different (%d and %d). The behavior may be different than expected !\n", mpiexec_timeout, timeout);
-	}
-#endif
-
-	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
-		/* This extensively tests various schedulers, let it run longer */
-		timeout *= 10;
 
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
