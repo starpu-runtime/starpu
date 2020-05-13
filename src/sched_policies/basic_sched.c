@@ -70,8 +70,10 @@ struct basic_sched_data
 
 struct my_list
 {
+	starpu_data_handle_t * package_data;
 	struct starpu_task_list sub_list;
 	struct my_list *next;
+	struct my_list *previous;
 };
 
 void insertion(struct basic_sched_data *a)
@@ -123,6 +125,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	struct starpu_task *task1 = NULL;
 	struct starpu_task *temp_task_2 = NULL;
 	struct starpu_task *temp_task_1 = NULL;
+	struct starpu_task *temp_task_3 = NULL;
 	
 	//If the list is not empty, it means that we have task to get out of pull before pulling more tasks
 	//If we use a linked list we need to go to the next one and verify it's not equal to NULL
@@ -146,6 +149,19 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
 			printf("%d task(s) have been pulled\n",nb_pop);
+			
+			//Version avec des paquets de tâches ----------------------------------------------------------------------
+			//~ data->head->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_3)*sizeof(data->head->package_data[0]));
+			//~ //Here I put each data of each task in a package (a linked list). One task == one link	
+			//~ for (temp_task_3  = starpu_task_list_begin(&data->tache_pop); temp_task_3 != starpu_task_list_end(&data->tache_pop); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_3); i++) {
+					//~ data->head->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_3,i);
+				//~ }
+				//~ insertion(data);
+			//~ }
+			//~ //Need to get back at the beginning of the linked list
+			
+			//---------------------------------------------------------------------------------------------------------
 			
 			if (nb_pop > 0) {
 				struct starpu_task *task_tab [nb_pop];
@@ -250,7 +266,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		while (starpu_task_list_empty(&data->head->sub_list)) { data->head = data->head->next; }
 			task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("Task %p is getting out of pull_task\n",task1);
+			printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->head->sub_list)\n",task1);
 			return task1;
 	}
 	if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
