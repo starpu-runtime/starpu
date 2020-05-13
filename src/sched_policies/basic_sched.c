@@ -111,6 +111,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int nb_data_in_task = 0;
 	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
 	int i_bis = 0; int j_bis = 0;
+	starpu_ssize_t GPU_RAM = 0;
+	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
+	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
 	
 //Doesn't work for me	
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -134,10 +137,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		return task1;
 	}
 
-	//Version liste chainée --------------------------------------------------------------------------
 	//Si le next est null et que la liste est vide, alors on peut pull à nouveau des tâches
 	if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
-	//------------------------------------------------------------------------------------------------
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				//Pulling all tasks and counting them
@@ -167,7 +168,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						temp_task_2 = starpu_task_list_next(temp_task_2);
 						index_temp_task_2 = index_temp_task_1 + 1;
 						
-							//la temp task 2 dois se decaler de 1
 							//tab_runner is going to run through all the task(s) of a task
 							while (temp_task_2 != starpu_task_list_end(&data->tache_pop)) {
 								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(temp_task_2); j++) { 
@@ -177,7 +177,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 										//~ matrice_donnees_commune[index_temp_task_1][index_temp_task_2] ++;
 										//Version avec le poids des data commun
 										matrice_donnees_commune[index_temp_task_1][index_temp_task_2] += ( starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)) + starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j)) );
-										printf("Point commun entre la tâche %p de poids %zd et la tâche %p de poids %zd\n",temp_task_1,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)),temp_task_2,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j))); 
+										//~ printf("Point commun entre la tâche %p de poids %zd et la tâche %p de poids %zd\n",temp_task_1,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)),temp_task_2,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j))); 
 									}
 								}
 								temp_task_2  = starpu_task_list_next(temp_task_2);
@@ -186,16 +186,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					} 
 					index_temp_task_1++;
 				}
-				//-------------------------------------------------------------------------------------------------------------------------------------------
 				
 				//Here is code to print the common data matrix  ----------------
-				printf("Common data matrix : \n");
-				for (i = 0; i < nb_pop; i++) {
-					for (j = 0; j < nb_pop; j++) {
-						printf (" %zd ",matrice_donnees_commune[i][j]);
-					}
-					printf("\n");
-				}
+				//~ printf("Common data matrix : \n");
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ for (j = 0; j < nb_pop; j++) {
+						//~ printf (" %zd ",matrice_donnees_commune[i][j]);
+					//~ }
+					//~ printf("\n");
+				//~ }
 				//--------------------------------------------------------------
 				for (i = 0; i < nb_pop; i++) {
 					for (j = 0; j < nb_pop; j++) {
@@ -204,10 +203,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				}
 				//~ printf("Nb data en commun : %d\n",nb_data_commun);
 				
-				//A FAIRE : Pour l'instant vu que les comparaisons ne trouvait que 1 point commun entre les taches, je fonctionne comme ca. 
-				//A FAIRE : Plus tard il y aura plus que 1 point commun, il faudra donc comparer et voir qui a le plus de points commun
-				
-				//Version avec la liste chainée ------------------------------------------------------------------------------------------
 				//Here we put every task in the tab
 				for (i = 0; i < nb_pop; i++) {
 					task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
@@ -220,10 +215,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						max_value_common_data_matrix = 0;
 						for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
 						//~ printf("Le max de poids de data communes est %zd\n",max_value_common_data_matrix);
-						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
-						//~ if (matrice_donnees_commune[i][j] == 1) {
+						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0) && (max_value_common_data_matrix < GPU_RAM)) {
 							matrice_donnees_commune[i][j] = 0;
-							//~ printf ("Data in common\n");
 							nb_data_commun--;
 							if (task_tab[j] != 0) { starpu_task_list_push_back(&data->head->sub_list,task_tab[j]); nb_tasks_in_linked_list++; task_tab[j] = 0; }
 							if (nb_tasks_in_linked_list == nb_pop) { break; }
@@ -243,11 +236,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				task1 = starpu_task_list_pop_front(&data->tache_pop);
 			}
 		}
-		//~ printf("Pull breakpoint 6\n");
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ printf("Pull breakpoint 7\n");
 		printf("Task %p is getting out of pull_task\n",task1);
-		//~ printf("Pull OK!\n");
 		return task1;
 	}
 	
@@ -261,8 +251,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 	if ((data->head->next != NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 		//The list is empty and it's not the last one, so we go on the next link
 		data->head = data->head->next;
-
-		//SUSPECT NUMERO 2 : C'est lui commissaire! Il pop sur une liste vide probablement
 		while (starpu_task_list_empty(&data->head->sub_list)) { data->head = data->head->next; }
 			task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -271,10 +259,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 	}
 	if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 		printf("On est pas censé entrer dans ce if\n");
-	}
-	//---------------------------------------------------------------------------------------------------------------------------------------	
-	
-	
+	}	
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
