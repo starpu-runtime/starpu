@@ -17,7 +17,7 @@
 #ifndef __MPI_TESTS_BURST_HELPER__
 #define __MPI_TESTS_BURST_HELPER__
 
-int burst_nb_requests;
+extern int burst_nb_requests;
 
 void burst_init_data(int rank);
 void burst_free_data(int rank);
