@@ -70,6 +70,7 @@ static int test_cpu(void)
 	};
 
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	conf.ncpus = 1;
@@ -131,6 +132,7 @@ static int test_cuda(void)
 	};
 
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	conf.ncpus = 0;
