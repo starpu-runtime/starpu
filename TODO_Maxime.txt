@@ -19,15 +19,18 @@ Vérifier que les tâches sont bien mises dans le bon ordre dans la liste chain�
 
 Faire des paquets. Pour le moment je met dans une liste chainée mais je ne compare pas 1 tache avec d'autres paquets déjà fais pour voir si la tâche a plus de point commun avec ce paquet qu'avec une autre tâche.
 
-Gérer la taille max des paquets ca faut compter le poids de chaque donnée:
-include/starpu_stdlib.h:starpu_ssize_t starpu_memory_get_total(unsigned node);
+Changer l'heurisitique : on regroupe par max poids des données communes
+Gérer la taille max des paquets ca faut compter le poids de chaque donnée: un paquet < B (moitié de la ram du gpu
+:starpu_ssize_t starpu_memory_get_total(unsigned node);
 faut lui donner, STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component))
 unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx));
 ça s'assure qu'on ne gère qu'un nœud mémoire et tu le donnes ensuite à  starpu_memory_get_total
 écris starpu_ssize_t dans ton code car windows n'a pas le type ssize_t
 
-
+size_t starpu_data_get_size(starpu_data_handle_t handle); : poids de 1 données ici juste size car poids négatif 
 
 LIMIT_CUDA_MEM = 30*960*4 et on prend 1 quart de ca tester pour un grand nb de blocks : Même problème, crash apres tout les push
 
 OK! / Comparer eager et dmdar : dans starpu-text/comparaisons.txt. Ca n'améliore pas.
+
+include/starpu_stdlib.h
