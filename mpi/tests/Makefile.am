@@ -62,6 +62,8 @@ EXTRA_DIST = 				\
 	abstract_sendrecv_bench.h	\
 	bench_helper.h			\
 	helper.h			\
+	gemm_helper.h			\
+	burst_helper.h			\
 	user_defined_datatype_value.h
 
 examplebindir = $(libdir)/starpu/examples/mpi
@@ -149,7 +151,8 @@ endif
 
 if !NO_BLAS_LIB
 starpu_mpi_TESTS +=				\
-	sendrecv_gemm_bench
+	sendrecv_gemm_bench			\
+	burst_gemm
 endif
 
 if !STARPU_SIMGRID
@@ -246,7 +249,8 @@ noinst_PROGRAMS =				\
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\
-	sendrecv_gemm_bench
+	sendrecv_gemm_bench			\
+	burst_gemm
 endif
 
 XFAIL_TESTS=					\
@@ -287,13 +291,24 @@ sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
 sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
 sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
 
+burst_SOURCES = burst.c
+burst_SOURCES += burst_helper.c
+
 if !NO_BLAS_LIB
 sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
 sendrecv_gemm_bench_SOURCES += bench_helper.c
+sendrecv_gemm_bench_SOURCES += gemm_helper.c
 sendrecv_gemm_bench_SOURCES += abstract_sendrecv_bench.c
 sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
 
 sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
+
+burst_gemm_SOURCES = burst_gemm.c
+burst_gemm_SOURCES += gemm_helper.c
+burst_gemm_SOURCES += burst_helper.c
+burst_gemm_SOURCES += ../../examples/common/blas.c
+
+burst_gemm_LDADD = $(STARPU_BLAS_LDFLAGS)
 endif
 
 endif
