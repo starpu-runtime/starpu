@@ -108,7 +108,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	struct basic_sched_data *data = component->data;	
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0; int nb_data_commun = 0; int nb_tasks_in_linked_list = 0;
 	int je_suis_ou = 0;
-	int nb_data_in_task = 0;
 	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
 	int i_bis = 0; int j_bis = 0;
 	starpu_ssize_t GPU_RAM = 0;
@@ -132,7 +131,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 //Verif au cas où une tache est passé dans le oops et a été refusé
 if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
-		printf("La tâche %p a été refusé, je la fais sortir du pull_task\n",task1);
+		//~ printf("La tâche %p a été refusé, je la fais sortir de nouveau du pull_task\n",task1);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	}
@@ -143,18 +142,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				//Pulling all tasks and counting them
 				task1 = starpu_task_list_pop_back(&data->sched_list);
-				//Getting the "size" of a task for later, it's bad here cause it's in a while loop
-				nb_data_in_task = STARPU_TASK_GET_NBUFFERS(task1);
 				nb_pop++;
-				//True line
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
 			printf("%d task(s) have been pulled\n",nb_pop);
 			
 			if (nb_pop > 0) {
 				struct starpu_task *task_tab [nb_pop];
-				
-				//Version avec des tâches de tailles différentes --------------------------------------------------------------------------------------------		
+						
 				tab_runner = 0;
 				int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 				je_suis_ou = 1;
@@ -177,7 +172,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 										//~ matrice_donnees_commune[index_temp_task_1][index_temp_task_2] ++;
 										//Version avec le poids des data commun
 										matrice_donnees_commune[index_temp_task_1][index_temp_task_2] += ( starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)) + starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j)) );
-										//~ printf("Point commun entre la tâche %p de poids %zd et la tâche %p de poids %zd\n",temp_task_1,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)),temp_task_2,starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j))); 
+										//~ printf("Point commun entre la tâche %p et la tâche %p \n",temp_task_1,temp_task_2); 
 									}
 								}
 								temp_task_2  = starpu_task_list_next(temp_task_2);
@@ -196,6 +191,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					//~ printf("\n");
 				//~ }
 				//--------------------------------------------------------------
+				
 				for (i = 0; i < nb_pop; i++) {
 					for (j = 0; j < nb_pop; j++) {
 						if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
@@ -272,7 +268,7 @@ static int basic_can_push(struct starpu_sched_component * component, struct star
 
 	if (task)
 	{
-			fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task);
+		//~ fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task);
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		starpu_task_list_push_back(&data->list_if_fifo_full, task);
@@ -280,16 +276,17 @@ static int basic_can_push(struct starpu_sched_component * component, struct star
 	}
 	else
 	{
-		{
-			if (didwork)
-				fprintf(stderr, "pushed some tasks to %p\n", to);
-			else
-				fprintf(stderr, "I didn't have anything for %p\n", to);
-		}
+		//A décommenté une fois le code fini
+		//~ {
+			//~ if (didwork)
+				//~ fprintf(stderr, "pushed some tasks to %p\n", to);
+			//~ else
+				//~ fprintf(stderr, "I didn't have anything for %p\n", to);
+		//~ }
 	}
 
 	/* There is room now */
-	printf("Can push OK!\n");
+	//~ printf("Can push OK!\n");
 	return didwork || starpu_sched_component_can_push(component, to);
 }
 
@@ -325,7 +322,7 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	component->can_push = basic_can_push;
 	component->can_pull = basic_can_pull;
 
-	printf("Create OK!\n");
+	//~ printf("Create OK!\n");
 	return component;
 }
 
@@ -340,7 +337,7 @@ static void initialize_basic_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-	printf("Initialize OK!\n");
+	//~ printf("Initialize OK!\n");
 
 	//~ variable_globale = *data;
 }
