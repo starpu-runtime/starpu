@@ -375,6 +375,7 @@ int main(int argc, char **argv)
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 			{
+			     check = 0;
 			     ret = 77;
 			     goto enodev;
 			}
