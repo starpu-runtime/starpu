@@ -309,7 +309,17 @@ int main(int argc, char *argv[])
 	if (getenv("STARPU_TIMEOUT_ENV"))
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
 	if (timeout <= 0)
+	{
 		timeout = DEFAULT_TIMEOUT;
+		if ((launcher && strstr(launcher, "valgrind")) ||
+		    (launcher && strstr(launcher, "helgrind")) ||
+		    getenv("TSAN_OPTIONS") != NULL)
+			timeout *= 10;
+		if (getenv("ASAN_OPTIONS") != NULL ||
+		    getenv("USAN_OPTIONS") != NULL ||
+		    getenv("LSAN_OPTIONS") != NULL)
+			timeout *= 2;
+	}
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* compare values between the 2 values of timeout */
