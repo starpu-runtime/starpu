@@ -22,7 +22,7 @@ extern int burst_nb_requests;
 void burst_init_data(int rank);
 void burst_free_data(int rank);
 void burst_bidir(int rank);
-void burst_unidir(int sender, int rank);
+void burst_unidir(int sender, int receiver, int rank);
 void burst_bidir_half_postponed(int rank);
 void burst_all(int rank);
 

@@ -25,7 +25,6 @@
 #endif
 #define NX_ARRAY (320 * 320)
 
-
 static starpu_data_handle_t* recv_handles;
 static starpu_data_handle_t* send_handles;
 static float** recv_buffers;
@@ -59,7 +58,6 @@ void burst_init_data(int rank)
 	}
 }
 
-
 void burst_free_data(int rank)
 {
 	if (rank == 0 || rank == 1)
@@ -81,7 +79,6 @@ void burst_free_data(int rank)
 		free(send_reqs);
 	}
 }
-
 
 /* Burst simultaneous from both nodes: 0 and 1 post all the recvs, synchronise, and then post all the sends */
 void burst_bidir(int rank)
@@ -120,20 +117,16 @@ void burst_bidir(int rank)
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 }
 
-
-void burst_unidir(int sender, int rank)
+void burst_unidir(int sender, int receiver, int rank)
 {
-	int other_rank = (rank == 0) ? 1 : 0;
-	int receiver = (sender == 0) ? 1 : 0;
-
 	FPRINTF(stderr, "%d -> %d... start (rank %d)\n", sender, receiver, rank);
 
-	if (rank != sender)
+	if (rank == receiver)
 	{
 		for (int i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
-			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
+			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], sender, i, MPI_COMM_WORLD);
 		}
 	}
 
@@ -144,11 +137,11 @@ void burst_unidir(int sender, int rank)
 		for (int i = 0; i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
-			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], receiver, i, i, MPI_COMM_WORLD);
 		}
 	}
 
-	if (rank == 0 || rank == 1)
+	if (rank == sender || rank == receiver)
 	{
 		for (int i = 0; i < burst_nb_requests; i++)
 		{
@@ -161,7 +154,6 @@ void burst_unidir(int sender, int rank)
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 }
-
 
 /* Half burst from both nodes, second half burst is triggered after some requests finished. */
 void burst_bidir_half_postponed(int rank)
@@ -209,7 +201,6 @@ void burst_bidir_half_postponed(int rank)
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 }
 
-
 void burst_all(int rank)
 {
 	double start, end;
@@ -219,10 +210,10 @@ void burst_all(int rank)
 	burst_bidir(rank);
 
 	/* Burst from 0 to 1 : rank 1 posts all the recvs, barrier, then rank 0 posts all the sends */
-	burst_unidir(0, rank);
+	burst_unidir(0, 1, rank);
 
 	/* Burst from 1 to 0 : rank 0 posts all the recvs, barrier, then rank 1 posts all the sends */
-	burst_unidir(1, rank);
+	burst_unidir(1, 0, rank);
 
 	/* Half burst from both nodes, second half burst is triggered after some requests finished. */
 	burst_bidir_half_postponed(rank);
