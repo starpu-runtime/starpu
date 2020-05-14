@@ -530,9 +530,8 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 	if (force_mpi_hostnames && force_mpi_hostnames[0])
 	{
-		char *host, *srv_hosts, *srv_hosts_free, *rsrv;
-		srv_hosts = srv_hosts_free = (char*)malloc(strlen(force_mpi_hostnames)+1);
-		snprintf(srv_hosts, strlen(force_mpi_hostnames)+1, "%s", force_mpi_hostnames);
+		char *host, *srv_hosts, *rsrv;
+		srv_hosts = strdup(force_mpi_hostnames);
 		int rank = starpu_mpi_world_rank();
 		if (force_mpi_hostnames != NULL)
 		{
@@ -545,7 +544,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 			}
 		}
 		snprintf(hostname, size-1, "%s", host);
-		free(srv_hosts_free);
+		free(srv_hosts);
 		hostname[size-1] = 0;
 	}
 	else if (forced_hostname && forced_hostname[0])
