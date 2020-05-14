@@ -20,6 +20,7 @@
  */
 
 #include <starpu_mpi.h>
+#include <unistd.h>
 #include "helper.h"
 
 
