@@ -36,3 +36,25 @@ libstarpujulia_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	callback_wrapper.c \
 	blas_wrapper.c \
 	blas.c
+
+EXTRA_DIST = blas.h				\
+	blas.jl  				\
+	data.jl					\
+	destructible.jl				\
+	globals.jl				\
+	init.jl					\
+	linked_list.jl				\
+	perfmodel.jl				\
+	StarPU.jl				\
+	task_dep.jl				\
+	task.jl					\
+	translate_headers.jl			\
+	utils.jl				\
+	compiler/c.jl				\
+	compiler/cuda.jl			\
+	compiler/expression_manipulation.jl	\
+	compiler/expressions.jl			\
+	compiler/file_generation.jl		\
+	compiler/include.jl			\
+	compiler/parsing.jl			\
+	compiler/utils.jl
