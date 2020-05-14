@@ -256,6 +256,23 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	size_t len = strlen(test_name);
+	if (len >= 3 &&
+	    test_name[len-3] == '.' &&
+	    test_name[len-2] == 's' &&
+	    test_name[len-1] == 'h')
+	{
+                /* This is a shell script, don't run ourself on bash, but make
+                 * the script call us for each program invocation */
+
+		setenv("STARPU_LAUNCH", argv[0], 1);
+
+		execvp(test_name, argv+x);
+
+		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
+		exit(EXIT_FAILURE);
+	}
+
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
 		test_args = (char *) calloc(512, sizeof(char));
@@ -297,32 +314,6 @@ int main(int argc, char *argv[])
 		const char *top_srcdir = getenv("top_srcdir");
 		decode(&launcher, "@top_srcdir@", top_srcdir);
 		decode(&launcher_args, "@top_srcdir@", top_srcdir);
-	}
-
-	size_t len = strlen(test_name);
-	if (launcher && len >= 3 &&
-	    test_name[len-3] == '.' &&
-	    test_name[len-2] == 's' &&
-	    test_name[len-1] == 'h')
-	{
-		/* This is a shell script, don't run the check on bash, but pass
-		 * the script the decoded variables */
-		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
-		if (launcher_args)
-			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
-		else
-			launcher_args = strdup("");
-
-		/* And give a convenience macro */
-		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
-				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
-		char launch[len_launch];
-		snprintf(launch, sizeof(launch), "%s --mode=execute %s %s", libtool, launcher, launcher_args);
-		setenv("STARPU_LAUNCH", launch, 1);
-		free(launcher_args);
-
-		launcher = NULL;
-		launcher_args = NULL;
 	}
 
 	/* set SIGALARM handler */
