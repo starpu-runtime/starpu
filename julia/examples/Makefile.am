@@ -36,8 +36,34 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
-EXTRA_DIST =			\
-	mult/mult_starpu.sh
+EXTRA_DIST =					\
+	axpy/axpy.jl				\
+	axpy/axpy.sh				\
+	black_scholes/black_scholes.jl		\
+	callback/callback.jl			\
+	callback/callback.sh			\
+	check_deps/check_deps.jl		\
+	check_deps/check_deps.sh		\
+	dependency/end_dep.jl			\
+	dependency/end_dep.sh			\
+	dependency/tag_dep.jl			\
+	dependency/tag_dep.sh			\
+	dependency/task_dep.sh			\
+	dependency/task_dep.jl			\
+	mandelbrot/mandelbrot_native.jl		\
+	mandelbrot/mandelbrot.jl		\
+	mandelbrot/mandelbrot.sh		\
+	mult/mult_native.jl			\
+	mult/mult.jl				\
+	mult/perf.sh				\
+	mult/mult_starpu.sh			\
+	task_insert_color/task_insert_color.jl	\
+	task_insert_color/task_insert_color.sh	\
+	variable/variable.jl			\
+	variable/variable_native.jl		\
+	variable/variable.sh			\
+	vector_scal/vector_scal.jl		\
+	vector_scal/vector_scal.sh
 
 examplebindir = $(libdir)/starpu/julia
 
@@ -93,7 +119,7 @@ STARPU_JULIA_EXAMPLES		+=	mandelbrot/mandelbrot
 mandelbrot_mandelbrot_SOURCES	=	mandelbrot/mandelbrot.c mandelbrot/cpu_mandelbrot.c mandelbrot/cpu_mandelbrot.h
 SHELL_TESTS			+=	mandelbrot/mandelbrot.sh
 
-STARPU_JULIA_EXAMPLES		+= callback/callback
+STARPU_JULIA_EXAMPLES		+= 	callback/callback
 callback_callback_SOURCES	=	callback/callback.c
 SHELL_TESTS			+=	callback/callback.sh
 
