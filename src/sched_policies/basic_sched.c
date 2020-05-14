@@ -169,6 +169,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 			//Que faire ? 1 : Faire la matrice des poids communs qui dépassent pas B 2 : Faire un paquet avec les 2 paquets qui partagent le plus en enlevant les doublons 3 : Vider 1 des deux paquets 4 : Recommencer à l'étape 1
 			//Code to print all the data of all the packages ---------------------------------------------
+			
+			data->head = data->head->next;
 			data->first_link = data->head;
 			while (data->head != NULL) {
 				for (i = 0; i < 3; i++) {
@@ -182,25 +184,20 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			//--------------------------------------------------------------------------------------------
 			//A noter que quand je print le premier paquet (le 0) a que des données à nil, je sais pas trop pourquoi lui il a rien
-			data->head_2 = data->head_2->next;
-			printf("Pull breakpoint 1\n");
-			while (data->head != NULL) {
-				
-				printf("Pull breakpoint 2\n");
-				index_head_2 = 0;
-				while (data->head_2 != NULL) {
-					printf("Pull breakpoint 3\n");
-					index_head_2++;
+			index_head_2++;
+			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 					for (i = 0; i < data->head_2->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
+							printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
 							if (data->head->package_data[i] == data->head_2->package_data[j]) {
-								//~ matrice_donnees_commune[index_head_1][index_head_2] += ( starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head->package_data[j]));
-								matrice_donnees_commune[index_head_1][index_head_2] += 1;
-								printf("Pull breakpoint 4\n");	
-							}
+								// matrice_donnees_commune[index_head_1][index_head_2] += ( starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head->package_data[j]));
+								matrice_donnees_commune[index_head_1][index_head_2] += 1;	
+								printf("Données communes entre %p et %p\n",data->head->package_data[i],data->head_2->package_data[j]);
+							} 
 						}
-					} data->head_2 = data->head_2->next;
-				} index_head_1++; data->head = data->head->next; data->head_2 = data->first_link;
+					} index_head_2++;
+				} index_head_1++; index_head_2 = index_head_1 + 1;
 			}
 			printf("Pull breakpoint 5\n");
 			//Here is code to print the common data matrix  ----------------
@@ -235,7 +232,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									//~ printf("Je compare la donnée %d de %p : %p ET la donnée %d de %p : %p !\n",tab_runner,temp_task_1,STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner),j,temp_task_2,STARPU_TASK_GET_HANDLE(temp_task_2, j));
 									if (STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner) == STARPU_TASK_GET_HANDLE(temp_task_2, j)) {
 										//Version avec le nb de data commun
-										// //~ matrice_donnees_commune[index_temp_task_1][index_temp_task_2] ++;
+										 //~ matrice_donnees_commune[index_temp_task_1][index_temp_task_2] ++;
 										//Version avec le poids des data commun
 										matrice_donnees_commune[index_temp_task_1][index_temp_task_2] += ( starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, tab_runner)) + starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_2, j)) );
 										// //~ printf("Point commun entre la tâche %p et la tâche %p \n",temp_task_1,temp_task_2); 
@@ -249,13 +246,13 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				}
 				
 				//Here is code to print the common data matrix  ----------------
-				//~ printf("Common data matrix : \n");
-				//~ for (i = 0; i < nb_pop; i++) {
-					//~ for (j = 0; j < nb_pop; j++) {
-						//~ printf (" %zd ",matrice_donnees_commune[i][j]);
-					//~ }
-					//~ printf("\n");
-				//~ }
+				printf("Common data matrix : \n");
+				for (i = 0; i < nb_pop; i++) {
+					for (j = 0; j < nb_pop; j++) {
+						printf (" %zd ",matrice_donnees_commune[i][j]);
+					}
+					printf("\n");
+				}
 				//--------------------------------------------------------------
 				
 				for (i = 0; i < nb_pop; i++) {

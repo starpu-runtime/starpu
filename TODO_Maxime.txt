@@ -1,6 +1,4 @@
-Mettre les noms de variables et fonctions en anglais
-Mettre les commentaires en anglais
-Enlever les commentaires inutiles
+Mettre les noms de variables et fonctions en anglais, les commentaires en anglais, enlever les commentaires inutiles
 
 Simplifier le filling : FAIT!
 Supporter le fait que les tâches on des nombres de données variable : FAIT! 
@@ -11,8 +9,6 @@ Faire l'heuristique des poids des données : FAIT!
 Tester que les regroupements sont inférieurs à la taille B : FAIT!
 
 Faire des paquets. Pour le moment je met dans une liste chainée mais je ne compare pas 1 tache avec d'autres paquets déjà fais pour voir si la tâche a plus de point commun avec ce paquet qu'avec une autre tâche.
-
-
 
 LIMIT_CUDA_MEM = 30*960*4 et on prend 1 quart de ca tester pour un grand nb de blocks : Même problème, crash apres tout les push
 
@@ -25,3 +21,7 @@ MaximeAujourd’hui à 16:38
 Ah oui en effet
 SamuelAujourd’hui à 16:39
 tu peux utiliser la fonction qsort pour trier la liste au départ (les données venant d'une tâche)
+
+Calculer le max une fois dans le while et dans le for faire les regroupement possible sans recalculer : dans le code a modifier aussi!
+Essayer dans le code et en theorique le calcul de Wmax a chaque fois ou pas (apres un if W (C(D(P i )), D(P j )) ≥ W max) et faire des exemples dans le modele ex : un escalier de données communes
+Sortir le nombre de paquets a la fin du code et la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
