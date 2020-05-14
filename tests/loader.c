@@ -179,6 +179,13 @@ static void test_cleaner(int sig)
 	exit(EXIT_FAILURE);
 }
 
+static void forwardsig(int sig)
+{
+	pid_t child_gid;
+	child_gid = getpgid(child_pid);
+	kill(-child_gid, sig);
+}
+
 static int _decode(char **src, char *motif, const char *value)
 {
 	char *found;
@@ -334,6 +341,11 @@ int main(int argc, char *argv[])
 	sa.sa_handler = test_cleaner;
 	if (-1 == sigaction(SIGALRM, &sa, NULL))
 		perror("sigaction");
+
+	signal(SIGINT, forwardsig);
+	signal(SIGHUP, forwardsig);
+	signal(SIGPIPE, forwardsig);
+	signal(SIGTERM, forwardsig);
 
 	child_pid = fork();
 	if (child_pid == 0)
