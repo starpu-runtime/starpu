@@ -338,6 +338,8 @@ int main(int argc, char *argv[])
 	child_pid = fork();
 	if (child_pid == 0)
 	{
+		setpgid(0, 0);
+
 		if (launcher)
 		{
 			/* "Launchers" such as Valgrind need to be inserted
