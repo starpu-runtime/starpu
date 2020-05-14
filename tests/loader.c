@@ -361,6 +361,8 @@ int main(int argc, char *argv[])
 		char *launcher_argv[100];
 		int i=0;
 
+		setpgid(0, 0);
+
 		/* "Launchers" such as Valgrind need to be inserted
 		 * after the Libtool-generated wrapper scripts, hence
 		 * this special-case.  */
