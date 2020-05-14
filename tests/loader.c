@@ -40,7 +40,7 @@
 #define  DEFAULT_TIMEOUT       300
 #else
 /* Long checks can be very long */
-#define  DEFAULT_TIMEOUT       1800
+#define  DEFAULT_TIMEOUT       1000
 #endif
 #define  AUTOTEST_SKIPPED_TEST 77
 
@@ -241,11 +241,11 @@ int main(int argc, char *argv[])
 		if ((launcher && strstr(launcher, "valgrind")) ||
 		    (launcher && strstr(launcher, "helgrind")) ||
 		    getenv("TSAN_OPTIONS") != NULL)
-			timeout *= 10;
+			timeout *= 20;
 		if (getenv("ASAN_OPTIONS") != NULL ||
 		    getenv("USAN_OPTIONS") != NULL ||
 		    getenv("LSAN_OPTIONS") != NULL)
-			timeout *= 2;
+			timeout *= 5;
 	}
 
 	test_name = argv[1];
