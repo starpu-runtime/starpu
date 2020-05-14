@@ -88,6 +88,20 @@ void insertion(struct basic_sched_data *a)
     nouveau->next = a->head;
     a->head = nouveau;
 }
+
+void insertion_fin(struct basic_sched_data *a)
+{
+    /* Création du nouvel élément */
+    struct my_list *nouveau = malloc(sizeof(*nouveau));
+  
+	starpu_task_list_init(&nouveau->sub_list);
+    /* Insertion de l'élément à la fin de la liste */
+    nouveau->next = NULL;
+   while (a->head->next != NULL) { a->head = a->head->next; }
+   a->head->next = nouveau;
+   //~ a->head->next->package_data = malloc(3*sizeof(a->head->package_data[0]));
+   printf("ok\n");
+}
 		
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -156,20 +170,26 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			
 			//Version avec des paquets de tâches et des comparaisons de paquets ------------------------------------------------------------------------------------------------------
 			temp_task_3  = starpu_task_list_begin(&data->tache_pop);
+			printf("premiere tache : %p\n",temp_task_3);
 			data->head->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_3)*sizeof(data->head->package_data[0]));
-			//Here I put each data of each task in a package (a linked list). One task == one link	
+			
+			//Here I put each data of each task in a package (a linked list). One task == one link
 			for (temp_task_3  = starpu_task_list_begin(&data->tache_pop); temp_task_3 != starpu_task_list_end(&data->tache_pop); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_3); i++) {
 					data->head->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_3,i);
 				}
 				data->head->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_3);
+				
 				insertion(data); 
+				//~ temp_task_2 = temp_task_3;
+				//~ starpu_task_list_push_back(&data->head->sub_list,temp_task_3);
+				//~ insertion_fin(data); 
 				data->head->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_3)*sizeof(data->head->package_data[0]));
 			}
-			int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
-			//Que faire ? 1 : Faire la matrice des poids communs qui dépassent pas B 2 : Faire un paquet avec les 2 paquets qui partagent le plus en enlevant les doublons 3 : Vider 1 des deux paquets 4 : Recommencer à l'étape 1
-			//Code to print all the data of all the packages ---------------------------------------------
 			
+			int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+			
+			//Code to print all the data of all the packages ---------------------------------------------
 			data->head = data->head->next;
 			data->first_link = data->head;
 			while (data->head != NULL) {
@@ -179,27 +199,28 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				link_index++;
 				data->head = data->head->next;
 			} printf("NULL\n");
+			//--------------------------------------------------------------------------------------------
+			
 			//Get back to the beginning of the linked list
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
-			//--------------------------------------------------------------------------------------------
-			//A noter que quand je print le premier paquet (le 0) a que des données à nil, je sais pas trop pourquoi lui il a rien
 			index_head_2++;
+			
+			//Filling the common data matrix
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 					for (i = 0; i < data->head_2->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
-							printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
-							if (data->head->package_data[i] == data->head_2->package_data[j]) {
-								// matrice_donnees_commune[index_head_1][index_head_2] += ( starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head->package_data[j]));
-								matrice_donnees_commune[index_head_1][index_head_2] += 1;	
-								printf("Données communes entre %p et %p\n",data->head->package_data[i],data->head_2->package_data[j]);
+							//~ printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
+							if (((data->head->package_data[i] == data->head_2->package_data[j])) &&  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) < GPU_RAM )) {
+								matrice_donnees_commune[index_head_1][index_head_2] += (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j]));
+								//~ printf("Données communes entre %p et %p\n",data->head->package_data[i],data->head_2->package_data[j]);
 							} 
 						}
 					} index_head_2++;
 				} index_head_1++; index_head_2 = index_head_1 + 1;
 			}
-			printf("Pull breakpoint 5\n");
+			
 			//Here is code to print the common data matrix  ----------------
 			printf("Common data matrix : \n");
 			for (i = 0; i < nb_pop; i++) {
@@ -209,6 +230,31 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				printf("\n");
 			}
 			//--------------------------------------------------------------
+			
+			//Getting the number of package that have data in commons
+			for (i = 0; i < nb_pop; i++) {
+				for (j = 0; j < nb_pop; j++) {
+					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
+				}
+			}
+			
+			//Here we put every task in the tab inutile pour ce cas la a mon avis
+			for (i = 0; i < nb_pop; i++) {
+				//~ task_tab[i] = starpu_task_list_pop_front(&data->tache_pop);
+			}
+			
+			//Here we put every task in the linked list at the right place
+			//~ data->head = data->first_link;
+			//~ while (data->head->next != NULL) { data->head = data->head->next; }
+			//~ for (temp_task_3  = starpu_task_list_begin(&data->tache_pop); temp_task_3 != starpu_task_list_end(&data->tache_pop); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				//~ starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_back(&data->tache_pop));
+				//~ data->head = data->head->next;
+			//~ }
+			
+			//~ data->head = data->first_link;
+			//~ temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
+			//~ printf("La tâche numéro %d est %p elle a la donnée %p\n",0,temp_task_3,data->head->package_data[0]);
+				
 			//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			if (nb_pop > 0) {
@@ -246,13 +292,13 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				}
 				
 				//Here is code to print the common data matrix  ----------------
-				printf("Common data matrix : \n");
-				for (i = 0; i < nb_pop; i++) {
-					for (j = 0; j < nb_pop; j++) {
-						printf (" %zd ",matrice_donnees_commune[i][j]);
-					}
-					printf("\n");
-				}
+				//~ printf("Common data matrix : \n");
+				//~ for (i = 0; i < nb_pop; i++) {
+					//~ for (j = 0; j < nb_pop; j++) {
+						//~ printf (" %zd ",matrice_donnees_commune[i][j]);
+					//~ }
+					//~ printf("\n");
+				//~ }
 				//--------------------------------------------------------------
 				
 				for (i = 0; i < nb_pop; i++) {
