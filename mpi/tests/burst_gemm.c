@@ -29,7 +29,6 @@
 #include "gemm_helper.h"
 #include "burst_helper.h"
 
-
 void parse_args(int argc, char **argv)
 {
 	int i;
@@ -41,7 +40,6 @@ void parse_args(int argc, char **argv)
 			nslices = strtol(argv[++i], &argptr, 10);
 			matrix_dim = 320 * nslices;
 		}
-
 		else if (strcmp(argv[i], "-size") == 0)
 		{
 			char *argptr;
@@ -56,24 +54,20 @@ void parse_args(int argc, char **argv)
 				nslices = matrix_dim / 320;
 			}
 		}
-
 		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
 		}
-
 		else if (strcmp(argv[i], "-nreqs") == 0)
 		{
 			burst_nb_requests = atoi(argv[++i]);
 		}
-
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-nreqs nreqs]\n", argv[0]);
 			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks - %d requests in each burst\n", matrix_dim, nslices, burst_nb_requests);
 			exit(EXIT_SUCCESS);
 		}
-
 		else
 		{
 			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
@@ -81,7 +75,6 @@ void parse_args(int argc, char **argv)
 		}
 	}
 }
-
 
 int main(int argc, char **argv)
 {
@@ -110,7 +103,7 @@ int main(int argc, char **argv)
 	}
 
 	gemm_alloc_data();
-	if(gemm_init_data() == -ENODEV)
+	if (gemm_init_data() == -ENODEV)
 		goto enodev;
 
 	burst_init_data(mpi_rank);
@@ -145,11 +138,9 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Burst done, now waiting for computing tasks to finish\n");
 
-
 	/* Wait for everything and everybody: */
 	starpu_task_wait_for_all();
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-
 
 enodev:
 	gemm_release();

@@ -24,7 +24,6 @@
 #include "helper.h"
 #include "burst_helper.h"
 
-
 void parse_args(int argc, char **argv)
 {
 	int i;
@@ -34,14 +33,12 @@ void parse_args(int argc, char **argv)
 		{
 			burst_nb_requests = atoi(argv[++i]);
 		}
-
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 			fprintf(stderr,"Usage: %s [-nreqs nreqs]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %d requests in each burst\n", burst_nb_requests);
 			exit(EXIT_SUCCESS);
 		}
-
 		else
 		{
 			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
@@ -49,7 +46,6 @@ void parse_args(int argc, char **argv)
 		}
 	}
 }
-
 
 int main(int argc, char **argv)
 {
@@ -66,9 +62,7 @@ int main(int argc, char **argv)
 
 	burst_init_data(rank);
 
-
 	burst_all(rank);
-
 
 	/* Clear up */
 	burst_free_data(rank);
