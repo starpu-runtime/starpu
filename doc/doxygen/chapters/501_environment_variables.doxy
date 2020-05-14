@@ -866,6 +866,20 @@ a homogenenous cluster, it is possible to share the models between
 machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
 </dd>
 
+<dt>STARPU_MPI_HOSTNAMES</dt>
+<dd>
+\anchor STARPU_MPI_HOSTNAMES
+\addindex __env__STARPU_MPI_HOSTNAMES
+Similar to \ref STARPU_HOSTNAME but to define multiple nodes on a
+heterogeneous cluster. The variable is a list of hostnames that will be assigned
+to each StarPU-MPI rank considering their position and the value of
+\ref starpu_mpi_world_rank on each rank. When running, for example, on a
+heterogeneous cluster, it is possible to set individual models for each machine
+by setting <c>export STARPU_MPI_HOSTNAMES="name0 name1 name2"</c>. Where rank 0
+will receive name0, rank1 will receive name1, and so on.
+This variable has precedence over \ref STARPU_HOSTNAME.
+</dd>
+
 <dt>STARPU_OPENCL_PROGRAM_DIR</dt>
 <dd>
 \anchor STARPU_OPENCL_PROGRAM_DIR

@@ -516,10 +516,39 @@ char *_starpu_get_home_path(void)
 	return path;
 }
 
+#pragma weak starpu_mpi_world_rank
+int starpu_mpi_world_rank()
+{
+	_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0");
+	return 0;
+}
+
 void _starpu_gethostname(char *hostname, size_t size)
 {
+	char *force_mpi_hostnames = starpu_getenv("STARPU_MPI_HOSTNAMES");
 	char *forced_hostname = starpu_getenv("STARPU_HOSTNAME");
-	if (forced_hostname && forced_hostname[0])
+
+	if (force_mpi_hostnames && force_mpi_hostnames[0])
+	{
+		char *host, *srv_hosts, *srv_hosts_free, *rsrv;
+		srv_hosts = srv_hosts_free = (char*)malloc(strlen(force_mpi_hostnames)+1);
+		snprintf(srv_hosts, strlen(force_mpi_hostnames)+1, "%s", force_mpi_hostnames);
+		int rank = starpu_mpi_world_rank();
+		if (force_mpi_hostnames != NULL)
+		{
+			host = strtok_r(srv_hosts, " ", &rsrv);
+			while (rank-->0 && (host = strtok_r(NULL, " ", &rsrv)));
+			if(rank>=0)
+			{
+				_STARPU_MSG("Missing hostnames in STARPU_MPI_HOSTNAMES\n");
+				STARPU_ABORT();
+			}
+		}
+		snprintf(hostname, size-1, "%s", host);
+		free(srv_hosts_free);
+		hostname[size-1] = 0;
+	}
+	else if (forced_hostname && forced_hostname[0])
 	{
 		snprintf(hostname, size-1, "%s", forced_hostname);
 		hostname[size-1] = 0;
