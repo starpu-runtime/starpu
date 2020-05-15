@@ -231,6 +231,7 @@ int main(int argc, char *argv[])
 	struct timeval start;
 	struct timeval end;
 	double timing;
+	int x=1;
 
 	(void) argc;
 	test_args = NULL;
@@ -239,7 +240,12 @@ int main(int argc, char *argv[])
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 
-	if (getenv("STARPU_TIMEOUT_ENV"))
+	if (argv[x] && strcmp(argv[x], "-t") == 0)
+	{
+		timeout = strtol(argv[x+1], NULL, 10);
+		x += 2;
+	}
+	else if (getenv("STARPU_TIMEOUT_ENV"))
 	{
 		/* get user-defined iter_max value */
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
@@ -267,7 +273,17 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	test_name = argv[1];
+	if (argv[x] && strcmp(argv[x], "-p") == 0)
+	{
+		test_name = malloc(strlen(argv[x+1]) + 1 + strlen(argv[x+2]) + 1);
+		sprintf(test_name, "%s/%s", argv[x+1], argv[x+2]);
+		x += 3;
+	}
+	else
+	{
+		test_name = argv[x];
+		x += 1;
+	}
 
 	if (!test_name)
 	{
@@ -286,7 +302,7 @@ int main(int argc, char *argv[])
 
 		setenv("STARPU_LAUNCH", argv[0], 1);
 
-		execvp(test_name, argv+1);
+		execvp(test_name, argv+x-1);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
@@ -350,52 +366,41 @@ int main(int argc, char *argv[])
 	child_pid = fork();
 	if (child_pid == 0)
 	{
+		char *launcher_argv[100];
+		int i=0;
+
 		setpgid(0, 0);
 
-		if (launcher)
+		/* "Launchers" such as Valgrind need to be inserted
+		 * after the Libtool-generated wrapper scripts, hence
+		 * this special-case.  */
+		if (launcher && top_builddir != NULL)
 		{
-			/* "Launchers" such as Valgrind need to be inserted
-			 * after the Libtool-generated wrapper scripts, hence
-			 * this special-case.  */
-			if (top_builddir != NULL)
+			launcher_argv[i++] = libtool;
+			launcher_argv[i++] = "--mode=execute";
+			launcher_argv[i++] = launcher;
+			if (launcher_args)
 			{
-				char *launcher_argv[100];
-				int i=0;
-
-				launcher_argv[i++] = libtool;
-				launcher_argv[i++] = "--mode=execute";
-				launcher_argv[i++] = launcher;
-				if (launcher_args)
+				launcher_argv[i++] = strtok(launcher_args, " ");
+				while (launcher_argv[i-1])
 				{
-					launcher_argv[i++] = strtok(launcher_args, " ");
-					while (launcher_argv[i-1])
-					{
-						launcher_argv[i++] = strtok(NULL, " ");
-					}
+					launcher_argv[i++] = strtok(NULL, " ");
 				}
-				launcher_argv[i++] = test_name;
-#ifdef STARPU_SIMGRID
-				launcher_argv[i++] = "--cfg=contexts/factory:thread";
-#endif
-				launcher_argv[i++] = test_args;
-				launcher_argv[i++] = NULL;
-				execvp(*launcher_argv, launcher_argv);
-			}
-			else
-			{
-				execl(test_name, test_name,
-#ifdef STARPU_SIMGRID
-					"--cfg=contexts/factory:thread",
-#endif
-					test_args, NULL);
 			}
 		}
-		else
-			execl(test_name, test_name,
+
+		launcher_argv[i++] = test_name;
+		if (test_args)
+			launcher_argv[i++] = test_args;
+		else while (argv[x])
+		{
+			launcher_argv[i++] = argv[x++];
+		}
 #ifdef STARPU_SIMGRID
-				"--cfg=contexts/factory:thread",
+		launcher_argv[i++] = "--cfg=contexts/factory:thread";
 #endif
-				test_args, NULL);
+		launcher_argv[i++] = NULL;
+		execvp(*launcher_argv, launcher_argv);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
