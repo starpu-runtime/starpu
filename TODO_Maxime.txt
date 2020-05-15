@@ -1,27 +1,40 @@
+A FAIRE ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Mettre les noms de variables et fonctions en anglais, les commentaires en anglais, enlever les commentaires inutiles
 
-Simplifier le filling : FAIT!
-Supporter le fait que les tâches on des nombres de données variable : FAIT! 
-Supporter le fait qu'il faut comparer toutes les données entre elle : FAIT!
-Supporter le fait qu'il peut y avoir plus que 1 point commun entre deux tâches : FAIT!
-Vérifier que les tâches sont bien mises dans le bon ordre dans la liste chainée : FAIT, ca marche mais faut voir avec des exemples qui ont plus que 1 point commun entre 2 tâches.
-Faire l'heuristique des poids des données : FAIT!
-Tester que les regroupements sont inférieurs à la taille B : FAIT!
-
-Faire des paquets. Pour le moment je met dans une liste chainée mais je ne compare pas 1 tache avec d'autres paquets déjà fais pour voir si la tâche a plus de point commun avec ce paquet qu'avec une autre tâche.
-
-LIMIT_CUDA_MEM = 30*960*4 et on prend 1 quart de ca tester pour un grand nb de blocks : Même problème, crash apres tout les push
-
-OK! / Comparer eager et dmdar : dans starpu-text/comparaisons.txt. Ca n'améliore pas.
-
-et quand tu merges deux paquets il faut merger les ensembles de données
-au passage, tu peux garder des tableaux de données triés par ordre croissant
-pour que le merge sans doublon se fasse en O(n) tant qu'à faire :)
-MaximeAujourd’hui à 16:38
-Ah oui en effet
-SamuelAujourd’hui à 16:39
-tu peux utiliser la fonction qsort pour trier la liste au départ (les données venant d'une tâche)
+Merge les données correctement : et quand tu merges deux paquets il faut merger les ensembles de données au passage, tu peux garder des tableaux de données triés par ordre croissant
+pour que le merge sans doublon se fasse en O(n) tant qu'à faire :) tu peux utiliser la fonction qsort pour trier la liste au départ (les données venant d'une tâche)
 
 Calculer le max une fois dans le while et dans le for faire les regroupement possible sans recalculer : dans le code a modifier aussi!
 Essayer dans le code et en theorique le calcul de Wmax a chaque fois ou pas (apres un if W (C(D(P i )), D(P j )) ≥ W max) et faire des exemples dans le modele ex : un escalier de données communes
+
 Sortir le nombre de paquets a la fin du code et la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
+
+@Maxime pour les infos de bande passante et temps de tâche, il y a double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node); , pour src_node tu peux mettre STARPU_MAIN_RAM, et pour dst_node ce qui est retourné par le starpu_worker_get_memory_node que tu appelles déjà
+pour la durée d'une tâche, tu peux utiliser double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
+pour workerid tu peux passer 0
+pour sched_ctx_id, component->tree->sched_ctx_id
+pour nimpl, tu peux passer 0
+
+VERIFIER CA SE MET BIEN CORRECTEMENT LES TACHES ET LES DONNES DANS LA LISTE CHAINEE
+CREER LA CONDITION WHILE
+FAIRE PLUS QUE 1 TOUR DE WHILE
+ENLEVER LES DOUBLONS QUAND ON MERGE
+GERER DES PAQUETS DE PLUS DE 1 TACHE
+avant la deuxieme boucle du while il faut bien mettre a 0 tout matrice_donnees_commune[i][j]
+
+passer de algo  1 a algo 2 idéalement il faudrait pouvoir passer de l'un à l'autre facilement
+en mettant un goto qu'on peut activer ou non
+
+FAIT  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Simplifier le filling
+Supporter le fait que les tâches on des nombres de données variable
+Supporter le fait qu'il faut comparer toutes les données entre elle
+Supporter le fait qu'il peut y avoir plus que 1 point commun entre deux tâches
+Vérifier que les tâches sont bien mises dans le bon ordre dans la liste chainée
+Faire l'heuristique des poids des données
+Tester que les regroupements sont inférieurs à la taille B
+Faire des paquets
+Merge les données
+Supprimer les maillons vide apres avoir fais les merge
