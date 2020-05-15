@@ -21,10 +21,18 @@ function fstarpu_task_library_name()
     return x
 end
 
-function fstarpu_include_dir()
-    x=get(ENV, "STARPU_INCLUDE_DIR", C_NULL)
+function fstarpu_build_dir()
+    x=get(ENV, "STARPU_BUILD_DIR", C_NULL)
     if (x == C_NULL)
-        error("Environment variable STARPU_INCLUDE_DIR must be defined")
+        error("Environment variable STARPU_BUILD_DIR must be defined")
+    end
+    return x
+end
+
+function fstarpu_src_dir()
+    x=get(ENV, "STARPU_SRC_DIR", C_NULL)
+    if (x == C_NULL)
+        error("Environment variable STARPU_SRC_DIR must be defined")
     end
     return x
 end

@@ -23,11 +23,20 @@ function starpu_translate_headers()
         mkdir((@__DIR__)*"/../gen")
     end
 
-    STARPU_INCLUDE=fstarpu_include_dir()
-    STARPU_HEADERS = [joinpath(STARPU_INCLUDE, header) for header in readdir(STARPU_INCLUDE) if endswith(header, ".h")]
+    STARPU_BUILD_INCLUDE=joinpath(fstarpu_build_dir(), "include")
+    STARPU_SRC_INCLUDE=joinpath(fstarpu_src_dir(), "include")
+    STARPU_HEADERS = [joinpath(STARPU_BUILD_INCLUDE, header) for header in readdir(STARPU_BUILD_INCLUDE) if endswith(header, ".h")]
+    if STARPU_SRC_INCLUDE != STARPU_BUILD_INCLUDE
+        for header in readdir(STARPU_SRC_INCLUDE)
+            if endswith(header, ".h")
+                push!(STARPU_HEADERS, joinpath(STARPU_SRC_INCLUDE, header))
+            end
+        end
+    end
+
     LIBCLANG_INCLUDE = joinpath(dirname(LLVM_jll.libclang_path), "..", "include", "clang-c") |> normpath
 
-    clang_args = ["-I", STARPU_INCLUDE]
+    clang_args = ["-I", STARPU_BUILD_INCLUDE, "-I", STARPU_SRC_INCLUDE]
 
     for header in find_std_headers()
         push!(clang_args, "-I")
