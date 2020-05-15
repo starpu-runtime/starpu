@@ -315,11 +315,13 @@ int main(int argc, char *argv[])
 	}
 	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
-		test_args = strdup("-l");
+		if (x >= argc)
+			test_args = strdup("-l");
 	}
 	else if (strstr(test_name, "starpu_perfmodel_plot"))
 	{
-		test_args = strdup("-l");
+		if (x >= argc)
+			test_args = strdup("-l");
 	}
 
 	/* get launcher program */
