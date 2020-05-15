@@ -18,12 +18,15 @@ pour nimpl, tu peux passer 0
 
 VERIFIER CA SE MET BIEN CORRECTEMENT LES TACHES ET LES DONNES DANS LA LISTE CHAINEE
 FAIRE PLUS QUE 1 TOUR DE WHILE
+	faire la somme des poids de toutes les donées pas seulement la i parce que la mes paquets prennent pas la bonne taille de paquets
+	tester somme < B
+	a tester au moment du remplissage de la matrice des données communes
 GERER DES PAQUETS DE PLUS DE 1 TACHE
 
 passer de algo  1 a algo 2 idéalement il faudrait pouvoir passer de l'un à l'autre facilement
 en mettant un goto qu'on peut activer ou non
 
-FAIT  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Simplifier le filling
 Supporter le fait que les tâches on des nombres de données variable
@@ -38,3 +41,15 @@ Supprimer les maillons vide apres avoir fais les merge
 Retirer les doublons lors du merge de deux paquets
 Creer la condition while
 Reset à 0 matrice_donnees_commune[i][j]
+
+DERNIERS COMMIT STABLE ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+envoi scm : Ajout de la condition while(empaquetage_impossible == false) { (commit 137f14d)
+envoi scm : Version algo 1, fais 1 tour de while (commit c64943d)
+
+ERREUR DE GDB ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#1  0x00007f2cc5ea0e7a in basic_pull_task (component=<optimized out>, to=<optimized out>)
+    at sched_policies/basic_sched.c:272
+#1  0x00007f2c6eed3e9f in basic_pull_task (component=<optimized out>, to=<optimized out>)
+    at sched_policies/basic_sched.c:275

@@ -250,25 +250,37 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			
 			while (packaging_impossible == 0) {
 				packaging_impossible = 1;
-				
+			
+			//Reinit indispendable ?
+			data->head = data->first_link;
+			data->head_2 = data->first_link;
+			index_head_1 = 0;
+			index_head_2 = 0;
+			
 			//Init a 0 la common data
 			int matrice_donnees_commune[nb_pop][nb_pop];
 			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
-			
+			printf("Nb data head_2 : %d\n",data->head_2->package_nb_data);
 			//Filling the common data matrix
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 					for (i = 0; i < data->head_2->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
+							printf("Pull breakpoint 2\n");
+							//~ if  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) > GPU_RAM ) { printf ("Supp a gpu\n"); }
 							//~ printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
-							if (((data->head->package_data[i] == data->head_2->package_data[j])) &&  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) < GPU_RAM )) {
-								matrice_donnees_commune[index_head_1][index_head_2] += (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j]));
+							//~ if (((data->head->package_data[i] == data->head_2->package_data[j])) &&  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) < GPU_RAM )) {
+							if ((data->head->package_data[i] == data->head_2->package_data[j])) {
+								printf("Données commune\n");
+								//~ matrice_donnees_commune[index_head_1][index_head_2] += (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j]));
+								matrice_donnees_commune[index_head_1][index_head_2] += 1;
 								//~ printf("Données communes entre %p et %p\n",data->head->package_data[i],data->head_2->package_data[j]);
-							} 
-						}
-					} index_head_2++;
+							} else { printf("else\n"); } 
+						} printf("Pull breakpoint 3\n");
+					} index_head_2++; printf("Pull breakpoint 4\n");
 				} index_head_1++; index_head_2 = index_head_1 + 1;
 			}
+			printf("Pull breakpoint 6\n");
 			
 			//Here is code to print the common data matrix  ----------------
 			printf("Common data matrix : \n");
@@ -382,6 +394,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head = delete_link(data);
 			
+			
+			
 			//Code to print everything ------------------------------------------------------------------
 			while (data->head != NULL) {
 				for (i = 0; i < data->head->package_nb_data; i++) {
@@ -397,7 +411,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		//Reset de la matrice
 		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Ajout temporaire le temps de coder correctement les plusieurs tours de while
-		packaging_impossible = 1;
+		//~ packaging_impossible = 1;
 		} // Fin du while (packaging_impossible == 0)
 			
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
