@@ -17,6 +17,7 @@
 
 /* Ordonnanceur de base sous contrainte mémoire */
 
+
 #include <starpu.h>
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
@@ -132,6 +133,11 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 	}
 	return a->first_link;
 }
+	
+int intComparator ( const void * first, const void * second ) {
+  return ( *(int*)first - *(int*)second );
+}
+	
 		
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -158,6 +164,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int je_suis_ou = 0;
 	int do_not_add_more = 0;	
 	int link_index = 0;
+	int nb_duplicate_data = 0;
 	int max_value_common_data_matrix = 0;
 	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
 	int index_head_1 = 0; int index_head_2 = 0;
@@ -255,16 +262,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Here is code to print the common data matrix  ----------------
-			printf("Common data matrix : \n");
-			for (i = 0; i < nb_pop; i++) {
-				for (j = 0; j < nb_pop; j++) {
-					//~ printf (" %zd ",matrice_donnees_commune[i][j]/100000);
-					if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}
-					//~ printf (" %zd ",matrice_donnees_commune[i][j]/100000);
-					
-				}
-				printf("\n");
-			}
+			//~ printf("Common data matrix : \n");
+			//~ for (i = 0; i < nb_pop; i++) {
+				//~ for (j = 0; j < nb_pop; j++) {
+					//~ // //~ printf (" %zd ",matrice_donnees_commune[i][j]/100000);
+					//~ if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+				//~ }
+				//~ printf("\n");
+			//~ }
 			//--------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -273,7 +278,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
 				}
 			}
-			printf("Nb data en commun : %d\n",nb_data_commun);
+			//~ printf("Nb data en commun : %d\n",nb_data_commun);
 			
 			//Getting back to the beginning of the linked list
 			data->head = data->first_link;
@@ -282,7 +287,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Getting W_max
 			for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { 
 				if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
-				printf("Le max de poids de data communes est %zd\n",max_value_common_data_matrix);
+				//~ printf("Le max de poids de data communes est %zd\n",max_value_common_data_matrix);
 				
 			//MArche que pour 1 tache par 12 toache pour le moment
 			for (i = 0; i < nb_pop; i++) {
@@ -300,23 +305,54 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						if (!starpu_task_list_empty(&data->head_2->sub_list)) { 
 							//Push la tâche
 							starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
-							//~ nb_tasks_in_linked_list+=2;
 							//Merge les données
 							//A FAIRE SUPPR LES DOUBLONS DE DONN2ES
 							//Met dans un tableau a part
-							starpu_data_handle_t *temp_data_tab = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							starpu_data_handle_t *temp_data_tab_1 = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							//Tri des tab de data pour pouvoir supprimer les doublons en O(n)
+							//~ qsort(data->head->package_data,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(data->head->package_data[0]),intComparator);
+							//~ qsort(data->head_2->package_data,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(data->head_2->package_data[0]),intComparator);
 							for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
-								temp_data_tab[i_bis] = data->head->package_data[i_bis];
+								temp_data_tab_1[i_bis] = data->head->package_data[i_bis];
 							}
 							for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
-								temp_data_tab[i_bis + data->head->package_nb_data] = data->head_2->package_data[i_bis];
+								temp_data_tab_1[i_bis + data->head->package_nb_data] = data->head_2->package_data[i_bis];
 							}
+							qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),intComparator);
+							
+							//~ //Code to print the tab of data --------
+							//~ printf("Tab trié avant -------------------\n");
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								//~ printf("%d\n",temp_data_tab_1[i_bis]);
+							//~ }
+							//~ printf("----------------------------\n");
+							//~ //-------------------------------------
+							
+							//On vire les doublons
+							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								if (temp_data_tab_1[i_bis] == temp_data_tab_1[i_bis + 1]) {
+									temp_data_tab_1[i_bis] = 0;
+									nb_duplicate_data++;
+								}
+							}
+								
 							//Puis on met tout dans head
-							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							j_bis = 0;
 							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++)
 							{
-								data->head->package_data[i_bis] = temp_data_tab[i_bis];
+								if (temp_data_tab_1[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab_1[i_bis]; j_bis++; }
 							}
+							
+							//~ //Code to print the tab of data --------
+							//~ printf("Tab trié après -------------------\n");
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data); i_bis++) {
+								//~ printf("%d\n",data->head->package_data[i_bis]);
+							//~ }
+							//~ printf("----------------------------\n");
+							//-------------------------------------
+							nb_duplicate_data = 0;
+							
 							//Met le nb de data de head_2 à 0
 							data->head->package_nb_data += data->head_2->package_nb_data;
 							data->head_2->package_nb_data = 0;
@@ -336,14 +372,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = delete_link(data);
 			
 			//Code to print everything ------------------------------------------------------------------
-			while (data->head != NULL) {
-				for (i = 0; i < data->head->package_nb_data; i++) {
-					printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
-				}
-				link_index++;
-				data->head = data->head->next;
-			} printf("NULL\n");
-			printf("Il y a %d paquets\n",link_index);
+			//~ while (data->head != NULL) {
+				//~ for (i = 0; i < data->head->package_nb_data; i++) {
+					//~ printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
+				//~ }
+				//~ link_index++;
+				//~ data->head = data->head->next;
+			//~ } printf("NULL\n");
+			//~ printf("Il y a %d paquets\n",link_index);
 			//--------------------------------------------------------------------------------------------
 			data->head = data->first_link;
 			
