@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 	{
 		starpu_pause();
 
-		for (int i = 0; i < cpu_count; i++)
+		for (unsigned i = 0; i < cpu_count; i++)
 		{
 			workers[i] = i;
 			vectors_send[i] = malloc(s);

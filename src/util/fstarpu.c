@@ -190,6 +190,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else { _STARPU_ERROR("unknown constant"); }
 }
 
+STARPU_ATTRIBUTE_MALLOC
 struct starpu_conf *fstarpu_conf_allocate(void)
 {
 	struct starpu_conf *conf;
@@ -260,6 +261,7 @@ void fstarpu_topology_print(void)
 	starpu_topology_print(stderr);
 }
 
+STARPU_ATTRIBUTE_MALLOC
 struct starpu_codelet *fstarpu_codelet_allocate(void)
 {
 	struct starpu_codelet *cl;
@@ -550,6 +552,7 @@ void fstarpu_worker_get_type_as_string(intptr_t type, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", str);
 }
 
+STARPU_ATTRIBUTE_MALLOC
 starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb)
 {
 	void *ptr;
@@ -567,6 +570,7 @@ void fstarpu_data_handle_array_set(starpu_data_handle_t *handles, int i, starpu_
 	handles[i] = handle;
 }
 
+STARPU_ATTRIBUTE_MALLOC
 struct starpu_data_descr *fstarpu_data_descr_array_alloc(int nb)
 {
 	void *ptr;
@@ -574,6 +578,7 @@ struct starpu_data_descr *fstarpu_data_descr_array_alloc(int nb)
 	return ptr;
 }
 
+STARPU_ATTRIBUTE_MALLOC
 struct starpu_data_descr *fstarpu_data_descr_alloc(void)
 {
 	return fstarpu_data_descr_array_alloc(1);
@@ -600,6 +605,7 @@ void fstarpu_data_descr_set(struct starpu_data_descr *descr, starpu_data_handle_
 	fstarpu_data_descr_array_set(descr, 1, handle, mode);
 }
 
+STARPU_ATTRIBUTE_MALLOC
 struct starpu_data_filter *fstarpu_data_filter_allocate(void)
 {
 	struct starpu_data_filter *filter;
@@ -610,6 +616,7 @@ struct starpu_data_filter *fstarpu_data_filter_allocate(void)
 /* Note: use fstarpu_df_alloc_ prefix instead of fstarpu_data_filter_allocate_ to fit within the
  * Fortran id length limit */
 #define _FSTARPU_DATA_FILTER_ALLOCATOR(name) \
+STARPU_ATTRIBUTE_MALLOC \
 struct starpu_data_filter *fstarpu_df_alloc_##name(void) \
 { \
 	struct starpu_data_filter *filter = fstarpu_data_filter_allocate(); \

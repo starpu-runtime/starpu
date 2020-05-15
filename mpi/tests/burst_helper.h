@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018                                     Alexis Juven
+ * Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,14 +13,17 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#include "jlstarpu.h"
 
-int jlstarpu_init(void)
-{
-	return starpu_init(NULL);
-}
+#ifndef __MPI_TESTS_BURST_HELPER__
+#define __MPI_TESTS_BURST_HELPER__
 
-void jlstarpu_set_to_zero(void * ptr, unsigned int size)
-{
-	memset(ptr, 0, size);
-}
+extern int burst_nb_requests;
+
+void burst_init_data(int rank);
+void burst_free_data(int rank);
+void burst_bidir(int rank);
+void burst_unidir(int sender, int receiver, int rank);
+void burst_bidir_half_postponed(int rank);
+void burst_all(int rank);
+
+#endif /* __MPI_TESTS_BURST_HELPER__ */

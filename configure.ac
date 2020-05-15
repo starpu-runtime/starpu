@@ -59,6 +59,9 @@ AC_SUBST([LIBSTARPURM_INTERFACE_AGE])
 AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
 AC_SUBST([LIBSOCL_INTERFACE_REVISION])
 AC_SUBST([LIBSOCL_INTERFACE_AGE])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPUJULIA_INTERFACE_AGE])
 
 AC_CANONICAL_SYSTEM
 
@@ -196,7 +199,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_name sg_link_bandwidth_set sg_host_route sg_host_self sg_host_list sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
@@ -557,7 +560,7 @@ fi
 if test x$enable_mpi = xyes ; then
     if test x$enable_simgrid = xyes ; then
         if test x$enable_shared = xyes ; then
-	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, theb use --disable-shared to fix this, else disable MPI with --disable-mpi])
+	    AC_MSG_ERROR([MPI with simgrid can not work with shared libraries, if you need the MPI support, then use --disable-shared to fix this, else disable MPI with --disable-mpi])
         else
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
@@ -1278,7 +1281,9 @@ AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
 AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
+cc_or_nvcc=$CC
 if test x$enable_cuda = xyes; then
+   	cc_or_nvcc=$NVCC
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
 	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
@@ -1365,6 +1370,8 @@ if test x$enable_cuda = xyes; then
 	LDFLAGS="${SAVED_LDFLAGS}"
 	LIBS="${SAVED_LIBS}"
 fi
+
+AC_SUBST(CC_OR_NVCC, $cc_or_nvcc)
 
 have_magma=no
 if test x$enable_cuda = xyes; then
@@ -3433,6 +3440,27 @@ AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
 
 ###############################################################################
 #                                                                             #
+#                                Julia                                        #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(julia, [AS_HELP_STRING([--enable-julia],
+			[enable the Julia extension])],
+			enable_julia=$enableval, enable_julia=no)
+if test "$enable_julia" = "yes" ; then
+   # Check whether the julia compiler is available
+   AC_PATH_PROG(juliapath, julia)
+   AC_MSG_CHECKING(whether julia is available)
+   AC_MSG_RESULT($juliapath)
+   if test ! -x $julia_path ; then
+      AC_MSG_ERROR(Julia compiler '$julia_path' is not valid)
+      enable_julia=no
+   fi
+fi
+AM_CONDITIONAL([STARPU_USE_JULIA], [test "x$enable_julia" = "xyes"])
+AC_SUBST(JULIA, $juliapath)
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
@@ -3511,6 +3539,10 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
+  chmod +x julia/examples/execute.sh
+  for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh; do
+      test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
+  done
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3600,6 +3632,11 @@ AC_OUTPUT([
 	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
+	julia/Makefile
+	julia/src/Makefile
+	julia/src/dynamic_compiler/Makefile
+	julia/examples/Makefile
+	julia/examples/execute.sh
 ])
 
 AC_MSG_NOTICE([
@@ -3653,6 +3690,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
+	       JULIA enabled:                                 $enable_julia
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

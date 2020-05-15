@@ -67,10 +67,22 @@
 #include <xbt/synchro_core.h>
 #endif
 
+/* common/thread.c references these, but doesn't need to have them working anyway */
 int
 _starpu_simgrid_thread_start(int argc, char *argv[])
 {
 	return 0;
+}
+
+size_t _starpu_default_stack_size = 8192;
+
+void
+_starpu_simgrid_set_stack_size(size_t stack_size)
+{
+}
+
+starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)
+{
 }
 
 static void _starpu_clock_gettime(struct timespec *ts)

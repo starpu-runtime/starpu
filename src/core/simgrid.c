@@ -97,6 +97,21 @@ void _starpu_simgrid_set_stack_size(size_t stack_size)
 #endif
 }
 
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+static void on_exit_backtrace(int failed, void *data STARPU_ATTRIBUTE_UNUSED)
+{
+	if (failed)
+		xbt_backtrace_display_current();
+}
+#endif
+
+void _starpu_simgrid_actor_setup(void)
+{
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+	sg_actor_on_exit(on_exit_backtrace, NULL);
+#endif
+}
+
 #if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 sg_netzone_t _starpu_simgrid_get_as_by_name(const char *name)
@@ -360,6 +375,7 @@ int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	if (!starpu_main)
 	{
@@ -1168,6 +1184,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	/* _args is freed with process context */
 	f(arg);

@@ -175,7 +175,7 @@ static void usage()
 
 static void print_entry(const char *name, const char *archname, FILE *output, struct starpu_perfmodel_history_entry *entry)
 {
-	fprintf(output, "Name: %s\n", name);
+	fprintf(output, "Model: %s\n", name);
 	fprintf(output, "Architecture: %s\n", archname);
 	fprintf(output, "Footprint: %08x\n", entry->footprint);
 	fprintf(output, "Size: %lu\n", (unsigned long) entry->size);

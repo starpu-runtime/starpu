@@ -29,6 +29,16 @@ V_icc_0 = @echo "  ICC     " $@;
 V_icc_1 =
 V_icc   = $(V_icc_$(V))
 
+V_ln_  = $(V_ln_$(AM_DEFAULT_VERBOSITY))
+V_ln_0 = @echo "  LN      " $@;
+V_ln_1 =
+V_ln   = $(V_ln_$(V))
+
+V_help2man_  = $(V_help2man_$(AM_DEFAULT_VERBOSITY))
+V_help2man_0 = @echo "  HELP2MAN" $@;
+V_help2man_1 =
+V_help2man   = $(V_help2man_$(V))
+
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
 	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
@@ -86,4 +96,19 @@ env:
 	@echo export STARPU_PERF_MODEL_DIR=$(STARPU_PERF_MODEL_DIR)
 	@echo export STARPU_HOSTNAME=$(STARPU_HOSTNAME)
 	@echo export MALLOC_PERTURB_=$(MALLOC_PERTURB_)
+endif
+
+if STARPU_SIMGRID
+STARPU_SIMGRID=1
+export STARPU_SIMGRID
+endif
+
+if STARPU_QUICK_CHECK
+STARPU_QUICK_CHECK=1
+export STARPU_QUICK_CHECK
+endif
+
+if STARPU_LONG_CHECK
+STARPU_LONG_CHECK=1
+export STARPU_LONG_CHECK
 endif

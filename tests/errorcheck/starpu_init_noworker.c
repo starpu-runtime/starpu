@@ -25,31 +25,14 @@
  * Test that starpu_initialize returns ENODEV when no worker is available
  */
 
-#if !defined(STARPU_HAVE_UNSETENV)
-#warning unsetenv is not defined. Skipping test
-int main(void)
-{
-	return STARPU_TEST_SKIPPED;
-}
-#else
-static void unset_env_variables(void)
-{
-	(void) unsetenv("STARPU_NCPUS");
-	(void) unsetenv("STARPU_NCPU");
-	(void) unsetenv("STARPU_NCUDA");
-	(void) unsetenv("STARPU_NOPENCL");
-	(void) unsetenv("STARPU_NMIC");
-}
-
 int main(int argc, char **argv)
 {
 	int ret;
 
-	unset_env_variables();
-
 	/* We try to initialize StarPU without any worker */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
@@ -78,4 +61,3 @@ int main(int argc, char **argv)
 
 
 }
-#endif

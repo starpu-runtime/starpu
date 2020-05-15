@@ -81,11 +81,7 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 	asprintf(&_args[1], "%p", arg);
 	_args[2] = NULL;
 	if (!host)
-#ifdef STARPU_HAVE_SIMGRID_HOST_H
-		host = sg_host_by_name("MAIN");
-#else
-		host = MSG_get_host_by_name("MAIN");
-#endif
+		host = _starpu_simgrid_get_host_by_name("MAIN");
 
 	void *tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));

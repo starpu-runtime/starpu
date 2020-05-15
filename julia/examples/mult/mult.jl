@@ -1,12 +1,24 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 import Libdl
 using StarPU
 using LinearAlgebra
 
-#shoud be the same as in the makefile
-const STRIDE = 72
-
 @target STARPU_CPU+STARPU_CUDA
-@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Nothing
+@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}, stride ::Int32) :: Nothing
 
     width_m2 :: Int32 = width(m2)
     height_m1 :: Int32 = height(m1)
@@ -59,22 +71,22 @@ end
 
 starpu_init()
 
-function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy)
+function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy, stride)
     scale= 3
     tmin=0
-    vert = StarpuDataFilter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
-    horiz = StarpuDataFilter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
+    vert = starpu_data_filter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
+    horiz = starpu_data_filter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
     @starpu_block let
         hA,hB,hC = starpu_data_register(A, B, C)
         starpu_data_partition(hB, vert)
         starpu_data_partition(hA, horiz)
         starpu_data_map_filters(hC, vert, horiz)
         tmin=0
-        perfmodel = StarpuPerfmodel(
-            perf_type = STARPU_HISTORY_BASED,
+        perfmodel = starpu_perfmodel(
+            perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
             symbol = "history_perf"
         )
-        cl = StarpuCodelet(
+        cl = starpu_codelet(
             cpu_func = CPU_CODELETS["matrix_mult"],
             # cuda_func = CUDA_CODELETS["matrix_mult"],
             #opencl_func="ocl_matrix_mult",
@@ -88,7 +100,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
                         handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = StarpuTask(cl = cl, handles = handles)
+                        task = starpu_task(cl = cl, handles = handles, cl_arg=(Int32(stride),))
                         starpu_task_submit(task)
                         #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
                     end
@@ -123,12 +135,12 @@ function approximately_equals(
     return true
 end
 
-function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
+function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy, stride)
     for dim in (start_dim : step_dim : stop_dim)
         A = Array(rand(Cfloat, dim, dim))
         B = Array(rand(Cfloat, dim, dim))
         C = zeros(Float32, dim, dim)
-        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy)
+        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy, stride)
         flops = (2*dim-1)*dim*dim/mt
         size=dim*dim*4*3/1024/1024
         println(io,"$size $flops")
@@ -136,9 +148,15 @@ function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
     end
 end
 
-
-io=open(ARGS[1],"w")
-compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
+if size(ARGS, 1) < 2
+    stride=4
+    filename="x.dat"
+else
+    stride=parse(Int, ARGS[1])
+    filename=ARGS[2]
+end
+io=open(filename,"w")
+compute_times(io,16*stride,4*stride,128*stride,2,2,stride)
 close(io)
 
 starpu_shutdown()

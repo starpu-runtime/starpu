@@ -57,6 +57,10 @@ if STARPU_BUILD_SC_HYPERVISOR
 SUBDIRS += sc_hypervisor
 endif
 
+if STARPU_USE_JULIA
+SUBDIRS += julia
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1.3.pc
 
@@ -159,28 +163,28 @@ DISTCLEANFILES = STARPU-REVISION
 recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
+		$(MAKE) -C $$i recheck || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showfailed:
 	@RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -s -C $$i showfailed || RET=1 ; \
+		$(MAKE) -s -C $$i showfailed || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
+		$(MAKE) -C $$i showcheck || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showsuite:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
+		$(MAKE) -C $$i showsuite || RET=1 ; \
 	done ; \
 	exit $$RET
 
