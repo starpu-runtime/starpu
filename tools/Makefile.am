@@ -115,6 +115,7 @@ EXTRA_DIST =				\
 	dev/valgrind/pthread.suppr	\
 	dev/valgrind/starpu.suppr	\
 	dev/valgrind/libgomp.suppr	\
+	dev/valgrind/valgrind.sh	\
 	dev/valgrind/helgrind.sh	\
 	dev/tsan/starpu.suppr		\
 	dev/lsan/suppressions		\
