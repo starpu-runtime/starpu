@@ -517,11 +517,7 @@ char *_starpu_get_home_path(void)
 }
 
 #pragma weak starpu_mpi_world_rank
-int starpu_mpi_world_rank()
-{
-	_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0");
-	return 0;
-}
+extern int starpu_mpi_world_rank(void);
 
 void _starpu_gethostname(char *hostname, size_t size)
 {
@@ -532,7 +528,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 	{
 		char *host, *srv_hosts, *rsrv;
 		srv_hosts = strdup(force_mpi_hostnames);
-		int rank = starpu_mpi_world_rank();
+		int rank;
+		if (starpu_mpi_world_rank)
+		{
+			rank = starpu_mpi_world_rank();
+		}
+		else
+		{
+			_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0");
+			rank = 0;
+		}
+
 		if (force_mpi_hostnames != NULL)
 		{
 			host = strtok_r(srv_hosts, " ", &rsrv);
