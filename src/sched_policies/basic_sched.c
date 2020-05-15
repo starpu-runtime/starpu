@@ -165,10 +165,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int do_not_add_more = 0;	
 	int link_index = 0;
 	int nb_duplicate_data = 0;
+	
 	int max_value_common_data_matrix = 0;
 	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
 	int index_head_1 = 0; int index_head_2 = 0;
 	int i_bis = 0; int j_bis = 0;
+	int packaging_impossible = 0; //0 = false / 1 = true
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
@@ -241,10 +243,17 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//~ data->head = data->first_link;
 			//--------------------------------------------------------------------------------------------
 			
-			int matrice_donnees_commune[nb_pop][nb_pop]; for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
+			
 
 			data->head_2 = data->first_link;
 			index_head_2++;
+			
+			while (packaging_impossible == 0) {
+				packaging_impossible = 1;
+				
+			//Init a 0 la common data
+			int matrice_donnees_commune[nb_pop][nb_pop];
+			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 			
 			//Filling the common data matrix
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
@@ -262,14 +271,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Here is code to print the common data matrix  ----------------
-			//~ printf("Common data matrix : \n");
-			//~ for (i = 0; i < nb_pop; i++) {
-				//~ for (j = 0; j < nb_pop; j++) {
-					//~ // //~ printf (" %zd ",matrice_donnees_commune[i][j]/100000);
-					//~ if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
-				//~ }
-				//~ printf("\n");
-			//~ }
+			printf("Common data matrix : \n");
+			for (i = 0; i < nb_pop; i++) {
+				for (j = 0; j < nb_pop; j++) {
+					// //~ printf (" %zd ",matrice_donnees_commune[i][j]/100000);
+					if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+				}
+				printf("\n");
+			}
 			//--------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -289,13 +298,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
 				//~ printf("Le max de poids de data communes est %zd\n",max_value_common_data_matrix);
 				
-			//MArche que pour 1 tache par 12 toache pour le moment
+			//Merge des paquets - marche pour des paquets de 1 tache pour le moment
 			for (i = 0; i < nb_pop; i++) {
 				data->head_2 = data->head;
 				data->head_2 = data->head_2->next;
 				for (j = i + 1; j< nb_pop; j++) {
 					
 					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0) && (max_value_common_data_matrix < GPU_RAM)) {
+						//Dis que on a reussi a faire un paquet
+						packaging_impossible = 0;
 						//Interdit i et j de faire des regroupements par la suite
 						for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; }
 						for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; }
@@ -372,16 +383,20 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = delete_link(data);
 			
 			//Code to print everything ------------------------------------------------------------------
-			//~ while (data->head != NULL) {
-				//~ for (i = 0; i < data->head->package_nb_data; i++) {
-					//~ printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
-				//~ }
-				//~ link_index++;
-				//~ data->head = data->head->next;
-			//~ } printf("NULL\n");
-			//~ printf("Il y a %d paquets\n",link_index);
+			while (data->head != NULL) {
+				for (i = 0; i < data->head->package_nb_data; i++) {
+					printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
+				}
+				link_index++;
+				data->head = data->head->next;
+			} printf("NULL\n");
+			printf("Il y a %d paquets\n",link_index);
 			//--------------------------------------------------------------------------------------------
 			data->head = data->first_link;
+		
+		//Ajout temporaire le temps de coder correctement les plusieurs tours de while
+		packaging_impossible = 1;
+		} // Fin du while (packaging_impossible == 0)
 			
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
