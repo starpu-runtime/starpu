@@ -115,6 +115,11 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
+	conf.precedence_over_environment_variables = 1;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
+	conf.nmic = 0;
+
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 
