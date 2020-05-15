@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
 
 		setenv("STARPU_LAUNCH", argv[0], 1);
 
-		execvp(test_name, argv+x);
+		execvp(test_name, argv+x-1);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
