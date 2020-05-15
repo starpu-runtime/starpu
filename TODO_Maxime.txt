@@ -17,11 +17,8 @@ pour sched_ctx_id, component->tree->sched_ctx_id
 pour nimpl, tu peux passer 0
 
 VERIFIER CA SE MET BIEN CORRECTEMENT LES TACHES ET LES DONNES DANS LA LISTE CHAINEE
-CREER LA CONDITION WHILE
 FAIRE PLUS QUE 1 TOUR DE WHILE
-ENLEVER LES DOUBLONS QUAND ON MERGE
 GERER DES PAQUETS DE PLUS DE 1 TACHE
-avant la deuxieme boucle du while il faut bien mettre a 0 tout matrice_donnees_commune[i][j]
 
 passer de algo  1 a algo 2 idéalement il faudrait pouvoir passer de l'un à l'autre facilement
 en mettant un goto qu'on peut activer ou non
@@ -38,3 +35,6 @@ Tester que les regroupements sont inférieurs à la taille B
 Faire des paquets
 Merge les données
 Supprimer les maillons vide apres avoir fais les merge
+Retirer les doublons lors du merge de deux paquets
+Creer la condition while
+Reset à 0 matrice_donnees_commune[i][j]
