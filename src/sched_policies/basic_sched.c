@@ -394,6 +394,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//--------------------------------------------------------------------------------------------
 			data->head = data->first_link;
 		
+		//Reset de la matrice
+		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Ajout temporaire le temps de coder correctement les plusieurs tours de while
 		packaging_impossible = 1;
 		} // Fin du while (packaging_impossible == 0)
