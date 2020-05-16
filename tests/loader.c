@@ -175,6 +175,7 @@ static void test_cleaner(int sig)
 	kill(-child_gid, SIGQUIT);
 	waitpid(child_pid, &status, 0);
 	launch_gdb(test_name);
+	raise(SIGQUIT);
 	exit(EXIT_FAILURE);
 }
 
