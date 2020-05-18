@@ -28,6 +28,7 @@
 #include <core/sched_policy.h>
 #include <core/task.h>
 #include "starpu_stdlib.h"
+#include "common/list.h"
 #define MEMORY_AFFINITY
 #define	ALGO_USED 1
 
@@ -197,8 +198,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_3); i++) {
 					data->head->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_3,i);
 				}
-				//~ qsort(s
 				data->head->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_3);
+				//We sort our data tab
+				qsort(data->head->package_data,data->head->package_nb_data,sizeof(data->head->package_data[0]),pointeurComparator);
 				starpu_task_list_push_back(&data->head->sub_list,temp_task_3);
 				data->head->nb_task_in_sub_list ++;
 				
@@ -317,41 +319,82 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
 							data->head->nb_task_in_sub_list ++;
 						}
-							//Merge les données
-							//Met dans un tableau a part
-							starpu_data_handle_t *temp_data_tab_1 = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
-							for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
-								temp_data_tab_1[i_bis] = data->head->package_data[i_bis];
+							//Merge les données version 2
+							i_bis = 0; j_bis = 0;
+							tab_runner = 0;
+							starpu_data_handle_t *temp_data_tab = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							//Merge the two tabs containing datas
+							while (i_bis < data->head->package_nb_data && j_bis < data->head_2->package_nb_data) {
+								if (data->head->package_data[i_bis] <= data->head_2->package_data[j_bis]) {
+									temp_data_tab[tab_runner] = data->head->package_data[i_bis];
+									i_bis++;
+								}
+								else
+								{
+									temp_data_tab[tab_runner] = data->head_2->package_data[j_bis];
+									j_bis++;
+								}
+								tab_runner++;
 							}
-							for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
-								temp_data_tab_1[i_bis + data->head->package_nb_data] = data->head_2->package_data[i_bis];
-							}
-							//Tri du tab de data pour pouvoir supprimer les doublons en O(n)
-							qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),pointeurComparator);
-		
-							//On vire les doublons
+							//Copy the remaining data(s) of the tabs (if there are any)
+							while (i_bis < data->head->package_nb_data) { temp_data_tab[tab_runner] = data->head->package_data[i_bis]; i_bis++; tab_runner++; }
+							while (j_bis < data->head_2->package_nb_data) { temp_data_tab[tab_runner] = data->head_2->package_data[j_bis]; j_bis++; tab_runner++; }
+							
+							//We remove the duplicate data(s)
 							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
-								if (temp_data_tab_1[i_bis] == temp_data_tab_1[i_bis + 1]) {
-									temp_data_tab_1[i_bis] = 0;
+								if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1]) {
+									temp_data_tab[i_bis] = 0;
 									nb_duplicate_data++;
 								}
 							}
-
-							//Puis on met tout dans head
+							//Then we put the temp_tab in head
 							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 							j_bis = 0;
 							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++)
 							{
-								if (temp_data_tab_1[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab_1[i_bis]; j_bis++; }
+								if (temp_data_tab[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; }
 							}
 							
-							//Met le nb de data de head_2 à 0 et on met celui de head_1 a jour. Attention on a enlevé les doublons!
+							//We update the number of data of each package. It's important because we use delete_link(data) to delete all the packages with 0 data
 							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
 							
+							//~ //Merge les données version 1
+							//~ //Met dans un tableau a part
+							//~ starpu_data_handle_t *temp_data_tab = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							//~ for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
+								//~ temp_data_tab_1[i_bis] = data->head->package_data[i_bis];
+							//~ }
+							//~ for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
+								//~ temp_data_tab_1[i_bis + data->head->package_nb_data] = data->head_2->package_data[i_bis];
+							//~ }
+							//~ //Tri du tab de data pour pouvoir supprimer les doublons en O(n)
+							//~ qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),pointeurComparator);
+							
+							//~ //On vire les doublons
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								//~ if (temp_data_tab_1[i_bis] == temp_data_tab_1[i_bis + 1]) {
+									//~ temp_data_tab_1[i_bis] = 0;
+									//~ nb_duplicate_data++;
+								//~ }
+							//~ }
+
+							//~ //Puis on met tout dans head
+							//~ data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							//~ j_bis = 0;
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++)
+							//~ {
+								//~ if (temp_data_tab_1[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab_1[i_bis]; j_bis++; }
+							//~ }
+							
+							//~ //Met le nb de data de head_2 à 0 et on met celui de head_1 a jour. Attention on a enlevé les doublons!
+							//~ data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
+							//~ data->head_2->package_nb_data = 0;
+							//~ nb_duplicate_data = 0;
+							
 							//Goto pour l'algo 2
-							if (ALGO_USED == 2) { printf("algo 2\n"); goto algo_2; }
+							if (ALGO_USED == 2) { goto algo_2; }
 					} }
 					data->head_2 = data->head_2->next;
 				} 
