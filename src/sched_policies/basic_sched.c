@@ -243,8 +243,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Filling the common data matrix
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
-					//En dessous ca devrait être head, pas head_2
-					for (i = 0; i < data->head_2->package_nb_data; i++) {
+					for (i = 0; i < data->head->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
 							if ((data->head->package_data[i] == data->head_2->package_data[j])) {
 									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
