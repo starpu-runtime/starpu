@@ -30,7 +30,6 @@
 #include "starpu_stdlib.h"
 #include "common/list.h"
 #define MEMORY_AFFINITY
-#define	ALGO_USED 1
 
 struct basic_sched_data *variable_globale;
 
@@ -55,6 +54,7 @@ static int compar(const void *_a, const void *_b)
 
 struct basic_sched_data
 {
+	int ALGO_USED;
 	struct starpu_task_list tache_pop;
 	struct starpu_task_list list_if_fifo_full;
 	
@@ -359,9 +359,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
+							//~ data->head->nb_task_in_sub_list++;
+							data->head_2->nb_task_in_sub_list = 0;
 							
 							//Goto pour l'algo 2
-							if (ALGO_USED == 2) { goto algo_2; }
+							if (data->ALGO_USED == 2) { printf("algo 2\n"); goto algo_2; }
 					} }
 					data->head_2 = data->head_2->next;
 				} 
@@ -397,8 +399,39 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Reset de nb_pop!
 		nb_pop = link_index;
+		if (nb_pop == 1) { break; }
 		} // Fin du while (packaging_impossible == 0)
-			
+		
+		//printf du nombre de paquets et de la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
+		data->head = data->first_link;
+		long int total_weight = 0;
+		double task_duration_info = 0;
+		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		printf("\n\n~~~~~~ A la fin du regroupement des tâches utilisant l'algo %d on obtient : ~~~~~~\n\n",data->ALGO_USED);
+		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
+		printf("-----\n");
+		link_index = 0;
+		while (data->head != NULL) {
+			printf("Le paquet %d contient %d tâche(s)\n",link_index,data->head->nb_task_in_sub_list);
+			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+				printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+			}
+			for (i = 0; i < data->head->package_nb_data; i++) {
+				total_weight+= starpu_data_get_size(data->head->package_data[i]);
+			}
+			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			link_index++;
+			data->head = data->head->next;
+			printf("-----\n");
+		}
+		printf("\n");
+		printf("Info de la bande passante : %f\n",bandwith_info);
+		printf("\n\n");
+		
+		data->head = data->first_link;
+		
+		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -463,11 +496,16 @@ static int basic_can_pull(struct starpu_sched_component * component)
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
+
+	//~ ALGO_USED = starpu_get_env_number_default(ALGO_USED,1);
 	
 	struct basic_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	variable_globale = data;
+	data->ALGO_USED = 1;
+	//~ data->ALGO_USED = starpu_get_env_number_default(&data->ALGO_USED,1);
+	//~ data->ALGO_USED = starpu_get_env_number(&data->ALGO_USED);
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	/* Create a linked-list of tasks and a condition variable to protect it */
@@ -485,7 +523,6 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	component->can_push = basic_can_push;
 	component->can_pull = basic_can_pull;
 
-	//~ printf("Create OK!\n");
 	return component;
 }
 
