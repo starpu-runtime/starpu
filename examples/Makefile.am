@@ -158,11 +158,8 @@ SHELL_TESTS			+=	mult/sgemm.sh
 endif
 endif
 
-if STARPU_HAVE_WINDOWS
 check_PROGRAMS		=	$(STARPU_EXAMPLES)
-else
-check_PROGRAMS		=	$(LOADER) $(STARPU_EXAMPLES)
-endif
+noinst_PROGRAMS		=
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
@@ -171,6 +168,7 @@ LOADER			=	loader
 loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
+noinst_PROGRAMS		+=	loader
 else
 LOADER			=
 LOADER_BIN		=	$(top_builddir)/examples/loader-cross.sh

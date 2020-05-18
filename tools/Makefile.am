@@ -323,11 +323,8 @@ CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 STARPU_TOOLS	=
 TESTS		= $(STARPU_TOOLS)
 
-if STARPU_HAVE_WINDOWS
+noinst_PROGRAMS	=
 check_PROGRAMS	=	$(STARPU_TOOLS)
-else
-check_PROGRAMS	=	$(LOADER) $(STARPU_TOOLS)
-endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
@@ -336,6 +333,7 @@ LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/tools/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
+noinst_PROGRAMS		+=	loader
 else
 LOADER			=
 LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
