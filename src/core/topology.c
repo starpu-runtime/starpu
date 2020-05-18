@@ -1022,6 +1022,8 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 
+	STARPU_ASSERT_MSG(topology_is_initialized, "The StarPU core is not initialized yet, have you called starpu_init?");
+
 	unsigned current_preferred;
 	unsigned nhyperthreads = topology->nhwpus / topology->nhwcpus;
 	unsigned ncores = topology->nhwpus / nhyperthreads;
