@@ -2,29 +2,13 @@ A FAIRE ------------------------------------------------------------------------
 
 Mettre les noms de variables et fonctions en anglais, les commentaires en anglais, enlever les commentaires inutiles
 
-Merge les données correctement : et quand tu merges deux paquets il faut merger les ensembles de données au passage, tu peux garder des tableaux de données triés par ordre croissant
-pour que le merge sans doublon se fasse en O(n) tant qu'à faire :) tu peux utiliser la fonction qsort pour trier la liste au départ (les données venant d'une tâche)
-
-Calculer le max une fois dans le while et dans le for faire les regroupement possible sans recalculer : dans le code a modifier aussi!
 Essayer dans le code et en theorique le calcul de Wmax a chaque fois ou pas (apres un if W (C(D(P i )), D(P j )) ≥ W max) et faire des exemples dans le modele ex : un escalier de données communes
 
-Sortir le nombre de paquets a la fin du code et la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
+remplacer head et head_2 par des pointeurs temporaire pour plus de clarté
 
-@Maxime pour les infos de bande passante et temps de tâche, il y a double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node); , pour src_node tu peux mettre STARPU_MAIN_RAM, et pour dst_node ce qui est retourné par le starpu_worker_get_memory_node que tu appelles déjà
-pour la durée d'une tâche, tu peux utiliser double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
-pour workerid tu peux passer 0
-pour sched_ctx_id, component->tree->sched_ctx_id
-pour nimpl, tu peux passer 0
+faire un script pour les test
 
-VERIFIER CA SE MET BIEN CORRECTEMENT LES TACHES ET LES DONNES DANS LA LISTE CHAINEE
-FAIRE PLUS QUE 1 TOUR DE WHILE
-	
-
-
-passer de algo  1 a algo 2 idéalement il faudrait pouvoir passer de l'un à l'autre facilement
-en mettant un goto qu'on peut activer ou non
-
-GPU_RAM vaut : 1448607744 dans mon exemple actuel
+mettre une variable d'environemment pour ALGO_USED
 
 FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -43,10 +27,16 @@ Creer la condition while
 Reset à 0 matrice_donnees_commune[i][j]
 faire la somme des poids de toutes les données
 gerer les paquets de plus de 1 tâche
+Faire tous les tours du while
+Verifier que l'algo 1 regroupe bien les tâches
+Faire goto pour l'algo 2
+Merge correctement les paquets
+Corriger le qsort
+printf du nombre de paquets et de la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
 
 DERNIERS COMMIT STABLE ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-envoi scm : Ajout de la condition while(empaquetage_impossible == false) { (commit 137f14d)
+envoi scm : Ajout d'un goto et de #define ALGO_USED pour choisir l'algo (commit ecd329a)
 envoi scm : Version algo 1, fais 1 tour de while (commit c64943d)
 
 ERREUR DE GDB ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
