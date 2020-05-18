@@ -25,11 +25,8 @@ if !STARPU_SIMGRID
 TESTS		=	$(SOCL_EXAMPLES)
 endif
 
-if STARPU_HAVE_WINDOWS
+noinst_PROGRAMS	=
 check_PROGRAMS	=	$(SOCL_EXAMPLES)
-else
-check_PROGRAMS	=	$(LOADER) $(SOCL_EXAMPLES)
-endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
@@ -37,6 +34,7 @@ LOADER			=	loader
 loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
+noinst_PROGRAMS		+=	loader
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	LD_LIBRARY_PATH="@SOCL_OCL_LIB_OPENCL_DIR@:$(LD_LIBRARY_PATH)" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"

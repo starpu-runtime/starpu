@@ -56,11 +56,8 @@ endif
 # What to install and what to check #
 #####################################
 
-if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(STARPU_EXAMPLES)
-else
-check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
-endif
+noinst_PROGRAMS	=
 
 if !STARPU_SIMGRID
 if USE_MPI
@@ -79,6 +76,7 @@ LOADER			=	loader
 loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	./$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
+noinst_PROGRAMS		+=	loader
 else
 LOADER			=
 LOADER_BIN		=	$(top_builddir)/examples/stencil/loader-cross.sh

@@ -21,6 +21,8 @@ CCLD=$(MPICC)
 FC=$(MPIFORT)
 FCLD=$(MPIFORT)
 
+noinst_PROGRAMS		=
+
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
@@ -28,6 +30,7 @@ loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
+noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
