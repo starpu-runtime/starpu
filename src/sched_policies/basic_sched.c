@@ -166,6 +166,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int do_not_add_more = 0;	
 	int link_index = 0;
 	int nb_duplicate_data = 0;
+	//~ int nb_data_common_two_tasks = 0
 	long int weight_two_packages;
 	long int max_value_common_data_matrix = 0;
 	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
@@ -175,6 +176,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int packaging_impossible = 0; //0 = false / 1 = true
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
+	//~ GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/10;
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
 	
 //Doesn't work for me	
@@ -236,14 +238,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->first_link = data->head;
 			
 			//Code to print all the data of all the packages ---------------------------------------------
-			//~ while (data->head != NULL) {
-				//~ for (i = 0; i < 3; i++) {
-					//~ printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
-				//~ }
-				//~ link_index++;
-				//~ data->head = data->head->next;
-			//~ } printf("NULL\n");
-			//~ data->head = data->first_link;
+			printf("Initialement on a : \n");
+			while (data->head != NULL) {
+				for (i = 0; i < 3; i++) {
+					printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
+				}
+				link_index++;
+				data->head = data->head->next;
+			} printf("NULL\n");
+			data->head = data->first_link;
 			//--------------------------------------------------------------------------------------------
 			
 			
@@ -259,7 +262,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
 			index_head_1 = 0;
-			index_head_2 = 0;
+			//~ index_head_2 = 0;
+			index_head_2 = 1;
 			link_index = 0;
 			nb_data_commun = 0;
 			weight_two_packages = 0;
@@ -271,6 +275,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Filling the common data matrix
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+					//En dessous ca devrait être head, pas head_2
 					for (i = 0; i < data->head_2->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
 							//~ printf("Pull breakpoint 2\n");
@@ -278,23 +283,18 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							//~ printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
 							//~ if (((data->head->package_data[i] == data->head_2->package_data[j])) &&  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) < GPU_RAM )) {
 							if ((data->head->package_data[i] == data->head_2->package_data[j])) {
-								//~ printf("Nb de data de head_1 : %d\n",data->head->package_nb_data);
-								for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
-									weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]);
-									//~ printf("Poids de la donnée %d : %zd\n",i_bis,starpu_data_get_size(data->head->package_data[i_bis]));
-								}
-								//~ printf("Nb de data de head_2 : %d\n",data->head_2->package_nb_data);
-								for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
-									weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]);
-									//~ printf("Poids de la donnée %d : %zd\n",i_bis,starpu_data_get_size(data->head_2->package_data[i_bis]));
-								}
+									//~ weight_two_packages += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
+									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
+									//~ printf("Poids de la donnée %d : %zd\n",j,starpu_data_get_size(data->head_2->package_data[j]));
+										
 								//~ printf("Weight vaut : %zd\n",weight_two_packages);
-								//Tester GPU_RAM ici ou en dessous au moment du merge ? Jsp
-								//~ if (weight_two_packages < GPU_RAM) { matrice_donnees_commune[index_head_1][index_head_2] = weight_two_packages; }
-								matrice_donnees_commune[index_head_1][index_head_2] = weight_two_packages;
+								
+								//Vrai ligne
+								//~ matrice_donnees_commune[index_head_1][index_head_2] = weight_two_packages;
 								//Si je veut une matrice plus lisible
 								//~ matrice_donnees_commune[index_head_1][index_head_2] += 1;
-								weight_two_packages = 0;
+								
+								//~ weight_two_packages = 0;
 							}
 						} 
 					} index_head_2++; 
@@ -306,7 +306,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			for (i = 0; i < nb_pop; i++) {
 				for (j = 0; j < nb_pop; j++) {
 					//~ printf (" %li ",matrice_donnees_commune[i][j]);
-					if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+					printf (" %li ",matrice_donnees_commune[i][j]);
+					//~ if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
 				}
 				printf("\n");
 			}
@@ -318,7 +319,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
 				}
 			}
-			printf("Nb data en commun : %d\n",nb_data_commun);
+			//~ printf("Nb data en commun : %d\n",nb_data_commun);
 			
 			//Getting back to the beginning of the linked list
 			data->head = data->first_link;
@@ -327,7 +328,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Getting W_max
 			for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { 
 				if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
-				printf("Le max de poids de data communes est %li\n",max_value_common_data_matrix);
+				//~ printf("Le max de poids de data communes est %li\n",max_value_common_data_matrix);
 				
 			//Merge des paquets et test de taille < GPU_MAX - marche pour des paquets de 1 tache pour le moment
 			for (i = 0; i < nb_pop; i++) {
@@ -335,7 +336,21 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				data->head_2 = data->head_2->next;
 				for (j = i + 1; j< nb_pop; j++) {
 					//~ printf("GPU_RAM vaut : %zd\n",GPU_RAM);
-					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0) && (max_value_common_data_matrix < GPU_RAM)) {
+					
+					weight_two_packages = 0;
+					//Calcul du poids des données des deux paquets que l'on veut merge
+					for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
+						weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]);
+					}
+					for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
+						weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]);
+					}
+					//~ printf("Le poids des deux paquets serait de : %li\n",weight_two_packages);
+					
+					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
+						if (weight_two_packages > GPU_RAM) { printf("On dépasse GPU_RAM!\n"); }
+						else {
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
 						//Interdit i et j de faire des regroupements par la suite
@@ -349,13 +364,12 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							//Push la tâche dans la liste de head_1
 							starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
 							data->head->nb_task_in_sub_list ++;
-							printf("On met une tache de head_2 dans head_1\n");
 						}
 							//Merge les données
 							//Met dans un tableau a part
-							printf("Nb de data : %d et %d\n",data->head->package_nb_data,data->head_2->package_nb_data);
+							//~ printf("Nb de data : %d et %d\n",data->head->package_nb_data,data->head_2->package_nb_data);
 							starpu_data_handle_t *temp_data_tab_1 = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
-							printf("pull breakpoint 1\n");
+							//~ printf("pull breakpoint 1\n");
 							for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
 								temp_data_tab_1[i_bis] = data->head->package_data[i_bis];
 							}
@@ -364,15 +378,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							}
 							//Tri du tab de data pour pouvoir supprimer les doublons en O(n)
 							qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),intComparator);
-							printf("pull breakpoint 2\n");
-							//~ //Code to print the tab of data --------
-							//~ printf("Tab trié avant -------------------\n");
-							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
-								//~ printf("%d\n",temp_data_tab_1[i_bis]);
-							//~ }
-							//~ printf("----------------------------\n");
-							//~ //-------------------------------------
-							
+		
 							//On vire les doublons
 							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
 								if (temp_data_tab_1[i_bis] == temp_data_tab_1[i_bis + 1]) {
@@ -380,7 +386,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									nb_duplicate_data++;
 								}
 							}
-							printf("pull breakpoint 3\n");	
+							//~ printf("nb dulicate = %d\n",nb_duplicate_data);
+							//~ printf("pull breakpoint 3\n");	
 							//Puis on met tout dans head
 							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 							j_bis = 0;
@@ -389,20 +396,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 								if (temp_data_tab_1[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab_1[i_bis]; j_bis++; }
 							}
 							
-							//~ //Code to print the tab of data --------
-							//~ printf("Tab trié après -------------------\n");
-							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data); i_bis++) {
-								//~ printf("%d\n",data->head->package_data[i_bis]);
-							//~ }
-							//~ printf("----------------------------\n");
-							//-------------------------------------
-							
 							//Met le nb de data de head_2 à 0 et on met celui de head_1 a jour. Attention on a enlevé les doublons!
 							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
-							printf("pull breakpoint 4\n");
-					}
+					} }
 					data->head_2 = data->head_2->next;
 				} 
 				//~ if (nb_tasks_in_linked_list == nb_pop) { break; }
@@ -429,7 +427,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				data->head = data->head->next;
 				printf("------------------------------------------------------------------\n");
 			} 
-			printf("NULL\n");
+			//~ printf("NULL\n");
 			printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
 			//--------------------------------------------------------------------------------------------
 			data->head = data->first_link;
