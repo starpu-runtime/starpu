@@ -210,15 +210,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->first_link = data->head;
 			
 			//Code to print all the data of all the packages ---------------------------------------------
-			printf("Initialement on a : \n");
-			while (data->head != NULL) {
-				for (i = 0; i < 3; i++) {
-					printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
-				}
-				link_index++;
-				data->head = data->head->next;
-			} printf("NULL\n");
-			data->head = data->first_link;
+			//~ printf("Initialement on a : \n");
+			//~ while (data->head != NULL) {
+				//~ for (i = 0; i < 3; i++) {
+					//~ printf("La donnée %p est dans la tâche %p du paquet numéro %d\n",data->head->package_data[i],temp_task_3  = starpu_task_list_begin(&data->head->sub_list),link_index);
+				//~ }
+				//~ link_index++;
+				//~ data->head = data->head->next;
+			//~ } printf("NULL\n");
+			//~ data->head = data->first_link;
 			//--------------------------------------------------------------------------------------------
 			
 			
@@ -257,15 +257,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Here is code to print the common data matrix  ----------------
-			printf("Common data matrix : \n");
-			for (i = 0; i < nb_pop; i++) {
-				for (j = 0; j < nb_pop; j++) {
+			//~ printf("Common data matrix : \n");
+			//~ for (i = 0; i < nb_pop; i++) {
+				//~ for (j = 0; j < nb_pop; j++) {
+					//printf (" %li ",matrice_donnees_commune[i][j]);
 					//~ printf (" %li ",matrice_donnees_commune[i][j]);
-					printf (" %li ",matrice_donnees_commune[i][j]);
-					//~ if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
-				}
-				printf("\n");
-			}
+					//if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+				//~ }
+				//~ printf("\n");
+			//~ }
 			//--------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -304,7 +304,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
 						if (weight_two_packages > GPU_RAM) { printf("On dépasse GPU_RAM!\n"); }
 						else {
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
 						//Interdit i et j de faire des regroupements par la suite
@@ -379,20 +379,18 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head = delete_link(data);
 			
-			//Code to print everything ------------------------------------------------------------------
 			while (data->head != NULL) {
 				for (i = 0; i < data->head->package_nb_data; i++) {
-					printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
+					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
 				}
 				for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-					printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
+					//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
 				}
 				link_index++;
 				data->head = data->head->next;
-				printf("------------------------------------------------------------------\n");
+				//~ printf("------------------------------------------------------------------\n");
 			} 
-			printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
-			//--------------------------------------------------------------------------------------------
+			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
 			data->head = data->first_link;
 		
 		//Reset de la matrice
@@ -435,7 +433,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		printf("Task %p is getting out of pull_task\n",task1);
+		if (task1 != NULL) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	} //Else de if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 	if (!starpu_task_list_empty(&data->head->sub_list)) {

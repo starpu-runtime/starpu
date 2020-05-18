@@ -10,6 +10,14 @@ faire un script pour les test
 
 mettre une variable d'environemment pour ALGO_USED
 
+par rapport à mélanger, une manière simple de faire, c'est dans le xgemm.c, dans les appels à starpu_data_get_sub_data(), au lieu de prendre x et y, prendre deux vaeurs aléatoires
+MaximeAujourd’hui à 17:52
+Okay je vais essayer :slight_smile:
+A chaque appel de starpu_data ou juste a starpu_data_set_coordinates(starpu_data_get_sub_data(C_handle, 2, x, y), 2, x, y); ?
+SamuelAujourd’hui à 17:58
+pas pendant le set_coordinates
+pendant la soumission des tâches
+
 FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Simplifier le filling
