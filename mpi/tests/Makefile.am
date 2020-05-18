@@ -19,6 +19,8 @@ include $(top_srcdir)/starpu.mk
 CC=$(MPICC)
 CCLD=$(MPICC)
 
+noinst_PROGRAMS		=
+
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
@@ -26,6 +28,7 @@ loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
@@ -182,7 +185,7 @@ starpu_mpi_TESTS +=				\
 	starpu_redefine
 endif
 
-noinst_PROGRAMS =				\
+noinst_PROGRAMS +=				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
