@@ -200,7 +200,9 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_expert.h		\
 	$(top_srcdir)/include/starpu_fxt.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
+	$(top_srcdir)/include/starpu_helper.h		\
 	$(top_srcdir)/include/starpu_mic.h		\
+	$(top_srcdir)/include/starpu_mpi_ms.h		\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\
@@ -227,6 +229,8 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_util.h		\
 	$(top_srcdir)/include/starpu_worker.h		\
 	$(top_srcdir)/include/fstarpu_mod.f90		\
+	$(top_srcdir)/include/schedulers/starpu_heteroprio.h	\
+	$(top_srcdir)/starpufft/include/starpufft.h 	\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
 	$(top_srcdir)/mpi/include/starpu_mpi_lb.h	\
 	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
