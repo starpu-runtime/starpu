@@ -17,11 +17,9 @@
 
 /* Ordonnanceur de base sous contrainte mémoire */
 
-
 #include <starpu.h>
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
-//#include <starpu_task_list.h>
 #include "core/task.h"
 #include "prio_deque.h"
 #include <starpu_perfmodel.h>
@@ -30,7 +28,6 @@
 #include <core/sched_policy.h>
 #include <core/task.h>
 #include "starpu_stdlib.h"
-#define NTASKS 5
 #define MEMORY_AFFINITY
 #define	ALGO_USED 1
 
@@ -43,7 +40,6 @@ struct child_data {
 	double expected_end;
 	unsigned child;
 };
-
 
 static int compar(const void *_a, const void *_b)
 {
@@ -102,13 +98,9 @@ void insertion_fin(struct basic_sched_data *a)
     nouveau->next = NULL;
    while (a->head->next != NULL) { a->head = a->head->next; }
    a->head->next = nouveau;
-   //~ a->head->next->package_data = malloc(3*sizeof(a->head->package_data[0]));
-   printf("ok\n");
 }
 
-
-// Efface le premier élément de la liste tels que numeroCompte==val
-// Retourne le nouveau pointeur sur le début de la liste
+// Delete all the link where package_nb_data equals 0
 struct basic_sched_data* delete_link(struct basic_sched_data* a)
 {
 	while (a->first_link != NULL && a->first_link->package_nb_data == 0) {
@@ -138,7 +130,6 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 int intComparator ( const void * first, const void * second ) {
   return ( *(int*)first - *(int*)second );
 }
-	
 		
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -154,7 +145,6 @@ static int basic_push_task(struct starpu_sched_component *component, struct star
 
 	/* Tell below that they can now pull */
 	component->can_pull(component);
-	//~ printf("Push OK!\n");
 	return 0;
 }
 
@@ -162,38 +152,19 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 {
 	struct basic_sched_data *data = component->data;	
 	int i = 0; int j = 0; int nb_pop = 0; int temp_nb_pop = 0; int tab_runner = 0; int max_donnees_commune = 0; int k = 0; int nb_data_commun = 0; int nb_tasks_in_linked_list = 0;
-	int je_suis_ou = 0;
-	int do_not_add_more = 0;	
-	int link_index = 0;
-	int nb_duplicate_data = 0;
-	//~ int nb_data_common_two_tasks = 0
-	long int weight_two_packages;
-	long int max_value_common_data_matrix = 0;
-	int index_temp_task_1 = 0; int index_temp_task_2 = 0;
-	int index_head_1 = 0; int index_head_2 = 0;
-	int i_bis = 0; int j_bis = 0;
-	int nb_of_loop = 0;
+	int do_not_add_more = 0; int link_index = 0; int nb_duplicate_data = 0; long int weight_two_packages; long int max_value_common_data_matrix = 0; int index_head_1 = 0; int index_head_2 = 0;
+	int i_bis = 0; int j_bis = 0; int nb_of_loop = 0; 
 	int packaging_impossible = 0; //0 = false / 1 = true
+	
+	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
-	//~ GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/10;
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
 	
-//Doesn't work for me	
-#ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (starpu_task_list_empty(&data->sched_list))
-		return NULL;
-#endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
-	struct starpu_task *temp_task_2 = NULL;
-	struct starpu_task *temp_task_1 = NULL;
 	struct starpu_task *temp_task_3 = NULL;
 	struct starpu_task *temp_task_4 = NULL;
-	
-	//If the list is not empty, it means that we have task to get out of pull before pulling more tasks
-	//If we use a linked list we need to go to the next one and verify it's not equal to NULL
-	//Else we can pull tasks
 
 //Verif au cas où une tache est passé dans le oops et a été refusé
 if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
@@ -212,7 +183,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				nb_pop++;
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
-		
 			printf("%d task(s) have been pulled\n",nb_pop);
 			
 			//Version avec des paquets de tâches et des comparaisons de paquets ------------------------------------------------------------------------------------------------------
@@ -234,7 +204,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				if(do_not_add_more != 0) { insertion(data); data->head->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_3)*sizeof(data->head->package_data[0])); }
 				do_not_add_more--;
 			}
-			
 			data->first_link = data->head;
 			
 			//Code to print all the data of all the packages ---------------------------------------------
@@ -262,7 +231,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
 			index_head_1 = 0;
-			//~ index_head_2 = 0;
 			index_head_2 = 1;
 			link_index = 0;
 			nb_data_commun = 0;
@@ -278,23 +246,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					//En dessous ca devrait être head, pas head_2
 					for (i = 0; i < data->head_2->package_nb_data; i++) {
 						for (j = 0; j < data->head_2->package_nb_data; j++) {
-							//~ printf("Pull breakpoint 2\n");
-							//~ if  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) > GPU_RAM ) { printf ("Supp a gpu\n"); }
-							//~ printf("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",data->head->package_data[i],index_head_1,data->head_2->package_data[j],index_head_2);
-							//~ if (((data->head->package_data[i] == data->head_2->package_data[j])) &&  ( (starpu_data_get_size(data->head->package_data[i]) + starpu_data_get_size(data->head_2->package_data[j])) < GPU_RAM )) {
 							if ((data->head->package_data[i] == data->head_2->package_data[j])) {
-									//~ weight_two_packages += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
 									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
-									//~ printf("Poids de la donnée %d : %zd\n",j,starpu_data_get_size(data->head_2->package_data[j]));
-										
-								//~ printf("Weight vaut : %zd\n",weight_two_packages);
-								
-								//Vrai ligne
-								//~ matrice_donnees_commune[index_head_1][index_head_2] = weight_two_packages;
-								//Si je veut une matrice plus lisible
-								//~ matrice_donnees_commune[index_head_1][index_head_2] += 1;
-								
-								//~ weight_two_packages = 0;
 							}
 						} 
 					} index_head_2++; 
@@ -328,7 +281,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Getting W_max
 			for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { 
 				if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
-				//~ printf("Le max de poids de data communes est %li\n",max_value_common_data_matrix);
 				
 			//Merge des paquets et test de taille < GPU_MAX - marche pour des paquets de 1 tache pour le moment
 			for (i = 0; i < nb_pop; i++) {
@@ -367,9 +319,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						}
 							//Merge les données
 							//Met dans un tableau a part
-							//~ printf("Nb de data : %d et %d\n",data->head->package_nb_data,data->head_2->package_nb_data);
 							starpu_data_handle_t *temp_data_tab_1 = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
-							//~ printf("pull breakpoint 1\n");
 							for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
 								temp_data_tab_1[i_bis] = data->head->package_data[i_bis];
 							}
@@ -405,8 +355,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					} }
 					data->head_2 = data->head_2->next;
 				} 
-				//~ if (nb_tasks_in_linked_list == nb_pop) { break; }
-				if (nb_data_commun > 1) { //a verif ce if hein
+				if (nb_data_commun > 1) {
 					data->head = data->head->next;
 				} 
 			}
@@ -417,8 +366,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Supprimer les maillons vide
 			data->head = data->first_link;
 			data->head = delete_link(data);
-			
-			
 			
 			//Code to print everything ------------------------------------------------------------------
 			while (data->head != NULL) {
@@ -432,7 +379,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				data->head = data->head->next;
 				printf("------------------------------------------------------------------\n");
 			} 
-			//~ printf("NULL\n");
 			printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
 			//--------------------------------------------------------------------------------------------
 			data->head = data->first_link;
@@ -441,8 +387,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Reset de nb_pop!
 		nb_pop = link_index;
-		//Ajout temporaire le temps de coder correctement les plusieurs tours de while
-		//~ packaging_impossible = 1;
 		} // Fin du while (packaging_impossible == 0)
 			
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
@@ -465,10 +409,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->head->sub_list)\n",task1);
 			return task1;
-	}
-	if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
-		printf("On est pas censé entrer dans ce if\n");
-	}			
+	}		
 }
 
 static int basic_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
