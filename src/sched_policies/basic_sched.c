@@ -31,8 +31,8 @@
 #include <core/task.h>
 #include "starpu_stdlib.h"
 #define NTASKS 5
-
 #define MEMORY_AFFINITY
+#define	ALGO_USED 1
 
 struct basic_sched_data *variable_globale;
 
@@ -386,8 +386,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									nb_duplicate_data++;
 								}
 							}
-							//~ printf("nb dulicate = %d\n",nb_duplicate_data);
-							//~ printf("pull breakpoint 3\n");	
+
 							//Puis on met tout dans head
 							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 							j_bis = 0;
@@ -400,6 +399,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
+							
+							//Goto pour l'algo 2
+							if (ALGO_USED == 2) { printf("algo 2\n"); goto algo_2; }
 					} }
 					data->head_2 = data->head_2->next;
 				} 
@@ -408,6 +410,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					data->head = data->head->next;
 				} 
 			}
+			
+			//goto pour algo 2
+			algo_2:
 			
 			//Supprimer les maillons vide
 			data->head = data->first_link;
