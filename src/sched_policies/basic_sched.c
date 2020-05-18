@@ -127,7 +127,7 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 	return a->first_link;
 }
 	
-int intComparator ( const void * first, const void * second ) {
+int pointeurComparator ( const void * first, const void * second ) {
   return ( *(int*)first - *(int*)second );
 }
 		
@@ -197,6 +197,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_3); i++) {
 					data->head->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_3,i);
 				}
+				//~ qsort(s
 				data->head->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_3);
 				starpu_task_list_push_back(&data->head->sub_list,temp_task_3);
 				data->head->nb_task_in_sub_list ++;
@@ -326,7 +327,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 								temp_data_tab_1[i_bis + data->head->package_nb_data] = data->head_2->package_data[i_bis];
 							}
 							//Tri du tab de data pour pouvoir supprimer les doublons en O(n)
-							qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),intComparator);
+							qsort(temp_data_tab_1,data->head->package_nb_data + data->head_2->package_nb_data,sizeof(temp_data_tab_1[0]),pointeurComparator);
 		
 							//On vire les doublons
 							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
