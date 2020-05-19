@@ -1,0 +1,48 @@
+A FAIRE ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Mettre les noms de variables et fonctions en anglais, les commentaires en anglais, enlever les commentaires inutiles
+Remplacer head et head_2 par des pointeurs temporaire pour plus de clarté
+Mettre une variable d'environemment pour ALGO_USED et pour le random de xgemm
+Réfléchir à un modèle où on ne limiterait pas la taille des paquets lors d'une deuxième exécution du code et ce que ca implique pour la première exécution du code ( limiter encore plus la taille des paquets ? )
+Faire des courbes de eager, lws, basic-sched algo 1 et 2 et dmadar. Faire varier CUDA_MEM et surtout la bande passante. Tester des tailles de matrice différentes (abscisse). On mesure les gflops (ordonnée).
+Faire des screen de vite paje.trace dans les situations intéressantes.
+Tester avec et sans aléatoire dans l'ordre d'arrivé des tâches.
+Relire ce qu'on a mis sur discord.
+Recherhcer un CUDA_MEM qui met le point de rupture au milieu de la courbe.
+R L V.
+
+FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Simplifier le filling
+Supporter le fait que les tâches on des nombres de données variable
+Supporter le fait qu'il faut comparer toutes les données entre elle
+Supporter le fait qu'il peut y avoir plus que 1 point commun entre deux tâches
+Vérifier que les tâches sont bien mises dans le bon ordre dans la liste chainée
+Faire l'heuristique des poids des données
+Tester que les regroupements sont inférieurs à la taille B
+Faire des paquets
+Merge les données
+Supprimer les maillons vide apres avoir fais les merge
+Retirer les doublons lors du merge de deux paquets
+Creer la condition while
+Reset à 0 matrice_donnees_commune[i][j]
+faire la somme des poids de toutes les données
+gerer les paquets de plus de 1 tâche
+Faire tous les tours du while
+Verifier que l'algo 1 regroupe bien les tâches
+Faire goto pour l'algo 2
+Merge correctement les paquets
+Corriger le qsort
+printf du nombre de paquets et de la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
+faire un script pour les test
+
+DERNIERS COMMIT STABLE ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+envoi scm : Ajout d'un goto et de #define ALGO_USED pour choisir l'algo (commit ecd329a)
+envoi scm : Version algo 1, fais 1 tour de while (commit c64943d)
+
+ERREUR DE GDB ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+COMMANDES UTILES ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ulimit -s 16384 pour debloquer la taille max des variables.
