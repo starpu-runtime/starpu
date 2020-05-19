@@ -446,36 +446,70 @@ int main(int argc, char **argv)
 		//~ }
 		
 		//Modif pour randomiser 
-		int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0;
+		int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
 		for (iter = 0; iter < niter; iter++)
 		{
+			//~ printf("aaaa\n");
 			//Mélange des x y
-			//Init
-			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = j; } }
+			//Init a revoir ne peut pas etre la même valeur
+			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = i; } }
 			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
+			printf("Tableau x : \n");
+			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %d ",tab_x[i][j]); } printf("\n"); }
+			printf("Tableau y : \n");
+			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %d ",tab_y[i][j]); } printf("\n"); }
 			//Shuffle
-				for( i=0; i< nslicesx-1; i++)
-				{
-					for( j=0; j< nslicesx-1; j++)
-					{	
-						k = j + random() % (nslicesx-j);
+
+			
+			
+			//~ for (n = 0; n < nslicesx*nslicesy; n++) {
+				//~ k = 0;
+				//~ while (k == 0) { k = random()%(nslicesx*nslicesy); k+=n+1; }				
+				//~ printf("k = %d\n",k);
+				//~ temp = tab_x[n%nslicesx][n/nslicesx];
+				//~ tab_x[n%nslicesx][n/nslicesx] = tab_x[k%nslicesx][k/nslicesx];
+				//~ tab_x[k%nslicesx][k/nslicesx] = temp;			
+				//~ temp = tab_y[n%nslicesy][n/nslicesy];				
+				//~ tab_y[n%nslicesy][n/nslicesy] = tab_y[k%nslicesy][k/nslicesy];				
+				//~ tab_y[k%nslicesy][k/nslicesy] = temp;
+			//~ }
+			
+			//~ for( i=0; i< nslicesx-1; i++)
+			for( n=0; n< nslicesx*nslicesy; n++)
+				{	
+						k = 0;
+						while ((k > nslicesx*nslicesy) || (k < n)) { k = random() % (nslicesx*nslicesy); }
+						printf("k = %d\n",k);
 						//swap the values of tab_x[i] and tab_x[j]
-						temp = tab_x[i][j];
-						tab_x[i][j] = tab_x[i][k];
-						tab_x[i][k] = temp;
+						temp = tab_x[n%nslicesx][n/nslicesx];
+						tab_x[n%nslicesx][n/nslicesx] = tab_x[k%nslicesx][k/nslicesx];
+						tab_x[k%nslicesx][k/nslicesx] = temp;
+						
+						temp = tab_y[n%nslicesy][n/nslicesy];
+						tab_y[n%nslicesy][n/nslicesy] = tab_y[k%nslicesy][k/nslicesy];
+						tab_y[k%nslicesy][k/nslicesy] = temp;
 					} 
-				}
-				for( i=0; i< nslicesy-1; i++)
-				{
-					for( j=0; j< nslicesy-1; j++)
-					{	
-						k = j + random() % (nslicesy-j);
-						//swap the values of tab_x[i] and tab_x[j]
-						temp = tab_y[i][j];
-						tab_y[i][j] = tab_y[i][k];
-						tab_y[i][k] = temp;
-					} 
-				}
+				
+			
+			//printf des tableaux
+			printf("Tableau x : \n");
+			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %d ",tab_x[i][j]); } printf("\n"); }
+			printf("Tableau y : \n");
+			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %d ",tab_y[i][j]); } printf("\n"); }
+			
+			
+				
+				//~ for( i=0; i< nslicesy-1; i++)
+				//~ {
+					//~ for( j=0; j< nslicesy-1; j++)
+					//~ {	
+						//~ k = j + random() % (nslicesy-j);
+						//~ //swap the values of tab_x[i] and tab_x[j]
+						//~ temp = tab_y[i][j];
+						//~ tab_y[i][j] = tab_y[i][k];
+						//~ tab_y[i][k] = temp;
+					//~ } 
+				//~ }
 			
 			starpu_pause();
 			for (i = 0; i < nslicesx; i++)
@@ -488,7 +522,7 @@ int main(int argc, char **argv)
 				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
 				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
-					
+					//~ printf("ok2\n");
 				task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 
 				ret = starpu_task_submit(task);
