@@ -453,17 +453,17 @@ int main(int argc, char **argv)
 			//Init a revoir ne peut pas etre la même valeur
 			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = i; } }
 			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
-			printf("Tableau x : \n");
-			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %d ",tab_x[i][j]); } printf("\n"); }
-			printf("Tableau y : \n");
-			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %d ",tab_y[i][j]); } printf("\n"); }
+			//~ printf("Tableau x : \n");
+			//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+			//~ printf("Tableau y : \n");
+			//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
 			//Shuffle
 
 			for( n=0; n< nslicesx*nslicesy; n++)
 				{	
 						k = n;
 						k += random() % ((nslicesx*nslicesy) - n);
-						printf("k = %d / ",k);
+						//~ printf("k = %d / ",k);
 						
 						temp = tab_x[n%nslicesx][n/nslicesx];
 						tab_x[n%nslicesx][n/nslicesx] = tab_x[k%nslicesx][k/nslicesx];
@@ -476,11 +476,11 @@ int main(int argc, char **argv)
 				
 			
 			//printf des tableaux
-			printf("\n");
-			printf("Tableau x : \n");
-			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %d ",tab_x[i][j]); } printf("\n"); }
-			printf("Tableau y : \n");
-			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %d ",tab_y[i][j]); } printf("\n"); }
+			//~ printf("\n");
+			//~ printf("Tableau x : \n");
+			//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+			//~ printf("Tableau y : \n");
+			//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
 			
 			starpu_pause();
 			for (i = 0; i < nslicesx; i++)
