@@ -446,7 +446,7 @@ int main(int argc, char **argv)
 		//~ }
 		
 		//Modif pour randomiser 
-		int i = 0; int j = 0; unsigned tab_x[nslicesx]; unsigned tab_y[nslicesy]; int temp = 0;
+		int i = 0; int j = 0; unsigned tab_x[nslicesx]; unsigned tab_y[nslicesy]; int temp = 0; int tab_i[nslicesx]; int tab_j[nslicesy];
 		for (iter = 0; iter < niter; iter++)
 		{
 			for (i= 0; i < nslicesx; i++) { tab_x[i] = i; } for (i= 0; i < nslicesy; i++) { tab_y[i] = i; }
@@ -468,6 +468,24 @@ int main(int argc, char **argv)
 					tab_y[j] = temp;
 				}  
 			
+			//Mélange des couples (i,j)
+			for (i= 0; i < nslicesx; i++) { tab_i[i] = i; } for (i= 0; i < nslicesy; i++) { tab_j[i] = i; }
+			j = 0;
+				for( i=0; i< nslicesx-1; i++)
+				{
+					j = i + random() % (nslicesx-i);
+					temp = tab_i[i];
+					tab_i[i] = tab_i[j];
+					tab_i[j] = temp;
+				}  
+				j = 0;
+				for( i=0; i< nslicesy-1; i++)
+				{
+					j = i + random() % (nslicesy-i);
+					temp = tab_y[i];
+					tab_j[i] = tab_j[j];
+					tab_j[j] = temp;
+				}  
 			
 			starpu_pause();
 			for (i = 0; i < nslicesx; i++)
@@ -477,9 +495,9 @@ int main(int argc, char **argv)
 
 				task->cl = &cl;
 				
-				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[j]);
-				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i]);
-				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i], tab_y[j]);
+				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[tab_j[j]]);
+				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[tab_i[i]]);
+				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[tab_i[i]], tab_y[tab_j[j]]);
 					
 				task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 
@@ -490,7 +508,7 @@ int main(int argc, char **argv)
 				     goto enodev;
 				}
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i], tab_y[j]));
+				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[tab_i[i]], tab_y[tab_j[j]]));
 			}
 			starpu_resume();
 
