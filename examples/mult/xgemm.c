@@ -461,8 +461,8 @@ int main(int argc, char **argv)
 
 			for( n=0; n< nslicesx*nslicesy; n++)
 				{	
-						k = 0;
-						while ((k > nslicesx*nslicesy) || (k < n)) { k = random() % (nslicesx*nslicesy); }
+						k = n;
+						k += random() % ((nslicesx*nslicesy) - n);
 						printf("k = %d / ",k);
 						
 						temp = tab_x[n%nslicesx][n/nslicesx];
