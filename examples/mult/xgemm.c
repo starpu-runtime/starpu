@@ -446,46 +446,36 @@ int main(int argc, char **argv)
 		//~ }
 		
 		//Modif pour randomiser 
-		int i = 0; int j = 0; unsigned tab_x[nslicesx]; unsigned tab_y[nslicesy]; int temp = 0; int tab_ij[nslicesx][nslicesy];
+		int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0;
 		for (iter = 0; iter < niter; iter++)
 		{
 			//Mélange des x y
-			for (i= 0; i < nslicesx; i++) { tab_x[i] = i; } for (i= 0; i < nslicesy; i++) { tab_y[i] = i; }
-			j = 0;
+			//Init
+			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = j; } }
+			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
+			//Shuffle
 				for( i=0; i< nslicesx-1; i++)
 				{
-					j = i + random() % (nslicesx-i);
-					//swap the values of tab_x[i] and tab_x[j]
-					temp = tab_x[i];
-					tab_x[i] = tab_x[j];
-					tab_x[j] = temp;
-				}  
-				j = 0;
+					for( j=0; j< nslicesx-1; j++)
+					{	
+						k = j + random() % (nslicesx-j);
+						//swap the values of tab_x[i] and tab_x[j]
+						temp = tab_x[i][j];
+						tab_x[i][j] = tab_x[i][k];
+						tab_x[i][k] = temp;
+					} 
+				}
 				for( i=0; i< nslicesy-1; i++)
 				{
-					j = i + random() % (nslicesy-i);
-					temp = tab_y[i];
-					tab_y[i] = tab_y[j];
-					tab_y[j] = temp;
-				}  
-			
-			//Mélange des couples ij
-			//Init
-			for (i = 0; i < nslicesx; i++) { for (j = 0; j < nslicesy; j++) { tab_ij[i][j] = j; } }
-			int k = 0; int l = 0;
-			//Shuffle
-			j = 0; i = 0;
-			for( i=0; i< nslicesx-1; i++)
-			{
-				for( j=0; j< nslicesy-1; j++)
-				{
-					k = j + random() % (nslicesy-j);
-					//~ l = j + random() % (nslicesy-j);
-					temp = tab_ij[i][j];
-					tab_ij[i][j] = tab_ij[i][k];
-					tab_ij[i][k] = temp;
-				}  
-			}
+					for( j=0; j< nslicesy-1; j++)
+					{	
+						k = j + random() % (nslicesy-j);
+						//swap the values of tab_x[i] and tab_x[j]
+						temp = tab_y[i][j];
+						tab_y[i][j] = tab_y[i][k];
+						tab_y[i][k] = temp;
+					} 
+				}
 			
 			starpu_pause();
 			for (i = 0; i < nslicesx; i++)
@@ -495,9 +485,9 @@ int main(int argc, char **argv)
 
 				task->cl = &cl;
 				
-				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[tab_ij[i][j]]);
-				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i]);
-				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i], tab_y[tab_ij[i][j]]);
+				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
+				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
+				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
 					
 				task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 
@@ -508,7 +498,7 @@ int main(int argc, char **argv)
 				     goto enodev;
 				}
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i], tab_y[tab_ij[i][j]]));
+				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 			}
 			starpu_resume();
 
