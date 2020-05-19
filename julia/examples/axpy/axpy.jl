@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 using StarPU
-
+using Printf
 const EPSILON = 1e-6
 
 function check(alpha, X, Y)
@@ -26,22 +26,12 @@ function check(alpha, X, Y)
     end
 end
 
-function main()
-    N = 16 * 1024 * 1024
-    NBLOCKS = 8
-    alpha = 3.41
-
-    starpu_init()
-    starpu_cublas_init()
-
+function axpy(N, NBLOCKS, alpha, display = true)
     X = Array(fill(1.0f0, N))
     Y = Array(fill(4.0f0, N))
 
     starpu_memory_pin(X)
     starpu_memory_pin(Y)
-
-    println("BEFORE x[0] = ", X[1])
-    println("BEFORE y[0] = ", Y[1])
 
     block_filter = starpu_data_filter(STARPU_VECTOR_FILTER_BLOCK, NBLOCKS)
 
@@ -57,31 +47,56 @@ function main()
         perfmodel = perfmodel
     )
 
+    if display
+        println("BEFORE x[0] = ", X[1])
+        println("BEFORE y[0] = ", Y[1])
+    end
+
+    t_start = time_ns()
+
     @starpu_block let
         hX,hY = starpu_data_register(X, Y)
 
         starpu_data_partition(hX, block_filter)
         starpu_data_partition(hY, block_filter)
 
-        t_start = time_ns()
-
         for b in 1:NBLOCKS
             task = starpu_task(cl = cl, handles = [hX[b],hY[b]], cl_arg=(Float32(alpha),),
                                tag=starpu_tag_t(b))
             starpu_task_submit(task)
         end
+
         starpu_task_wait_for_all()
-
-        t_end = time_ns()
-        timing = (t_end - t_start) / 1000
-
-        println("timing -> ", timing, " us ", 3*N*4/timing, "MB/s")
-
     end
 
-    println("AFTER y[0] = ", Y[1], " (ALPHA=", alpha, ")")
+    t_end = time_ns()
+
+    timing = (t_end-t_start)/1000
+
+    if display
+        @printf("timing -> %d us %.2f MB/s\n", timing, 3*N*4/timing)
+        # println("timing -> ", timing, " us ", floor(3*N*4/timing), "MB/s")
+        println("AFTER y[0] = ", Y[1], " (ALPHA=", alpha, ")")
+    end
 
     check(alpha, X, Y)
+
+    starpu_memory_unpin(X)
+    starpu_memory_unpin(Y)
+end
+
+function main()
+    N = 16 * 1024 * 1024
+    NBLOCKS = 8
+    alpha = 3.41
+
+    starpu_init()
+    starpu_cublas_init()
+
+    # warmup
+    axpy(10, 1, alpha, false)
+
+    axpy(N, NBLOCKS, alpha)
 
     starpu_shutdown()
 end
