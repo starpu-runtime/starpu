@@ -1406,7 +1406,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			if (!entry)
 			{
 				/* this is the first entry with such a footprint */
-				_STARPU_MALLOC(entry, sizeof(struct starpu_perfmodel_history_entry));
+				_STARPU_CALLOC(entry, 1, sizeof(struct starpu_perfmodel_history_entry));
 
 				/* Tell  helgrind that we do not care about
 				 * racing access to the sampling, we only want a
