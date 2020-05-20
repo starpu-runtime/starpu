@@ -25,9 +25,10 @@
 #error "Do not compile xgemm.c directly, compile sgemm.c or dgemm.c"
 #endif
 
-//Ajout pour randomiser l'ordre des tâches
+//To randomize the order of tasks
 #include <time.h>
 #include <stdlib.h>
+#define RANDOM_TASK_ORDER
 
 #include <limits.h>
 #include <string.h>
@@ -412,104 +413,95 @@ int main(int argc, char **argv)
 		start = starpu_timing_now();
 
 		unsigned x, y, iter;
-	
-		//~ for (iter = 0; iter < niter; iter++)
-		//~ {
-			//~ starpu_pause();
-			//~ for (x = 0; x < nslicesx; x++)
-			//~ for (y = 0; y < nslicesy; y++)
-			//~ {
-				//~ struct starpu_task *task = starpu_task_create();
-
-				//~ task->cl = &cl;
-				
-				//~ //Old lines
-				//~ task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-				//~ task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-				//~ task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
-				
-				
-				//~ task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-				//~ ret = starpu_task_submit(task);
-				//~ if (ret == -ENODEV)
-				//~ {
-				     //~ ret = 77;
-				     //~ goto enodev;
-				//~ }
-				//~ STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-				//~ starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
-			//~ }
-			//~ starpu_resume();
-
-			//~ starpu_task_wait_for_all();
-		//~ }
 		
-		//Modif pour randomiser 
-		int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
-		for (iter = 0; iter < niter; iter++)
-		{
-			//Mélange des x y
-			//Init a revoir ne peut pas etre la même valeur
-			for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = i; } }
-			for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
-			//~ printf("Tableau x : \n");
-			//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
-			//~ printf("Tableau y : \n");
-			//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
-			//Shuffle
-
-			for( n=0; n< nslicesx*nslicesy; n++)
-				{	
-						k = n;
-						k += random() % ((nslicesx*nslicesy) - n);
-						//~ printf("k = %d / ",k);
-						
-						temp = tab_x[n%nslicesx][n/nslicesx];
-						tab_x[n%nslicesx][n/nslicesx] = tab_x[k%nslicesx][k/nslicesx];
-						tab_x[k%nslicesx][k/nslicesx] = temp;
-						
-						temp = tab_y[n%nslicesy][n/nslicesy];
-						tab_y[n%nslicesy][n/nslicesy] = tab_y[k%nslicesy][k/nslicesy];
-						tab_y[k%nslicesy][k/nslicesy] = temp;
-					} 
-				
-			
-			//printf des tableaux
-			//~ printf("\n");
-			//~ printf("Tableau x : \n");
-			//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
-			//~ printf("Tableau y : \n");
-			//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
-			
-			starpu_pause();
-			for (i = 0; i < nslicesx; i++)
-			for (j = 0; j < nslicesy; j++)
+		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 0) { 
+			//If environment variable RANDOM_TASK_ORDER == 0
+			for (iter = 0; iter < niter; iter++)
 			{
-				struct starpu_task *task = starpu_task_create();
-
-				task->cl = &cl;
-				
-				task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
-				task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
-				task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
-					//~ printf("ok2\n");
-				task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-				ret = starpu_task_submit(task);
-				if (ret == -ENODEV)
+				starpu_pause();
+				for (x = 0; x < nslicesx; x++)
+				for (y = 0; y < nslicesy; y++)
 				{
-				     ret = 77;
-				     goto enodev;
-				}
-				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-				starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
-			}
-			starpu_resume();
+					struct starpu_task *task = starpu_task_create();
 
-			starpu_task_wait_for_all();
+					task->cl = &cl;
+					
+					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
+					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
+					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
+					
+					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+					ret = starpu_task_submit(task);
+					if (ret == -ENODEV)
+					{
+						 ret = 77;
+						 goto enodev;
+					}
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+				}
+				starpu_resume();
+
+				starpu_task_wait_for_all();
+			}	
+			//End If environment variable RANDOM_TASK_ORDER == 0
 		}
-		//Fin modif
+		else { 
+			//If environment variable RANDOM_TASK_ORDER == 1
+			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
+			for (iter = 0; iter < niter; iter++)
+			{
+				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = i; } }
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
+
+				//Shuffle
+				for( n=0; n< nslicesx*nslicesy; n++)
+				{	
+					k = n;
+					k += random() % ((nslicesx*nslicesy) - n);
+					temp = tab_x[n%nslicesx][n/nslicesx];
+					tab_x[n%nslicesx][n/nslicesx] = tab_x[k%nslicesx][k/nslicesx];
+					tab_x[k%nslicesx][k/nslicesx] = temp;	
+					temp = tab_y[n%nslicesy][n/nslicesy];
+					tab_y[n%nslicesy][n/nslicesy] = tab_y[k%nslicesy][k/nslicesy];
+					tab_y[k%nslicesy][k/nslicesy] = temp;
+				} 			
+				//printf des tableaux
+				//~ printf("\n");
+				//~ printf("Tableau x : \n");
+				//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+				//~ printf("Tableau y : \n");
+				//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
+				
+				starpu_pause();
+				for (i = 0; i < nslicesx; i++)
+				for (j = 0; j < nslicesy; j++)
+				{
+					struct starpu_task *task = starpu_task_create();
+
+					task->cl = &cl;
+					
+					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
+					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
+					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
+					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+					ret = starpu_task_submit(task);
+					if (ret == -ENODEV)
+					{
+						 ret = 77;
+						 goto enodev;
+					}
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+				}
+				starpu_resume();
+
+				starpu_task_wait_for_all();
+			}
+			//End If environment variable RANDOM_TASK_ORDER == 1
+		}
 
 		end = starpu_timing_now();
 		starpu_fxt_stop_profiling();
