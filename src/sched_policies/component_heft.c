@@ -77,6 +77,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		/* Estimated transfer+task termination for each child */
 		double estimated_ends_with_task[component->nchildren * ntasks];
 
+		/* estimated energy */
+		double local_energy[component->nchildren * ntasks];
+
 		/* Minimum transfer+task termination on all children */
 		double min_exp_end_with_task[ntasks];
 		/* Maximum transfer+task termination on all children */
@@ -102,6 +105,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 					estimated_ends_with_task + offset,
 					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
 							  suitable_components + offset, nsuitable_components[n]);
+			
+			/* Compute the energy, if provided*/
+			starpu_mct_compute_energy(component, tasks[n], local_energy + offset, suitable_components + offset, nsuitable_components[n]);
 		}
 
 		int best_task = 0;
@@ -129,7 +135,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 		unsigned offset = component->nchildren * best_task;
 
-		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, min_exp_end_with_task[best_task], max_exp_end_with_task[best_task], suitable_components + offset, nsuitable_components[best_task]);
+		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, local_energy + offset, min_exp_end_with_task[best_task], max_exp_end_with_task[best_task], suitable_components + offset, nsuitable_components[best_task]);
 
 		STARPU_ASSERT(best_icomponent != -1);
 		best_component = component->children[best_icomponent];
