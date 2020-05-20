@@ -30,6 +30,7 @@
 #include "starpu_stdlib.h"
 #include "common/list.h"
 #define MEMORY_AFFINITY
+#define ALGO_USED
 //la variable d environemment c est la je crois avec l'option
 
 struct basic_sched_data *variable_globale;
@@ -55,7 +56,7 @@ static int compar(const void *_a, const void *_b)
 
 struct basic_sched_data
 {
-	int ALGO_USED;
+	int ALGO_USED_READER;
 	struct starpu_task_list tache_pop;
 	struct starpu_task_list list_if_fifo_full;
 	
@@ -369,7 +370,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head_2->nb_task_in_sub_list = 0;
 							
 							//Goto pour l'algo 2
-							if (data->ALGO_USED == 2) { printf("algo 2\n"); goto algo_2; }
+							if (data->ALGO_USED_READER == 2) { printf("algo 2\n"); goto algo_2; }
 					} }
 					data->head_2 = data->head_2->next;
 				} 
@@ -503,16 +504,12 @@ static int basic_can_pull(struct starpu_sched_component * component)
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
-
-	//~ ALGO_USED = starpu_get_env_number_default(ALGO_USED,1);
 	
 	struct basic_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	variable_globale = data;
-	data->ALGO_USED = 1;
-	//~ data->ALGO_USED = starpu_get_env_number_default(&data->ALGO_USED,1);
-	//~ data->ALGO_USED = starpu_get_env_number(&data->ALGO_USED);
+	data->ALGO_USED_READER = starpu_get_env_number_default("ALGO_USED",1);
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	/* Create a linked-list of tasks and a condition variable to protect it */
