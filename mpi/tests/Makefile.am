@@ -19,6 +19,8 @@ include $(top_srcdir)/starpu.mk
 CC=$(MPICC)
 CCLD=$(MPICC)
 
+noinst_PROGRAMS		=
+
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
@@ -26,6 +28,7 @@ loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
@@ -62,6 +65,8 @@ EXTRA_DIST = 				\
 	abstract_sendrecv_bench.h	\
 	bench_helper.h			\
 	helper.h			\
+	gemm_helper.h			\
+	burst_helper.h			\
 	user_defined_datatype_value.h
 
 examplebindir = $(libdir)/starpu/examples/mpi
@@ -140,11 +145,17 @@ starpu_mpi_TESTS +=				\
 	user_defined_datatype			\
 	early_stuff				\
 	sendrecv_bench				\
+	burst
+
+if !STARPU_USE_MPI_MPI
+starpu_mpi_TESTS +=				\
 	sendrecv_parallel_tasks_bench
+endif
 
 if !NO_BLAS_LIB
 starpu_mpi_TESTS +=				\
-	sendrecv_gemm_bench
+	sendrecv_gemm_bench			\
+	burst_gemm
 endif
 
 if !STARPU_SIMGRID
@@ -174,7 +185,7 @@ starpu_mpi_TESTS +=				\
 	starpu_redefine
 endif
 
-noinst_PROGRAMS =				\
+noinst_PROGRAMS +=				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
@@ -235,13 +246,21 @@ noinst_PROGRAMS =				\
 	load_balancer				\
 	driver					\
 	sendrecv_bench				\
+	sendrecv_parallel_tasks_bench		\
+	burst					\
+	nothing
+
+if !NO_BLAS_LIB
+noinst_PROGRAMS +=				\
 	sendrecv_gemm_bench			\
-	sendrecv_parallel_tasks_bench
+	burst_gemm
+endif
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\
-	starpu_redefine
+	starpu_redefine				\
+	nothing
 
 ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c
@@ -275,13 +294,24 @@ sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
 sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
 sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
 
+burst_SOURCES = burst.c
+burst_SOURCES += burst_helper.c
+
 if !NO_BLAS_LIB
 sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
 sendrecv_gemm_bench_SOURCES += bench_helper.c
+sendrecv_gemm_bench_SOURCES += gemm_helper.c
 sendrecv_gemm_bench_SOURCES += abstract_sendrecv_bench.c
 sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
 
 sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
+
+burst_gemm_SOURCES = burst_gemm.c
+burst_gemm_SOURCES += gemm_helper.c
+burst_gemm_SOURCES += burst_helper.c
+burst_gemm_SOURCES += ../../examples/common/blas.c
+
+burst_gemm_LDADD = $(STARPU_BLAS_LDFLAGS)
 endif
 
 endif

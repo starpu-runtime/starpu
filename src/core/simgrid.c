@@ -97,6 +97,21 @@ void _starpu_simgrid_set_stack_size(size_t stack_size)
 #endif
 }
 
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+static void on_exit_backtrace(int failed, void *data STARPU_ATTRIBUTE_UNUSED)
+{
+	if (failed)
+		xbt_backtrace_display_current();
+}
+#endif
+
+void _starpu_simgrid_actor_setup(void)
+{
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+	sg_actor_on_exit(on_exit_backtrace, NULL);
+#endif
+}
+
 #if defined(HAVE_SG_ZONE_GET_BY_NAME) || defined(sg_zone_get_by_name)
 #define HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
 sg_netzone_t _starpu_simgrid_get_as_by_name(const char *name)
@@ -337,6 +352,19 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #else
 	MSG_create_environment(path);
 #endif
+	int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
+	if (limit_bandwidth >= 0)
+	{
+#ifdef HAVE_SG_LINK_BANDWIDTH_SET
+		sg_link_t *links = sg_link_list();
+		int count = sg_link_count(), i;
+		for (i = 0; i < count; i++) {
+			sg_link_bandwidth_set(links[i], limit_bandwidth * 1000000.);
+		}
+#else
+		_STARPU_DISP("Warning: STARPU_LIMIT_BANDWIDTH set to %d but this requires simgrid 3.26, thus ignored\n", limit_bandwidth);
+#endif
+	}
 
 	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
@@ -347,6 +375,7 @@ int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	if (!starpu_main)
 	{
@@ -1155,6 +1184,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	/* _args is freed with process context */
 	f(arg);

@@ -32,6 +32,6 @@ pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc starpufft-1.2
 recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
+		$(MAKE) -C $$i recheck || RET=1 ; \
 	done ; \
 	exit $$RET

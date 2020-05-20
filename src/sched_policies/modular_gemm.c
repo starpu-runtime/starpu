@@ -119,9 +119,9 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 
 	int workerid;
 	/* It's not a GEMM, or no GPU wanted to take it, find somebody else */
-	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
 	    workerid != -1;
-	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(&component->workers_in_ctx, workerid))
 	{
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -133,9 +133,9 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 				{
 					struct starpu_sched_component *child = component->children[i];
 					int idworker;
-					for(idworker = starpu_bitmap_first(component->children[i]->workers);
+					for(idworker = starpu_bitmap_first(&component->children[i]->workers);
 						idworker != -1;
-						idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
+						idworker = starpu_bitmap_next(&component->children[i]->workers, idworker))
 					{
 						if (idworker == workerid)
 						{

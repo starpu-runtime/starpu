@@ -538,7 +538,9 @@ struct starpu_codelet
 
 	/**
 	   Optional color of the codelet. This can be useful for
-	   debugging purposes.
+	   debugging purposes. Value 0 acts like if this field wasn't specified.
+	   Color representation is hex triplet (for example: 0xff0000 is red,
+	   0x0000ff is blue, 0xffa500 is orange, ...).
 	*/
 	unsigned color;
 

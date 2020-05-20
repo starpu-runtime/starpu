@@ -40,7 +40,7 @@
 #define  DEFAULT_TIMEOUT       300
 #else
 /* Long checks can be very long */
-#define  DEFAULT_TIMEOUT       1800
+#define  DEFAULT_TIMEOUT       1000
 #endif
 #define  AUTOTEST_SKIPPED_TEST 77
 
@@ -176,7 +176,15 @@ static void test_cleaner(int sig)
 	kill(-child_gid, SIGQUIT);
 	waitpid(child_pid, &status, 0);
 	launch_gdb(test_name);
+	raise(SIGQUIT);
 	exit(EXIT_FAILURE);
+}
+
+static void forwardsig(int sig)
+{
+	pid_t child_gid;
+	child_gid = getpgid(child_pid);
+	kill(-child_gid, sig);
 }
 
 static int _decode(char **src, char *motif, const char *value)
@@ -230,6 +238,9 @@ int main(int argc, char *argv[])
 	test_args = NULL;
 	timeout = 0;
 
+	launcher=getenv("STARPU_CHECK_LAUNCHER");
+	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+
 	if (argv[x] && strcmp(argv[x], "-t") == 0)
 	{
 		timeout = strtol(argv[x+1], NULL, 10);
@@ -241,7 +252,21 @@ int main(int argc, char *argv[])
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
 	}
 	if (timeout <= 0)
+	{
 		timeout = DEFAULT_TIMEOUT;
+		if ((launcher && strstr(launcher, "valgrind")) ||
+		    (launcher && strstr(launcher, "helgrind")) ||
+		    getenv("TSAN_OPTIONS") != NULL)
+			timeout *= 20;
+		if (getenv("ASAN_OPTIONS") != NULL ||
+		    getenv("USAN_OPTIONS") != NULL ||
+		    getenv("LSAN_OPTIONS") != NULL)
+			timeout *= 5;
+	}
+
+#ifdef STARPU_SIMGRID
+	timeout *= 10;
+#endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* compare values between the 2 values of timeout */
@@ -257,9 +282,13 @@ int main(int argc, char *argv[])
 	{
 		test_name = malloc(strlen(argv[x+1]) + 1 + strlen(argv[x+2]) + 1);
 		sprintf(test_name, "%s/%s", argv[x+1], argv[x+2]);
+		x += 3;
 	}
 	else
+	{
 		test_name = argv[x];
+		x += 1;
+	}
 
 	if (!test_name)
 	{
@@ -267,9 +296,22 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (strstr(test_name, "tasks_size_overhead_scheds.sh") || strstr(test_name, "schedulers.sh"))
-		/* This extensively tests various schedulers, let it run longer */
-		timeout *= 10;
+	size_t len = strlen(test_name);
+	if (len >= 3 &&
+	    test_name[len-3] == '.' &&
+	    test_name[len-2] == 's' &&
+	    test_name[len-1] == 'h')
+	{
+                /* This is a shell script, don't run ourself on bash, but make
+                 * the script call us for each program invocation */
+
+		setenv("STARPU_LAUNCH", argv[0], 1);
+
+		execvp(test_name, argv+x-1);
+
+		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
+		exit(EXIT_FAILURE);
+	}
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
 	{
@@ -278,16 +320,16 @@ int main(int argc, char *argv[])
 	}
 	else if (strstr(test_name, "starpu_perfmodel_display"))
 	{
-		test_args = strdup("-l");
+		if (x >= argc)
+			test_args = strdup("-l");
 	}
 	else if (strstr(test_name, "starpu_perfmodel_plot"))
 	{
-		test_args = strdup("-l");
+		if (x >= argc)
+			test_args = strdup("-l");
 	}
 
 	/* get launcher program */
-	launcher=getenv("STARPU_CHECK_LAUNCHER");
-	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
 	if (launcher_args)
 		launcher_args=strdup(launcher_args);
 
@@ -314,32 +356,6 @@ int main(int argc, char *argv[])
 		decode(&launcher_args, "@top_srcdir@", top_srcdir);
 	}
 
-	size_t len = strlen(test_name);
-	if (launcher && len >= 3 &&
-	    test_name[len-3] == '.' &&
-	    test_name[len-2] == 's' &&
-	    test_name[len-1] == 'h')
-	{
-		/* This is a shell script, don't run the check on bash, but pass
-		 * the script the decoded variables */
-		setenv("STARPU_CHECK_LAUNCHER", launcher, 1);
-		if (launcher_args)
-			setenv("STARPU_CHECK_LAUNCHER_ARGS", launcher_args, 1);
-		else
-			launcher_args = strdup("");
-
-		/* And give a convenience macro */
-		size_t len_launch = strlen(libtool) + 1 + strlen("--mode=execute") + 1
-				  + strlen(launcher) + 1 + strlen(launcher_args) + 1;
-		char launch[len_launch];
-		snprintf(launch, sizeof(launch), "%s --mode=execute %s %s", libtool, launcher, launcher_args);
-		setenv("STARPU_LAUNCH", launch, 1);
-		free(launcher_args);
-
-		launcher = NULL;
-		launcher_args = NULL;
-	}
-
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
@@ -349,43 +365,49 @@ int main(int argc, char *argv[])
 	if (-1 == sigaction(SIGALRM, &sa, NULL))
 		perror("sigaction");
 
+	signal(SIGINT, forwardsig);
+	signal(SIGHUP, forwardsig);
+	signal(SIGPIPE, forwardsig);
+	signal(SIGTERM, forwardsig);
+
 	child_pid = fork();
 	if (child_pid == 0)
 	{
-		if (launcher)
-		{
-			/* "Launchers" such as Valgrind need to be inserted
-			 * after the Libtool-generated wrapper scripts, hence
-			 * this special-case.  */
-			if (top_builddir != NULL)
-			{
-				char *launcher_argv[100];
-				int i=3;
+		char *launcher_argv[100];
+		int i=0;
 
-				launcher_argv[0] = libtool;
-				launcher_argv[1] = "--mode=execute";
-				launcher_argv[2] = launcher;
-				if (launcher_args)
-				{
-					launcher_argv[i] = strtok(launcher_args, " ");
-					while (launcher_argv[i])
-					{
-						i++;
-						launcher_argv[i] = strtok(NULL, " ");
-					}
-				}
-				launcher_argv[i] = test_name;
-				launcher_argv[i+1] = test_args;
-				launcher_argv[i+2] = NULL;
-				execvp(*launcher_argv, launcher_argv);
-			}
-			else
+		setpgid(0, 0);
+
+		/* "Launchers" such as Valgrind need to be inserted
+		 * after the Libtool-generated wrapper scripts, hence
+		 * this special-case.  */
+		if (launcher && top_builddir != NULL)
+		{
+			launcher_argv[i++] = libtool;
+			launcher_argv[i++] = "--mode=execute";
+			launcher_argv[i++] = launcher;
+			if (launcher_args)
 			{
-				execl(test_name, test_name, test_args, NULL);
+				launcher_argv[i++] = strtok(launcher_args, " ");
+				while (launcher_argv[i-1])
+				{
+					launcher_argv[i++] = strtok(NULL, " ");
+				}
 			}
 		}
-		else
-			execl(test_name, test_name, test_args, NULL);
+
+		launcher_argv[i++] = test_name;
+		if (test_args)
+			launcher_argv[i++] = test_args;
+		else while (argv[x])
+		{
+			launcher_argv[i++] = argv[x++];
+		}
+#ifdef STARPU_SIMGRID
+		launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
+		launcher_argv[i++] = NULL;
+		execvp(*launcher_argv, launcher_argv);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);

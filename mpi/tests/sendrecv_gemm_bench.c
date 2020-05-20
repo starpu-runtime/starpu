@@ -33,217 +33,36 @@
 #include <starpu_mpi.h>
 #include <starpu_fxt.h>
 
-#include <common/blas.h>
-
 #include "helper.h"
 #include "abstract_sendrecv_bench.h"
-#include "../../examples/mult/simple.h"
+#include "gemm_helper.h"
 
-#define CHECK_TASK_SUBMIT(ret) do {				\
-	if (ret == -ENODEV)					\
-	{							\
-		ret = 77;					\
-		goto enodev;					\
-	}							\
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");	\
-} while(0)
 
 static int mpi_rank;
-static int comm_thread_cpuid = -1;
-static unsigned nslices = 4;
-#if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
-static unsigned matrix_dim = 256;
-#else
-static unsigned matrix_dim = 320 * 4;
-#endif
-static unsigned check = 0;
-
-static TYPE *A, *B, *C;
-static starpu_data_handle_t A_handle, B_handle, C_handle;
-
 static starpu_pthread_barrier_t thread_barrier;
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-#define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
-static void check_output(void)
+static void* comm_thread_func(void* arg)
 {
-	/* compute C = C - AB */
-	CPU_GEMM("N", "N", matrix_dim, matrix_dim, matrix_dim, (TYPE)-1.0f, A, matrix_dim, B, matrix_dim, (TYPE)1.0f, C, matrix_dim);
-
-	/* make sure C = 0 */
-	TYPE err;
-	err = CPU_ASUM(matrix_dim*matrix_dim, C, 1);
-
-	if (err < matrix_dim*matrix_dim*0.001)
+	if (comm_thread_cpuid < 0)
 	{
-		FPRINTF(stderr, "Results are OK\n");
+		comm_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
-	else
+
+	if (starpu_bind_thread_on(comm_thread_cpuid, 0, "Comm") < 0)
 	{
-		int max;
-		max = CPU_IAMAX(matrix_dim*matrix_dim, C, 1);
-
-		FPRINTF(stderr, "There were errors ... err = %f\n", err);
-		FPRINTF(stderr, "Max error : %e\n", C[max]);
+		char hostname[65];
+		gethostname(hostname, sizeof(hostname));
+		_STARPU_DISP("[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
 	}
-}
 
-static void init_problem_data(void)
-{
-#ifndef STARPU_SIMGRID
-	unsigned i,j;
-#endif
+	sendrecv_bench(mpi_rank, &thread_barrier);
 
-	starpu_malloc_flags((void **)&A, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_malloc_flags((void **)&B, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_malloc_flags((void **)&C, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-
-#ifndef STARPU_SIMGRID
-	/* fill the matrices */
-	for (j=0; j < matrix_dim; j++)
-	{
-		for (i=0; i < matrix_dim; i++)
-		{
-			A[j+i*matrix_dim] = (TYPE)(starpu_drand48());
-			B[j+i*matrix_dim] = (TYPE)(starpu_drand48());
-			C[j+i*matrix_dim] = (TYPE)(0);
-		}
-	}
-#endif
-}
-
-static void partition_mult_data(void)
-{
-	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
-		matrix_dim, matrix_dim, matrix_dim, sizeof(TYPE));
-	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
-		matrix_dim, matrix_dim, matrix_dim, sizeof(TYPE));
-	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
-		matrix_dim, matrix_dim, matrix_dim, sizeof(TYPE));
-
-	struct starpu_data_filter vert;
-	memset(&vert, 0, sizeof(vert));
-	vert.filter_func = starpu_matrix_filter_vertical_block;
-	vert.nchildren = nslices;
-
-	struct starpu_data_filter horiz;
-	memset(&horiz, 0, sizeof(horiz));
-	horiz.filter_func = starpu_matrix_filter_block;
-	horiz.nchildren = nslices;
-
-	starpu_data_partition(B_handle, &vert);
-	starpu_data_partition(A_handle, &horiz);
-
-	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+	return NULL;
 }
 
 
-void cpu_init_matrix_random(void *descr[], void *arg)
-{
-	(void)arg;
-	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
-	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
-
-	for (unsigned i = 0; i < nx *ny; i++)
-	{
-		subA[i] = (TYPE) (starpu_drand48());
-		subB[i] = (TYPE) (starpu_drand48());
-	}
-}
-
-
-void cpu_init_matrix_zero(void *descr[], void *arg)
-{
-	(void)arg;
-	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
-
-	for (unsigned i = 0; i < nx *ny; i++)
-	{
-		subA[i] = (TYPE) (0);
-	}
-}
-
-
-void cpu_mult(void *descr[], void *arg)
-{
-	(void)arg;
-	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
-	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
-
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
-
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
-
-	int worker_size = starpu_combined_worker_get_size();
-
-	if (worker_size == 1)
-	{
-		/* Sequential CPU task */
-		CPU_GEMM("N", "N", nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB, (TYPE)0.0, subC, ldC);
-	}
-	else
-	{
-		/* Parallel CPU task */
-		unsigned rank = starpu_combined_worker_get_rank();
-
-		unsigned block_size = (nyC + worker_size - 1)/worker_size;
-		unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
-
-		STARPU_ASSERT(nyC == STARPU_MATRIX_GET_NY(descr[1]));
-
-		TYPE *new_subB = &subB[block_size*rank];
-		TYPE *new_subC = &subC[block_size*rank];
-
-		CPU_GEMM("N", "N", nxC, new_nyC, nyA, (TYPE)1.0, subA, ldA, new_subB, ldB, (TYPE)0.0, new_subC, ldC);
-	}
-}
-
-static struct starpu_perfmodel starpu_gemm_model =
-{
-	.type = STARPU_HISTORY_BASED,
-	.symbol = STARPU_GEMM_STR(gemm)
-};
-
-static struct starpu_codelet cl =
-{
-	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_mult},
-	.cpu_funcs_name = {"cpu_mult"},
-	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &starpu_gemm_model
-};
-
-static struct starpu_codelet cl_init_matrix_random =
-{
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_init_matrix_random},
-	.cpu_funcs_name = {"cpu_init_matrix_random"},
-	.nbuffers = 2,
-	.modes = {STARPU_W, STARPU_W}
-};
-
-static struct starpu_codelet cl_init_matrix_zero =
-{
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_init_matrix_zero},
-	.cpu_funcs_name = {"cpu_init_matrix_zero"},
-	.nbuffers = 1,
-	.modes = {STARPU_W}
-};
-
-static void parse_args(int argc, char **argv)
+void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
@@ -275,11 +94,6 @@ static void parse_args(int argc, char **argv)
 			check = 1;
 		}
 
-		else if (strcmp(argv[i], "-spmd") == 0)
-		{
-			cl.type = STARPU_SPMD;
-		}
-
 		else if (strcmp(argv[i], "-comm-thread-cpuid") == 0)
 		{
 			comm_thread_cpuid = atoi(argv[++i]);
@@ -287,37 +101,18 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-spmd] [-comm_thread_cpuid cpuid]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-comm-thread-cpuid cpuid]\n", argv[0]);
 			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks\n", matrix_dim, nslices);
-			fprintf(stderr, "Use -comm_thread_cpuid to specifiy where to bind the comm benchmarking thread\n");
+			fprintf(stderr, "Use -comm-thread-cpuid to specifiy where to bind the comm benchmarking thread\n");
 			exit(EXIT_SUCCESS);
 		}
+
 		else
 		{
-			fprintf(stderr,"Unrecognized option %s", argv[i]);
+			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
 			exit(EXIT_FAILURE);
 		}
 	}
-}
-
-
-static void* comm_thread_func(void* arg)
-{
-	if (comm_thread_cpuid < 0)
-	{
-		comm_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
-	}
-
-	if (starpu_bind_thread_on(comm_thread_cpuid, 0, "Comm") < 0)
-	{
-		char hostname[65];
-		gethostname(hostname, sizeof(hostname));
-		_STARPU_DISP("[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
-	}
-
-	sendrecv_bench(mpi_rank, &thread_barrier);
-
-	return NULL;
 }
 
 int main(int argc, char **argv)
@@ -362,10 +157,7 @@ int main(int argc, char **argv)
 
 
 	// Main thread will submit GEMM tasks:
-	starpu_malloc_flags((void **)&A, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_malloc_flags((void **)&B, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_malloc_flags((void **)&C, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	partition_mult_data();
+	gemm_alloc_data();
 
 
 	if (mpi_rank == 0)
@@ -375,43 +167,9 @@ int main(int argc, char **argv)
 
 	starpu_pause();
 
-	unsigned x, y;
-#ifndef STARPU_SIMGRID
-	// Initialize matrices:
-	for (x = 0; x < nslices; x++)
-	{
-		struct starpu_task *task = starpu_task_create();
-		task->cl = &cl_init_matrix_random;
-		task->handles[0] = starpu_data_get_sub_data(A_handle, 1, x);
-		task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-		ret = starpu_task_submit(task);
-		CHECK_TASK_SUBMIT(ret);
+	if(gemm_init_data() == -ENODEV || gemm_submit_tasks() == -ENODEV)
+		goto enodev;
 
-		for (y = 0; y < nslices; y++)
-		{
-			task = starpu_task_create();
-			task->cl = &cl_init_matrix_zero;
-			task->handles[0] = starpu_data_get_sub_data(C_handle, 2, x, y);
-			ret = starpu_task_submit(task);
-			CHECK_TASK_SUBMIT(ret);
-		}
-	}
-#endif
-
-	for (x = 0; x < nslices; x++)
-	for (y = 0; y < nslices; y++)
-	{
-		struct starpu_task *task = starpu_task_create();
-		task->cl = &cl;
-		task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-		task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-		task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
-		task->flops = 2ULL * (matrix_dim/nslices) * (matrix_dim/nslices) * matrix_dim;
-
-		ret = starpu_task_submit(task);
-		CHECK_TASK_SUBMIT(ret);
-		starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
-	}
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	starpu_fxt_start_profiling();
@@ -431,20 +189,7 @@ int main(int argc, char **argv)
 
 
 enodev:
-	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
-	starpu_data_unpartition(B_handle, STARPU_MAIN_RAM);
-	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
-
-	starpu_data_unregister(A_handle);
-	starpu_data_unregister(B_handle);
-	starpu_data_unregister(C_handle);
-
-	if (check)
-		check_output();
-
-	starpu_free_flags(A, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_free_flags(B, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	starpu_free_flags(C, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	gemm_release();
 
 
 	// Wait comm thread:

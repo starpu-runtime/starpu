@@ -1049,6 +1049,8 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 
+	STARPU_ASSERT_MSG(topology_is_initialized, "The StarPU core is not initialized yet, have you called starpu_init?");
+
 	unsigned current_preferred;
 	unsigned nhyperthreads = topology->nhwpus / topology->nhwcpus;
 	unsigned ncores = topology->nhwpus / nhyperthreads;
@@ -2854,7 +2856,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 					config->nbindid = STARPU_NMAXWORKERS;
 				else
 					config->nbindid = 2 * old_nbindid;
-				if (bindid > config->nbindid)
+				if (bindid >= config->nbindid)
 				{
 					config->nbindid = bindid+1;
 				}

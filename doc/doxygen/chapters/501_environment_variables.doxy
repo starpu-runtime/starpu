@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -866,6 +867,20 @@ a homogenenous cluster, it is possible to share the models between
 machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
 </dd>
 
+<dt>STARPU_MPI_HOSTNAMES</dt>
+<dd>
+\anchor STARPU_MPI_HOSTNAMES
+\addindex __env__STARPU_MPI_HOSTNAMES
+Similar to \ref STARPU_HOSTNAME but to define multiple nodes on a
+heterogeneous cluster. The variable is a list of hostnames that will be assigned
+to each StarPU-MPI rank considering their position and the value of
+\ref starpu_mpi_world_rank on each rank. When running, for example, on a
+heterogeneous cluster, it is possible to set individual models for each machine
+by setting <c>export STARPU_MPI_HOSTNAMES="name0 name1 name2"</c>. Where rank 0
+will receive name0, rank1 will receive name1, and so on.
+This variable has precedence over \ref STARPU_HOSTNAME.
+</dd>
+
 <dt>STARPU_OPENCL_PROGRAM_DIR</dt>
 <dd>
 \anchor STARPU_OPENCL_PROGRAM_DIR
@@ -984,6 +999,23 @@ with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
 memory available to StarPU will thus be this amount multiplied by the number of
 NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
 specified will take over STARPU_LIMIT_CPU_NUMA_MEM.
+</dd>
+
+<dt>STARPU_LIMIT_BANDWIDTH</dt>
+<dd>
+\anchor STARPU_LIMIT_BANDWIDTH
+\addindex __env__STARPU_LIMIT_BANDWIDTH
+Specify the maximum available PCI bandwidth of the system in MB/s. This can only
+be effective with simgrid simulation. This allows to easily override the
+bandwidths stored in the platform file generated from measurements on the native
+system. This can be used e.g. for convenient
+
+Specify the maximum number of megabytes that should be available to the
+application on each NUMA node. This is the same as specifying that same amount
+with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
+memory available to StarPU will thus be this amount multiplied by the number of
+NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
+specified will take over STARPU_LIMIT_BANDWIDTH.
 </dd>
 
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>

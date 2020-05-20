@@ -21,8 +21,8 @@
  * Check that we detect that with only a CPU we can't submit a GPU-only task
  */
 
-#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
-#warning unsetenv is not defined or no cpu are available. Skipping test
+#if !defined(STARPU_USE_CPU)
+#warning no cpu are available. Skipping test
 int main(void)
 {
 	return STARPU_TEST_SKIPPED;
@@ -48,11 +48,9 @@ int main(void)
 	int ret;
 
 	/* We force StarPU to use 1 CPU only */
-	unsetenv("STARPU_NCUDA");
-	unsetenv("STARPU_NOPENCL");
-	unsetenv("STARPU_NCPUS");
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.ncpus = 1;
 	conf.nopencl = 0;
 	conf.ncuda = 0;

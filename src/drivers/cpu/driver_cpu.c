@@ -301,6 +301,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	if (pending_task != NULL && cpu_worker->nb_buffers_transferred == cpu_worker->nb_buffers_totransfer)
 	{
 		int ret;
+		STARPU_RMB();
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 

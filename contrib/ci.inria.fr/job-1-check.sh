@@ -63,12 +63,13 @@ fi
 export CC=gcc
 
 CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc"
+CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
 then
     CONFIGURE_CHECK="--enable-quick-check"
-else
-    CONFIGURE_CHECK="--enable-long-check"
+#else
+    # we do a normal check, a long check takes too long on VM nodes
 fi
 ../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS
 

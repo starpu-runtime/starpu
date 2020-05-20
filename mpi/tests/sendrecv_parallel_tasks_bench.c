@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 /*
  * sendrecv benchmark from different tasks, executed simultaneously on serveral
  * workers.
@@ -21,6 +22,13 @@
  * The goal is to measure impact of calls to starpu_mpi_* from different threads.
  *
  * Use STARPU_NCPU to set the number of parallel ping pongs
+ *
+ *
+ * Note: This currently can not work with the MPI backend with more than 1 CPU,
+ * since with big sizes, the MPI_Wait call in the MPI thread may block waiting
+ * for the peer to call MPI_Recv+Wait, and there is no guarantee that the peer
+ * will call MPI_Recv+Wait for the same data since tasks can proceed in any
+ * order.
  */
 
 #include <starpu_mpi.h>
@@ -174,7 +182,7 @@ int main(int argc, char **argv)
 	{
 		starpu_pause();
 
-		for (int i = 0; i < cpu_count; i++)
+		for (unsigned i = 0; i < cpu_count; i++)
 		{
 			workers[i] = i;
 			vectors_send[i] = malloc(s);

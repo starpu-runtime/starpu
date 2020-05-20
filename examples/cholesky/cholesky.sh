@@ -22,6 +22,26 @@ ROOT=${0%.sh}
 [ -n "$STARPU_HOSTNAME" ] || export STARPU_HOSTNAME=mirage
 unset MALLOC_PERTURB_
 
+INCR=2
+STOP=32
+
+if [ -n "$STARPU_SIMGRID" ]
+then
+	INCR=4
+	STOP=14
+	# These use the thread factory, and are thus much longer
+	if [ -n "$STARPU_QUICK_CHECK" ]
+	then
+		INCR=8
+		STOP=10
+	fi
+	if [ -n "$STARPU_LONG_CHECK" ]
+	then
+		INCR=4
+		STOP=32
+	fi
+fi
+
 (
 echo -n "#"
 for STARPU_SCHED in $STARPU_SCHEDS ; do
@@ -29,7 +49,7 @@ for STARPU_SCHED in $STARPU_SCHEDS ; do
 done
 echo
 
-for size in `seq 2 2 30` ; do
+for size in `seq 2 $INCR $STOP` ; do
 	echo -n "$((size * 960))"
 	for STARPU_SCHED in $STARPU_SCHEDS
 	do

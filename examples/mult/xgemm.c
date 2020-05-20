@@ -66,7 +66,7 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
-static void check_output(void)
+static int check_output(void)
 {
 	/* compute C = C - AB */
 	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0f, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
@@ -78,6 +78,7 @@ static void check_output(void)
 	if (err < xdim*ydim*0.001)
 	{
 		FPRINTF(stderr, "Results are OK\n");
+		return 0;
 	}
 	else
 	{
@@ -86,6 +87,7 @@ static void check_output(void)
 
 		FPRINTF(stderr, "There were errors ... err = %f\n", err);
 		FPRINTF(stderr, "Max error : %e\n", C[max]);
+		return 1;
 	}
 }
 
@@ -150,6 +152,11 @@ static void partition_mult_data(void)
 	starpu_data_partition(A_handle, &horiz);
 
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+
+	unsigned x, y;
+	for (x = 0; x < nslicesx; x++)
+	for (y = 0; y < nslicesy; y++)
+		starpu_data_set_coordinates(starpu_data_get_sub_data(C_handle, 2, x, y), 2, x, y);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -236,7 +243,7 @@ static struct starpu_codelet cl =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.model = &starpu_gemm_model
 };
 
@@ -334,7 +341,7 @@ static void parse_args(int argc, char **argv)
 		}
 		else
 		{
-			fprintf(stderr,"Unrecognized option %s", argv[i]);
+			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -398,6 +405,7 @@ int main(int argc, char **argv)
 				ret = starpu_task_submit(task);
 				if (ret == -ENODEV)
 				{
+				     check = 0;
 				     ret = 77;
 				     goto enodev;
 				}
@@ -448,8 +456,10 @@ enodev:
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 
+#ifndef STARPU_SIMGRID
 	if (check)
-		check_output();
+		ret = check_output();
+#endif
 
 	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_free_flags(B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);

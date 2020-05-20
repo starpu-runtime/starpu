@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,10 @@
 	#define MULT_DEFAULT 4
 	#define LOOPS_DEFAULT 100
 	#define NX_MAX (64 * 1024 * 1024) // kB
+#elif !defined(STARPU_LONG_CHECK)
+	#define MULT_DEFAULT 4
+	#define LOOPS_DEFAULT 10000
+	#define NX_MAX (128 * 1024 * 1024) // kB
 #else
 	#define MULT_DEFAULT 2
 	#define LOOPS_DEFAULT 100000

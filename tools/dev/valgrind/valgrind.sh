@@ -17,6 +17,13 @@
 EXEC=$(basename $0 .sh)
 DIRNAME=$(dirname $0)
 
+CLIMIT=$(ulimit -c)
+if [ "$CLIMIT" = unlimited ]
+then
+	# valgrind cores are often *huge*, 100MB will already be quite big...
+	ulimit -c 100000
+fi
+
 if test "$EXEC" == "valgrind"
 then
     RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --error-exitcode=42"

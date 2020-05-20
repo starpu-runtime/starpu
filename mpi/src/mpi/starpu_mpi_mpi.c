@@ -51,7 +51,10 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
+#endif
+
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #ifdef STARPU_MPI_VERBOSE
@@ -1173,6 +1176,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	starpu_pthread_setname("MPI");
 
+	_starpu_mpi_env_init();
+
 #ifndef STARPU_SIMGRID
 	if (_starpu_mpi_thread_cpuid < 0)
 	{
@@ -1189,11 +1194,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	if (_starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
-#endif
-
-	_starpu_mpi_env_init();
-
-#ifdef STARPU_SIMGRID
+#else
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
 	char **argv_cpy;
 	_STARPU_MPI_MALLOC(argv_cpy, *(argc_argv->argc) * sizeof(char*));
@@ -1532,9 +1533,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	return NULL;
 }
 
+#ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	int ret;
@@ -1563,8 +1564,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
 	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-#endif
 }
+#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {

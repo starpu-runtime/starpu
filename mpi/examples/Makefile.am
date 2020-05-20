@@ -21,6 +21,8 @@ CCLD=$(MPICC)
 FC=$(MPIFORT)
 FCLD=$(MPIFORT)
 
+noinst_PROGRAMS		=
+
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
@@ -28,6 +30,7 @@ loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
+noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
@@ -395,10 +398,10 @@ endif
 # - link over source file to build our own object
 native_fortran/fstarpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
+	$(V_ln) $(LN_S) $(abs_top_srcdir)/include/$(notdir $@) $@
 native_fortran/fstarpu_mpi_mod.f90:
 	@$(MKDIR_P) $(dir $@)
-	$(LN_S) $(abs_top_srcdir)/mpi/include/$(notdir $@) $@
+	$(V_ln) $(LN_S) $(abs_top_srcdir)/mpi/include/$(notdir $@) $@
 
 if STARPU_HAVE_MPIFORT
 if BUILD_EXAMPLES

@@ -753,7 +753,7 @@ do {									\
 	{								\
 		/* we include the task name */			\
 		_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 1, name); \
-		if (model_name && strcmp(model_name, name))				\
+		if (model_name)					\
 			_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 	}								\
 	else {                                                          \
@@ -881,16 +881,15 @@ do {										\
 } while(0);
 
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
-	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_DATA_NAME, handle, name)
+	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_NAME, handle, name)
 
 #define _STARPU_TRACE_DATA_COORDINATES(handle, dim, v) do {\
-	if (_starpu_fxt_started) \
 	switch (dim) { \
-	case 1: FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DATA_VERBOSE, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
-	case 2: FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_DATA_VERBOSE, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
-	case 3: FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_DATA_VERBOSE, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
-	case 4: FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_DATA_VERBOSE, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
-	default: FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_DATA_VERBOSE, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
+	case 1: FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0]); break; \
+	case 2: FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1]); break; \
+	case 3: FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2]); break; \
+	case 4: FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3]); break; \
+	default: FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_COORDINATES, handle, dim, v[0], v[1], v[2], v[3], v[4]); break; \
 	} \
 } while (0)
 
@@ -1284,7 +1283,7 @@ do {										\
 		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
 	else \
 		__buf[0] = 0; \
-	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
+	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
