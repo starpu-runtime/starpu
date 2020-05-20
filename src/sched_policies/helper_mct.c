@@ -36,8 +36,10 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 	{
 		data->alpha = params->alpha;
 		data->beta = params->beta;
+		/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
 		data->_gamma = params->_gamma;
-		data->idle_power = params->idle_power;
+		/* data->idle_power: Idle power of the whole machine in Watt */
+		data->idle_power = params->idle_power; 
 	}
 	else
 	{
@@ -89,12 +91,11 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 	/* max_exp_end is the maximum end time of the workers. If the total execution time is increased, then an 
           additional energy penalty must be considered*/
 	if(exp_end > max_exp_end)
-		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end) / 1000000.0;
+		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
+											       then  d->idle_power * (exp_end - max_exp_end) 
+											       must be in Joules, thus the / 1000000.0 */
+
 	return fitness;
-	/* return d->alpha * (exp_end - min_exp_end) */
-	/* 	+ d->beta * transfer_len */
-	/* 	+ d->_gamma * local_energy / 1000000.0 */
-	/* 	+ d->_gamma * d->idle_power * (exp_end - max_exp_end) / 1000000.0; */
 }
 
 unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
@@ -150,7 +151,7 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		/* estimated_ends_with_task[icomponent]: estimated end of execution on the worker icomponent
 		   estimated_end: estimatated end of the worker
 		   min_exp_end_with_task: minimum estimated execution time of the task over all workers
-		   max_exp_end_with_task: maximum estimated end of all workers 
+		   max_exp_end_with_task: maximum estimated end of the whole run (not just the task) all workers 
 		*/
 		if(estimated_ends_with_task[icomponent] < *min_exp_end_with_task)
 			*min_exp_end_with_task = estimated_ends_with_task[icomponent];
@@ -159,6 +160,7 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 	}
 }
 
+/* This function retrieves the energy consumption of a task in Joules*/
 void starpu_mct_compute_energy(struct starpu_sched_component *component, struct starpu_task *task , double *local_energy, unsigned *suitable_components, unsigned nsuitable_components)
 {
 	unsigned i;
@@ -186,10 +188,6 @@ int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task
 	for(i = 0; i < nsuitable_components; i++)
 	{
 		int icomponent = suitable_components[i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take energy consumption into account
-#endif
-
 		double tmp = starpu_mct_compute_fitness(d,
 					     estimated_ends_with_task[icomponent],
 					     min_exp_end_with_task,

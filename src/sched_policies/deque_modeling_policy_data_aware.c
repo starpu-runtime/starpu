@@ -845,7 +845,9 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					/* This placement will make the computation
 					 * longer, take into account the idle
 					 * consumption of other cpus */
-					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0;
+					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
+																									  then  d->idle_power * (exp_end - max_exp_end) 
+																									  must be in Joules, thus the / 1000000.0 */
 				}
 
 				if (best == -1 || fitness[worker_ctx][nimpl] < best_fitness)
@@ -1011,7 +1013,9 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
 	dt->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+	/* data->idle_power: Idle power of the whole machine in Watt */
 	dt->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 
 	if(starpu_sched_ctx_min_priority_is_set(sched_ctx_id) != 0 && starpu_sched_ctx_max_priority_is_set(sched_ctx_id) != 0)
