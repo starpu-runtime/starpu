@@ -53,6 +53,9 @@ EXTRA_DIST =					\
 	dependency/tag_dep.sh			\
 	dependency/task_dep.sh			\
 	dependency/task_dep.jl			\
+	gemm/gemm.jl				\
+	gemm/gemm_native.jl			\
+	gemm/gemm.sh				\
 	mandelbrot/mandelbrot_native.jl		\
 	mandelbrot/mandelbrot.jl		\
 	mandelbrot/mandelbrot.sh		\
@@ -131,5 +134,6 @@ SHELL_TESTS			+=	dependency/task_dep.sh
 SHELL_TESTS			+=	dependency/end_dep.sh
 
 if !NO_BLAS_LIB
-SHELL_TESTS			+= axpy/axpy.sh
+SHELL_TESTS			+=	axpy/axpy.sh
+SHELL_TESTS			+=	gemm/gemm.sh
 endif
