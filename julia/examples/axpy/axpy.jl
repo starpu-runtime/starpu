@@ -26,6 +26,12 @@ function check(alpha, X, Y)
     end
 end
 
+@target STARPU_CPU+STARPU_CUDA
+@codelet function axpy(X :: Vector{Float32}, Y :: Vector{Float32}, alpha ::Float32) :: Nothing
+    STARPU_SAXPY(length(X), alpha, X, 1, Y, 1)
+    return
+end
+
 function axpy(N, NBLOCKS, alpha, display = true)
     X = Array(fill(1.0f0, N))
     Y = Array(fill(4.0f0, N))
@@ -41,8 +47,9 @@ function axpy(N, NBLOCKS, alpha, display = true)
     )
 
     cl = starpu_codelet(
-        cpu_func = STARPU_SAXPY,
-        cuda_func = STARPU_SAXPY,
+        cpu_func = CPU_CODELETS["axpy"],
+        cuda_func = CUDA_CODELETS["axpy"],
+        #cuda_func = STARPU_SAXPY,
         modes = [STARPU_R, STARPU_RW],
         perfmodel = perfmodel
     )
@@ -75,7 +82,6 @@ function axpy(N, NBLOCKS, alpha, display = true)
 
     if display
         @printf("timing -> %d us %.2f MB/s\n", timing, 3*N*4/timing)
-        # println("timing -> ", timing, " us ", floor(3*N*4/timing), "MB/s")
         println("AFTER y[0] = ", Y[1], " (ALPHA=", alpha, ")")
     end
 

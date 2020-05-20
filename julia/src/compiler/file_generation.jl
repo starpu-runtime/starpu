@@ -18,6 +18,8 @@ const cpu_kernel_file_start = "#include <stdio.h>
 #include <starpu.h>
 #include <math.h>
 
+#include \"blas.h\"
+
 static inline long long jlstarpu_max(long long a, long long b)
 {
 	return (a > b) ? a : b;
@@ -38,15 +40,16 @@ const cuda_kernel_file_start = "#include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
 #include <math.h>
+#include <starpu_cublas_v2.h>
 
 #define THREADS_PER_BLOCK 64
 
-static inline long long jlstarpu_max(long long a, long long b)
+__attribute__((unused)) static inline long long jlstarpu_max(long long a, long long b)
 {
 	return (a > b) ? a : b;
 }
 
-static inline long long jlstarpu_interval_size(long long start, long long step, long long stop)
+__attribute__((unused)) static inline long long jlstarpu_interval_size(long long start, long long step, long long stop)
 {
     if (stop >= start){
             return jlstarpu_max(0, (stop - start + 1) / step);
@@ -56,12 +59,12 @@ static inline long long jlstarpu_interval_size(long long start, long long step, 
 }
 
 
-__device__ static inline long long jlstarpu_max__device(long long a, long long b)
+__attribute__((unused)) __device__ static inline long long jlstarpu_max__device(long long a, long long b)
 {
 	return (a > b) ? a : b;
 }
 
-__device__ static inline long long jlstarpu_interval_size__device(long long start, long long step, long long stop)
+__attribute__((unused)) __device__ static inline long long jlstarpu_interval_size__device(long long start, long long step, long long stop)
 {
 	if (stop >= start){
 		return jlstarpu_max__device(0, (stop - start + 1) / step);
@@ -69,7 +72,6 @@ __device__ static inline long long jlstarpu_interval_size__device(long long star
 		return jlstarpu_max__device(0, (stop - start - 1) / step);
 	}
 }
-
 
 "
 
@@ -130,7 +132,11 @@ macro codelet(x)
         kernel_file = open(generated_cuda_kernel_file_name, "w")
         debug_print("generating ", generated_cuda_kernel_file_name)
         print(kernel_file, cuda_kernel_file_start)
-        print(kernel_file, "__global__ ", kernel)
+
+        if kernel != nothing
+            print(kernel_file, "__global__ ", kernel)
+        end
+
         print(kernel_file, c_struct_param_decl)
         print(kernel_file, "\nextern \"C\" ", prekernel)
         close(kernel_file)
