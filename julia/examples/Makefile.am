@@ -47,6 +47,9 @@ EXTRA_DIST =					\
 	callback/callback.sh			\
 	check_deps/check_deps.jl		\
 	check_deps/check_deps.sh		\
+	cholesky/cholesky_native.jl		\
+	cholesky/cholesky.jl			\
+	cholesky/cholesky.sh			\
 	dependency/end_dep.jl			\
 	dependency/end_dep.sh			\
 	dependency/tag_dep.jl			\
@@ -135,5 +138,6 @@ SHELL_TESTS			+=	dependency/end_dep.sh
 
 if !NO_BLAS_LIB
 SHELL_TESTS			+=	axpy/axpy.sh
+SHELL_TESTS			+=	cholesky/cholesky.sh
 SHELL_TESTS			+=	gemm/gemm.sh
 endif
