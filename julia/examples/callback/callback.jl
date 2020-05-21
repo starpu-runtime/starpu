@@ -37,9 +37,7 @@ function variable_with_starpu(val ::Ref{Int32})
     )
 
     cl = starpu_codelet(
-        cpu_func = CPU_CODELETS["variable"],
-        # cuda_func = CUDA_CODELETS["matrix_mult"],
-        #opencl_func="ocl_matrix_mult",
+        cpu_func = "variable",
         modes = [STARPU_RW],
         perfmodel = perfmodel
     )

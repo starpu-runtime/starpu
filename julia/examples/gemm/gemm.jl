@@ -45,8 +45,8 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
             symbol = "history_perf"
         )
         cl = starpu_codelet(
-            cpu_func = CPU_CODELETS["gemm"],
-            cuda_func = CUDA_CODELETS["gemm"],
+            cpu_func = "gemm",
+            cuda_func = "gemm",
             modes = [STARPU_R, STARPU_R, STARPU_RW],
             perfmodel = perfmodel
         )

@@ -35,13 +35,13 @@ function task_insert_color_with_starpu(val ::Ref{Int32})
         )
 
         cl1 = starpu_codelet(
-            cpu_func = CPU_CODELETS["task_insert_color"],
+            cpu_func = "task_insert_color",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )
 
         cl2 = starpu_codelet(
-            cpu_func = CPU_CODELETS["task_insert_color"],
+            cpu_func = "task_insert_color",
             modes = [STARPU_RW],
             perfmodel = perfmodel,
             color = 0x0000FF

@@ -75,17 +75,17 @@ function main()
     )
 
         clA = starpu_codelet(
-            cpu_func = CPU_CODELETS["codeletA"],
+            cpu_func = "codeletA",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )
         clB = starpu_codelet(
-            cpu_func = CPU_CODELETS["codeletB"],
+            cpu_func = "codeletB",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )
         clC = starpu_codelet(
-            cpu_func = CPU_CODELETS["codeletC"],
+            cpu_func = "codeletC",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )

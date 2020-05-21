@@ -75,23 +75,23 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
         symbol = "history_perf"
     )
     cl_11 = starpu_codelet(
-        cpu_func = CPU_CODELETS["u11"],
+        cpu_func = "u11",
         # This kernel cannot be translated to CUDA yet.
-        # cuda_func = CUDA_CODELETS["u11"],
+        # cuda_func = "u11",
         modes = [STARPU_RW],
         color = 0xffff00,
         perfmodel = perfmodel
     )
     cl_21 = starpu_codelet(
-        cpu_func = CPU_CODELETS["u21"],
-        # cuda_func = CUDA_CODELETS["u21"],
+        cpu_func = "u21",
+        # cuda_func = "u21",
         modes = [STARPU_R, STARPU_RW],
         color = 0x8080ff,
         perfmodel = perfmodel
     )
     cl_22 = starpu_codelet(
-        cpu_func = CPU_CODELETS["u22"],
-        # cuda_func = CUDA_CODELETS["u22"],
+        cpu_func = "u22",
+        # cuda_func = "u22",
         modes = [STARPU_R, STARPU_R, STARPU_RW],
         color = 0x00ff00,
         perfmodel = perfmodel

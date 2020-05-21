@@ -87,9 +87,9 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
             symbol = "history_perf"
         )
         cl = starpu_codelet(
-            cpu_func = CPU_CODELETS["matrix_mult"],
-            # cuda_func = CUDA_CODELETS["matrix_mult"],
-            #opencl_func="ocl_matrix_mult",
+            cpu_func = "matrix_mult",
+            cuda_func = "matrix_mult",
+            #opencl_func="matrix_mult",
             modes = [STARPU_R, STARPU_R, STARPU_W],
             perfmodel = perfmodel
         )

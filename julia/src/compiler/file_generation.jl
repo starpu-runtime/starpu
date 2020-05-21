@@ -107,7 +107,7 @@ macro codelet(x)
     cpu_name = name
     cuda_name = "CUDA_"*name
     dump(name)
-    parse_scalar_parameters(parsed, cpu_name, cuda_name)
+    parse_scalar_parameters(parsed, name)
     c_struct_param_decl = generate_c_struct_param_declaration(name)
     cpu_expr = transform_to_cpu_kernel(parsed)
 
@@ -144,7 +144,7 @@ macro codelet(x)
     end
 end
 
-function parse_scalar_parameters(expr :: StarpuExprFunction, cpu_name::String, cuda_name::String)
+function parse_scalar_parameters(expr :: StarpuExprFunction, codelet_name)
     scalar_parameters = []
     for i in (1 : length(expr.args))
         type = expr.args[i].typ
@@ -153,8 +153,7 @@ function parse_scalar_parameters(expr :: StarpuExprFunction, cpu_name::String, c
         end
     end
 
-    CODELETS_SCALARS[cpu_name] = scalar_parameters
-    CODELETS_SCALARS[cuda_name] = scalar_parameters
+    CODELETS_SCALARS[codelet_name] = scalar_parameters
 
     # declare structure carrying scalar parameters
     struct_params_name = Symbol("params_", rand_string())
@@ -170,6 +169,5 @@ function parse_scalar_parameters(expr :: StarpuExprFunction, cpu_name::String, c
     eval(Meta.parse(add_to_dict_str))
 
     # save structure name
-    CODELETS_PARAMS_STRUCT[cpu_name] = struct_params_name
-    CODELETS_PARAMS_STRUCT[cuda_name] = struct_params_name
+    CODELETS_PARAMS_STRUCT[codelet_name] = struct_params_name
 end

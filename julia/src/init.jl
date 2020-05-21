@@ -28,6 +28,7 @@ function starpu_init()
         dump(ff)
         for k in keys(CUDA_CODELETS)
             CPU_CODELETS[k]=unsafe_string(ccall(ff,Cstring, (Cstring,Cstring),Cstring_from_String(string(k)),Cstring_from_String("cpu")))
+            CUDA_CODELETS[k]=unsafe_string(ccall(ff,Cstring, (Cstring,Cstring),Cstring_from_String(string(k)),Cstring_from_String("gpu")))
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else

@@ -41,9 +41,9 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
             symbol = "history_perf"
         )
         cl = starpu_codelet(
-            cpu_func = CPU_CODELETS["vector_scal"],
-            # cuda_func = CUDA_CODELETS["vector_scal"],
-            #opencl_func="ocl_matrix_mult",
+            cpu_func = "vector_scal",
+            # cuda_func = "vector_scal",
+            #opencl_func="",
             modes = [STARPU_RW],
             perfmodel = perfmodel
         )

@@ -71,7 +71,7 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
 }
 
 char* CPU = "cpu_mandelbrot";
-char* GPU = "gpu_mandelbrot";
+char* GPU = "";
 extern char *starpu_find_function(char *name, char *device)
 {
 	if (!strcmp(device,"gpu")) return GPU;

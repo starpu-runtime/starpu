@@ -47,8 +47,8 @@ function axpy(N, NBLOCKS, alpha, display = true)
     )
 
     cl = starpu_codelet(
-        cpu_func = CPU_CODELETS["axpy"],
-        cuda_func = CUDA_CODELETS["axpy"],
+        cpu_func = "axpy",
+        cuda_func = "axpy",
         #cuda_func = STARPU_SAXPY,
         modes = [STARPU_R, STARPU_RW],
         perfmodel = perfmodel

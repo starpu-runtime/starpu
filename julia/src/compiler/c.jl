@@ -80,9 +80,9 @@ function transform_to_cpu_kernel(expr :: StarpuExprFunction)
     return output
 end
 
-function generate_c_struct_param_declaration(funcname)
-    scalar_parameters = CODELETS_SCALARS[funcname]
-    struct_params_name = CODELETS_PARAMS_STRUCT[funcname]
+function generate_c_struct_param_declaration(codelet_name)
+    scalar_parameters = CODELETS_SCALARS[codelet_name]
+    struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
 
     output = "struct $struct_params_name {\n"
     for p in scalar_parameters
