@@ -116,23 +116,20 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
 end
 
 
-function approximately_equals(
-    A :: Matrix{Cfloat},
-    B :: Matrix{Cfloat},
-    eps = 1e-2
-)
-    (height, width) = size(A)
+function check(A, B, C)
+    expected = A * B
+    height,width = size(C)
+    for i in 1:height
+        for j in 1:width
+            got = C[i, j]
+            exp = expected[i, j]
 
-    for j in (1 : width)
-        for i in (1 : height)
-            if (abs(A[i,j] - B[i,j]) > eps * max(abs(B[i,j]), abs(A[i,j])))
-                println("A[$i,$j] : $(A[i,j]), B[$i,$j] : $(B[i,j])")
-                return false
+            err = abs(exp - got) / exp
+            if err > 0.0001
+                error("[$i] -> $got != $exp (err $err)")
             end
         end
     end
-
-    return true
 end
 
 function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy, stride)
@@ -145,6 +142,7 @@ function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy, str
         size=dim*dim*4*3/1024/1024
         println(io,"$size $flops")
         println("$size $flops")
+        check(A, B, C)
     end
 end
 

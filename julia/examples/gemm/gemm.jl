@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 using StarPU
+using LinearAlgebra.BLAS
 
 @target STARPU_CPU+STARPU_CUDA
 @codelet function gemm(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, alpha :: Float32, beta :: Float32) :: Nothing
@@ -21,9 +22,9 @@ using StarPU
     M :: Int32 = height(A)
     N :: Int32 = width(B)
     K :: Int32 = width(A)
-    lda :: Int32 = height(A)
-    ldb :: Int32 = height(B)
-    ldc :: Int32 = height(C)
+    lda :: Int32 = ld(A)
+    ldb :: Int32 = ld(B)
+    ldc :: Int32 = ld(C)
     STARPU_SGEMM("N", "N", M, N, K, alpha, A, lda, B, ldb, beta, C, ldc)
 
     return
@@ -63,6 +64,7 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                     end
                 end
             end
+            starpu_task_wait_for_all()
             t=time_ns()-t
             if (tmin==0 || tmin>t)
                 tmin=t
@@ -92,11 +94,31 @@ function approximately_equals(
     return true
 end
 
+function check(expected, A, B, C, alpha, beta)
+    for i in 1 : 10
+        gemm!('N', 'N', alpha, A, B, beta, expected)
+    end
+
+    height,width = size(C)
+    for i in 1:height
+        for j in 1:width
+            got = C[i, j]
+            exp = expected[i, j]
+
+            err = abs(exp - got) / exp
+            if err > 0.0001
+                error("[$i] -> $got != $exp (err $err)")
+            end
+        end
+    end
+end
+
 function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
     for dim in (start_dim : step_dim : stop_dim)
         A = Array(rand(Cfloat, dim, dim))
         B = Array(rand(Cfloat, dim, dim))
         C = zeros(Float32, dim, dim)
+        C_ref = copy(C)
         starpu_memory_pin(A)
         starpu_memory_pin(B)
         starpu_memory_pin(C)
@@ -111,6 +133,7 @@ function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
         starpu_memory_unpin(A)
         starpu_memory_unpin(B)
         starpu_memory_unpin(C)
+        check(C_ref, A, B, C, alpha, beta)
     end
 end
 
@@ -121,9 +144,9 @@ else
 end
 
 starpu_init()
-
+starpu_cublas_init()
 io=open(filename,"w")
-compute_times(io,64,512,4096,2,2)
+compute_times(io,64,512,4096,1,1)
 close(io)
 
 starpu_shutdown()

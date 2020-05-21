@@ -61,7 +61,7 @@ function display()
     if v[] == 42
         println("result is correct")
     else
-        println("result is incorret")
+        error("result is incorret")
     end
 end
 

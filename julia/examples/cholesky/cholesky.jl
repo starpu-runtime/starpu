@@ -84,14 +84,14 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
     )
     cl_21 = starpu_codelet(
         cpu_func = "u21",
-        # cuda_func = "u21",
+        cuda_func = "u21",
         modes = [STARPU_R, STARPU_RW],
         color = 0x8080ff,
         perfmodel = perfmodel
     )
     cl_22 = starpu_codelet(
         cpu_func = "u22",
-        # cuda_func = "u22",
+        cuda_func = "u22",
         modes = [STARPU_R, STARPU_R, STARPU_RW],
         color = 0x00ff00,
         perfmodel = perfmodel
@@ -166,6 +166,7 @@ end
 
 function main(size_p :: Int, nblocks :: Int, verbose = false)
     starpu_init()
+    starpu_cublas_init()
 
     mat :: Matrix{Float32} = zeros(Float32, size_p, size_p)
 

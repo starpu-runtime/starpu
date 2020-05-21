@@ -44,7 +44,7 @@ function display(niter)
     if foo[] == niter
         println("result is correct")
     else
-        println("result is incorret")
+        error("result is incorret")
     end
 end
 

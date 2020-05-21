@@ -67,9 +67,24 @@ function vector_scal_with_starpu(v :: Vector{Float32}, m :: Int32, k :: Float32,
     return tmin
 end
 
+function check(ref, res, m, k, l)
+    expected = ref .* m .+ (k+l)
+
+    for i in 1:length(expected)
+        got = res[i]
+        exp = expected[i]
+
+        err = abs(exp - got) / exp
+        if err > 0.0001
+            error("[$i] -> $got != $exp (err $err)")
+        end
+    end
+end
+
 function compute_times(io,start_dim, step_dim, stop_dim)
     for size in (start_dim : step_dim : stop_dim)
         V = Array(rand(Cfloat, size))
+        V_ref = copy(V)
         starpu_memory_pin(V)
 
         m :: Int32 = 10
@@ -85,6 +100,8 @@ function compute_times(io,start_dim, step_dim, stop_dim)
         println("OUTPUT ", V[1:10])
         println(io,"$size $mt")
         println("$size $mt")
+
+        check(V_ref, V, m, k, l)
     end
 end
 
