@@ -24,6 +24,8 @@ export STARPU_JULIA_BUILD=@STARPU_BUILD_DIR@/julia
 export JULIA_NUM_THREADS=8
 srcdir=@STARPU_SRC_DIR@/julia/examples
 
+rm -f genc*.c gencuda*.cu
+
 if test "$1" == "-calllib"
 then
     shift
