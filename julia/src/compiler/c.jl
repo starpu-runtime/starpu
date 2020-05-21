@@ -221,9 +221,9 @@ function substitute_args(expr :: StarpuExprFunction)
 end
 
 func_substitution = Dict(
-    :width => :STARPU_MATRIX_GET_NY,
+    :width  => :STARPU_MATRIX_GET_NY,
     :height => :STARPU_MATRIX_GET_NX,
-
+    :ld     => :STARPU_MATRIX_GET_LD,
     :length => :STARPU_VECTOR_GET_NX
 )
 
