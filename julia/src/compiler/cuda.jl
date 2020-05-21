@@ -224,25 +224,7 @@ function translate_cublas(expr :: StarpuExpr)
         # cublasSideMode_t parameters (e.g. StarpuExprValue("L")
         for i in blas_to_cublas[x.func][5]
             if !isa(new_args[i], StarpuExprValue) || !isa(new_args[i].value, String)
-                error("Argument $i of ", x.func, " must be a string")
-            end
-
-            value = new_args[i].value
-
-            if value == "L" || value == "l"
-                new_args[i] = StarpuExprVar(:CUBLAS_SIDE_LEFT)
-            elseif value == "R" || value == "r"
-                new_args[i] = StarpuExprVar(:CUBLAS_SIDE_RIGHT)
-            else
-                error("Unhandled value for rgument $i of ", x.func, ": ", value,
-                      "expecting (\"L\" or \"R\")")
-            end
-        end
-
-        # cublasSideMode_t parameters (e.g. StarpuExprValue("L")
-        for i in blas_to_cublas[x.func][5]
-            if !isa(new_args[i], StarpuExprValue) || !isa(new_args[i].value, String)
-                error("Argument $i of ", x.func, " must be a string")
+                error("Argument $i of ", x.func, " must be a string, got: ", new_args[i])
             end
 
             value = new_args[i].value
