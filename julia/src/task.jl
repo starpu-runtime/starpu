@@ -111,6 +111,7 @@ function starpu_task(;
                      callback :: Union{Cvoid, Function} = nothing,
                      callback_arg = nothing,
                      tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                     tag_only :: Union{Cvoid, starpu_tag_t} = nothing,
                      sequential_consistency = true,
                      detach = 1,
                      color :: Union{Cvoid, UInt32} = nothing,
@@ -165,6 +166,10 @@ function starpu_task(;
     if tag != nothing
         output.c_task.tag_id = tag
         output.c_task.use_tag = 1
+    end
+
+    if tag_only != nothing
+        output.c_task.tag_id = tag_only
     end
 
     if color != nothing
@@ -288,6 +293,7 @@ function starpu_task_insert(;
                             callback :: Union{Cvoid, Function} = nothing,
                             callback_arg = nothing,
                             tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                            tag_only :: Union{Cvoid, starpu_tag_t} = nothing,
                             sequential_consistency = true,
                             detach = 1,
                             where :: Union{Cvoid, Int32} = nothing,
@@ -310,7 +316,8 @@ function starpu_task_insert(;
     end
 
     task = starpu_task(cl = cl, handles = handles, cl_arg = cl_arg, callback = callback,
-                       callback_arg = callback_arg, tag = tag, sequential_consistency = sequential_consistency,
+                       callback_arg = callback_arg, tag = tag, tag_only = tag_only,
+                       sequential_consistency = sequential_consistency,
                        detach = detach, color = color, where = where)
 
     starpu_task_submit(task)

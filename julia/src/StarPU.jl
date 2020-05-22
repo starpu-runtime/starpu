@@ -85,6 +85,7 @@ export starpu_data_get_sub_data
 export starpu_data_partition
 export starpu_data_unpartition
 export starpu_data_map_filters
+export starpu_data_wont_use
 export starpu_task_insert
 export starpu_task_wait_for_all
 export starpu_task_submit
@@ -94,6 +95,7 @@ export starpu_task_declare_deps
 export starpu_task_declare_end_deps
 export starpu_task_wait_for_n_submitted
 export starpu_task_destroy
+export starpu_tag_remove
 export starpu_tag_wait
 export starpu_tag_notify_from_apps
 export starpu_iteration_pop

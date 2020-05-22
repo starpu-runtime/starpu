@@ -160,6 +160,10 @@ function starpu_data_release_on_node(handle :: StarpuDataHandle, node :: Int)
     starpu_data_release_on_node(handle.object, node)
 end
 
+function starpu_data_wont_use(handle :: StarpuDataHandle)
+    starpu_data_wont_use(handle.object)
+end
+
 function repl(x::Symbol)
     return x
 end
