@@ -253,7 +253,7 @@ function starpu_parse_call(x :: Expr)
 end
 
 
-starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(%))
+starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(!=), :(%))
 
 
 function print_prefix(io :: IO, x :: StarpuExprCall ; indent = 0, restrict=false)

@@ -259,7 +259,14 @@ function translate_cublas(expr :: StarpuExpr)
 
         new_args = [@parse(starpu_cublas_get_local_handle()), x.args...]
 
-        return StarpuExprBlock([StarpuExprCall(blas_to_cublas[x.func][1], new_args),
+        status_varname = "status"*rand_string()
+        status_var = StarpuExprVar(Symbol("cublasStatus_t "*status_varname))
+        call_expr = StarpuExprCall(blas_to_cublas[x.func][1], new_args)
+
+        return StarpuExprBlock([StarpuExprAffect(status_var, call_expr),
+                                starpu_parse(Meta.parse("""if $status_varname != CUBLAS_STATUS_SUCCESS
+                                                              STARPU_CUBLAS_REPORT_ERROR($status_varname)
+                                                          end""")),
                                 @parse cudaStreamSynchronize(starpu_cuda_get_local_stream())])
     end
 
