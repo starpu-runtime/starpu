@@ -47,8 +47,11 @@ EXTRA_DIST =					\
 	callback/callback.sh			\
 	check_deps/check_deps.jl		\
 	check_deps/check_deps.sh		\
+	cholesky/cholesky_codelets.jl		\
+	cholesky/cholesky_common.jl		\
 	cholesky/cholesky_native.jl		\
-	cholesky/cholesky.jl			\
+	cholesky/cholesky_implicit.jl		\
+	cholesky/cholesky_tag.jl		\
 	cholesky/cholesky.sh			\
 	dependency/end_dep.jl			\
 	dependency/end_dep.sh			\

@@ -1,21 +1,3 @@
-# StarPU --- Runtime system for heterogeneous multicore architectures.
-#
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
-#
-# StarPU is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 2.1 of the License, or (at
-# your option) any later version.
-#
-# StarPU is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-# See the GNU Lesser General Public License in COPYING.LGPL for more details.
-#
-using StarPU
-using LinearAlgebra.BLAS
-
 # Standard kernels for the Cholesky factorization
 # U22 is the gemm update
 # U21 is the trsm update
@@ -69,67 +51,16 @@ end
     return
 end
 
-function cholesky(mat :: Matrix{Float32}, size, nblocks)
-    perfmodel = starpu_perfmodel(
-        perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
-        symbol = "history_perf"
-    )
-    cl_11 = starpu_codelet(
-        cpu_func = "u11",
-        # This kernel cannot be translated to CUDA yet.
-        # cuda_func = "u11",
-        modes = [STARPU_RW],
-        color = 0xffff00,
-        perfmodel = perfmodel
-    )
-    cl_21 = starpu_codelet(
-        cpu_func = "u21",
-        cuda_func = "u21",
-        modes = [STARPU_R, STARPU_RW],
-        color = 0x8080ff,
-        perfmodel = perfmodel
-    )
-    cl_22 = starpu_codelet(
-        cpu_func = "u22",
-        cuda_func = "u22",
-        modes = [STARPU_R, STARPU_R, STARPU_RW],
-        color = 0x00ff00,
-        perfmodel = perfmodel
-    )
+@inline function tag11(k)
+    return starpu_tag_t((UInt64(1)<<60) | UInt64(k))
+end
 
-    horiz = starpu_data_filter(STARPU_MATRIX_FILTER_BLOCK, nblocks)
-    vert = starpu_data_filter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nblocks)
+@inline function tag21(k, j)
+    return starpu_tag_t((UInt64(3)<<60) | (UInt64(k)<<32) |  UInt64(j))
+end
 
-    @starpu_block let
-        h_mat = starpu_data_register(mat)
-        starpu_data_map_filters(h_mat, horiz, vert)
-
-        for k in 1:nblocks
-
-            starpu_iteration_push(k)
-
-            task = starpu_task(cl = cl_11, handles = [h_mat[k, k]])
-            starpu_task_submit(task)
-
-            for m in k+1:nblocks
-                task = starpu_task(cl = cl_21, handles = [h_mat[k, k], h_mat[m, k]])
-                starpu_task_submit(task)
-            end
-
-            for m in k+1:nblocks
-                for n in k+1:nblocks
-                    if n <= m
-                        task = starpu_task(cl = cl_22, handles = [h_mat[m, k], h_mat[n, k], h_mat[m, n]])
-                        starpu_task_submit(task)
-                    end
-                end
-            end
-
-            starpu_iteration_pop()
-        end
-
-        starpu_task_wait_for_all()
-    end
+@inline function tag22(k, i, j)
+    return starpu_tag_t((UInt64(4)<<60) | (UInt64(k)<<32) | (UInt64(i)<<16) |  UInt64(j))
 end
 
 function check(mat::Matrix{Float32})
@@ -164,10 +95,23 @@ function check(mat::Matrix{Float32})
     println("Verification successful !")
 end
 
-function main(size_p :: Int, nblocks :: Int, verbose = false)
-    starpu_init()
-    starpu_cublas_init()
+function clean_tags(nblocks)
+    for k in 1:nblocks
+        starpu_tag_remove(tag11(k))
 
+        for m in k+1:nblocks
+            starpu_tag_remove(tag21(k, m))
+
+            for n in k+1:nblocks
+                if n <= m
+                    starpu_tag_remove(tag22(k, m, n))
+                end
+            end
+        end
+    end
+end
+
+function main(size_p :: Int, nblocks :: Int; verify = false, verbose = false)
     mat :: Matrix{Float32} = zeros(Float32, size_p, size_p)
 
     # create a simple definite positive symetric matrix
@@ -199,13 +143,13 @@ function main(size_p :: Int, nblocks :: Int, verbose = false)
     gflops = flop/(time_ms*1000)/1000
     println("# $size_p\t$time_ms\t$gflops")
 
+    clean_tags(nblocks)
+
     if verbose
         display(mat)
     end
 
-    check(mat)
-
-    starpu_shutdown()
+    if verify
+        check(mat)
+    end
 end
-
-main(1024, 8)

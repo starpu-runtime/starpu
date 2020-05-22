@@ -16,4 +16,5 @@
 #
 
 $(dirname $0)/../execute.sh cholesky/cholesky_native.jl
-$(dirname $0)/../execute.sh cholesky/cholesky.jl
+$(dirname $0)/../execute.sh cholesky/cholesky_implicit.jl
+$(dirname $0)/../execute.sh cholesky/cholesky_tag.jl
