@@ -104,9 +104,17 @@ task_list = Vector{jl_starpu_task}()
 
             Creates a new task which will run the specified codelet on handle buffers and cl_args data
         """
-function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = (),
-                     callback :: Union{Cvoid, Function} = nothing, callback_arg = nothing, tag :: Union{Cvoid, starpu_tag_t} = nothing,
-                     sequential_consistency = true, detach = 1)
+function starpu_task(;
+                     cl :: Union{Cvoid, jl_starpu_codelet} = nothing,
+                     handles :: Vector{StarpuDataHandle} = StarpuDataHandle[],
+                     cl_arg = (),
+                     callback :: Union{Cvoid, Function} = nothing,
+                     callback_arg = nothing,
+                     tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                     sequential_consistency = true,
+                     detach = 1,
+                     color :: Union{Cvoid, UInt32} = nothing,
+                     where :: Union{Cvoid, Int32} = nothing)
     if (cl == nothing)
         error("\"cl\" field can't be empty when creating a StarpuTask")
     end
@@ -157,6 +165,14 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
     if tag != nothing
         output.c_task.tag_id = tag
         output.c_task.use_tag = 1
+    end
+
+    if color != nothing
+        output.c_task.color = color
+    end
+
+    if where != nothing
+        output.c_task.where = where
     end
 
     # Tasks must not be garbage collected before starpu_task_wait_for_all is called.
@@ -230,6 +246,74 @@ function starpu_modes(x :: Symbol)
         return STARPU_R
     else return STARPU_W
     end
+end
+
+default_codelet = Dict{String, jl_starpu_codelet}()
+default_perfmodel = Dict{String, starpu_perfmodel}()
+
+function get_default_perfmodel(name)
+    if name in keys(default_perfmodel)
+        return default_perfmodel[name]
+    end
+
+    perfmodel = starpu_perfmodel(
+        perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
+        symbol = name
+    )
+    default_perfmodel[name] = perfmodel
+    return perfmodel
+end
+
+function get_default_codelet(codelet_name, perfmodel, modes) :: jl_starpu_codelet
+    if codelet_name in keys(default_codelet)
+        return default_codelet[codelet_name]
+    end
+
+    cl = starpu_codelet(
+        cpu_func  = codelet_name in keys(CPU_CODELETS) ? codelet_name : "",
+        cuda_func = codelet_name in keys(CUDA_CODELETS) ? codelet_name : "",
+        modes = modes,
+        perfmodel = perfmodel,
+    )
+    default_codelet[codelet_name] = cl
+    return cl
+end
+
+function starpu_task_insert(;
+                            codelet_name :: Union{Cvoid, String} = nothing,
+                            cl :: Union{Cvoid, jl_starpu_codelet} = nothing,
+                            perfmodel :: Union{starpu_perfmodel, Cvoid} = nothing,
+                            handles :: Vector{StarpuDataHandle} = StarpuDataHandle[],
+                            cl_arg = (),
+                            callback :: Union{Cvoid, Function} = nothing,
+                            callback_arg = nothing,
+                            tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                            sequential_consistency = true,
+                            detach = 1,
+                            where :: Union{Cvoid, Int32} = nothing,
+                            color :: Union{Cvoid, UInt32} = nothing,
+                            modes = nothing)
+    if cl == nothing && codelet_name == nothing
+        error("At least one of the two parameters codelet_name or cl must be provided when calling starpu_task_insert.")
+
+    end
+    if cl == nothing && modes == nothing
+        error("Modes must be defined when calling starpu_task_insert without a codelet.")
+    end
+
+    if perfmodel == nothing
+        perfmodel = get_default_perfmodel(codelet_name == nothing ? "default" : codelet_name)
+    end
+
+    if cl == nothing
+        cl = get_default_codelet(codelet_name, perfmodel, modes)
+    end
+
+    task = starpu_task(cl = cl, handles = handles, cl_arg = cl_arg, callback = callback,
+                       callback_arg = callback_arg, tag = tag, sequential_consistency = sequential_consistency,
+                       detach = detach, color = color, where = where)
+
+    starpu_task_submit(task)
 end
 
 """

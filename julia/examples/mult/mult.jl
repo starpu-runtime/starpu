@@ -82,27 +82,16 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
         starpu_data_partition(hA, horiz)
         starpu_data_map_filters(hC, vert, horiz)
         tmin=0
-        perfmodel = starpu_perfmodel(
-            perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
-            symbol = "history_perf"
-        )
-        cl = starpu_codelet(
-            cpu_func = "matrix_mult",
-            cuda_func = "matrix_mult",
-            #opencl_func="matrix_mult",
-            modes = [STARPU_R, STARPU_R, STARPU_W],
-            perfmodel = perfmodel
-        )
 
         for i in (1 : 10 )
             t=time_ns()
             @starpu_sync_tasks begin
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
-                        handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = starpu_task(cl = cl, handles = handles, cl_arg=(Int32(stride),))
-                        starpu_task_submit(task)
-                        #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
+                        starpu_task_insert(codelet_name = "matrix_mult",
+                                           modes = [STARPU_R, STARPU_R, STARPU_W],
+                                           handles = [hA[tasky], hB[taskx], hC[taskx, tasky]],
+                                           cl_arg = (Int32(stride),))
                     end
                 end
             end

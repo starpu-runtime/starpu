@@ -41,19 +41,6 @@ function axpy(N, NBLOCKS, alpha, display = true)
 
     block_filter = starpu_data_filter(STARPU_VECTOR_FILTER_BLOCK, NBLOCKS)
 
-    perfmodel = starpu_perfmodel(
-        perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
-        symbol = "history_perf"
-    )
-
-    cl = starpu_codelet(
-        cpu_func = "axpy",
-        cuda_func = "axpy",
-        #cuda_func = STARPU_SAXPY,
-        modes = [STARPU_R, STARPU_RW],
-        perfmodel = perfmodel
-    )
-
     if display
         println("BEFORE x[0] = ", X[1])
         println("BEFORE y[0] = ", Y[1])
@@ -68,9 +55,11 @@ function axpy(N, NBLOCKS, alpha, display = true)
         starpu_data_partition(hY, block_filter)
 
         for b in 1:NBLOCKS
-            task = starpu_task(cl = cl, handles = [hX[b],hY[b]], cl_arg=(Float32(alpha),),
-                               tag=starpu_tag_t(b))
-            starpu_task_submit(task)
+            starpu_task_insert(codelet_name = "axpy",
+                               handles = [hX[b], hY[b]],
+                               cl_arg = (Float32(alpha),),
+                               tag = starpu_tag_t(b),
+                               modes = [STARPU_R, STARPU_RW])
         end
 
         starpu_task_wait_for_all()

@@ -85,6 +85,7 @@ export starpu_data_get_sub_data
 export starpu_data_partition
 export starpu_data_unpartition
 export starpu_data_map_filters
+export starpu_task_insert
 export starpu_task_wait_for_all
 export starpu_task_submit
 export starpu_task_end_dep_add
