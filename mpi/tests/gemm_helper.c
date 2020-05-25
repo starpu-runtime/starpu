@@ -199,6 +199,7 @@ static struct starpu_codelet cl_init_matrix_zero =
 	.color = 0x808000 // olive
 };
 
+/* Allocate and partition buffers */
 void gemm_alloc_data()
 {
 	starpu_malloc_flags((void **)&A, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
@@ -207,14 +208,13 @@ void gemm_alloc_data()
 	partition_mult_data();
 }
 
-
+/* Submit tasks to initialize matrices: fill them with zeros or random numbers */
 int gemm_init_data()
 {
 #ifndef STARPU_SIMGRID
 	int ret;
 	unsigned x, y;
 
-	// Initialize matrices:
 	for (x = 0; x < nslices; x++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -237,7 +237,7 @@ int gemm_init_data()
 	return 0;
 }
 
-
+/* Submit tasks to compute the GEMM */
 int gemm_submit_tasks()
 {
 	int ret;
