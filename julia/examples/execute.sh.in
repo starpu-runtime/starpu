@@ -19,7 +19,7 @@ set -x
 export JULIA_LOAD_PATH=@STARPU_SRC_DIR@/julia:$JULIA_LOAD_PATH
 export STARPU_BUILD_DIR=@STARPU_BUILD_DIR@
 export STARPU_SRC_DIR=@STARPU_SRC_DIR@
-export STARPU_JULIA_LIB=@STARPU_BUILD_DIR@/julia/src/.libs/libstarpujulia-1.3.so
+export STARPU_JULIA_LIB=@STARPU_BUILD_DIR@/julia/src/.libs/libstarpujulia-1.3
 export STARPU_JULIA_BUILD=@STARPU_BUILD_DIR@/julia
 export JULIA_NUM_THREADS=8
 srcdir=@STARPU_SRC_DIR@/julia/examples
