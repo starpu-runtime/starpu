@@ -90,7 +90,8 @@ function starpu_translate_headers()
                                "STARPU_CUDA_ASYNC",
                                "STARPU_OPENCL",
                                "STARPU_MAIN_RAM",
-                               "STARPU_NMAXBUFS"])
+                               "STARPU_NMAXBUFS",
+                               "STARPU_USE_CUDA"])
 
     wc = init(; headers = STARPU_HEADERS,
               output_file = joinpath(@__DIR__, "../gen/libstarpu_api.jl"),

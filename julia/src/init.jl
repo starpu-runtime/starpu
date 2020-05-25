@@ -26,9 +26,11 @@ function starpu_init()
         debug_print("Loading external codelet library")
         ff = Libdl.dlsym(starpu_tasks_library_handle,:starpu_find_function)
         dump(ff)
-        for k in keys(CUDA_CODELETS)
+        for k in keys(CPU_CODELETS)
             CPU_CODELETS[k]=unsafe_string(ccall(ff,Cstring, (Cstring,Cstring),Cstring_from_String(string(k)),Cstring_from_String("cpu")))
-            CUDA_CODELETS[k]=unsafe_string(ccall(ff,Cstring, (Cstring,Cstring),Cstring_from_String(string(k)),Cstring_from_String("gpu")))
+            if STARPU_USE_CUDA == 1
+                CUDA_CODELETS[k]=unsafe_string(ccall(ff,Cstring, (Cstring,Cstring),Cstring_from_String(string(k)),Cstring_from_String("gpu")))
+            end
             print(k,">>>>",CPU_CODELETS[k],"\n")
         end
     else

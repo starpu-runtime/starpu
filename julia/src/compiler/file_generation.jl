@@ -128,7 +128,7 @@ macro codelet(x)
         CPU_CODELETS[name]=cpu_name
     end
 
-    if starpu_target & STARPU_CUDA!=0
+    if (starpu_target & STARPU_CUDA!=0) && STARPU_USE_CUDA == 1
         kernel_file = open(generated_cuda_kernel_file_name, "w")
         debug_print("generating ", generated_cuda_kernel_file_name)
         print(kernel_file, cuda_kernel_file_start)

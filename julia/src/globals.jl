@@ -41,3 +41,10 @@ global starpu_type_traduction_dict = Dict(
 export starpu_type_traduction_dict
 
 global mutex = Threads.SpinLock()
+
+# detect CUDA support
+try
+    STARPU_USE_CUDA == 1
+catch
+   global  const STARPU_USE_CUDA = 0
+end
