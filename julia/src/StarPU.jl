@@ -26,7 +26,8 @@ const starpu_wrapper_library_name=fstarpu_task_library_name()
 
 include("translate_headers.jl")
 
-if !isfile((@__DIR__)*"/../gen/libstarpu_common.jl") || !isfile((@__DIR__)*"/../gen/libstarpu_api.jl")
+if !isfile((@__DIR__)*"/../gen/libstarpu_common.jl") || !isfile((@__DIR__)*"/../gen/libstarpu_api.jl") ||
+    mtime(@__FILE__) > mtime((@__DIR__)*"/../gen/libstarpu_common.jl")
     starpu_translate_headers()
 end
 
