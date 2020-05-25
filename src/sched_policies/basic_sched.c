@@ -137,7 +137,7 @@ int pointeurComparator ( const void * first, const void * second ) {
 static int basic_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 	struct basic_sched_data *data = component->data;
-		fprintf(stderr, "Pushing task %p\n", task);
+		//~ fprintf(stderr, "Pushing task %p\n", task);
 
         STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -163,6 +163,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
+	//~ printf("GPU_RAM/2 : %d\n",GPU_RAM);
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
@@ -186,7 +187,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				nb_pop++;
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
-			printf("%d task(s) have been pulled\n",nb_pop);
+			//~ printf("%d task(s) have been pulled\n",nb_pop);
 			
 			//Version avec des paquets de tâches et des comparaisons de paquets ------------------------------------------------------------------------------------------------------
 			temp_task_3  = starpu_task_list_begin(&data->tache_pop);
@@ -309,7 +310,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					//~ printf("Le poids des deux paquets serait de : %li\n",weight_two_packages);
 					
 					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
-						if (weight_two_packages > GPU_RAM) { printf("On dépasse GPU_RAM!\n"); }
+						if (weight_two_packages > GPU_RAM) { 
+							//~ printf("On dépasse GPU_RAM!\n"); 
+						}
 						else {
 							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
@@ -370,7 +373,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head_2->nb_task_in_sub_list = 0;
 							
 							//Goto pour l'algo 2
-							if (data->ALGO_USED_READER == 2) { printf("algo 2\n"); goto algo_2; }
+							if (data->ALGO_USED_READER == 2) { 
+								//~ printf("algo 2\n"); 
+								goto algo_2; 
+							}
 					} }
 					data->head_2 = data->head_2->next;
 				} 
@@ -411,30 +417,32 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->head = data->first_link;
 		
 		//Code to print everything ----
-		//~ long int total_weight = 0;
-		//~ double task_duration_info = 0;
-		//~ double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		//~ printf("\n\n~~~~~~ A la fin du regroupement des tâches utilisant l'algo %d on obtient : ~~~~~~\n\n",data->ALGO_USED);
-		//~ printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
-		//~ printf("-----\n");
-		//~ link_index = 0;
-		//~ while (data->head != NULL) {
-			//~ printf("Le paquet %d contient %d tâche(s)\n",link_index,data->head->nb_task_in_sub_list);
-			//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				//~ task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
-				//~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
-			//~ }
-			//~ for (i = 0; i < data->head->package_nb_data; i++) {
-				//~ total_weight+= starpu_data_get_size(data->head->package_data[i]);
-			//~ }
-			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-			//~ link_index++;
-			//~ data->head = data->head->next;
-			//~ printf("-----\n");
-		//~ }
-		//~ printf("\n");
-		//~ printf("Info de la bande passante : %f\n",bandwith_info);
-		//~ printf("\n\n");
+		long int total_weight = 0;
+		double task_duration_info = 0;
+		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		printf("\n\n A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n\n",data->ALGO_USED_READER);
+		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
+		printf("-----\n");
+		link_index = 0;
+		while (data->head != NULL) {
+			printf("Le paquet %d contient %d tâche(s)\n",link_index,data->head->nb_task_in_sub_list);
+			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+				printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+				//~ // a pas mettre dans la boucle
+			}
+			for (i = 0; i < data->head->package_nb_data; i++) {
+				total_weight+= starpu_data_get_size(data->head->package_data[i]);
+			}
+			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			total_weight = 0;
+			link_index++;
+			data->head = data->head->next;
+			printf("-----\n");
+		}
+		printf("\n");
+		printf("Info de la bande passante : %f\n",bandwith_info);
+		printf("\n\n");
 		// ---------------------------
 		
 		data->head = data->first_link;
@@ -443,7 +451,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (task1 != NULL) { printf("Task %p is getting out of pull_task\n",task1); }
+		if (task1 != NULL) { 
+			printf("Task %p is getting out of pull_task\n",task1); 
+		}
 		return task1;
 	} //Else de if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 	if (!starpu_task_list_empty(&data->head->sub_list)) {
