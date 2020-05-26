@@ -80,10 +80,10 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		/* estimated energy */
 		double local_energy[component->nchildren * ntasks];
 
-		/* Minimum transfer+task termination on all children */
-		double min_exp_end_with_task[ntasks];
-		/* Maximum transfer+task termination on all children */
-		double max_exp_end_with_task[ntasks];
+		/* Minimum transfer+task termination of the NTASKS tasks over all workers */
+		double min_exp_end_of_task[ntasks];
+		/* Maximum termination of the already-scheduled tasks over all workers */
+		double max_exp_end_of_workers;
 
 		unsigned suitable_components[component->nchildren * ntasks];
 
@@ -103,23 +103,23 @@ static int heft_progress_one(struct starpu_sched_component *component)
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,
 					estimated_ends_with_task + offset,
-					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
+					&min_exp_end_of_task[n], &max_exp_end_of_workers,
 							  suitable_components + offset, nsuitable_components[n]);
 			
 			/* Compute the energy, if provided*/
 			starpu_mct_compute_energy(component, tasks[n], local_energy + offset, suitable_components + offset, nsuitable_components[n]);
 		}
 
+		/* best_task is the task that will finish first among the ntasks, while best_benefit is its expected execution time*/
 		int best_task = 0;
-		double max_benefit = 0;
+		double best_benefit = min_exp_end_of_task[0];
 
 		/* Find the task which provides the most computation time benefit */
-		for (n = 0; n < ntasks; n++)
+		for (n = 1; n < ntasks; n++)
 		{
-			double benefit = max_exp_end_with_task[n] - min_exp_end_with_task[n];
-			if (max_benefit < benefit)
+			if (best_benefit > min_exp_end_of_task[n])
 			{
-				max_benefit = benefit;
+				best_benefit =  min_exp_end_of_task[n];
 				best_task = n;
 			}
 		}
@@ -135,7 +135,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 		unsigned offset = component->nchildren * best_task;
 
-		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, local_energy + offset, min_exp_end_with_task[best_task], max_exp_end_with_task[best_task], suitable_components + offset, nsuitable_components[best_task]);
+		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, local_energy + offset, min_exp_end_of_task[best_task], max_exp_end_of_workers, suitable_components + offset, nsuitable_components[best_task]);
 
 		STARPU_ASSERT(best_icomponent != -1);
 		best_component = component->children[best_icomponent];
