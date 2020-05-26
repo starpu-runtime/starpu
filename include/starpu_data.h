@@ -123,7 +123,7 @@ void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
    tools. \p dimensions is the size of the \p dims array. This can be
    for instance the tile coordinates within a big matrix.
 */
-void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensions, int dims[]);
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[]);
 
 /**
    Set the coordinates of the data, to be shown in various profiling
@@ -131,6 +131,14 @@ void starpu_data_set_coordinates_array(starpu_data_handle_t handle, int dimensio
    This can be for instance the tile coordinates within a big matrix.
 */
 void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...);
+
+/**
+   Get the coordinates of the data, as set by a previous call to
+   starpu_data_set_coordinates_array() or starpu_data_set_coordinates()
+   \p dimensions is the size of the \p dims array.
+   This returns the actual number of returned coordinates.
+*/
+unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[]);
 
 /**
    Unregister a data \p handle from StarPU. If the data was
