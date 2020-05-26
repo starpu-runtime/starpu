@@ -7,8 +7,10 @@ Réfléchir à un modèle où on ne limiterait pas la taille des paquets lors d'
 Faire des courbes de eager, lws, basic-sched algo 1 et 2 et dmadar. Faire varier CUDA_MEM et surtout la bande passante. Tester des tailles de matrice différentes (abscisse). On mesure les gflops (ordonnée).
 Faire des screen de vite paje.trace dans les situations intéressantes.
 Tester avec et sans aléatoire dans l'ordre d'arrivé des tâches.
-Recherhcer un CUDA_MEM qui met le point de rupture au milieu de la courbe.
-R L V.
+@Maxime j'ai rajouté starpu_data_get_coordinates_array, tu peux lui passer le handle, 2, et un tableau de 2 int où il te mettra les coordonnées
+tout script meme lancer R
+mettre time pour voir le temps réel
+verifier que dans le bios virtual truc est actif minute 30
 
 FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
