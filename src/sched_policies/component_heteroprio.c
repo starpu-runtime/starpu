@@ -109,10 +109,10 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 	/* provided local energy */
 	double local_energy[component->nchildren];
 
-	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task;
-	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task;
+	/* Minimum transfer+task termination of the task over all workers */
+	double min_exp_end_of_task;
+	/* Maximum termination of the already-scheduled tasks over all workers */
+	double max_exp_end_of_workers;
 
 	unsigned suitable_components[component->nchildren];
 	unsigned nsuitable_components;
@@ -158,7 +158,7 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 			estimated_lengths,
 			estimated_transfer_length,
 			estimated_ends_with_task,
-			&min_exp_end_with_task, &max_exp_end_with_task,
+			&min_exp_end_of_task, &max_exp_end_of_workers,
 			suitable_components, nsuitable_components);
 
 	/* Compute the energy, if provided*/
@@ -172,7 +172,7 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 			estimated_transfer_length,
 			estimated_ends_with_task,
                         local_energy,
-			min_exp_end_with_task, max_exp_end_with_task,
+			min_exp_end_of_task, max_exp_end_of_workers,
 			suitable_components, nsuitable_components);
 
 	if (best_icomponent == -1)
@@ -247,10 +247,10 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 	/* estimated energy */
 	double local_energy[component->nchildren];
 
-	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task;
-	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task;
+	/* Minimum transfer+task termination of the task over all workers */
+	double min_exp_end_of_task;
+	/* Maximum termination of the already-scheduled tasks over all workers */
+	double max_exp_end_of_workers;
 
 	unsigned suitable_components[component->nchildren];
 	unsigned nsuitable_components;
@@ -275,7 +275,7 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 			estimated_lengths,
 			estimated_transfer_length,
 			estimated_ends_with_task,
-			&min_exp_end_with_task, &max_exp_end_with_task,
+			&min_exp_end_of_task, &max_exp_end_of_workers,
 			suitable_components, nsuitable_components);
 
 	/* Compute the energy, if provided*/
@@ -289,7 +289,7 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 			estimated_transfer_length,
 			estimated_ends_with_task,
                         local_energy,
-			min_exp_end_with_task, max_exp_end_with_task,
+			min_exp_end_of_task, max_exp_end_of_workers,
 			suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of

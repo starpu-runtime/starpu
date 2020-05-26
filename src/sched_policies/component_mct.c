@@ -38,10 +38,10 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* estimated energy */
 	double local_energy[component->nchildren];
 
-	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task;
-	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task;
+	/* Minimum transfer+task termination of the task over all workers */
+	double min_exp_end_of_task;
+	/* Maximum termination of the already-scheduled tasks over all workers */
+	double max_exp_end_of_workers;
 
 	unsigned suitable_components[component->nchildren];
 	unsigned nsuitable_components;
@@ -62,13 +62,13 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
 
 	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
-					  estimated_ends_with_task, &min_exp_end_with_task, &max_exp_end_with_task, suitable_components, nsuitable_components);
+					  estimated_ends_with_task, &min_exp_end_of_task, &max_exp_end_of_workers, suitable_components, nsuitable_components);
 
 	/* Compute the energy, if provided*/
 	starpu_mct_compute_energy(component, task, local_energy, suitable_components, nsuitable_components);
 
 	int best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
-							    estimated_ends_with_task, local_energy, min_exp_end_with_task, max_exp_end_with_task, suitable_components, nsuitable_components);
+							    estimated_ends_with_task, local_energy, min_exp_end_of_task, max_exp_end_of_workers, suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.

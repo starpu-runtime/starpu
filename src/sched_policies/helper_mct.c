@@ -81,17 +81,17 @@ static double compute_expected_time(double now, double predicted_end, double pre
 	return predicted_end;
 }
 
-double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_energy)
+double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end_of_task, double max_exp_end_of_workers, double transfer_len, double local_energy)
 {
 	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
 	
-	/* min_exp_end is the minimum end time of the task over all workers */
-	double fitness = d->alpha * (exp_end - min_exp_end) + d->beta * transfer_len + d->_gamma * local_energy;
+	/* min_exp_end_of_task is the minimum end time of the task over all workers */
+	double fitness = d->alpha * (exp_end - min_exp_end_of_task) + d->beta * transfer_len + d->_gamma * local_energy;
 	
 	/* max_exp_end is the maximum end time of the workers. If the total execution time is increased, then an 
           additional energy penalty must be considered*/
-	if(exp_end > max_exp_end)
-		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
+	if(exp_end > max_exp_end_of_workers)
+		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
 											       then  d->idle_power * (exp_end - max_exp_end) 
 											       must be in Joules, thus the / 1000000.0 */
 
@@ -129,12 +129,12 @@ unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *compo
 
 void starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-				       double *min_exp_end_with_task, double *max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components)
+				       double *min_exp_end_of_task, double *max_exp_end_of_workers, unsigned *suitable_components, unsigned nsuitable_components)
 {
 	unsigned i;
 	double now = starpu_timing_now();
-	*min_exp_end_with_task = DBL_MAX;
-	*max_exp_end_with_task = 0.0;
+	*min_exp_end_of_task = DBL_MAX;
+	*max_exp_end_of_workers = 0.0;
 	for(i = 0; i < nsuitable_components; i++)
 	{
 		unsigned icomponent = suitable_components[i];
@@ -150,13 +150,13 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		
 		/* estimated_ends_with_task[icomponent]: estimated end of execution on the worker icomponent
 		   estimated_end: estimatated end of the worker
-		   min_exp_end_with_task: minimum estimated execution time of the task over all workers
-		   max_exp_end_with_task: maximum estimated end of the whole run (not just the task) all workers 
+		   min_exp_end_of_task: minimum estimated execution time of the task over all workers
+		   max_exp_end_of_workers: maximum estimated end of the already-scheduled tasks over all workers
 		*/
 		if(estimated_ends_with_task[icomponent] < *min_exp_end_with_task)
-			*min_exp_end_with_task = estimated_ends_with_task[icomponent];
+			*min_exp_end_of_task = estimated_ends_with_task[icomponent];
 		if(estimated_end > *max_exp_end_with_task)
-			*max_exp_end_with_task = estimated_end;
+			*max_exp_end_of_workers = estimated_end;
 	}
 }
 
@@ -179,7 +179,7 @@ void starpu_mct_compute_energy(struct starpu_sched_component *component, struct 
 	}
 }
 
-int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task *task, double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task, double *local_energy, double min_exp_end_with_task, double max_exp_end_with_task, unsigned *suitable_components, unsigned nsuitable_components)
+int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task *task, double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task, double *local_energy, double min_exp_end_of_task, double max_exp_end_of_workers, unsigned *suitable_components, unsigned nsuitable_components)
 {
 	double best_fitness = DBL_MAX;
 	int best_icomponent = -1;
@@ -190,8 +190,8 @@ int starpu_mct_get_best_component(struct _starpu_mct_data *d, struct starpu_task
 		int icomponent = suitable_components[i];
 		double tmp = starpu_mct_compute_fitness(d,
 					     estimated_ends_with_task[icomponent],
-					     min_exp_end_with_task,
-					     max_exp_end_with_task,
+					     min_exp_end_of_task,
+					     max_exp_end_of_workers,
 					     estimated_transfer_length[icomponent],
 					     local_energy[icomponent]);
 
