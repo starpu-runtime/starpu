@@ -104,16 +104,16 @@ static int heft_progress_one(struct starpu_sched_component *component)
 							  suitable_components + offset, nsuitable_components[n]);
 		}
 
+		/* best_task is the task that will finish first among the ntasks, while best_benefit is its expected execution time*/
 		int best_task = 0;
-		double max_benefit = 0;
+		double best_benefit = min_exp_end_with_task[0];
 
 		/* Find the task which provides the most computation time benefit */
-		for (n = 0; n < ntasks; n++)
+		for (n = 1; n < ntasks; n++)
 		{
-			double benefit = max_exp_end_with_task[n] - min_exp_end_with_task[n];
-			if (max_benefit < benefit)
+			if (best_benefit > min_exp_end_with_task[n])
 			{
-				max_benefit = benefit;
+				best_benefit =  min_exp_end_with_task[n];
 				best_task = n;
 			}
 		}
