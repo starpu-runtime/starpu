@@ -29,5 +29,7 @@ void gemm_alloc_data();
 int gemm_init_data();
 int gemm_submit_tasks();
 void gemm_release();
+void gemm_add_polling_dependencies();
+int gemm_submit_tasks_with_tags(int with_tags);
 
 #endif /* __MPI_TESTS_GEMM_HELPER__ */

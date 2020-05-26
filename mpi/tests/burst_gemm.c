@@ -146,18 +146,24 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "** Burst warmup **\n");
 	burst_all(mpi_rank);
 
+
 	starpu_sleep(0.3); // sleep to easily distinguish different bursts in traces
+
 
 	FPRINTF(stderr, "** Burst while there is no task available, but workers are polling **\n");
 	burst_all(mpi_rank);
 
+
 	starpu_sleep(0.3); // sleep to easily distinguish different bursts in traces
+
 
 	FPRINTF(stderr, "** Burst while there is no task available, workers are paused **\n");
 	starpu_pause();
 	burst_all(mpi_rank);
 
+
 	starpu_sleep(0.3); // sleep to easily distinguish different bursts in traces
+
 
 	FPRINTF(stderr, "** Burst while workers are really working **\n");
 	if(gemm_submit_tasks() == -ENODEV)
@@ -172,13 +178,32 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
+
 	starpu_sleep(0.3); // sleep to easily distinguish different parts in traces
+
 
 	FPRINTF(stderr, "** Workers are computing, without communications **\n");
 	starpu_pause();
 	if(gemm_submit_tasks() == -ENODEV)
 		goto enodev;
 	starpu_resume();
+
+	/* Wait for everything and everybody: */
+	starpu_task_wait_for_all();
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+
+	starpu_sleep(0.3); // sleep to easily distinguish different parts in traces
+
+
+	FPRINTF(stderr, "** Burst while workers are computing, but polling a moment between each task **\n");
+	starpu_pause();
+	gemm_add_polling_dependencies();
+	if(gemm_submit_tasks_with_tags(/* enable task tags */ 1) == -ENODEV)
+		goto enodev;
+	starpu_resume();
+
+	burst_all(mpi_rank);
 
 	/* Wait for everything and everybody: */
 	starpu_task_wait_for_all();
