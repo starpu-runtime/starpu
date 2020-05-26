@@ -1887,7 +1887,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 				/* For history-based, do not take the first measurement into account, it is very often quite bogus */
 				/* TODO: it'd be good to use a better estimation heuristic, like the median, or latest n values, etc. */
-				if (model->type != STARPU_HISTORY_BASED) {
+				if (model->type != STARPU_HISTORY_BASED)
+				{
 					entry->sum = measured;
 					entry->sum2 = measured*measured;
 					entry->nsample = 1;
