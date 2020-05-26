@@ -153,9 +153,9 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		   min_exp_end_of_task: minimum estimated execution time of the task over all workers
 		   max_exp_end_of_workers: maximum estimated end of the already-scheduled tasks over all workers
 		*/
-		if(estimated_ends_with_task[icomponent] < *min_exp_end_with_task)
+		if(estimated_ends_with_task[icomponent] < *min_exp_end_of_task)
 			*min_exp_end_of_task = estimated_ends_with_task[icomponent];
-		if(estimated_end > *max_exp_end_with_task)
+		if(estimated_end > *max_exp_end_of_workers)
 			*max_exp_end_of_workers = estimated_end;
 	}
 }
