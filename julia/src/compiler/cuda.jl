@@ -273,6 +273,150 @@ function translate_cublas(expr :: StarpuExpr)
     return apply(func_to_run, expr)
 end
 
+function get_all_assignments(cpu_instr)
+    ret = StarpuExpr[]
+
+    function func_to_run(x :: StarpuExpr)
+        if isa(x, StarpuExprAffect)
+            push!(ret, x)
+        end
+
+        return x
+    end
+
+    apply(func_to_run, cpu_instr)
+    return ret
+end
+
+function get_all_buffer_vars(cpu_instr)
+    ret = StarpuExprTypedVar[]
+    assignments = get_all_assignments(cpu_instr)
+    for x in assignments
+        var = x.var
+        expr = x.expr
+        if isa(expr, StarpuExprCall) && expr.func in [:STARPU_MATRIX_GET_PTR, :STARPU_VECTOR_GET_PTR]
+            push!(ret, var)
+        end
+    end
+
+    return ret
+end
+
+function get_all_buffer_stores(cpu_instr, vars)
+    ret = StarpuExprAffect[]
+
+    function func_to_run(x :: StarpuExpr)
+        if isa(x, StarpuExprAffect) && isa(x.var, StarpuExprRef) && isa(x.var.ref, StarpuExprVar) &&
+            x.var.ref.name in map(x -> x.name, vars)
+            push!(ret, x)
+        end
+
+        return x
+    end
+
+    apply(func_to_run, cpu_instr)
+    return ret
+end
+
+function get_all_buffer_refs(cpu_instr, vars)
+    ret = []
+
+    current_instr = nothing
+    InstrTy = Union{StarpuExprAffect,
+                    StarpuExprCall,
+                    StarpuExprCudaCall,
+                    StarpuExprFor,
+                    StarpuExprIf,
+                    StarpuExprIfElse,
+                    StarpuExprReturn,
+                    StarpuExprBreak,
+                    StarpuExprWhile}
+    parent = nothing
+
+    function func_to_run(x :: StarpuExpr)
+        if isa(x, InstrTy) && !(isa(x, StarpuExprCall) && x.func in [:(+), :(-), :(*), :(/), :(%), :(<), :(<=), :(==), :(!=), :(>=), :(>), :sqrt])
+            current_instr = x
+        end
+
+        if isa(x, StarpuExprRef) && isa(x.ref, StarpuExprVar) && x.ref.name in map(x -> x.name, vars) && # var[...]
+            !isa(parent, StarpuExprAddress) && # filter &var[..]
+            !(isa(current_instr, StarpuExprAffect) && current_instr.var == x) # filter lhs ref
+            push!(ret, (current_instr, x))
+        end
+
+        parent = x
+        return x
+    end
+
+    visit_preorder(func_to_run, cpu_instr)
+    return ret
+end
+
+function transform_cuda_device_loadstore(cpu_instr :: StarpuExprBlock)
+    # Get all CUDA buffer pointers
+    buffer_vars = get_all_buffer_vars(cpu_instr)
+
+    buffer_types = Dict{Symbol, Type}()
+    for var in buffer_vars
+        buffer_types[var.name] = var.typ
+    end
+
+    # Get all store to a CUDA buffer
+    stores = get_all_buffer_stores(cpu_instr, buffer_vars)
+
+    # Get all load from CUDA buffer
+    loads = get_all_buffer_refs(cpu_instr, buffer_vars)
+
+    # Replace each load L:
+    # L: ... buffer[id]
+    # With the following instruction block:
+    # Type varX
+    # cudaMemcpy(&varX, &buffer[id], sizeof(Type), cudaMemcpyDeviceToHost)
+    # L: ... varX
+    for l in loads
+        (instr, ref) = l
+        block = []
+        buffer = ref.ref.name
+        varX = "var"*rand_string()
+        type = buffer_types[Symbol(buffer)]
+        ctype = starpu_type_traduction(eltype(type))
+        push!(block, StarpuExprTypedVar(Symbol(varX), eltype(type)))
+        push!(block, StarpuExprCall(:cudaMemcpy,
+                                    [StarpuExprAddress(StarpuExprVar(Symbol(varX))),
+                                     StarpuExprAddress(ref),
+                                     StarpuExprVar(Symbol("sizeof($ctype)")),
+                                     StarpuExprVar(:cudaMemcpyDeviceToHost)]))
+        push!(block, substitute(instr, ref, StarpuExprVar(Symbol("$varX"))))
+
+        cpu_instr = substitute(cpu_instr, instr, StarpuExprBlock(block))
+    end
+
+    # Replace each Store S:
+    # S: buffer[id] = expr
+    # With the following instruction block:
+    # Type varX
+    # varX = expr
+    # cudaMemcpy(&buffer[id], &varX, sizeof(Type), cudaMemcpyHostToDevice)
+    for s in stores
+        block = []
+        buffer = s.var.ref.name
+        varX = "var"*rand_string()
+        type = buffer_types[Symbol(buffer)]
+        ctype = starpu_type_traduction(eltype(type))
+        push!(block, StarpuExprTypedVar(Symbol(varX), eltype(type)))
+        push!(block, StarpuExprAffect(StarpuExprVar(Symbol("$varX")), s.expr))
+        push!(block, StarpuExprCall(:cudaMemcpy,
+                                    [StarpuExprAddress(s.var),
+                                     StarpuExprAddress(StarpuExprVar(Symbol(varX))),
+                                     StarpuExprVar(Symbol("sizeof($ctype)")),
+                                     StarpuExprVar(:cudaMemcpyHostToDevice)]))
+
+        cpu_instr = substitute(cpu_instr, s, StarpuExprBlock(block))
+    end
+
+    return cpu_instr
+end
+
 function transform_to_cuda_kernel(func :: StarpuExprFunction)
 
     cpu_func = transform_to_cpu_kernel(func)
@@ -315,9 +459,11 @@ function transform_to_cuda_kernel(func :: StarpuExprFunction)
     end
 
     cpu_instr = vcat(cpu_instr, finish)
+    cpu_instr = StarpuExprBlock(cpu_instr)
+    cpu_instr = transform_cuda_device_loadstore(cpu_instr)
 
     prekernel_name = Symbol("CUDA_", func.func)
-    prekernel = StarpuExprFunction(Nothing, prekernel_name, cpu_func.args, StarpuExprBlock(cpu_instr))
+    prekernel = StarpuExprFunction(Nothing, prekernel_name, cpu_func.args, cpu_instr)
     prekernel = translate_cublas(prekernel)
     prekernel = flatten_blocks(prekernel)
 

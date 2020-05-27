@@ -31,8 +31,7 @@ chol_model22 = starpu_perfmodel(
 
 cl_11 = starpu_codelet(
     cpu_func = "u11",
-    # This kernel cannot be translated to CUDA yet.
-    # cuda_func = "u11",
+    cuda_func = "u11",
     modes = [STARPU_RW],
     color = 0xffff00,
     perfmodel = chol_model11
