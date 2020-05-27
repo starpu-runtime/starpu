@@ -19,8 +19,8 @@ using Clang.LibClang.LLVM_jll
 function starpu_translate_headers()
     debug_print("Translating StarPU headers...")
 
-    if !isdir((@__DIR__)*"/../gen")
-        mkdir((@__DIR__)*"/../gen")
+    if !isdir(joinpath(fstarpu_build_dir(), "julia/gen"))
+        mkdir(joinpath(fstarpu_build_dir(), "julia/gen"))
     end
 
     STARPU_BUILD_INCLUDE=joinpath(fstarpu_build_dir(), "include")
@@ -94,8 +94,8 @@ function starpu_translate_headers()
                                "STARPU_USE_CUDA"])
 
     wc = init(; headers = STARPU_HEADERS,
-              output_file = joinpath(@__DIR__, "../gen/libstarpu_api.jl"),
-              common_file = joinpath(@__DIR__, "../gen/libstarpu_common.jl"),
+              output_file = joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_api.jl"),
+              common_file = joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_common.jl"),
               clang_includes = vcat(LIBCLANG_INCLUDE, CLANG_INCLUDE),
               clang_args = clang_args,
               header_library = x->"starpu_wrapper_library_name",

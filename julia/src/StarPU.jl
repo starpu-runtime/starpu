@@ -31,8 +31,8 @@ if !isfile((@__DIR__)*"/../gen/libstarpu_common.jl") || !isfile((@__DIR__)*"/../
     starpu_translate_headers()
 end
 
-include("../gen/libstarpu_common.jl")
-include("../gen/libstarpu_api.jl")
+include(joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_common.jl"))
+include(joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_api.jl"))
 include("globals.jl")
 
 include("compiler/include.jl")
