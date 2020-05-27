@@ -12,6 +12,9 @@ tout script meme lancer R
 mettre time pour voir le temps réel
 verifier que dans le bios virtual truc est actif minute 30
 
+Demander si il faut suppr les doublons direct quand on fais le calcul de max value (c un poids)
+Refaire les test pour algo 1 et 2 si nécessaire
+
 FAIT ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Simplifier le filling

@@ -164,6 +164,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
 	//~ printf("GPU_RAM/2 : %d\n",GPU_RAM);
+	//~ GPU_RAM/2 = 262.144.000
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
@@ -187,7 +188,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				nb_pop++;
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
-			//~ printf("%d task(s) have been pulled\n",nb_pop);
+			printf("%d task(s) have been pulled\n",nb_pop);
 			
 			//Version avec des paquets de tâches et des comparaisons de paquets ------------------------------------------------------------------------------------------------------
 			temp_task_3  = starpu_task_list_begin(&data->tache_pop);
@@ -230,6 +231,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			index_head_2++;
 			
 			while (packaging_impossible == 0) {
+				//~ printf("max value comme data vaut au debut %d\n",max_value_common_data_matrix);
 				nb_of_loop++;
 				packaging_impossible = 1;
 			
@@ -241,6 +243,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			link_index = 0;
 			nb_data_commun = 0;
 			weight_two_packages = 0;
+			max_value_common_data_matrix = 0;
 			
 			//Init a 0 la common data
 			//~ long int (*matrice_donnees_commune)[nb_pop][nb_pop];
@@ -265,15 +268,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Here is code to print the common data matrix  ----------------
-			//~ printf("Common data matrix : \n");
-			//~ for (i = 0; i < nb_pop; i++) {
-				//~ for (j = 0; j < nb_pop; j++) {
-					//printf (" %li ",matrice_donnees_commune[i][j]);
-					//~ printf (" %li ",matrice_donnees_commune[i][j]);
-					//if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
-				//~ }
-				//~ printf("\n");
-			//~ }
+			printf("Common data matrix : \n");
+			for (i = 0; i < nb_pop; i++) {
+				for (j = 0; j < nb_pop; j++) {
+					//~ //printf (" %li ",matrice_donnees_commune[i][j]);
+					printf (" %li ",matrice_donnees_commune[i][j]);
+					//~ //if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+				}
+				printf("\n");
+			}
 			//--------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -282,23 +285,44 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
 				}
 			}
-			//~ printf("Nb data en commun : %d\n",nb_data_commun);
+			printf("Nb data en commun : %d\n",nb_data_commun);
 			
 			//Getting back to the beginning of the linked list
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
-
-			//Getting W_max
-			for (i_bis =0; i_bis < nb_pop; i_bis++) { for (j_bis = 0; j_bis < nb_pop; j_bis++) { 
-				if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } } }
+printf("poids de 1 donnée : %li\n",weight_two_packages = starpu_data_get_size(data->head->package_data[0]));
+			//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WOULD BE INFERIOR TO GPU_RAM
+			printf("Nb pop vaut : %d\n",nb_pop);
+			for (i_bis =0; i_bis < nb_pop; i_bis++) { 
+				for (j_bis = 0; j_bis < nb_pop; j_bis++) {
+					weight_two_packages = 0;
+					for (i = 0; i < data->head->package_nb_data; i++) {
+						weight_two_packages += starpu_data_get_size(data->head->package_data[i]);
+					}
+					for (i = 0; i < data->head_2->package_nb_data; i++) {
+						weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]);
+					} 
+					printf("Le poids des deux paquets serait de : %li\n",weight_two_packages);
+					if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+						max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
+						printf("MAJ de max value : %d, avec un poids possible de %li\n",max_value_common_data_matrix,weight_two_packages);
+					} 
+				} data->head_2 = data->head_2->next;
+			} data->head = data->head->next; data->head_2 = data->first_link;
+			printf("max value comme data vaut à la fin %d\n",max_value_common_data_matrix);
 				
-			//Merge des paquets et test de taille < GPU_MAX - marche pour des paquets de 1 tache pour le moment
+			//Getting back to the beginning of the linked list
+			data->head = data->first_link;
+			data->head_2 = data->first_link;
+				
+			//Merge des paquets et test de taille < GPU_MAX
 			for (i = 0; i < nb_pop; i++) {
 				data->head_2 = data->head;
 				data->head_2 = data->head_2->next;
 				for (j = i + 1; j< nb_pop; j++) {
 					//~ printf("GPU_RAM vaut : %zd\n",GPU_RAM);
 					
+					//Pas utile du coup normalement avec la modif plus haut de max value common data
 					weight_two_packages = 0;
 					//Calcul du poids des données des deux paquets que l'on veut merge
 					for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) {
@@ -307,14 +331,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
 						weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]);
 					}
+					
 					//~ printf("Le poids des deux paquets serait de : %li\n",weight_two_packages);
 					
 					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
-						if (weight_two_packages > GPU_RAM) { 
-							//~ printf("On dépasse GPU_RAM!\n"); 
+						if (weight_two_packages >= GPU_RAM) { 
+							printf("On dépasse GPU_RAM!\n"); 
 						}
 						else {
-							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
 						//Interdit i et j de faire des regroupements par la suite
@@ -410,11 +435,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Reset de nb_pop!
 		nb_pop = link_index;
+		
 		if (nb_pop == 1) { break; }
+		printf("packaging impossible vaut %d\n",packaging_impossible);
 		} // Fin du while (packaging_impossible == 0)
 		
 		//printf du nombre de paquets et de la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
 		data->head = data->first_link;
+		
 		
 		//Code to print everything ----
 		long int total_weight = 0;
@@ -423,13 +451,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		printf("\n\n A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n\n",data->ALGO_USED_READER);
 		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
 		printf("-----\n");
-		link_index = 0;
+		link_index = 0;	
 		while (data->head != NULL) {
 			printf("Le paquet %d contient %d tâche(s)\n",link_index,data->head->nb_task_in_sub_list);
 			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
-				printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
-				//~ // a pas mettre dans la boucle
+				printf("%p\n",temp_task_3);
 			}
 			for (i = 0; i < data->head->package_nb_data; i++) {
 				total_weight+= starpu_data_get_size(data->head->package_data[i]);
@@ -440,26 +466,35 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->head->next;
 			printf("-----\n");
 		}
+		data->head = data->first_link;
 		printf("\n");
 		printf("Info de la bande passante : %f\n",bandwith_info);
+		temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
+		task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+		printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+		
+		int tab_coordinates[2];
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_3,0),2,tab_coordinates[2]);
+		printf("Les coordonnées de la donnée numéro %d de la tâche %p sont : x = %d / y = %d\n",1,temp_task_3,tab_coordinates[0],tab_coordinates[1]);
 		printf("\n\n");
+		data->head = data->first_link;
 		// ---------------------------
 		
-		data->head = data->first_link;
 		
+		//~ data->head = data->first_link;
 		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		if (task1 != NULL) { 
-			printf("Task %p is getting out of pull_task\n",task1); 
+			//~ printf("Task %p is getting out of pull_task\n",task1); 
 		}
 		return task1;
 	} //Else de if ((data->head->next == NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
 	if (!starpu_task_list_empty(&data->head->sub_list)) {
 		task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		printf("Task %p is getting out of pull_task\n",task1);
+		//~ printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
 	if ((data->head->next != NULL) && (starpu_task_list_empty(&data->head->sub_list))) {
@@ -468,7 +503,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		while (starpu_task_list_empty(&data->head->sub_list)) { data->head = data->head->next; }
 			task1 = starpu_task_list_pop_front(&data->head->sub_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->head->sub_list)\n",task1);
+			//~ printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->head->sub_list)\n",task1);
 			return task1;
 	}		
 }
