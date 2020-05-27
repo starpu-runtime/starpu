@@ -15,6 +15,7 @@
 #
 using StarPU
 using LinearAlgebra.BLAS
+using BenchmarkTools
 
 @target STARPU_CPU+STARPU_CUDA
 @codelet function gemm(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, alpha :: Float32, beta :: Float32) :: Nothing
@@ -54,7 +55,6 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
                     end
                 end
             end
-            starpu_task_wait_for_all()
             t=time_ns()-t
             if (tmin==0 || tmin>t)
                 tmin=t
@@ -135,8 +135,10 @@ end
 
 starpu_init()
 starpu_cublas_init()
+nblock_x = Int32(ceil(sqrt(starpu_worker_get_count())))
+nblock_y = nblock_x
 io=open(filename,"w")
-compute_times(io,64,512,4096,1,1)
+compute_times(io,64,512,4096,nblock_x,nblock_y)
 close(io)
 
 starpu_shutdown()
