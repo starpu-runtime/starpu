@@ -160,6 +160,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int packaging_impossible = 0; //0 = false / 1 = true
 	int temp_tab_coordinates[2];
 	int bool_data_common = 0;
+	int GPU_limit_switch = 1; //On 1 it means we use the limit
 	
 	
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
@@ -194,18 +195,21 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
 			
-			//~ int *tab_coordinates = malloc(nb_pop*3*sizeof(tab_coordinates[0]));
+			i = 0;
+			int *tab_coordinates = malloc((nb_pop*3+1)*sizeof(tab_coordinates[0]));
+			tab_coordinates[0] = nb_pop*3+1; i++;
 			for (temp_task_3  = starpu_task_list_begin(&data->tache_pop); temp_task_3 != starpu_task_list_end(&data->tache_pop); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 					//Seul l'indice 2 du handle correspond a la matrice C
 					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_3,2),2,temp_tab_coordinates);
 					if ((temp_tab_coordinates[0] == 0) && (temp_tab_coordinates[1] == 0)) { data_0_0_in_C = STARPU_TASK_GET_HANDLE(temp_task_3,2); }
 					//~ printf("Les coordonnées de la donnée %p de la tâche %p sont : x = %d / y = %d\n",STARPU_TASK_GET_HANDLE(temp_task_3,2),temp_task_3,temp_tab_coordinates[0],temp_tab_coordinates[1]);
-					//~ tab_coordinates[i] = STARPU_TASK_GET_HANDLE(temp_task_3,2); i++; tab_coordinates[i] = temp_tab_coordinates[0]; i++; tab_coordinates[i] = temp_tab_coordinates[1]; 
+					//~ tab_coordinates[i] = STARPU_TASK_GET_HANDLE(temp_task_3,2); i++; tab_coordinates[i] = temp_tab_coordinates[0]; i++; tab_coordinates[i] = temp_tab_coordinates[1]; i++;
 			}
 			
-			//~ for (i = 0; i < nb_pop*3; i+=3) { printf("dans le tab à %p on a : %d et %d\n", tab_coordinates[i],tab_coordinates[i+1],tab_coordinates[i+2]); }
+			//~ for (i = 1; i < nb_pop*3+1; i+=3) { printf("dans le tab à %p on a : %d et %d\n", tab_coordinates[i],tab_coordinates[i+1],tab_coordinates[i+2]); }
 			
-			printf("%d task(s) have been pulled\n",nb_pop);
+			//~ printf("%d task(s) have been pulled\n",nb_pop);
+			//~ printf("Avec l'exemple de base on a %d données initialement\n",nb_pop*3);
 			
 			//Version avec des paquets de tâches et des comparaisons de paquets ------------------------------------------------------------------------------------------------------
 			temp_task_3  = starpu_task_list_begin(&data->tache_pop);
@@ -247,6 +251,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			index_head_2++;
 			
+while (link_index != 1) {
+			
 			while (packaging_impossible == 0) {
 				//~ printf("max value comme data vaut au debut %d\n",max_value_common_data_matrix);
 				nb_of_loop++;
@@ -285,15 +291,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Here is code to print the common data matrix  ----------------
-			printf("Common data matrix : \n");
-			for (i = 0; i < nb_pop; i++) {
-				for (j = 0; j < nb_pop; j++) {
-					//~ //printf (" %li ",matrice_donnees_commune[i][j]);
-					printf (" %li ",matrice_donnees_commune[i][j]);
-					//~ //if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
-				}
-				printf("\n");
-			}
+			//~ printf("Common data matrix : \n");
+			//~ for (i = 0; i < nb_pop; i++) {
+				//~ for (j = 0; j < nb_pop; j++) {
+					//printf (" %li ",matrice_donnees_commune[i][j]);
+					//~ printf (" %li ",matrice_donnees_commune[i][j]);
+					//if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
+				//~ }
+				//~ printf("\n");
+			//~ }
 			//--------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -309,48 +315,60 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			//~ printf("poids de 1 donnée : %li\n",weight_two_packages = starpu_data_get_size(data->head->package_data[0]));
 			
-			//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WITHOUT THE DUPLICATE WOULD BE INFERIOR TO GPU_RAM
-			//~ printf("Nb pop vaut : %d\n",nb_pop);
-			for (i_bis =0; i_bis < nb_pop; i_bis++) { 
-				data->head_2 = data->head;
-				data->head_2 = data->head_2->next;
-				for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
-					weight_two_packages = 0;
-					//On somme d'abord les poids de tout le paquet 1
-					for (i = 0; i < data->head->package_nb_data; i++) {
-						weight_two_packages += starpu_data_get_size(data->head->package_data[i]);
-					}
-					//ensuite on somme le paquet 2 mais uniquement les données qui ne sont pas dans le paquet 1
-					for (i = 0; i < data->head_2->package_nb_data; i++) {
-						bool_data_common = 0;
-						for (j = 0; j < data->head->package_nb_data; j++) {
-							if (data->head_2->package_data[i] == data->head->package_data[j])
-							{
-								bool_data_common = 1;
-							}
-						}
-						if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); }
-					}
-								
-					//~ for (i = 0; i < data->head->package_nb_data; i++) {
-						//~ weight_two_packages += starpu_data_get_size(data->head->package_data[i]);
-					//~ }
-					//~ for (i = 0; i < data->head_2->package_nb_data; i++) {
-						//~ weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]);
-					//~ } 
-					//~ printf("Le poids des deux paquets avant le test %d et %d serait de : %li\n",i_bis,j_bis,weight_two_packages);
-					if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
-						max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
-						printf("MAJ de max value : %d, avec un poids possible de %li pour les paquets %d et %d\n",max_value_common_data_matrix,weight_two_packages,i_bis,j_bis);
-					} weight_two_packages = 0;
+			if (GPU_limit_switch == 1) {
+				//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WITHOUT THE DUPLICATE WOULD BE INFERIOR TO GPU_RAM
+				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
+					data->head_2 = data->head;
 					data->head_2 = data->head_2->next;
-				} data->head = data->head->next;
+					for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
+						weight_two_packages = 0;
+						//On somme d'abord les poids de tout le paquet 1
+						for (i = 0; i < data->head->package_nb_data; i++) {
+							weight_two_packages += starpu_data_get_size(data->head->package_data[i]);
+						}
+						//ensuite on somme le paquet 2 mais uniquement les données qui ne sont pas dans le paquet 1
+						for (i = 0; i < data->head_2->package_nb_data; i++) {
+							bool_data_common = 0;
+							for (j = 0; j < data->head->package_nb_data; j++) {
+								if (data->head_2->package_data[i] == data->head->package_data[j])
+								{
+									bool_data_common = 1;
+								}
+							}
+							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); }
+						}
+									
+						//~ for (i = 0; i < data->head->package_nb_data; i++) {
+							//~ weight_two_packages += starpu_data_get_size(data->head->package_data[i]);
+						//~ }
+						//~ for (i = 0; i < data->head_2->package_nb_data; i++) {
+							//~ weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]);
+						//~ } 
+						//~ printf("Le poids des deux paquets avant le test %d et %d serait de : %li\n",i_bis,j_bis,weight_two_packages);
+						if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+							max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
+							//~ printf("MAJ de max value : %d, avec un poids possible de %li pour les paquets %d et %d\n",max_value_common_data_matrix,weight_two_packages,i_bis,j_bis);
+						} weight_two_packages = 0;
+						data->head_2 = data->head_2->next;
+					} data->head = data->head->next;
+				}
+				//~ printf("max value comme data vaut à la fin %d\n",max_value_common_data_matrix);
+				//Getting back to the beginning of the linked list
+				data->head = data->first_link;
+				data->head_2 = data->first_link;
 			}
-			//~ printf("max value comme data vaut à la fin %d\n",max_value_common_data_matrix);
+			//Else, we are using algo 3, so we don't check the max weight
+			else {
+				printf("algo 3 bp 1\n");
+				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
+					for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
+						if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
+							max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
+						}
+					}
+				}
+			}
 				
-			//Getting back to the beginning of the linked list
-			data->head = data->first_link;
-			data->head_2 = data->first_link;
 				
 			//Merge des paquets et test de taille < GPU_MAX
 			for (i = 0; i < nb_pop; i++) {
@@ -386,17 +404,19 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); }
 					}
 					
-					printf("Le poids des paquets %d et %d serait de : %li\n",i,j,weight_two_packages);
+					//~ printf("Le poids des paquets %d et %d serait de : %li\n",i,j,weight_two_packages);
 					
-					if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) {
-						if (weight_two_packages > GPU_RAM) { 
+					if ( ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0) ) {
+						if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
 						//~ if (GPU_RAM == 0) { 
-							printf("On dépasse GPU_RAM!\n"); 
+							//~ printf("On dépasse GPU_RAM!\n"); 
 						}
 						else {
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
+						//Si on utilise l'algo 4 on veut arrêter cette boucle pour ne pas regrouper plus que 1 fois le paquet courant
+						
 						//Interdit i et j de faire des regroupements par la suite
 						for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; }
 						for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; }
@@ -473,21 +493,23 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = delete_link(data);
 			
 			while (data->head != NULL) {
-				for (i = 0; i < data->head->package_nb_data; i++) {
+				//~ for (i = 0; i < data->head->package_nb_data; i++) {
 					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
 					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
 					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
 						//~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]); 
 					//~ }
-				}
+				//~ }
 				//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 					//~ //printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
 				//~ }
+				
+				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 				link_index++;
 				data->head = data->head->next;
 				//~ printf("------------------------------------------------------------------\n");
 			} 
-			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
+			printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
 			data->head = data->first_link;
 		
 		//Reset de la matrice
@@ -498,36 +520,53 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		if (nb_pop == 1) { break; }
 		//~ printf("packaging impossible vaut %d\n",packaging_impossible);
 		
+		//~ link_index = 0;
+		//~ printf("\n");
+		//~ printf("----------------------------------\n");
+		//~ while (data->head != NULL) {
+			//~ for (i = 0; i < data->head->package_nb_data; i++) {
+					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
+					//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
+							//~ printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
+					//~ }
+			//~ }	
+			//~ data->head = data->head->next; link_index++; printf("---\n");
+		//~ }
+		//~ data->head = data->first_link;
+		//~ printf("Fin du while\n");
+		} // Fin du while (packaging_impossible == 0) {
 		
-		} // Fin du while (packaging_impossible == 0)
+		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
+		if (data->ALGO_USED_READER == 3) { GPU_limit_switch = 0; printf ("Fin du while packaging impossible\n"); }
+		//Sinon on arrête ici l'exécution
+		else { link_index = 1; }
+}		
 		
-		//printf du nombre de paquets et de la taille des données de chaque paquet, le temps que ca prend pour les transferer, le temps total des taches, et le nb de taches de chaque paquet
-		data->head = data->first_link;
-		
+		data->head = data->first_link;	
 		
 		//Code to print everything ----
-		
+		link_index = 0;
 		long int total_weight = 0;
 		double task_duration_info = 0;
 		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
 		printf("\n\n A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n\n",data->ALGO_USED_READER);
+		while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
 		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
 		printf("-----\n");
 		link_index = 0;	
 		while (data->head != NULL) {
 			printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
 			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				//~ printf("%p\n",temp_task_3);
+				printf("%p\n",temp_task_3);
 			}
 			for (i = 0; i < data->head->package_nb_data; i++) {
 				total_weight+= starpu_data_get_size(data->head->package_data[i]);
-				//~ printf ("total weiht : %li\n",total_weight);
 			}
 			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
 				for (i = 0; i < data->head->package_nb_data; i++) {
 					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
 					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-						//~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
+						//~ // //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
 					}
 				}
 			total_weight = 0;
