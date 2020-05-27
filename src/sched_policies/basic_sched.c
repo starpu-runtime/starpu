@@ -251,9 +251,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			index_head_2++;
 			
-while (link_index != 1) {
+//~ while (link_index != 1) {
 			
 			while (packaging_impossible == 0) {
+				algo3:
 				//~ printf("max value comme data vaut au debut %d\n",max_value_common_data_matrix);
 				nb_of_loop++;
 				packaging_impossible = 1;
@@ -537,10 +538,10 @@ while (link_index != 1) {
 		} // Fin du while (packaging_impossible == 0) {
 		
 		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
-		if (data->ALGO_USED_READER == 3) { GPU_limit_switch = 0; printf ("Fin du while packaging impossible\n"); }
+		if ((data->ALGO_USED_READER == 3) && (link_index != 1)) { GPU_limit_switch = 0; printf ("Fin du while packaging impossible\n"); goto algo3; }
 		//Sinon on arrête ici l'exécution
-		else { link_index = 1; }
-}		
+		else { }
+		
 		
 		data->head = data->first_link;	
 		
