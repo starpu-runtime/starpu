@@ -161,7 +161,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int temp_tab_coordinates[2];
 	int bool_data_common = 0;
 	int GPU_limit_switch = 1; //On 1 it means we use the limit
-	
+	double number_tasks = 0;
 	
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
@@ -195,6 +195,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				starpu_task_list_push_back(&data->tache_pop,task1);
 			} 
 			
+			number_tasks = nb_pop;
 			i = 0;
 			int *tab_coordinates = malloc((nb_pop*3+1)*sizeof(tab_coordinates[0]));
 			tab_coordinates[0] = nb_pop*3+1; i++;
@@ -360,7 +361,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			//Else, we are using algo 3, so we don't check the max weight
 			else {
-				printf("algo 3 bp 1\n");
+				//~ printf("algo 3 bp 1\n");
 				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
 					for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
 						if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
@@ -498,11 +499,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
 					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
 					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
-						//~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]); 
+						//printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]); 
 					//~ }
 				//~ }
 				//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-					//~ //printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
+					//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
 				//~ }
 				
 				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
@@ -510,7 +511,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				data->head = data->head->next;
 				//~ printf("------------------------------------------------------------------\n");
 			} 
-			printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
+			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
 			data->head = data->first_link;
 		
 		//Reset de la matrice
@@ -538,7 +539,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		} // Fin du while (packaging_impossible == 0) {
 		
 		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
-		if ((data->ALGO_USED_READER == 3) && (link_index != 1)) { GPU_limit_switch = 0; printf ("Fin du while packaging impossible\n"); goto algo3; }
+		if ((data->ALGO_USED_READER == 3) && (link_index != 1)) { GPU_limit_switch = 0; goto algo3; }
 		//Sinon on arrête ici l'exécution
 		else { }
 		
@@ -550,9 +551,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		long int total_weight = 0;
 		double task_duration_info = 0;
 		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		printf("\n\n A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n\n",data->ALGO_USED_READER);
+		printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
 		while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
-		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n\n",nb_of_loop,link_index);
+		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
 		printf("-----\n");
 		link_index = 0;	
 		while (data->head != NULL) {
@@ -567,7 +568,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				for (i = 0; i < data->head->package_nb_data; i++) {
 					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
 					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-						//~ // //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
+						// //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
 					}
 				}
 			total_weight = 0;
@@ -585,6 +586,31 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->head = data->first_link;
 		// ---------------------------
 		
+		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
+		//data file we output with stat about the number of packages etc...
+		FILE * data_output;
+		data_output = fopen("packages_data.txt", "w+");
+		fprintf(data_output, "Matrix_size / Number_tasks / Number_data_with_duplicate / Number_data_without_duplicate / Number_packages / Mean_task_by_packages / Mean_data_by_packages / Mean_weight_packages\n");	
+		link_index = 0;	
+		int weight_all_packages = 0;
+		int number_data_without_duplicate = 0;
+		while (data->head != NULL) {
+			link_index++;
+			number_data_without_duplicate += data->head->package_nb_data;
+			for (i = 0; i < data->head->package_nb_data; i++) {
+				weight_all_packages += starpu_data_get_size(data->head->package_data[i]);
+			}
+			data->head = data->head->next;
+		}
+		
+		double matrix_size = 960*sqrt(number_tasks);
+		double mean_task_by_packages = number_tasks/link_index;
+		double mean_data_by_packages = number_data_without_duplicate/link_index;
+		double mean_weight_packages = weight_all_packages/link_index;
+		//Le *3 est du brute force, il faudra le changer si l'app devient générique
+		fprintf(data_output, "%f	%f	%f	%d	%d	%f %f %f\n",matrix_size,number_tasks,number_tasks*3,number_data_without_duplicate,link_index,mean_task_by_packages,mean_data_by_packages,mean_weight_packages);
+		data->head = data->first_link;
+		// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
 		//~ data->head = data->first_link;
 		
@@ -653,6 +679,7 @@ static int basic_can_pull(struct starpu_sched_component * component)
 
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;

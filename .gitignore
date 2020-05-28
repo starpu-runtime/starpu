@@ -410,3 +410,5 @@ tools/starpu_smpirun
 tools/starpu_tasks_rec_complete
 trace.html
 trace.rec
+packages_data.txt
+start_test_maxime
