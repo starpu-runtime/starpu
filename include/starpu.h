@@ -441,6 +441,16 @@ struct starpu_conf
 	   performance counters after initialization
 	 */
 	unsigned start_perf_counter_collection;
+
+	/**
+	   Minimum spinning backoff of drivers. Default value: \c 1
+	 */
+	unsigned driver_spinning_backoff_min;
+
+	/**
+	   Maximum spinning backoff of drivers. Default value: \c 32
+	 */
+	unsigned driver_spinning_backoff_max;
 };
 
 /**

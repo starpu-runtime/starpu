@@ -406,6 +406,20 @@ and friends.  The default is Enabled.
 This permits to test the performance effect of memory pinning.
 </dd>
 
+<dt>STARPU_BACKOFF_MIN</dt>
+<dd>
+\anchor STARPU_BACKOFF_MIN
+\addindex __env__STARPU_BACKOFF_MIN
+Set minimum exponential backoff of number of cycles to pause when spinning. Default value is 1.
+</dd>
+
+<dt>STARPU_BACKOFF_MAX</dt>
+<dd>
+\anchor STARPU_BACKOFF_MAX
+\addindex __env__STARPU_BACKOFF_MAX
+Set maximum exponential backoff of number of cycles to pause when spinning. Default value is 32.
+</dd>
+
 <dt>STARPU_MIC_SINK_PROGRAM_NAME</dt>
 <dd>
 \anchor STARPU_MIC_SINK_PROGRAM_NAME

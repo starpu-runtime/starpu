@@ -1143,6 +1143,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 	/* 64MiB by default */
 	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
 
+	conf->driver_spinning_backoff_min = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MIN", 1);
+	conf->driver_spinning_backoff_max = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MAX", 32);
+
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
 	return 0;
