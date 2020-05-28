@@ -433,6 +433,16 @@ struct starpu_conf
 	   \ref STARPU_CATCH_SIGNALS
 	 */
 	int catch_signals;
+
+	/**
+	   Minimum spinning backoff of drivers. Default value: \c 1
+	 */
+	unsigned driver_spinning_backoff_min;
+
+	/**
+	   Maximum spinning backoff of drivers. Default value: \c 32
+	 */
+	unsigned driver_spinning_backoff_max;
 };
 
 /**

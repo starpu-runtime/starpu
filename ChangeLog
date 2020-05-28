@@ -17,6 +17,11 @@
 StarPU 1.3.6 (git revision xxx)
 ====================================================================
 
+Small features:
+  * New STARPU_BACKOFF_MIN and STARPU_BACKOFF_MAX environment variables to the
+    exponential backoff limits of the number of cycles to pause while drivers
+    are spinning.
+
 StarPU 1.3.5 (git revision 5f7458799f548026fab357b18541bb462dde2b53)
 ====================================================================
 
@@ -56,9 +61,6 @@ Small features:
     starpu_mpi_interface_datatype_unregister() which take a enum
     starpu_data_interface_id instead of a starpu_data_handle_t
   * New script starpu_env to set up StarPU environment variables
-  * New STARPU_BACKOFF_MIN and STARPU_BACKOFF_MAX environment variables to the
-    exponential backoff limits of the number of cycles to pause while drivers
-    are spinning.
   * Add STARPU_DISPLAY_BINDINGS environment variable and
     starpu_display_bindings() function to display all bindings on the machine by
     calling hwloc-ps
