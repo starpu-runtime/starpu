@@ -547,50 +547,52 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->head = data->first_link;	
 		
 		//Code to print everything ----
-		link_index = 0;
-		long int total_weight = 0;
-		double task_duration_info = 0;
-		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
-		while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
-		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
-		printf("-----\n");
-		link_index = 0;	
-		while (data->head != NULL) {
-			printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
-			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				printf("%p\n",temp_task_3);
-			}
-			for (i = 0; i < data->head->package_nb_data; i++) {
-				total_weight+= starpu_data_get_size(data->head->package_data[i]);
-			}
-			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-				for (i = 0; i < data->head->package_nb_data; i++) {
-					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
-					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-						// //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
-					}
-				}
-			total_weight = 0;
-			link_index++;
-			data->head = data->head->next;
-			printf("-----\n");
-		}
-		data->head = data->first_link;
-		printf("\n");
-		printf("Info de la bande passante : %f\n",bandwith_info);
-		temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
-		task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
-		printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
-		printf("\n\n");
-		data->head = data->first_link;
+		//~ link_index = 0;
+		//~ long int total_weight = 0;
+		//~ double task_duration_info = 0;
+		//~ double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		//~ printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
+		//~ while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
+		//~ printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
+		//~ printf("-----\n");
+		//~ link_index = 0;	
+		//~ while (data->head != NULL) {
+			//~ printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
+			//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				//~ printf("%p\n",temp_task_3);
+			//~ }
+			//~ for (i = 0; i < data->head->package_nb_data; i++) {
+				//~ total_weight+= starpu_data_get_size(data->head->package_data[i]);
+			//~ }
+			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+				//~ for (i = 0; i < data->head->package_nb_data; i++) {
+					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
+					//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
+						//~ // //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
+					//~ }
+				//~ }
+			//~ total_weight = 0;
+			//~ link_index++;
+			//~ data->head = data->head->next;
+			//~ printf("-----\n");
+		//~ }
+		//~ data->head = data->first_link;
+		//~ printf("\n");
+		//~ printf("Info de la bande passante : %f\n",bandwith_info);
+		//~ temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
+		//~ task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+		//~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+		//~ printf("\n\n");
+		//~ data->head = data->first_link;
 		// ---------------------------
 		
 		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
 		//data file we output with stat about the number of packages etc...
 		FILE * data_output;
-		data_output = fopen("packages_data.txt", "w+");
-		fprintf(data_output, "Matrix_size / Number_tasks / Number_data_with_duplicate / Number_data_without_duplicate / Number_packages / Mean_task_by_packages / Mean_data_by_packages / Mean_weight_packages\n");	
+		data_output = fopen("packages_data.txt", "a+");
+		//~ if (data_output == -1) { 
+			//~ fprintf(data_output, "Matrix_size / Number_tasks / Number_data_with_duplicate / Number_data_without_duplicate / Number_packages / Mean_task_by_packages / Mean_data_by_packages / Mean_weight_packages\n");	
+		//~ }
 		link_index = 0;	
 		int weight_all_packages = 0;
 		int number_data_without_duplicate = 0;
