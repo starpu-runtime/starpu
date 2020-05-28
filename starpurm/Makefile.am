@@ -18,7 +18,7 @@ include $(top_srcdir)/starpu-subdirtests.mk
 
 SUBDIRS=src
 
-if BUILD_STARPURM_EXAMPLES
+if STARPU_BUILD_STARPURM_EXAMPLES
 SUBDIRS += examples
 endif
 

@@ -153,7 +153,7 @@ SHELL_TESTS =
 if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS			+=	scheduler/schedulers.sh
 SHELL_TESTS			+=	scheduler/schedulers_context.sh
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 SHELL_TESTS			+=	mult/sgemm.sh
 endif
 endif
@@ -297,7 +297,7 @@ endif
 endif
 endif
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
@@ -337,7 +337,7 @@ endif
 
 if !STARPU_SIMGRID
 
-if MKL_BLAS_LIB
+if STARPU_MKL_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	lu/lu_example_complex_float		\
 	lu/lu_example_complex_double		\
@@ -639,7 +639,7 @@ endif
 # AXPY example #
 ################
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 axpy_axpy_SOURCES =				\
 	axpy/axpy.c				\
 	common/blas.c
@@ -658,7 +658,7 @@ endif
 # Mult example #
 ################
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 mult_sgemm_SOURCES = 				\
 	mult/sgemm.c				\
@@ -680,7 +680,7 @@ endif
 # Cholesky example #
 ####################
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 cholesky_cholesky_tag_SOURCES =			\
 	cholesky/cholesky_tag.c			\
@@ -735,7 +735,7 @@ endif
 # LU example #
 ##############
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 lu_lu_example_float_SOURCES =			\
 	lu/lu_example_float.c			\
@@ -777,7 +777,7 @@ lu_lu_implicit_example_double_SOURCES =		\
 lu_lu_implicit_example_double_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
 
-if MKL_BLAS_LIB
+if STARPU_MKL_BLAS_LIB
 lu_lu_example_complex_float_SOURCES =		\
 	lu/lu_example_complex_float.c		\
 	lu/clu.c				\
@@ -830,7 +830,7 @@ endif
 # Heat example #
 ################
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 heat_heat_SOURCES =				\
 	heat/heat.c				\
@@ -854,7 +854,7 @@ endif
 # CG example #
 ##############
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 cg_cg_SOURCES =					\
 	cg/cg.c					\
@@ -1008,7 +1008,7 @@ examplebin_PROGRAMS +=				\
 	mandelbrot/mandelbrot
 
 mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
-if HAVE_X11
+if STARPU_HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) -lX11 $(X_EXTRA_LIBS)
 endif
@@ -1057,7 +1057,7 @@ endif
 # OpenGL interoperability #
 ###########################
 
-if HAVE_OPENGL
+if STARPU_HAVE_OPENGL
 examplebin_PROGRAMS +=				\
 	gl_interop/gl_interop			\
 	gl_interop/gl_interop_idle
@@ -1079,7 +1079,7 @@ endif
 # pipeline example #
 ####################
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 pipeline_pipeline_SOURCES	=	\
 	pipeline/pipeline.c		\
 	common/blas.c
