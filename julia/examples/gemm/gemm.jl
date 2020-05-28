@@ -15,7 +15,6 @@
 #
 using StarPU
 using LinearAlgebra.BLAS
-using BenchmarkTools
 
 @target STARPU_CPU+STARPU_CUDA
 @codelet function gemm(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, alpha :: Float32, beta :: Float32) :: Nothing
