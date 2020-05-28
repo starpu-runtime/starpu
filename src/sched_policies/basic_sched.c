@@ -162,13 +162,25 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int bool_data_common = 0;
 	int GPU_limit_switch = 1; //On 1 it means we use the limit
 	double number_tasks = 0;
+	int temp_number_task = 0;
+	double mean_task_by_packages = 0;
+	double temp_moyenne = 0;
+	double temp_variance = 0;
+	double temp_ecart_type = 0;
+	//~ FILE * variance_ecart_type;
+	//~ variance_ecart_type = fopen("variance_ecart_type.txt", "a+");
+	//~ FILE * Nb_package_by_loop;
+	//~ Nb_package_by_loop = fopen("Nb_package_by_loop.txt", "a+");
+	FILE * Mean_task_by_loop;
+	Mean_task_by_loop = fopen("Mean_task_by_loop.txt", "a+");
 	
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
 	//~ printf("GPU_RAM/2 : %d\n",GPU_RAM);
-	//~ GPU_RAM/2 = 262.144.000
+	//~ GPU_RAM/2 = 262.144.000 pour cuda mem 500
+	//~ GPU_RAM/2 = 131.072.000 pour cuda mem 250
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task *task1 = NULL;
@@ -502,18 +514,45 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						//printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]); 
 					//~ }
 				//~ }
-				//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 					//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
-				//~ }
-				
+					temp_number_task ++;
+				}
+				//~ printf("Il y a %d tâches dans le paquet %d\n",temp_number_task,link_index);
+				temp_moyenne += temp_number_task;
+				temp_variance += temp_number_task*temp_number_task;
+				temp_number_task = 0;
 				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 				link_index++;
 				data->head = data->head->next;
-				//~ printf("------------------------------------------------------------------\n");
+				//~ printf("-----------------------------------------------\n");
 			} 
-			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
-			data->head = data->first_link;
-		
+			
+			//~ //Code to print variance ecart type
+			//~ temp_moyenne = temp_moyenne/link_index;
+			//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
+			//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
+			//~ temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
+			//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
+			//~ fprintf(variance_ecart_type,"%f",temp_variance);
+			//~ temp_ecart_type = sqrt(temp_variance);
+			//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
+			//~ fprintf(variance_ecart_type,"	%f\n",temp_ecart_type);
+			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
+			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
+			//~ data->head = data->first_link;
+			//~ //------------------------------------
+			
+			//Code to fprintf the number of packages per itération ---
+			//~ fprintf(Nb_package_by_loop,"%d	%d\n",nb_of_loop,link_index);
+			// ------------------------------------------------------
+			
+			//Code to fprintf the Mean_task by packages per itération ---
+			fprintf(Mean_task_by_loop,"%d	%f\n",nb_of_loop,temp_moyenne/link_index);
+			temp_moyenne = 0;
+			// ------------------------------------------------------
+			
+			
 		//Reset de la matrice
 		for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 		//Reset de nb_pop!
@@ -588,33 +627,36 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		
 		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
 		//data file we output with stat about the number of packages etc...
-		FILE * data_output;
-		data_output = fopen("packages_data.txt", "a+");
-		//~ if (data_output == -1) { 
-			//~ fprintf(data_output, "Matrix_size / Number_tasks / Number_data_with_duplicate / Number_data_without_duplicate / Number_packages / Mean_task_by_packages / Mean_data_by_packages / Mean_weight_packages\n");	
+		//~ FILE * data_output;
+		//~ data_output = fopen("packages_data.txt", "a+");
+		//~ link_index = 0;	
+		//~ int weight_all_packages = 0;
+		//~ int number_data_without_duplicate = 0;
+		//~ while (data->head != NULL) {
+			//~ link_index++;
+			//~ number_data_without_duplicate += data->head->package_nb_data;
+			//~ for (i = 0; i < data->head->package_nb_data; i++) {
+				//~ weight_all_packages += starpu_data_get_size(data->head->package_data[i]);
+			//~ }
+			//~ data->head = data->head->next;
 		//~ }
-		link_index = 0;	
-		int weight_all_packages = 0;
-		int number_data_without_duplicate = 0;
-		while (data->head != NULL) {
-			link_index++;
-			number_data_without_duplicate += data->head->package_nb_data;
-			for (i = 0; i < data->head->package_nb_data; i++) {
-				weight_all_packages += starpu_data_get_size(data->head->package_data[i]);
-			}
-			data->head = data->head->next;
-		}
 		
-		double matrix_size = 960*sqrt(number_tasks);
-		double mean_task_by_packages = number_tasks/link_index;
-		double mean_data_by_packages = number_data_without_duplicate/link_index;
-		double mean_weight_packages = weight_all_packages/link_index;
-		//Le *3 est du brute force, il faudra le changer si l'app devient générique
-		fprintf(data_output, "%f	%f	%f	%d	%d	%f %f %f\n",matrix_size,number_tasks,number_tasks*3,number_data_without_duplicate,link_index,mean_task_by_packages,mean_data_by_packages,mean_weight_packages);
-		data->head = data->first_link;
+		//~ double matrix_size = 960*sqrt(number_tasks);
+		//~ mean_task_by_packages = number_tasks/link_index;
+		//~ double mean_data_by_packages = number_data_without_duplicate/link_index;
+		//~ double mean_weight_packages = weight_all_packages/link_index;
+		//~ //Le *3 est du brute force, il faudra le changer si l'app devient générique
+		//~ fprintf(data_output, "%f	%f	%f	%d	%d	%f %f %f\n",matrix_size,number_tasks,number_tasks*3,number_data_without_duplicate,link_index,mean_task_by_packages,mean_data_by_packages,mean_weight_packages);
+		//~ data->head = data->first_link;
 		// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
 		//~ data->head = data->first_link;
+		
+		//~ fclose(data_output);
+		//~ fclose(variance_ecart_type);
+		//~ fclose(Nb_package_by_loop);
+		fclose(Mean_task_by_loop);
+		
 		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
