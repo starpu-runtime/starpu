@@ -111,10 +111,6 @@ macro codelet(x)
     c_struct_param_decl = generate_c_struct_param_declaration(name)
     cpu_expr = transform_to_cpu_kernel(parsed)
 
-    if (starpu_target & STARPU_CUDA != 0)
-        prekernel, kernel = transform_to_cuda_kernel(parsed)
-    end
-
     generated_cpu_kernel_file_name=string("genc_",string(x.args[1].args[1].args[1]),".c")
     generated_cuda_kernel_file_name=string("gencuda_",string(x.args[1].args[1].args[1]),".cu")
 
@@ -132,6 +128,7 @@ macro codelet(x)
         kernel_file = open(generated_cuda_kernel_file_name, "w")
         debug_print("generating ", generated_cuda_kernel_file_name)
         print(kernel_file, cuda_kernel_file_start)
+        prekernel, kernel = transform_to_cuda_kernel(parsed)
 
         if kernel != nothing
             print(kernel_file, "__global__ ", kernel)
