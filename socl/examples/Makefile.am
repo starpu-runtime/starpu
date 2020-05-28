@@ -73,7 +73,7 @@ matmul_matmul_LDADD = -lm
 mansched_mansched_SOURCES = mansched/mansched.c
 
 #mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
-#if HAVE_X11
+#if STARPU_HAVE_X11
 #mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 #mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) -lX11 $(X_EXTRA_LIBS)
 #endif

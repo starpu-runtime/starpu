@@ -104,11 +104,9 @@ check_PROGRAMS = $(LOADER) $(starpu_julia_EXAMPLES)
 SHELL_TESTS	=
 STARPU_JULIA_EXAMPLES	=
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS 	+=	$(STARPU_JULIA_EXAMPLES)
 
 TESTS			=	$(SHELL_TESTS) $(STARPU_JULIA_EXAMPLES)
-endif
 
 ######################
 #      Examples      #
@@ -139,7 +137,7 @@ SHELL_TESTS			+=	dependency/tag_dep.sh
 SHELL_TESTS			+=	dependency/task_dep.sh
 SHELL_TESTS			+=	dependency/end_dep.sh
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 SHELL_TESTS			+=	axpy/axpy.sh
 SHELL_TESTS			+=	cholesky/cholesky.sh
 SHELL_TESTS			+=	gemm/gemm.sh

@@ -29,7 +29,7 @@ txtdir   = $(docdir)/manual
 
 EXTRA_DIST =
 
-if BUILD_DOC
+if STARPU_BUILD_DOC
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST += $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
@@ -40,7 +40,7 @@ install-exec-hook:
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 else
-if AVAILABLE_DOC
+if STARPU_AVAILABLE_DOC
 EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html_dev $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
 txt_DATA = $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen_dev/html_dev
@@ -58,7 +58,7 @@ chapters =	\
 
 images =
 
-if BUILD_DOC
+if STARPU_BUILD_DOC
 config.h: $(top_srcdir)/src/common/config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 	@$(SED) -i '1s/^/\/\*\* \@file \*\/\n/' $@

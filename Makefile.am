@@ -27,7 +27,7 @@ SUBDIRS += src
 
 SUBDIRS += tools
 
-if BUILD_TESTS
+if STARPU_BUILD_TESTS
 SUBDIRS += tests
 endif
 
@@ -37,19 +37,19 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
-if BUILD_EXAMPLES
+if STARPU_BUILD_EXAMPLES
 SUBDIRS += examples
 endif
 
-if BUILD_SOCL
+if STARPU_BUILD_SOCL
 SUBDIRS += socl
 endif
 
-if BUILD_STARPUFFT
+if STARPU_BUILD_STARPUFFT
 SUBDIRS += starpufft
 endif
 
-if BUILD_STARPURM
+if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
 endif
 

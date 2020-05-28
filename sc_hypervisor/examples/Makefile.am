@@ -26,7 +26,7 @@ noinst_PROGRAMS =				\
 	lp_test/lp_resize_test			\
 	hierarchical_ctxs/resize_hierarchical_ctxs
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 noinst_PROGRAMS +=				\
 	cholesky/cholesky_implicit
 
@@ -35,7 +35,7 @@ noinst_HEADERS = 				\
 	sched_ctx_utils/sched_ctx_utils.h
 endif
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\

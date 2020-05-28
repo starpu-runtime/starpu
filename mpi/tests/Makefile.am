@@ -96,8 +96,6 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 # Unit testcases       #
 ########################
 
-if BUILD_TESTS
-
 starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
@@ -152,7 +150,7 @@ starpu_mpi_TESTS +=				\
 	sendrecv_parallel_tasks_bench
 endif
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 starpu_mpi_TESTS +=				\
 	sendrecv_gemm_bench			\
 	burst_gemm
@@ -250,7 +248,7 @@ noinst_PROGRAMS +=				\
 	burst					\
 	nothing
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 noinst_PROGRAMS +=				\
 	sendrecv_gemm_bench			\
 	burst_gemm
@@ -297,7 +295,7 @@ sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
 burst_SOURCES = burst.c
 burst_SOURCES += burst_helper.c
 
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
 sendrecv_gemm_bench_SOURCES += bench_helper.c
 sendrecv_gemm_bench_SOURCES += gemm_helper.c

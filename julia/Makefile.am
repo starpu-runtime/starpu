@@ -15,7 +15,11 @@
 #
 include $(top_srcdir)/starpu.mk
 
-SUBDIRS = src examples
+SUBDIRS = src
+
+if STARPU_BUILD_EXAMPLES
+SUBDIRS += examples
+endif
 
 EXTRA_DIST = README
 

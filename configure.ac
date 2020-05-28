@@ -547,7 +547,6 @@ AC_MSG_RESULT($build_mpi_lib)
 AC_MSG_CHECKING(whether the StarPU MPI nmad library should be generated)
 AC_MSG_RESULT($build_nmad_lib)
 
-AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes)
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
 	if test x$build_mpi_lib = xyes ; then
@@ -2705,7 +2704,7 @@ else
 fi
 
 AC_MSG_RESULT($build_socl)
-AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
+AM_CONDITIONAL([STARPU_BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
@@ -2742,12 +2741,12 @@ AC_ARG_ENABLE(build-tests, [AS_HELP_STRING([--disable-build-tests],
 			[disable building of tests])],
 			enable_build_tests=$enableval, enable_build_tests=yes)
 # check stuff for tests (todo)
-AM_CONDITIONAL(BUILD_TESTS, [test x$enable_build_tests != xno])
+AM_CONDITIONAL(STARPU_BUILD_TESTS, [test x$enable_build_tests != xno])
 AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--disable-build-examples],
 			[disable building of examples])],
 			enable_build_examples=$enableval, enable_build_examples=yes)
 # check stuff for examples (todo)
-AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_build_examples != xno])
+AM_CONDITIONAL(STARPU_BUILD_EXAMPLES, [test x$enable_build_examples != xno])
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
@@ -2763,13 +2762,13 @@ fi
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
-AM_CONDITIONAL([HAVE_OPENGL], [test "x$enable_opengl_render" = xyes])
+AM_CONDITIONAL([STARPU_HAVE_OPENGL], [test "x$enable_opengl_render" = xyes])
 
 AC_PATH_XTRA
 if test "x$no_x" != "xyes"; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
-AM_CONDITIONAL([HAVE_X11], [test "x$no_x" != "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_X11], [test "x$no_x" != "xyes"])
 
 # In case there are BLAS kernels that are used by the example applications
 # we may specify which library to use. Note that this is not used for StarPU
@@ -2969,11 +2968,11 @@ if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
 
-AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
-AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
-AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
-AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
-AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
+AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
+AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
+AM_CONDITIONAL(STARPU_MKL_BLAS_LIB, test x$blas_lib = xmkl)
+AM_CONDITIONAL(STARPU_SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
+AM_CONDITIONAL(STARPU_NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
 AC_SUBST(STARPU_BLAS_LDFLAGS)
 
 AC_MSG_CHECKING(which BLAS lib should be used)
@@ -3082,12 +3081,12 @@ AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes \); then
    fft_support=yes
 fi
-AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
 			[enable build of StarPU FFT examples])],
 			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
-AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 
 ##########################################
 # hwloc                                  #
@@ -3373,12 +3372,12 @@ then
 	AC_SUBST(DLB_LIBS)
 fi
 AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
-AM_CONDITIONAL(BUILD_STARPURM, [test x$starpurm_support = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPURM, [test x$starpurm_support = xyes])
 
 AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			[enable build of StarPU Resource Manager examples])],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
-AM_CONDITIONAL(BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
 
 
 
@@ -3415,8 +3414,8 @@ AC_MSG_RESULT($enable_build_doc)
 AC_MSG_CHECKING(whether documentation is available)
 AC_MSG_RESULT($available_doc)
 
-AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
-AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
+AM_CONDITIONAL(STARPU_BUILD_DOC, [test x$enable_build_doc != xno])
+AM_CONDITIONAL(STARPU_AVAILABLE_DOC, [test x$available_doc != xno])
 
 ###############################################################################
 #                                                                             #
