@@ -311,5 +311,3 @@ burst_gemm_SOURCES += ../../examples/common/blas.c
 
 burst_gemm_LDADD = $(STARPU_BLAS_LDFLAGS)
 endif
-
-endif
