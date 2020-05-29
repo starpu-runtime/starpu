@@ -288,7 +288,7 @@ int gemm_submit_tasks_with_tags(int with_tags)
  */
 void gemm_add_polling_dependencies()
 {
-	int nb_tasks = nslices * nslices;
+	starpu_tag_t nb_tasks = nslices * nslices;
 	unsigned nb_workers = starpu_worker_get_count();
 
 	for (starpu_tag_t synchro_tag = nb_workers+1; synchro_tag <= nb_tasks; synchro_tag += (nb_workers+1))
