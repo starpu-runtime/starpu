@@ -345,7 +345,7 @@ STARPU_EXAMPLES +=				\
 	lu/lu_implicit_example_complex_double
 endif
 
-if ATLAS_BLAS_LIB
+if STARPU_HAVE_CBLAS_H
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
 endif
@@ -886,7 +886,6 @@ spmv_spmv_SOURCES +=				\
 	spmv/spmv_cuda.cu
 endif
 
-if ATLAS_BLAS_LIB
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
 	spmv/dw_block_spmv_kernels.c		\
@@ -895,7 +894,6 @@ spmv_dw_block_spmv_SOURCES =			\
 
 spmv_dw_block_spmv_LDADD =			\
 	$(STARPU_BLAS_LDFLAGS)
-endif
 
 ###########################
 # C++ Incrementer example #
