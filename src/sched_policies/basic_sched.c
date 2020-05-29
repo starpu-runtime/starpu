@@ -272,8 +272,18 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			
 //~ while (link_index != 1) {
 			
+			//Fichier pour visualisation des coordonnées
 			FILE * fcoordinate;
 			fcoordinate = fopen("Data_coordinates.txt", "w+");
+			//Matrice pour visualisation des coordonnées
+			int coordinate_visualization_matrix_size = sqrt(number_tasks);
+			int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
+			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
+					for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+						coordinate_visualization_matrix[j_bis][i_bis] = NULL;
+					}
+				}
+			
 			while (packaging_impossible == 0) {
 				algo3:
 				//~ printf("max value comme data vaut au debut %d\n",max_value_common_data_matrix);
@@ -317,7 +327,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//~ for (i = 0; i < nb_pop; i++) {
 				//~ for (j = 0; j < nb_pop; j++) {
 					//printf (" %li ",matrice_donnees_commune[i][j]);
-					//~ printf (" %li ",matrice_donnees_commune[i][j]);
+					//~ printf (" %3li ",matrice_donnees_commune[i][j]);
 					//if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
 				//~ }
 				//~ printf("\n");
@@ -518,24 +528,43 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			while (data->head != NULL) {
 				//Code to print the coordinante and the data of each package ieration by iteration -----------------------
 				fprintf(fcoordinate,"\nCoordonnées du paquet n°%d\n",link_index);
+				//On retient le début de l'endroit où on va écrire
+				cursor_position = ftell(fcoordinate);
 				for (i = 0; i < data->head->package_nb_data; i++) {
 					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
 					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
-					if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
+					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
+					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
+						//~ if (nb_of_loop < 3) { printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]); }
 						printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
-						//On retient le début de l'endroit où on va écrire
-						cursor_position = ftell(fcoordinate);
+						coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = link_index;
 						//On cherche la bonne ligne
-						for (i_bis = 0; i_bis < temp_tab_coordinates[1]; i_bis++) {
-							fprintf(fcoordinate,"\n");
-						}
+						//~ for (i_bis = 0; i_bis < temp_tab_coordinates[1]; i_bis++) {
+							//~ fprintf(fcoordinate,"\n");
+						//~ }
 						//On se place à la bonne colonne
-						fseek(fcoordinate,temp_tab_coordinates[0],SEEK_CUR);
-						fprintf(fcoordinate,"%d",link_index);
+						//~ fseek(fcoordinate,temp_tab_coordinates[0],SEEK_CUR);
+						//~ fprintf(fcoordinate,"%d",link_index);
 						//On se repace au début de l'endroit où on écrit ce paquet
-						fseek(fcoordinate,cursor_position,SEEK_SET);
+						//~ cursor_position = ftell(fcoordinate);
+						//~ fseek(fcoordinate,cursor_position,SEEK_SET);
+						
+						
+						//Re init du tab des coordonnées
+						temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
 					}
 				}
+				//~ for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
+					//~ for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+						//~ printf(" %3d ",coordinate_visualization_matrix[j_bis][i_bis]);
+					//~ }
+					//~ printf("\n");
+				//~ }
+				//~ for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
+					//~ for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+						//~ coordinate_visualization_matrix[j_bis][i_bis] = 0;
+					//~ }
+				//~ }
 				//--------------------------------------------------------------------------------------------------------
 				
 				for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
@@ -552,6 +581,22 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				printf("-----------------------------------------------\n");
 			} 
 			fprintf(fcoordinate,"\n ");
+			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { printf("#"); } printf("\n");
+			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
+				printf("# ");
+				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+					printf("%3d",coordinate_visualization_matrix[j_bis][i_bis]);
+					
+				}
+				printf("   #");
+				printf("\n"); printf("# "); for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { printf("-"); } printf(" #"); printf("\n");
+			}
+			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { printf("#"); } printf("\n");
+			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
+				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+					coordinate_visualization_matrix[j_bis][i_bis] = NULL;
+				}
+			}
 			
 			//~ //Code to print variance ecart type -------
 			temp_moyenne = temp_moyenne/link_index;
@@ -563,7 +608,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			temp_ecart_type = sqrt(temp_variance);
 			//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
 			//~ fprintf(variance_ecart_type,"	%f\n",temp_ecart_type);
-			printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
+			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
+			printf("Fin du tour numéro %d du while!\n\n",nb_of_loop);
 			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
 			//~ data->head = data->first_link;
 			//~ //-----------------------------------------
