@@ -527,7 +527,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 	if (force_mpi_hostnames && force_mpi_hostnames[0])
 	{
-		char *host, *srv_hosts, *rsrv;
+		char *host, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
 		int rank;
 		if (starpu_mpi_world_rank)
@@ -542,8 +542,8 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 		if (force_mpi_hostnames != NULL)
 		{
-			host = strtok_r(srv_hosts, " ", &rsrv);
-			while (rank-->0 && (host = strtok_r(NULL, " ", &rsrv)));
+			host = strtok(srv_hosts, " ");
+			while (rank-->0 && (host = strtok(NULL, " ")));
 			if(rank>=0)
 			{
 				_STARPU_MSG("Missing hostnames in STARPU_MPI_HOSTNAMES\n");
