@@ -370,6 +370,13 @@ used by StarPU data structures.
 Disable the build of libstarpumpi. By default, it is enabled when MPI is found.
 </dd>
 
+<dt>--enable-mpi</dt>
+<dd>
+\anchor enable-mpi
+\addindex __configure__--enable-mpi
+Enable the build of libstarpumpi. This is necessary when using Simgrid+MPI.
+</dd>
+
 <dt>--with-mpicc=<c>path</c></dt>
 <dd>
 \anchor with-mpicc
