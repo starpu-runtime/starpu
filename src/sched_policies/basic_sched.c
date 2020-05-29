@@ -171,8 +171,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	//~ variance_ecart_type = fopen("variance_ecart_type.txt", "a+");
 	//~ FILE * Nb_package_by_loop;
 	//~ Nb_package_by_loop = fopen("Nb_package_by_loop.txt", "a+");
-	FILE * Mean_task_by_loop;
-	Mean_task_by_loop = fopen("Mean_task_by_loop.txt", "a+");
+	//~ FILE * Mean_task_by_loop;
+	//~ Mean_task_by_loop = fopen("Mean_task_by_loop.txt", "a+");
 	
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
@@ -529,13 +529,13 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			} 
 			
 			//~ //Code to print variance ecart type
-			//~ temp_moyenne = temp_moyenne/link_index;
+			temp_moyenne = temp_moyenne/link_index;
 			//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
 			//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
-			//~ temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
+			temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
 			//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
 			//~ fprintf(variance_ecart_type,"%f",temp_variance);
-			//~ temp_ecart_type = sqrt(temp_variance);
+			temp_ecart_type = sqrt(temp_variance);
 			//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
 			//~ fprintf(variance_ecart_type,"	%f\n",temp_ecart_type);
 			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
@@ -548,8 +548,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			// ------------------------------------------------------
 			
 			//Code to fprintf the Mean_task by packages per itération ---
-			fprintf(Mean_task_by_loop,"%d	%f\n",nb_of_loop,temp_moyenne/link_index);
-			temp_moyenne = 0;
+			//~ fprintf(Mean_task_by_loop,"%d	%d	%f	%f	%f	%f\n",nb_of_loop,link_index,temp_moyenne,temp_ecart_type,temp_moyenne-temp_ecart_type,temp_moyenne+temp_ecart_type);
+			//Code for ecart type
+			//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
+			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
 			// ------------------------------------------------------
 			
 			
@@ -655,7 +657,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		//~ fclose(data_output);
 		//~ fclose(variance_ecart_type);
 		//~ fclose(Nb_package_by_loop);
-		fclose(Mean_task_by_loop);
+		//~ fclose(Mean_task_by_loop);
 		
 		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
