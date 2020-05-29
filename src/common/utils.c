@@ -652,10 +652,11 @@ int starpu_get_env_string_var_default(const char *str, const char *strings[], in
 		val = _strings_ncmp(strings, strval);
 		if (val < 0)
 		{
+			int i;
 			_STARPU_MSG("\n");
 			_STARPU_MSG("Invalid value '%s' for environment variable '%s'\n", strval, str);
 			_STARPU_MSG("Valid values are:\n");
-			for(int i=0;strings[i]!=NULL;i++) _STARPU_MSG("\t%s\n",strings[i]);
+			for(i=0;strings[i]!=NULL;i++) _STARPU_MSG("\t%s\n",strings[i]);
 			_STARPU_MSG("\n");
 			STARPU_ABORT();
 		}
