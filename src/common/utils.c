@@ -23,6 +23,7 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+#include <ctype.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
@@ -585,4 +586,121 @@ char *starpu_getenv(const char *str)
 #endif
 #endif
 	return getenv(str);
+}
+
+int _strings_ncmp(const char *strings[], const char *str)
+{
+	int pos = 0;
+	while (strings[pos])
+	{
+		if ((strlen(str) == strlen(strings[pos]) && strncasecmp(str, strings[pos], strlen(strings[pos])) == 0))
+			break;
+		pos++;
+	}
+	if (strings[pos] == NULL)
+		return -1;
+	return pos;
+}
+
+int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue)
+{
+	int val;
+	char *strval;
+
+	strval = starpu_getenv(str);
+	if (!strval)
+	{
+		val = defvalue;
+	}
+	else
+	{
+		val = _strings_ncmp(strings, strval);
+		if (val < 0)
+		{
+			_STARPU_MSG("\n");
+			_STARPU_MSG("Invalid value '%s' for environment variable '%s'\n", strval, str);
+			_STARPU_MSG("Valid values are:\n");
+			for(int i=0;strings[i]!=NULL;i++) _STARPU_MSG("\t%s\n",strings[i]);
+			_STARPU_MSG("\n");
+			STARPU_ABORT();
+		}
+	}
+	return val;
+}
+
+static void remove_spaces(char *str)
+{
+	int i = 0;
+	int j = 0;
+
+	while (str[j] != '\0')
+	{
+		if (isspace(str[j]))
+		{
+			j++;
+			continue;
+		}
+		if (j > i)
+		{
+			str[i] = str[j];
+		}
+		i++;
+		j++;
+	}
+	if (j > i)
+	{
+		str[i] = str[j];
+	}
+}
+
+int starpu_get_env_size_default(const char *str, int defval)
+{
+	int val;
+	char *strval;
+
+	strval = starpu_getenv(str);
+	if (!strval)
+	{
+		val = defval;
+	}
+	else
+	{
+		char *value = strdup(strval);
+		if (value == NULL)
+			_STARPU_ERROR("memory allocation failed\n");
+		remove_spaces(value);
+		if (value[0] == '\0')
+		{
+			free(value);
+			val = defval;
+		}
+		else
+		{
+			char *endptr = NULL;
+			int mult = 1024;
+			errno = 0;
+			int v = (int)strtol(value, &endptr, 10);
+			if (errno != 0)
+				_STARPU_ERROR("could not parse environment variable '%s' with value '%s', strtol failed with error %s\n", str, value, strerror(errno));
+			if (*endptr != '\0')
+			{
+				switch (*endptr)
+				{
+				case 'b':
+				case 'B': mult = 1; break;
+				case 'k':
+				case 'K': mult = 1024; break;
+				case 'm':
+				case 'M': mult = 1024*1024; break;
+				case 'g':
+				case 'G': mult = 1024*1024*1024; break;
+				default:
+					_STARPU_ERROR("could not parse environment variable '%s' with value '%s' size suffix invalid\n", str, value);
+				}
+			}
+			val = v*mult;
+			free(value);
+		}
+	}
+	return val;
 }
