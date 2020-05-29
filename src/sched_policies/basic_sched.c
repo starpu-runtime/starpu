@@ -167,12 +167,18 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	double temp_moyenne = 0;
 	double temp_variance = 0;
 	double temp_ecart_type = 0;
+	long cursor_position = 0;
+	
+	// Fichiers de sortie -------------------------
 	//~ FILE * variance_ecart_type;
 	//~ variance_ecart_type = fopen("variance_ecart_type.txt", "a+");
 	//~ FILE * Nb_package_by_loop;
 	//~ Nb_package_by_loop = fopen("Nb_package_by_loop.txt", "a+");
 	//~ FILE * Mean_task_by_loop;
 	//~ Mean_task_by_loop = fopen("Mean_task_by_loop.txt", "a+");
+	//~ FILE * fcoordinate;
+	//~ fcoordinate = fopen("Data_coordinates.txt", "w+");
+	//---------------------------------------------
 	
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
@@ -266,6 +272,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			
 //~ while (link_index != 1) {
 			
+			FILE * fcoordinate;
+			fcoordinate = fopen("Data_coordinates.txt", "w+");
 			while (packaging_impossible == 0) {
 				algo3:
 				//~ printf("max value comme data vaut au debut %d\n",max_value_common_data_matrix);
@@ -506,14 +514,30 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head = delete_link(data);
 			
+			fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
 			while (data->head != NULL) {
-				//~ for (i = 0; i < data->head->package_nb_data; i++) {
+				//Code to print the coordinante and the data of each package ieration by iteration -----------------------
+				fprintf(fcoordinate,"\nCoordonnées du paquet n°%d\n",link_index);
+				for (i = 0; i < data->head->package_nb_data; i++) {
 					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
-					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
-					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
-						//printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]); 
-					//~ }
-				//~ }
+					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
+					if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
+						printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
+						//On retient le début de l'endroit où on va écrire
+						cursor_position = ftell(fcoordinate);
+						//On cherche la bonne ligne
+						for (i_bis = 0; i_bis < temp_tab_coordinates[1]; i_bis++) {
+							fprintf(fcoordinate,"\n");
+						}
+						//On se place à la bonne colonne
+						fseek(fcoordinate,temp_tab_coordinates[0],SEEK_CUR);
+						fprintf(fcoordinate,"%d",link_index);
+						//On se repace au début de l'endroit où on écrit ce paquet
+						fseek(fcoordinate,cursor_position,SEEK_SET);
+					}
+				}
+				//--------------------------------------------------------------------------------------------------------
+				
 				for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 					//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
 					temp_number_task ++;
@@ -525,10 +549,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 				link_index++;
 				data->head = data->head->next;
-				//~ printf("-----------------------------------------------\n");
+				printf("-----------------------------------------------\n");
 			} 
+			fprintf(fcoordinate,"\n ");
 			
-			//~ //Code to print variance ecart type
+			//~ //Code to print variance ecart type -------
 			temp_moyenne = temp_moyenne/link_index;
 			//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
 			//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
@@ -538,10 +563,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			temp_ecart_type = sqrt(temp_variance);
 			//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
 			//~ fprintf(variance_ecart_type,"	%f\n",temp_ecart_type);
-			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
+			printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
 			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
 			//~ data->head = data->first_link;
-			//~ //------------------------------------
+			//~ //-----------------------------------------
 			
 			//Code to fprintf the number of packages per itération ---
 			//~ fprintf(Nb_package_by_loop,"%d	%d\n",nb_of_loop,link_index);
@@ -579,6 +604,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		//~ printf("Fin du while\n");
 		} // Fin du while (packaging_impossible == 0) {
 		
+		fclose(fcoordinate);
+		
 		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
 		if ((data->ALGO_USED_READER == 3) && (link_index != 1)) { GPU_limit_switch = 0; goto algo3; }
 		//Sinon on arrête ici l'exécution
@@ -609,7 +636,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				//~ for (i = 0; i < data->head->package_nb_data; i++) {
 					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
 					//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-						//~ // //~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
+						//~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
 					//~ }
 				//~ }
 			//~ total_weight = 0;
@@ -642,7 +669,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//~ }
 			//~ data->head = data->head->next;
 		//~ }
-		
 		//~ double matrix_size = 960*sqrt(number_tasks);
 		//~ mean_task_by_packages = number_tasks/link_index;
 		//~ double mean_data_by_packages = number_data_without_duplicate/link_index;
@@ -653,11 +679,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
 		//~ data->head = data->first_link;
-		
-		//~ fclose(data_output);
-		//~ fclose(variance_ecart_type);
-		//~ fclose(Nb_package_by_loop);
-		//~ fclose(Mean_task_by_loop);
 		
 		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
@@ -769,6 +790,10 @@ static void deinitialize_basic_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
+	//~ fclose(variance_ecart_type);
+	//~ fcloseNb_package_by_loop;
+	//~ FILE * Mean_task_by_loop;
+	//~ fclose(fcoordinate);
 }
 
 struct starpu_sched_policy _starpu_sched_basic_sched_policy =
