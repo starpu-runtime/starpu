@@ -527,7 +527,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
 			while (data->head != NULL) {
 				//Code to print the coordinante and the data of each package ieration by iteration -----------------------
-				fprintf(fcoordinate,"\nCoordonnées du paquet n°%d\n",link_index);
 				//On retient le début de l'endroit où on va écrire
 				cursor_position = ftell(fcoordinate);
 				for (i = 0; i < data->head->package_nb_data; i++) {
@@ -536,7 +535,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
 					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
 						//~ if (nb_of_loop < 3) { printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]); }
-						printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
+						//~ printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
 						coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = link_index;
 						//On cherche la bonne ligne
 						//~ for (i_bis = 0; i_bis < temp_tab_coordinates[1]; i_bis++) {
@@ -578,20 +577,35 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 				link_index++;
 				data->head = data->head->next;
-				printf("-----------------------------------------------\n");
+				//~ printf("-----------------------------------------------\n");
 			} 
-			fprintf(fcoordinate,"\n ");
-			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { printf("#"); } printf("\n");
+				fprintf(fcoordinate,"\\begin{tabular}{ c | c | c }"); 
+			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
+				//~ fprintf(fcoordinate,"#"); 
+			
+				} fprintf(fcoordinate,"\n");
 			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
-				printf("# ");
-				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-					printf("%3d",coordinate_visualization_matrix[j_bis][i_bis]);
+				//~ fprintf(fcoordinate,"# ");
+				for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {
+					fprintf(fcoordinate,"%d &",coordinate_visualization_matrix[j_bis][i_bis]);
+					//~ fprintf(fcoordinate,"%3d",coordinate_visualization_matrix[j_bis][i_bis]);
 					
-				}
-				printf("   #");
-				printf("\n"); printf("# "); for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { printf("-"); } printf(" #"); printf("\n");
+				} fprintf(fcoordinate,"%d",coordinate_visualization_matrix[j_bis][i_bis]); 
+				//~ fprintf(fcoordinate,"   #");
+				fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\n \\hline");
+				fprintf(fcoordinate,"\n"); 
+				//~ fprintf(fcoordinate,"# "); 
+				for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { 
+					//~ fprintf(fcoordinate,"-"); 
+					} 
+					//~ fprintf(fcoordinate," #"); 
+					//~ fprintf(fcoordinate,"\n");
 			}
-			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { printf("#"); } printf("\n");
+			fprintf(fcoordinate, "\\end{tabular}");
+
+			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
+				//~ fprintf(fcoordinate,"#"); 
+				} fprintf(fcoordinate,"\n");
 			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
 				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
 					coordinate_visualization_matrix[j_bis][i_bis] = NULL;
