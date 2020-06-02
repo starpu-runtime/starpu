@@ -17,6 +17,7 @@
 
 /* Ordonnanceur de base sous contrainte mémoire */
 
+#include <time.h>
 #include <starpu.h>
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
@@ -168,6 +169,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	double temp_variance = 0;
 	double temp_ecart_type = 0;
 	long cursor_position = 0;
+	int packing_time = 0;
+	double moyenne = 0; double ecart_type = 0;
+	int min_nb_task_in_sub_list = 0;
 	
 	// Fichiers de sortie -------------------------
 	//~ FILE * variance_ecart_type;
@@ -275,6 +279,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Fichier pour visualisation des coordonnées
 			FILE * fcoordinate;
 			fcoordinate = fopen("Data_coordinates.txt", "w+");
+			FILE * variance_ecart_type;
+			variance_ecart_type = fopen("variance_ecart_type.txt", "a+");
 			//Matrice pour visualisation des coordonnées
 			int coordinate_visualization_matrix_size = sqrt(number_tasks);
 			int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
@@ -290,7 +296,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				nb_of_loop++;
 				packaging_impossible = 1;
 			
-			//Reinit indispendable ?
+			//Reinit indispendable
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
 			index_head_1 = 0;
@@ -299,53 +305,61 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			nb_data_commun = 0;
 			weight_two_packages = 0;
 			max_value_common_data_matrix = 0;
-			
-			//Init a 0 la common data
-			//~ long int (*matrice_donnees_commune)[nb_pop][nb_pop];
-			//~ matrice_donnees_commune = malloc(sizeof(*matrice_donnees_commune));
-			//~ printf("%lu\n", (*matrice_donnees_commune)[12][345]);
 			long int matrice_donnees_commune[nb_pop][nb_pop];
-			
-			
+			min_nb_task_in_sub_list = data->head->nb_task_in_sub_list;
 			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
-			//~ printf("Nb data head_2 : %d\n",data->head_2->package_nb_data);
-			//Filling the common data matrix
-			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
-				for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
-					for (i = 0; i < data->head->package_nb_data; i++) {
-						for (j = 0; j < data->head_2->package_nb_data; j++) {
-							if ((data->head->package_data[i] == data->head_2->package_data[j])) {
+			
+			//ALGO 4
+			if (data->ALGO_USED_READER == 4) { 
+				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+					if (min_nb_task_in_sub_list < data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } } 
+				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+					for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+						for (i = 0; i < data->head->package_nb_data; i++) {
+							for (j = 0; j < data->head_2->package_nb_data; j++) {
+								if ((data->head->package_data[i] == data->head_2->package_data[j])) {
 									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
-							}
-						} 
-					} index_head_2++; 
-				} index_head_1++; index_head_2 = index_head_1 + 1;
+									matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
+								} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
+			}
+			//On est pas dans le cas de l'algo 4
+			else {
+				//Filling the common data matrix
+				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+					for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+						for (i = 0; i < data->head->package_nb_data; i++) {
+							for (j = 0; j < data->head_2->package_nb_data; j++) {
+								if ((data->head->package_data[i] == data->head_2->package_data[j])) {
+									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
+								}
+							} 
+						} index_head_2++; 
+					} index_head_1++; index_head_2 = index_head_1 + 1;
+				}
 			}
 			
-			//Here is code to print the common data matrix  ----------------
-			//~ printf("Common data matrix : \n");
-			//~ for (i = 0; i < nb_pop; i++) {
-				//~ for (j = 0; j < nb_pop; j++) {
-					//printf (" %li ",matrice_donnees_commune[i][j]);
-					//~ printf (" %3li ",matrice_donnees_commune[i][j]);
-					//if (matrice_donnees_commune[i][j] != 0) {printf(" 1 ");} else {printf(" 0 ");}			
-				//~ }
-				//~ printf("\n");
-			//~ }
-			//--------------------------------------------------------------
+			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); }
+			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
 			for (i = 0; i < nb_pop; i++) {
 				for (j = 0; j < nb_pop; j++) {
-					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; }
-				}
-			}
+					if (matrice_donnees_commune[i][j] != 0) { nb_data_commun++; } } }
 			//~ printf("Nb data en commun : %d\n",nb_data_commun);
 			
 			//Getting back to the beginning of the linked list
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
-			//~ printf("poids de 1 donnée : %li\n",weight_two_packages = starpu_data_get_size(data->head->package_data[0]));
+			
+			//ALGO 4
+			if (data->ALGO_USED_READER == 4) { 
+				for (i = 0; i < nb_pop; i++) {
+					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
+						for (j = 0; j < nb_pop; i++) {
+							//~ max_value_common_data_matrix
+						}}}
+			}
 			
 			if (GPU_limit_switch == 1) {
 				//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WITHOUT THE DUPLICATE WOULD BE INFERIOR TO GPU_RAM
@@ -391,7 +405,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			//Else, we are using algo 3, so we don't check the max weight
 			else {
-				//~ printf("algo 3 bp 1\n");
+				printf("algo 3 bp 1\n");
 				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
 					for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
 						if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
@@ -523,121 +537,92 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Supprimer les maillons vide
 			data->head = data->first_link;
 			data->head = delete_link(data);
-			
-			fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
-			while (data->head != NULL) {
-				//Code to print the coordinante and the data of each package ieration by iteration -----------------------
-				//On retient le début de l'endroit où on va écrire
-				cursor_position = ftell(fcoordinate);
-				for (i = 0; i < data->head->package_nb_data; i++) {
-					//~ printf("La donnée %p est dans le paquet numéro %d\n",data->head->package_data[i],link_index);
-					starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
-					if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-					//~ if ((temp_tab_coordinates[0] != 0) && (temp_tab_coordinates[0] != 0)) { 
-						//~ if (nb_of_loop < 3) { printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]); }
-						//~ printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->head->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
-						coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = link_index;
-						//On cherche la bonne ligne
-						//~ for (i_bis = 0; i_bis < temp_tab_coordinates[1]; i_bis++) {
-							//~ fprintf(fcoordinate,"\n");
-						//~ }
-						//On se place à la bonne colonne
-						//~ fseek(fcoordinate,temp_tab_coordinates[0],SEEK_CUR);
-						//~ fprintf(fcoordinate,"%d",link_index);
-						//On se repace au début de l'endroit où on écrit ce paquet
-						//~ cursor_position = ftell(fcoordinate);
-						//~ fseek(fcoordinate,cursor_position,SEEK_SET);
+			if (data->ALGO_USED_READER != 3) {
+				fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
+				while (data->head != NULL) {
+					//Code to print the coordinante and the data of each package ieration by iteration -----------------------
+					cursor_position = ftell(fcoordinate);
+					for (i = 0; i < data->head->package_nb_data; i++) {
+						starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
+						if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
+							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = link_index;
+							//Re init du tab des coordonnées
+							temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
+						}
+					}
+					//--------------------------------------------------------------------------------------------------------
+					for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+						//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
+						temp_number_task ++;
+					}
+					temp_moyenne += temp_number_task;
+					temp_variance += temp_number_task*temp_number_task;
+					temp_number_task = 0;
+					//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
+					link_index++;
+					data->head = data->head->next;
+					//~ printf("-----------------------------------------------\n");
+				} 
+				
+				//Code to write in a file the coordinates ---------------------------------------------------------------------------
+				fprintf(fcoordinate,"\\begin{tabular}{ c | c | c }"); 
+				for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
+				
+					} fprintf(fcoordinate,"\n");
+				for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
+					for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {
+						fprintf(fcoordinate,"%d &",coordinate_visualization_matrix[j_bis][i_bis]);
 						
-						
-						//Re init du tab des coordonnées
-						temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
+					} fprintf(fcoordinate,"%d",coordinate_visualization_matrix[j_bis][i_bis]); 
+					fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\n \\hline");
+					fprintf(fcoordinate,"\n"); 
+					for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { 
+						} 
+				}
+				fprintf(fcoordinate, "\\end{tabular}");
+
+				for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
+					} fprintf(fcoordinate,"\n");
+				for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
+					for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
+						coordinate_visualization_matrix[j_bis][i_bis] = NULL;
 					}
 				}
-				//~ for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
-					//~ for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-						//~ printf(" %3d ",coordinate_visualization_matrix[j_bis][i_bis]);
-					//~ }
-					//~ printf("\n");
-				//~ }
-				//~ for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
-					//~ for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-						//~ coordinate_visualization_matrix[j_bis][i_bis] = 0;
-					//~ }
-				//~ }
-				//--------------------------------------------------------------------------------------------------------
+				// ----------------------------------------------------------------------------------------------------------------
 				
-				for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-					//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
-					temp_number_task ++;
-				}
-				//~ printf("Il y a %d tâches dans le paquet %d\n",temp_number_task,link_index);
-				temp_moyenne += temp_number_task;
-				temp_variance += temp_number_task*temp_number_task;
-				temp_number_task = 0;
-				//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
-				link_index++;
-				data->head = data->head->next;
-				//~ printf("-----------------------------------------------\n");
-			} 
-				fprintf(fcoordinate,"\\begin{tabular}{ c | c | c }"); 
-			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
-				//~ fprintf(fcoordinate,"#"); 
-			
-				} fprintf(fcoordinate,"\n");
-			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
-				//~ fprintf(fcoordinate,"# ");
-				for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {
-					fprintf(fcoordinate,"%d &",coordinate_visualization_matrix[j_bis][i_bis]);
-					//~ fprintf(fcoordinate,"%3d",coordinate_visualization_matrix[j_bis][i_bis]);
-					
-				} fprintf(fcoordinate,"%d",coordinate_visualization_matrix[j_bis][i_bis]); 
-				//~ fprintf(fcoordinate,"   #");
-				fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\n \\hline");
-				fprintf(fcoordinate,"\n"); 
-				//~ fprintf(fcoordinate,"# "); 
-				for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { 
-					//~ fprintf(fcoordinate,"-"); 
-					} 
-					//~ fprintf(fcoordinate," #"); 
-					//~ fprintf(fcoordinate,"\n");
+				//~ //Code to print moyenne variance ecart type nombre de tâches par paquet -------
+				temp_moyenne = temp_moyenne/link_index;
+				moyenne = temp_moyenne;
+				//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
+				//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
+				temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
+				//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
+				//~ fprintf(variance_ecart_type,"%f",temp_variance);
+				temp_ecart_type = sqrt(temp_variance);
+				ecart_type = temp_ecart_type;
+				//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
+				//~ fprintf(variance_ecart_type,"%f\n",temp_ecart_type);
+				//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
+				//~ printf("Fin du tour numéro %d du while!\n\n",nb_of_loop);
+				temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
+				//~ data->head = data->first_link;
+				
+				//~ //-----------------------------------------------------------------------------
+				
+				//Code to fprintf the number of packages per itération ---
+				//~ fprintf(Nb_package_by_loop,"%d	%d\n",nb_of_loop,link_index);
+				// ------------------------------------------------------
+				
+				//Code to fprintf the Mean_task by packages per itération ---
+				//~ fprintf(Mean_task_by_loop,"%d	%d	%f	%f	%f	%f\n",nb_of_loop,link_index,temp_moyenne,temp_ecart_type,temp_moyenne-temp_ecart_type,temp_moyenne+temp_ecart_type);
+				//Code for ecart type
+				//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
+				//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
+				// ------------------------------------------------------
 			}
-			fprintf(fcoordinate, "\\end{tabular}");
-
-			for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
-				//~ fprintf(fcoordinate,"#"); 
-				} fprintf(fcoordinate,"\n");
-			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
-				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-					coordinate_visualization_matrix[j_bis][i_bis] = NULL;
-				}
-			}
-			
-			//~ //Code to print variance ecart type -------
-			temp_moyenne = temp_moyenne/link_index;
-			//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
-			//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
-			temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
-			//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
-			//~ fprintf(variance_ecart_type,"%f",temp_variance);
-			temp_ecart_type = sqrt(temp_variance);
-			//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
-			//~ fprintf(variance_ecart_type,"	%f\n",temp_ecart_type);
-			//~ printf("A la fin du tour numéro %d du while on a %d paquets\n\n",nb_of_loop,link_index);
-			printf("Fin du tour numéro %d du while!\n\n",nb_of_loop);
-			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
-			//~ data->head = data->first_link;
-			//~ //-----------------------------------------
-			
-			//Code to fprintf the number of packages per itération ---
-			//~ fprintf(Nb_package_by_loop,"%d	%d\n",nb_of_loop,link_index);
-			// ------------------------------------------------------
-			
-			//Code to fprintf the Mean_task by packages per itération ---
-			//~ fprintf(Mean_task_by_loop,"%d	%d	%f	%f	%f	%f\n",nb_of_loop,link_index,temp_moyenne,temp_ecart_type,temp_moyenne-temp_ecart_type,temp_moyenne+temp_ecart_type);
-			//Code for ecart type
-			//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
-			//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
-			// ------------------------------------------------------
+			//Si on est dans l'algo 3
+			else { while (data->head != NULL) { link_index++; data->head = data->head->next; } }
+				
 			
 			
 		//Reset de la matrice
@@ -664,10 +649,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		//~ printf("Fin du while\n");
 		} // Fin du while (packaging_impossible == 0) {
 		
-		fclose(fcoordinate);
+		if (data->ALGO_USED_READER != 3) { 
+			//~ fprintf(variance_ecart_type,"%f",moyenne);
+			//~ fprintf(variance_ecart_type,"	%f\n",ecart_type);
+			fclose(fcoordinate);
+			//~ fclose(variance_ecart_type);
+		}
 		
 		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
-		if ((data->ALGO_USED_READER == 3) && (link_index != 1)) { GPU_limit_switch = 0; goto algo3; }
+		if ((data->ALGO_USED_READER == 3) && (link_index > 1)) { GPU_limit_switch = 0; printf("goto\n"); goto algo3; }
 		//Sinon on arrête ici l'exécution
 		else { }
 		
@@ -739,7 +729,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		
 		//~ data->head = data->first_link;
-		
+		//~ packing_time = clock();
+		//~ printf("Temps d'empaquetage = %d ms\n", packing_time);
 		
 			task1 = starpu_task_list_pop_front(&data->head->sub_list);
 	}
@@ -854,6 +845,8 @@ static void deinitialize_basic_center_policy(unsigned sched_ctx_id)
 	//~ fcloseNb_package_by_loop;
 	//~ FILE * Mean_task_by_loop;
 	//~ fclose(fcoordinate);
+	//~ total_time = clock();
+	//~ printf("Temps total = %d ms\n", total_time);
 }
 
 struct starpu_sched_policy _starpu_sched_basic_sched_policy =
