@@ -92,7 +92,7 @@ function check(mat::Matrix{Float32})
         end
     end
 
-    println("Verification successful !")
+    println(stderr, "Verification successful !")
 end
 
 function clean_tags(nblocks)
@@ -138,10 +138,9 @@ function main(size_p :: Int, nblocks :: Int; verify = false, verbose = false)
     starpu_memory_unpin(mat)
 
     flop = (1.0*size_p*size_p*size_p)/3.0
-    println("# size\tms\tGFlops")
     time_ms = (t_end-t_start) / 1e6
     gflops = flop/(time_ms*1000)/1000
-    println("# $size_p\t$time_ms\t$gflops")
+    println("$size_p\t$time_ms\t$gflops")
 
     clean_tags(nblocks)
 

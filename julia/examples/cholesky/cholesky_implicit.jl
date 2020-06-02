@@ -58,7 +58,14 @@ end
 starpu_init()
 starpu_cublas_init()
 
-main(1024, 8, verify = true)
-main(15360, 16)
+println("# size\tms\tGFlops")
+
+if length(ARGS) > 0 && ARGS[1] == "-quickcheck"
+    main(1024, 8, verify = true)
+else
+    for size in 1024:1024:15360
+        main(size, 16)
+    end
+end
 
 starpu_shutdown()

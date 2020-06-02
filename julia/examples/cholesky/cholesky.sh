@@ -15,6 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-$(dirname $0)/../execute.sh cholesky/cholesky_native.jl
-$(dirname $0)/../execute.sh cholesky/cholesky_implicit.jl
-$(dirname $0)/../execute.sh cholesky/cholesky_tag.jl
+$(dirname $0)/../execute.sh cholesky/cholesky_native.jl -quickcheck
+$(dirname $0)/../execute.sh cholesky/cholesky_implicit.jl -quickcheck
+$(dirname $0)/../execute.sh cholesky/cholesky_tag.jl -quickcheck
