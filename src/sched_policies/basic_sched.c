@@ -387,7 +387,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									//~ printf("tab_max_value_common_data_matrix[i_bis] = %li\n",tab_max_value_common_data_matrix[i_bis]);
 								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
 									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } 
-									printf("max du paquet %d : %li\n",i_bis,tab_max_value_common_data_matrix[tab_runner]); weight_two_packages = 0;
+									//~ printf("max du paquet %d : %li\n",i_bis,tab_max_value_common_data_matrix[tab_runner]); weight_two_packages = 0;
 						} j_bis++; } tab_runner++; } 
 						//~ tab_runner++; 
 						//~ i_bis++; 
@@ -397,7 +397,63 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			for (i = 0; i < nb_min_task_packages; i++) { printf("%d de tab_max_value_common_data_matrix = %li\n",i,tab_max_value_common_data_matrix[i]); }
 			data->head = data->first_link;
 			data->head_2 = data->first_link;
+			
+			//Merge les paquets min + a faire dans l'ordre du tableau trié
+			i_bis = 0; j_bis = 0; i = 0; j = 0;
+			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+				if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
+					for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+						weight_two_packages = 0;
+						for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); }
+						for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) { bool_data_common = 0;
+							for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) { if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
+							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } }
+							
+						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[0] && i != j && weight_two_packages <= GPU_RAM) {
+							//Merge
+							packaging_impossible = 0;
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//A voir pour la deuxieme partie des mises à 0 de la matrice de données communes
+							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
+							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
+							nb_data_commun--;
+							while (!starpu_task_list_empty(&data->head_2->sub_list)) {
+							starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
+							data->head->nb_task_in_sub_list ++; }
+							i_bis = 0; j_bis = 0; tab_runner = 0;
+							starpu_data_handle_t *temp_data_tab = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							while (i_bis < data->head->package_nb_data && j_bis < data->head_2->package_nb_data) {
+								if (data->head->package_data[i_bis] <= data->head_2->package_data[j_bis]) {
+									temp_data_tab[tab_runner] = data->head->package_data[i_bis];
+									i_bis++; }
+								else {
+									temp_data_tab[tab_runner] = data->head_2->package_data[j_bis];
+									j_bis++; }
+								tab_runner++;
+							}
+							while (i_bis < data->head->package_nb_data) { temp_data_tab[tab_runner] = data->head->package_data[i_bis]; i_bis++; tab_runner++; }
+							while (j_bis < data->head_2->package_nb_data) { temp_data_tab[tab_runner] = data->head_2->package_data[j_bis]; j_bis++; tab_runner++; }
+							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1]) {
+									temp_data_tab[i_bis] = 0;
+									nb_duplicate_data++; } }
+							data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							j_bis = 0;
+							for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								if (temp_data_tab[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; } }
+							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
+							data->head_2->package_nb_data = 0;
+							nb_duplicate_data = 0;
+							data->head_2->nb_task_in_sub_list = 0;
+						}
+						j++;
+					}
+				}
+				i++; j = 0;
 			}
+
+			}
+			//We don't use ALGO 4
 			else {
 				if (GPU_limit_switch == 1) {
 				//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WITHOUT THE DUPLICATE WOULD BE INFERIOR TO GPU_RAM
@@ -452,9 +508,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					}
 				}
 			}
-		}
-		//ALGO 4 : Merge les paquets min + dans l'ordre du tableau trié
-			
+		
+		
 			
 				
 			//Merge des paquets et test de taille < GPU_MAX
@@ -493,8 +548,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					
 					//~ printf("Le poids des paquets %d et %d serait de : %li\n",i,j,weight_two_packages);
 					
-					if ( ((((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0)) && data->ALGO_USED_READER != 4) 
-					||  ( data->ALGO_USED_READER == 4 && data->head->nb_task_in_sub_list == min_nb_task_in_sub_list && matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[i]) ) {
+					if ((((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0)) && data->ALGO_USED_READER != 4) 
+					{
 						
 						if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
 						//~ if (GPU_RAM == 0) { 
@@ -572,6 +627,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				if (nb_data_commun > 1) {
 					data->head = data->head->next;
 				} 
+			}
+			//Fin du else ALGO_USED == 4
 			}
 			
 			//goto pour algo 2
