@@ -118,7 +118,8 @@ static unsigned find_list_size(struct starpu_perfmodel_history_list *list_histor
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	while (ptr)
 	{
-		cnt++;
+		if (ptr->entry->nsample)
+			cnt++;
 		ptr = ptr->next;
 	}
 
@@ -145,11 +146,14 @@ static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_li
 
 	while (ptr)
 	{
-		x[i] = ptr->entry->size;
-		y[i] = ptr->entry->mean;
+		if (ptr->entry->nsample)
+		{
+			x[i] = ptr->entry->size;
+			y[i] = ptr->entry->mean;
+			i++;
+		}
 
 		ptr = ptr->next;
-		i++;
 	}
 }
 
