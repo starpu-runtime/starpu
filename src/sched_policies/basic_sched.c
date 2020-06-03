@@ -306,6 +306,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			link_index = 0;
 			tab_runner = 0;
 			nb_min_task_packages = 0;
+			min_nb_task_in_sub_list = 0;
 			nb_data_commun = 0;
 			weight_two_packages = 0;
 			max_value_common_data_matrix = 0;
@@ -320,6 +321,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (min_nb_task_in_sub_list < data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } }
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					if (min_nb_task_in_sub_list == data->head->nb_task_in_sub_list) { nb_min_task_packages++; } }
+				printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list);
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 						for (i = 0; i < data->head->package_nb_data; i++) {
@@ -360,13 +362,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			
 			//ALGO 4
+			long int tab_max_value_common_data_matrix [nb_min_task_packages];
 			if (data->ALGO_USED_READER == 4) {
-				int tab_max_value_common_data_matrix [nb_min_task_packages]; 
+				i_bis = 0; j_bis = 0; 
+				for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
-						for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head->next) {
+						for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 							//a tester ca
-							if (data->head_2 != data->head) {
+							if (i_bis != j_bis) {
 								weight_two_packages = 0;
 								for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); }
 								for (i = 0; i < data->head_2->package_nb_data; i++) {
@@ -376,12 +380,14 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } }
 								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
 									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } weight_two_packages = 0;
-						}}} tab_runner++; }
+						} j_bis++; }} tab_runner++; i_bis++; j_bis = 0; } 
+			qsort(tab_max_value_common_data_matrix,nb_min_task_packages,sizeof(tab_max_value_common_data_matrix[0]),pointeurComparator);
+			for (i = 0; i < nb_min_task_packages; i++) { printf("%d de tab_max_value_common_data_matrix = %li\n",i,tab_max_value_common_data_matrix[i]); }
+			data->head = data->first_link;
+			data->head_2 = data->first_link;
 			}
-			else { //mettre le code en dessous 
-			}
-			
-			if (GPU_limit_switch == 1) {
+			else {
+				if (GPU_limit_switch == 1) {
 				//Getting W_max. W_max get the max common data ONLY IF THE MERGE OF THE TWO PACKAGES WITHOUT THE DUPLICATE WOULD BE INFERIOR TO GPU_RAM
 				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
 					data->head_2 = data->head;
@@ -434,7 +440,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					}
 				}
 			}
-				
+		}
+		//ALGO 4 : Merge les paquets min + dans l'ordre du tableau trié
+			
+			
 				
 			//Merge des paquets et test de taille < GPU_MAX
 			for (i = 0; i < nb_pop; i++) {
@@ -472,13 +481,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					
 					//~ printf("Le poids des paquets %d et %d serait de : %li\n",i,j,weight_two_packages);
 					
-					if ( ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0) ) {
+					if ( ((((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0)) && data->ALGO_USED_READER != 4) 
+					||  ( data->ALGO_USED_READER == 4 && data->head->nb_task_in_sub_list == min_nb_task_in_sub_list && matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[i]) ) {
+						
 						if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
 						//~ if (GPU_RAM == 0) { 
-							//~ printf("On dépasse GPU_RAM!\n"); 
+							printf("On dépasse GPU_RAM!\n"); 
 						}
 						else {
-							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
 						//Si on utilise l'algo 4 on veut arrêter cette boucle pour ne pas regrouper plus que 1 fois le paquet courant
