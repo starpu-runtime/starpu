@@ -166,14 +166,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	double number_tasks = 0;
 	int temp_number_task = 0;
 	double mean_task_by_packages = 0;
-	double temp_moyenne = 0;
-	double temp_variance = 0;
-	double temp_ecart_type = 0;
+	double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;
 	long cursor_position = 0;
 	int packing_time = 0;
 	double moyenne = 0; double ecart_type = 0;
-	int min_nb_task_in_sub_list = 0;
-	int nb_min_task_packages = 0;
+	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
 	
 	// Fichiers de sortie -------------------------
 	//~ FILE * variance_ecart_type;
@@ -399,6 +396,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			
 			//Merge les paquets min + a faire dans l'ordre du tableau trié
+			temp_nb_min_task_packages = nb_min_task_packages;
+			while (temp_nb_min_task_packages != 0) {
 			i_bis = 0; j_bis = 0; i = 0; j = 0;
 			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 				if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
@@ -409,7 +408,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) { if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
 							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } }
 							
-						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[0] && i != j && weight_two_packages <= GPU_RAM) {
+						//boucler sur le 0 et reinit i et j du coup pour les prochains. Interdire celui qu'on vient de faire aussi	
+						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
 							//Merge
 							packaging_impossible = 0;
 							printf("On va merge le paquet %d et le paquet %d\n",i,j);
@@ -451,7 +451,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				}
 				i++; j = 0;
 			}
-
+			temp_nb_min_task_packages--;
+			}
 			}
 			//We don't use ALGO 4
 			else {
@@ -765,43 +766,37 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->head = data->first_link;	
 		
 		//Code to print everything ----
-		//~ link_index = 0;
-		//~ long int total_weight = 0;
-		//~ double task_duration_info = 0;
-		//~ double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		//~ printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
-		//~ while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
-		//~ printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
-		//~ printf("-----\n");
-		//~ link_index = 0;	
-		//~ while (data->head != NULL) {
-			//~ printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
-			//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				//~ printf("%p\n",temp_task_3);
-			//~ }
-			//~ for (i = 0; i < data->head->package_nb_data; i++) {
-				//~ total_weight+= starpu_data_get_size(data->head->package_data[i]);
-			//~ }
-			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-				//~ for (i = 0; i < data->head->package_nb_data; i++) {
-					//~ starpu_data_get_coordinates_array(data->head->package_data[i],2,temp_tab_coordinates);
-					//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->head->package_data[i])))  {
-						//~ printf("Les coordonnées de la donnée %p sont : x = %d / y = %d\n",data->head->package_data[i],temp_tab_coordinates[0],temp_tab_coordinates[1]);
-					//~ }
-				//~ }
-			//~ total_weight = 0;
-			//~ link_index++;
-			//~ data->head = data->head->next;
-			//~ printf("-----\n");
-		//~ }
-		//~ data->head = data->first_link;
+		link_index = 0;
+		long int total_weight = 0;
+		double task_duration_info = 0;
+		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
+		while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
+		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
+		printf("-----\n");
+		link_index = 0;	
+		while (data->head != NULL) {
+			printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
+			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				printf("%p\n",temp_task_3);
+			}
+			for (i = 0; i < data->head->package_nb_data; i++) {
+				total_weight+= starpu_data_get_size(data->head->package_data[i]);
+			}
+			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			total_weight = 0;
+			link_index++;
+			data->head = data->head->next;
+			printf("-----\n");
+		}
+		data->head = data->first_link;
 		//~ printf("\n");
 		//~ printf("Info de la bande passante : %f\n",bandwith_info);
-		//~ temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
-		//~ task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+		temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
+		task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
 		//~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
 		//~ printf("\n\n");
-		//~ data->head = data->first_link;
+		data->head = data->first_link;
 		// ---------------------------
 		
 		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
@@ -891,13 +886,11 @@ static int basic_can_push(struct starpu_sched_component * component, struct star
 static int basic_can_pull(struct starpu_sched_component * component)
 {
 	struct basic_sched_data *data = component->data;
-
 	return starpu_sched_component_can_pull(component);
 }
 
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;
@@ -934,19 +927,12 @@ static void initialize_basic_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-	//~ variable_globale = *data;
 }
 
 static void deinitialize_basic_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
-	//~ fclose(variance_ecart_type);
-	//~ fcloseNb_package_by_loop;
-	//~ FILE * Mean_task_by_loop;
-	//~ fclose(fcoordinate);
-	//~ total_time = clock();
-	//~ printf("Temps total = %d ms\n", total_time);
 }
 
 struct starpu_sched_policy _starpu_sched_basic_sched_policy =
