@@ -73,6 +73,7 @@ struct basic_sched_data
 
 struct my_list
 {
+	long int max_weight_common_data;
 	int package_nb_data;
 	int nb_task_in_sub_list;
 	starpu_data_handle_t * package_data;
@@ -172,6 +173,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int packing_time = 0;
 	double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0;
+	int nb_min_task_packages = 0;
 	
 	// Fichiers de sortie -------------------------
 	//~ FILE * variance_ecart_type;
@@ -302,6 +304,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			index_head_1 = 0;
 			index_head_2 = 1;
 			link_index = 0;
+			tab_runner = 0;
+			nb_min_task_packages = 0;
 			nb_data_commun = 0;
 			weight_two_packages = 0;
 			max_value_common_data_matrix = 0;
@@ -309,10 +313,13 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			min_nb_task_in_sub_list = data->head->nb_task_in_sub_list;
 			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 			
-			//ALGO 4
+			//ALGO 4 on fais une matrice symétrique
 			if (data->ALGO_USED_READER == 4) { 
+				//Je récupère le nombre de tâche minimal d'un paquet
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
-					if (min_nb_task_in_sub_list < data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } } 
+					if (min_nb_task_in_sub_list < data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } }
+				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+					if (min_nb_task_in_sub_list == data->head->nb_task_in_sub_list) { nb_min_task_packages++; } }
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 						for (i = 0; i < data->head->package_nb_data; i++) {
@@ -322,7 +329,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(data->head_2->package_data[j]) + starpu_data_get_size(data->head->package_data[i]);
 								} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 			}
-			//On est pas dans le cas de l'algo 4
+			//On est pas dans le cas de l'algo 4, pas besoin de faire une matrice symétrique
 			else {
 				//Filling the common data matrix
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
@@ -353,12 +360,25 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head_2 = data->first_link;
 			
 			//ALGO 4
-			if (data->ALGO_USED_READER == 4) { 
-				for (i = 0; i < nb_pop; i++) {
-					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
-						for (j = 0; j < nb_pop; i++) {
-							//~ max_value_common_data_matrix
-						}}}
+			if (data->ALGO_USED_READER == 4) {
+				int tab_max_value_common_data_matrix [nb_min_task_packages]; 
+				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head->next) {
+							//a tester ca
+							if (data->head_2 != data->head) {
+								weight_two_packages = 0;
+								for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); }
+								for (i = 0; i < data->head_2->package_nb_data; i++) {
+									bool_data_common = 0;
+									for (j = 0; j < data->head->package_nb_data; j++) {
+									if (data->head_2->package_data[i] == data->head->package_data[j]) { bool_data_common = 1; } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } }
+								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } weight_two_packages = 0;
+						}}} tab_runner++; }
+			}
+			else { //mettre le code en dessous 
 			}
 			
 			if (GPU_limit_switch == 1) {
