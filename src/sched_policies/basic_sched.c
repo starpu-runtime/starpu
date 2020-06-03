@@ -317,8 +317,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//ALGO 4 on fais une matrice symétrique
 			if (data->ALGO_USED_READER == 4) { 
 				//Je récupère le nombre de tâche minimal d'un paquet
+				//~ printf("taille minimale %d tâches avant le for\n",min_nb_task_in_sub_list);
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
-					if (min_nb_task_in_sub_list < data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } }
+					if (min_nb_task_in_sub_list > data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } }
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					if (min_nb_task_in_sub_list == data->head->nb_task_in_sub_list) { nb_min_task_packages++; } }
 				printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list);
@@ -366,21 +367,32 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			if (data->ALGO_USED_READER == 4) {
 				i_bis = 0; j_bis = 0; 
 				for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
-				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+				//~ for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
+					//~ printf("nb min task = %d\n",nb_min_task_packages);
+					printf("dans le paquet %d on a %d\n",i_bis,data->head->nb_task_in_sub_list);
 					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						
 						for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 							//a tester ca
 							if (i_bis != j_bis) {
 								weight_two_packages = 0;
-								for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); }
+								for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); } 
 								for (i = 0; i < data->head_2->package_nb_data; i++) {
 									bool_data_common = 0;
 									for (j = 0; j < data->head->package_nb_data; j++) {
 									if (data->head_2->package_data[i] == data->head->package_data[j]) { bool_data_common = 1; } }
-									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } } 
+									//~ printf("matrice_donnees_commune[i_bis][j_bis] = %li\n",matrice_donnees_commune[i_bis][j_bis]);
+									//~ printf("tab_max_value_common_data_matrix[i_bis] = %li\n",tab_max_value_common_data_matrix[i_bis]);
 								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
-									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } weight_two_packages = 0;
-						} j_bis++; }} tab_runner++; i_bis++; j_bis = 0; } 
+									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } 
+									printf("max du paquet %d : %li\n",i_bis,tab_max_value_common_data_matrix[tab_runner]); weight_two_packages = 0;
+						} j_bis++; } tab_runner++; } 
+						//~ tab_runner++; 
+						//~ i_bis++; 
+						data->head=data->head->next;
+						j_bis = 0; } 
 			qsort(tab_max_value_common_data_matrix,nb_min_task_packages,sizeof(tab_max_value_common_data_matrix[0]),pointeurComparator);
 			for (i = 0; i < nb_min_task_packages; i++) { printf("%d de tab_max_value_common_data_matrix = %li\n",i,tab_max_value_common_data_matrix[i]); }
 			data->head = data->first_link;
@@ -546,7 +558,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
-							//~ data->head->nb_task_in_sub_list++;
+							//~ data->head->nb_task_in_sub_list += data->head_2->nb_task_in_sub_list;
 							data->head_2->nb_task_in_sub_list = 0;
 							
 							//Goto pour l'algo 2
