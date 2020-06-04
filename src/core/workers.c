@@ -1565,6 +1565,8 @@ void starpu_pause()
 {
 	STARPU_HG_DISABLE_CHECKING(_starpu_config.pause_depth);
 	_starpu_config.pause_depth += 1;
+
+	starpu_fxt_trace_user_event_string("starpu_pause");
 }
 
 void starpu_resume()
@@ -1576,6 +1578,8 @@ void starpu_resume()
 		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
+
+	starpu_fxt_trace_user_event_string("starpu_resume");
 }
 
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
