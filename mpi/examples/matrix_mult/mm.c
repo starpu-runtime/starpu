@@ -289,7 +289,8 @@ static struct starpu_codelet gemm_cl =
 {
 	.cpu_funcs = {cpu_mult}, /* cpu implementation(s) of the routine */
 	.nbuffers = 3, /* number of data handles referenced by this routine */
-	.modes = {STARPU_R, STARPU_R, STARPU_RW} /* access modes for each data handle */
+	.modes = {STARPU_R, STARPU_R, STARPU_RW}, /* access modes for each data handle */
+	.name = "gemm" /* to display task name in traces */
 };
 
 int main(int argc, char *argv[])
