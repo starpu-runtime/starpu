@@ -351,7 +351,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+			//~ printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -452,7 +452,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
 							if (random_value == 0) {
 							packaging_impossible = 0;
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 							//~ nb_data_commun--;
