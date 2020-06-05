@@ -16,7 +16,7 @@
  */
 
 /* Ordonnanceur de base sous contrainte mémoire */
-
+#include <stdlib.h>
 #include <time.h>
 #include <starpu.h>
 #include <starpu_sched_component.h>
@@ -165,10 +165,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int GPU_limit_switch = 1; //On 1 it means we use the limit
 	double number_tasks = 0;
 	int temp_number_task = 0;
+	int temp_tab_sort_1 = 0; int temp_tab_sort_2 = 0;
+	int random_value = 0;
 	double mean_task_by_packages = 0;
 	double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;
 	long cursor_position = 0;
 	int packing_time = 0;
+	int nb_possibilite_regroupement = 0;
 	double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
 	
@@ -279,7 +282,9 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			FILE * fcoordinate;
 			fcoordinate = fopen("Data_coordinates.txt", "w+");
 			FILE * variance_ecart_type;
-			variance_ecart_type = fopen("variance_ecart_type.txt", "a+");
+			variance_ecart_type = fopen("variance_ecart_type.txt", "w+");
+			FILE * mean_task_by_loop;
+			mean_task_by_loop = fopen("mean_task_by_loop.txt", "w+");
 			//Matrice pour visualisation des coordonnées
 			int coordinate_visualization_matrix_size = sqrt(number_tasks);
 			int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
@@ -319,7 +324,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					if (min_nb_task_in_sub_list > data->head->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->head->nb_task_in_sub_list; } }
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					if (min_nb_task_in_sub_list == data->head->nb_task_in_sub_list) { nb_min_task_packages++; } }
-				printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list);
+				//~ printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list);
 				for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
 					for (data->head_2 = data->head->next; data->head_2 != NULL; data->head_2 = data->head_2->next) {
 						for (i = 0; i < data->head->package_nb_data; i++) {
@@ -346,7 +351,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); }
+			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -361,62 +366,96 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			
 			//ALGO 4
 			long int tab_max_value_common_data_matrix [nb_min_task_packages];
+			int indice_paquet_a_regrouper [nb_min_task_packages];
 			if (data->ALGO_USED_READER == 4) {
-				i_bis = 0; j_bis = 0; 
-				for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
-				//~ for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
-				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
-					//~ printf("nb min task = %d\n",nb_min_task_packages);
-					printf("dans le paquet %d on a %d\n",i_bis,data->head->nb_task_in_sub_list);
-					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
-						
-						for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
-							//a tester ca
-							if (i_bis != j_bis) {
+				
+				//NEW ONE WITH RANDOM ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				i_bis = 0; j_bis = 0; tab_runner = 0; for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; indice_paquet_a_regrouper[i] = 0; }
+				for (i = 0; i < nb_pop; i++) {
+					if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
+						for (j = 0; j < nb_pop; j++) {
+							if (i != j) {
 								weight_two_packages = 0;
-								for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); } 
-								for (i = 0; i < data->head_2->package_nb_data; i++) {
-									bool_data_common = 0;
-									for (j = 0; j < data->head->package_nb_data; j++) {
-									if (data->head_2->package_data[i] == data->head->package_data[j]) { bool_data_common = 1; } }
-									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } } 
-									//~ printf("matrice_donnees_commune[i_bis][j_bis] = %li\n",matrice_donnees_commune[i_bis][j_bis]);
-									//~ printf("tab_max_value_common_data_matrix[i_bis] = %li\n",tab_max_value_common_data_matrix[i_bis]);
-								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
-									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } 
-									//~ printf("max du paquet %d : %li\n",i_bis,tab_max_value_common_data_matrix[tab_runner]); weight_two_packages = 0;
-						} j_bis++; } tab_runner++; } 
-						//~ tab_runner++; 
-						//~ i_bis++; 
-						data->head=data->head->next;
-						j_bis = 0; } 
-			qsort(tab_max_value_common_data_matrix,nb_min_task_packages,sizeof(tab_max_value_common_data_matrix[0]),pointeurComparator);
-			for (i = 0; i < nb_min_task_packages; i++) { printf("%d de tab_max_value_common_data_matrix = %li\n",i,tab_max_value_common_data_matrix[i]); }
-			data->head = data->first_link;
-			data->head_2 = data->first_link;
-			
-			//Merge les paquets min + a faire dans l'ordre du tableau trié
+								for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); } 
+								for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
+									bool_data_common = 0; 
+									for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) {
+										if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } } 
+								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i][j]) && (weight_two_packages <= GPU_RAM)) { 
+									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i][j];}
+								
+							}
+							data->head_2 = data->head_2->next; 
+						}
+						//Ici on a donc dans tab_max_value_common_data_matrix le max de données partagées par le paquet i. On va donc lui assigner un paquet a regrouper par la suite
+						//~ printf ("Pour le paquet numéro %d on a %d regroupements possibles\n",tab_runner,nb_possibilite_regroupement);
+						//~ random_value = random()%nb_possibilite_regroupement;
+						//~ printf ("random_value = %d\n",random_value);
+						//On va donc regrouper le paquet tab_runner ème paquet de taille minimal avec le random_value ème paquet qui partage le max de données communes avec lui
+						//~ indice_paquet_a_regrouper[tab_runner] = random_value;
+						//~ nb_possibilite_regroupement = 0;
+						indice_paquet_a_regrouper[tab_runner] = i;
+						tab_runner++;
+					}
+					data->head = data->head->next; 
+					data->head_2 = data->first_link; 
+				}
+				//~ printf("nb de min = %d\n",nb_min_task_packages);
+				//~ for (i = 1; i < nb_min_task_packages; i++) { printf("dans le tab on a : %li\n",tab_max_value_common_data_matrix[i]); }
+				//On trie le tableau des données communes par taille pour favoriser les gros paquets et avec on permute aussi le tableau des indice à regrouper
+				for (i = 0; i < nb_min_task_packages; i++) { for (j = 0; j < nb_min_task_packages - 1; j++) {
+					 if (tab_max_value_common_data_matrix[j] < tab_max_value_common_data_matrix[j+1])
+					{	
+						//~ printf("sort\n"); 
+						temp_tab_sort_1 = tab_max_value_common_data_matrix[j]; temp_tab_sort_2 = indice_paquet_a_regrouper[j];
+						tab_max_value_common_data_matrix[j] = tab_max_value_common_data_matrix[j+1]; indice_paquet_a_regrouper[j] = indice_paquet_a_regrouper[j+1];
+						tab_max_value_common_data_matrix[j+1] = temp_tab_sort_1; indice_paquet_a_regrouper[j+1] = temp_tab_sort_2; } } }
+				data->head = data->first_link;
+				data->head_2 = data->first_link;
+				
+			//Merge des paquets
 			temp_nb_min_task_packages = nb_min_task_packages;
 			while (temp_nb_min_task_packages != 0) {
-			i_bis = 0; j_bis = 0; i = 0; j = 0;
-			for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
-				if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
-					for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
-						weight_two_packages = 0;
-						for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); }
-						for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) { bool_data_common = 0;
-							for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) { if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
-							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } }
-							
-						//boucler sur le 0 et reinit i et j du coup pour les prochains. Interdire celui qu'on vient de faire aussi	
+				//Tant qu'on est pas sur le bon maillon du paquet à regrouper
+				i = 0; data->head = data->first_link; data->head_2 = data->first_link;
+				while (i != indice_paquet_a_regrouper[nb_min_task_packages - temp_nb_min_task_packages]) {
+					data->head = data->head->next;
+					i++;
+				}
+				for (j = 0; j < nb_pop; j++) {
+					if (i != j) {
+					weight_two_packages = 0;
+						for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); } 
+						for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) {
+							bool_data_common = 0; 
+							for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) {
+								if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
+							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } } 
+							if((tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] == matrice_donnees_commune[i][j]) && (weight_two_packages <= GPU_RAM)) { nb_possibilite_regroupement++; }	 
+							}
+							data->head_2 = data->head_2->next; 
+				}
+				//Savoir avec le combientième paquet on doit se regrouper
+				if (nb_possibilite_regroupement != 0) { random_value = random()%nb_possibilite_regroupement; } else { 
+					//~ printf("ca vaut 0\n");  
+					random_value = 0; }
+				//~ printf ("nb possibilite = %d / random value = %d \n",nb_possibilite_regroupement,random_value);
+				nb_possibilite_regroupement = 0;
+				j = 0;
+				for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+					weight_two_packages = 0;
+					for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); }
+					for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) { bool_data_common = 0;
+						for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) { if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
+						if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } }
 						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
-							//Merge
+							if (random_value == 0) {
 							packaging_impossible = 0;
 							printf("On va merge le paquet %d et le paquet %d\n",i,j);
-							//A voir pour la deuxieme partie des mises à 0 de la matrice de données communes
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
-							nb_data_commun--;
+							//~ nb_data_commun--;
 							while (!starpu_task_list_empty(&data->head_2->sub_list)) {
 							starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
 							data->head->nb_task_in_sub_list ++; }
@@ -445,15 +484,97 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->head_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
 							data->head_2->nb_task_in_sub_list = 0;
-						}
-						j++;
-					}
-				}
-				i++; j = 0;
-			}
+							}
+							else { random_value--;}
+						} j++; }
+			//~ printf("ok\n");			
 			temp_nb_min_task_packages--;
 			}
 			}
+			// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+				
+				// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
+				//~ i_bis = 0; j_bis = 0; 
+				//~ for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
+				//~ for (i_bis = 0; i_bis < nb_pop; i_bis++) {
+					//~ if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						//~ for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+							//~ if (i_bis != j_bis) {
+								//~ weight_two_packages = 0;
+								//~ for (i = 0; i < data->head->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i]); } 
+								//~ for (i = 0; i < data->head_2->package_nb_data; i++) {
+									//~ bool_data_common = 0;
+									//~ for (j = 0; j < data->head->package_nb_data; j++) {
+									//~ if (data->head_2->package_data[i] == data->head->package_data[j]) { bool_data_common = 1; } }
+									//~ if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i]); } } 
+								//~ if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+									//~ tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } 
+						//~ } j_bis++; } tab_runner++; } 
+						//~ data->head=data->head->next;
+						//~ j_bis = 0; } 
+			//~ qsort(tab_max_value_common_data_matrix,nb_min_task_packages,sizeof(tab_max_value_common_data_matrix[0]),pointeurComparator);
+			//~ data->head = data->first_link;
+			//~ data->head_2 = data->first_link;		
+			//Merge les paquets min + a faire dans l'ordre du tableau trié
+			//~ temp_nb_min_task_packages = nb_min_task_packages;
+			//~ while (temp_nb_min_task_packages != 0) {
+			//~ i_bis = 0; j_bis = 0; i = 0; j = 0;
+			//~ for (data->head = data->first_link; data->head != NULL; data->head = data->head->next) {
+				//~ if (data->head->nb_task_in_sub_list == min_nb_task_in_sub_list) {
+					//~ for (data->head_2 = data->first_link; data->head_2 != NULL; data->head_2 = data->head_2->next) {
+						//~ weight_two_packages = 0;
+						//~ for (i_bis = 0; i_bis < data->head->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->head->package_data[i_bis]); }
+						//~ for (i_bis = 0; i_bis < data->head_2->package_nb_data; i_bis++) { bool_data_common = 0;
+							//~ for (j_bis = 0; j_bis < data->head->package_nb_data; j_bis++) { if (data->head_2->package_data[i_bis] == data->head->package_data[j_bis]) { bool_data_common = 1; } }
+							//~ if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->head_2->package_data[i_bis]); } }							
+						//~ //boucler sur le 0 et reinit i et j du coup pour les prochains. Interdire celui qu'on vient de faire aussi	
+						//~ if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
+							//~ //Merge
+							//~ packaging_impossible = 0;
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ //A voir pour la deuxieme partie des mises à 0 de la matrice de données communes
+							//~ for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
+							//~ for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
+							//~ nb_data_commun--;
+							//~ while (!starpu_task_list_empty(&data->head_2->sub_list)) {
+							//~ starpu_task_list_push_back(&data->head->sub_list,starpu_task_list_pop_front(&data->head_2->sub_list)); 
+							//~ data->head->nb_task_in_sub_list ++; }
+							//~ i_bis = 0; j_bis = 0; tab_runner = 0;
+							//~ starpu_data_handle_t *temp_data_tab = malloc((data->head->package_nb_data + data->head_2->package_nb_data) * sizeof(data->head->package_data[0]));
+							//~ while (i_bis < data->head->package_nb_data && j_bis < data->head_2->package_nb_data) {
+								//~ if (data->head->package_data[i_bis] <= data->head_2->package_data[j_bis]) {
+									//~ temp_data_tab[tab_runner] = data->head->package_data[i_bis];
+									//~ i_bis++; }
+								//~ else {
+									//~ temp_data_tab[tab_runner] = data->head_2->package_data[j_bis];
+									//~ j_bis++; }
+								//~ tab_runner++;
+							//~ }
+							//~ while (i_bis < data->head->package_nb_data) { temp_data_tab[tab_runner] = data->head->package_data[i_bis]; i_bis++; tab_runner++; }
+							//~ while (j_bis < data->head_2->package_nb_data) { temp_data_tab[tab_runner] = data->head_2->package_data[j_bis]; j_bis++; tab_runner++; }
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								//~ if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1]) {
+									//~ temp_data_tab[i_bis] = 0;
+									//~ nb_duplicate_data++; } }
+							//~ data->head->package_data = malloc((data->head->package_nb_data + data->head_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							//~ j_bis = 0;
+							//~ for (i_bis = 0; i_bis < (data->head->package_nb_data + data->head_2->package_nb_data); i_bis++) {
+								//~ if (temp_data_tab[i_bis] != 0) { data->head->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; } }
+							//~ data->head->package_nb_data = data->head_2->package_nb_data + data->head->package_nb_data - nb_duplicate_data;
+							//~ data->head_2->package_nb_data = 0;
+							//~ nb_duplicate_data = 0;
+							//~ data->head_2->nb_task_in_sub_list = 0;
+						//~ }
+						//~ j++;
+					//~ }
+				//~ }
+				//~ i++; j = 0;
+			//~ }
+			//~ temp_nb_min_task_packages--;
+			//~ }
+			//~ }
+			// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			
 			//We don't use ALGO 4
 			else {
 				if (GPU_limit_switch == 1) {
@@ -500,7 +621,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			//Else, we are using algo 3, so we don't check the max weight
 			else {
-				printf("algo 3 bp 1\n");
 				for (i_bis =0; i_bis < nb_pop; i_bis++) { 
 					for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
 						if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
@@ -510,9 +630,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				}
 			}
 		
-		
 			
-				
 			//Merge des paquets et test de taille < GPU_MAX
 			for (i = 0; i < nb_pop; i++) {
 				data->head_2 = data->head;
@@ -554,10 +672,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						
 						if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
 						//~ if (GPU_RAM == 0) { 
-							printf("On dépasse GPU_RAM!\n"); 
+							//~ printf("On dépasse GPU_RAM!\n"); 
 						}
 						else {
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 						//Dis que on a reussi a faire un paquet
 						packaging_impossible = 0;
 						//Si on utilise l'algo 4 on veut arrêter cette boucle pour ne pas regrouper plus que 1 fois le paquet courant
@@ -656,8 +774,10 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						//~ printf("La tâche %p est dans le paquet numéro %d\n",temp_task_3,link_index);
 						temp_number_task ++;
 					}
-					temp_moyenne += temp_number_task;
-					temp_variance += temp_number_task*temp_number_task;
+					//~ temp_moyenne += temp_number_task;
+					temp_moyenne += data->head->nb_task_in_sub_list;
+					//~ temp_variance += temp_number_task*temp_number_task;
+					temp_variance += data->head->nb_task_in_sub_list*data->head->nb_task_in_sub_list;
 					temp_number_task = 0;
 					//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 					link_index++;
@@ -692,11 +812,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				// ----------------------------------------------------------------------------------------------------------------
 				
 				//~ //Code to print moyenne variance ecart type nombre de tâches par paquet -------
-				temp_moyenne = temp_moyenne/link_index;
+				temp_moyenne = temp_moyenne/(link_index+1);
 				moyenne = temp_moyenne;
 				//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
 				//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
-				temp_variance = (temp_variance/link_index) - (temp_moyenne*temp_moyenne);
+				//~ printf("tep variance = %f\n",temp_variance);
+				//~ temp_variance = (temp_variance/(link_index+3)) - (temp_moyenne*temp_moyenne);
+				temp_variance = (temp_variance/(link_index+1)) - (temp_moyenne*temp_moyenne);
+				//~ temp_variance = (temp_variance/(link_index)) - (temp_moyenne*temp_moyenne);
+				//~ temp_variance = (temp_variance/(link_index+1));
 				//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
 				//~ fprintf(variance_ecart_type,"%f",temp_variance);
 				temp_ecart_type = sqrt(temp_variance);
@@ -707,7 +831,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				//~ printf("Fin du tour numéro %d du while!\n\n",nb_of_loop);
 				temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
 				//~ data->head = data->first_link;
-				
 				//~ //-----------------------------------------------------------------------------
 				
 				//Code to fprintf the number of packages per itération ---
@@ -715,7 +838,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				// ------------------------------------------------------
 				
 				//Code to fprintf the Mean_task by packages per itération ---
-				//~ fprintf(Mean_task_by_loop,"%d	%d	%f	%f	%f	%f\n",nb_of_loop,link_index,temp_moyenne,temp_ecart_type,temp_moyenne-temp_ecart_type,temp_moyenne+temp_ecart_type);
+				fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index+1,moyenne,ecart_type);
 				//Code for ecart type
 				//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
 				//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
@@ -754,7 +877,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//~ fprintf(variance_ecart_type,"%f",moyenne);
 			//~ fprintf(variance_ecart_type,"	%f\n",ecart_type);
 			fclose(fcoordinate);
-			//~ fclose(variance_ecart_type);
+			fclose(variance_ecart_type);
+			fclose(mean_task_by_loop);
 		}
 		
 		//Si on est dans l'algo 3 on retire la limite GPU-RAM et on refait un tour de while
@@ -766,37 +890,37 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->head = data->first_link;	
 		
 		//Code to print everything ----
-		link_index = 0;
-		long int total_weight = 0;
-		double task_duration_info = 0;
-		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
-		while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
-		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
-		printf("-----\n");
-		link_index = 0;	
-		while (data->head != NULL) {
-			printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
-			for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
-				printf("%p\n",temp_task_3);
-			}
-			for (i = 0; i < data->head->package_nb_data; i++) {
-				total_weight+= starpu_data_get_size(data->head->package_data[i]);
-			}
-			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-			total_weight = 0;
-			link_index++;
-			data->head = data->head->next;
-			printf("-----\n");
-		}
-		data->head = data->first_link;
-		//~ printf("\n");
-		//~ printf("Info de la bande passante : %f\n",bandwith_info);
-		temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
-		task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
-		//~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
-		//~ printf("\n\n");
-		data->head = data->first_link;
+		//~ link_index = 0;
+		//~ long int total_weight = 0;
+		//~ double task_duration_info = 0;
+		//~ double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		//~ printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
+		//~ while (data->head != NULL) { link_index++; data->head = data->head->next; } data->head = data->first_link;
+		//~ printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
+		//~ printf("-----\n");
+		//~ link_index = 0;	
+		//~ while (data->head != NULL) {
+			//~ printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->head->nb_task_in_sub_list,data->head->package_nb_data);
+			//~ for (temp_task_3  = starpu_task_list_begin(&data->head->sub_list); temp_task_3 != starpu_task_list_end(&data->head->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+				//~ printf("%p\n",temp_task_3);
+			//~ }
+			//~ for (i = 0; i < data->head->package_nb_data; i++) {
+				//~ total_weight+= starpu_data_get_size(data->head->package_data[i]);
+			//~ }
+			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			//~ total_weight = 0;
+			//~ link_index++;
+			//~ data->head = data->head->next;
+			//~ printf("-----\n");
+		//~ }
+		//~ data->head = data->first_link;
+		//~ // //~ printf("\n");
+		//~ // //~ printf("Info de la bande passante : %f\n",bandwith_info);
+		//~ temp_task_3  = starpu_task_list_begin(&data->head->sub_list);
+		//~ task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+		//~ // //~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+		//~ // //~ printf("\n\n");
+		//~ data->head = data->first_link;
 		// ---------------------------
 		
 		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
@@ -891,6 +1015,7 @@ static int basic_can_pull(struct starpu_sched_component * component)
 
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	srandom(time(0));
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;
