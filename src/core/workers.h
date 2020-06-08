@@ -203,6 +203,10 @@ LIST_TYPE(_starpu_worker,
 
 	int enable_knob;
 	int bindid_requested;
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 );
 
 struct _starpu_combined_worker
@@ -223,6 +227,10 @@ struct _starpu_combined_worker
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 };
 
 /**

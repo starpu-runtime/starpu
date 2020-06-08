@@ -29,6 +29,8 @@
 #include <papi.h>
 #endif
 
+/* TODO: move to worker structure */
+
 static struct starpu_profiling_worker_info worker_info[STARPU_NMAXWORKERS];
 /* TODO: rather use rwlock */
 static starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
