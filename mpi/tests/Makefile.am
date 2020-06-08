@@ -143,7 +143,8 @@ starpu_mpi_TESTS +=				\
 	user_defined_datatype			\
 	early_stuff				\
 	sendrecv_bench				\
-	burst
+	burst						\
+	display_bindings
 
 if !STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -246,7 +247,8 @@ noinst_PROGRAMS +=				\
 	sendrecv_bench				\
 	sendrecv_parallel_tasks_bench		\
 	burst					\
-	nothing
+	nothing							\
+	display_bindings
 
 if !STARPU_NO_BLAS_LIB
 noinst_PROGRAMS +=				\
