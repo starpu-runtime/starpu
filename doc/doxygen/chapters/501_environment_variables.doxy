@@ -1355,6 +1355,15 @@ application has crashed. Setting this variable to a value other than 1
 will disable this behaviour. This should be done on JVM systems which
 may use these signals for their own needs.
 The flag can also be set through the field starpu_conf::catch_signals.
+</dd>
+
+<dt>STARPU_DISPLAY_BINDINGS</dt>
+<dd>
+\anchor STARPU_DISPLAY_BINDINGS
+\addindex __env__STARPU_DISPLAY_BINDINGS
+Display the binding of all processes and threads running on the machine. If MPI is enabled, display the binding of each node.<br>
+Users can manually display the binding by calling starpu_display_bindings().
+</dd>
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

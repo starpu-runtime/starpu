@@ -705,3 +705,18 @@ int starpu_get_env_size_default(const char *str, int defval)
 	}
 	return val;
 }
+
+void starpu_display_bindings(void)
+{
+#ifdef STARPU_HAVE_HWLOC
+	int hwloc_ret = system("hwloc-ps -a -t -c");
+	if (hwloc_ret)
+	{
+		_STARPU_DISP("hwloc-ps returned %d\n", hwloc_ret);
+		fflush(stderr);
+	}
+	fflush(stdout);
+#else
+	_STARPU_DISP("hwloc not available to display bindings.\n");
+#endif
+}

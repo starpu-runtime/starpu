@@ -135,6 +135,7 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff
+	display_bindings
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -220,6 +221,8 @@ noinst_PROGRAMS +=				\
 	starpu_redefine				\
 	load_balancer				\
 	driver
+	display_bindings
+
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\

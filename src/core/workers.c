@@ -926,6 +926,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
+	conf->will_use_mpi = 0;
 	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
@@ -1476,6 +1477,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 	_starpu_catch_signals();
+
+	/* if MPI is enabled, binding display will be done later, after MPI initialization */
+	if (!_starpu_config.conf.will_use_mpi && starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	{
+		fprintf(stdout, "== Binding ==\n");
+		starpu_display_bindings();
+		fprintf(stdout, "== End of binding ==\n");
+		fflush(stdout);
+	}
 
 	return 0;
 }

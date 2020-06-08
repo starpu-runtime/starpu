@@ -109,6 +109,12 @@ struct starpu_conf
 	int magic;
 
 	/**
+	   @private
+	   Tell starpu_init() if MPI will be initialized later.
+	*/
+	int will_use_mpi;
+
+	/**
 	   Name of the scheduling policy. This can also be specified
 	   with the environment variable \ref STARPU_SCHED. (default =
 	   <c>NULL</c>).

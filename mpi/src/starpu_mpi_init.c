@@ -108,7 +108,38 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	_starpu_mpi_do_initialize(argc_argv);
 #endif
 
-	return _starpu_mpi_progress_init(argc_argv);
+	int ret = _starpu_mpi_progress_init(argc_argv);
+
+	if (starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	{
+		int rank, size, i;
+		char hostname[65];
+
+		starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+		starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+		gethostname(hostname, sizeof(hostname));
+
+		/* We make a barrier between each node calling hwloc-ps, to avoid mixing
+		 * outputs in stdout. */
+		for (i = 0; i < size; i++)
+		{
+			starpu_mpi_barrier(MPI_COMM_WORLD);
+			if (rank == i)
+			{
+				fprintf(stdout, "== Binding for rank %d on node %s ==\n", rank, hostname);
+				starpu_display_bindings();
+				fflush(stdout);
+			}
+		}
+		starpu_mpi_barrier(MPI_COMM_WORLD);
+		if (rank == 0)
+		{
+			fprintf(stdout, "== End of bindings ==\n");
+			fflush(stdout);
+		}
+	}
+
+	return ret;
 }
 
 #ifdef STARPU_SIMGRID
@@ -187,6 +218,8 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 		else
 			conf->reserve_ncpus++;
 	}
+
+	conf->will_use_mpi = 1;
 
 	int ret = starpu_init(conf);
 	if (ret < 0)

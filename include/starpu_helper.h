@@ -182,6 +182,14 @@ double starpu_timing_now(void);
 */
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
+/**
+   Call hwloc-ps to display binding of each processus and thread running on
+   the machine.<br>
+   Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically
+   call this function at the beginning of the execution of StarPU.
+*/
+void starpu_display_bindings(void);
+
 /** @} */
 
 #ifdef __cplusplus
