@@ -447,6 +447,17 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 
 double starpu_timing_now(void);
 
+#if defined(__i386__) || defined(__x86_64__)
+#define STARPU_CACHELINE_SIZE 64
+#elif defined(__ppc__) || defined(__ppc64__) || defined(__ia64__)
+#define STARPU_CACHELINE_SIZE 128
+#elif defined(__s390__) || defined(__s390x__)
+#define STARPU_CACHELINE_SIZE 256
+#else
+/* Conservative default */
+#define STARPU_CACHELINE_SIZE 1024
+#endif
+
 #ifdef _WIN32
 /* Try to fetch the system definition of timespec */
 #include <sys/types.h>
