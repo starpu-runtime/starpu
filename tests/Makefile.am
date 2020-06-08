@@ -145,6 +145,7 @@ myPROGRAMS =
 myPROGRAMS +=					\
 	main/bind				\
 	main/mkdtemp				\
+	main/display_binding			\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
