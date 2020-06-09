@@ -163,6 +163,10 @@ static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_li
  * 	return 0 if success, -1 otherwise
  * 	if success, a, b and c are modified
  * */
+
+/* See in Cedric Augonnet's PhD thesis's Appendix B for the rationale
+ * Scheduling Tasks over Multicore machines enhanced with Accelerators: a
+ * Runtime System’s Perspective */
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c)
 {
 	unsigned n = find_list_size(ptr);
@@ -184,6 +188,7 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	double err = 100000.0;
 
+	/* Use dichotomy to find c that gives the best matching */
 	for (iter = 0; iter < MAXREGITER; iter++)
 	{
 		double c1, c2;
