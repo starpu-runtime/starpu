@@ -147,17 +147,26 @@ static unsigned find_list_size(struct starpu_perfmodel_history_list *list_histor
 	return cnt;
 }
 
-static double find_list_min(double *y, unsigned n)
+static int compar(const void *_a, const void *_b)
 {
-	double min = 1.0e30;
+	double a = *(double*) _a;
+	double b = *(double*) _b;
+	if (a < b)
+		return -1;
+	if (a > b)
+		return 1;
+	return 0;
+}
 
-	unsigned i;
-	for (i = 0; i < n; i++)
-	{
-		min = STARPU_MIN(min, y[i]);
-	}
+static double get_list_fourth(double *y, unsigned n)
+{
+	double sorted[n];
 
-	return min;
+	memcpy(sorted, y, n * sizeof(*sorted));
+
+	qsort(sorted, n, sizeof(*sorted), compar);
+
+	return sorted[n/3];
 }
 
 static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_list *list_history)
@@ -196,7 +205,7 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 	dump_list(x, y, ptr);
 
 	double cmin = 0.0;
-	double cmax = find_list_min(y, n);
+	double cmax = get_list_fourth(y, n);
 
 	unsigned iter;
 
@@ -204,6 +213,7 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	for (iter = 0; iter < MAXREGITER; iter++)
 	{
+		//fprintf(stderr,"%f - %f\n", cmin, cmax);
 		double c1, c2;
 		double r1, r2;
 
