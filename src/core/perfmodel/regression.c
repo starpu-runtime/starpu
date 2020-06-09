@@ -226,17 +226,23 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	double err = 100000.0;
 
+/*
+	unsigned i;
+	for (i = 0; i < 100; i++)
+	{
+		double ci = cmin + (cmax-cmin)*i/100.;
+		fprintf(stderr,"%f: %f\n", ci, 1.0 - test_r(ci, n, x, y, pop));
+	}
+*/
+
 	/* Use dichotomy to find c that gives the best matching */
 	for (iter = 0; iter < MAXREGITER; iter++)
 	{
-		//fprintf(stderr,"%f - %f\n", cmin, cmax);
 		double c1, c2;
 		double r1, r2;
 
-		double radius = 0.01;
-
-		c1 = cmin + (0.5-radius)*(cmax - cmin);
-		c2 = cmin + (0.5+radius)*(cmax - cmin);
+		c1 = cmin + (0.33)*(cmax - cmin);
+		c2 = cmin + (0.67)*(cmax - cmin);
 
 		r1 = test_r(c1, n, x, y, pop);
 		r2 = test_r(c2, n, x, y, pop);
@@ -245,14 +251,17 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 		err1 = fabs(1.0 - r1);
 		err2 = fabs(1.0 - r2);
 
+		//fprintf(stderr,"%f - %f: %f - %f: %f - %f\n", cmin, c1, err1, c2, err2, cmax);
+
 		if (err1 < err2)
 		{
-			cmax = (cmin + cmax)/2;
+			/* 1 is better */
+			cmax = c2;
 		}
 		else
 		{
 			/* 2 is better */
-			cmin = (cmin + cmax)/2;
+			cmin = c1;
 		}
 
 		if (fabs(err - STARPU_MIN(err1, err2)) < EPS)
