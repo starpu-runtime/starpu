@@ -29,6 +29,9 @@ int main(void)
 #else
 int main(void)
 {
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+	return EXIT_SUCCESS;
+#endif
 	setenv("STARPU_DISPLAY_BINDINGS", "1", 1);
 
 	int ret = starpu_init(NULL);
