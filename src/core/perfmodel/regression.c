@@ -24,7 +24,7 @@
    fitting the distance to C, which won't actually really get smaller */
 #define C_RADIUS 2
 
-static double compute_b(double c, unsigned n, unsigned *x, double *y)
+static double compute_b(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double b;
 
@@ -43,13 +43,14 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		unsigned popi = pop[i];
 
-		sumxy += xi*yi;
-		sumx += xi;
-		sumx2 += xi*xi;
-		sumy += yi;
+		sumxy += xi*yi*popi;
+		sumx += xi*popi;
+		sumx2 += xi*xi*popi;
+		sumy += yi*popi;
 
-		nn += 1;
+		nn += popi;
 	}
 
 	b = (nn * sumxy - sumx * sumy) / (nn*sumx2 - sumx*sumx);
@@ -57,7 +58,7 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 	return b;
 }
 
-static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
+static double compute_a(double c, double b, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double a;
 
@@ -74,11 +75,12 @@ static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
 
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		unsigned popi = pop[i];
 
-		sumx += xi;
-		sumy += yi;
+		sumx += xi*popi;
+		sumy += yi*popi;
 
-		nn += 1;
+		nn += popi;
 	}
 
 	a = (sumy - b*sumx) / nn;
@@ -89,7 +91,7 @@ static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
 
 
 /* returns r */
-static double test_r(double c, unsigned n, unsigned *x, double *y)
+static double test_r(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double r;
 
@@ -110,16 +112,17 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 			continue;
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		unsigned popi = pop[i];
 
 	//	printf("Xi = %e, Yi = %e\n", xi, yi);
 
-		sumxy += xi*yi;
-		sumx += xi;
-		sumx2 += xi*xi;
-		sumy += yi;
-		sumy2 += yi*yi;
+		sumxy += xi*yi*popi;
+		sumx += xi*popi;
+		sumx2 += xi*xi*popi;
+		sumy += yi*popi;
+		sumy2 += yi*yi*popi;
 
-		nn += 1;
+		nn += popi;
 	}
 
 	//printf("sumxy %e\n", sumxy);
@@ -170,7 +173,7 @@ static double get_list_fourth(double *y, unsigned n)
 	return sorted[n/3];
 }
 
-static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_list *list_history)
+static void dump_list(size_t *x, double *y, unsigned *pop, struct starpu_perfmodel_history_list *list_history)
 {
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	unsigned i = 0;
@@ -181,6 +184,7 @@ static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_li
 		{
 			x[i] = ptr->entry->size;
 			y[i] = ptr->entry->mean;
+			pop[i] = ptr->entry->nsample;
 			i++;
 		}
 
@@ -202,14 +206,18 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 	unsigned n = find_list_size(ptr);
 	STARPU_ASSERT(n);
 
-	unsigned *x;
-	_STARPU_MALLOC(x, n*sizeof(unsigned));
+	size_t *x;
+	_STARPU_MALLOC(x, n*sizeof(size_t));
 
 	double *y;
 	_STARPU_MALLOC(y, n*sizeof(double));
 	STARPU_ASSERT(y);
 
-	dump_list(x, y, ptr);
+	unsigned *pop;
+	_STARPU_MALLOC(pop, n*sizeof(unsigned));
+	STARPU_ASSERT(y);
+
+	dump_list(x, y, pop, ptr);
 
 	double cmin = 0.0;
 	double cmax = get_list_fourth(y, n);
@@ -230,8 +238,8 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 		c1 = cmin + (0.5-radius)*(cmax - cmin);
 		c2 = cmin + (0.5+radius)*(cmax - cmin);
 
-		r1 = test_r(c1, n, x, y);
-		r2 = test_r(c2, n, x, y);
+		r1 = test_r(c1, n, x, y, pop);
+		r2 = test_r(c2, n, x, y, pop);
 
 		double err1, err2;
 		err1 = fabs(1.0 - r1);
@@ -255,11 +263,12 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	*c = (cmin + cmax)/2;
 
-	*b = compute_b(*c, n, x, y);
-	*a = exp(compute_a(*c, *b, n, x, y));
+	*b = compute_b(*c, n, x, y, pop);
+	*a = exp(compute_a(*c, *b, n, x, y, pop));
 
 	free(x);
 	free(y);
+	free(pop);
 
 	return 0;
 }
