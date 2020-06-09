@@ -22,7 +22,28 @@
 
 /* For measurements close to C, we do not want to try to fit, since we are
    fitting the distance to C, which won't actually really get smaller */
-#define C_RADIUS 2
+#define C_RADIUS 1
+
+/*
+ * smoothly ramp from 0 to 1 between 0 and 1
+ * <= 0: stay 0
+ * >= 1: stay 1 */
+static double level(double x)
+{
+	if (x <= 0.)
+		return 0.;
+	if (x >= 1.)
+		return 1.;
+	if (x < 0.5)
+		return -2*x*x+4*x-1;
+	return 2*x*x;
+}
+
+static double fixpop(unsigned pop, double c, double y)
+{
+	double distance = (y-c)/c;
+	return pop * level((distance - C_RADIUS) / C_RADIUS);
+}
 
 static double compute_b(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 {
@@ -33,17 +54,16 @@ static double compute_b(double c, unsigned n, size_t *x, double *y, unsigned *po
 	double sumx = 0.0;
 	double sumx2 = 0.0;
 	double sumy = 0.0;
-	unsigned nn = 0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		if ((y[i] - c) / c < C_RADIUS)
-			continue;
-
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
-		unsigned popi = pop[i];
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
 		sumxy += xi*yi*popi;
 		sumx += xi*popi;
@@ -65,17 +85,16 @@ static double compute_a(double c, double b, unsigned n, size_t *x, double *y, un
 	/* X = log (x) , Y = log (y - c) */
 	double sumx = 0.0;
 	double sumy = 0.0;
-	unsigned nn = 0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		if ((y[i] - c) / c < C_RADIUS)
-			continue;
-
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
-		unsigned popi = pop[i];
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
 		sumx += xi*popi;
 		sumy += yi*popi;
@@ -103,16 +122,16 @@ static double test_r(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 	double sumx2 = 0.0;
 	double sumy = 0.0;
 	double sumy2 = 0.0;
-	unsigned nn = 0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		if ((y[i] - c) / c < C_RADIUS)
-			continue;
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
-		unsigned popi = pop[i];
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
 	//	printf("Xi = %e, Yi = %e\n", xi, yi);
 
