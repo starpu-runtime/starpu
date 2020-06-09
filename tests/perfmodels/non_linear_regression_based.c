@@ -21,7 +21,7 @@
  * Benchmark memset with a non-linear regression
  */
 
-#define START_LOG 8
+#define START_LOG 0
 #ifdef STARPU_QUICK_CHECK
 #define END_LOG 20
 #else

@@ -19,6 +19,10 @@
 #define MAXREGITER	1000
 #define EPS 1.0e-10
 
+/* For measurements close to C, we do not want to try to fit, since we are
+   fitting the distance to C, which won't actually really get smaller */
+#define C_RADIUS 2
+
 static double compute_b(double c, unsigned n, unsigned *x, double *y)
 {
 	double b;
@@ -28,10 +32,14 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 	double sumx = 0.0;
 	double sumx2 = 0.0;
 	double sumy = 0.0;
+	unsigned nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
+		if ((y[i] - c) / c < C_RADIUS)
+			continue;
+
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
 
@@ -39,9 +47,11 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 		sumx += xi;
 		sumx2 += xi*xi;
 		sumy += yi;
+
+		nn += 1;
 	}
 
-	b = (n * sumxy - sumx * sumy) / (n*sumx2 - sumx*sumx);
+	b = (nn * sumxy - sumx * sumy) / (nn*sumx2 - sumx*sumx);
 
 	return b;
 }
@@ -53,18 +63,24 @@ static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
 	/* X = log (x) , Y = log (y - c) */
 	double sumx = 0.0;
 	double sumy = 0.0;
+	unsigned nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
+		if ((y[i] - c) / c < C_RADIUS)
+			continue;
+
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
 
 		sumx += xi;
 		sumy += yi;
+
+		nn += 1;
 	}
 
-	a = (sumy - b*sumx) / n;
+	a = (sumy - b*sumx) / nn;
 
 	return a;
 }
@@ -84,10 +100,13 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	double sumx2 = 0.0;
 	double sumy = 0.0;
 	double sumy2 = 0.0;
+	unsigned nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
+		if ((y[i] - c) / c < C_RADIUS)
+			continue;
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
 
@@ -98,6 +117,8 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 		sumx2 += xi*xi;
 		sumy += yi;
 		sumy2 += yi*yi;
+
+		nn += 1;
 	}
 
 	//printf("sumxy %e\n", sumxy);
@@ -106,7 +127,7 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	//printf("sumy %e\n", sumy);
 	//printf("sumy2 %e\n", sumy2);
 
-	r = (n * sumxy - sumx * sumy) / sqrt( (n* sumx2 - sumx*sumx) * (n*sumy2 - sumy*sumy) );
+	r = (nn * sumxy - sumx * sumy) / sqrt( (nn* sumx2 - sumx*sumx) * (nn*sumy2 - sumy*sumy) );
 
 	return r;
 }
