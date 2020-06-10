@@ -505,14 +505,16 @@ int main(int argc, char **argv)
 				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
 				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) {
 					if (i_bis%2 == 1) { x_z_layout_i = nslicesx/2; }
-					if (j >= nslicesx/2) { x_z_layout = 2; }
+					if (j >= 4) { x_z_layout = (j/4)*2; }
 					tab_x[i][j] = j%2 + x_z_layout + x_z_layout_i;
+					
+					//~ if (j%2 == 1) { j_bis++; }
 				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
 				
 				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
 				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
 					if (i_bis%2 == 1) { x_z_layout_i = nslicesy/2; }
-					if (j >= nslicesy/2) { x_z_layout = 2; }
+					if (j >= 4) { x_z_layout = (j/4)*2; }
 					tab_y[j][i] = j%2 + x_z_layout + x_z_layout_i;
 				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
 				
