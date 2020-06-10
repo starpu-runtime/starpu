@@ -218,6 +218,8 @@ static void dump_list(size_t *x, double *y, unsigned *pop, struct starpu_perfmod
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c)
 {
 	unsigned n = find_list_size(ptr);
+	if (!n)
+		return -1;
 
 	size_t *x = (size_t *) malloc(n*sizeof(size_t));
 	STARPU_ASSERT(x);

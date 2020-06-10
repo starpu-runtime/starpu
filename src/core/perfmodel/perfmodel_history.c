@@ -147,8 +147,10 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, unsigned arc
 
 	double a = nan(""), b = nan(""), c = nan("");
 
-	if (model->type == STARPU_NL_REGRESSION_BASED)
-		_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c);
+	if (model->type == STARPU_NL_REGRESSION_BASED) {
+		if (_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c) != 0)
+			_STARPU_DISP("Warning: could not compute a non-linear regression for model %s\n", model->symbol);
+	}
 
 	fprintf(f, "# a\t\tb\t\tc\n");
 	_starpu_write_double(f, "%-15e", a);
