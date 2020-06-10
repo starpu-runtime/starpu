@@ -21,7 +21,7 @@ export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 ./autogen.sh
 if test -d build ; then chmod -R 777 build && rm -rf build ; fi
 mkdir build && cd build
-../configure
+../configure --enable-build-doc-pdf
 make V=1
 make dist
 cp *gz ..
