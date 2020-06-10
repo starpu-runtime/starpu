@@ -2507,32 +2507,21 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$build_mpi_lib = xyes -o x$build_mpi_master_slave = xyes ; then
-			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
-				    [Path of the mpifort compiler])],
-				    [
-				     if test x$withval = xyes; then
-					     AC_MSG_ERROR(--with-mpifort must be given a pathname)
-					     else
-						     mpifort_path=$withval
-					     fi
-					     ],
-					     [
-					      if test x$enable_simgrid = xyes ; then
-						      DEFAULT_MPIFORT=smpifort
-					      else
-						      DEFAULT_MPIFORT=mpif90
-					      fi
-					      case $DEFAULT_MPIFORT in
-					      	/*) mpifort_path="$DEFAULT_MPIFORT" ;;
-					        *)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$MPIPATH])
-					      esac
-					      ])
-
+			#Check MPIFORT
+			if test x$enable_simgrid = xyes ; then
+				DEFAULT_MPIFORT=smpifort
+			else
+				DEFAULT_MPIFORT=mpifort
+			fi
+			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])], [DEFAULT_MPIFORT=$withval])
+			case $DEFAULT_MPIFORT in
+				/*) mpifort_path="$DEFAULT_MPIFORT" ;;
+				*)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH]) ;;
+			esac
 			# We test if the MPIFORT compiler exists
 			if test ! -x $mpifort_path; then
-				#MPIFORT does not exists or is not executable
 				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
-				use_mpi_fort=no
+				mpifort_path=no
 			else
 				OLD_CC=$CC
 				CC=$mpicc_path
@@ -2547,10 +2536,17 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 				CC=$OLD_CC
 				if test "x$use_mpi_fort" = xyes; then
 					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
-					AC_MSG_CHECKING(mpifort path)
-					AC_MSG_RESULT($mpifort_path)
-					AC_SUBST(MPIFORT, $mpifort_path)
 				fi
+			fi
+
+			AC_MSG_CHECKING(whether mpifort is available)
+			AC_MSG_RESULT($mpifort_path)
+			AC_SUBST(MPIFORT, $mpifort_path)
+
+			if test x$mpifort_path != xno ; then
+				MPIPATH=$(dirname $mpifort_path):$PATH
+			else
+				MPIPATH=$PATH
 			fi
 		fi
 	fi
