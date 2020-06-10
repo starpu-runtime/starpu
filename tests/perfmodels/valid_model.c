@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <starpu.h>
+#include <unistd.h>
 #include "../helper.h"
 
 static void func(void *descr[], void *arg)
