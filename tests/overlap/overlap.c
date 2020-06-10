@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "../helper.h"
 #include <common/thread.h>
 
