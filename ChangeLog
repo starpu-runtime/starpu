@@ -19,6 +19,9 @@
 StarPU 1.2.10 (git revision xxx)
 ==============================================
 
+Small changes:
+  * New configure option --disable-build-doc-pdf
+
 StarPU 1.2.9 (git revision 3aca8da3138a99e93d7f93905d2543bd6f1ea1df)
 ==============================================
 

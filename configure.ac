@@ -2910,6 +2910,10 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
+AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--disable-build-doc-pdf],
+			[disable building of PDF documentation])],
+			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=yes)
+
 if test "$enable_build_doc" = "yes" ; then
    # Check whether doxygen needed tools are installed
    AC_PATH_PROG(doxygencommand, doxygen)
@@ -2926,10 +2930,14 @@ if test "$enable_build_doc" = "yes" ; then
    fi
 fi
 available_doc="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf"
-then
+if test -d "$srcdir/doc/doxygen/html" ; then
    enable_build_doc="no"
    available_doc="yes"
+fi
+available_doc_pdf="no"
+if test -d "$srcdir/doc/doxygen/starpu.pdf" ; then
+   enable_build_doc="no"
+   available_doc_pdf="yes"
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
@@ -2938,6 +2946,10 @@ AC_MSG_RESULT($available_doc)
 
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
+
+AM_CONDITIONAL(BUILD_DOC_PDF, [test x$enable_build_doc_pdf != xno])
+AM_CONDITIONAL(AVAILABLE_DOC_PDF, [test x$available_doc_pdf != xno])
+
 
 ###############################################################################
 #                                                                             #
