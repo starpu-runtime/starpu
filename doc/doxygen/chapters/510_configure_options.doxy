@@ -115,7 +115,24 @@ Specify <c>hwloc</c> should not be used by StarPU.
 \addindex __configure__--disable-build-doc
 Disable the creation of the documentation. This should be done on a
 machine which does not have the tools <c>doxygen</c> and <c>latex</c>
-(plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
+(plus the packages <c>latex-xcolor</c> and
+<c>texlive-latex-extra</c>).
+To only disable the generation of the PDF documentation, one can use
+instead the option \ref disable-build-doc-pdf
+"--disable-build-doc-pdf".
+</dd>
+
+<dt>--disable-build-doc-pdf</dt>
+<dd>
+\anchor disable-build-doc-pdf
+\addindex __configure__--disable-build-doc-pdf
+Disable the creation of the PDF documentation. This should be done on a
+machine which does not have the tools <c>doxygen</c> and <c>latex</c>
+(plus the packages <c>latex-xcolor</c> and
+<c>texlive-latex-extra</c>).
+Using this option instead of the \ref disable-build-doc
+"disable-build-doc" will allow to only produce the HTML format of the
+documentation.
 </dd>
 
 <dt>--disable-icc</dt>

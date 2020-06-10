@@ -30,9 +30,14 @@ txtdir   = $(docdir)/manual
 EXTRA_DIST =
 
 if STARPU_BUILD_DOC
+if STARPU_BUILD_DOC_PDF
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST += $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
+else
+all: $(DOX_HTML_DIR)
+EXTRA_DIST += $(DOX_HTML_DIR)
+endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
@@ -41,14 +46,17 @@ uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
 else
 if STARPU_AVAILABLE_DOC
-EXTRA_DIST += $(top_srcdir)/doc/doxygen/html $(top_srcdir)/doc/doxygen/starpu.pdf
-txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
+EXTRA_DIST += $(top_srcdir)/doc/doxygen/html
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
 	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
+endif
+if STARPU_AVAILABLE_DOC_PDF
+EXTRA_DIST += $(top_srcdir)/doc/doxygen/starpu.pdf
+txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
 endif
 endif
 
@@ -256,6 +264,8 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
 	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
+
+$(DOX_HTML_DIR): $(DOX_TAG)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
