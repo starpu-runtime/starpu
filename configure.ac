@@ -2513,6 +2513,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
                  fi
 	else
 		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
+			enable_build_fortran="yes"
 			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
 			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
 
@@ -2529,6 +2530,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 				enable_build_fortran="no"
 			else
 				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+				 enable_build_fortran="yes"
 			fi
 		fi
 	fi
