@@ -20,6 +20,9 @@
 
 static void func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
+	usleep(1000);
 }
 
 static struct starpu_perfmodel rb_model =
