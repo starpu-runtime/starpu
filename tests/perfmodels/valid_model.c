@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <core/perfmodel/perfmodel.h>
+#include <unistd.h>
 #include "../helper.h"
 
 /*
