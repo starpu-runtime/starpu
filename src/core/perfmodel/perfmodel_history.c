@@ -1104,6 +1104,8 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
 
+	if (ret)
+		starpu_perfmodel_unload_model(model);
 	return ret;
 }
 
