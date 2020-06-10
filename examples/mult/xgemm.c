@@ -29,6 +29,7 @@
 #include <time.h>
 #include <stdlib.h>
 #define RANDOM_TASK_ORDER
+#define RECURSIVE_MATRIX_LAYOUT
 
 #include <limits.h>
 #include <string.h>
@@ -375,6 +376,9 @@ int main(int argc, char **argv)
 	//Ajout pour randomiser l'ordre d'arrivé des tâches
 	srandom(time(0));
 	
+	//Ajout pour le Z layout
+	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0;
+	
 	double start, end;
 	int ret;
 
@@ -414,40 +418,8 @@ int main(int argc, char **argv)
 
 		unsigned x, y, iter;
 		
-		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 0) { 
-			//If environment variable RANDOM_TASK_ORDER == 0
-			for (iter = 0; iter < niter; iter++)
-			{
-				starpu_pause();
-				for (x = 0; x < nslicesx; x++)
-				for (y = 0; y < nslicesy; y++)
-				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl;
-					
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
-					
-					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-					ret = starpu_task_submit(task);
-					if (ret == -ENODEV)
-					{
-						 ret = 77;
-						 goto enodev;
-					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
-				}
-				starpu_resume();
-
-				starpu_task_wait_for_all();
-			}	
-			//End If environment variable RANDOM_TASK_ORDER == 0
-		}
-		else { 
+		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0) {
+			//~ printf("random\n");
 			//If environment variable RANDOM_TASK_ORDER == 1
 			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -501,6 +473,115 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
+		}
+		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1) {
+			// RECURSIVE_MATRIX_LAYOUT == 1, cela annule le random=1
+			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
+			for (iter = 0; iter < niter; iter++)
+			{
+				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { tab_x[i][j] = i; } }
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
+			
+				//printf des tableaux
+				printf("Au début \n");
+				printf("Tableau x : \n");
+				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+				printf("Tableau y : \n");
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
+				
+				//Recursive layout
+				//~ x_z_layout = 0; i_bis = 0;
+				//~ for (i= 0; i < nslicesx; i+=2) { for (j = 0; j < nslicesx; j+=2) {
+					//~ if (i_bis%2 == 1) { x_z_layout = nslicesx/2; }
+					//~ else { x_z_layout = 0; }
+					//~ if ((nslicesx/2)/j > 0) { tab_x[i][j] = 2 + x_z_layout; tab_x[i][j+1] = 3 + x_z_layout; tab_x[i+1][j] = 2 + x_z_layout; tab_x[i+1][j+1] = 3 + x_z_layout; }
+					//~ else {
+						//~ tab_x[i][j] = 0 + x_z_layout;
+						//~ tab_x[i+1][j] = 0 + x_z_layout;
+						//~ tab_x[i][j+1] = 1 + x_z_layout;
+						//~ tab_x[i+1][j+1] = 1 + x_z_layout;
+					//~ }
+				//~ } i_bis++; }
+				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
+				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) {
+					if (i_bis%2 == 1) { x_z_layout_i = nslicesx/2; }
+					if (j >= nslicesx/2) { x_z_layout = 2; }
+					tab_x[i][j] = j%2 + x_z_layout + x_z_layout_i;
+				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
+				
+				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
+					if (i_bis%2 == 1) { x_z_layout_i = nslicesy/2; }
+					if (j >= nslicesy/2) { x_z_layout = 2; }
+					tab_y[j][i] = j%2 + x_z_layout + x_z_layout_i;
+				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
+				
+				//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
+					//~ tab_y[i][j]
+				//~ }}
+
+				
+				//printf des tableaux
+				printf("A la fin \n");
+				printf("Tableau x : \n");
+				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+				printf("Tableau y : \n");
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
+				
+				starpu_pause();
+				for (i = 0; i < nslicesx; i++)
+				{
+					for (j = 0; j < nslicesy; j++)
+					{
+						struct starpu_task *task = starpu_task_create();
+						task->cl = &cl;
+						
+						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
+						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
+						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
+						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; goto enodev; }
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+					}
+				}
+				starpu_resume();
+				starpu_task_wait_for_all();
+			}
+			//End If RECURSIVE_MATRIX_LAYOUT == 1
+		}
+		else { 
+			//If environment variable RANDOM_TASK_ORDER == 0
+			for (iter = 0; iter < niter; iter++)
+			{
+				starpu_pause();
+				for (x = 0; x < nslicesx; x++)
+				for (y = 0; y < nslicesy; y++)
+				{
+					struct starpu_task *task = starpu_task_create();
+
+					task->cl = &cl;
+					
+					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
+					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
+					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
+					
+					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+					ret = starpu_task_submit(task);
+					if (ret == -ENODEV)
+					{
+						 ret = 77;
+						 goto enodev;
+					}
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+				}
+				starpu_resume();
+
+				starpu_task_wait_for_all();
+			}	
+			//End If environment variable RANDOM_TASK_ORDER == 0
 		}
 
 		end = starpu_timing_now();
