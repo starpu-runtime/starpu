@@ -3387,39 +3387,44 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--disable-build-doc-pdf],
-			[disable building of PDF documentation])],
-			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=yes)
+AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
+			[enable building of PDF documentation])],
+			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=no)
 
-if test "$enable_build_doc" = "yes" ; then
-   # Check whether doxygen needed tools are installed
-   AC_PATH_PROG(doxygencommand, doxygen)
-   if test "$doxygencommand" = "" ; then
-      	enable_build_doc="no"
-   fi
-   AC_PATH_PROG(pdflatexcommand, pdflatex)
-   if test "$pdflatexcommand" = "" ; then
-	enable_build_doc="no"
-   fi
-   AC_PATH_PROG(epstopdfcommand, epstopdf)
-   if test "$epstopdfcommand" = "" ; then
-	enable_build_doc="no"
-   fi
+# Check whether doxygen needed tools are installed
+AC_PATH_PROG(doxygencommand, doxygen)
+if test "$doxygencommand" = "" ; then
+   enable_build_doc="no"
+   enable_build_doc_pdf="no"
 fi
+AC_PATH_PROG(pdflatexcommand, pdflatex)
+if test "$pdflatexcommand" = "" ; then
+   enable_build_doc_pdf="no"
+fi
+AC_PATH_PROG(epstopdfcommand, epstopdf)
+if test "$epstopdfcommand" = "" ; then
+   enable_build_doc_pdf="no"
+fi
+
 available_doc="no"
 if test -d "$srcdir/doc/doxygen/html" ; then
    enable_build_doc="no"
    available_doc="yes"
 fi
 available_doc_pdf="no"
-if test -d "$srcdir/doc/doxygen/starpu.pdf" ; then
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
    enable_build_doc="no"
+   enable_build_doc_pdf="no"
    available_doc_pdf="yes"
 fi
-AC_MSG_CHECKING(whether documentation should be compiled)
+AC_MSG_CHECKING(whether HTML documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
-AC_MSG_CHECKING(whether documentation is available)
+AC_MSG_CHECKING(whether HTML documentation is available)
 AC_MSG_RESULT($available_doc)
+AC_MSG_CHECKING(whether PDF documentation should be compiled)
+AC_MSG_RESULT($enable_build_doc_pdf)
+AC_MSG_CHECKING(whether PDF documentation is available)
+AC_MSG_RESULT($available_doc_pdf)
 
 AM_CONDITIONAL(STARPU_BUILD_DOC, [test x$enable_build_doc != xno])
 AM_CONDITIONAL(STARPU_AVAILABLE_DOC, [test x$available_doc != xno])
@@ -3658,8 +3663,9 @@ AC_MSG_NOTICE([
 	hwloc:             $have_valid_hwloc
 	FxT trace enabled: $use_fxt
 
-        Documentation:     $enable_build_doc
-        Examples:          $enable_build_examples
+        Documentation HTML:  $enable_build_doc
+        Documentation PDF:   $enable_build_doc_pdf
+        Examples:            $enable_build_examples
 
 	StarPU Extensions:
 	       StarPU MPI enabled:                            $build_mpi_lib
