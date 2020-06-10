@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 	srandom(time(0));
 	
 	//Ajout pour le Z layout
-	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0;
+	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
 	
 	double start, end;
 	int ret;
@@ -483,52 +483,47 @@ int main(int argc, char **argv)
 				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
 			
 				//printf des tableaux
-				printf("Au début \n");
-				printf("Tableau x : \n");
-				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
-				printf("Tableau y : \n");
-				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
+				//~ printf("Au début \n");
+				//~ printf("Tableau x : \n");
+				//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+				//~ printf("Tableau y : \n");
+				//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
 				
-				//Recursive layout
-				//~ x_z_layout = 0; i_bis = 0;
-				//~ for (i= 0; i < nslicesx; i+=2) { for (j = 0; j < nslicesx; j+=2) {
-					//~ if (i_bis%2 == 1) { x_z_layout = nslicesx/2; }
-					//~ else { x_z_layout = 0; }
-					//~ if ((nslicesx/2)/j > 0) { tab_x[i][j] = 2 + x_z_layout; tab_x[i][j+1] = 3 + x_z_layout; tab_x[i+1][j] = 2 + x_z_layout; tab_x[i+1][j+1] = 3 + x_z_layout; }
-					//~ else {
-						//~ tab_x[i][j] = 0 + x_z_layout;
-						//~ tab_x[i+1][j] = 0 + x_z_layout;
-						//~ tab_x[i][j+1] = 1 + x_z_layout;
-						//~ tab_x[i+1][j+1] = 1 + x_z_layout;
-					//~ }
-				//~ } i_bis++; }
 				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
 				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) {
 					if (i_bis%2 == 1) { x_z_layout_i = nslicesx/2; }
 					if (j >= 4) { x_z_layout = (j/4)*2; }
 					tab_x[i][j] = j%2 + x_z_layout + x_z_layout_i;
-					
-					//~ if (j%2 == 1) { j_bis++; }
 				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
 				
-				x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
-				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
-					if (i_bis%2 == 1) { x_z_layout_i = nslicesy/2; }
-					if (j >= 4) { x_z_layout = (j/4)*2; }
-					tab_y[j][i] = j%2 + x_z_layout + x_z_layout_i;
-				} x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
-				
+				//~ x_z_layout = 0; x_z_layout_i = 0; i_bis = 0;
 				//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
-					//~ tab_y[i][j]
-				//~ }}
-
+					//~ if (i_bis%2 == 1) { x_z_layout_i = nslicesy/2; }
+					//~ if (j >= 4) { x_z_layout = (j/4)*2; }
+					//~ tab_y[j][i] = j%2 + x_z_layout + x_z_layout_i;
+				//~ } x_z_layout = 0; x_z_layout_i = 0; if (i%2 == 1) { i_bis++; } }
 				
-				//printf des tableaux
-				printf("A la fin \n");
-				printf("Tableau x : \n");
-				for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
-				printf("Tableau y : \n");
-				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
+				y_z_layout_i = 0; i_bis = 0; j_bis = 0; y_z_layout = 0;
+				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) {
+					//~ if (i >= nslicesy/2) { y_z_layout_i = nslicesy/2; }
+					if (i >= 4) { y_z_layout_i = 4*(i/4); }
+					//~ if (i%2 == 1) { y_z_layout_i += nslicesy/4; }
+					if (j_bis%2 == 1) { y_z_layout = 1; }
+					if (i%2 == 1) { y_z_layout += 2; }
+					tab_y[i][j] = y_z_layout + y_z_layout_i;
+					if (j%2 == 1) { j_bis++; }
+					y_z_layout = 0;
+					y_z_layout_i = 0;
+				} y_z_layout = 0;  if (i%2 == 1) { i_bis++; } }
+				
+		
+				
+				//~ //printf des tableaux
+				//~ printf("A la fin \n");
+				//~ printf("Tableau x : \n");
+				//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
+				//~ printf("Tableau y : \n");
+				//~ for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { printf(" %3d ",tab_y[i][j]); } printf("\n"); }
 				
 				starpu_pause();
 				for (i = 0; i < nslicesx; i++)
@@ -542,7 +537,6 @@ int main(int argc, char **argv)
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
 						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
 						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
 						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; goto enodev; }
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
