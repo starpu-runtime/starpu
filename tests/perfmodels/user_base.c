@@ -24,6 +24,9 @@
 
 void func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
+	usleep(1000);
 }
 
 size_t get_size_base(struct starpu_task *task, unsigned nimpl)
