@@ -1125,8 +1125,18 @@ int starpu_data_get_home_node(starpu_data_handle_t handle)
 	return handle->home_node;
 }
 
-void starpu_data_set_coordinates_array(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, int dimensions STARPU_ATTRIBUTE_UNUSED, int dims[] STARPU_ATTRIBUTE_UNUSED)
+void starpu_data_set_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[])
 {
+	unsigned i;
+	unsigned max_dimensions = sizeof(handle->coordinates)/sizeof(handle->coordinates[0]);
+
+	if (dimensions > max_dimensions)
+		dimensions = max_dimensions;
+
+	handle->dimensions = dimensions;
+	for (i = 0; i < dimensions; i++)
+		handle->coordinates[i] = dims[i];
+
 	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
 }
 
@@ -1142,4 +1152,17 @@ void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimension
 	va_end(varg_list);
 
 	starpu_data_set_coordinates_array(handle, dimensions, dims);
+}
+
+unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[])
+{
+	unsigned i;
+
+	if (dimensions > handle->dimensions)
+		dimensions = handle->dimensions;
+
+	for (i = 0; i < dimensions; i++)
+		dims[i] = handle->coordinates[i];
+
+	return dimensions;
 }

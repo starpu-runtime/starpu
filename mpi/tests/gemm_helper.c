@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -199,6 +199,7 @@ static struct starpu_codelet cl_init_matrix_zero =
 	.color = 0x808000 // olive
 };
 
+/* Allocate and partition buffers */
 void gemm_alloc_data()
 {
 	starpu_malloc_flags((void **)&A, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
@@ -207,14 +208,13 @@ void gemm_alloc_data()
 	partition_mult_data();
 }
 
-
+/* Submit tasks to initialize matrices: fill them with zeros or random numbers */
 int gemm_init_data()
 {
 #ifndef STARPU_SIMGRID
 	int ret;
 	unsigned x, y;
 
-	// Initialize matrices:
 	for (x = 0; x < nslices; x++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -237,11 +237,17 @@ int gemm_init_data()
 	return 0;
 }
 
-
+/* Submit tasks to compute the GEMM */
 int gemm_submit_tasks()
+{
+	return gemm_submit_tasks_with_tags(/* by default, disable task tags */ 0);
+}
+
+int gemm_submit_tasks_with_tags(int with_tags)
 {
 	int ret;
 	unsigned x, y;
+	starpu_tag_t task_tag = 0;
 
 	for (x = 0; x < nslices; x++)
 	for (y = 0; y < nslices; y++)
@@ -253,12 +259,54 @@ int gemm_submit_tasks()
 		task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
 		task->flops = 2ULL * (matrix_dim/nslices) * (matrix_dim/nslices) * matrix_dim;
 
+		if (with_tags)
+		{
+			task->use_tag = 1;
+			task->tag_id = ++task_tag;
+		}
+
 		ret = starpu_task_submit(task);
 		CHECK_TASK_SUBMIT(ret);
 		starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
 	}
 
 	return 0;
+}
+
+/* Add dependencies between GEMM tasks to see the impact of polling workers which will at the end get a task.
+ * The new dependency graph has the following shape:
+ * - the same number of GEMMs as the number of workers are executed in parallel on all workers ("a column of tasks")
+ * - then a GEMM waits all tasks of the previous column of tasks, and is executed on a worker
+ * - the next column of tasks waits for the previous GEMM
+ * - and so on...
+ *
+ * worker 0 |  1  |  4  |  5  |  8  |  9  |
+ * worker 1 |  2  |     |  6  |     | 10  |  ...
+ * worker 2 |  3  |     |  7  |     | 11  |
+ *
+ * This function has to be called before gemm_submit_tasks_with_tags(1).
+ */
+void gemm_add_polling_dependencies()
+{
+	starpu_tag_t nb_tasks = (starpu_tag_t) nslices * (starpu_tag_t) nslices;
+	unsigned nb_workers = starpu_worker_get_count();
+
+	for (starpu_tag_t synchro_tag = nb_workers+1; synchro_tag <= nb_tasks; synchro_tag += (nb_workers+1))
+	{
+		// this synchro tag depends on tasks of previous column of tasks:
+		for (starpu_tag_t previous_tag = synchro_tag - nb_workers; previous_tag < synchro_tag; previous_tag++)
+		{
+			starpu_tag_declare_deps(synchro_tag, 1, previous_tag);
+		}
+
+		// tasks of the next column of tasks depend on this synchro tag:
+		// this actually allows workers to poll for new tasks, while no task is available
+		for (starpu_tag_t next_tag = synchro_tag+1; next_tag < (synchro_tag + nb_workers + 1) && next_tag <= nb_tasks; next_tag++)
+		{
+			starpu_tag_declare_deps(next_tag, 1, synchro_tag);
+		}
+	}
+
 }
 
 void gemm_release()

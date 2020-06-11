@@ -16,7 +16,14 @@
 
 include $(top_srcdir)/starpu-subdirtests.mk
 
-SUBDIRS=src tests examples tools
+SUBDIRS=src tools
+
+if STARPU_BUILD_EXAMPLES
+SUBDIRS += examples
+endif
+if STARPU_BUILD_TESTS
+SUBDIRS += tests
+endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc starpumpi-1.2.pc starpumpi-1.3.pc

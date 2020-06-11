@@ -24,7 +24,6 @@
 #include <common/list.h>
 #include <common/fxt.h>
 
-/** TODO actually move this struct into this header */
 struct _starpu_machine_config;
 
 #ifndef STARPU_SIMGRID

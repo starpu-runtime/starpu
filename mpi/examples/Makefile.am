@@ -111,7 +111,6 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 ###################
 # Stencil example #
 ###################
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=		\
 	stencil/stencil5
 starpu_mpi_EXAMPLES	+=	\
@@ -124,14 +123,11 @@ starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5_lb
 endif
 
-endif
-
 ##################
 # MPI LU example #
 ##################
 
-if BUILD_EXAMPLES
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 
 examplebin_PROGRAMS += 			\
 	mpi_lu/plu_example_float	\
@@ -213,14 +209,12 @@ mpi_lu_plu_outofcore_example_double_SOURCES =	\
 	mpi_lu/pdlu_implicit.c			\
 	../../examples/common/blas.c
 endif
-endif
 
 ########################
 # MPI Cholesky example #
 ########################
 
-if BUILD_EXAMPLES
-if !NO_BLAS_LIB
+if !STARPU_NO_BLAS_LIB
 examplebin_PROGRAMS +=		\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
@@ -253,13 +247,11 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky			\
 	matrix_decomposition/mpi_cholesky_distributed
 endif
-endif
 
 ########################
 # MPI Matrix mult example #
 ########################
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm
 
@@ -273,14 +265,12 @@ if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
 endif
-endif
 
 ##########################################
 # Native Fortran MPI Matrix mult example #
 ##########################################
 
 if STARPU_HAVE_MPIFORT
-if BUILD_EXAMPLES
 if !STARPU_SANITIZE
 examplebin_PROGRAMS +=		\
 	native_fortran/nf_mm	\
@@ -321,13 +311,11 @@ starpu_mpi_EXAMPLES +=				\
 endif
 endif
 endif
-endif
 
 ###################
 # complex example #
 ###################
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	complex/mpi_complex
 
@@ -337,13 +325,11 @@ complex_mpi_complex_SOURCES =		\
 
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex
-endif
 
 #########################
 # user_datatype example #
 #########################
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=				\
 	user_datatype/user_datatype		\
 	user_datatype/user_datatype2
@@ -361,13 +347,11 @@ starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype2		\
 	user_datatype/user_datatype
 endif
-endif
 
 ###################
 # comm example #
 ###################
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	comm/comm			\
 	comm/mix_comm
@@ -377,20 +361,17 @@ starpu_mpi_EXAMPLES	+=			\
 	comm/comm				\
 	comm/mix_comm
 endif
-endif
 
 ##################
 # filter example #
 ##################
 
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=			\
 	filters/filter
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	filters/filter
-endif
 endif
 
 # Native Fortran example
@@ -404,7 +385,6 @@ native_fortran/fstarpu_mpi_mod.f90:
 	$(V_ln) $(LN_S) $(abs_top_srcdir)/mpi/include/$(notdir $@) $@
 
 if STARPU_HAVE_MPIFORT
-if BUILD_EXAMPLES
 if !STARPU_SANITIZE
 # - express the creation of .mod along .o
 fstarpu_mod.mod: native_fortran/fstarpu_mod.o
@@ -417,6 +397,5 @@ native_fortran/nf_mm_cl.o: fstarpu_mod.mod
 native_fortran/nf_mm.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
-endif
 endif
 endif

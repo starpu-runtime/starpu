@@ -27,8 +27,8 @@ end
 global codelet_list = Vector{jl_starpu_codelet}()
 
 function starpu_codelet(;
-                        cpu_func :: Union{String, STARPU_BLAS} = "",
-                        cuda_func :: Union{String, STARPU_BLAS} = "",
+                        cpu_func :: Union{String, STARPU_BLAS, Cvoid} = "",
+                        cuda_func :: Union{String, STARPU_BLAS, Cvoid} = "",
                         opencl_func :: String = "",
                         modes = [],
                         perfmodel :: starpu_perfmodel,
@@ -42,7 +42,7 @@ function starpu_codelet(;
 
 
     if (where_to_execute == nothing)
-        real_where = ((cpu_func != "") * STARPU_CPU) | ((cuda_func != "") * STARPU_CUDA)
+        real_where = ((cpu_func != nothing) * STARPU_CPU) | ((cuda_func != nothing) * STARPU_CUDA)
     else
         real_where = where_to_execute
     end
@@ -63,7 +63,7 @@ function starpu_codelet(;
         output.cpu_func = cpu_blas_codelets[cpu_func]
         output.c_codelet.cpu_func = load_wrapper_function_pointer(output.cpu_func)
     else
-        output.c_codelet.cpu_func = load_starpu_function_pointer(cpu_func)
+        output.c_codelet.cpu_func = load_starpu_function_pointer(get(CPU_CODELETS, cpu_func, ""))
     end
 
     if typeof(cuda_func) == STARPU_BLAS
@@ -71,10 +71,10 @@ function starpu_codelet(;
         output.c_codelet.cuda_func = load_wrapper_function_pointer(output.cuda_func)
         output.c_codelet.cuda_flags[1] = STARPU_CUDA_ASYNC
     else
-        output.c_codelet.cuda_func = load_starpu_function_pointer(cuda_func)
+        output.c_codelet.cuda_func = load_starpu_function_pointer(get(CUDA_CODELETS, cuda_func, ""))
     end
 
-    output.c_codelet.opencl_func = load_starpu_function_pointer(opencl_func)
+    output.c_codelet.opencl_func = load_starpu_function_pointer("")
 
     # Codelets must not be garbage collected before starpu shutdown is called.
     lock(mutex)
@@ -104,9 +104,18 @@ task_list = Vector{jl_starpu_task}()
 
             Creates a new task which will run the specified codelet on handle buffers and cl_args data
         """
-function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles :: Vector{StarpuDataHandle} = StarpuDataHandle[], cl_arg = (),
-                     callback :: Union{Cvoid, Function} = nothing, callback_arg = nothing, tag :: Union{Cvoid, starpu_tag_t} = nothing,
-                     sequential_consistency = true, detach = 1)
+function starpu_task(;
+                     cl :: Union{Cvoid, jl_starpu_codelet} = nothing,
+                     handles :: Vector{StarpuDataHandle} = StarpuDataHandle[],
+                     cl_arg = (),
+                     callback :: Union{Cvoid, Function} = nothing,
+                     callback_arg = nothing,
+                     tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                     tag_only :: Union{Cvoid, starpu_tag_t} = nothing,
+                     sequential_consistency = true,
+                     detach = 1,
+                     color :: Union{Cvoid, UInt32} = nothing,
+                     where :: Union{Cvoid, Int32} = nothing)
     if (cl == nothing)
         error("\"cl\" field can't be empty when creating a StarpuTask")
     end
@@ -114,15 +123,11 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
     output = jl_starpu_task(cl, handles, map((x -> x.object), handles), false, nothing, Vector{Cint}(undef, 1), callback, callback_arg, starpu_task(zero))
 
     # handle scalar_parameters
-    codelet_name = cl.cpu_func
-    if isempty(codelet_name)
-        codelet_name = cl.cuda_func
-    end
-    if isempty(codelet_name)
-        codelet_name = cl.opencl_func
-    end
-    if isempty(codelet_name)
-        error("No function provided with codelet.")
+    codelet_name = ""
+    if isa(cl.cpu_func, String) && cl.cpu_func != ""
+        codelet = cl.cpu_func
+    elseif isa(cl.gpu_func, String) && cl.gpu_func != ""
+        codelet = cl.gpu_func
     end
     scalar_parameters = get(CODELETS_SCALARS, codelet_name, nothing)
     if scalar_parameters != nothing
@@ -163,6 +168,18 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
         output.c_task.use_tag = 1
     end
 
+    if tag_only != nothing
+        output.c_task.tag_id = tag_only
+    end
+
+    if color != nothing
+        output.c_task.color = color
+    end
+
+    if where != nothing
+        output.c_task.where = where
+    end
+
     # Tasks must not be garbage collected before starpu_task_wait_for_all is called.
     # This is necessary in particular for tasks created inside callback functions.
     lock(mutex)
@@ -173,8 +190,8 @@ function starpu_task(; cl :: Union{Cvoid, jl_starpu_codelet} = nothing, handles 
 end
 
 
-function create_param_struct_from_clarg(name, cl_arg)
-    struct_params_name = CODELETS_PARAMS_STRUCT[name]
+function create_param_struct_from_clarg(codelet_name, cl_arg)
+    struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
 
     if struct_params_name == false
         error("structure name not found in CODELET_PARAMS_STRUCT")
@@ -236,6 +253,76 @@ function starpu_modes(x :: Symbol)
     end
 end
 
+default_codelet = Dict{String, jl_starpu_codelet}()
+default_perfmodel = Dict{String, starpu_perfmodel}()
+
+function get_default_perfmodel(name)
+    if name in keys(default_perfmodel)
+        return default_perfmodel[name]
+    end
+
+    perfmodel = starpu_perfmodel(
+        perf_type = starpu_perfmodel_type(STARPU_HISTORY_BASED),
+        symbol = name
+    )
+    default_perfmodel[name] = perfmodel
+    return perfmodel
+end
+
+function get_default_codelet(codelet_name, perfmodel, modes) :: jl_starpu_codelet
+    if codelet_name in keys(default_codelet)
+        return default_codelet[codelet_name]
+    end
+
+    cl = starpu_codelet(
+        cpu_func  = codelet_name in keys(CPU_CODELETS) ? codelet_name : "",
+        cuda_func = codelet_name in keys(CUDA_CODELETS) ? codelet_name : "",
+        modes = modes,
+        perfmodel = perfmodel,
+    )
+    default_codelet[codelet_name] = cl
+    return cl
+end
+
+function starpu_task_insert(;
+                            codelet_name :: Union{Cvoid, String} = nothing,
+                            cl :: Union{Cvoid, jl_starpu_codelet} = nothing,
+                            perfmodel :: Union{starpu_perfmodel, Cvoid} = nothing,
+                            handles :: Vector{StarpuDataHandle} = StarpuDataHandle[],
+                            cl_arg = (),
+                            callback :: Union{Cvoid, Function} = nothing,
+                            callback_arg = nothing,
+                            tag :: Union{Cvoid, starpu_tag_t} = nothing,
+                            tag_only :: Union{Cvoid, starpu_tag_t} = nothing,
+                            sequential_consistency = true,
+                            detach = 1,
+                            where :: Union{Cvoid, Int32} = nothing,
+                            color :: Union{Cvoid, UInt32} = nothing,
+                            modes = nothing)
+    if cl == nothing && codelet_name == nothing
+        error("At least one of the two parameters codelet_name or cl must be provided when calling starpu_task_insert.")
+
+    end
+    if cl == nothing && modes == nothing
+        error("Modes must be defined when calling starpu_task_insert without a codelet.")
+    end
+
+    if perfmodel == nothing
+        perfmodel = get_default_perfmodel(codelet_name == nothing ? "default" : codelet_name)
+    end
+
+    if cl == nothing
+        cl = get_default_codelet(codelet_name, perfmodel, modes)
+    end
+
+    task = starpu_task(cl = cl, handles = handles, cl_arg = cl_arg, callback = callback,
+                       callback_arg = callback_arg, tag = tag, tag_only = tag_only,
+                       sequential_consistency = sequential_consistency,
+                       detach = detach, color = color, where = where)
+
+    starpu_task_submit(task)
+end
+
 """
     Creates and submits an asynchronous task running cl Codelet function.
     Ex : @starpu_async_cl cl(handle1, handle2)
@@ -254,8 +341,8 @@ macro starpu_async_cl(expr, modes, cl_arg=(), color ::UInt32=0x00000000)
     )
     println(CPU_CODELETS[string(expr.args[1])])
     cl = starpu_codelet(
-        cpu_func = CPU_CODELETS[string(expr.args[1])],
-        # cuda_func = CUDA_CODELETS[string(expr.args[1])],
+        cpu_func  = string(expr.args[1]),
+        cuda_func = string(expr.args[1]),
         #opencl_func="ocl_matrix_mult",
         ### TODO: CORRECT !
         modes = map((x -> starpu_modes(x)),modes.args),

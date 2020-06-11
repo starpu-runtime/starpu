@@ -73,15 +73,16 @@ function transform_to_cpu_kernel(expr :: StarpuExprFunction)
     output = add_for_loop_declarations(expr)
     output = substitute_args(output)
     output = substitute_func_calls(output)
+    output = substitute_views(output)
     output = substitute_indexing(output)
     output = flatten_blocks(output)
 
     return output
 end
 
-function generate_c_struct_param_declaration(funcname)
-    scalar_parameters = CODELETS_SCALARS[funcname]
-    struct_params_name = CODELETS_PARAMS_STRUCT[funcname]
+function generate_c_struct_param_declaration(codelet_name)
+    scalar_parameters = CODELETS_SCALARS[codelet_name]
+    struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
 
     output = "struct $struct_params_name {\n"
     for p in scalar_parameters
@@ -212,18 +213,18 @@ function substitute_args(expr :: StarpuExprFunction)
 
 
     new_args = [
-                    starpu_parse(:($buffer_arg_name :: Matrix{Nothing})),
-                    starpu_parse(:($cl_arg_name :: Vector{Nothing}))
-                ]
+        starpu_parse(:($buffer_arg_name :: Ptr{Ptr{Nothing}})),
+        starpu_parse(:($cl_arg_name :: Vector{Nothing}))
+    ]
     new_body = StarpuExprBlock([function_start_affectations..., new_body.exprs...])
 
     return StarpuExprFunction(expr.ret_type, expr.func, new_args, new_body)
 end
 
 func_substitution = Dict(
-    :width => :STARPU_MATRIX_GET_NY,
+    :width  => :STARPU_MATRIX_GET_NY,
     :height => :STARPU_MATRIX_GET_NX,
-
+    :ld     => :STARPU_MATRIX_GET_LD,
     :length => :STARPU_VECTOR_GET_NX
 )
 
@@ -243,6 +244,22 @@ function substitute_func_calls(expr :: StarpuExpr)
     return apply(func_to_apply, expr)
 end
 
+function substitute_views(expr :: StarpuExpr)
+    function func_to_apply(x :: StarpuExpr)
+
+        if !isa(x, StarpuExprCall) || x.func != :view
+            return x
+        end
+
+        ref = x.args[1]
+        indexes = map(i -> isa(i, StarpuExprInterval) ? i.start : i, x.args[2:end])
+
+        return StarpuExprAddress(StarpuExprRef(ref, indexes))
+    end
+
+    return apply(func_to_apply, expr)
+
+end
 
 function substitute_indexing(expr :: StarpuExpr)
 

@@ -37,9 +37,7 @@ function variable_with_starpu(val ::Ref{Int32})
     )
 
     cl = starpu_codelet(
-        cpu_func = CPU_CODELETS["variable"],
-        # cuda_func = CUDA_CODELETS["matrix_mult"],
-        #opencl_func="ocl_matrix_mult",
+        cpu_func = "variable",
         modes = [STARPU_RW],
         perfmodel = perfmodel
     )
@@ -47,8 +45,11 @@ function variable_with_starpu(val ::Ref{Int32})
     @starpu_block let
 	hVal = starpu_data_register(val)
 
-        task = starpu_task(cl = cl, handles = [hVal], callback=callback, callback_arg=(cl, [hVal]))
-        starpu_task_submit(task)
+        starpu_task_insert(codelet_name = "variable",
+                           cl = cl,
+                           handles = [hVal],
+                           callback = callback,
+                           callback_arg = (cl, [hVal]))
 
         starpu_task_wait_for_all()
     end
@@ -63,7 +64,7 @@ function display()
     if v[] == 42
         println("result is correct")
     else
-        println("result is incorret")
+        error("result is incorret")
     end
 end
 

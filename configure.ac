@@ -547,7 +547,6 @@ AC_MSG_RESULT($build_mpi_lib)
 AC_MSG_CHECKING(whether the StarPU MPI nmad library should be generated)
 AC_MSG_RESULT($build_nmad_lib)
 
-AM_CONDITIONAL(USE_MPI, test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes)
 if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes ; then
 	AC_DEFINE(STARPU_USE_MPI,[1],[whether the StarPU MPI library is available])
 	if test x$build_mpi_lib = xyes ; then
@@ -2534,6 +2533,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
                  fi
 	else
 		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
+			enable_build_fortran="yes"
 			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
 			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
 
@@ -2550,38 +2550,28 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 				enable_build_fortran="no"
 			else
 				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+				 enable_build_fortran="yes"
 			fi
 		fi
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$build_mpi_lib = xyes -o x$build_mpi_master_slave = xyes ; then
-			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort[=<path to mpifort>]],
-				    [Path of the mpifort compiler])],
-				    [
-				     if test x$withval = xyes; then
-					     AC_MSG_ERROR(--with-mpifort must be given a pathname)
-					     else
-						     mpifort_path=$withval
-					     fi
-					     ],
-					     [
-					      if test x$enable_simgrid = xyes ; then
-						      DEFAULT_MPIFORT=smpifort
-					      else
-						      DEFAULT_MPIFORT=mpif90
-					      fi
-					      case $DEFAULT_MPIFORT in
-					      	/*) mpifort_path="$DEFAULT_MPIFORT" ;;
-					        *)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$MPIPATH])
-					      esac
-					      ])
-
+			#Check MPIFORT
+			if test x$enable_simgrid = xyes ; then
+				DEFAULT_MPIFORT=smpifort
+			else
+				DEFAULT_MPIFORT=mpifort
+			fi
+			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])], [DEFAULT_MPIFORT=$withval])
+			case $DEFAULT_MPIFORT in
+				/*) mpifort_path="$DEFAULT_MPIFORT" ;;
+				*)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH]) ;;
+			esac
 			# We test if the MPIFORT compiler exists
 			if test ! -x $mpifort_path; then
-				#MPIFORT does not exists or is not executable
 				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
-				use_mpi_fort=no
+				mpifort_path=no
 			else
 				OLD_CC=$CC
 				CC=$mpicc_path
@@ -2596,10 +2586,17 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 				CC=$OLD_CC
 				if test "x$use_mpi_fort" = xyes; then
 					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
-					AC_MSG_CHECKING(mpifort path)
-					AC_MSG_RESULT($mpifort_path)
-					AC_SUBST(MPIFORT, $mpifort_path)
 				fi
+			fi
+
+			AC_MSG_CHECKING(whether mpifort is available)
+			AC_MSG_RESULT($mpifort_path)
+			AC_SUBST(MPIFORT, $mpifort_path)
+
+			if test x$mpifort_path != xno ; then
+				MPIPATH=$(dirname $mpifort_path):$PATH
+			else
+				MPIPATH=$PATH
 			fi
 		fi
 	fi
@@ -2725,7 +2722,7 @@ else
 fi
 
 AC_MSG_RESULT($build_socl)
-AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
+AM_CONDITIONAL([STARPU_BUILD_SOCL], [test "x$build_socl" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 if test "$build_socl" = "yes" ; then
@@ -2762,12 +2759,12 @@ AC_ARG_ENABLE(build-tests, [AS_HELP_STRING([--disable-build-tests],
 			[disable building of tests])],
 			enable_build_tests=$enableval, enable_build_tests=yes)
 # check stuff for tests (todo)
-AM_CONDITIONAL(BUILD_TESTS, [test x$enable_build_tests != xno])
+AM_CONDITIONAL(STARPU_BUILD_TESTS, [test x$enable_build_tests != xno])
 AC_ARG_ENABLE(build-examples, [AS_HELP_STRING([--disable-build-examples],
 			[disable building of examples])],
 			enable_build_examples=$enableval, enable_build_examples=yes)
 # check stuff for examples (todo)
-AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_build_examples != xno])
+AM_CONDITIONAL(STARPU_BUILD_EXAMPLES, [test x$enable_build_examples != xno])
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
@@ -2783,13 +2780,13 @@ fi
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
-AM_CONDITIONAL([HAVE_OPENGL], [test "x$enable_opengl_render" = xyes])
+AM_CONDITIONAL([STARPU_HAVE_OPENGL], [test "x$enable_opengl_render" = xyes])
 
 AC_PATH_XTRA
 if test "x$no_x" != "xyes"; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
-AM_CONDITIONAL([HAVE_X11], [test "x$no_x" != "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_X11], [test "x$no_x" != "xyes"])
 
 # In case there are BLAS kernels that are used by the example applications
 # we may specify which library to use. Note that this is not used for StarPU
@@ -2989,11 +2986,11 @@ if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
 
-AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
-AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
-AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
-AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
-AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
+AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
+AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
+AM_CONDITIONAL(STARPU_MKL_BLAS_LIB, test x$blas_lib = xmkl)
+AM_CONDITIONAL(STARPU_SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
+AM_CONDITIONAL(STARPU_NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
 AC_SUBST(STARPU_BLAS_LDFLAGS)
 
 AC_MSG_CHECKING(which BLAS lib should be used)
@@ -3102,12 +3099,12 @@ AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = xyes -a x$have_fftwf = xyes \) -o x$have_cufftdoublecomplex = xyes \); then
    fft_support=yes
 fi
-AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPUFFT, [test x$fft_support = xyes])
 
 AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
 			[enable build of StarPU FFT examples])],
 			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
-AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 
 ##########################################
 # hwloc                                  #
@@ -3393,12 +3390,12 @@ then
 	AC_SUBST(DLB_LIBS)
 fi
 AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
-AM_CONDITIONAL(BUILD_STARPURM, [test x$starpurm_support = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPURM, [test x$starpurm_support = xyes])
 
 AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			[enable build of StarPU Resource Manager examples])],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
-AM_CONDITIONAL(BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
+AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
 
 
 
@@ -3410,33 +3407,50 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-if test "$enable_build_doc" = "yes" ; then
-   # Check whether doxygen needed tools are installed
-   AC_PATH_PROG(doxygencommand, doxygen)
-   if test "$doxygencommand" = "" ; then
-      	enable_build_doc="no"
-   fi
-   AC_PATH_PROG(pdflatexcommand, pdflatex)
-   if test "$pdflatexcommand" = "" ; then
-	enable_build_doc="no"
-   fi
-   AC_PATH_PROG(epstopdfcommand, epstopdf)
-   if test "$epstopdfcommand" = "" ; then
-	enable_build_doc="no"
-   fi
+AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
+			[enable building of PDF documentation])],
+			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=no)
+
+# Check whether doxygen needed tools are installed
+AC_PATH_PROG(doxygencommand, doxygen)
+if test "$doxygencommand" = "" ; then
+   enable_build_doc="no"
+   enable_build_doc_pdf="no"
 fi
+AC_PATH_PROG(pdflatexcommand, pdflatex)
+if test "$pdflatexcommand" = "" ; then
+   enable_build_doc_pdf="no"
+fi
+AC_PATH_PROG(epstopdfcommand, epstopdf)
+if test "$epstopdfcommand" = "" ; then
+   enable_build_doc_pdf="no"
+fi
+
 available_doc="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
+if test -d "$srcdir/doc/doxygen/html" ; then
    enable_build_doc="no"
    available_doc="yes"
 fi
-AC_MSG_CHECKING(whether documentation should be compiled)
+available_doc_pdf="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
+   enable_build_doc="no"
+   enable_build_doc_pdf="no"
+   available_doc_pdf="yes"
+fi
+AC_MSG_CHECKING(whether HTML documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
-AC_MSG_CHECKING(whether documentation is available)
+AC_MSG_CHECKING(whether HTML documentation is available)
 AC_MSG_RESULT($available_doc)
+AC_MSG_CHECKING(whether PDF documentation should be compiled)
+AC_MSG_RESULT($enable_build_doc_pdf)
+AC_MSG_CHECKING(whether PDF documentation is available)
+AC_MSG_RESULT($available_doc_pdf)
 
-AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
-AM_CONDITIONAL(AVAILABLE_DOC, [test x$available_doc != xno])
+AM_CONDITIONAL(STARPU_BUILD_DOC, [test x$enable_build_doc != xno])
+AM_CONDITIONAL(STARPU_AVAILABLE_DOC, [test x$available_doc != xno])
+
+AM_CONDITIONAL(STARPU_BUILD_DOC_PDF, [test x$enable_build_doc_pdf != xno])
+AM_CONDITIONAL(STARPU_AVAILABLE_DOC_PDF, [test x$available_doc_pdf != xno])
 
 ###############################################################################
 #                                                                             #
@@ -3540,7 +3554,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
   chmod +x julia/examples/execute.sh
-  for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh; do
+  for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh julia/examples/gemm/gemm.sh julia/examples/cholesky/cholesky.sh; do
       test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
   done
 ])
@@ -3670,8 +3684,9 @@ AC_MSG_NOTICE([
 	hwloc:             $have_valid_hwloc
 	FxT trace enabled: $use_fxt
 
-        Documentation:     $enable_build_doc
-        Examples:          $enable_build_examples
+        Documentation HTML:  $enable_build_doc
+        Documentation PDF:   $enable_build_doc_pdf
+        Examples:            $enable_build_examples
 
 	StarPU Extensions:
 	       StarPU MPI enabled:                            $build_mpi_lib

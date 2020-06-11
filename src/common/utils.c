@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +24,7 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+#include <ctype.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
@@ -526,7 +528,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 	if (force_mpi_hostnames && force_mpi_hostnames[0])
 	{
-		char *host, *srv_hosts, *rsrv;
+		char *host, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
 		int rank;
 		if (starpu_mpi_world_rank)
@@ -541,8 +543,8 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 		if (force_mpi_hostnames != NULL)
 		{
-			host = strtok_r(srv_hosts, " ", &rsrv);
-			while (rank-->0 && (host = strtok_r(NULL, " ", &rsrv)));
+			host = strtok(srv_hosts, " ");
+			while (rank-->0 && (host = strtok(NULL, " ")));
 			if(rank>=0)
 			{
 				_STARPU_MSG("Missing hostnames in STARPU_MPI_HOSTNAMES\n");
@@ -619,4 +621,137 @@ char *starpu_getenv(const char *str)
 #endif
 #endif
 	return getenv(str);
+}
+
+int _strings_ncmp(const char *strings[], const char *str)
+{
+	int pos = 0;
+	while (strings[pos])
+	{
+		if ((strlen(str) == strlen(strings[pos]) && strncasecmp(str, strings[pos], strlen(strings[pos])) == 0))
+			break;
+		pos++;
+	}
+	if (strings[pos] == NULL)
+		return -1;
+	return pos;
+}
+
+int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue)
+{
+	int val;
+	char *strval;
+
+	strval = starpu_getenv(str);
+	if (!strval)
+	{
+		val = defvalue;
+	}
+	else
+	{
+		val = _strings_ncmp(strings, strval);
+		if (val < 0)
+		{
+			int i;
+			_STARPU_MSG("\n");
+			_STARPU_MSG("Invalid value '%s' for environment variable '%s'\n", strval, str);
+			_STARPU_MSG("Valid values are:\n");
+			for(i=0;strings[i]!=NULL;i++) _STARPU_MSG("\t%s\n",strings[i]);
+			_STARPU_MSG("\n");
+			STARPU_ABORT();
+		}
+	}
+	return val;
+}
+
+static void remove_spaces(char *str)
+{
+	int i = 0;
+	int j = 0;
+
+	while (str[j] != '\0')
+	{
+		if (isspace(str[j]))
+		{
+			j++;
+			continue;
+		}
+		if (j > i)
+		{
+			str[i] = str[j];
+		}
+		i++;
+		j++;
+	}
+	if (j > i)
+	{
+		str[i] = str[j];
+	}
+}
+
+int starpu_get_env_size_default(const char *str, int defval)
+{
+	int val;
+	char *strval;
+
+	strval = starpu_getenv(str);
+	if (!strval)
+	{
+		val = defval;
+	}
+	else
+	{
+		char *value = strdup(strval);
+		if (value == NULL)
+			_STARPU_ERROR("memory allocation failed\n");
+		remove_spaces(value);
+		if (value[0] == '\0')
+		{
+			free(value);
+			val = defval;
+		}
+		else
+		{
+			char *endptr = NULL;
+			int mult = 1024;
+			errno = 0;
+			int v = (int)strtol(value, &endptr, 10);
+			if (errno != 0)
+				_STARPU_ERROR("could not parse environment variable '%s' with value '%s', strtol failed with error %s\n", str, value, strerror(errno));
+			if (*endptr != '\0')
+			{
+				switch (*endptr)
+				{
+				case 'b':
+				case 'B': mult = 1; break;
+				case 'k':
+				case 'K': mult = 1024; break;
+				case 'm':
+				case 'M': mult = 1024*1024; break;
+				case 'g':
+				case 'G': mult = 1024*1024*1024; break;
+				default:
+					_STARPU_ERROR("could not parse environment variable '%s' with value '%s' size suffix invalid\n", str, value);
+				}
+			}
+			val = v*mult;
+			free(value);
+		}
+	}
+	return val;
+}
+
+void starpu_display_bindings(void)
+{
+#ifdef STARPU_HAVE_HWLOC
+	int hwloc_ret = system("hwloc-ps -a -t -c");
+	if (hwloc_ret)
+	{
+		_STARPU_DISP("hwloc-ps returned %d\n", hwloc_ret);
+		fflush(stderr);
+	}
+	fflush(stdout);
+#else
+	_STARPU_DISP("hwloc not available to display bindings.\n");
+#endif
 }

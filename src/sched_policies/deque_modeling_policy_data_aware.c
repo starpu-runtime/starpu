@@ -445,7 +445,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int best = -1;
 
-	double best_exp_end = 0.0;
+	double best_exp_end_of_task = 0.0;
 	double model_best = 0.0;
 	double transfer_model_best = 0.0;
 
@@ -552,10 +552,10 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 			exp_end = exp_start + fifo->exp_len + local_length;
 
-			if (best == -1 || exp_end < best_exp_end)
+			if (best == -1 || exp_end < best_exp_end_of_task)
 			{
 				/* a better solution was found */
-				best_exp_end = exp_end;
+				best_exp_end_of_task = exp_end;
 				best = worker;
 				model_best = local_length;
 				transfer_model_best = local_penalty;
@@ -589,15 +589,15 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 						unsigned nworkers,
 						double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						double exp_end[nworkers][STARPU_MAXIMPLEMENTATIONS],
-						double *max_exp_endp,
-						double *best_exp_endp,
+						double *max_exp_endp_of_workers,
+						double *min_exp_endp_of_task,
 						double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						double local_energy[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						int *forced_worker, int *forced_impl, unsigned sched_ctx_id, unsigned sorted_decision)
 {
 	int calibrating = 0;
-	double max_exp_end = DBL_MIN;
-	double best_exp_end = DBL_MAX;
+	double max_exp_end_of_workers = DBL_MIN;
+	double best_exp_end_of_task = DBL_MAX;
 	int ntasks_best = -1;
 	int nimpl_best = 0;
 	double ntasks_best_end = 0.0;
@@ -664,8 +664,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			}
 
 			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len;
-			if (exp_end[worker_ctx][nimpl] > max_exp_end)
-				max_exp_end = exp_end[worker_ctx][nimpl];
+			if (exp_end[worker_ctx][nimpl] > max_exp_end_of_workers)
+				max_exp_end_of_workers = exp_end[worker_ctx][nimpl];
 
 			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) workerid (%u) kernel (%u) \n", local_task_length[workerid][nimpl],workerid,nimpl);
 
@@ -742,10 +742,10 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 			exp_end[worker_ctx][nimpl] = task_starting_time + local_task_length[worker_ctx][nimpl];
 
-			if (exp_end[worker_ctx][nimpl] < best_exp_end)
+			if (exp_end[worker_ctx][nimpl] < best_exp_end_of_task)
 			{
 				/* a better solution was found */
-				best_exp_end = exp_end[worker_ctx][nimpl];
+				best_exp_end_of_task = exp_end[worker_ctx][nimpl];
 				nimpl_best = nimpl;
 			}
 
@@ -766,8 +766,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	}
 #endif
 
-	*best_exp_endp = best_exp_end;
-	*max_exp_endp = max_exp_end;
+	*min_exp_endp_of_task = best_exp_end_of_task;
+	*max_exp_endp_of_workers = max_exp_end_of_workers;
 }
 
 static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned simulate, unsigned sorted_decision)
@@ -794,10 +794,10 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	/* This is the minimum among the exp_end[] matrix */
-	double best_exp_end;
+	double min_exp_end_of_task;
 
 	/* This is the maximum termination time of already-scheduled tasks over all workers */
-	double max_exp_end = 0.0;
+	double max_exp_end_of_workers = 0.0;
 
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
@@ -806,8 +806,8 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					    nworkers_ctx,
 					    local_task_length,
 					    exp_end,
-					    &max_exp_end,
-					    &best_exp_end,
+					    &max_exp_end_of_workers,
+					    &min_exp_end_of_task,
 					    local_data_penalty,
 					    local_energy,
 					    &forced_best,
@@ -836,16 +836,18 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					/* no one on that queue may execute this task */
 					continue;
 				}
-				fitness[worker_ctx][nimpl] = dt->alpha * __s_alpha__value *(exp_end[worker_ctx][nimpl] - best_exp_end)
+				fitness[worker_ctx][nimpl] = dt->alpha * __s_alpha__value *(exp_end[worker_ctx][nimpl] - min_exp_end_of_task)
 					+ dt->beta * __s_beta__value *(local_data_penalty[worker_ctx][nimpl])
 					+ dt->_gamma * __s_gamma__value *(local_energy[worker_ctx][nimpl]);
 
-				if (exp_end[worker_ctx][nimpl] > max_exp_end)
+				if (exp_end[worker_ctx][nimpl] > max_exp_end_of_workers)
 				{
 					/* This placement will make the computation
 					 * longer, take into account the idle
 					 * consumption of other cpus */
-					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end) / 1000000.0;
+					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
+																									  then  d->idle_power * (exp_end - max_exp_end_of_workers) 
+																									  must be in Joules, thus the / 1000000.0 */
 				}
 
 				if (best == -1 || fitness[worker_ctx][nimpl] < best_fitness)
@@ -856,7 +858,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					best_in_ctx = worker_ctx;
 					selected_impl = nimpl;
 
-					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_energy[worker][nimpl]);
+					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - min_exp_end_of_task, local_data_penalty[worker][nimpl], local_energy[worker][nimpl]);
 
 				}
 			}
@@ -1011,7 +1013,9 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
 	dt->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+	/* data->idle_power: Idle power of the whole machine in Watt */
 	dt->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 
 	if(starpu_sched_ctx_min_priority_is_set(sched_ctx_id) != 0 && starpu_sched_ctx_max_priority_is_set(sched_ctx_id) != 0)

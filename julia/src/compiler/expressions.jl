@@ -124,6 +124,9 @@ struct StarpuExprWhile <: StarpuExpr
     body :: StarpuExpr
 end
 
+struct StarpuExprAddress <: StarpuExpr
+    ref :: StarpuExpr
+end
 
 function starpu_parse_affect(x :: Expr)
 
@@ -250,7 +253,7 @@ function starpu_parse_call(x :: Expr)
 end
 
 
-starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(%))
+starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(!=), :(%))
 
 
 function print_prefix(io :: IO, x :: StarpuExprCall ; indent = 0, restrict=false)
@@ -295,7 +298,6 @@ function apply(func :: Function, expr :: StarpuExprCall)
 
     return func(StarpuExprCall(expr.func, map((x -> apply(func, x)), expr.args)))
 end
-
 
 #======================================================
                 CUDA KERNEL CALL
@@ -734,14 +736,22 @@ function print(io :: IO, x :: StarpuExprRef ; indent = 0,restrict=false)
 
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprRef)
 
     ref = apply(func, expr.ref)
     indexes = map((x -> apply(func, x)), expr.indexes)
 
     return func(StarpuExprRef(ref, indexes))
+end
+
+function print(io :: IO, x :: StarpuExprAddress ; indent = 0, restrict=false)
+    print(io, "&")
+    print(io, x.ref, indent = indent)
+end
+
+function apply(func :: Function, expr :: StarpuExprAddress)
+    ref = apply(func, expr.ref)
+    return func(StarpuExprAddress(ref))
 end
 
 #======================================================
@@ -799,7 +809,7 @@ function apply(func :: Function, expr :: StarpuExpr)
     return func(expr)
 end
 
-print(io :: IO, x :: StarpuExprVar ; indent = 0) = print(io, x.name)
+print(io :: IO, x :: StarpuExprVar ; indent = 0, restrict = false) = print(io, x.name)
 
 function print(io :: IO, x :: StarpuExprValue ; indent = 0,restrict=false)
 
@@ -869,24 +879,22 @@ end
 
 function starpu_type_traduction(x)
     if x <: Array
-        return starpu_type_traduction_array(x)
+        return starpu_type_traduction(eltype(x)) * "*"
     end
 
     if x <: Ptr
-        return starpu_type_traduction(eltype(x)) * "*"
+        depth = 1
+        type = eltype(x)
+        while type <: Ptr
+            depth +=1
+            type = eltype(type)
+        end
+
+        return starpu_type_traduction(type) * "*"^depth
     end
 
     return starpu_type_traduction_dict[x]
 
-end
-
-function starpu_type_traduction_array(x :: Type{Array{T,N}})  where {T,N}
-    output = starpu_type_traduction(T)
-    for i in (1 : N)
-        output *= "*"
-    end
-
-    return output
 end
 
 function print(io :: IO, x :: StarpuExprTyped ; indent = 0,restrict=false)

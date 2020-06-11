@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,5 +29,7 @@ void gemm_alloc_data();
 int gemm_init_data();
 int gemm_submit_tasks();
 void gemm_release();
+void gemm_add_polling_dependencies();
+int gemm_submit_tasks_with_tags(int with_tags);
 
 #endif /* __MPI_TESTS_GEMM_HELPER__ */

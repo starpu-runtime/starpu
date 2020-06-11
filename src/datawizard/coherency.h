@@ -291,6 +291,11 @@ struct _starpu_data_state
 
 	int partition_automatic_disabled;
 
+	/** Application-provided coordinates. The maximum dimension (5) is
+	  * relatively arbitrary. */
+	unsigned dimensions;
+	int coordinates[5];
+
 	/** A generic pointer to data in the user land (could be anything and this
 	 * is not manage by StarPU) */
 	void *user_data;

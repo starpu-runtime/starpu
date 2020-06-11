@@ -17,8 +17,10 @@ include $(top_srcdir)/starpu.mk
 
 SUBDIRS=src
 
-if BUILD_STARPUFFT_EXAMPLES
+if STARPU_BUILD_STARPUFFT_EXAMPLES
+if STARPU_BUILD_TESTS
 SUBDIRS += tests
+endif
 endif
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)

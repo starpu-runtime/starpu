@@ -1059,6 +1059,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
+	conf->will_use_mpi = 0;
 	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
@@ -1146,6 +1147,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* 64MiB by default */
 	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
+
+	conf->driver_spinning_backoff_min = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MIN", 1);
+	conf->driver_spinning_backoff_max = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MAX", 32);
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
@@ -1668,6 +1672,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_catch_signals();
 
+	/* if MPI is enabled, binding display will be done later, after MPI initialization */
+	if (!_starpu_config.conf.will_use_mpi && starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	{
+		fprintf(stdout, "== Binding ==\n");
+		starpu_display_bindings();
+		fprintf(stdout, "== End of binding ==\n");
+		fflush(stdout);
+	}
+
 	return 0;
 }
 
@@ -1756,6 +1769,8 @@ void starpu_pause()
 {
 	STARPU_HG_DISABLE_CHECKING(_starpu_config.pause_depth);
 	_starpu_config.pause_depth += 1;
+
+	starpu_fxt_trace_user_event_string("starpu_pause");
 }
 
 void starpu_resume()
@@ -1767,6 +1782,8 @@ void starpu_resume()
 		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
+
+	starpu_fxt_trace_user_event_string("starpu_resume");
 }
 
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)

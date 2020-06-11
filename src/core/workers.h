@@ -203,6 +203,10 @@ LIST_TYPE(_starpu_worker,
 
 	int enable_knob;
 	int bindid_requested;
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 );
 
 struct _starpu_combined_worker
@@ -223,6 +227,10 @@ struct _starpu_combined_worker
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 };
 
 /**
@@ -389,6 +397,9 @@ struct _starpu_machine_config
 	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
+	/* Separate out previous variables from per-worker data. */
+	char padding1[STARPU_CACHELINE_SIZE];
+
 	/** Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
@@ -396,6 +407,11 @@ struct _starpu_machine_config
 	/** Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
+
+	starpu_pthread_mutex_t submitted_mutex;
+
+	/* Separate out previous mutex from the rest of the data. */
+	char padding2[STARPU_CACHELINE_SIZE];
 
 	/** Translation table from bindid to worker IDs */
 	struct
@@ -432,8 +448,6 @@ struct _starpu_machine_config
 
 	/** When >0, StarPU should stop performance counters collection. */
 	int perf_counter_pause_depth;
-
-	starpu_pthread_mutex_t submitted_mutex;
 };
 
 extern int _starpu_worker_parallel_blocks;

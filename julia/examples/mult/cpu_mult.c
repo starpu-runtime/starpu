@@ -93,7 +93,7 @@ void cpu_mult(void *descr[], void *cl_arg)
 }
 
 char* CPU = "cpu_mult";
-char* GPU = "gpu_mult";
+char* GPU = "";
 extern char *starpu_find_function(char *name, char *device)
 {
 	if (!strcmp(device,"gpu")) return GPU;

@@ -39,8 +39,8 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 				       double *estimated_lengths,
 				       double *estimated_transfer_length,
 				       double *estimated_ends_with_task,
-				       double *min_exp_end_with_task,
-				       double *max_exp_end_with_task,
+				       double *min_exp_end_of_task,
+				       double *max_exp_end_of_workers,
 				       unsigned *suitable_components,
 				       unsigned nsuitable_components);
 
@@ -56,7 +56,15 @@ int starpu_mct_get_best_component(struct _starpu_mct_data *d,
 				  double *estimated_lengths,
 				  double *estimated_transfer_length,
 				  double *estimated_ends_with_task,
-				  double min_exp_end_with_task,
-				  double max_exp_end_with_task,
+				  double *local_energy,
+				  double min_exp_end_of_task,
+				  double max_exp_end_of_workers,
 				  unsigned *suitable_components,
 				  unsigned nsuitable_components);
+
+
+void starpu_mct_compute_energy(struct starpu_sched_component *component,
+			       struct starpu_task *task ,
+			       double *local_energy,
+			       unsigned *suitable_components,
+			       unsigned nsuitable_components);

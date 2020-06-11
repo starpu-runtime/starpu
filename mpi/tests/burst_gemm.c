@@ -29,6 +29,9 @@
 #include "gemm_helper.h"
 #include "burst_helper.h"
 
+static int gemm_warmup = 1;
+static int gemm_warmup_wait = 0;
+
 void parse_args(int argc, char **argv)
 {
 	int i;
@@ -62,10 +65,19 @@ void parse_args(int argc, char **argv)
 		{
 			burst_nb_requests = atoi(argv[++i]);
 		}
+		else if (strcmp(argv[i], "-no-gemm-warmup") == 0)
+		{
+			gemm_warmup = 0;
+		}
+		else if (strcmp(argv[i], "-gemm-warmup-wait") == 0)
+		{
+			/* All warmup GEMMs will start at the same moment */
+			gemm_warmup_wait = 1;
+		}
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-nreqs nreqs]\n", argv[0]);
-			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks - %d requests in each burst\n", matrix_dim, nslices, burst_nb_requests);
+			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-nreqs nreqs] [-no-gemm-warmup] [-gemm-warmup-wait]\n", argv[0]);
+			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks - %d requests in each burst - gemm warmup: %d -gemm-warmup-wait: %d\n", matrix_dim, nslices, burst_nb_requests, gemm_warmup, gemm_warmup_wait);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -106,12 +118,29 @@ int main(int argc, char **argv)
 	if (gemm_init_data() == -ENODEV)
 		goto enodev;
 
+	/* GEMM warmup, to really load the BLAS library */
+	if (gemm_warmup)
+	{
+		if (gemm_warmup_wait)
+		{
+			starpu_task_wait_for_all();
+			starpu_pause();
+		}
+
+		if(gemm_submit_tasks() == -ENODEV)
+			goto enodev;
+
+		if (gemm_warmup_wait)
+		{
+			starpu_resume();
+		}
+	}
+
 	burst_init_data(mpi_rank);
 
 	/* Wait for everything and everybody: */
 	starpu_task_wait_for_all();
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-
 
 	FPRINTF(stderr, "** Burst warmup **\n");
 	burst_all(mpi_rank);
@@ -137,6 +166,33 @@ int main(int argc, char **argv)
 	burst_all(mpi_rank);
 
 	FPRINTF(stderr, "Burst done, now waiting for computing tasks to finish\n");
+
+	/* Wait for everything and everybody: */
+	starpu_task_wait_for_all();
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	starpu_sleep(0.3); // sleep to easily distinguish different parts in traces
+
+	FPRINTF(stderr, "** Workers are computing, without communications **\n");
+	starpu_pause();
+	if(gemm_submit_tasks() == -ENODEV)
+		goto enodev;
+	starpu_resume();
+
+	/* Wait for everything and everybody: */
+	starpu_task_wait_for_all();
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	starpu_sleep(0.3); // sleep to easily distinguish different parts in traces
+
+	FPRINTF(stderr, "** Burst while workers are computing, but polling a moment between each task **\n");
+	starpu_pause();
+	gemm_add_polling_dependencies();
+	if(gemm_submit_tasks_with_tags(/* enable task tags */ 1) == -ENODEV)
+		goto enodev;
+	starpu_resume();
+
+	burst_all(mpi_rank);
 
 	/* Wait for everything and everybody: */
 	starpu_task_wait_for_all();

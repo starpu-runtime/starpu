@@ -56,6 +56,15 @@ Small features:
   * And STARPU_LIMIT_BANDWIDTH environment variable.
   * Add field starpu_conf::precedence_over_environment_variables to ignore
     environment variables when parameters are set directly in starpu_conf
+  * Add starpu_data_get_coordinates_array
+  * New STARPU_BACKOFF_MIN and STARPU_BACKOFF_MAX environment variables to the
+    exponential backoff limits of the number of cycles to pause while drivers
+    are spinning.
+  * Add STARPU_DISPLAY_BINDINGS environment variable and
+    starpu_display_bindings() function to display all bindings on the machine by
+    calling hwloc-ps
+Small changes:
+  * New configure option --disable-build-doc-pdf
 
 StarPU 1.3.3 (git revision 11afc5b007fe1ab1c729b55b47a5a98ef7f3cfad)
 ====================================================================

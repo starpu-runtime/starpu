@@ -19,8 +19,8 @@ using Clang.LibClang.LLVM_jll
 function starpu_translate_headers()
     debug_print("Translating StarPU headers...")
 
-    if !isdir((@__DIR__)*"/../gen")
-        mkdir((@__DIR__)*"/../gen")
+    if !isdir(joinpath(fstarpu_build_dir(), "julia/gen"))
+        mkdir(joinpath(fstarpu_build_dir(), "julia/gen"))
     end
 
     STARPU_BUILD_INCLUDE=joinpath(fstarpu_build_dir(), "include")
@@ -63,6 +63,7 @@ function starpu_translate_headers()
                                "starpu_data_set_default_sequential_consistency_flag",
                                "starpu_data_get_sequential_consistency_flag",
                                "starpu_data_set_sequential_consistency_flag",
+                               "starpu_data_wont_use",
                                "starpu_matrix_data_register",
                                "starpu_block_data_register",
                                "starpu_vector_data_register",
@@ -76,6 +77,7 @@ function starpu_translate_headers()
                                "starpu_task_submit",
                                "starpu_task_wait",
                                "starpu_task_wait_for_n_submitted",
+                               "starpu_tag_remove",
                                "starpu_tag_wait",
                                "starpu_tag_declare_deps_array",
                                "starpu_tag_notify_from_apps",
@@ -83,16 +85,22 @@ function starpu_translate_headers()
                                "starpu_task_declare_deps_array",
                                "starpu_iteration_push",
                                "starpu_iteration_pop",
+                               "starpu_worker_get_count",
+                               "starpu_cpu_worker_get_count",
+                               "starpu_cuda_worker_get_count",
+                               "starpu_opencl_worker_get_count",
+                               "starpu_mic_worker_get_count",
                                "STARPU_CPU",
                                "STARPU_CUDA",
                                "STARPU_CUDA_ASYNC",
                                "STARPU_OPENCL",
                                "STARPU_MAIN_RAM",
-                               "STARPU_NMAXBUFS"])
+                               "STARPU_NMAXBUFS",
+                               "STARPU_USE_CUDA"])
 
     wc = init(; headers = STARPU_HEADERS,
-              output_file = joinpath(@__DIR__, "../gen/libstarpu_api.jl"),
-              common_file = joinpath(@__DIR__, "../gen/libstarpu_common.jl"),
+              output_file = joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_api.jl"),
+              common_file = joinpath(fstarpu_build_dir(), "julia/gen/libstarpu_common.jl"),
               clang_includes = vcat(LIBCLANG_INCLUDE, CLANG_INCLUDE),
               clang_args = clang_args,
               header_library = x->"starpu_wrapper_library_name",

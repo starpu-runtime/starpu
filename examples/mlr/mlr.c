@@ -110,7 +110,9 @@ static struct starpu_perfmodel cl_model_init =
    template.
  */
 
+/* M^2 * N^1 * K^0 */
 static unsigned combi1 [3]		= {	2,	1,	0 };
+/* M^0 * N^3 * K^1 */
 static unsigned combi2 [3]		= {	0,	3,	1 };
 
 static unsigned *combinations[] = { combi1, combi2 };

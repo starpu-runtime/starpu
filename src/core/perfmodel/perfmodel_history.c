@@ -344,7 +344,10 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	double a = nan(""), b = nan(""), c = nan("");
 
 	if (model->type == STARPU_NL_REGRESSION_BASED)
-		_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c);
+	{
+		if (_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c) != 0)
+			_STARPU_DISP("Warning: could not compute a non-linear regression for model %s\n", model->symbol);
+	}
 
 	fprintf(f, "# a\t\tb\t\tc\n");
 	_starpu_write_double(f, "%-15e", a);
@@ -1491,6 +1494,8 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 	res = fclose(f);
 	STARPU_ASSERT(res == 0);
 
+	if (ret)
+		starpu_perfmodel_unload_model(model);
 	return ret;
 }
 
@@ -1885,20 +1890,20 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				STARPU_HG_DISABLE_CHECKING(entry->nsample);
 				STARPU_HG_DISABLE_CHECKING(entry->mean);
 
-				/* Do not take the first measurement into account, it is very often quite bogus */
+				/* For history-based, do not take the first measurement into account, it is very often quite bogus */
 				/* TODO: it'd be good to use a better estimation heuristic, like the median, or latest n values, etc. */
-				//entry->mean = 0;
-				//entry->sum = 0;
-
-				//entry->deviation = 0.0;
-				//entry->sum2 = 0;
+				if (model->type != STARPU_HISTORY_BASED)
+				{
+					entry->sum = measured;
+					entry->sum2 = measured*measured;
+					entry->nsample = 1;
+					entry->mean = measured;
+				}
 
 				entry->size = _starpu_job_get_data_size(model, arch, impl, j);
 				entry->flops = j->task->flops;
 
 				entry->footprint = key;
-				//entry->nsample = 0;
-				//entry->nerror = 0;
 
 				insert_history_entry(entry, list, &per_arch_model->history);
 			}

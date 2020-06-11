@@ -431,6 +431,7 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 	/* Flush cache in all other nodes */
 	/* TODO: Ideally we'd transmit the knowledge of who owns it */
+	/* TODO: or at least remember that the previous owner has the data, that's an easy case to support */
 	starpu_mpi_cache_flush(comm, data);
 	return;
 }

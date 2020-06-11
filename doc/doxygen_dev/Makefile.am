@@ -29,10 +29,15 @@ txtdir   = $(docdir)/manual
 
 EXTRA_DIST =
 
-if BUILD_DOC
+if STARPU_BUILD_DOC
+if STARPU_BUILD_DOC_PDF
 all: $(DOX_HTML_DIR) $(DOX_PDF)
 EXTRA_DIST += $(DOX_HTML_DIR) $(DOX_PDF)
 txt_DATA = $(DOX_PDF)
+else
+all: $(DOX_HTML_DIR)
+EXTRA_DIST += $(DOX_HTML_DIR)
+endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
@@ -40,15 +45,18 @@ install-exec-hook:
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 else
-if AVAILABLE_DOC
-EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html_dev $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
-txt_DATA = $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
+if STARPU_AVAILABLE_DOC
+EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html_dev
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen_dev/html_dev
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
 	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
+endif
+if STARPU_AVAILABLE_DOC_PDF
+EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
+txt_DATA = $(top_srcdir)/doc/doxygen_dev/starpu_dev.pdf
 endif
 endif
 
@@ -58,7 +66,7 @@ chapters =	\
 
 images =
 
-if BUILD_DOC
+if STARPU_BUILD_DOC
 config.h: $(top_srcdir)/src/common/config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 	@$(SED) -i '1s/^/\/\*\* \@file \*\/\n/' $@
@@ -191,7 +199,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/core/drivers.h	\
 	$(top_srcdir)/src/core/workers.h
 
-$(DOX_HTML_DIR): $(DOX_TAG) refman.tex
+$(DOX_HTML_DIR): $(DOX_TAG)
 	@$(MKDIR_P) $(DOX_HTML_DIR)
 
 $(DOX_TAG): $(dox_inputs)

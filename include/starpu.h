@@ -111,6 +111,12 @@ struct starpu_conf
 	int magic;
 
 	/**
+	   @private
+	   Tell starpu_init() if MPI will be initialized later.
+	*/
+	int will_use_mpi;
+
+	/**
 	   Name of the scheduling policy. This can also be specified
 	   with the environment variable \ref STARPU_SCHED. (default =
 	   <c>NULL</c>).
@@ -448,6 +454,16 @@ struct starpu_conf
 	   performance counters after initialization
 	 */
 	unsigned start_perf_counter_collection;
+
+	/**
+	   Minimum spinning backoff of drivers. Default value: \c 1
+	 */
+	unsigned driver_spinning_backoff_min;
+
+	/**
+	   Maximum spinning backoff of drivers. Default value: \c 32
+	 */
+	unsigned driver_spinning_backoff_max;
 };
 
 /**

@@ -51,11 +51,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 examplebin_PROGRAMS =
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=	\
 	testf 		\
 	test
-endif
 STARPU_FFT_EXAMPLES = testf
 testf_LDADD = ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 

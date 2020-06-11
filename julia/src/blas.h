@@ -17,150 +17,132 @@
 #ifndef __BLAS_H__
 #define __BLAS_H__
 
-#include <starpu.h>
+#include <stdint.h>
 
-#if defined(STARPU_ATLAS) || defined(STARPU_HAVE_CBLAS_H)
-#include <cblas.h>
-#endif
+#define BLASINT int64_t
 
-void STARPU_SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, const float *A, int lda, 
-		const float *B, int ldb, float beta, float *C, int ldc);
-void STARPU_DGEMM(char *transa, char *transb, int M, int N, int K, double alpha, double *A, int lda, 
-		double *B, int ldb, double beta, double *C, int ldc);
-void STARPU_SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
-		float *X, int incX, float beta, float *Y, int incY);
-void STARPU_DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
-		double *X, int incX, double beta, double *Y, int incY);
-float STARPU_SASUM(int N, float *X, int incX);
-double STARPU_DASUM(int N, double *X, int incX);
-void STARPU_SSCAL(int N, float alpha, float *X, int incX);
-void STARPU_DSCAL(int N, double alpha, double *X, int incX);
+void STARPU_SGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K, float alpha, const float *A, BLASINT lda, 
+		const float *B, BLASINT ldb, float beta, float *C, BLASINT ldc);
+void STARPU_DGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K, double alpha, double *A, BLASINT lda, 
+		double *B, BLASINT ldb, double beta, double *C, BLASINT ldc);
+void STARPU_SGEMV(char *transa, BLASINT M, BLASINT N, float alpha, float *A, BLASINT lda,
+		float *X, BLASINT incX, float beta, float *Y, BLASINT incY);
+void STARPU_DGEMV(char *transa, BLASINT M, BLASINT N, double alpha, double *A, BLASINT lda,
+		double *X, BLASINT incX, double beta, double *Y, BLASINT incY);
+float STARPU_SASUM(BLASINT N, float *X, BLASINT incX);
+double STARPU_DASUM(BLASINT N, double *X, BLASINT incX);
+void STARPU_SSCAL(BLASINT N, float alpha, float *X, BLASINT incX);
+void STARPU_DSCAL(BLASINT N, double alpha, double *X, BLASINT incX);
 void STARPU_STRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const float alpha, const float *A, const int lda,
-                   float *B, const int ldb);
+                   const char *diag, const BLASINT m, const BLASINT n,
+                   const float alpha, const float *A, const BLASINT lda,
+                   float *B, const BLASINT ldb);
 void STARPU_DTRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const double alpha, const double *A, const int lda,
-                   double *B, const int ldb);
-void STARPU_DGEMM(char *transa, char *transb, int M, int N, int K, 
-			double alpha, double *A, int lda, double *B, int ldb, 
-			double beta, double *C, int ldc);
-void STARPU_SSYR (const char *uplo, const int n, const float alpha,
-                  const float *x, const int incx, float *A, const int lda);
-void STARPU_SSYRK (const char *uplo, const char *trans, const int n,
-                   const int k, const float alpha, const float *A,
-                   const int lda, const float beta, float *C,
-                   const int ldc);
-void STARPU_SGER (const int m, const int n, const float alpha,
-                  const float *x, const int incx, const float *y,
-                  const int incy, float *A, const int lda);
-void STARPU_DGER(const int m, const int n, const double alpha,
-                  const double *x, const int incx, const double *y,
-                  const int incy, double *A, const int lda);
+                   const char *diag, const BLASINT m, const BLASINT n,
+                   const double alpha, const double *A, const BLASINT lda,
+                   double *B, const BLASINT ldb);
+void STARPU_SSYR (const char *uplo, const BLASINT n, const float alpha,
+                  const float *x, const BLASINT incx, float *A, const BLASINT lda);
+void STARPU_SSYRK (const char *uplo, const char *trans, const BLASINT n,
+                   const BLASINT k, const float alpha, const float *A,
+                   const BLASINT lda, const float beta, float *C,
+                   const BLASINT ldc);
+void STARPU_SGER (const BLASINT m, const BLASINT n, const float alpha,
+                  const float *x, const BLASINT incx, const float *y,
+                  const BLASINT incy, float *A, const BLASINT lda);
+void STARPU_DGER(const BLASINT m, const BLASINT n, const double alpha,
+                  const double *x, const BLASINT incx, const double *y,
+                  const BLASINT incy, double *A, const BLASINT lda);
 void STARPU_STRSV (const char *uplo, const char *trans, const char *diag, 
-                   const int n, const float *A, const int lda, float *x, 
-                   const int incx);
+                   const BLASINT n, const float *A, const BLASINT lda, float *x, 
+                   const BLASINT incx);
 void STARPU_STRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const float alpha, const float *A, const int lda,
-                 float *B, const int ldb);
+                 const char *diag, const BLASINT m, const BLASINT n,
+                 const float alpha, const float *A, const BLASINT lda,
+                 float *B, const BLASINT ldb);
 void STARPU_DTRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const double alpha, const double *A, const int lda,
-                 double *B, const int ldb);
+                 const char *diag, const BLASINT m, const BLASINT n,
+                 const double alpha, const double *A, const BLASINT lda,
+                 double *B, const BLASINT ldb);
 void STARPU_STRMV(const char *uplo, const char *transA, const char *diag,
-                 const int n, const float *A, const int lda, float *X,
-                 const int incX);
-void STARPU_SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy);
-void STARPU_DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY);
-int STARPU_ISAMAX (const int n, float *X, const int incX);
-int STARPU_IDAMAX (const int n, double *X, const int incX);
-float STARPU_SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
-double STARPU_DDOT(const int n, const double *x, const int incx, const double *y, const int incy);
-void STARPU_SSWAP(const int n, float *x, const int incx, float *y, const int incy);
-void STARPU_DSWAP(const int n, double *x, const int incx, double *y, const int incy);
+                 const BLASINT n, const float *A, const BLASINT lda, float *X,
+                 const BLASINT incX);
+void STARPU_SAXPY(const BLASINT n, const float alpha, float *X, const BLASINT incX, float *Y, const BLASINT incy);
+void STARPU_DAXPY(const BLASINT n, const double alpha, double *X, const BLASINT incX, double *Y, const BLASINT incY);
+BLASINT STARPU_ISAMAX (const BLASINT n, float *X, const BLASINT incX);
+BLASINT STARPU_IDAMAX (const BLASINT n, double *X, const BLASINT incX);
+float STARPU_SDOT(const BLASINT n, const float *x, const BLASINT incx, const float *y, const BLASINT incy);
+double STARPU_DDOT(const BLASINT n, const double *x, const BLASINT incx, const double *y, const BLASINT incy);
+void STARPU_SSWAP(const BLASINT n, float *x, const BLASINT incx, float *y, const BLASINT incy);
+void STARPU_DSWAP(const BLASINT n, double *x, const BLASINT incx, double *y, const BLASINT incy);
 
-#if defined(STARPU_MKL) || defined(STARPU_ARMPL)
-void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda);
-void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda);
-#endif
 
-#if defined(STARPU_GOTO) || defined(STARPU_OPENBLAS) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL) || defined(STARPU_ARMPL)
-
-extern void sgemm_ (const char *transa, const char *transb, const int *m,
-                   const int *n, const int *k, const float *alpha, 
-                   const float *A, const int *lda, const float *B, 
-                   const int *ldb, const float *beta, float *C, 
-                   const int *ldc);
-extern void dgemm_ (const char *transa, const char *transb, const int *m,
-                   const int *n, const int *k, const double *alpha, 
-                   const double *A, const int *lda, const double *B, 
-                   const int *ldb, const double *beta, double *C, 
-                   const int *ldc);
-extern void sgemv_(const char *trans, const int *m, const int *n, const float *alpha,
-                   const float *a, const int *lda, const float *x, const int *incx, 
-                   const float *beta, float *y, const int *incy);
-extern void dgemv_(const char *trans, const int *m, const int *n, const double *alpha,
-                   const double *a, const int *lda, const double *x, const int *incx,
-                   const double *beta, double *y, const int *incy);
-extern void ssyr_ (const char *uplo, const int *n, const float *alpha,
-                  const float *x, const int *incx, float *A, const int *lda);
-extern void ssyrk_ (const char *uplo, const char *trans, const int *n,
-                   const int *k, const float *alpha, const float *A,
-                   const int *lda, const float *beta, float *C,
-                   const int *ldc);
-extern void strsm_ (const char *side, const char *uplo, const char *transa, 
-                   const char *diag, const int *m, const int *n,
-                   const float *alpha, const float *A, const int *lda,
-                   float *B, const int *ldb);
-extern void dtrsm_ (const char *side, const char *uplo, const char *transa, 
-                   const char *diag, const int *m, const int *n,
-                   const double *alpha, const double *A, const int *lda,
-                   double *B, const int *ldb);
-extern double sasum_ (const int *n, const float *x, const int *incx);
-extern double dasum_ (const int *n, const double *x, const int *incx);
-extern void sscal_ (const int *n, const float *alpha, float *x,
-                   const int *incx);
-extern void dscal_ (const int *n, const double *alpha, double *x,
-                   const int *incx);
-extern void sger_(const int *m, const int *n, const float *alpha,
-                  const float *x, const int *incx, const float *y,
-                  const int *incy, float *A, const int *lda);
-extern void dger_(const int *m, const int *n, const double *alpha,
-                  const double *x, const int *incx, const double *y,
-                  const int *incy, double *A, const int *lda);
-extern void strsv_ (const char *uplo, const char *trans, const char *diag, 
-                   const int *n, const float *A, const int *lda, float *x, 
-                   const int *incx);
-extern void strmm_(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int *m, const int *n,
-                 const float *alpha, const float *A, const int *lda,
-                 float *B, const int *ldb);
-extern void dtrmm_(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int *m, const int *n,
-                 const double *alpha, const double *A, const int *lda,
-                 double *B, const int *ldb);
-extern void strmv_(const char *uplo, const char *transA, const char *diag,
-                 const int *n, const float *A, const int *lda, float *X,
-                 const int *incX);
-extern void saxpy_(const int *n, const float *alpha, const float *X, const int *incX,
-		float *Y, const int *incy);
-extern void daxpy_(const int *n, const double *alpha, const double *X, const int *incX,
-		double *Y, const int *incy);
-extern int isamax_(const int *n, const float *X, const int *incX);
-extern int idamax_(const int *n, const double *X, const int *incX);
+extern void sgemm_64_ (const char *transa, const char *transb, const BLASINT *m,
+                   const BLASINT *n, const BLASINT *k, const float *alpha, 
+                   const float *A, const BLASINT *lda, const float *B, 
+                   const BLASINT *ldb, const float *beta, float *C, 
+                   const BLASINT *ldc);
+extern void dgemm_64_ (const char *transa, const char *transb, const BLASINT *m,
+                   const BLASINT *n, const BLASINT *k, const double *alpha, 
+                   const double *A, const BLASINT *lda, const double *B, 
+                   const BLASINT *ldb, const double *beta, double *C, 
+                   const BLASINT *ldc);
+extern void sgemv_64_(const char *trans, const BLASINT *m, const BLASINT *n, const float *alpha,
+                   const float *a, const BLASINT *lda, const float *x, const BLASINT *incx, 
+                   const float *beta, float *y, const BLASINT *incy);
+extern void dgemv_64_(const char *trans, const BLASINT *m, const BLASINT *n, const double *alpha,
+                   const double *a, const BLASINT *lda, const double *x, const BLASINT *incx,
+                   const double *beta, double *y, const BLASINT *incy);
+extern void ssyr_64_ (const char *uplo, const BLASINT *n, const float *alpha,
+                  const float *x, const BLASINT *incx, float *A, const BLASINT *lda);
+extern void ssyrk_64_ (const char *uplo, const char *trans, const BLASINT *n,
+                   const BLASINT *k, const float *alpha, const float *A,
+                   const BLASINT *lda, const float *beta, float *C,
+                   const BLASINT *ldc);
+extern void strsm_64_ (const char *side, const char *uplo, const char *transa, 
+                   const char *diag, const BLASINT *m, const BLASINT *n,
+                   const float *alpha, const float *A, const BLASINT *lda,
+                   float *B, const BLASINT *ldb);
+extern void dtrsm_64_ (const char *side, const char *uplo, const char *transa, 
+                   const char *diag, const BLASINT *m, const BLASINT *n,
+                   const double *alpha, const double *A, const BLASINT *lda,
+                   double *B, const BLASINT *ldb);
+extern double sasum_64_ (const BLASINT *n, const float *x, const BLASINT *incx);
+extern double dasum_64_ (const BLASINT *n, const double *x, const BLASINT *incx);
+extern void sscal_64_ (const BLASINT *n, const float *alpha, float *x,
+                   const BLASINT *incx);
+extern void dscal_64_ (const BLASINT *n, const double *alpha, double *x,
+                   const BLASINT *incx);
+extern void sger_64_(const BLASINT *m, const BLASINT *n, const float *alpha,
+                  const float *x, const BLASINT *incx, const float *y,
+                  const BLASINT *incy, float *A, const BLASINT *lda);
+extern void dger_64_(const BLASINT *m, const BLASINT *n, const double *alpha,
+                  const double *x, const BLASINT *incx, const double *y,
+                  const BLASINT *incy, double *A, const BLASINT *lda);
+extern void strsv_64_ (const char *uplo, const char *trans, const char *diag, 
+                   const BLASINT *n, const float *A, const BLASINT *lda, float *x, 
+                   const BLASINT *incx);
+extern void strmm_64_(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const BLASINT *m, const BLASINT *n,
+                 const float *alpha, const float *A, const BLASINT *lda,
+                 float *B, const BLASINT *ldb);
+extern void dtrmm_64_(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const BLASINT *m, const BLASINT *n,
+                 const double *alpha, const double *A, const BLASINT *lda,
+                 double *B, const BLASINT *ldb);
+extern void strmv_64_(const char *uplo, const char *transA, const char *diag,
+                 const BLASINT *n, const float *A, const BLASINT *lda, float *X,
+                 const BLASINT *incX);
+extern void saxpy_64_(const BLASINT *n, const float *alpha, const float *X, const BLASINT *incX,
+		float *Y, const BLASINT *incy);
+extern void daxpy_64_(const BLASINT *n, const double *alpha, const double *X, const BLASINT *incX,
+		double *Y, const BLASINT *incy);
+extern BLASINT isamax_64_(const BLASINT *n, const float *X, const BLASINT *incX);
+extern BLASINT idamax_64_(const BLASINT *n, const double *X, const BLASINT *incX);
 /* for some reason, FLOATRET is not a float but a double in GOTOBLAS */
-extern double sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
-extern double ddot_(const int *n, const double *x, const int *incx, const double *y, const int *incy);
-extern void sswap_(const int *n, float *x, const int *incx, float *y, const int *incy);
-extern void dswap_(const int *n, double *x, const int *incx, double *y, const int *incy);
-
-#if (defined STARPU_MKL) || (defined STARPU_ARMPL)
-extern void spotrf_(const char*uplo, const int *n, float *a, const int *lda, int *info);
-extern void dpotrf_(const char*uplo, const int *n, double *a, const int *lda, int *info);
-#endif
-
-#endif
+extern double sdot_64_(const BLASINT *n, const float *x, const BLASINT *incx, const float *y, const BLASINT *incy);
+extern double ddot_64_(const BLASINT *n, const double *x, const BLASINT *incx, const double *y, const BLASINT *incy);
+extern void sswap_64_(const BLASINT *n, float *x, const BLASINT *incx, float *y, const BLASINT *incy);
+extern void dswap_64_(const BLASINT *n, double *x, const BLASINT *incx, double *y, const BLASINT *incy);
 
 #endif /* __BLAS_H__ */

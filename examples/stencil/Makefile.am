@@ -20,7 +20,7 @@ LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
-if USE_MPI
+if STARPU_USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
 if STARPU_SIMGRID
@@ -60,7 +60,7 @@ check_PROGRAMS	=	$(STARPU_EXAMPLES)
 noinst_PROGRAMS	=
 
 if !STARPU_SIMGRID
-if USE_MPI
+if STARPU_USE_MPI
 if STARPU_MPI_CHECK
 TESTS		=	$(STARPU_EXAMPLES)
 endif
