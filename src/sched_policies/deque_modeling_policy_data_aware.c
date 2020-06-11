@@ -6,6 +6,7 @@
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2020       Télécom-Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
