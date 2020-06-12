@@ -742,6 +742,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = data->first_link;
 			data->head = delete_link(data);
 			if (data->ALGO_USED_READER != 3) {
+				if (packaging_impossible != 1) {
 				fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
 				while (data->head != NULL) {
 					//Code to print the coordinante and the data of each package ieration by iteration -----------------------
@@ -782,7 +783,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					} fprintf(fcoordinate,"%d",coordinate_visualization_matrix[j_bis][i_bis]); 
 					fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\n \\hline");
 					fprintf(fcoordinate,"\n"); 
-					for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) { 
+					for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) {
 						} 
 				}
 				fprintf(fcoordinate, "\\end{tabular}");
@@ -828,6 +829,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
 				//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
 				// ------------------------------------------------------
+			}
 			}
 			//Si on est dans l'algo 3
 			else { while (data->head != NULL) { link_index++; data->head = data->head->next; } }
