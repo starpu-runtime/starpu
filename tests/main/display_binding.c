@@ -35,6 +35,8 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	starpu_shutdown();
+
 	return EXIT_SUCCESS;
 }
 #endif
