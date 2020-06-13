@@ -174,6 +174,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	int nb_possibilite_regroupement = 0;
 	double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
+	int red = 0; int green = 0; int blue = 0;
 	
 	// Fichiers de sortie -------------------------
 	//~ FILE * variance_ecart_type;
@@ -743,7 +744,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->head = delete_link(data);
 			if (data->ALGO_USED_READER != 3) {
 				if (packaging_impossible != 1) {
-				fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
+				//~ fprintf(fcoordinate,"\nCoordonnées de l'itération n°%d\n",nb_of_loop);
 				while (data->head != NULL) {
 					//Code to print the coordinante and the data of each package ieration by iteration -----------------------
 					cursor_position = ftell(fcoordinate);
@@ -772,21 +773,37 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				} 
 				
 				//Code to write in a file the coordinates ---------------------------------------------------------------------------
-				fprintf(fcoordinate,"\\begin{tabular}{ c | c | c }"); 
+				fprintf(fcoordinate,"\n\\begin{subfigure}{.5\\textwidth} \\centering \\begin{tabular}{ c | c | c | c}"); 
 				for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
 				
 					} fprintf(fcoordinate,"\n");
 				for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
 					for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {
-						fprintf(fcoordinate,"%d &",coordinate_visualization_matrix[j_bis][i_bis]);
+						//~ red=coordinate_visualization_matrix[j_bis][i_bis]/3;  green=coordinate_visualization_matrix[j_bis][i_bis]/3; 
+						//~ blue=coordinate_visualization_matrix[j_bis][i_bis]/3; 
+						red = 255; blue = 255; green = 255;
+						//~ printf("new\n");
+						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+						else { if (coordinate_visualization_matrix[j_bis][i_bis] == 1) { red = 0; green = 255; blue = 0; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 2) { red = 0; green = 0; blue = 255; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 3) { red = 255; green = 0; blue = 0; }
+							else { 
+							if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 0) {  red = red - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; blue = 0; }
+							else { 
+								if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 1) {  green = green - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = 0; blue = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; }
+								else { if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 2) { blue = blue - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = 0; }
+								}
+							}
+						}
+					}}}
+					
+						fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d &",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]);
 						
-					} fprintf(fcoordinate,"%d",coordinate_visualization_matrix[j_bis][i_bis]); 
-					fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\n \\hline");
+					} fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]); 
+					fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\\hline");
 					fprintf(fcoordinate,"\n"); 
 					for (j_bis = 0; j_bis < sqrt(number_tasks)*3 + 2; j_bis++) {
 						} 
 				}
-				fprintf(fcoordinate, "\\end{tabular}");
+				fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure}",nb_of_loop);
 
 				for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
 					} fprintf(fcoordinate,"\n");
@@ -795,6 +812,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						coordinate_visualization_matrix[j_bis][i_bis] = NULL;
 					}
 				}
+				fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM 0 / MATRICE 8x8} \\label{fig:fig}",nb_of_loop);
 				// ----------------------------------------------------------------------------------------------------------------
 				
 				//~ //Code to print moyenne variance ecart type nombre de tâches par paquet -------
