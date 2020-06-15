@@ -14,6 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+ __kernel void _memset0_opencl(__global int *val, int nx)
+{
+        const int i = get_global_id(0);
+        if (i < nx)
+                val[0] += i;
+}
+
 __kernel void _memset_opencl(__global int *val, int nx)
 {
         const int i = get_global_id(0);

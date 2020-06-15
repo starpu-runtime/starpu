@@ -356,6 +356,10 @@ myPROGRAMS +=				\
 	parallel_tasks/spmd_peager		\
 	parallel_tasks/cuda_only		\
 	perfmodels/regression_based		\
+	perfmodels/regression_based_01		\
+	perfmodels/regression_based_02		\
+	perfmodels/regression_based_03		\
+	perfmodels/regression_based_04		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/user_base			\
@@ -987,9 +991,25 @@ endif
 perfmodels_regression_based_SOURCES=\
 	perfmodels/regression_based.c
 
+perfmodels_regression_based_01_SOURCES=\
+	perfmodels/regression_based_01.c
+
+perfmodels_regression_based_02_SOURCES=\
+	perfmodels/regression_based_02.c
+
+perfmodels_regression_based_03_SOURCES=\
+	perfmodels/regression_based_03.c
+
+perfmodels_regression_based_04_SOURCES=\
+	perfmodels/regression_based_04.c
+
 if STARPU_USE_OPENCL
 perfmodels_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
+
+perfmodels_regression_based_04_SOURCES+=\
+	perfmodels/opencl_memset.c
+
 nobase_STARPU_OPENCL_DATA_DATA += \
 	perfmodels/opencl_memset_kernel.cl
 endif
