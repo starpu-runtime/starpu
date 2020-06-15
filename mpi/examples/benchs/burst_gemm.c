@@ -90,12 +90,11 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	int ret, mpi_init, worldsize, mpi_rank;
+	int ret, worldsize, mpi_rank;
 
 	parse_args(argc, argv);
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
@@ -109,8 +108,7 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		if (!mpi_init)
-			MPI_Finalize();
+
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -203,8 +201,6 @@ enodev:
 	burst_free_data(mpi_rank);
 
 	starpu_mpi_shutdown();
-	if (!mpi_init)
-		MPI_Finalize();
 
 	return ret;
 }

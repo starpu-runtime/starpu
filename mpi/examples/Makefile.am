@@ -83,6 +83,10 @@ EXTRA_DIST = 				\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
 	user_datatype/my_interface.h			\
+	benchs/abstract_sendrecv_bench.h	\
+	benchs/bench_helper.h			\
+	benchs/gemm_helper.h			\
+	benchs/burst_helper.h			\
 	helper.h
 
 examplebindir = $(libdir)/starpu/mpi
@@ -398,4 +402,69 @@ native_fortran/nf_mm.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
+endif
+
+
+##########
+# benchs #
+##########
+
+examplebin_PROGRAMS +=		\
+	benchs/sendrecv_bench	\
+	benchs/burst
+
+if !STARPU_USE_MPI_MPI
+examplebin_PROGRAMS +=		\
+	benchs/sendrecv_parallel_tasks_bench
+endif
+
+if !STARPU_NO_BLAS_LIB
+examplebin_PROGRAMS +=		\
+	benchs/sendrecv_gemm_bench			\
+	benchs/burst_gemm
+endif
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES	+=	\
+	benchs/sendrecv_bench	\
+	benchs/burst
+
+if !STARPU_USE_MPI_MPI
+starpu_mpi_EXAMPLES	+=	\
+	benchs/sendrecv_parallel_tasks_bench
+endif
+
+if !STARPU_NO_BLAS_LIB
+starpu_mpi_EXAMPLES	+=	\
+	benchs/sendrecv_gemm_bench			\
+	benchs/burst_gemm
+endif
+endif
+
+benchs_sendrecv_bench_SOURCES = benchs/sendrecv_bench.c
+benchs_sendrecv_bench_SOURCES += benchs/bench_helper.c
+benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+
+benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
+benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c
+benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+
+benchs_burst_SOURCES = benchs/burst.c
+benchs_burst_SOURCES += benchs/burst_helper.c
+
+if !STARPU_NO_BLAS_LIB
+benchs_sendrecv_gemm_bench_SOURCES = benchs/sendrecv_gemm_bench.c
+benchs_sendrecv_gemm_bench_SOURCES += benchs/bench_helper.c
+benchs_sendrecv_gemm_bench_SOURCES += benchs/gemm_helper.c
+benchs_sendrecv_gemm_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+benchs_sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
+
+benchs_sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
+
+benchs_burst_gemm_SOURCES = benchs/burst_gemm.c
+benchs_burst_gemm_SOURCES += benchs/gemm_helper.c
+benchs_burst_gemm_SOURCES += benchs/burst_helper.c
+benchs_burst_gemm_SOURCES += ../../examples/common/blas.c
+
+benchs_burst_gemm_LDADD = $(STARPU_BLAS_LDFLAGS)
 endif
