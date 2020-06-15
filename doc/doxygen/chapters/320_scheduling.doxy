@@ -185,6 +185,11 @@ already gives the good results that a precise estimation would give.
 
 \section Energy-basedScheduling Energy-based Scheduling
 
+Note: by default StarPU does not let CPU workers sleep, to let them react to
+task release as quickly as possible. For idle time to really let CPU cores save
+energy, one needs to use the \ref enable-blocking-drivers
+"--enable-blocking-drivers" configuration option.
+
 If the application can provide some energy consumption performance model (through
 the field starpu_codelet::energy_model), StarPU will
 take it into account when distributing tasks. The target function that

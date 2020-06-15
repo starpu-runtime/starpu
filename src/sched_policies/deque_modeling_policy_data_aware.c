@@ -950,6 +950,11 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (getenv("STARPU_SCHED_GAMMA"))
+		_STARPU_DISP("Warning: STARPU_SCHED_GAMMA was used, but --enable-blocking-drivers configuration was not set, CPU cores will not actually be sleeping\n");
+#endif
 	dt->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
 	dt->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 
