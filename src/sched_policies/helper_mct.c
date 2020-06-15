@@ -47,7 +47,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 		data->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 		data->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (getenv("STARPU_SCHED_GAMMA"))
+		if (starpu_getenv("STARPU_SCHED_GAMMA"))
 			_STARPU_DISP("Warning: STARPU_SCHED_GAMMA was used, but --enable-blocking-drivers configuration was not set, CPU cores will not actually be sleeping\n");
 #endif
 		data->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
