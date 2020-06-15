@@ -31,6 +31,7 @@ __kernel void _dot_opencl(__global float *x,
 			  __global DOT_TYPE *dot,
 			  unsigned n)
 {
+/* FIXME: real parallel implementation */
 	unsigned i;
 	__local double tmp;
 	tmp = 0.0;

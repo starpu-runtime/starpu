@@ -75,6 +75,8 @@ void custom_scal_opencl_func(void *buffers[], void *args)
 
                 if (local > global)
 			local = global;
+                else
+                        global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(
 				queue,
