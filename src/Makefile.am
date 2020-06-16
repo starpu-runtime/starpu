@@ -406,9 +406,16 @@ endif
 # static inline definition
 dist-hook:
 	failed=0 ; \
-	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME | $(SED) -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | $(GREP) -v _starpu_spin_init) ; do \
-		for j in $(shell find . -name \*.o) ; do \
-			nm $$j | $(GREP) "U $$i$$" && { echo $$j ; failed=1 ; } ; \
-		done ; \
+	look=""; \
+	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME\#\# | $(SED) -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' | $(GREP) -v _starpu_spin_init) ; do \
+		if [ -z "$$look" ] ; then \
+			look="$$i" ; \
+		else \
+			look="$$look\|$$i" ; \
+		fi ; \
+	done ; \
+	echo "$$look" ; \
+	for j in $(shell find . -name \*.o) ; do \
+		nm $$j | $(GREP) -e "U \($$look\)$$" && { echo $$j ; failed=1 ; } ; \
 	done ; \
 	[ $$failed == 0 ]
