@@ -24,10 +24,12 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/graph.h>
+#include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <core/debug.h>
 #include <limits.h>
+#include <core/workers.h>
 
 static int max_memory_use;
 static unsigned long njobs, maxnjobs;

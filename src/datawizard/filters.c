@@ -21,6 +21,7 @@
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
 #include <datawizard/interfaces/data_interface.h>
+#include <datawizard/memory_nodes.h>
 #include <core/task.h>
 
 /*

@@ -2654,31 +2654,37 @@ int starpu_worker_get_relax_state(void)
 	return _starpu_worker_get_relax_state();
 }
 
+#undef starpu_worker_lock
 void starpu_worker_lock(int workerid)
 {
 	_starpu_worker_lock(workerid);
 }
 
+#undef starpu_worker_trylock
 int starpu_worker_trylock(int workerid)
 {
 	return _starpu_worker_trylock(workerid);
 }
 
+#undef starpu_worker_unlock
 void starpu_worker_unlock(int workerid)
 {
 	_starpu_worker_unlock(workerid);
 }
 
+#undef starpu_worker_lock_self
 void starpu_worker_lock_self(void)
 {
 	_starpu_worker_lock_self();
 }
 
+#undef starpu_worker_unlock_self
 void starpu_worker_unlock_self(void)
 {
 	_starpu_worker_unlock_self();
 }
 
+#undef starpu_wake_worker_relax
 int starpu_wake_worker_relax(int workerid)
 {
 	return _starpu_wake_worker_relax(workerid);

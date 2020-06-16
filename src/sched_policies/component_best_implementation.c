@@ -19,7 +19,9 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#ifdef BUILDING_STARPU
 #include <core/workers.h>
+#endif
 
 /* return true if workerid can execute task, and fill task->predicted and task->predicted_transfer
  *  according to best implementation predictions

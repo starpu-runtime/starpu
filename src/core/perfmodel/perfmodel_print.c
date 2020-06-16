@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <starpu_perfmodel.h>
 #include <common/config.h>
+#include <core/workers.h>
 #include "perfmodel.h"
 
 static

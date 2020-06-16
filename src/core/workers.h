@@ -1117,6 +1117,7 @@ static inline void _starpu_worker_lock(int workerid)
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	}
 }
+#define starpu_worker_lock _starpu_worker_lock
 
 static inline int _starpu_worker_trylock(int workerid)
 {
@@ -1147,6 +1148,7 @@ static inline int _starpu_worker_trylock(int workerid)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 	return ret;
 }
+#define starpu_worker_trylock _starpu_worker_trylock
 
 static inline void _starpu_worker_unlock(int workerid)
 {
@@ -1159,6 +1161,7 @@ static inline void _starpu_worker_unlock(int workerid)
 		starpu_worker_relax_off();
 	}
 }
+#define starpu_worker_unlock _starpu_worker_unlock
 
 static inline void _starpu_worker_lock_self(void)
 {
@@ -1167,6 +1170,7 @@ static inline void _starpu_worker_lock_self(void)
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 }
+#define starpu_worker_lock_self _starpu_worker_lock_self
 
 static inline void _starpu_worker_unlock_self(void)
 {
@@ -1175,6 +1179,7 @@ static inline void _starpu_worker_unlock_self(void)
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
+#define starpu_worker_unlock_self _starpu_worker_unlock_self
 
 static inline int _starpu_wake_worker_relax(int workerid)
 {
@@ -1183,6 +1188,7 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	_starpu_worker_unlock(workerid);
 	return ret;
 }
+#define starpu_wake_worker_relax _starpu_wake_worker_relax
 
 int starpu_wake_worker_relax_light(int workerid);
 

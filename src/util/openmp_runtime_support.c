@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <strings.h>
+#include <datawizard/memory_nodes.h>
 
 #define _STARPU_INITIAL_THREAD_STACKSIZE 2097152
 

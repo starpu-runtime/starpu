@@ -27,6 +27,7 @@
 #include <core/sched_policy.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <datawizard/memory_nodes.h>
 
 
 void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)

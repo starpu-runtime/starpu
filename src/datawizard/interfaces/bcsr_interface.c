@@ -15,6 +15,9 @@
  */
 
 #include <starpu.h>
+#ifdef BUILDING_STARPU
+#include <datawizard/memory_nodes.h>
+#endif
 
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)

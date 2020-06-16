@@ -22,6 +22,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 #include <core/sched_policy.h>
+#include <datawizard/memory_nodes.h>
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {

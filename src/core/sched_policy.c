@@ -22,6 +22,7 @@
 #include <common/utils.h>
 #include <core/sched_policy.h>
 #include <profiling/profiling.h>
+#include <datawizard/memory_nodes.h>
 #include <common/barrier.h>
 #include <core/debug.h>
 #include <core/task.h>

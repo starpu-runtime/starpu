@@ -18,6 +18,7 @@
 #include <common/config.h>
 #include <core/jobs.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 struct wrapper_func_args
 {

@@ -19,6 +19,7 @@
 #include <core/workers.h>
 #include <starpu_sched_component.h>
 #include <starpu_thread_util.h>
+#include <datawizard/memory_nodes.h>
 
 #include <float.h>
 

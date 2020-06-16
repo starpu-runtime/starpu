@@ -26,6 +26,7 @@
 #include <profiling/bound.h>
 #include <core/jobs.h>
 #include <core/workers.h>
+#include <datawizard/memory_nodes.h>
 
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>

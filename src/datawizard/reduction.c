@@ -22,6 +22,7 @@
 #include <datawizard/datawizard.h>
 #include <drivers/mic/driver_mic_source.h>
 #include <drivers/mp_common/source_common.h>
+#include <datawizard/memory_nodes.h>
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 				       struct starpu_codelet *redux_cl,

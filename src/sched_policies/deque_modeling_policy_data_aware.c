@@ -30,6 +30,9 @@
 #include <core/workers.h>
 #include <core/sched_policy.h>
 #include <core/debug.h>
+#ifdef BUILDING_STARPU
+#include <datawizard/memory_nodes.h>
+#endif
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>

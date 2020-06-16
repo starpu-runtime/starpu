@@ -17,6 +17,7 @@
 #include <datawizard/datawizard.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
+#include <datawizard/memory_nodes.h>
 
 static void wt_callback(void *arg)
 {

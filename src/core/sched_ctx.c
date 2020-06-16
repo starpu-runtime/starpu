@@ -21,6 +21,7 @@
 #include <common/utils.h>
 #include <stdarg.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 enum _starpu_ctx_change_op
 {

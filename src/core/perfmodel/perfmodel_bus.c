@@ -37,6 +37,7 @@
 #include <core/topology.h>
 #include <common/utils.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <datawizard/memory_nodes.h>
 
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
