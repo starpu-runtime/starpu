@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #define RANDOM_TASK_ORDER
 #define RECURSIVE_MATRIX_LAYOUT
+#define RANDOM_TASKS
 
 #include <limits.h>
 #include <string.h>
@@ -418,7 +419,7 @@ int main(int argc, char **argv)
 
 		unsigned x, y, iter;
 		
-		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0) {
+		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_TASKS",0) == 0) {
 			//~ printf("random\n");
 			//If environment variable RANDOM_TASK_ORDER == 1
 			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
@@ -474,7 +475,7 @@ int main(int argc, char **argv)
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
-		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1) {
+		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1 && starpu_get_env_number_default("RANDOM_TASKS",0) == 0) {
 			// RECURSIVE_MATRIX_LAYOUT == 1, cela annule le random=1
 			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -546,6 +547,37 @@ int main(int argc, char **argv)
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
+		else if (starpu_get_env_number_default("RANDOM_TASKS",0) == 1) {
+			for (iter = 0; iter < niter; iter++)
+			{
+				starpu_pause();
+				for (x = 0; x < nslicesx; x++)
+				for (y = 0; y < nslicesy; y++)
+				{
+					struct starpu_task *task = starpu_task_create();
+
+					task->cl = &cl;
+					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
+					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
+					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
+					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
+					
+					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+					ret = starpu_task_submit(task);
+					if (ret == -ENODEV)
+					{
+						 ret = 77;
+						 goto enodev;
+					}
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+				}
+				starpu_resume();
+
+				starpu_task_wait_for_all();
+			}	
+		}
 		else { 
 			//If environment variable RANDOM_TASK_ORDER == 0
 			for (iter = 0; iter < niter; iter++)
@@ -557,7 +589,7 @@ int main(int argc, char **argv)
 					struct starpu_task *task = starpu_task_create();
 
 					task->cl = &cl;
-					
+					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
 					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
