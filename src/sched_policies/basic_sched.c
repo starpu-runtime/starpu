@@ -269,6 +269,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			//Fichier pour visualisation des coordonnées
 			FILE * fcoordinate;
 			fcoordinate = fopen("Data_coordinates.txt", "w+");
+			fprintf(fcoordinate,"\\begin{figure}[H]");
 			FILE * variance_ecart_type;
 			variance_ecart_type = fopen("variance_ecart_type.txt", "w+");
 			FILE * mean_task_by_loop;
@@ -469,10 +470,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
 				//Init à 0
 				i_bis = 0; j_bis = 0; 
-				//~ for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
 				temp_nb_min_task_packages = nb_min_task_packages;
 			debut_while:
-			//~ while (temp_nb_min_task_packages > 1) {
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_2 = data->first_link;
 				max_value_common_data_matrix = 0;
@@ -496,10 +495,8 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			data->temp_pointer_1 = data->first_link;
 			data->temp_pointer_2 = data->first_link;		
 			i_bis = 0; j_bis = 0; i = 0; j = 0;
-			//~ for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 			for (i = 0; i < nb_pop; i++) {
 				if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) {
-					//~ for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
 					for (j = 0; j < nb_pop; j++) {
 						weight_two_packages = 0;
 						for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]); }
@@ -552,16 +549,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						}
 						else { j = nb_pop; i = nb_pop; }
 						}
-						//~ j++;
 						data->temp_pointer_2=data->temp_pointer_2->next;
 					}
 				}
-				//~ i++; j = 0;
 				data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link;
-			}
-			
-			//~ temp_nb_min_task_packages--;
-			
+			}			
 			}
 			// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			}
