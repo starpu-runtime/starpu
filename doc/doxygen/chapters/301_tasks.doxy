@@ -118,7 +118,7 @@ to delay the termination of a task until the termination of other tasks.
 
 \section SettingManyDataHandlesForATask Setting Many Data Handles For a Task
 
-The maximum number of data a task can manage is fixed by the environment variable
+The maximum number of data a task can manage is fixed by the macro
 \ref STARPU_NMAXBUFS which has a default value which can be changed
 through the \c configure option \ref enable-maxbuffers "--enable-maxbuffers".
 
