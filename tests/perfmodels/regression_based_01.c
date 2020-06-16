@@ -46,7 +46,7 @@ void memset_cpu(void *descr[], void *arg)
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
 	unsigned i;
 
-	usleep(1000);
+	starpu_usleep(1000);
 
 	for (i=0; i<n ; i++)
 	{
