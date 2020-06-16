@@ -157,8 +157,7 @@ static void compare_performance(int size, struct starpu_codelet *codelet, struct
 
 	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
 
-	struct starpu_task **tasks = (struct starpu_task **) malloc(niter*sizeof(struct starpu_task *));
-	assert(tasks);
+	struct starpu_task *tasks[niter];
 
 	for (i = 0; i < niter; i++)
 	{
