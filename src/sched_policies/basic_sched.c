@@ -339,7 +339,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			//~ printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -467,8 +467,15 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		} else {
 				// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
+				//Init à 0
 				i_bis = 0; j_bis = 0; 
-				for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
+				//~ for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; }
+				temp_nb_min_task_packages = nb_min_task_packages;
+			debut_while:
+			//~ while (temp_nb_min_task_packages > 1) {
+				data->temp_pointer_1 = data->first_link;
+				data->temp_pointer_2 = data->first_link;
+				max_value_common_data_matrix = 0;
 				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
 					if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
 						for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
@@ -480,31 +487,33 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 									for (j = 0; j < data->temp_pointer_1->package_nb_data; j++) {
 									if (data->temp_pointer_2->package_data[i] == data->temp_pointer_1->package_data[j]) { bool_data_common = 1; } }
 									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i]); } } 
-								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
-									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i_bis][j_bis]; } 
+								if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+									max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } 
 						} j_bis++; } tab_runner++; } 
 						data->temp_pointer_1=data->temp_pointer_1->next;
-						j_bis = 0; } 
-			qsort(tab_max_value_common_data_matrix,nb_min_task_packages,sizeof(tab_max_value_common_data_matrix[0]),pointeurComparator);
+						j_bis = 0; }
+
 			data->temp_pointer_1 = data->first_link;
 			data->temp_pointer_2 = data->first_link;		
-			temp_nb_min_task_packages = nb_min_task_packages;
-			while (temp_nb_min_task_packages != 0) {
 			i_bis = 0; j_bis = 0; i = 0; j = 0;
-			for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
+			//~ for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
+			for (i = 0; i < nb_pop; i++) {
 				if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) {
-					for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
+					//~ for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
+					for (j = 0; j < nb_pop; j++) {
 						weight_two_packages = 0;
 						for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]); }
 						for (i_bis = 0; i_bis < data->temp_pointer_2->package_nb_data; i_bis++) { bool_data_common = 0;
 							for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) { if (data->temp_pointer_2->package_data[i_bis] == data->temp_pointer_1->package_data[j_bis]) { bool_data_common = 1; } }
 							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); } }							
 						//boucler sur le 0 et reinit i et j du coup pour les prochains. Interdire celui qu'on vient de faire aussi	
-						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
+						if (matrice_donnees_commune[i][j] == max_value_common_data_matrix && i != j && weight_two_packages <= GPU_RAM) {
 							//Merge
 							packaging_impossible = 0;
-							// printf("On va merge le paquet %d et le paquet %d\n",i,j);
-							//A voir pour la deuxieme partie des mises à 0 de la matrice de données communes
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							
+							if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list) { temp_nb_min_task_packages--; }
+							
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 							nb_data_commun--;
@@ -536,14 +545,23 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->temp_pointer_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
 							data->temp_pointer_2->nb_task_in_sub_list = 0;
+						temp_nb_min_task_packages--;
+						if (temp_nb_min_task_packages > 1) {
+							printf("goto\n");
+							goto debut_while; 
 						}
-						j++;
+						else { j = nb_pop; i = nb_pop; }
+						}
+						//~ j++;
+						data->temp_pointer_2=data->temp_pointer_2->next;
 					}
 				}
-				i++; j = 0;
+				//~ i++; j = 0;
+				data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link;
 			}
-			temp_nb_min_task_packages--;
-			}
+			
+			//~ temp_nb_min_task_packages--;
+			
 			}
 			// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			}
@@ -895,37 +913,37 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		data->temp_pointer_1 = data->first_link;	
 		
 		//Code to print everything ----
-		//~ link_index = 0;
-		//~ long int total_weight = 0;
-		//~ double task_duration_info = 0;
-		//~ double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
-		//~ printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
-		//~ while (data->temp_pointer_1 != NULL) { link_index++; data->temp_pointer_1 = data->temp_pointer_1->next; } data->temp_pointer_1 = data->first_link;
-		//~ printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
-		//~ printf("-----\n");
-		//~ link_index = 0;	
-		//~ while (data->temp_pointer_1 != NULL) {
-			//~ printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->temp_pointer_1->nb_task_in_sub_list,data->temp_pointer_1->package_nb_data);
-			//~ for (temp_task_3  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_3 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
+		link_index = 0;
+		long int total_weight = 0;
+		double task_duration_info = 0;
+		double bandwith_info = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)));
+		printf("A la fin du regroupement des tâches utilisant l'algo %d on obtient : \n",data->ALGO_USED_READER);
+		while (data->temp_pointer_1 != NULL) { link_index++; data->temp_pointer_1 = data->temp_pointer_1->next; } data->temp_pointer_1 = data->first_link;
+		printf("On a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
+		printf("-----\n");
+		link_index = 0;	
+		while (data->temp_pointer_1 != NULL) {
+			printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,data->temp_pointer_1->nb_task_in_sub_list,data->temp_pointer_1->package_nb_data);
+			for (temp_task_3  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_3 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_3  = starpu_task_list_next(temp_task_3)) {
 				//~ printf("%p\n",temp_task_3);
-			//~ }
-			//~ for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
-				//~ total_weight+= starpu_data_get_size(data->temp_pointer_1->package_data[i]);
-			//~ }
-			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-			//~ total_weight = 0;
-			//~ link_index++;
-			//~ data->temp_pointer_1 = data->temp_pointer_1->next;
-			//~ printf("-----\n");
-		//~ }
-		//~ data->temp_pointer_1 = data->first_link;
-		//~ // //~ printf("\n");
-		//~ // //~ printf("Info de la bande passante : %f\n",bandwith_info);
-		//~ temp_task_3  = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
-		//~ task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
-		//~ // //~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
-		//~ // //~ printf("\n\n");
-		//~ data->temp_pointer_1 = data->first_link;
+			}
+			for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
+				total_weight+= starpu_data_get_size(data->temp_pointer_1->package_data[i]);
+			}
+			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			total_weight = 0;
+			link_index++;
+			data->temp_pointer_1 = data->temp_pointer_1->next;
+			printf("-----\n");
+		}
+		data->temp_pointer_1 = data->first_link;
+		// //~ printf("\n");
+		// //~ printf("Info de la bande passante : %f\n",bandwith_info);
+		temp_task_3  = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
+		task_duration_info = starpu_task_worker_expected_length(temp_task_3, 0, component->tree->sched_ctx_id,0);
+		// //~ printf("La tâche %p a durée %f\n",temp_task_3,task_duration_info);
+		// //~ printf("\n\n");
+		data->temp_pointer_1 = data->first_link;
 		// ---------------------------
 		
 		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
