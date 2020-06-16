@@ -26,7 +26,7 @@
  * dmda choose CPU workers for small size (size=1234)
  */
 
-#define STARTlin (512*1024)
+#define STARTlin 131072
 #define START 1024
 #ifdef STARPU_QUICK_CHECK
 #define END 1048576

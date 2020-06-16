@@ -25,7 +25,7 @@
  * dmda choose the implementation which minimises the execution time
  */
 
-#define STARTlin 1048576
+#define STARTlin 131072
 #define START 1024
 #ifdef STARPU_QUICK_CHECK
 #define END 1048576
