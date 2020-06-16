@@ -99,8 +99,9 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
 		struct starpu_profiling_worker_info info;
-		starpu_profiling_worker_get_info(workerid, &info);
+		int ret = starpu_profiling_worker_get_info(workerid, &info);
 		char name[64];
+		STARPU_ASSERT(!ret);
 
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
