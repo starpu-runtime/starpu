@@ -15,6 +15,7 @@
  */
 
 #define TYPE	double
+#define EPSILON	0.000000000001
 
 #define CUBLAS_GEMM cublasDgemm
 #define CPU_GEMM	STARPU_DGEMM
