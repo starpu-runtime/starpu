@@ -248,5 +248,5 @@ EXTRA_DIST += doxygen.cfg refman.tex \
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
-	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
+	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/files/doc
 
