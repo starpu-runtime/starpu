@@ -15,6 +15,7 @@
  */
 
 #define TYPE	float
+#define EPSILON	0.000001
 
 #define CUBLAS_GEMM cublasSgemm
 #define CPU_GEMM	STARPU_SGEMM
