@@ -67,7 +67,7 @@ static int check_output(void)
 	TYPE err;
 	err = CPU_ASUM(xdim*ydim, C, 1);
 
-	if (err < xdim*ydim*0.001)
+	if (err < xdim*ydim*zdim*EPSILON)
 	{
 		FPRINTF(stderr, "Results are OK\n");
 		return 0;
