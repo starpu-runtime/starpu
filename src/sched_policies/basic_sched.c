@@ -175,7 +175,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
 	int red = 0; int green = 0; int blue = 0;
-	
+	int temp_i_bis = 0;
 	//Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size
 	starpu_ssize_t GPU_RAM = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
@@ -340,7 +340,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			}
 			
 			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+			//~ printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 			//Getting the number of package that have data in commons
@@ -360,78 +360,159 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				
 				if (starpu_get_env_number_default("ALGO_4_RANDOM",0) == 1) {
 				//ALGO 4 WITH RANDOM ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-				i_bis = 0; j_bis = 0; tab_runner = 0; for (i = 0; i < nb_min_task_packages; i++) { tab_max_value_common_data_matrix[i] = 0; indice_paquet_a_regrouper[i] = 0; }
-				for (i = 0; i < nb_pop; i++) {
-					if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) {
-						for (j = 0; j < nb_pop; j++) {
-							if (i != j) {
-								weight_two_packages = 0;
-								for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]); } 
-								for (i_bis = 0; i_bis < data->temp_pointer_2->package_nb_data; i_bis++) {
-									bool_data_common = 0; 
-									for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
-										if (data->temp_pointer_2->package_data[i_bis] == data->temp_pointer_1->package_data[j_bis]) { bool_data_common = 1; } }
-									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); } } 
-								if((tab_max_value_common_data_matrix[tab_runner] < matrice_donnees_commune[i][j]) && (weight_two_packages <= GPU_RAM)) { 
-									tab_max_value_common_data_matrix[tab_runner] = matrice_donnees_commune[i][j];}
-								
-							}
-							data->temp_pointer_2 = data->temp_pointer_2->next; 
-						}
-						indice_paquet_a_regrouper[tab_runner] = i;
-						tab_runner++;
-					}
-					data->temp_pointer_1 = data->temp_pointer_1->next; 
-					data->temp_pointer_2 = data->first_link; 
-				}
-				//On trie le tableau des données communes par taille pour favoriser les gros paquets et avec on permute aussi le tableau des indice à regrouper
-				for (i = 0; i < nb_min_task_packages; i++) { for (j = 0; j < nb_min_task_packages - 1; j++) {
-					 if (tab_max_value_common_data_matrix[j] < tab_max_value_common_data_matrix[j+1])
-					{	
-						temp_tab_sort_1 = tab_max_value_common_data_matrix[j]; temp_tab_sort_2 = indice_paquet_a_regrouper[j];
-						tab_max_value_common_data_matrix[j] = tab_max_value_common_data_matrix[j+1]; indice_paquet_a_regrouper[j] = indice_paquet_a_regrouper[j+1];
-						tab_max_value_common_data_matrix[j+1] = temp_tab_sort_1; indice_paquet_a_regrouper[j+1] = temp_tab_sort_2; } } }
+				//Init à 0
+				printf("Début algo 4\n");
+				
+			i_bis = 0; j_bis = 0; 
+				temp_nb_min_task_packages = nb_min_task_packages;
+			debut_while_1:
+			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_2 = data->first_link;
-				
-			//Merge des paquets
-			temp_nb_min_task_packages = nb_min_task_packages;
-			while (temp_nb_min_task_packages != 0) {
-				//Tant qu'on est pas sur le bon maillon du paquet à regrouper
-				i = 0; data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link;
-				while (i != indice_paquet_a_regrouper[nb_min_task_packages - temp_nb_min_task_packages]) {
-					data->temp_pointer_1 = data->temp_pointer_1->next;
-					i++;
-				}
-				for (j = 0; j < nb_pop; j++) {
-					if (i != j) {
-					weight_two_packages = 0;
-						for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]); } 
-						for (i_bis = 0; i_bis < data->temp_pointer_2->package_nb_data; i_bis++) {
-							bool_data_common = 0; 
-							for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
-								if (data->temp_pointer_2->package_data[i_bis] == data->temp_pointer_1->package_data[j_bis]) { bool_data_common = 1; } }
-							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); } } 
-							if((tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] == matrice_donnees_commune[i][j]) && (weight_two_packages <= GPU_RAM)) { nb_grouping_available++; }	 
-							}
-							data->temp_pointer_2 = data->temp_pointer_2->next; 
-				}
-				//Savoir avec le combientième paquet on doit se regrouper
-				if (nb_grouping_available != 0) { random_value = random()%nb_grouping_available; } else { 
-					random_value = 0; }
-				nb_grouping_available = 0;
-				j = 0;
-				for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
-					weight_two_packages = 0;
-					for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]); }
-					for (i_bis = 0; i_bis < data->temp_pointer_2->package_nb_data; i_bis++) { bool_data_common = 0;
-						for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) { if (data->temp_pointer_2->package_data[i_bis] == data->temp_pointer_1->package_data[j_bis]) { bool_data_common = 1; } }
-						if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); } }
-						if (matrice_donnees_commune[i][j] == tab_max_value_common_data_matrix[nb_min_task_packages - temp_nb_min_task_packages] && i != j && weight_two_packages <= GPU_RAM) {
-							if (random_value == 0) {
+				max_value_common_data_matrix = 0;
+				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
+					if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
+							if (i_bis != j_bis) {
+								weight_two_packages = 0;
+								for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i]); } 
+								for (i = 0; i < data->temp_pointer_2->package_nb_data; i++) {
+									bool_data_common = 0;
+									for (j = 0; j < data->temp_pointer_1->package_nb_data; j++) {
+									if (data->temp_pointer_2->package_data[i] == data->temp_pointer_1->package_data[j]) { bool_data_common = 1; } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i]); } } 
+								if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM)) { 
+									max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } 
+						} j_bis++; } } 
+						data->temp_pointer_1=data->temp_pointer_1->next;
+						j_bis = 0; }
+				printf("max value common data matrix = %d\n",max_value_common_data_matrix);
+				data->temp_pointer_1 = data->first_link;
+				data->temp_pointer_2 = data->first_link;
+				nb_grouping_available = 0; i_bis = 0; j_bis = 0;
+				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
+					temp_i_bis = i_bis;
+					if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						for (j_bis = 0; j_bis < nb_pop; j_bis++) {
+								
+								weight_two_packages = 0;
+								for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i]); } 
+								for (i = 0; i < data->temp_pointer_2->package_nb_data; i++) {
+									bool_data_common = 0;
+									for (j = 0; j < data->temp_pointer_1->package_nb_data; j++) {
+									if (data->temp_pointer_2->package_data[i] == data->temp_pointer_1->package_data[j]) { bool_data_common = 1; } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i]); } } 
+								if((max_value_common_data_matrix == matrice_donnees_commune[temp_i_bis][j_bis]) && i_bis != j_bis && (weight_two_packages <= GPU_RAM)) { 
+									nb_grouping_available++; i_bis = nb_pop; } 
+						data->temp_pointer_2=data->temp_pointer_2->next; } } 
+						data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link; }
+						
+						printf("nb grouping avilable = %d\n",nb_grouping_available);
+						
+		if (nb_grouping_available != 0) {				
+			int *tab_grouping_available = malloc(nb_grouping_available*sizeof(int)); for (i = 0; i < nb_grouping_available; i++) { tab_grouping_available[i] = 0; }
+			data->temp_pointer_1 = data->first_link;
+			data->temp_pointer_2 = data->first_link;
+				tab_runner = 0; i_bis = 0; j_bis = 0;
+				for (i_bis = 0; i_bis < nb_pop; i_bis++) {
+					temp_i_bis = i_bis;
+					if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						for (j_bis = 0; j_bis < nb_pop; j_bis++) {						
+								weight_two_packages = 0;
+								for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i]); } 
+								for (i = 0; i < data->temp_pointer_2->package_nb_data; i++) {
+									bool_data_common = 0;
+									for (j = 0; j < data->temp_pointer_1->package_nb_data; j++) {
+									if (data->temp_pointer_2->package_data[i] == data->temp_pointer_1->package_data[j]) { bool_data_common = 1; } }
+									if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i]); } } 
+								if((max_value_common_data_matrix == matrice_donnees_commune[temp_i_bis][j_bis]) && i_bis != j_bis && (weight_two_packages <= GPU_RAM)) { 
+									tab_grouping_available[tab_runner] = j_bis; tab_runner++; i_bis = nb_pop;} 
+						data->temp_pointer_2=data->temp_pointer_2->next; } } 
+						data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link; }
+						
+			for (i = 0; i < nb_grouping_available; i++) { printf("tab grouping available[%d] = %d\n",i,tab_grouping_available[i]); }
+						
+			random_value = random()%nb_grouping_available;
+			printf("random value = %d\n",random_value);
+			printf("le paquet %d a été choisis\n",tab_grouping_available[random_value]);
+
+			data->temp_pointer_1 = data->first_link;
+			data->temp_pointer_2 = data->first_link;		
+			i_bis = 0; j_bis = 0; i = 0; j = 0;
+			
+			//Old one
+			//~ for (i = 0; i < nb_pop; i++) {
+				//~ if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) {
+					//~ for (j = 0; j < tab_grouping_available[random_value]; j++) {
+						//~ data->temp_pointer_2 = data->temp_pointer_2->next;
+					//~ }
+					//~ //Merge
+							//~ packaging_impossible = 0;
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,tab_grouping_available[random_value]);
+							
+							//~ if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list) { temp_nb_min_task_packages--; }
+							
+							//~ for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
+							//~ for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
+							//~ nb_data_commun--;
+							//~ while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
+							//~ starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
+							//~ data->temp_pointer_1->nb_task_in_sub_list ++; }
+							//~ i_bis = 0; j_bis = 0; tab_runner = 0;
+							//~ starpu_data_handle_t *temp_data_tab = malloc((data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data) * sizeof(data->temp_pointer_1->package_data[0]));
+							//~ while (i_bis < data->temp_pointer_1->package_nb_data && j_bis < data->temp_pointer_2->package_nb_data) {
+								//~ if (data->temp_pointer_1->package_data[i_bis] <= data->temp_pointer_2->package_data[j_bis]) {
+									//~ temp_data_tab[tab_runner] = data->temp_pointer_1->package_data[i_bis];
+									//~ i_bis++; }
+								//~ else {
+									//~ temp_data_tab[tab_runner] = data->temp_pointer_2->package_data[j_bis];
+									//~ j_bis++; }
+								//~ tab_runner++;
+							//~ }
+							//~ while (i_bis < data->temp_pointer_1->package_nb_data) { temp_data_tab[tab_runner] = data->temp_pointer_1->package_data[i_bis]; i_bis++; tab_runner++; }
+							//~ while (j_bis < data->temp_pointer_2->package_nb_data) { temp_data_tab[tab_runner] = data->temp_pointer_2->package_data[j_bis]; j_bis++; tab_runner++; }
+							//~ for (i_bis = 0; i_bis < (data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data); i_bis++) {
+								//~ if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1]) {
+									//~ temp_data_tab[i_bis] = 0;
+									//~ nb_duplicate_data++; } }
+							//~ data->temp_pointer_1->package_data = malloc((data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							//~ j_bis = 0;
+							//~ for (i_bis = 0; i_bis < (data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data); i_bis++) {
+								//~ if (temp_data_tab[i_bis] != 0) { data->temp_pointer_1->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; } }
+							//~ data->temp_pointer_1->package_nb_data = data->temp_pointer_2->package_nb_data + data->temp_pointer_1->package_nb_data - nb_duplicate_data;
+							//~ data->temp_pointer_2->package_nb_data = 0;
+							//~ nb_duplicate_data = 0;
+							//~ data->temp_pointer_2->nb_task_in_sub_list = 0;
+							
+						//~ temp_nb_min_task_packages--;
+						//~ if (temp_nb_min_task_packages > 1) {
+							//~ printf("goto\n");
+							//~ goto debut_while_1; 
+						//~ }
+						//~ else { j = nb_pop; i = nb_pop; }					
+				//~ }
+				//~ data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link;
+			//~ }		
+			//
+			
+			//New One
+			for (i = 0; i < tab_grouping_available[random_value]; i++) {
+				data->temp_pointer_1 = data->temp_pointer_1->next;
+			}
+					for (j = 0; j < nb_pop; j++) {
+						if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list && max_value_common_data_matrix == matrice_donnees_commune[i][j] && i != j) {
+							//Merge
 							packaging_impossible = 0;
+							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							
+							if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list) { temp_nb_min_task_packages--; }
+							
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
+							nb_data_commun--;
 							while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
 							starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
 							data->temp_pointer_1->nb_task_in_sub_list ++; }
@@ -460,15 +541,27 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->temp_pointer_2->package_nb_data = 0;
 							nb_duplicate_data = 0;
 							data->temp_pointer_2->nb_task_in_sub_list = 0;
-							}
-							else { random_value--;}
-						} j++; }
-			temp_nb_min_task_packages--;
-			}
+							
+						temp_nb_min_task_packages--;
+						if (temp_nb_min_task_packages > 1) {
+							printf("goto\n");
+							goto debut_while_1; 
+						}
+						else { j = nb_pop; i = nb_pop; }					
+				}
+			data->temp_pointer_2 = data->temp_pointer_2->next; }		
+						}
+							
+					 
+			//
+			
+					
+			
 			// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		} else {
 				// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
 				//Init à 0
+				printf("Algo 4'\n");
 				i_bis = 0; j_bis = 0; 
 				temp_nb_min_task_packages = nb_min_task_packages;
 			debut_while:
