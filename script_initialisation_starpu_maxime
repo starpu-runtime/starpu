@@ -1,3 +1,3 @@
-./configure --enable-simgrid --disable-mpi --with-fxt
+./configure --enable-simgrid --disable-mpi
 make install
 make -j4
