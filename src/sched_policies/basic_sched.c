@@ -361,13 +361,13 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				if (starpu_get_env_number_default("ALGO_4_RANDOM",0) == 1) {
 				//ALGO 4 WITH RANDOM ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				//Init à 0
-				printf("Début algo 4\n");
+				//~ printf("Début algo 4\n");
 				
 			i_bis = 0; j_bis = 0; 
 				temp_nb_min_task_packages = nb_min_task_packages;
 			debut_while_1:
 			//Code to print the common data matrix  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-			printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+			//~ printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 			//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			
 				data->temp_pointer_1 = data->first_link;
@@ -389,7 +389,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						} j_bis++; } } 
 						data->temp_pointer_1=data->temp_pointer_1->next;
 						j_bis = 0; }
-				printf("max value common data matrix = %d\n",max_value_common_data_matrix);
+				//~ printf("max value common data matrix = %d\n",max_value_common_data_matrix);
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_2 = data->first_link;
 				nb_grouping_available = 0; i_bis = 0; j_bis = 0;
@@ -410,7 +410,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						data->temp_pointer_2=data->temp_pointer_2->next; } } 
 						data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link; }
 						
-						printf("nb grouping avilable = %d\n",nb_grouping_available);
+						//~ printf("nb grouping avilable = %d\n",nb_grouping_available);
 						
 		if (nb_grouping_available != 0) {				
 			int *tab_grouping_available = malloc(nb_grouping_available*sizeof(int)); for (i = 0; i < nb_grouping_available; i++) { tab_grouping_available[i] = 0; }
@@ -433,11 +433,11 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						data->temp_pointer_2=data->temp_pointer_2->next; } } 
 						data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link; }
 						
-			for (i = 0; i < nb_grouping_available; i++) { printf("tab grouping available[%d] = %d\n",i,tab_grouping_available[i]); }
+			//~ for (i = 0; i < nb_grouping_available; i++) { printf("tab grouping available[%d] = %d\n",i,tab_grouping_available[i]); }
 						
 			random_value = random()%nb_grouping_available;
-			printf("random value = %d\n",random_value);
-			printf("le paquet %d a été choisis\n",tab_grouping_available[random_value]);
+			//~ printf("random value = %d\n",random_value);
+			//~ printf("le paquet %d a été choisis\n",tab_grouping_available[random_value]);
 
 			data->temp_pointer_1 = data->first_link;
 			data->temp_pointer_2 = data->first_link;		
@@ -506,7 +506,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list && max_value_common_data_matrix == matrice_donnees_commune[i][j] && i != j) {
 							//Merge
 							packaging_impossible = 0;
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							
 							if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list) { temp_nb_min_task_packages--; }
 							
@@ -544,7 +544,6 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							
 						temp_nb_min_task_packages--;
 						if (temp_nb_min_task_packages > 1) {
-							printf("goto\n");
 							goto debut_while_1; 
 						}
 						else { j = nb_pop; i = nb_pop; }					
@@ -561,7 +560,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		} else {
 				// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
 				//Init à 0
-				printf("Algo 4'\n");
+				//~ printf("Algo 4'\n");
 				i_bis = 0; j_bis = 0; 
 				temp_nb_min_task_packages = nb_min_task_packages;
 			debut_while:
@@ -600,7 +599,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 						if (matrice_donnees_commune[i][j] == max_value_common_data_matrix && i != j && weight_two_packages <= GPU_RAM) {
 							//Merge
 							packaging_impossible = 0;
-							printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							//~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							
 							if (data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list) { temp_nb_min_task_packages--; }
 							
@@ -637,7 +636,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 							data->temp_pointer_2->nb_task_in_sub_list = 0;
 						temp_nb_min_task_packages--;
 						if (temp_nb_min_task_packages > 1) {
-							printf("goto\n");
+							//~ printf("goto\n");
 							goto debut_while; 
 						}
 						else { j = nb_pop; i = nb_pop; }
@@ -853,7 +852,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 					//~ temp_moyenne += temp_number_task;
 					temp_moyenne += data->temp_pointer_1->nb_task_in_sub_list;
 					//~ temp_variance += temp_number_task*temp_number_task;
-					temp_variance += data->temp_pointer_1->nb_task_in_sub_list*data->temp_pointer_1->nb_task_in_sub_list;
+					//~ temp_variance += data->temp_pointer_1->nb_task_in_sub_list*data->temp_pointer_1->nb_task_in_sub_list;
 					temp_number_task = 0;
 					//Compte le nombre de paquets, permet d'arrêter l'algo 3 ou les autres algo si on arrive a 1 paquet
 					link_index++;
@@ -918,18 +917,26 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				// ----------------------------------------------------------------------------------------------------------------
 				
 				//~ //Code to print moyenne variance ecart type nombre de tâches par paquet -------
-				temp_moyenne = temp_moyenne/(link_index+1);
+				temp_moyenne = temp_moyenne/(link_index);
 				moyenne = temp_moyenne;
 				//~ printf("La moyenne du nb de taches par paquets est %f\n",temp_moyenne);
 				//~ fprintf(variance_ecart_type,"%d	",nb_of_loop);
 				//~ printf("tep variance = %f\n",temp_variance);
 				//~ temp_variance = (temp_variance/(link_index+3)) - (temp_moyenne*temp_moyenne);
-				temp_variance = (temp_variance/(link_index+1)) - (temp_moyenne*temp_moyenne);
+				data->temp_pointer_1 = data->first_link; temp_variance = 0;
+				while (data->temp_pointer_1 != NULL) {
+					temp_variance += (data->temp_pointer_1->nb_task_in_sub_list - moyenne)*(data->temp_pointer_1->nb_task_in_sub_list - moyenne);
+					data->temp_pointer_1 = data->temp_pointer_1->next;
+				}
+				temp_variance = temp_variance/link_index;
+				data->temp_pointer_1 = data->first_link;
+				//~ temp_variance = (temp_variance/(link_index)) - (temp_moyenne*temp_moyenne);
 				//~ temp_variance = (temp_variance/(link_index)) - (temp_moyenne*temp_moyenne);
 				//~ temp_variance = (temp_variance/(link_index+1));
 				//~ printf("La variance du nb de taches par paquets est %f\n",temp_variance);
 				//~ fprintf(variance_ecart_type,"%f",temp_variance);
 				temp_ecart_type = sqrt(temp_variance);
+				//~ temp_ecart_type = 
 				ecart_type = temp_ecart_type;
 				//~ printf("L'ecart type du nb de taches par paquets est %f\n",temp_ecart_type);
 				//~ fprintf(variance_ecart_type,"%f\n",temp_ecart_type);
@@ -944,7 +951,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 				// ------------------------------------------------------
 				
 				//Code to fprintf the Mean_task by packages per itération ---
-				fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index+1,moyenne,ecart_type);
+				fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index,moyenne,ecart_type);
 				//Code for ecart type
 				//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
 				//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
@@ -1015,7 +1022,7 @@ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
 				total_weight+= starpu_data_get_size(data->temp_pointer_1->package_data[i]);
 			}
-			printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+			//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
 			total_weight = 0;
 			link_index++;
 			data->temp_pointer_1 = data->temp_pointer_1->next;
