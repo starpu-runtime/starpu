@@ -527,6 +527,15 @@ Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the macro ::STARPU_NMAXBUFS.
 </dd>
 
+<dt>--enable-fxt-max-files=<c>count</c></dt>
+<dd>
+\anchor enable-fxt-max-files
+\addindex __configure__--enable-fxt-max-files
+Use at most <c>count</c> mpi nodes fxt files for generating traces.  This information is then available as
+the macro ::STARPU_FXT_MAX_FILES.  This information is used by FxT tools when considering multi node traces.
+Default value is 64.
+</dd>
+
 <dt>--enable-allocation-cache</dt>
 <dd>
 \anchor enable-allocation-cache

@@ -2221,6 +2221,14 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
+AC_MSG_CHECKING(how many MPI nodes fxt files can be manipulated when generating traces)
+AC_ARG_ENABLE(fxt-max-files, [AS_HELP_STRING([--enable-fxt-max-files=<nbuffers>],
+			[maximum number of mpi nodes for traces])],
+			nmaxfxtfiles=$enableval, nmaxfxtfiles=64)
+AC_MSG_RESULT($nmaxfxtfiles)
+AC_DEFINE_UNQUOTED(STARPU_FXT_MAX_FILES, [$nmaxfxtfiles],
+		[how many MPI nodes fxt files can be manipulated when generating traces])
+
 AC_MSG_CHECKING(maximum number of memory nodes to use per MPI rank)
 AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
 			[maximum number of memory nodes per MPI rank])],
