@@ -239,7 +239,16 @@ void starpu_memory_deallocate(unsigned node, size_t size);
 */
 void starpu_memory_wait_available(unsigned node, size_t size);
 
+/**
+   Sleep for the given \p nb_sec seconds.
+   In simgrid mode, this only sleeps within virtual time.
+  */
 void starpu_sleep(float nb_sec);
+
+/**
+   Sleep for the given \p nb_micro_sec micro-seconds.
+   In simgrid mode, this only sleeps within virtual time.
+  */
 void starpu_usleep(float nb_micro_sec);
 
 /** @} */
