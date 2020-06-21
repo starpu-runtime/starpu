@@ -26,17 +26,16 @@ struct _starpu_mpi_datatype_funcs
 	UT_hash_handle hh;
 };
 
-static starpu_pthread_mutex_t _starpu_mpi_datatype_funcs_table_mutex;
+/* We want to allow applications calling starpu_mpi_interface_datatype_register/unregister as constructor/destructor */
+static starpu_pthread_mutex_t _starpu_mpi_datatype_funcs_table_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static struct _starpu_mpi_datatype_funcs *_starpu_mpi_datatype_funcs_table = NULL;
 
 void _starpu_mpi_datatype_init(void)
 {
-	STARPU_PTHREAD_MUTEX_INIT(&_starpu_mpi_datatype_funcs_table_mutex, NULL);
 }
 
 void _starpu_mpi_datatype_shutdown(void)
 {
-	STARPU_PTHREAD_MUTEX_DESTROY(&_starpu_mpi_datatype_funcs_table_mutex);
 }
 
 /*
