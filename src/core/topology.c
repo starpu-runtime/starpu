@@ -1983,7 +1983,11 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 		{
 			cpu_worker[cpuid] = workerid;
 			if (name)
+			{
+				if (cpu_name[cpuid])
+					free(cpu_name[cpuid]);
 				cpu_name[cpuid] = strdup(name);
+			}
 		}
 	}
 
