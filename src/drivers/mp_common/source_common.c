@@ -164,6 +164,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 	{
 		case STARPU_EXECUTION_COMPLETED:
 		case STARPU_PRE_EXECUTION:
+		{
 			struct mp_message *message = mp_message_new();
 			message->type = answer;
 			_STARPU_MALLOC(message->buffer, arg_size);
@@ -175,6 +176,7 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node,
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			return 1;
 			break;
+		}
 		default:
 			return 0;
 			break;
