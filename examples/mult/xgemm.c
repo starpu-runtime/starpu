@@ -645,6 +645,16 @@ int main(int argc, char **argv)
 	}
 
 enodev:
+	{
+		unsigned x, y;
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			starpu_data_handle_t subhandle = starpu_data_get_sub_data(C_handle, 2, x, y);
+			starpu_data_acquire(subhandle, STARPU_W);
+			starpu_data_release(subhandle);
+		}
+	}
 	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
 	starpu_data_unpartition(B_handle, STARPU_MAIN_RAM);
 	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
