@@ -162,6 +162,7 @@ static void partition_mult_data(void)
 	for (x = 0; x < nslicesx; x++)
 	for (y = 0; y < nslicesy; y++)
 		starpu_data_set_coordinates(starpu_data_get_sub_data(C_handle, 2, x, y), 2, x, y);
+		starpu_data_set_wt_mask(C_handle, 1 << STARPU_MAIN_RAM);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -539,7 +540,8 @@ int main(int argc, char **argv)
 						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
 						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; goto enodev; }
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
+						starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
 				}
 				starpu_resume();
