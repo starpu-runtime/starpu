@@ -468,7 +468,7 @@ int main(int argc, char **argv)
 						 goto enodev;
 					}
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
 				starpu_resume();
 
@@ -541,7 +541,7 @@ int main(int argc, char **argv)
 						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; goto enodev; }
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
-						starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
 				}
 				starpu_resume();
@@ -573,7 +573,7 @@ int main(int argc, char **argv)
 						 goto enodev;
 					}
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 				starpu_resume();
 
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
 						 goto enodev;
 					}
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
+					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 				starpu_resume();
 
