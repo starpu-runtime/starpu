@@ -107,7 +107,7 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 
 /* Give a color for each package. Written in the file Data_coordinates.txt 
  */
-void rgb(int num, int *r, int *g, int *b)
+static void rgb(int num, int *r, int *g, int *b)
 {
     int *p[3] = {r, g, b};
     int i = 0;
@@ -124,8 +124,8 @@ void rgb(int num, int *r, int *g, int *b)
 
     *r = 0; *g = 0; *b = 0;
     for (i = 0; i < 8; i++) {
-        *r = *r << 1 | ((num & 2) >> 1);
-        *g = *g << 1 | ((num & 1) >> 0);
+        *r = *r << 1 | ((num & 1) >> 0);
+        *g = *g << 1 | ((num & 2) >> 1);
         *b = *b << 1 | ((num & 4) >> 2);
         num >>= 3;
     }
