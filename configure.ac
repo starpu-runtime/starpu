@@ -2514,7 +2514,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
-		if test x$build_mpi_lib = xyes -o x$build_mpi_master_slave = xyes ; then
+		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
 			#Check MPIFORT
 			if test x$enable_simgrid = xyes ; then
 				DEFAULT_MPIFORT=smpifort
