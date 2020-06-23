@@ -156,7 +156,6 @@ static void partition_mult_data(void)
 	starpu_data_partition(B_handle, &vert);
 	starpu_data_partition(A_handle, &horiz);
 
-	starpu_data_set_wt_mask(C_handle, 1 << STARPU_MAIN_RAM);
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 
 	unsigned x, y;
