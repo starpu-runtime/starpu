@@ -752,12 +752,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								//~ }
 							//~ }
 						//~ }}}
-						//~ if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
-						//~ else { 
+						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+						else { 
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
-							//~ }
+							}
 						/* */
-							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}{%s%d} &", red,green,blue, red+green+blue < 300 ? "\\color{white}" : "", coordinate_visualization_matrix[j_bis][i_bis]);
+							//~ fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}{%s%d} &", red,green,blue, red+green+blue < 300 ? "\\color{white}" : "", coordinate_visualization_matrix[j_bis][i_bis]);
+							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}&%d", red,green,blue, coordinate_visualization_matrix[j_bis][i_bis]);
 							
 						}
 						/* The last tab is out of the loop because we don't printf "&" */
@@ -774,10 +775,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								//~ }
 							//~ }
 						//~ }}}
-						//~ if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
-						//~ else { 
+						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+						else { 
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
-							//~ }
+							}
 						/* */
 						
 						fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]); 
