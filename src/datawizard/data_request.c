@@ -25,6 +25,9 @@
 #include <core/simgrid.h>
 
 /* requests that have not been treated at all */
+#ifdef STARPU_DEVEL
+#warning split into separate out/in queues for each node, so that MAX_PENDING_REQUESTS_PER_NODE is separate for them, since the links are bidirectionnal
+#endif
 static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_prio_list idle_requests[STARPU_MAXNODES];
