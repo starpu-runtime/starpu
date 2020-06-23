@@ -111,6 +111,17 @@ void rgb(int num, int *r, int *g, int *b)
 {
     int *p[3] = {r, g, b};
     int i = 0;
+
+    if (num < 7) {
+	num ++;
+	*r = num & 1 ? 255 : 0;
+	*g = num & 2 ? 255 : 0;
+	*b = num & 4 ? 255 : 0;
+	return;
+    }
+
+    num -= 7;
+
     *r = 0; *g = 0; *b = 0;
     for (i = 0; i < 8; i++) {
         *r = *r << 1 | ((num & 2) >> 1);
@@ -118,7 +129,6 @@ void rgb(int num, int *r, int *g, int *b)
         *b = *b << 1 | ((num & 4) >> 2);
         num >>= 3;
     }
-    *r = 255 - *r; *g = 255 - *g; *b = 255 - *b;
 }
 
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
@@ -747,7 +757,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
 							//~ }
 						/* */
-							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d &",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]);
+							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}{%s%d} &", red,green,blue, red+green+blue < 300 ? "\\color{white}" : "", coordinate_visualization_matrix[j_bis][i_bis]);
 							
 						}
 						/* The last tab is out of the loop because we don't printf "&" */
