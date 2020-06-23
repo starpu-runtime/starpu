@@ -41,12 +41,11 @@ static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int 
 	}
 	else
 	{
-		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 		for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
 		{
 			if(starpu_worker_can_execute_task(workerid, task, impl))
 			{
-				double d = starpu_task_expected_length(task, archtype, impl);
+				double d = starpu_task_worker_expected_length(task, workerid, sched_ctx_id, impl);
 				if(isnan(d))
 				{
 					best_impl = impl;

@@ -42,6 +42,9 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
+	energy/static.sh			\
+	energy/dynamic.sh			\
+	energy/perfs.gp				\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
@@ -212,6 +215,7 @@ myPROGRAMS +=					\
 
 if STARPU_SIMGRID
 myPROGRAMS +=					\
+	energy/energy_efficiency		\
 	datawizard/simgrid-locality
 endif
 

@@ -66,7 +66,7 @@ void _starpu_simgrid_deinit_late(void);
 void _starpu_simgrid_actor_setup(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 struct _starpu_job;
-void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished);
+void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, double energy, unsigned *finished);
 struct _starpu_data_request;
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
 union _starpu_async_channel_event;

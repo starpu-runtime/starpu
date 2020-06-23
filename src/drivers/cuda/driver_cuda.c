@@ -531,8 +531,11 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 				_SIMGRID_TIMER_END;
 			}
 		else
-			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
+		{
+			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+			_starpu_simgrid_submit_job(workerid, sched_ctx->id, j, &worker->perf_arch, NAN, NAN,
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
+		}
 #else
 #ifdef HAVE_LIBNVIDIA_ML
 		unsigned long long energy_start = 0;

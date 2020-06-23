@@ -948,6 +948,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
 		double length = NAN;
+		double energy = NAN;
 		int async = task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC;
 		int simulate = 1;
 		if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE && !async)
@@ -976,6 +977,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 #else
 			length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
 #endif
+			energy = info->energy_consumed;
 			/* And give the simulated time to simgrid */
 			simulate = 1;
 #endif
@@ -989,8 +991,11 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 			}
 
 		if (simulate)
-			_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
+		{
+			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+			_starpu_simgrid_submit_job(sched_ctx->id, worker->workerid, j, &worker->perf_arch, length, energy,
 						   async ? &task_finished[worker->devid][pipeline_idx] : NULL);
+		}
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 

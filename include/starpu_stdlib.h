@@ -251,6 +251,20 @@ void starpu_sleep(float nb_sec);
   */
 void starpu_usleep(float nb_micro_sec);
 
+/**
+   Account for \p joules J being used.
+   This is support in simgrid mode, to record how much energy was used, and will
+   show up in further call to starpu_energy_used().
+  */
+void starpu_energy_use(float joules);
+
+/**
+   Return the amount of energy having been used in J.
+   This account the amounts passed to starpu_energy_use(), but also the static
+   energy use set by the \ref STARPU_IDLE_POWER environment variable.
+  */
+double starpu_energy_used(void);
+
 /** @} */
 
 #ifdef __cplusplus
