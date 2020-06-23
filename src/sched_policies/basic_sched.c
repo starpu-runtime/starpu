@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
+ * Copyright (C) 2020       Maxime Gonthier
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +106,6 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 }
 
 /* Give a color for each package. Written in the file Data_coordinates.txt 
- * Copyright Samuel 
  */
 void rgb(int num, int *r, int *g, int *b)
 {
