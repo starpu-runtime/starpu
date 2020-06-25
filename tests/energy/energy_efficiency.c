@@ -17,6 +17,7 @@
 
 #include <stdbool.h>
 #include <starpu.h>
+#include <limits.h>
 #include "../helper.h"
 
 /*
@@ -67,7 +68,6 @@ static float power(float frequency)
 	double alpha = (power_fast - power_min) / (freq_fast3 - freq_min3);
 	return power_min + alpha * ( frequency*frequency*frequency - freq_min3);
 }
-
 
 /*
  * This returns the frequency of the given worker and implementation in MHz.
@@ -276,8 +276,8 @@ CODELET(potrf, 1, STARPU_RW)
 CODELET(trsm, 2, STARPU_R, STARPU_RW)
 CODELET(gemm, 3, STARPU_R, STARPU_R, STARPU_RW)
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	/* Initialize environment variables */
 
 	if (!getenv("STARPU_IDLE_POWER"))
@@ -332,7 +332,6 @@ int main(int argc, char *argv[]) {
 		starpu_shutdown();
 		return 0;
 	}
-
 
 	/* Give parameter summary to user */
 
