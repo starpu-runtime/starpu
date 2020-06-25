@@ -105,8 +105,7 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 	return a->first_link;
 }
 
-/* Give a color for each package. Written in the file Data_coordinates.txt 
- */
+/* Give a color for each package. Written in the file Data_coordinates.txt */
 static void rgb(int num, int *r, int *g, int *b)
 {
     int *p[3] = {r, g, b};
@@ -283,12 +282,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				/* For algorithm 4 we need a symmetric matrix */
 				if (data->ALGO_USED_READER == 4) { 
-					//Je récupère le nombre de tâche minimal d'un paquet
+					/* First we get the number of packages that have the minimal number of tasks */
 					for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 						if (min_nb_task_in_sub_list > data->temp_pointer_1->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->temp_pointer_1->nb_task_in_sub_list; } }
 					for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 						if (min_nb_task_in_sub_list == data->temp_pointer_1->nb_task_in_sub_list) { nb_min_task_packages++; } }
 					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
+					/* Then we create the common data matrix */
 					for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 						for (data->temp_pointer_2 = data->temp_pointer_1->next; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
 							for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
@@ -298,9 +298,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(data->temp_pointer_2->package_data[j]) + starpu_data_get_size(data->temp_pointer_1->package_data[i]);
 									} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 				}
-				//On est pas dans le cas de l'algo 4, pas besoin de faire une matrice symétrique
+				/* We are not in ALGO 4 we don't need a symetric matrix */
 				else {
-					//Filling the common data matrix
+					/* Filling the common data matrix */
 					for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 						for (data->temp_pointer_2 = data->temp_pointer_1->next; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
 							for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
@@ -319,7 +319,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
 				}
 				
-				//Getting the number of package that have data in commons
+				/* Getting the number of package that have data in commons */
 				for (i = 0; i < nb_pop; i++) {
 					for (j = 0; j < nb_pop; j++) {
 						if (matrice_donnees_commune[i][j] != 0) { nb_common_data++; } } }
@@ -328,14 +328,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				/* Getting back to the beginning of the linked list */
 				data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link;
 				
-				//ALGO 4
-				long int tab_max_value_common_data_matrix [nb_min_task_packages];
-				int indice_paquet_a_regrouper [nb_min_task_packages];
+				long int tab_max_value_common_data_matrix [nb_min_task_packages]; /* Tab to store the max possible weight of each packages that have a minimal size */
+				int indice_paquet_a_regrouper [nb_min_task_packages]; /* Store the index of the packages wich regroup with the maximum weight */
 				if (data->ALGO_USED_READER == 4) {
 					
+					/* ALGO 4 */
 					if (starpu_get_env_number_default("ALGO_4_RANDOM",0) == 1) {
-					//ALGO 4 WITH RANDOM ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-					//Init à 0
 					
 				i_bis = 0; j_bis = 0; 
 					temp_nb_min_task_packages = nb_min_task_packages;
@@ -345,7 +343,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					data->temp_pointer_2 = data->first_link;
 					max_value_common_data_matrix = 0;
 					for (i_bis = 0; i_bis < nb_pop; i_bis++) {
-						if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
+						if (data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { /* If we are on a package of minimal size */
 							for (data->temp_pointer_2 = data->first_link; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
 								if (i_bis != j_bis) {
 									weight_two_packages = 0;
@@ -360,7 +358,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							} j_bis++; } } 
 							data->temp_pointer_1=data->temp_pointer_1->next;
 							j_bis = 0; }
-					//~ printf("max value common data matrix = %d\n",max_value_common_data_matrix);
 					data->temp_pointer_1 = data->first_link;
 					data->temp_pointer_2 = data->first_link;
 					nb_grouping_available = 0; i_bis = 0; j_bis = 0;
@@ -410,7 +407,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				i_bis = 0; j_bis = 0; i = 0; j = 0;
 				
 				
-				//New One
 				for (i = 0; i < tab_grouping_available[random_value]; i++) {
 					data->temp_pointer_1 = data->temp_pointer_1->next;
 				}
@@ -462,13 +458,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					}
 				data->temp_pointer_2 = data->temp_pointer_2->next; }		
 							}
-														 										
-				
-				// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+														 														
 			} else {
-					// ALGO 4 SANS SELECTION PAQUET RANDOM --------------------------------------------------------------------------------------------------------------------------
-					//Init à 0
-					//~ printf("Algo 4'\n");
+					/* ALGO 4' */
 					i_bis = 0; j_bis = 0; 
 					temp_nb_min_task_packages = nb_min_task_packages;
 				debut_while:
@@ -554,9 +546,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					data->temp_pointer_1=data->temp_pointer_1->next; data->temp_pointer_2=data->first_link;
 				}			
 				}
-				// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 				}
-				/* We don't use ALGO 4 */
+				/* We don't use ALGO 4 or ALGO 4' */
 				else {
 					if (GPU_limit_switch == 1) {
 					/* Getting W_max. W_max get the max common data only if the merge of the two packages without the duplicates data would weight less than GPU_RAM */
@@ -625,8 +616,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						{
 							
 							if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
-							//~ if (GPU_RAM == 0) { 
-								//~ printf("On dépasse GPU_RAM!\n"); 
+								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On dépasse GPU_RAM!\n"); }
 							}
 							else {
 								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
@@ -699,7 +689,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				/* goto for algo 2 */
 				algo_2:
 				
-				//Supprimer les maillons vide
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = delete_link(data);
 				if (data->ALGO_USED_READER != 3) {
@@ -710,16 +699,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
 							starpu_data_get_coordinates_array(data->temp_pointer_1->package_data[i],2,temp_tab_coordinates);
 							if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->temp_pointer_1->package_data[i])))  {
-								
-								//Old version
-								//~ coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = link_index;
-								//New version
-								coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
-								
+								coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;							
 								temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
 							}
 						}
-						//--------------------------------------------------------------------------------------------------------
 						for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 							if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche %p est dans le paquet numéro %d\n",temp_task_1,link_index); }
 							temp_number_task ++;
@@ -728,7 +711,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						temp_number_task = 0;
 						link_index++;
 						data->temp_pointer_1 = data->temp_pointer_1->next;
-						//~ printf("-----------------------------------------------\n");
 					} 
 					
 					//Code to write in a file the coordinates ---------------------------------------------------------------------------
@@ -758,7 +740,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							}
 						/* */
 							//~ fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}{%s%d} &", red,green,blue, red+green+blue < 300 ? "\\color{white}" : "", coordinate_visualization_matrix[j_bis][i_bis]);
-							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}&%d", red,green,blue, coordinate_visualization_matrix[j_bis][i_bis]);
+							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, coordinate_visualization_matrix[j_bis][i_bis]);
 							
 						}
 						/* The last tab is out of the loop because we don't printf "&" */
@@ -796,7 +778,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					}
 					// ----------------------------------------------------------------------------------------------------------------
 					
-					//~ //Code to print moyenne variance ecart type nombre de tâches par paquet -------
+					/* Code to printf and fprintf the mean number of tasks in each package and the standart deviation */
 					temp_moyenne = temp_moyenne/(link_index);
 					moyenne = temp_moyenne;
 					data->temp_pointer_1 = data->first_link; temp_variance = 0;
@@ -815,19 +797,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						printf("Fin du tour numéro %d du while!\n\n",nb_of_loop);
 					}
 					
-					temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
-					
-					//Code to fprintf the number of packages per itération ---
-					//~ fprintf(Nb_package_by_loop,"%d	%d\n",nb_of_loop,link_index);
-					// ------------------------------------------------------
-					
-					//Code to fprintf the Mean_task by packages per itération ---
+					temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;				
 					fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index,moyenne,ecart_type);
-					
-					//Code for ecart type
-					//~ fprintf(Mean_task_by_loop,"%f	\n",temp_ecart_type);
-					//~ temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;
-					// ------------------------------------------------------
 				}
 				}
 				/* Else we are using algorithm 3 */
@@ -837,29 +808,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 			//Reset de nb_pop!
 			nb_pop = link_index;
-			
+			/* If we have only one package we don't have to do more packages */			
 			if (nb_pop == 1) { break; }
-			//~ printf("packaging impossible vaut %d\n",packaging_impossible);
-			
-			//~ link_index = 0;
-			//~ printf("\n");
-			//~ printf("----------------------------------\n");
-			//~ while (data->temp_pointer_1 != NULL) {
-				//~ for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
-						//~ starpu_data_get_coordinates_array(data->temp_pointer_1->package_data[i],2,temp_tab_coordinates);
-						//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->temp_pointer_1->package_data[i])))  {
-								//~ printf("Les coordonnées de la donnée %p du paquet %d sont : x = %d / y = %d\n",data->temp_pointer_1->package_data[i],link_index,temp_tab_coordinates[0],temp_tab_coordinates[1]);
-						//~ }
-				//~ }	
-				//~ data->temp_pointer_1 = data->temp_pointer_1->next; link_index++; printf("---\n");
-			//~ }
-			//~ data->temp_pointer_1 = data->first_link;
-			//~ printf("Fin du while\n");
+
 		} // Fin du while (packaging_impossible == 0) {
 		fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type);
 		if (data->ALGO_USED_READER != 3) { 
-			//~ fprintf(variance_ecart_type,"%f",moyenne);
-			//~ fprintf(variance_ecart_type,"	%f\n",ecart_type);
 			fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM 0 / MATRICE 8x8} \\label{fig:fig} \\end{figure}");
 			fclose(fcoordinate);
 			fclose(variance_ecart_type);
@@ -904,38 +858,14 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			packing_time = clock();
 			printf("Temps d'empaquetage = %d ms\n", packing_time);
 		}
-		
-		//Code to fprintf in packages_data.txt ------------------------------------------------------------------------------------------------------------------------------------
-		//data file we output with stat about the number of packages etc...
-		//~ FILE * data_output;
-		//~ data_output = fopen("packages_data.txt", "a+");
-		//~ link_index = 0;	
-		//~ int weight_all_packages = 0;
-		//~ int number_data_without_duplicate = 0;
-		//~ while (data->temp_pointer_1 != NULL) {
-			//~ link_index++;
-			//~ number_data_without_duplicate += data->temp_pointer_1->package_nb_data;
-			//~ for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
-				//~ weight_all_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i]);
-			//~ }
-			//~ data->temp_pointer_1 = data->temp_pointer_1->next;
-		//~ }
-		//~ double matrix_size = 960*sqrt(number_tasks);
-		//~ mean_task_by_packages = number_tasks/link_index;
-		//~ double mean_data_by_packages = number_data_without_duplicate/link_index;
-		//~ double mean_weight_packages = weight_all_packages/link_index;
-		//~ //Le *3 est du brute force, il faudra le changer si l'app devient générique
-		//~ fprintf(data_output, "%f	%f	%f	%d	%d	%f %f %f\n",matrix_size,number_tasks,number_tasks*3,number_data_without_duplicate,link_index,mean_task_by_packages,mean_data_by_packages,mean_weight_packages);
-		//~ data->temp_pointer_1 = data->first_link;
-		// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		
-			task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
-	}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (task1 != NULL) { 
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 		}
-		return task1;
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			/* We remove the first list of the first link of the linked list */
+			if (task1 != NULL) { 
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			}
+			return task1;
 	} /* Else of if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) { */
 	if (!starpu_task_list_empty(&data->temp_pointer_1->sub_list)) {
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
@@ -993,7 +923,7 @@ static int basic_can_pull(struct starpu_sched_component * component)
 
 struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	srandom(time(0));
+	srandom(time(0)); /* For the random selection in ALGO 4 */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "basic");
 	
 	struct basic_sched_data *data;
@@ -1002,7 +932,6 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	data->ALGO_USED_READER = starpu_get_env_number_default("ALGO_USED",1);
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
-	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
