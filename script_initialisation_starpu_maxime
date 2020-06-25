@@ -1,3 +1,5 @@
-./configure --enable-simgrid --disable-mpi
+./configure --enable-simgrid --disable-mpi --with-fxt
 make install
 make -j4
+echo "make ok"
+export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
