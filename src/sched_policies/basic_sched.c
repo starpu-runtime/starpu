@@ -714,7 +714,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					} 
 					
 					//Code to write in a file the coordinates ---------------------------------------------------------------------------
-					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth} \\centering \\begin{tabular}{ c | c | c | c| c| c| c}"); 
+					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth} \\centering \\begin{tabular}{ c | c | c | c| c| c| c| c| c| c}"); 
 					for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
 					
 						} fprintf(fcoordinate,"\n");
@@ -735,6 +735,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							//~ }
 						//~ }}}
 						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+						else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
 						else { 
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
 							}
@@ -758,6 +759,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							//~ }
 						//~ }}}
 						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+						else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
 						else { 
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
 							}
@@ -814,7 +816,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		} // Fin du while (packaging_impossible == 0) {
 		fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type);
 		if (data->ALGO_USED_READER != 3) { 
-			fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM 0 / MATRICE 8x8} \\label{fig:fig} \\end{figure}");
+			fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM TASK ORDER 0 / MATRICE 10x10} \\label{fig:fig} \\end{figure}");
 			fclose(fcoordinate);
 			fclose(variance_ecart_type);
 			fclose(mean_task_by_loop);
@@ -822,7 +824,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		}
 		
 		/* We are in algorithm 3, we remove the size limit of a package */
-		if ((data->ALGO_USED_READER == 3) && (link_index > 1)) { GPU_limit_switch = 0; printf("goto\n"); goto algo3; }	
+		if ((data->ALGO_USED_READER == 3) && (link_index > 1)) { GPU_limit_switch = 0; goto algo3; }	
 		
 		data->temp_pointer_1 = data->first_link;	
 		
