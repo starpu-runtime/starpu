@@ -205,7 +205,9 @@ simply tend to run all computations on the most energy-conservative processing
 unit. To account for the consumption of the whole machine (including idle
 processing units), the idle power of the machine should be given by setting
 <c>export STARPU_IDLE_POWER=200</c> (\ref STARPU_IDLE_POWER) for 200W, for instance. This value can often
-be obtained from the machine power supplier.
+be obtained from the machine power supplier, e.g. by running
+
+<c>ipmitool -I lanplus -H mymachine-ipmi -U myuser -P mypasswd sdr type Current</c>
 
 The energy actually consumed by the total execution can be displayed by setting
 <c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> (\ref STARPU_PROFILING and \ref STARPU_WORKER_STATS).
