@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+<<<<<<< HEAD
 StarPU 1.3.6 (git revision xxx)
 ====================================================================
 
@@ -24,6 +25,8 @@ Small features:
   * Add STARPU_DISPLAY_BINDINGS environment variable and
     starpu_display_bindings() function to display all bindings on the machine by
     calling hwloc-ps
+  * New function starpu_get_pu_os_index() to convert logical index of a PU to
+    its OS index.
 
 StarPU 1.3.5 (git revision 5f7458799f548026fab357b18541bb462dde2b53)
 ====================================================================
