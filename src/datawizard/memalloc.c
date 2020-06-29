@@ -322,7 +322,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 		{
 			/* This is the only copy, push it to destination */
 			struct _starpu_data_request *r;
-			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0, "transfer_subtree_to_node");
+			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, STARPU_FETCH, 0, NULL, NULL, 0, "transfer_subtree_to_node");
 			/* There is no way we don't need a request, since
 			 * source is OWNER, destination can't be having it */
 			STARPU_ASSERT(r);
@@ -841,7 +841,7 @@ restart:
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
  */
-static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, int is_prefetch)
+static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum _starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	int success = 0;
@@ -1218,7 +1218,7 @@ void starpu_memchunk_tidy(unsigned node)
 			}
 
 			_starpu_spin_unlock(&mc_lock[node]);
-			if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[target_node], STARPU_R, 2, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
+			if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[target_node], STARPU_R, STARPU_IDLEFETCH, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
 			{
 				/* No request was actually needed??
 				 * Odd, but cope with it.  */
@@ -1430,7 +1430,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
  *
  */
 
-static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, unsigned is_prefetch)
+static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum _starpu_is_prefetch is_prefetch)
 {
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
@@ -1596,7 +1596,7 @@ out:
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned is_prefetch)
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum _starpu_is_prefetch is_prefetch)
 {
 	starpu_ssize_t allocated_memory;
 

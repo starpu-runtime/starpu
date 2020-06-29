@@ -691,7 +691,7 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	}
 	if (valid)
 	{
-		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, 0, 0, NULL, NULL, 0, origin);
+		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, STARPU_FETCH, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, handle->home_node, replicate);
 	}

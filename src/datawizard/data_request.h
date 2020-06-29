@@ -28,6 +28,13 @@
 #include <common/prio_list.h>
 #include <common/starpu_spinlock.h>
 
+enum _starpu_is_prefetch
+{
+	STARPU_FETCH = 0,
+	STARPU_PREFETCH = 1,
+	STARPU_IDLEFETCH = 2,
+};
+
 /* TODO: This should be tuned according to driver capabilities
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
@@ -151,7 +158,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 unsigned is_prefetch,
+							 enum _starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
 							 const char *origin) STARPU_ATTRIBUTE_MALLOC;

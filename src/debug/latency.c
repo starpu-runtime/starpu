@@ -34,7 +34,7 @@ void _starpu_benchmark_ping_pong(starpu_data_handle_t handle,
 		_starpu_spin_unlock(&handle->header_lock);
 
 		struct _starpu_data_replicate *replicate_0 = &handle->per_node[node0];
-		ret = _starpu_fetch_data_on_node(handle, node0, replicate_0, STARPU_RW, 0, 0, 0, NULL, NULL, 0, "_starpu_benchmark_ping_pong");
+		ret = _starpu_fetch_data_on_node(handle, node0, replicate_0, STARPU_RW, 0, STARPU_FETCH, 0, NULL, NULL, 0, "_starpu_benchmark_ping_pong");
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, node0, replicate_0);
 
@@ -44,7 +44,7 @@ void _starpu_benchmark_ping_pong(starpu_data_handle_t handle,
 		_starpu_spin_unlock(&handle->header_lock);
 
 		struct _starpu_data_replicate *replicate_1 = &handle->per_node[node1];
-		ret = _starpu_fetch_data_on_node(handle, node1, replicate_1, STARPU_RW, 0, 0, 0, NULL, NULL, 0, "_starpu_benchmark_ping_pong");
+		ret = _starpu_fetch_data_on_node(handle, node1, replicate_1, STARPU_RW, 0, STARPU_FETCH, 0, NULL, NULL, 0, "_starpu_benchmark_ping_pong");
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, node1, replicate_1);
 	}
