@@ -34,7 +34,9 @@ New features:
   * Add energy accounting in the simgrid mode: starpu_energy_use() and
     starpu_energy_used().
   * New function starpu_mpi_get_thread_cpuid() to know where is bound the MPI
-    thread
+    thread.
+  * New function starpu_get_pu_os_index() to convert logical index of a PU to
+    its OS index.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
