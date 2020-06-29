@@ -3040,3 +3040,12 @@ int starpu_get_pu_os_index(unsigned logical_index)
 	return logical_index;
 #endif
 }
+
+#ifdef STARPU_HAVE_HWLOC
+int starpu_get_hwloc_topology(hwloc_topology_t* topology)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	return hwloc_topology_dup(topology, config->topology.hwtopology);
+}
+#endif

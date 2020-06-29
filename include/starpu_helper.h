@@ -20,6 +20,10 @@
 #include <stdio.h>
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -196,6 +200,12 @@ void starpu_display_bindings(void);
 */
 int starpu_get_pu_os_index(unsigned logical_index);
 
+#ifdef STARPU_HAVE_HWLOC
+/**
+   Get a copy of the hwloc topology used by StarPU.
+*/
+int starpu_get_hwloc_topology(hwloc_topology_t* topology);
+#endif
 /** @} */
 
 #ifdef __cplusplus
