@@ -192,7 +192,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		int home_node = initial_handle->home_node;
 		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 			home_node = STARPU_MAIN_RAM;
-		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], 0);
+		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], STARPU_FETCH);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
 #endif
