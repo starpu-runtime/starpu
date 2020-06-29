@@ -132,6 +132,12 @@ int starpu_mpi_world_size(void);
 */
 int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
 
+
+/**
+   Get the logical index of the core where the MPI thread is bound.
+*/
+int starpu_mpi_get_thread_cpuid(void);
+
 int starpu_mpi_get_communication_tag(void);
 void starpu_mpi_set_communication_tag(int tag);
 

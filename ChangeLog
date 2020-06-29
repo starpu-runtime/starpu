@@ -33,6 +33,8 @@ New features:
   * New STARPU_PER_WORKER perfmodel.
   * Add energy accounting in the simgrid mode: starpu_energy_use() and
     starpu_energy_used().
+  * New function starpu_mpi_get_thread_cpuid() to know where is bound the MPI
+    thread
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
