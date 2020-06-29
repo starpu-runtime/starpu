@@ -66,8 +66,19 @@ struct my_list
 	starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
 	struct starpu_task_list sub_list; /* The list containing the tasks */
 	struct my_list *next;
-	struct my_list *previous;
+	/* The task's list of the last state of the current package */
+	struct starpu_task_list last_package_0; 
+	struct starpu_task_list last_package_1; 
 };
+
+/* Empty a task's list. We use this for the lists last_package */
+void empty_list(struct starpu_task_list *a)
+{
+	struct starpu_task *task = NULL;
+	while (!starpu_task_list_empty(a)) {				
+		task = starpu_task_list_pop_front(a);
+	}
+}
 
 /* Put a link at the beginning of the linked list */
 void insertion(struct basic_sched_data *a)
@@ -221,15 +232,20 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				data->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_1);
 				/* We sort our datas in the packages */
 				qsort(data->temp_pointer_1->package_data,data->temp_pointer_1->package_nb_data,sizeof(data->temp_pointer_1->package_data[0]),pointeurComparator);
+				/* Pushing the task and the number of the package in the package*/
 				starpu_task_list_push_back(&data->temp_pointer_1->sub_list,temp_task_1);
 				data->temp_pointer_1->index_package = link_index;
+				/* Initialization of the lists last_packages */
+				starpu_task_list_push_back(&data->temp_pointer_1->last_package_0,temp_task_1);
+				starpu_task_list_push_back(&data->temp_pointer_1->last_package_1,temp_task_1);
+				
 				link_index++;
 				data->temp_pointer_1->nb_task_in_sub_list ++;
 				
 				if(do_not_add_more != 0) { insertion(data); data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0])); }
 				do_not_add_more--;
 			}
-			data->first_link = data->temp_pointer_1;
+			data->first_link = data->temp_pointer_1;				
 			
 			/* Code to print all the data of all the packages */
 			if (starpu_get_env_number_default("PRINTF",0) == 1) {
@@ -847,6 +863,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			packing_time = clock();
 			printf("Temps d'empaquetage = %d ms\n", packing_time);
 		}
+		
+		/* We pop the first task of the first package */
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 		}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -925,6 +943,8 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&my_data->sub_list);
+	starpu_task_list_init(&my_data->last_package_0);
+	starpu_task_list_init(&my_data->last_package_1);
  
 	my_data->next = NULL;
 	data->temp_pointer_1 = my_data;
