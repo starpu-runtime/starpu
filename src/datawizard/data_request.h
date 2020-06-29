@@ -33,6 +33,7 @@ enum _starpu_is_prefetch
 	STARPU_FETCH = 0,
 	STARPU_PREFETCH = 1,
 	STARPU_IDLEFETCH = 2,
+	STARPU_NFETCH
 };
 
 /* TODO: This should be tuned according to driver capabilities
