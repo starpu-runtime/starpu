@@ -252,6 +252,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			FILE * fcoordinate; /* Coordinates at each iteration */
 			fcoordinate = fopen("Data_coordinates.txt", "w+");
 			fprintf(fcoordinate,"\\begin{figure}[H]");
+			FILE * fcoordinate_order; /* Order in wich the task go out */
+			fcoordinate_order = fopen("Data_coordinates_order.txt", "w+");
+			fprintf(fcoordinate_order,"\\begin{figure}[H]");
 			FILE * variance_ecart_type;
 			variance_ecart_type = fopen("variance_ecart_type.txt", "w+");
 			FILE * mean_task_by_loop;
@@ -262,9 +265,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			/* Matrix used to store all the common data weights between packages */
 			int coordinate_visualization_matrix_size = sqrt(number_tasks);
 			int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
+			int coordinate_order_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
 			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
 				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
 					coordinate_visualization_matrix[j_bis][i_bis] = NULL;
+					coordinate_order_visualization_matrix[j_bis][i_bis] = NULL;
 				}
 			}
 			
@@ -691,6 +696,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = delete_link(data);
+				tab_runner = 0;
 				if (data->ALGO_USED_READER != 3) {
 					if (packaging_impossible != 1) {
 					while (data->temp_pointer_1 != NULL) {
@@ -699,7 +705,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
 							starpu_data_get_coordinates_array(data->temp_pointer_1->package_data[i],2,temp_tab_coordinates);
 							if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->temp_pointer_1->package_data[i])))  {
-								coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;							
+								coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
+								coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
+								tab_runner++;						
 								temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
 							}
 						}
@@ -714,65 +722,42 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					} 
 					
 					//Code to write in a file the coordinates ---------------------------------------------------------------------------
-					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth} \\centering \\begin{tabular}{ c | c | c | c| c| c| c| c| c| c}"); 
-					for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
-					
-						} fprintf(fcoordinate,"\n");
+					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c| c| c}"); 
+					fprintf(fcoordinate_order,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c|c|c}"); 
+					fprintf(fcoordinate,"\n");
+					fprintf(fcoordinate_order,"\n");
 					for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
-						for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {
-							
+						for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {	
 							/* Code to color the tabs in Data_coordinates.txt */
-							//~ red = 255; blue = 255; green = 255;
-							//~ if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
-							//~ else { if (coordinate_visualization_matrix[j_bis][i_bis] == 1) { red = 0; green = 255; blue = 0; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 2) { red = 0; green = 0; blue = 255; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 3) { red = 255; green = 0; blue = 0; }
-								//~ else { 
-								//~ if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 0) {  red = red - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; blue = 0; }
-								//~ else { 
-									//~ if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 1) {  green = green - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = 0; blue = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; }
-									//~ else { if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 2) { blue = blue - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = 0; }
-									//~ }
-								//~ }
-							//~ }
-						//~ }}}
-						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
-						else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
-						else { 
-							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
+							if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
+							else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
+							else { 
+								rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
 							}
-						/* */
-							//~ fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}{%s%d} &", red,green,blue, red+green+blue < 300 ? "\\color{white}" : "", coordinate_visualization_matrix[j_bis][i_bis]);
 							fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, coordinate_visualization_matrix[j_bis][i_bis]);
-							
+							fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, coordinate_order_visualization_matrix[j_bis][i_bis]);	
 						}
 						/* The last tab is out of the loop because we don't printf "&" */
-						/* Code to color the tabs in Data_coordinates.txt */
-						//~ red = 255; blue = 255; green = 255;
-						//~ if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
-							//~ else { if (coordinate_visualization_matrix[j_bis][i_bis] == 1) { red = 0; green = 255; blue = 0; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 2) { red = 0; green = 0; blue = 255; } else { if (coordinate_visualization_matrix[j_bis][i_bis] == 3) { red = 255; green = 0; blue = 0; }
-								//~ else { 
-								//~ if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 0) {  red = red - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; blue = 0; }
-								//~ else { 
-									//~ if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 1) {  green = green - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = 0; blue = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; }
-									//~ else { if (coordinate_visualization_matrix[j_bis][i_bis]%3 == 2) { blue = blue - (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; red = (coordinate_visualization_matrix[j_bis][i_bis]*10)%255; green = 0; }
-									//~ }
-								//~ }
-							//~ }
-						//~ }}}
 						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
 						else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
 						else { 
 							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
-							}
-						/* */
-						
+						}
 						fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]); 
+						fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_order_visualization_matrix[j_bis][i_bis]); 
 						fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\\hline");
+						fprintf(fcoordinate_order," \\\\"); fprintf(fcoordinate_order,"\\hline");
 					}
-					if (nb_of_loop > 1 && nb_of_loop%2 == 0) { fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop); }
-					else { fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure}",nb_of_loop); }
-
-					for (i_bis = 0; i_bis < sqrt(number_tasks)*3 + 6; i_bis++) { 
-						} fprintf(fcoordinate,"\n");
+					if (nb_of_loop > 1 && nb_of_loop%2 == 0) { 
+						fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop); 
+						fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop); 
+					}
+					else { 
+						fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure}",nb_of_loop); 
+						fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure}",nb_of_loop); 
+					}
+					fprintf(fcoordinate,"\n");
+					fprintf(fcoordinate_order,"\n");
 					for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
 						for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
 							coordinate_visualization_matrix[j_bis][i_bis] = NULL;
@@ -817,7 +802,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type);
 		if (data->ALGO_USED_READER != 3) { 
 			fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM TASK ORDER 0 / MATRICE 10x10} \\label{fig:fig} \\end{figure}");
+			fprintf(fcoordinate_order,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM TASK ORDER 0 / MATRICE 10x10} \\label{fig:fig} \\end{figure}");
 			fclose(fcoordinate);
+			fclose(fcoordinate_order);
 			fclose(variance_ecart_type);
 			fclose(mean_task_by_loop);
 			fclose(mean_ecart_type_finaux);
