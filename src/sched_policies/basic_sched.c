@@ -39,6 +39,7 @@
 #define ALGO_USED /* 1,2,3 or 4. Add ALGO_4_RANDOM=1 and ALGO_USED=4 to use the algorithm 4. Add ALGO_4_RANDOM=0 and ALGO_USED=4 or just ALGO_USED=4 for the algorithm 4' */
 #define ALGO_4_RANDOM /* 0 or 1 */
 #define PRINTF /* O or 1 */
+#define HILBERT /* O or 1 */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct basic_sched_data
@@ -67,8 +68,8 @@ struct my_list
 	struct starpu_task_list sub_list; /* The list containing the tasks */
 	struct my_list *next;
 	/* The task's list of the last state of the current package */
-	struct starpu_task_list last_package_0; 
 	struct starpu_task_list last_package_1; 
+	struct starpu_task_list last_package_2; 
 };
 
 /* Empty a task's list. We use this for the lists last_package */
@@ -170,6 +171,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	double mean_task_by_packages = 0; double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0; long cursor_position = 0; int packing_time = 0; double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int *red = 0; int *green = 0; int *blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL; starpu_data_handle_t data_0_0_in_C = NULL;
+	long int common_data_last_package_i1_j0 = 0; long int common_data_last_package_i1_j1 = 0;
 	
 	int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
 	int nb_common_data = 0; /* Track the number of packages that have data in commons with other packages */
@@ -236,8 +238,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				starpu_task_list_push_back(&data->temp_pointer_1->sub_list,temp_task_1);
 				data->temp_pointer_1->index_package = link_index;
 				/* Initialization of the lists last_packages */
-				starpu_task_list_push_back(&data->temp_pointer_1->last_package_0,temp_task_1);
 				starpu_task_list_push_back(&data->temp_pointer_1->last_package_1,temp_task_1);
+				starpu_task_list_push_back(&data->temp_pointer_1->last_package_2,temp_task_1);
 				
 				link_index++;
 				data->temp_pointer_1->nb_task_in_sub_list ++;
@@ -568,7 +570,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				}			
 				}
 				}
-				/* We don't use ALGO 4 or ALGO 4' */
+				/* ALGO 1, 2 and 3 */
 				else {
 					if (GPU_limit_switch == 1) {
 					/* Getting W_max. W_max get the max common data only if the merge of the two packages without the duplicates data would weight less than GPU_RAM */
@@ -610,7 +612,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						}
 					}
 				}
-			
 				
 				/* Merge of the packages and verification that the weight would be inferior to GPU_MAX */
 				for (i = 0; i < nb_pop; i++) {
@@ -647,7 +648,39 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; }
 							for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; }
 							nb_common_data--;
-
+							
+							if (starpu_get_env_number_default("HILBERT",0) == 1) {
+								for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->last_package_2); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->last_package_2); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+									for (temp_task_2 = starpu_task_list_begin(&data->temp_pointer_2->last_package_1); temp_task_2 != starpu_task_list_end(&data->temp_pointer_2->last_package_1); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i1_j0++;
+												}
+											}
+										}
+									}
+									for (temp_task_2 = starpu_task_list_begin(&data->temp_pointer_2->last_package_2); temp_task_2 != starpu_task_list_end(&data->temp_pointer_2->last_package_2); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i1_j1++;
+												}
+											}
+										}
+									}
+								}
+								//~ empty_list(&data->temp_pointer_1->last_package_1);
+								//~ empty_list(&data->temp_pointer_1->last_package_2);
+								printf("Il y a pour j0 : %d et pour j1 : %d\n",common_data_last_package_i1_j0,common_data_last_package_i1_j1);
+								if (common_data_last_package_i1_j0 < common_data_last_package_i1_j1) {
+									printf("Il faut switch!\n");
+								}
+							}
+							
+							/* Merging the tasks's list */
 							while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) { 
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
 								data->temp_pointer_1->nb_task_in_sub_list ++;
@@ -943,8 +976,8 @@ struct starpu_sched_component *starpu_sched_component_basic_create(struct starpu
 	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&my_data->sub_list);
-	starpu_task_list_init(&my_data->last_package_0);
 	starpu_task_list_init(&my_data->last_package_1);
+	starpu_task_list_init(&my_data->last_package_2);
  
 	my_data->next = NULL;
 	data->temp_pointer_1 = my_data;
