@@ -35,6 +35,8 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
         unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
         vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>(n, val, *factor);
+        cudaError_t status = cudaGetLastError();
+        if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 
         cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

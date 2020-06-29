@@ -70,6 +70,8 @@ extern "C" void test_block_cuda_func(void *buffers[], void *args)
 
         block_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>
 		(block, nx, ny, nz, ldy, ldz, factor, ret);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 	error = cudaMemcpyAsync(&block_config.copy_failed, ret, sizeof(int), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);

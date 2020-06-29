@@ -30,12 +30,16 @@
 	{			   \
 		dim3 dimGrid(n); \
 		func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
+		cudaError_t status = cudaGetLastError(); \
+		if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 	} 					\
 	else 					\
 	{				     \
 		dim3 dimGrid(n / threads_per_block); \
 		dim3 dimBlock(threads_per_block); \
 		func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
+		cudaError_t status = cudaGetLastError(); \
+		if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 	} \
 	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \
 
@@ -85,12 +89,16 @@ extern "C" void STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComple
 		{			    \
 			dim3 dimGrid(n, m); \
 			func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
+			cudaError_t status = cudaGetLastError(); \
+			if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 		} \
 		else \
 		{					      \
 			dim3 dimGrid(1, m / threads_per_dim); \
 			dim3 dimBlock(n, threads_per_dim); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
+			cudaError_t status = cudaGetLastError(); \
+			if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 		} \
 	} \
 	else \
@@ -100,12 +108,16 @@ extern "C" void STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComple
 			dim3 dimGrid(n / threads_per_dim, 1); \
 			dim3 dimBlock(threads_per_dim, m); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
+			cudaError_t status = cudaGetLastError(); \
+			if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 		} \
 		else \
 		{							\
 			dim3 dimGrid(n / threads_per_dim, m / threads_per_dim); \
 			dim3 dimBlock(threads_per_dim, threads_per_dim); \
 			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
+			cudaError_t status = cudaGetLastError(); \
+			if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status); \
 		} \
 	} \
 	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \

@@ -27,4 +27,6 @@ extern "C" void cuda_host_increment(void *descr[], void *_args)
 	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	cuda_increment<<<1,1, 0, starpu_cuda_get_local_stream()>>>(var);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

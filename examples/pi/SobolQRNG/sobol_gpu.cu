@@ -165,4 +165,6 @@ extern "C" void sobolGPU(int n_vectors, int n_dimensions, unsigned int *d_direct
 
     // Execute GPU kernel
     sobolGPU_kernel<<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>>(n_vectors, n_dimensions, d_directions, d_output);
+    cudaError_t status = cudaGetLastError();
+    if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }
