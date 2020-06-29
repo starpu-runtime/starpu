@@ -307,9 +307,9 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 
 	/* insert the request in the proper list */
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
-	if (r->prefetch == 2)
+	if (r->prefetch == STARPU_IDLEFETCH)
 		_starpu_data_request_prio_list_push_back(&idle_requests[handling_node], r);
-	else if (r->prefetch)
+	else if (r->prefetch > STARPU_FETCH)
 		_starpu_data_request_prio_list_push_back(&prefetch_requests[handling_node], r);
 	else
 		_starpu_data_request_prio_list_push_back(&data_requests[handling_node], r);
@@ -460,7 +460,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, int prefetch)
+static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, enum _starpu_is_prefetch prefetch)
 {
 	starpu_data_handle_t handle = r->handle;
 
@@ -535,7 +535,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list *reqlist, unsigned src_node, unsigned may_alloc, unsigned n, unsigned *pushed, unsigned prefetch)
+static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list *reqlist, unsigned src_node, unsigned may_alloc, unsigned n, unsigned *pushed, enum _starpu_is_prefetch prefetch)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_prio_list new_data_requests[prefetch + 1]; /* Indexed by prefetch level */
@@ -606,7 +606,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			ret = res;
 			/* Prefetch requests might have gotten promoted while in tmp list */
 			_starpu_data_request_prio_list_push_back(&new_data_requests[r->prefetch], r);
-			if (prefetch)
+			if (prefetch > STARPU_FETCH)
 				/* Prefetching more there would make the situation even worse */
 				break;
 		}
@@ -636,20 +636,20 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	if (i <= prefetch)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
-		if (!(_starpu_data_request_prio_list_empty(&new_data_requests[0])))
+		if (!(_starpu_data_request_prio_list_empty(&new_data_requests[STARPU_FETCH])))
 		{
-			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[0], &data_requests[src_node]);
-			data_requests[src_node] = new_data_requests[0];
+			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_FETCH], &data_requests[src_node]);
+			data_requests[src_node] = new_data_requests[STARPU_FETCH];
 		}
-		if (prefetch >= 1 && !(_starpu_data_request_prio_list_empty(&new_data_requests[1])))
+		if (prefetch >= STARPU_PREFETCH && !(_starpu_data_request_prio_list_empty(&new_data_requests[STARPU_PREFETCH])))
 		{
-			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[1], &prefetch_requests[src_node]);
-			prefetch_requests[src_node] = new_data_requests[1];
+			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_PREFETCH], &prefetch_requests[src_node]);
+			prefetch_requests[src_node] = new_data_requests[STARPU_PREFETCH];
 		}
-		if (prefetch >= 2 && !(_starpu_data_request_prio_list_empty(&new_data_requests[2])))
+		if (prefetch >= STARPU_IDLEFETCH && !(_starpu_data_request_prio_list_empty(&new_data_requests[STARPU_IDLEFETCH])))
 		{
-			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[2], &idle_requests[src_node]);
-			idle_requests[src_node] = new_data_requests[2];
+			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_IDLEFETCH], &idle_requests[src_node]);
+			idle_requests[src_node] = new_data_requests[STARPU_IDLEFETCH];
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
@@ -675,17 +675,17 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 
 int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(data_requests, src_node, may_alloc, MAX_PENDING_REQUESTS_PER_NODE, pushed, 0);
+	return __starpu_handle_node_data_requests(data_requests, src_node, may_alloc, MAX_PENDING_REQUESTS_PER_NODE, pushed, STARPU_FETCH);
 }
 
 int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(prefetch_requests, src_node, may_alloc, MAX_PENDING_PREFETCH_REQUESTS_PER_NODE, pushed, 1);
+	return __starpu_handle_node_data_requests(prefetch_requests, src_node, may_alloc, MAX_PENDING_PREFETCH_REQUESTS_PER_NODE, pushed, STARPU_PREFETCH);
 }
 
 int _starpu_handle_node_idle_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(idle_requests, src_node, may_alloc, MAX_PENDING_IDLE_REQUESTS_PER_NODE, pushed, 2);
+	return __starpu_handle_node_data_requests(idle_requests, src_node, may_alloc, MAX_PENDING_IDLE_REQUESTS_PER_NODE, pushed, STARPU_IDLEFETCH);
 }
 
 static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
@@ -864,7 +864,7 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned pre
 	else if (_starpu_data_request_prio_list_ismember(&idle_requests[r->handling_node], r))
 	{
 		_starpu_data_request_prio_list_erase(&idle_requests[r->handling_node],r);
-		if (prefetch == 1)
+		if (prefetch >= STARPU_PREFETCH)
 			_starpu_data_request_prio_list_push_back(&prefetch_requests[r->handling_node],r);
 		else
 			_starpu_data_request_prio_list_push_back(&data_requests[r->handling_node],r);
