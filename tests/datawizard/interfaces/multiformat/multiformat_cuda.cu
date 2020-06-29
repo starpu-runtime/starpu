@@ -65,6 +65,8 @@ extern "C" void test_multiformat_cuda_func(void *buffers[], void *args)
 		STARPU_CUDA_REPORT_ERROR(error);
 
         multiformat_cuda<<<nblocks,threads_per_block,2,starpu_cuda_get_local_stream()>>>(soa, n, ret, factor);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 
 	error = cudaMemcpyAsync(&multiformat_config.copy_failed,
 			   ret,

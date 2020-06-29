@@ -59,6 +59,8 @@ extern "C" void test_matrix_cuda_func(void *buffers[], void *args)
 		STARPU_CUDA_REPORT_ERROR(error);
 
         matrix_cuda<<<nblocks,threads_per_block,2,starpu_cuda_get_local_stream()>>>(val, n, ret, factor);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 
 	error = cudaMemcpyAsync(&matrix_config.copy_failed,
 			   ret,

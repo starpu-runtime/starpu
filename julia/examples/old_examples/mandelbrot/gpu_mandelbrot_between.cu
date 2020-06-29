@@ -123,6 +123,8 @@ extern "C" void CUDA_mandelbrot(void** buffers_uwrYFDVe, void* cl_arg_uwrYFDVe)
              ptr_qoUGBRtY, local_height, conv_limit, ptr_A5zD9sJZ, 
              ld_A5zD9sJZ);
     ;
+    cudaError_t status = cudaGetLastError();
+    if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
     cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 

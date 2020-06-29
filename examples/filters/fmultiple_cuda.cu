@@ -44,6 +44,8 @@ extern "C" void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg)
 
         /* TODO: use more vals and threads in vals */
 	_fmultiple_check_scale_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val, nx, ny, ld, start, factor);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }
 
 static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
@@ -71,4 +73,6 @@ extern "C" void fmultiple_check_cuda(void *buffers[], void *cl_arg)
 
         /* TODO: use more vals and threads in vals */
 	_fmultiple_check_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val, nx, ny, ld, start, factor);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

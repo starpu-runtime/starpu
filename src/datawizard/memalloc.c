@@ -873,6 +873,7 @@ restart:
 			continue;
 		if (is_prefetch == 1 && !mc->wontuse)
 			/* Do not evict something that we might reuse, just for a prefetch */
+			/* TODO ! */
 			/* FIXME: but perhaps we won't have any task using it in
                          * the close future, we should perhaps rather check
                          * mc->replicate->refcnt? */

@@ -97,6 +97,8 @@ extern "C" void spmv_kernel_cuda(void *descr[], void *args)
 
 	spmv_kernel_3<<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>>
 		(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }
 
 

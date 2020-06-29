@@ -335,6 +335,10 @@ function print(io :: IO, expr :: StarpuExprCudaCall ; indent = 0,restrict=false)
 
     print(io, ");")
     print_newline(io, indent)
+    print(io, "cudaError_t status = cudaGetLastError();")
+    print_newline(io, indent)
+    print(io, "if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);")
+    print_newline(io, indent)
 
 end
 

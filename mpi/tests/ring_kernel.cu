@@ -27,5 +27,7 @@ extern "C" void increment_cuda(void *descr[], void *_args)
 	int *tokenptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	cuda_incrementer<<<1,1, 0, starpu_cuda_get_local_stream()>>>(tokenptr);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

@@ -57,6 +57,8 @@ extern "C" void test_coo_cuda_func(void *buffers[], void *args)
 
         coo_cuda<<<nblocks,threads_per_block,2,starpu_cuda_get_local_stream()>>>
 		(val, nvalues, ret, factor);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 
 	error = cudaMemcpyAsync(&coo_config.copy_failed,
 			   ret,
