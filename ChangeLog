@@ -37,6 +37,8 @@ New features:
     thread.
   * New function starpu_get_pu_os_index() to convert logical index of a PU to
     its OS index.
+  * New function starpu_get_hwloc_topology() to get a copy of the hwloc
+    topology used by StarPU.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
