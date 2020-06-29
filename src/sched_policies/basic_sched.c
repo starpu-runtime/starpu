@@ -170,7 +170,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	/* Variables */
 	/* Variables used to calculate, navigate through a loop or other things */
 	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; double number_tasks = 0; int temp_number_task = 0; int random_value = 0;
-	double mean_task_by_packages = 0; double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0; long cursor_position = 0; int packing_time = 0; double moyenne = 0; double ecart_type = 0;
+	double mean_task_by_packages = 0; double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0; int packing_time = 0; double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int *red = 0; int *green = 0; int *blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL; starpu_data_handle_t data_0_0_in_C = NULL;
 	long int common_data_last_package_i1_j0 = 0; long int common_data_last_package_i1_j1 = 0; 
@@ -666,6 +666,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								printf("nb task in sub list = %d\n",data->temp_pointer_1->nb_task_in_sub_list);
 								printf("split last ij de i vaut : %d\n",data->temp_pointer_1->split_last_ij);
 								printf("split last ij de j vaut : %d\n",data->temp_pointer_2->split_last_ij);
+								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+									printf("La tâche %p est dans le paquet j\n",temp_task_1); 
+								}
 								if (data->temp_pointer_1->split_last_ij == 0) { printf("on fais R on est a un paquet de 1 seule tâche\n"); }
 								else {
 									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
@@ -678,44 +681,24 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
 										starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
 									
-									}
-								}
-								
-																		
-								//~ for (temp_task_1 = starpu_task_list_begin(&sub_package_2_i); temp_task_1 != starpu_task_list_end(&sub_package_2_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
-										//~ printf("On a la tâche %p dans sub package 2 i\n",temp_task_1);
-										//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-											//~ printf("On a la donnée %p dans sub package 2 i\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); }
-										//~ }
-											//~ temp_task_1 = starpu_task_list_begin(&sub_package_1_j);
-										//~ printf("On a la tâche %p dans sub package 1 j\n",temp_task_1);
-										//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-											//~ printf("On a la donnée %p dans sub package 1 j\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); }
-												//~ temp_task_1 = starpu_task_list_begin(&sub_package_2_j);
-										//~ printf("On a la tâche %p dans sub package 2 j\n",temp_task_1);
-										//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-											//~ printf("On a la donnée %p dans sub package 2 j\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); }
-								
-								/* On prend le nombre de tâches avant le merge */						
-								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
+									}						
 								
 								for (temp_task_1 = starpu_task_list_begin(&sub_package_2_i); temp_task_1 != starpu_task_list_end(&sub_package_2_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
 									for (temp_task_2 = starpu_task_list_begin(&sub_package_1_j); temp_task_2 != starpu_task_list_end(&sub_package_1_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
 										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
 											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
-												printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
 												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
 													//C'est le poids qu'il faut faire ici
 													common_data_last_package_i1_j0++;
 												}
 											}
-											printf("----------\n");
 										}
 									}
 									for (temp_task_2 = starpu_task_list_begin(&sub_package_2_j); temp_task_2 != starpu_task_list_end(&sub_package_2_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
 										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
 											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
-												printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
 												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
 													//C'est le poids qu'il faut faire ici
 													common_data_last_package_i1_j1++;
@@ -729,14 +712,32 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								printf("Il y a pour j0 : %d et pour j1 : %d\n",common_data_last_package_i1_j0,common_data_last_package_i1_j1);
 								if (common_data_last_package_i1_j0 < common_data_last_package_i1_j1) {
 									printf("SWITCH!\n");
-									
+									/* We reverse the order of the tasks in sub_package_1_j and sub_package_2_j and we put first sub_package_j*/
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_1_j));	
+									}
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
+									}
 								}
+								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+									printf("La tâche %p est dans le paquet j\n",temp_task_1); 
+								}
+								/* We refill the sub_list of i like before */
+								for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+									starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i));
+								}
+								}
+									
+								/* We re-init this variable for the next merge */	
 								common_data_last_package_i1_j0 = 0; common_data_last_package_i1_j1 = 0;
+								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */						
+								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
 								
 								//Juste pour tester que ca roule bien a enlever une fois fini 
-								while (!starpu_task_list_empty(&sub_package_2_i)) {	starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i)); }		
-								while (!starpu_task_list_empty(&sub_package_1_j)) {	starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j)); }		
-								while (!starpu_task_list_empty(&sub_package_2_j)) {	starpu_task_list_push_back(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j)); }		
+								//~ while (!starpu_task_list_empty(&sub_package_2_i)) {	starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i)); }		
+								//~ while (!starpu_task_list_empty(&sub_package_1_j)) {	starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j)); }		
+								//~ while (!starpu_task_list_empty(&sub_package_2_j)) {	starpu_task_list_push_back(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j)); }		
 
 								printf("fin hilbert\n");
 							}
@@ -745,6 +746,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) { 
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
 								data->temp_pointer_1->nb_task_in_sub_list ++;
+							}
+							for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+								printf("Le paquet après merge a la tâche %p\n",temp_task_1); 
 							}
 
 								i_bis = 0; j_bis = 0;
@@ -809,33 +813,50 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				tab_runner = 0;
 				if (data->ALGO_USED_READER != 3) {
 					if (packaging_impossible != 1) {
+					/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
-						/* Code to print the coordinates and the data of each package iteration by iteration */
-						cursor_position = ftell(fcoordinate);
-						for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
-							starpu_data_get_coordinates_array(data->temp_pointer_1->package_data[i],2,temp_tab_coordinates);
-							if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->temp_pointer_1->package_data[i])))  {
-								coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
-								coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
-								tab_runner++;						
-								temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
-							}
-						}
-						for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-							if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche %p est dans le paquet numéro %d\n",temp_task_1,link_index); }
-							temp_number_task ++;
-						}
+						for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
+							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
+							coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
+							tab_runner++;	
+							temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
+						}			
 						temp_moyenne += data->temp_pointer_1->nb_task_in_sub_list;
-						temp_number_task = 0;
 						link_index++;
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					} 
+					//~ while (data->temp_pointer_1 != NULL) {
+						//~ /* Code to print the coordinates and the data of each package iteration by iteration */
+						//~ for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
+							//~ starpu_data_get_coordinates_array(data->temp_pointer_1->package_data[i],2,temp_tab_coordinates);
+							//~ if (((temp_tab_coordinates[0]) != 0) || ((temp_tab_coordinates[1]) !=0 ) || ((data_0_0_in_C == data->temp_pointer_1->package_data[i])))  {
+								//~ coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
+								//~ coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
+								//~ tab_runner++;						
+								//~ temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
+							//~ }
+						//~ }
+						//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+							//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche %p est dans le paquet numéro %d\n",temp_task_1,link_index); }
+						//~ }
+						//~ temp_moyenne += data->temp_pointer_1->nb_task_in_sub_list;
+						//~ link_index++;
+						//~ data->temp_pointer_1 = data->temp_pointer_1->next;
+					//~ } 
 					
 					//Code to write in a file the coordinates ---------------------------------------------------------------------------
-					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c| c| c}"); 
-					fprintf(fcoordinate_order,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c|c|c}"); 
-					fprintf(fcoordinate,"\n");
-					fprintf(fcoordinate_order,"\n");
+					//~ fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c| c| c}"); 
+					fprintf(fcoordinate,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{");
+					
+					//~ fprintf(fcoordinate_order,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{ c | c | c | c| c| c| c| c}"); 
+					fprintf(fcoordinate_order,"\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{"); 
+					for (i_bis = 0; i_bis < sqrt(number_tasks) - 1; i_bis++) {
+						fprintf(fcoordinate,"c|");
+						fprintf(fcoordinate_order,"c|");
+					}
+					fprintf(fcoordinate,"c}\n");
+					fprintf(fcoordinate_order,"c}\n");
 					for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) { 
 						for (j_bis = 0; j_bis < sqrt(number_tasks) - 1; j_bis++) {	
 							/* Code to color the tabs in Data_coordinates.txt */
@@ -911,8 +932,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		} // Fin du while (packaging_impossible == 0) {
 		fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type);
 		if (data->ALGO_USED_READER != 3) { 
-			fprintf(fcoordinate,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM TASK ORDER 0 / MATRICE 10x10} \\label{fig:fig} \\end{figure}");
-			fprintf(fcoordinate_order,"\\caption{ALGO 1 / BW 500 / CUDA MEM 500 / RANDOM TASK ORDER 0 / MATRICE 10x10} \\label{fig:fig} \\end{figure}");
+			fprintf(fcoordinate,"\\caption{ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
+			fprintf(fcoordinate_order,"\\caption{ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
 			fclose(fcoordinate);
 			fclose(fcoordinate_order);
 			fclose(variance_ecart_type);
