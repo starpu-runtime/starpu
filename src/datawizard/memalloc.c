@@ -546,7 +546,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 /* This function is called for memory chunks that are possibly in used (ie. not
  * in the cache). They should therefore still be associated to a handle. */
 /* mc_lock is held and may be temporarily released! */
-static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)
+static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
 {
 	size_t freed = 0;
 
@@ -569,6 +569,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 	if (diduse_barrier && !mc->diduse)
 		/* Hasn't been used yet, avoid evicting it */
+		return 0;
+
+	if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
 	/* REDUX memchunk */
@@ -782,7 +786,7 @@ static int try_to_find_reusable_mc(unsigned node, starpu_data_handle_t data, str
 
 /* this function looks for a memory chunk that matches a given footprint in the
  * list of mem chunk that are not important */
-static int try_to_reuse_not_important_mc(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint)
+static int try_to_reuse_not_important_mc(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint, enum _starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
 	int success = 0;
@@ -816,7 +820,7 @@ restart:
 		}
 
 		/* Note: this may unlock mc_list! */
-		success = try_to_throw_mem_chunk(mc, node, replicate, 1);
+		success = try_to_throw_mem_chunk(mc, node, replicate, 1, is_prefetch);
 
 		if (orig_next_mc)
 		{
@@ -846,6 +850,9 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	int success = 0;
 
+	if (is_prefetch >= STARPU_IDLEFETCH)
+		/* Do not evict a MC just for an idle fetch */
+		return 0;
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
 	 * to be careful with the list.  We try to do just one pass, by
@@ -868,15 +875,11 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (is_prefetch >= STARPU_IDLEFETCH)
-			/* Do not evict a MC just for an idle fetch */
-			continue;
-		if (is_prefetch >= STARPU_PREFETCH && !mc->wontuse)
+		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
 			/* Do not evict something that we might reuse, just for a prefetch */
-			/* TODO ! */
-			/* FIXME: but perhaps we won't have any task using it in
-                         * the close future, we should perhaps rather check
-                         * mc->replicate->refcnt? */
+			continue;
+		if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+			/* Do not evict something that we will reuse, just for a task prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -890,7 +893,7 @@ restart:
 		}
 
 		/* Note: this may unlock mc_list! */
-		success = try_to_throw_mem_chunk(mc, node, replicate, 1);
+		success = try_to_throw_mem_chunk(mc, node, replicate, 1, is_prefetch);
 
 		if (orig_next_mc)
 		{
@@ -1000,7 +1003,7 @@ restart2:
 				next_mc->remove_notify = &next_mc;
 			}
 			/* Note: this may unlock mc_list! */
-			freed += try_to_throw_mem_chunk(mc, node, NULL, 0);
+			freed += try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH);
 
 			if (orig_next_mc)
 			{
@@ -1318,6 +1321,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
 	mc->diduse = 0;
+	mc->nb_tasks_prefetch = 0;
 	mc->wontuse = 0;
 
 	return mc;
@@ -1515,7 +1519,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			reclaim -= freed;
 
 			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
-			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint))
+			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
 				break;
 			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
 			{

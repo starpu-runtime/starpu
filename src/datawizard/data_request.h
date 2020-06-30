@@ -82,6 +82,9 @@ LIST_TYPE(_starpu_data_request,
 	/** Whether this is just a prefetch request */
 	enum _starpu_is_prefetch prefetch;
 
+	/** Number of tasks which used this as a prefetch */
+	unsigned nb_tasks_prefetch;
+
 	/** Priority of the request. Default is 0 */
 	int prio;
 

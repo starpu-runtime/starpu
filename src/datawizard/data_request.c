@@ -29,7 +29,7 @@
 #warning split into separate out/in queues for each node, so that MAX_PENDING_REQUESTS_PER_NODE is separate for them, since the links are bidirectionnal
 #endif
 static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES];
-static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES];
+static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES]; /* Contains both task_prefetch and prefetch */
 static struct _starpu_data_request_prio_list idle_requests[STARPU_MAXNODES];
 static starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 
@@ -156,6 +156,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
 	r->prefetch = is_prefetch;
+	r->nb_tasks_prefetch = 0;
 	r->prio = prio;
 	r->retval = -1;
 	r->ndeps = ndeps;
@@ -310,7 +311,7 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 
 	/* insert the request in the proper list */
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
-	if (r->prefetch == STARPU_IDLEFETCH)
+	if (r->prefetch >= STARPU_IDLEFETCH)
 		_starpu_data_request_prio_list_push_back(&idle_requests[handling_node], r);
 	else if (r->prefetch > STARPU_FETCH)
 		_starpu_data_request_prio_list_push_back(&prefetch_requests[handling_node], r);
@@ -644,6 +645,11 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_FETCH], &data_requests[src_node]);
 			data_requests[src_node] = new_data_requests[STARPU_FETCH];
 		}
+		if (prefetch >= STARPU_TASK_PREFETCH && !(_starpu_data_request_prio_list_empty(&new_data_requests[STARPU_TASK_PREFETCH])))
+		{
+			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_TASK_PREFETCH], &prefetch_requests[src_node]);
+			prefetch_requests[src_node] = new_data_requests[STARPU_TASK_PREFETCH];
+		}
 		if (prefetch >= STARPU_PREFETCH && !(_starpu_data_request_prio_list_empty(&new_data_requests[STARPU_PREFETCH])))
 		{
 			_starpu_data_request_prio_list_push_prio_list_back(&new_data_requests[STARPU_PREFETCH], &prefetch_requests[src_node]);
@@ -844,6 +850,10 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu
 	STARPU_ASSERT(r->prefetch > prefetch);
 	r->prefetch=prefetch;
 
+	if (prefetch >= STARPU_IDLEFETCH)
+		/* No possible actual change */
+		return;
+
 	/* We have to promote chained_request too! */
 	unsigned chained_req;
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
@@ -855,19 +865,20 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[r->handling_node]);
 
+	int found = 1;
+
 	/* The request can be in a different list (handling request or the temp list)
-	 * we have to check that it is really in the prefetch list. */
+	 * we have to check that it is really in the prefetch or idle list. */
 	if (_starpu_data_request_prio_list_ismember(&prefetch_requests[r->handling_node], r))
-	{
-		_starpu_data_request_prio_list_erase(&prefetch_requests[r->handling_node],r);
-		_starpu_data_request_prio_list_push_back(&data_requests[r->handling_node],r);
-	}
-	/* The request can be in a different list (handling request or the temp list)
-	 * we have to check that it is really in the idle list. */
+		_starpu_data_request_prio_list_erase(&prefetch_requests[r->handling_node], r);
 	else if (_starpu_data_request_prio_list_ismember(&idle_requests[r->handling_node], r))
+		_starpu_data_request_prio_list_erase(&idle_requests[r->handling_node], r);
+	else
+		found = 0;
+
+	if (found)
 	{
-		_starpu_data_request_prio_list_erase(&idle_requests[r->handling_node],r);
-		if (prefetch >= STARPU_PREFETCH)
+		if (prefetch > STARPU_FETCH)
 			_starpu_data_request_prio_list_push_back(&prefetch_requests[r->handling_node],r);
 		else
 			_starpu_data_request_prio_list_push_back(&data_requests[r->handling_node],r);

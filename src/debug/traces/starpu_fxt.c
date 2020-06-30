@@ -2274,6 +2274,7 @@ static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
 	switch (prefetch)
 	{
 		case STARPU_FETCH: return "F";
+		case STARPU_TASK_PREFETCH: return "TF";
 		case STARPU_PREFETCH: return "PF";
 		case STARPU_IDLEFETCH: return "IF";
 		default: STARPU_ASSERT(0);

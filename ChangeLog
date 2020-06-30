@@ -39,6 +39,8 @@ New features:
     its OS index.
   * New function starpu_get_hwloc_topology() to get a copy of the hwloc
     topology used by StarPU.
+  * Add a task prefetch level, to improve retaining data in accelerators so we
+    can make prefetch more aggressive.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.

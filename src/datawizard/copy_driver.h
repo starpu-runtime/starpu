@@ -50,8 +50,9 @@ struct _starpu_data_replicate;
 enum _starpu_is_prefetch
 {
 	STARPU_FETCH = 0,		/* A task really needs it now! */
-	STARPU_PREFETCH = 1,		/* It is a good idea to have it asap */
-	STARPU_IDLEFETCH = 2,		/* Get this here when you have time to */
+	STARPU_TASK_PREFETCH = 1,	/* A task will need it soon */
+	STARPU_PREFETCH = 2,		/* It is a good idea to have it asap */
+	STARPU_IDLEFETCH = 3,		/* Get this here when you have time to */
 	STARPU_NFETCH
 };
 
