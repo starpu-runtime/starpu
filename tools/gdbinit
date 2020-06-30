@@ -638,7 +638,11 @@ define starpu-print-requests-tree
 end
 
 define starpu-print-requests-list
-  starpu-print-requests-tree $arg0.tree.root
+  if _starpu_debug
+    starpu-print-requests-treelist &$arg0.list
+  else
+    starpu-print-requests-tree $arg0.tree.root
+  end
 end
 
 define starpu-print-requests
