@@ -302,11 +302,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			
 			/* THE while loop. Stop when no more packaging are possible */
 			while (packaging_impossible == 0) {
-				printf("############# Itération numéro : %d #############\n",nb_of_loop);
 				/* algo 3's goto */
 				algo3:
 				nb_of_loop++;
 				packaging_impossible = 1;
+				printf("############# Itération numéro : %d #############\n",nb_of_loop);
 								
 				/* Variables we need to reinitialize for a new iteration */
 				data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link; index_head_1 = 0; index_head_2 = 1; link_index = 0; tab_runner = 0; nb_min_task_packages = 0;
@@ -540,7 +540,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 								nb_common_data--;
 								
-								goto hilbert;
+								if (starpu_get_env_number_default("HILBERT",0) == 1) { goto hilbert; }
 								algo4prime:
 								
 								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
@@ -618,13 +618,16 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				}
 				/* Else, we are using algo 3, so we don't check the max weight */
 				else {
-					for (i_bis =0; i_bis < nb_pop; i_bis++) { 
+					for (i_bis =0; i_bis < nb_pop; i_bis++) {
+						data->temp_pointer_2 = data->temp_pointer_1;
+						data->temp_pointer_2 = data->temp_pointer_2->next; 
 						for (j_bis = i_bis+1; j_bis < nb_pop; j_bis++) {
 							if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
 								max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
 							}
-						}
-					}
+							data->temp_pointer_2 = data->temp_pointer_2->next;
+						} data->temp_pointer_1 = data->temp_pointer_1->next;
+					} data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link;
 				}
 				
 				/* Merge of the packages and verification that the weight would be inferior to GPU_MAX */
@@ -648,7 +651,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); }
 						}
 												
-						if ((((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || (GPU_limit_switch == 0)) && data->ALGO_USED_READER != 4) 
+						//~ if (((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0)) || GPU_limit_switch == 0) 
+						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0))
 						{
 							
 							if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
@@ -752,7 +756,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */						
 								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
 							}
-							goto algo4prime;
+							if (data->ALGO_USED_READER == 4) { goto algo4prime; }
 							
 							/* Merging the tasks's list */
 							while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) { 
@@ -804,8 +808,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								nb_duplicate_data = 0;
 								data->temp_pointer_2->nb_task_in_sub_list = 0;
 								
-								if (data->ALGO_USED_READER == 2) { 
-									goto algo_2; 
+								//~ if ((data->ALGO_USED_READER == 2) || (GPU_limit_switch == 0)){ 
+								if (data->ALGO_USED_READER == 2){ 
+									printf("goto de algo2\n"); goto algo_2; 
 								}
 						} }
 						data->temp_pointer_2 = data->temp_pointer_2->next;
@@ -823,8 +828,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = delete_link(data);
 				tab_runner = 0;
-				if (data->ALGO_USED_READER != 3) {
-					if (packaging_impossible != 1) {
+				//~ if (data->ALGO_USED_READER != 3) {
+					//~ if (packaging_impossible != 1) {
 					/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
 						for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
@@ -875,7 +880,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					}
 					if (nb_of_loop > 1 && nb_of_loop%2 == 0) { 
 						fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop); 
-						fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop); 
+						fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure} \\\\",nb_of_loop);
+						if (nb_of_loop == 10) { 
+							fprintf(fcoordinate,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
+							fprintf(fcoordinate_order,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
+						}
 					}
 					else { 
 						fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\label{fig:sub-third} \\end{subfigure}",nb_of_loop); 
@@ -911,21 +920,31 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					
 					temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;				
 					fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index,moyenne,ecart_type);
-				}
-				}
+				//~ }
+				//~ }
 				/* Else we are using algorithm 3 */
-				else { while (data->temp_pointer_1 != NULL) { link_index++; data->temp_pointer_1 = data->temp_pointer_1->next; } }
+				//~ else { while (data->temp_pointer_1 != NULL) { link_index++; data->temp_pointer_1 = data->temp_pointer_1->next; } }
+			
+			//~ if (data->ALGO_USED_READER == 3) { data->temp_pointer_1 = data->first_link; while (data->temp_pointer_1 != NULL) { link_index++; data->temp_pointer_1 = data->temp_pointer_1->next; } data->temp_pointer_1 = data->first_link; }			
+			printf("Link index a la fin de la boucle while : %d\n",link_index);			
 									
+			if (data->ALGO_USED_READER == 3 && link_index == 1) { printf("end algo 3\n"); goto end_algo3; }
 				
 			for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { matrice_donnees_commune[i][j] = 0; }}
 			//Reset de nb_pop!
 			nb_pop = link_index;
 			/* If we have only one package we don't have to do more packages */			
 			if (nb_pop == 1) { break; }
+			
 
 		} // Fin du while (packaging_impossible == 0) {
+		/* We are in algorithm 3, we remove the size limit of a package */
+		if (data->ALGO_USED_READER == 3) { printf("On enlève GPU limit\n"); GPU_limit_switch = 0; goto algo3; }	
+		
+		end_algo3:
+		
 		fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type);
-		if (data->ALGO_USED_READER != 3) { 
+		//~ if (data->ALGO_USED_READER != 3) { 
 			fprintf(fcoordinate,"\\caption{EMPAQUETAGE D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
 			fprintf(fcoordinate_order,"\\caption{ORDRE DE SORTIE DES TÂCHES D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
 			fclose(fcoordinate);
@@ -933,10 +952,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			fclose(variance_ecart_type);
 			fclose(mean_task_by_loop);
 			fclose(mean_ecart_type_finaux);
-		}
+		//~ }
 		
-		/* We are in algorithm 3, we remove the size limit of a package */
-		if ((data->ALGO_USED_READER == 3) && (link_index > 1)) { GPU_limit_switch = 0; goto algo3; }	
+		
 		
 		data->temp_pointer_1 = data->first_link;	
 		
