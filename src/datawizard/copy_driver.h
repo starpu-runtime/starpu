@@ -47,6 +47,14 @@ extern "C"
 struct _starpu_data_request;
 struct _starpu_data_replicate;
 
+enum _starpu_is_prefetch
+{
+	STARPU_FETCH = 0,		/* A task really needs it now! */
+	STARPU_PREFETCH = 1,		/* It is a good idea to have it asap */
+	STARPU_IDLEFETCH = 2,		/* Get this here when you have time to */
+	STARPU_NFETCH
+};
+
 #ifdef STARPU_USE_MIC
 /** MIC needs memory_node to know which MIC is concerned.
  * mark is used to wait asynchronous request.
@@ -132,7 +140,7 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 				    unsigned donotread,
 				    struct _starpu_data_request *req,
 				    unsigned may_alloc,
-				    unsigned prefetch);
+				    enum _starpu_is_prefetch prefetch);
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);

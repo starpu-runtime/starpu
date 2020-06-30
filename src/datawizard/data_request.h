@@ -28,14 +28,6 @@
 #include <common/prio_list.h>
 #include <common/starpu_spinlock.h>
 
-enum _starpu_is_prefetch
-{
-	STARPU_FETCH = 0,
-	STARPU_PREFETCH = 1,
-	STARPU_IDLEFETCH = 2,
-	STARPU_NFETCH
-};
-
 /* TODO: This should be tuned according to driver capabilities
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
@@ -87,12 +79,8 @@ LIST_TYPE(_starpu_data_request,
 	/** Whether the transfer is completed. */
 	unsigned completed;
 
-	/** Whether this is just a prefetch request:
-	 * 0 for fetch,
-	 * 1 for prefetch (dependencies have just been released)
-	 * 2 for idle (a good idea to do it some time, but no hurry at all)
-	 */
-	unsigned prefetch;
+	/** Whether this is just a prefetch request */
+	enum _starpu_is_prefetch prefetch;
 
 	/** Priority of the request. Default is 0 */
 	int prio;
@@ -170,5 +158,5 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void (*callback_func)(void *),
 					  void *callback_arg);
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned prefetch);
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu_is_prefetch prefetch);
 #endif // __DATA_REQUEST_H__

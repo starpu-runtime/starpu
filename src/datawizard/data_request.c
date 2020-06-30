@@ -836,7 +836,7 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node)
 }
 
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned prefetch)
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu_is_prefetch prefetch)
 {
 	STARPU_ASSERT(r->prefetch > prefetch);
 	r->prefetch=prefetch;
