@@ -537,7 +537,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
 		}
 #else
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
 		if (profiling && task->profiling_info)
@@ -561,7 +561,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	int profiling = starpu_profiling_status_get();
 
 
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	if (profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
