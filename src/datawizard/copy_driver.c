@@ -201,7 +201,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									unsigned donotread,
 									struct _starpu_data_request *req,
 									unsigned may_alloc,
-									unsigned prefetch STARPU_ATTRIBUTE_UNUSED)
+									enum _starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!donotread)
 	{

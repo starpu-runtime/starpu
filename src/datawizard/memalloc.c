@@ -868,10 +868,10 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (is_prefetch > 1)
+		if (is_prefetch >= STARPU_IDLEFETCH)
 			/* Do not evict a MC just for an idle fetch */
 			continue;
-		if (is_prefetch == 1 && !mc->wontuse)
+		if (is_prefetch >= STARPU_PREFETCH && !mc->wontuse)
 			/* Do not evict something that we might reuse, just for a prefetch */
 			/* TODO ! */
 			/* FIXME: but perhaps we won't have any task using it in
