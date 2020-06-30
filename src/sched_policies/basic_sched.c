@@ -539,6 +539,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
 								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 								nb_common_data--;
+								
+								goto hilbert;
+								algo4prime:
+								
 								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
 								data->temp_pointer_1->nb_task_in_sub_list ++; }
@@ -665,6 +669,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							
 							nb_common_data--;
 							
+							hilbert:
 							if (starpu_get_env_number_default("HILBERT",0) == 1) {
 								i_bis = 0; j_bis = 0;
 								printf("debut hilbert\n");
@@ -747,6 +752,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */						
 								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
 							}
+							goto algo4prime;
 							
 							/* Merging the tasks's list */
 							while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) { 
