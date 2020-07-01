@@ -1259,8 +1259,10 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 				/* Allocations or transfer prefetchs should have been done by now and marked
 				 * this mc as needed for us.
 				 * Now that we added a reference for the task, we can relieve that.  */
-				STARPU_ASSERT(local_replicate->mc->nb_tasks_prefetch > 0);
-				local_replicate->mc->nb_tasks_prefetch--;
+				/* Note: the replicate might have been evicted in between, thus not 100% sure
+				 * that our prefetch request is still recorded here.  */
+				if (local_replicate->mc->nb_tasks_prefetch > 0)
+					local_replicate->mc->nb_tasks_prefetch--;
 			}
 		}
 		_starpu_spin_unlock(&handle->header_lock);
