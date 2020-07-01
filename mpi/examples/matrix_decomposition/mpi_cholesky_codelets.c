@@ -68,56 +68,10 @@ static struct starpu_codelet cl22 =
 	.color = 0x00ff00,
 };
 
-/*
- *	code to bootstrap the factorization
- *	and construct the DAG
- */
-void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
+static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
-	double start;
-	double end;
-	starpu_data_handle_t **data_handles;
 	unsigned k, m, n;
-
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
-
-	/* create all the DAG nodes */
-
-	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
-	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
-
-	for (m = 0; m < nblocks; m++)
-	{
-		for(n = 0; n < nblocks ; n++)
-		{
-			int mpi_rank = my_distrib(m, n, nodes);
-			if (mpi_rank == rank || (check && rank == 0))
-			{
-				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
-				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
-						ld, size/nblocks, size/nblocks, sizeof(float));
-			}
-#ifdef STARPU_DEVEL
-#warning TODO: make better test to only register what is needed
-#endif
-			else
-			{
-				/* I don't own this index, but will need it for my computations */
-				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, n, m);
-				starpu_matrix_data_register(&data_handles[m][n], -1, (uintptr_t)NULL,
-						ld, size/nblocks, size/nblocks, sizeof(float));
-			}
-			if (data_handles[m][n])
-			{
-				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
-				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
-			}
-		}
-	}
-
-	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	starpu_mpi_barrier(MPI_COMM_WORLD);
-	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -159,10 +113,61 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		}
 		starpu_iteration_pop();
 	}
+}
+
+/*
+ *	code to bootstrap the factorization
+ *	and construct the DAG
+ */
+void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
+{
+	double start;
+	double end;
+	starpu_data_handle_t **data_handles;
+	unsigned k, m, n;
+
+	/* create all the DAG nodes */
+
+	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
+	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
+
+	for (m = 0; m < nblocks; m++)
+	{
+		for(n = 0; n < nblocks ; n++)
+		{
+			int mpi_rank = my_distrib(m, n, nodes);
+			if (mpi_rank == rank || (check && rank == 0))
+			{
+				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
+						ld, size/nblocks, size/nblocks, sizeof(float));
+			}
+#ifdef STARPU_DEVEL
+#warning TODO: make better test to only register what is needed
+#endif
+			else
+			{
+				/* I don't own this index, but will need it for my computations */
+				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], -1, (uintptr_t)NULL,
+						ld, size/nblocks, size/nblocks, sizeof(float));
+			}
+			if (data_handles[m][n])
+			{
+				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
+				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
+			}
+		}
+	}
 
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
+	start = starpu_timing_now();
 
+	run_cholesky(data_handles, rank, nodes);
+
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	starpu_mpi_barrier(MPI_COMM_WORLD);
 	end = starpu_timing_now();
 
 	for (m = 0; m < nblocks; m++)
