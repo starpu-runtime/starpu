@@ -186,6 +186,11 @@ struct starpu_sched_policy
 	*/
 	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
+	/** Whether this scheduling policy does data prefetching, and thus the
+	    core should not try to do it opportunistically.
+	*/
+	int prefetches;
+
 	/**
 	   Optional field. Name of the policy.
 	*/

@@ -81,4 +81,5 @@ struct starpu_sched_policy _starpu_sched_modular_heft_policy =
 	.policy_name = "modular-heft",
 	.policy_description = "heft modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

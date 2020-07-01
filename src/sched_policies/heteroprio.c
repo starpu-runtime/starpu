@@ -649,4 +649,5 @@ struct starpu_sched_policy _starpu_sched_heteroprio_policy =
         .policy_name = "heteroprio",
         .policy_description = "heteroprio",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

@@ -86,4 +86,5 @@ struct starpu_sched_policy _starpu_sched_modular_parallel_random_prio_policy =
 	.policy_name = "modular-prandom-prio",
 	.policy_description = "prandom-prio modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

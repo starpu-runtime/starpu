@@ -1191,6 +1191,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.policy_name = "dm",
 	.policy_description = "performance model",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_policy =
@@ -1209,6 +1210,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
@@ -1227,6 +1229,7 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.policy_name = "dmdap",
 	.policy_description = "data-aware performance model (priority)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
@@ -1245,6 +1248,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.policy_name = "dmdas",
 	.policy_description = "data-aware performance model (sorted)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
@@ -1263,6 +1267,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 	.policy_name = "dmdasd",
 	.policy_description = "data-aware performance model (sorted decision)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
@@ -1281,4 +1286,5 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.policy_name = "dmdar",
 	.policy_description = "data-aware performance model (ready)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

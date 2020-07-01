@@ -915,7 +915,7 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 	if (j->discontinuous != 0)
 		return 0;
 #endif
-	STARPU_ASSERT(!task->prefetched);
+	STARPU_ASSERT_MSG(!task->prefetched, "Prefetching was already requested for this task! Did you set 'prefetches' to 1 in the starpu_sched_policy structure?");
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
@@ -993,7 +993,7 @@ int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worke
 	if (j->discontinuous != 0)
 		return 0;
 #endif
-	STARPU_ASSERT(!task->prefetched);
+	STARPU_ASSERT_MSG(!task->prefetched, "Prefetching was already requested for this task! Did you set 'prefetches' to 1 in the starpu_sched_policy structure?");
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 

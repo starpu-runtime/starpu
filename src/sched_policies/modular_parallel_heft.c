@@ -85,4 +85,5 @@ struct starpu_sched_policy _starpu_sched_modular_parallel_heft_policy =
 	.policy_name = "modular-pheft",
 	.policy_description = "parallel heft modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

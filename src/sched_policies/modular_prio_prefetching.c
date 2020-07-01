@@ -90,4 +90,5 @@ struct starpu_sched_policy _starpu_sched_modular_prio_prefetching_policy =
 	.policy_name = "modular-prio-prefetching",
 	.policy_description = "prio prefetching modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

@@ -48,4 +48,5 @@ struct starpu_sched_policy _starpu_sched_modular_eager_prefetching_policy =
 	.policy_name = "modular-eager-prefetching",
 	.policy_description = "eager with prefetching modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
