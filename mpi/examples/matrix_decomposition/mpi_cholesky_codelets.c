@@ -115,7 +115,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 	}
 }
 
-/* TODO: generated from compiler polyhedral analysis of classical algorithm */
+/* TODO: generate from compiler polyhedral analysis of classical algorithm */
 static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
 	unsigned k, m, n;
@@ -169,10 +169,10 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 			starpu_data_wont_use(data_handles[m][n]);
 }
 
-/* TODO: generated from compiler polyhedral analysis of classical algorithm */
+/* TODO: generate from compiler polyhedral analysis of classical algorithm */
 static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
-	unsigned a, b, c;
+	unsigned a, c;
 	unsigned k, m, n;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
@@ -185,24 +185,21 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 	{
 		starpu_iteration_push(a);
 
-		unsigned bfirst;
+		unsigned nfirst;
 		if (2*a < nblocks)
-			bfirst = 0;
+			nfirst = 0;
 		else
-			bfirst = 2*a - (nblocks-1);
+			nfirst = 2*a - (nblocks-1);
 
 		/* column within first antidiagonal for a */
-		for (b = bfirst; b <= a; b++)
+		for (n = nfirst; n <= a; n++)
 		{
-			/* column */
-			n = b;
 			/* row */
-			m = 2*a-b;
+			m = 2*a-n;
 
 			/* Accumulate updates from TRSMs */
-			for (c = 0; c < n; c++)
+			for (k = 0; k < n; k++)
 			{
-				k = c;
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
@@ -211,10 +208,10 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 						       0);
 			}
 
-			if (b < a)
+			/* k = n */
+			if (n < a)
 			{
 				/* non-diagonal block, solve */
-				k = n;
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[k][k],
@@ -224,7 +221,6 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			else
 			{
 				/* diagonal block, factorize */
-				k = a;
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 						       STARPU_RW, data_handles[k][k],
@@ -233,21 +229,18 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 		}
 
 		/* column within second antidiagonal for a */
-		for (b = bfirst; b <= a; b++)
+		for (n = nfirst; n <= a; n++)
 		{
-			/* column */
-			n = b;
 			/* row */
-			m = 2*a-b + 1;
+			m = 2*a-n + 1;
 
 			if (m >= nblocks)
 				/* Skip first item when even number of tiles */
 				continue;
 
 			/* Accumulate updates from TRSMs */
-			for (c = 0; c < n; c++)
+			for (k = 0; k < n; k++)
 			{
-				k = c;
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
