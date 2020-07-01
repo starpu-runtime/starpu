@@ -740,7 +740,6 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		task->status = STARPU_TASK_INVALID;
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
-	task->prefetched = 0;
 
 	if (j->internal)
 	{
