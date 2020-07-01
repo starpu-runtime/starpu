@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
+#include <datawizard/copy_driver.h>
 #include <string.h>
 
 #ifdef STARPU_HAVE_POTI
