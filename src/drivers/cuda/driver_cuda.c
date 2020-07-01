@@ -879,27 +879,33 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			_starpu_set_local_worker_key(worker);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
 			/* See next task if any */
-			if (worker->ntasks && worker->current_tasks[worker->first_task] != worker->task_transferring)
+			if (worker->ntasks)
 			{
-				task = worker->current_tasks[worker->first_task];
-				j = _starpu_get_job_associated_to_task(task);
-				if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
+				if (worker->current_tasks[worker->first_task] != worker->task_transferring)
 				{
-					/* An asynchronous task, it was already
-					 * queued, it's now running, record its start time.  */
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
+					task = worker->current_tasks[worker->first_task];
+					j = _starpu_get_job_associated_to_task(task);
+					if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
+					{
+						/* An asynchronous task, it was already
+						 * queued, it's now running, record its start time.  */
+						_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
+					}
+					else
+					{
+						/* A synchronous task, we have finished
+						 * flushing the pipeline, we can now at
+						 * last execute it.  */
+
+						_STARPU_TRACE_EVENT("sync_task");
+						execute_job_on_cuda(task, worker);
+						_STARPU_TRACE_EVENT("end_sync_task");
+						worker->pipeline_stuck = 0;
+					}
 				}
 				else
-				{
-					/* A synchronous task, we have finished
-					 * flushing the pipeline, we can now at
-					 * last execute it.  */
-
-					_STARPU_TRACE_EVENT("sync_task");
-					execute_job_on_cuda(task, worker);
-					_STARPU_TRACE_EVENT("end_sync_task");
-					worker->pipeline_stuck = 0;
-				}
+					/* Data for next task didn't have time to finish transferring :/ */
+					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
 #ifdef STARPU_USE_FXT
 			int k;
