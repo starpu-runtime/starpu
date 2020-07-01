@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -175,7 +176,7 @@ static void usage()
 
 static void print_entry(const char *name, const char *archname, FILE *output, struct starpu_perfmodel_history_entry *entry)
 {
-	fprintf(output, "Name: %s\n", name);
+	fprintf(output, "Model: %s\n", name);
 	fprintf(output, "Architecture: %s\n", archname);
 	fprintf(output, "Footprint: %08x\n", entry->footprint);
 	fprintf(output, "Size: %lu\n", (unsigned long) entry->size);

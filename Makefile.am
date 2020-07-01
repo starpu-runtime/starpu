@@ -27,7 +27,7 @@ SUBDIRS += src
 
 SUBDIRS += tools
 
-if BUILD_TESTS
+if STARPU_BUILD_TESTS
 SUBDIRS += tests
 endif
 
@@ -37,24 +37,28 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
-if BUILD_EXAMPLES
+if STARPU_BUILD_EXAMPLES
 SUBDIRS += examples
 endif
 
-if BUILD_SOCL
+if STARPU_BUILD_SOCL
 SUBDIRS += socl
 endif
 
-if BUILD_STARPUFFT
+if STARPU_BUILD_STARPUFFT
 SUBDIRS += starpufft
 endif
 
-if BUILD_STARPURM
+if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
 endif
 
 if STARPU_BUILD_SC_HYPERVISOR
 SUBDIRS += sc_hypervisor
+endif
+
+if STARPU_USE_JULIA
+SUBDIRS += julia
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -159,28 +163,28 @@ DISTCLEANFILES = STARPU-REVISION
 recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
+		$(MAKE) -C $$i recheck || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showfailed:
 	@RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -s -C $$i showfailed || RET=1 ; \
+		$(MAKE) -s -C $$i showfailed || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showcheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
+		$(MAKE) -C $$i showcheck || RET=1 ; \
 	done ; \
 	exit $$RET
 
 showsuite:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
+		$(MAKE) -C $$i showsuite || RET=1 ; \
 	done ; \
 	exit $$RET
 

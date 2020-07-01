@@ -203,6 +203,10 @@ LIST_TYPE(_starpu_worker,
 
 	int enable_knob;
 	int bindid_requested;
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 );
 
 struct _starpu_combined_worker
@@ -223,6 +227,10 @@ struct _starpu_combined_worker
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
+
+	/* Keep this last, to make sure to separate worker data in separate
+	  cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
 };
 
 /**
@@ -389,6 +397,9 @@ struct _starpu_machine_config
 	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
+	/* Separate out previous variables from per-worker data. */
+	char padding1[STARPU_CACHELINE_SIZE];
+
 	/** Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
@@ -396,6 +407,11 @@ struct _starpu_machine_config
 	/** Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
+
+	starpu_pthread_mutex_t submitted_mutex;
+
+	/* Separate out previous mutex from the rest of the data. */
+	char padding2[STARPU_CACHELINE_SIZE];
 
 	/** Translation table from bindid to worker IDs */
 	struct
@@ -432,8 +448,6 @@ struct _starpu_machine_config
 
 	/** When >0, StarPU should stop performance counters collection. */
 	int perf_counter_pause_depth;
-
-	starpu_pthread_mutex_t submitted_mutex;
 };
 
 extern int _starpu_worker_parallel_blocks;
@@ -1103,6 +1117,7 @@ static inline void _starpu_worker_lock(int workerid)
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 	}
 }
+#define starpu_worker_lock _starpu_worker_lock
 
 static inline int _starpu_worker_trylock(int workerid)
 {
@@ -1133,6 +1148,7 @@ static inline int _starpu_worker_trylock(int workerid)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cur_worker->sched_mutex);
 	return ret;
 }
+#define starpu_worker_trylock _starpu_worker_trylock
 
 static inline void _starpu_worker_unlock(int workerid)
 {
@@ -1145,6 +1161,7 @@ static inline void _starpu_worker_unlock(int workerid)
 		starpu_worker_relax_off();
 	}
 }
+#define starpu_worker_unlock _starpu_worker_unlock
 
 static inline void _starpu_worker_lock_self(void)
 {
@@ -1153,6 +1170,7 @@ static inline void _starpu_worker_lock_self(void)
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
 }
+#define starpu_worker_lock_self _starpu_worker_lock_self
 
 static inline void _starpu_worker_unlock_self(void)
 {
@@ -1161,6 +1179,7 @@ static inline void _starpu_worker_unlock_self(void)
 	STARPU_ASSERT(worker != NULL);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
+#define starpu_worker_unlock_self _starpu_worker_unlock_self
 
 static inline int _starpu_wake_worker_relax(int workerid)
 {
@@ -1169,6 +1188,7 @@ static inline int _starpu_wake_worker_relax(int workerid)
 	_starpu_worker_unlock(workerid);
 	return ret;
 }
+#define starpu_wake_worker_relax _starpu_wake_worker_relax
 
 int starpu_wake_worker_relax_light(int workerid);
 

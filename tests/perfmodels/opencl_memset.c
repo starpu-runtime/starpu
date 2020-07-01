@@ -22,7 +22,7 @@
 
 extern struct starpu_opencl_program opencl_program;
 
-void memset_opencl(void *buffers[], void *args)
+void _memset_opencl(void *buffers[], void *args, const char *name)
 {
 	(void) args;
 	int id, devid;
@@ -36,7 +36,7 @@ void memset_opencl(void *buffers[], void *args)
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_memset_opencl", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, name, devid);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -58,10 +58,22 @@ void memset_opencl(void *buffers[], void *args)
 			STARPU_OPENCL_REPORT_ERROR(err);
                 if (local > global)
 			local=global;
+                else
+                        global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	starpu_opencl_release_kernel(kernel);
+}
+
+void memset_opencl(void *buffers[], void *args, const char *kernel)
+{
+	_memset_opencl(buffers, args, "_memset_opencl");
+}
+
+void memset0_opencl(void *buffers[], void *args, const char *kernel)
+{
+	_memset_opencl(buffers, args, "_memset0_opencl");
 }

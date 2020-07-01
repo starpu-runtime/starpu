@@ -57,6 +57,7 @@ void scal_opencl_func(void *buffers[], void *_args)
                 err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
                 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
                 if (local > global) local=global;
+                else global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);

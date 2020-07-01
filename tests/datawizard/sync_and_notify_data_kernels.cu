@@ -30,6 +30,8 @@ extern "C" void cuda_codelet_incA(void *descr[], void *_args)
 	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	_cuda_incA<<<1,1, 0, starpu_cuda_get_local_stream()>>>(v);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }
 
 /*
@@ -46,4 +48,6 @@ extern "C" void cuda_codelet_incC(void *descr[], void *_args)
 	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	_cuda_incC<<<1,1, 0, starpu_cuda_get_local_stream()>>>(v);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

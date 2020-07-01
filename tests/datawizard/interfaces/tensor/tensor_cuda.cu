@@ -75,6 +75,8 @@ extern "C" void test_tensor_cuda_func(void *buffers[], void *args)
 
         tensor_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>
 		(tensor, nx, ny, nz, nt, ldy, ldz, ldt, factor, ret);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 	error = cudaMemcpyAsync(&tensor_config.copy_failed, ret, sizeof(int), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);

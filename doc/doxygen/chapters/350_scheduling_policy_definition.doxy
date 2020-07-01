@@ -60,6 +60,9 @@ queue the transfers on the idle prefetch queue, which is only processed when
 there are no non-idle prefetch to process.
 starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
 \ref STARPU_PREFETCH environment variable.
+When a scheduler does such prefetching, it should set the <c>prefetches</c>
+field of the <c>starpu_sched_policy</c> to 1, to prevent the core from
+triggering its own prefetching.
 
 Usual functions can be used on tasks, for instance one can use the following to
 get the data size for a task.

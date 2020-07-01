@@ -20,7 +20,32 @@
 #define MAXREGITER	1000
 #define EPS 1.0e-10
 
-static double compute_b(double c, unsigned n, unsigned *x, double *y)
+/* For measurements close to C, we do not want to try to fit, since we are
+   fitting the distance to C, which won't actually really get smaller */
+#define C_RADIUS 1
+
+/*
+ * smoothly ramp from 0 to 1 between 0 and 1
+ * <= 0: stay 0
+ * >= 1: stay 1 */
+static double level(double x)
+{
+	if (x <= 0.)
+		return 0.;
+	if (x >= 1.)
+		return 1.;
+	if (x < 0.5)
+		return -2*x*x+4*x-1;
+	return 2*x*x;
+}
+
+static double fixpop(unsigned pop, double c, double y)
+{
+	double distance = (y-c)/c;
+	return pop * level((distance - C_RADIUS) / C_RADIUS);
+}
+
+static double compute_b(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double b;
 
@@ -29,43 +54,55 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 	double sumx = 0.0;
 	double sumx2 = 0.0;
 	double sumy = 0.0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
-		sumxy += xi*yi;
-		sumx += xi;
-		sumx2 += xi*xi;
-		sumy += yi;
+		sumxy += xi*yi*popi;
+		sumx += xi*popi;
+		sumx2 += xi*xi*popi;
+		sumy += yi*popi;
+
+		nn += popi;
 	}
 
-	b = (n * sumxy - sumx * sumy) / (n*sumx2 - sumx*sumx);
+	b = (nn * sumxy - sumx * sumy) / (nn*sumx2 - sumx*sumx);
 
 	return b;
 }
 
-static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
+static double compute_a(double c, double b, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double a;
 
 	/* X = log (x) , Y = log (y - c) */
 	double sumx = 0.0;
 	double sumy = 0.0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
-		sumx += xi;
-		sumy += yi;
+		sumx += xi*popi;
+		sumy += yi*popi;
+
+		nn += popi;
 	}
 
-	a = (sumy - b*sumx) / n;
+	a = (sumy - b*sumx) / nn;
 
 	return a;
 }
@@ -73,7 +110,7 @@ static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
 
 
 /* returns r */
-static double test_r(double c, unsigned n, unsigned *x, double *y)
+static double test_r(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 {
 	double r;
 
@@ -85,20 +122,26 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	double sumx2 = 0.0;
 	double sumy = 0.0;
 	double sumy2 = 0.0;
+	double nn = 0;
 
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
 		double xi = log(x[i]);
 		double yi = log(y[i]-c);
+		double popi = fixpop(pop[i], c, y[i]);
+		if (popi <= 0)
+			continue;
 
 	//	printf("Xi = %e, Yi = %e\n", xi, yi);
 
-		sumxy += xi*yi;
-		sumx += xi;
-		sumx2 += xi*xi;
-		sumy += yi;
-		sumy2 += yi*yi;
+		sumxy += xi*yi*popi;
+		sumx += xi*popi;
+		sumx2 += xi*xi*popi;
+		sumy += yi*popi;
+		sumy2 += yi*yi*popi;
+
+		nn += popi;
 	}
 
 	//printf("sumxy %e\n", sumxy);
@@ -107,7 +150,7 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	//printf("sumy %e\n", sumy);
 	//printf("sumy2 %e\n", sumy2);
 
-	r = (n * sumxy - sumx * sumy) / sqrt( (n* sumx2 - sumx*sumx) * (n*sumy2 - sumy*sumy) );
+	r = (nn * sumxy - sumx * sumy) / sqrt( (nn* sumx2 - sumx*sumx) * (nn*sumy2 - sumy*sumy) );
 
 	return r;
 }
@@ -119,38 +162,52 @@ static unsigned find_list_size(struct starpu_perfmodel_history_list *list_histor
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	while (ptr)
 	{
-		cnt++;
+		if (ptr->entry->nsample)
+			cnt++;
 		ptr = ptr->next;
 	}
 
 	return cnt;
 }
 
-static double find_list_min(double *y, unsigned n)
+static int compar(const void *_a, const void *_b)
 {
-	double min = DBL_MAX;
-
-	unsigned i;
-	for (i = 0; i < n; i++)
-	{
-		min = STARPU_MIN(min, y[i]);
-	}
-
-	return min;
+	double a = *(double*) _a;
+	double b = *(double*) _b;
+	if (a < b)
+		return -1;
+	if (a > b)
+		return 1;
+	return 0;
 }
 
-static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_list *list_history)
+static double get_list_fourth(double *y, unsigned n)
+{
+	double sorted[n];
+
+	memcpy(sorted, y, n * sizeof(*sorted));
+
+	qsort(sorted, n, sizeof(*sorted), compar);
+
+	return sorted[n/3];
+}
+
+static void dump_list(size_t *x, double *y, unsigned *pop, struct starpu_perfmodel_history_list *list_history)
 {
 	struct starpu_perfmodel_history_list *ptr = list_history;
 	unsigned i = 0;
 
 	while (ptr)
 	{
-		x[i] = ptr->entry->size;
-		y[i] = ptr->entry->mean;
+		if (ptr->entry->nsample)
+		{
+			x[i] = ptr->entry->size;
+			y[i] = ptr->entry->mean;
+			pop[i] = ptr->entry->nsample;
+			i++;
+		}
 
 		ptr = ptr->next;
-		i++;
 	}
 }
 
@@ -159,52 +216,72 @@ static void dump_list(unsigned *x, double *y, struct starpu_perfmodel_history_li
  * 	return 0 if success, -1 otherwise
  * 	if success, a, b and c are modified
  * */
+
+/* See in Cedric Augonnet's PhD thesis's Appendix B for the rationale
+ * Scheduling Tasks over Multicore machines enhanced with Accelerators: a
+ * Runtime System’s Perspective */
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c)
 {
 	unsigned n = find_list_size(ptr);
-	STARPU_ASSERT(n);
+	if (!n)
+		return -1;
 
-	unsigned *x;
-	_STARPU_MALLOC(x, n*sizeof(unsigned));
+	size_t *x;
+	_STARPU_MALLOC(x, n*sizeof(size_t));
 
 	double *y;
 	_STARPU_MALLOC(y, n*sizeof(double));
 	STARPU_ASSERT(y);
 
-	dump_list(x, y, ptr);
+	unsigned *pop;
+	_STARPU_MALLOC(pop, n*sizeof(unsigned));
+	STARPU_ASSERT(y);
+
+	dump_list(x, y, pop, ptr);
 
 	double cmin = 0.0;
-	double cmax = find_list_min(y, n);
+	double cmax = get_list_fourth(y, n);
 
 	unsigned iter;
 
 	double err = 100000.0;
 
+/*
+	unsigned i;
+	for (i = 0; i < 100; i++)
+	{
+		double ci = cmin + (cmax-cmin)*i/100.;
+		fprintf(stderr,"%f: %f\n", ci, 1.0 - test_r(ci, n, x, y, pop));
+	}
+*/
+
+	/* Use dichotomy to find c that gives the best matching */
 	for (iter = 0; iter < MAXREGITER; iter++)
 	{
 		double c1, c2;
 		double r1, r2;
 
-		double radius = 0.01;
+		c1 = cmin + (0.33)*(cmax - cmin);
+		c2 = cmin + (0.67)*(cmax - cmin);
 
-		c1 = cmin + (0.5-radius)*(cmax - cmin);
-		c2 = cmin + (0.5+radius)*(cmax - cmin);
-
-		r1 = test_r(c1, n, x, y);
-		r2 = test_r(c2, n, x, y);
+		r1 = test_r(c1, n, x, y, pop);
+		r2 = test_r(c2, n, x, y, pop);
 
 		double err1, err2;
 		err1 = fabs(1.0 - r1);
 		err2 = fabs(1.0 - r2);
 
+		//fprintf(stderr,"%f - %f: %f - %f: %f - %f\n", cmin, c1, err1, c2, err2, cmax);
+
 		if (err1 < err2)
 		{
-			cmax = (cmin + cmax)/2;
+			/* 1 is better */
+			cmax = c2;
 		}
 		else
 		{
 			/* 2 is better */
-			cmin = (cmin + cmax)/2;
+			cmin = c1;
 		}
 
 		if (fabs(err - STARPU_MIN(err1, err2)) < EPS)
@@ -215,11 +292,12 @@ int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *pt
 
 	*c = (cmin + cmax)/2;
 
-	*b = compute_b(*c, n, x, y);
-	*a = exp(compute_a(*c, *b, n, x, y));
+	*b = compute_b(*c, n, x, y, pop);
+	*a = exp(compute_a(*c, *b, n, x, y, pop));
 
 	free(x);
 	free(y);
+	free(pop);
 
 	return 0;
 }

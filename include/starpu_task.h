@@ -513,7 +513,7 @@ struct starpu_codelet
 
 	/**
 	   Optional pointer to the task energy consumption performance
-	   model associated to this codelet. This optional field is
+	   model associated to this codelet (in J). This optional field is
 	   ignored when set to <c>NULL</c> or when its field
 	   starpu_perfmodel::symbol is not set. In the case of
 	   parallel codelets, this has to account for all processing
@@ -538,7 +538,9 @@ struct starpu_codelet
 
 	/**
 	   Optional color of the codelet. This can be useful for
-	   debugging purposes.
+	   debugging purposes. Value 0 acts like if this field wasn't specified.
+	   Color representation is hex triplet (for example: 0xff0000 is red,
+	   0x0000ff is blue, 0xffa500 is orange, ...).
 	*/
 	unsigned color;
 

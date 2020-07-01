@@ -44,4 +44,6 @@ extern "C" void copy_complex_codelet_cuda(void *descr[], void *_args)
 	unsigned nblocks = (nx + threads_per_block-1) / threads_per_block;
 
         complex_copy_cuda<<<nblocks, threads_per_block, 0, starpu_cuda_get_local_stream()>>>(o_real, o_imaginary, i_real, i_imaginary, nx);
+        cudaError_t status = cudaGetLastError();
+        if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

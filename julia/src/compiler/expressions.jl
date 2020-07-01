@@ -1,15 +1,18 @@
-global starpu_type_traduction_dict = Dict(
-    Int32 => "int32_t",
-    UInt32 => "uint32_t",
-    Float32 => "float",
-    Int64 => "int64_t",
-    UInt64 => "uint64_t",
-    Float64 => "double",
-    Nothing => "void"
-)
-export starpu_type_traduction_dict
-
-
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 #======================================================
                 AFFECTATION
 ======================================================#
@@ -121,6 +124,9 @@ struct StarpuExprWhile <: StarpuExpr
     body :: StarpuExpr
 end
 
+struct StarpuExprAddress <: StarpuExpr
+    ref :: StarpuExpr
+end
 
 function starpu_parse_affect(x :: Expr)
 
@@ -247,7 +253,7 @@ function starpu_parse_call(x :: Expr)
 end
 
 
-starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(%))
+starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(!=), :(%))
 
 
 function print_prefix(io :: IO, x :: StarpuExprCall ; indent = 0, restrict=false)
@@ -293,7 +299,6 @@ function apply(func :: Function, expr :: StarpuExprCall)
     return func(StarpuExprCall(expr.func, map((x -> apply(func, x)), expr.args)))
 end
 
-
 #======================================================
                 CUDA KERNEL CALL
 ======================================================#
@@ -329,6 +334,10 @@ function print(io :: IO, expr :: StarpuExprCudaCall ; indent = 0,restrict=false)
     end
 
     print(io, ");")
+    print_newline(io, indent)
+    print(io, "cudaError_t status = cudaGetLastError();")
+    print_newline(io, indent)
+    print(io, "if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);")
     print_newline(io, indent)
 
 end
@@ -731,14 +740,22 @@ function print(io :: IO, x :: StarpuExprRef ; indent = 0,restrict=false)
 
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprRef)
 
     ref = apply(func, expr.ref)
     indexes = map((x -> apply(func, x)), expr.indexes)
 
     return func(StarpuExprRef(ref, indexes))
+end
+
+function print(io :: IO, x :: StarpuExprAddress ; indent = 0, restrict=false)
+    print(io, "&")
+    print(io, x.ref, indent = indent)
+end
+
+function apply(func :: Function, expr :: StarpuExprAddress)
+    ref = apply(func, expr.ref)
+    return func(StarpuExprAddress(ref))
 end
 
 #======================================================
@@ -796,7 +813,7 @@ function apply(func :: Function, expr :: StarpuExpr)
     return func(expr)
 end
 
-print(io :: IO, x :: StarpuExprVar ; indent = 0) = print(io, x.name)
+print(io :: IO, x :: StarpuExprVar ; indent = 0, restrict = false) = print(io, x.name)
 
 function print(io :: IO, x :: StarpuExprValue ; indent = 0,restrict=false)
 
@@ -866,24 +883,22 @@ end
 
 function starpu_type_traduction(x)
     if x <: Array
-        return starpu_type_traduction_array(x)
+        return starpu_type_traduction(eltype(x)) * "*"
     end
 
     if x <: Ptr
-        return starpu_type_traduction(eltype(x)) * "*"
+        depth = 1
+        type = eltype(x)
+        while type <: Ptr
+            depth +=1
+            type = eltype(type)
+        end
+
+        return starpu_type_traduction(type) * "*"^depth
     end
 
     return starpu_type_traduction_dict[x]
 
-end
-
-function starpu_type_traduction_array(x :: Type{Array{T,N}})  where {T,N}
-    output = starpu_type_traduction(T)
-    for i in (1 : N)
-        output *= "*"
-    end
-
-    return output
 end
 
 function print(io :: IO, x :: StarpuExprTyped ; indent = 0,restrict=false)

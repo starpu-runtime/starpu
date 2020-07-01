@@ -531,10 +531,13 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 				_SIMGRID_TIMER_END;
 			}
 		else
-			_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
+		{
+			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+			_starpu_simgrid_submit_job(workerid, sched_ctx->id, j, &worker->perf_arch, NAN, NAN,
 				async ? &task_finished[workerid][pipeline_idx] : NULL);
+		}
 #else
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
 		if (profiling && task->profiling_info)
@@ -558,7 +561,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	int profiling = starpu_profiling_status_get();
 
 
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	if (profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
@@ -825,6 +828,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		task = worker->task_transferring;
 		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 		{
+			STARPU_RMB();
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			j = _starpu_get_job_associated_to_task(task);
 

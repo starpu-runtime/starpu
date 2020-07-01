@@ -45,4 +45,6 @@ extern "C" void cpu_to_cuda_cuda_func(void *buffers[], void *_args)
 	unsigned threads_per_block = 64;
 	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
         custom_cuda<<<nblocks,threads_per_block,2,starpu_cuda_get_local_stream()>>>(aop, n, x, y);
+        cudaError_t status = cudaGetLastError();
+        if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

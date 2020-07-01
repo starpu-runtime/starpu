@@ -113,6 +113,11 @@ static unsigned tidying[STARPU_MAXNODES];
 /* Whether some thread is currently reclaiming memory for this node */
 static unsigned reclaiming[STARPU_MAXNODES];
 
+/* This records that we tried to prefetch data but went out of memory, so will
+ * probably fail again to prefetch data, thus not trace each and every
+ * attempt. */
+static volatile int prefetch_out_of_memory[STARPU_MAXNODES];
+
 int _starpu_is_reclaiming(unsigned node)
 {
 	STARPU_ASSERT(node < STARPU_MAXNODES);
@@ -184,6 +189,7 @@ void _starpu_init_mem_chunk_lists(void)
 		STARPU_HG_DISABLE_CHECKING(mc_cache_size[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_nb[i]);
 		STARPU_HG_DISABLE_CHECKING(mc_clean_nb[i]);
+		STARPU_HG_DISABLE_CHECKING(prefetch_out_of_memory[i]);
 	}
 	/* We do not enable forcing available memory by default, since
 	  this makes StarPU spuriously free data when prefetching fills the
@@ -316,7 +322,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 		{
 			/* This is the only copy, push it to destination */
 			struct _starpu_data_request *r;
-			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, 0, 0, NULL, NULL, 0, "transfer_subtree_to_node");
+			r = _starpu_create_request_to_fetch_data(handle, dst_replicate, STARPU_R, STARPU_FETCH, 0, NULL, NULL, 0, "transfer_subtree_to_node");
 			/* There is no way we don't need a request, since
 			 * source is OWNER, destination can't be having it */
 			STARPU_ASSERT(r);
@@ -540,7 +546,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 /* This function is called for memory chunks that are possibly in used (ie. not
  * in the cache). They should therefore still be associated to a handle. */
 /* mc_lock is held and may be temporarily released! */
-static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)
+static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
 {
 	size_t freed = 0;
 
@@ -563,6 +569,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 	if (diduse_barrier && !mc->diduse)
 		/* Hasn't been used yet, avoid evicting it */
+		return 0;
+
+	if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
 	/* REDUX memchunk */
@@ -776,7 +786,7 @@ static int try_to_find_reusable_mc(unsigned node, starpu_data_handle_t data, str
 
 /* this function looks for a memory chunk that matches a given footprint in the
  * list of mem chunk that are not important */
-static int try_to_reuse_not_important_mc(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint)
+static int try_to_reuse_not_important_mc(unsigned node, starpu_data_handle_t data, struct _starpu_data_replicate *replicate, uint32_t footprint, enum _starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
 	int success = 0;
@@ -810,7 +820,7 @@ restart:
 		}
 
 		/* Note: this may unlock mc_list! */
-		success = try_to_throw_mem_chunk(mc, node, replicate, 1);
+		success = try_to_throw_mem_chunk(mc, node, replicate, 1, is_prefetch);
 
 		if (orig_next_mc)
 		{
@@ -835,11 +845,14 @@ restart:
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
  */
-static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, int is_prefetch)
+static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum _starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	int success = 0;
 
+	if (is_prefetch >= STARPU_IDLEFETCH)
+		/* Do not evict a MC just for an idle fetch */
+		return 0;
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
 	 * to be careful with the list.  We try to do just one pass, by
@@ -862,14 +875,11 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (is_prefetch > 1)
-			/* Do not evict a MC just for an idle fetch */
-			continue;
-		if (is_prefetch == 1 && !mc->wontuse)
+		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
 			/* Do not evict something that we might reuse, just for a prefetch */
-			/* FIXME: but perhaps we won't have any task using it in
-                         * the close future, we should perhaps rather check
-                         * mc->replicate->refcnt? */
+			continue;
+		if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+			/* Do not evict something that we will reuse, just for a task prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -883,7 +893,7 @@ restart:
 		}
 
 		/* Note: this may unlock mc_list! */
-		success = try_to_throw_mem_chunk(mc, node, replicate, 1);
+		success = try_to_throw_mem_chunk(mc, node, replicate, 1, is_prefetch);
 
 		if (orig_next_mc)
 		{
@@ -993,7 +1003,7 @@ restart2:
 				next_mc->remove_notify = &next_mc;
 			}
 			/* Note: this may unlock mc_list! */
-			freed += try_to_throw_mem_chunk(mc, node, NULL, 0);
+			freed += try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH);
 
 			if (orig_next_mc)
 			{
@@ -1212,7 +1222,7 @@ void starpu_memchunk_tidy(unsigned node)
 			}
 
 			_starpu_spin_unlock(&mc_lock[node]);
-			if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[target_node], STARPU_R, 2, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
+			if (!_starpu_create_request_to_fetch_data(handle, &handle->per_node[target_node], STARPU_R, STARPU_IDLEFETCH, 1, NULL, NULL, 0, "starpu_memchunk_tidy"))
 			{
 				/* No request was actually needed??
 				 * Odd, but cope with it.  */
@@ -1311,6 +1321,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
 	mc->diduse = 0;
+	mc->nb_tasks_prefetch = 0;
 	mc->wontuse = 0;
 
 	return mc;
@@ -1424,7 +1435,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
  *
  */
 
-static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, unsigned is_prefetch)
+static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum _starpu_is_prefetch is_prefetch)
 {
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
@@ -1432,7 +1443,6 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	starpu_ssize_t data_size = _starpu_data_get_alloc_size(handle);
 	int told_reclaiming = 0;
 	int reused = 0;
-	static int prefetch_out_of_memory[STARPU_MAXNODES];
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
@@ -1441,17 +1451,19 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
+	int prefetch_oom = is_prefetch && prefetch_out_of_memory[dst_node];
+
 #ifdef STARPU_USE_ALLOCATION_CACHE
-	if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+	if (!prefetch_oom)
 		_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+		if (!prefetch_oom)
 			_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
 		return data_size;
 	}
-	if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+	if (!prefetch_oom)
 		_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
 #endif
 	STARPU_ASSERT(handle->ops);
@@ -1473,7 +1485,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	do
 	{
-		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+		if (!prefetch_oom)
 			_STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -1488,10 +1500,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 #endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
-		if (!(is_prefetch && prefetch_out_of_memory[dst_node]))
+		if (!prefetch_oom)
 			_STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
-
-		prefetch_out_of_memory[dst_node] = 0;
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1501,13 +1511,15 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			/* First try to flush data explicitly marked for freeing */
 			size_t freed = flush_memchunk_cache(dst_node, reclaim);
 
-			if (freed >= reclaim)
+			if (freed >= reclaim) {
 				/* That freed enough data, retry allocating */
+				prefetch_out_of_memory[dst_node] = 0;
 				continue;
+			}
 			reclaim -= freed;
 
 			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
-			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint))
+			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
 				break;
 			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
 			{
@@ -1535,7 +1547,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
 			_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
-		}
+			prefetch_out_of_memory[dst_node] = 0;
+		} else
+			prefetch_out_of_memory[dst_node] = 0;
 	}
 	while((allocated_memory == -ENOMEM) && attempts++ < 2);
 
@@ -1587,7 +1601,7 @@ out:
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned is_prefetch)
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum _starpu_is_prefetch is_prefetch)
 {
 	starpu_ssize_t allocated_memory;
 

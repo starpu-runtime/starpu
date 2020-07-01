@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
+ * Copyright (C) 2020       Télécom-Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +36,13 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	/* Estimated transfer+task termination for each child */
 	double estimated_ends_with_task[component->nchildren];
 
-	/* Minimum transfer+task termination on all children */
-	double min_exp_end_with_task;
-	/* Maximum transfer+task termination on all children */
-	double max_exp_end_with_task;
+	/* estimated energy */
+	double local_energy[component->nchildren];
+
+	/* Minimum transfer+task termination of the task over all workers */
+	double min_exp_end_of_task;
+	/* Maximum termination of the already-scheduled tasks over all workers */
+	double max_exp_end_of_workers;
 
 	unsigned suitable_components[component->nchildren];
 	unsigned nsuitable_components;
@@ -58,12 +62,14 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	   make scheduling decisions at the same time */
 	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
 
-
 	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
-					  estimated_ends_with_task, &min_exp_end_with_task, &max_exp_end_with_task, suitable_components, nsuitable_components);
+					  estimated_ends_with_task, &min_exp_end_of_task, &max_exp_end_of_workers, suitable_components, nsuitable_components);
+
+	/* Compute the energy, if provided*/
+	starpu_mct_compute_energy(component, task, local_energy, suitable_components, nsuitable_components);
 
 	int best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
-					  estimated_ends_with_task, min_exp_end_with_task, max_exp_end_with_task, suitable_components, nsuitable_components);
+							    estimated_ends_with_task, local_energy, min_exp_end_of_task, max_exp_end_of_workers, suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.
@@ -105,6 +111,7 @@ static void mct_component_deinit_data(struct starpu_sched_component * component)
 
 int starpu_sched_component_is_mct(struct starpu_sched_component * component)
 {
+
 	return component->push_task == mct_push_task;
 }
 

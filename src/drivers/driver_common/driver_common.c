@@ -27,9 +27,8 @@
 #include <core/sched_policy.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <datawizard/memory_nodes.h>
 
-#define BACKOFF_MAX 32  /* TODO : use parameter to define them */
-#define BACKOFF_MIN 1
 
 void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)
 {
@@ -374,7 +373,7 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 {
 	int delay = worker->spinning_backoff;
 
-	if (worker->spinning_backoff < BACKOFF_MAX)
+	if (worker->spinning_backoff < worker->config->conf.driver_spinning_backoff_max)
 		worker->spinning_backoff<<=1;
 
 	while(delay--)
@@ -504,7 +503,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	{
 		_starpu_worker_set_status_sleeping(workerid);
 	}
-	worker->spinning_backoff = BACKOFF_MIN;
+	worker->spinning_backoff = worker->config->conf.driver_spinning_backoff_min;
 
 	_starpu_worker_leave_sched_op(worker);
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
@@ -703,7 +702,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	}
 
 	_starpu_worker_set_status_wakeup(workerid);
-	worker->spinning_backoff = BACKOFF_MIN;
+	worker->spinning_backoff = worker->config->conf.driver_spinning_backoff_min;
 #endif /* !STARPU_SIMGRID */
 
 	_starpu_worker_leave_sched_op(&workers[0]);

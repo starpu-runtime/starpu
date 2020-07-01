@@ -137,12 +137,16 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	/* each entry of per_block_cnt contains the number of successful shots
 	 * in the corresponding block. */
 	monte_carlo<<<nblocks, nthread_per_block, 0, starpu_cuda_get_local_stream()>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
+	cures = cudaGetLastError();
+	if (cures != cudaSuccess) STARPU_CUDA_REPORT_ERROR(cures);
 
 	/* Note that we do not synchronize between kernel calls because there is an implicit serialization */
 
 	/* compute the total number of successful shots by adding the elements
 	 * of the per_block_cnt array */
 	sum_per_block_cnt<<<1, nblocks, 0, starpu_cuda_get_local_stream()>>>(per_block_cnt, cnt);
+	cures = cudaGetLastError();
+	if (cures != cudaSuccess) STARPU_CUDA_REPORT_ERROR(cures);
 	cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	if (cures)
 		STARPU_CUDA_REPORT_ERROR(cures);

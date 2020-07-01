@@ -31,12 +31,11 @@ int main(void)
 }
 #else
 
-
-static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
+static int check_cpu(int env_cpu, int conf_cpu, int precedence_over_env, int expected_cpu, int *cpu)
 {
 	int ret;
 
-	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
+	FPRINTF(stderr, "\nTesting with env=%d - conf=%d - expected %d (ignore env %d)\n", env_cpu, conf_cpu, expected_cpu, precedence_over_env);
 
 	if (env_cpu != -1)
 	{
@@ -47,6 +46,8 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 
 	struct starpu_conf user_conf;
 	starpu_conf_init(&user_conf);
+	user_conf.precedence_over_environment_variables = precedence_over_env;
+
 	if (conf_cpu != -1)
 	{
 		user_conf.ncpus = conf_cpu;
@@ -74,7 +75,7 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	}
 	else
 	{
-		FPRINTF(stderr, "Number of CPUS: %3d -- Number of expected CPUs: %3d\n", *cpu, expected_cpu);
+		FPRINTF(stderr, "Number of CPUS: %3d -- Number of expected CPUs: %3d    --> %s\n", *cpu, expected_cpu, *cpu==expected_cpu?"SUCCESS":"FAILURE");
 		return *cpu != expected_cpu;
 	}
 }
@@ -88,7 +89,7 @@ int main(void)
 	unsetenv("STARPU_NCPUS");
 	unsetenv("STARPU_NCPU");
 
-	ret = check_cpu(-1, -1, -1, &cpu_init);
+	ret = check_cpu(-1, -1, 0, -1, &cpu_init);
 	if (ret) return ret;
 	if (cpu_init <= 1) return STARPU_TEST_SKIPPED;
 
@@ -105,10 +106,11 @@ int main(void)
 		cpu_test3 = cpu_init+3;
 	}
 
-	ret = check_cpu(cpu_test1, -1, cpu_test1, &cpu);
+	ret = check_cpu(cpu_test1, -1, 0, cpu_test1, &cpu);
 	if (ret) return ret;
 
-	ret = check_cpu(-1, -1, -1, &cpu);
+	// Do not set anything --> default value
+	ret = check_cpu(-1, -1, 0, -1, &cpu);
 	if (ret) return ret;
 	if (cpu != cpu_init)
 	{
@@ -116,10 +118,24 @@ int main(void)
 		return 1;
 	}
 
-	ret = check_cpu(-1, cpu_test2, cpu_test2, &cpu);
+	// Do not set environment variable, set starpu_conf::ncpus --> starpu_conf::ncpus
+	ret = check_cpu(-1, cpu_test2, 0, cpu_test2, &cpu);
 	if (ret) return ret;
 
-	ret = check_cpu(cpu_test3, cpu_test1, cpu_test3, &cpu);
+	// Set environment variable, and do not set starpu_conf::ncpus --> starpu_conf::ncpus
+	ret = check_cpu(cpu_test2, -1, 0, cpu_test2, &cpu);
+	if (ret) return ret;
+
+	// Set both environment variable and starpu_conf::ncpus --> environment variable
+	ret = check_cpu(cpu_test3, cpu_test1, 0, cpu_test3, &cpu);
+	if (ret) return ret;
+
+	// Set both environment variable and starpu_conf::ncpus AND prefer starpu_conf over env --> starpu_conf::ncpus
+	ret = check_cpu(cpu_test3, cpu_test1, 1, cpu_test1, &cpu);
+	if (ret) return ret;
+
+	// Set environment variable, and do no set starpu_conf, AND prefer starpu_conf over env --> environment variable
+	ret = check_cpu(cpu_test2, -1, 1, cpu_test2, &cpu);
 	if (ret) return ret;
 
 	return 0;

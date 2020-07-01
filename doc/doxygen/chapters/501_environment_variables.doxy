@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -403,6 +404,20 @@ This permits to test the performance effect of GPU-Direct.
 Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc, starpu_memory_pin
 and friends.  The default is Enabled.
 This permits to test the performance effect of memory pinning.
+</dd>
+
+<dt>STARPU_BACKOFF_MIN</dt>
+<dd>
+\anchor STARPU_BACKOFF_MIN
+\addindex __env__STARPU_BACKOFF_MIN
+Set minimum exponential backoff of number of cycles to pause when spinning. Default value is 1.
+</dd>
+
+<dt>STARPU_BACKOFF_MAX</dt>
+<dd>
+\anchor STARPU_BACKOFF_MAX
+\addindex __env__STARPU_BACKOFF_MAX
+Set maximum exponential backoff of number of cycles to pause when spinning. Default value is 32.
 </dd>
 
 <dt>STARPU_MIC_SINK_PROGRAM_NAME</dt>
@@ -864,6 +879,20 @@ When set, force the hostname to be used when dealing performance model
 files. Models are indexed by machine name. When running for example on
 a homogenenous cluster, it is possible to share the models between
 machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
+</dd>
+
+<dt>STARPU_MPI_HOSTNAMES</dt>
+<dd>
+\anchor STARPU_MPI_HOSTNAMES
+\addindex __env__STARPU_MPI_HOSTNAMES
+Similar to \ref STARPU_HOSTNAME but to define multiple nodes on a
+heterogeneous cluster. The variable is a list of hostnames that will be assigned
+to each StarPU-MPI rank considering their position and the value of
+\ref starpu_mpi_world_rank on each rank. When running, for example, on a
+heterogeneous cluster, it is possible to set individual models for each machine
+by setting <c>export STARPU_MPI_HOSTNAMES="name0 name1 name2"</c>. Where rank 0
+will receive name0, rank1 will receive name1, and so on.
+This variable has precedence over \ref STARPU_HOSTNAME.
 </dd>
 
 <dt>STARPU_OPENCL_PROGRAM_DIR</dt>
@@ -1337,6 +1366,15 @@ application has crashed. Setting this variable to a value other than 1
 will disable this behaviour. This should be done on JVM systems which
 may use these signals for their own needs.
 The flag can also be set through the field starpu_conf::catch_signals.
+</dd>
+
+<dt>STARPU_DISPLAY_BINDINGS</dt>
+<dd>
+\anchor STARPU_DISPLAY_BINDINGS
+\addindex __env__STARPU_DISPLAY_BINDINGS
+Display the binding of all processes and threads running on the machine. If MPI is enabled, display the binding of each node.<br>
+Users can manually display the binding by calling starpu_display_bindings().
+</dd>
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

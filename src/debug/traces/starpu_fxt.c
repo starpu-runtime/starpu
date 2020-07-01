@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
+#include <datawizard/copy_driver.h>
 #include <string.h>
 
 #ifdef STARPU_HAVE_POTI
@@ -499,6 +500,7 @@ LIST_TYPE(_starpu_communication,
 	double bandwidth;
 	unsigned src_node;
 	unsigned dst_node;
+	unsigned long size;
 	const char *type;
 	unsigned long handle;
 	struct _starpu_communication *peer;
@@ -1193,8 +1195,8 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
  */
 static int create_ordered_stream_id (int nodeid, int devid)
 {
-	static int stable[MAX_MPI_NODES][STARPU_MAXCUDADEVS];
-	STARPU_ASSERT(nodeid < MAX_MPI_NODES);
+	static int stable[STARPU_FXT_MAX_FILES][STARPU_MAXCUDADEVS];
+	STARPU_ASSERT(nodeid < STARPU_FXT_MAX_FILES);
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 	return stable[nodeid][devid]++;
 }
@@ -2267,13 +2269,14 @@ static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	data->mpi_tag = tag;
 }
 
-static const char *copy_link_type(unsigned prefetch)
+static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
 {
 	switch (prefetch)
 	{
-		case 0: return "F";
-		case 1: return "PF";
-		case 2: return "IF";
+		case STARPU_FETCH: return "F";
+		case STARPU_TASK_PREFETCH: return "TF";
+		case STARPU_PREFETCH: return "PF";
+		case STARPU_IDLEFETCH: return "IF";
 		default: STARPU_ASSERT(0);
 	}
 }
@@ -2284,7 +2287,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
-	unsigned prefetch = ev->param[4];
+	enum _starpu_is_prefetch prefetch = ev->param[4];
 	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
@@ -2314,6 +2317,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		struct _starpu_communication *com = _starpu_communication_new();
 		com->comid = comid;
 		com->comm_start = get_event_time_stamp(ev, options);
+		com->size = size;
 
 		com->src_node = src;
 		com->dst_node = dst;
@@ -2365,7 +2369,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
-	unsigned prefetch = ev->param[4];
+	enum _starpu_is_prefetch prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
@@ -2392,6 +2396,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 				com->comid = comid;
 				com->comm_start = get_event_time_stamp(ev, options);
 				com->bandwidth = -bandwidth;
+				com->size = size;
 
 				src = com->src_node = itor->src_node;
 				com->dst_node = itor->dst_node;
@@ -4142,6 +4147,34 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 		/* And flush completed computations */
 		_starpu_fxt_process_computations(options);
+	}
+
+	if (out_paje_file && !options->no_bus)
+	{
+		while (!_starpu_communication_list_empty(&communication_list)) {
+			struct _starpu_communication*itor;
+			itor = _starpu_communication_list_pop_front(&communication_list);
+
+			/* Trace finished with this communication uncompleted, fake its termination */
+
+			unsigned comid = itor->comid;
+			unsigned long size = itor->size;
+			unsigned dst = itor->dst_node;
+			double time = current_computation_time;
+			const char *link_type = itor->type;
+#ifdef STARPU_HAVE_POTI
+			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+			snprintf(paje_value, sizeof(paje_value), "%lu", size);
+			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
+			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
+			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
+#else
+			fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+#endif
+			_starpu_communication_delete(itor);
+		}
 	}
 
 	if (out_paje_file && !options->no_flops)

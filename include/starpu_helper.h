@@ -20,6 +20,10 @@
 #include <stdio.h>
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -50,6 +54,20 @@ extern int _starpu_silent;
 char *starpu_getenv(const char *str);
 
 /**
+   If the environment variable \c str is defined and its value is contained in the array \c strings, return the array position.
+   Raise an error if the environment variable \c str is defined with a value not in \c strings
+   Return \c defvalue if the environment variable \c str is not defined.
+ */
+int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue);
+
+/**
+   If the environment variable \c str is defined with a well-defined size value, return the value as a size in bytes. Expected size qualifiers are b, B, k, K, m, M, g, G. The default qualifier is K.
+   If the environment variable \c str is not defined or is empty, return \c defval
+   Raise an error if the value of the environment variable \c str is not well-defined.
+ */
+int starpu_get_env_size_default(const char *str, int defval);
+
+/**
    Return the integer value of the environment variable named \p str.
    Return 0 otherwise (the variable does not exist or has a
    non-integer value).
@@ -66,7 +84,8 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 		char *pcheck;
 
 		val = strtol(strval, &pcheck, 10);
-		if (*pcheck) {
+		if (*pcheck)
+		{
 			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
 			STARPU_ABORT();
 		}
@@ -103,7 +122,8 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
 		char *pcheck;
 
 		val = strtof(strval, &pcheck);
-		if (*pcheck) {
+		if (*pcheck)
+		{
 			fprintf(stderr,"The %s environment variable must contain a float\n", str);
 			STARPU_ABORT();
 		}
@@ -166,6 +186,26 @@ double starpu_timing_now(void);
 */
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
+/**
+   Call hwloc-ps to display binding of each processus and thread running on
+   the machine.<br>
+   Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically
+   call this function at the beginning of the execution of StarPU.
+*/
+void starpu_display_bindings(void);
+
+/**
+   If \c hwloc is used, convert the given \p logical_index of a PU to the OS
+   index of this PU. If \c hwloc is not used, return \p logical_index.
+*/
+int starpu_get_pu_os_index(unsigned logical_index);
+
+#ifdef STARPU_HAVE_HWLOC
+/**
+   Get a copy of the hwloc topology used by StarPU.
+*/
+int starpu_get_hwloc_topology(hwloc_topology_t* topology);
+#endif
 /** @} */
 
 #ifdef __cplusplus

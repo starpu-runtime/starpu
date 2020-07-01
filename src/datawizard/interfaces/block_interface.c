@@ -15,6 +15,9 @@
  */
 
 #include <starpu.h>
+#ifdef BUILDING_STARPU
+#include <datawizard/memory_nodes.h>
+#endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -136,8 +139,11 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 #ifndef STARPU_SIMGRID
 	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
 	{
-		STARPU_ASSERT_ACCESSIBLE(ptr);
-		STARPU_ASSERT_ACCESSIBLE(ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);
+		if (nx && ny && nz && elemsize)
+		{
+			STARPU_ASSERT_ACCESSIBLE(ptr);
+			STARPU_ASSERT_ACCESSIBLE(ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);
+		}
 	}
 #endif
 

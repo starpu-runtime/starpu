@@ -30,6 +30,7 @@
 #include <common/utils.h>
 #include <common/fxt.h>
 #include <common/knobs.h>
+#include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <math.h>

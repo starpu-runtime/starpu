@@ -59,4 +59,6 @@ extern "C" void vector_scale_cuda_func(void *cl_buffers[], void *cl_arg)
 	unsigned nb_threads_per_block = 64;
 	unsigned nb_blocks = (n + nb_threads_per_block-1) / nb_threads_per_block;
 	vector_scale_cuda_kernel<<<nb_blocks,nb_threads_per_block,0,starpu_cuda_get_local_stream()>>>(vector, n, scalar);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

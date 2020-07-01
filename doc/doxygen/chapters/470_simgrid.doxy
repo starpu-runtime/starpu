@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,7 +133,10 @@ machine (the <c>$STARPU_HOME/.starpu</c> directory). One can then perform the
 Simulation step on the desktop machine, by setting the environment
 variable \ref STARPU_HOSTNAME to the name of the actual machine, to
 make StarPU use the performance models of the simulated machine even
-on the desktop machine.
+on the desktop machine. To use multiple performance models in different ranks,
+in case of smpi executions in a heterogeneous platform, it is possible to use the
+option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
+\ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
 
 If the desktop machine does not have CUDA or OpenCL, StarPU is still able to
 use SimGrid to simulate execution with CUDA/OpenCL devices, but the application
@@ -171,9 +175,12 @@ $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mp
 \endverbatim
 
 Where \c cluster.xml is a SimGrid-MPI platform description, and \c hostfile the
-list of MPI nodes to be used. StarPU currently only supports homogeneous MPI
-clusters: for each MPI node it will just replicate the architecture referred by
-\ref STARPU_HOSTNAME.
+list of MPI nodes to be used. In homogeneous MPI clusters: for each MPI node it
+will just replicate the architecture referred by
+\ref STARPU_HOSTNAME. To use multiple performance models in different ranks,
+in case of a heterogeneous platform, it is possible to use the
+option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
+\ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
 
 \section SimulationDebuggingApplications Debugging Applications
 

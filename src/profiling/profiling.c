@@ -29,6 +29,8 @@
 #include <papi.h>
 #endif
 
+/* TODO: move to worker structure */
+
 static struct starpu_profiling_worker_info worker_info[STARPU_NMAXWORKERS];
 /* TODO: rather use rwlock */
 static starpu_pthread_mutex_t worker_info_mutex[STARPU_NMAXWORKERS];
@@ -44,6 +46,7 @@ static struct timespec executing_start_date[STARPU_NMAXWORKERS];
 #ifdef STARPU_PAPI
 static int papi_events[PAPI_MAX_HWCTRS];
 static int papi_nevents = 0;
+static int warned_component_unavailable = 0;
 #endif
 
 /* Store the busid of the different (src, dst) pairs. busid_matrix[src][dst]
@@ -158,7 +161,7 @@ void _starpu_profiling_init(void)
 		conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
 		if (conf_papi_events != NULL)
 		{
-			while ((papi_event_name = strtok_r(conf_papi_events, " ", &conf_papi_events)))
+			while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
 			{
 				_STARPU_DEBUG("Loading PAPI Event:%s\n", papi_event_name);
 				retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
@@ -186,7 +189,12 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 		PAPI_create_eventset(&profiling_info->papi_event_set);
 		for(int i=0; i<papi_nevents; i++)
 		{
-			PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+			int ret = PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+			if (ret == PAPI_ECMP_DISABLED && !warned_component_unavailable)
+			{
+				_STARPU_MSG("Error while registering Papi event: Component containing event is disabled. Try running `papi_component_avail` to get more information.\n");
+				warned_component_unavailable = 1;
+			}
 			profiling_info->papi_values[i]=0;
 		}
 		PAPI_reset(profiling_info->papi_event_set);
@@ -325,26 +333,28 @@ void _starpu_worker_stop_sleeping(int workerid)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
-		STARPU_ASSERT(worker_registered_sleeping_start[workerid] == 1);
-		sleeping_start = &sleeping_start_date[workerid];
-
-                /* Perhaps that profiling was enabled while the worker was
-                 * already blocked, so we don't measure (end - start), but
-                 * (end - max(start,worker_start)) where worker_start is the
-                 * date of the previous profiling info reset on the worker */
-		struct timespec *worker_start = &worker_info[workerid].start_time;
-		if (starpu_timespec_cmp(sleeping_start, worker_start, <))
+		if (worker_registered_sleeping_start[workerid] == 1)
 		{
-			/* sleeping_start < worker_start */
-			sleeping_start = worker_start;
+			sleeping_start = &sleeping_start_date[workerid];
+
+			/* Perhaps that profiling was enabled while the worker was
+			 * already blocked, so we don't measure (end - start), but
+			 * (end - max(start,worker_start)) where worker_start is the
+			 * date of the previous profiling info reset on the worker */
+			struct timespec *worker_start = &worker_info[workerid].start_time;
+			if (starpu_timespec_cmp(sleeping_start, worker_start, <))
+			{
+				/* sleeping_start < worker_start */
+				sleeping_start = worker_start;
+			}
+
+			struct timespec sleeping_time;
+			starpu_timespec_sub(&sleep_end_time, sleeping_start, &sleeping_time);
+
+			starpu_timespec_accumulate(&worker_info[workerid].sleeping_time, &sleeping_time);
+
+			worker_registered_sleeping_start[workerid] = 0;
 		}
-
-		struct timespec sleeping_time;
-		starpu_timespec_sub(&sleep_end_time, sleeping_start, &sleeping_time);
-
-		starpu_timespec_accumulate(&worker_info[workerid].sleeping_time, &sleeping_time);
-
-		worker_registered_sleeping_start[workerid] = 0;
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 

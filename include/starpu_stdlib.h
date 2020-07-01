@@ -239,8 +239,31 @@ void starpu_memory_deallocate(unsigned node, size_t size);
 */
 void starpu_memory_wait_available(unsigned node, size_t size);
 
+/**
+   Sleep for the given \p nb_sec seconds.
+   In simgrid mode, this only sleeps within virtual time.
+  */
 void starpu_sleep(float nb_sec);
+
+/**
+   Sleep for the given \p nb_micro_sec micro-seconds.
+   In simgrid mode, this only sleeps within virtual time.
+  */
 void starpu_usleep(float nb_micro_sec);
+
+/**
+   Account for \p joules J being used.
+   This is support in simgrid mode, to record how much energy was used, and will
+   show up in further call to starpu_energy_used().
+  */
+void starpu_energy_use(float joules);
+
+/**
+   Return the amount of energy having been used in J.
+   This account the amounts passed to starpu_energy_use(), but also the static
+   energy use set by the \ref STARPU_IDLE_POWER environment variable.
+  */
+double starpu_energy_used(void);
 
 /** @} */
 

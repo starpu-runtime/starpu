@@ -19,6 +19,7 @@
 #include <core/workers.h>
 #include <starpu_sched_component.h>
 #include <starpu_thread_util.h>
+#include <datawizard/memory_nodes.h>
 
 #include <float.h>
 
@@ -159,7 +160,6 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 		int worker = starpu_bitmap_first(&component->workers_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		starpu_prefetch_task_input_on_node(task, memory_node);
-		task->prefetched = 1;
 	}
 }
 

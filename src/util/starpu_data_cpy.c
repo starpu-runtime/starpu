@@ -22,6 +22,7 @@
 #include <datawizard/datawizard.h>
 #include <util/starpu_data_cpy.h>
 #include <starpu_mic.h>
+#include <datawizard/memory_nodes.h>
 
 static void common_data_cpy_func(void *descr[], void *cl_arg)
 {

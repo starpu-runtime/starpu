@@ -55,6 +55,8 @@ extern "C" void test_variable_cuda_func(void *buffers[], void *args)
 	unsigned nblocks = 1;
 
         variable_cuda<<<nblocks,threads_per_block,0,starpu_cuda_get_local_stream()>>>(val, ret, factor);
+	error = cudaGetLastError();
+	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 	error = cudaMemcpyAsync(&variable_config.copy_failed,
 			   ret,
 			   sizeof(int),

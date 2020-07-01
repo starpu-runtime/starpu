@@ -58,6 +58,8 @@ extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 extern void smpi_process_set_user_data(void *);
 #endif
 
+static double _starpu_simgrid_dynamic_energy = 0.0;
+
 /* 1 when MSG_init was done, 2 when initialized through redirected main, 3 when
  * initialized through MSG_process_attach */
 static int simgrid_started;
@@ -94,6 +96,21 @@ void _starpu_simgrid_set_stack_size(size_t stack_size)
 #else
 	extern xbt_cfg_t _sg_cfg_set;
 	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
+#endif
+}
+
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+static void on_exit_backtrace(int failed, void *data STARPU_ATTRIBUTE_UNUSED)
+{
+	if (failed)
+		xbt_backtrace_display_current();
+}
+#endif
+
+void _starpu_simgrid_actor_setup(void)
+{
+#ifdef HAVE_SG_ACTOR_ON_EXIT
+	sg_actor_on_exit(on_exit_backtrace, NULL);
 #endif
 }
 
@@ -360,6 +377,7 @@ int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	if (!starpu_main)
 	{
@@ -613,6 +631,7 @@ struct task
 #else
 	msg_task_t task;
 #endif
+	double energy;
 
 	/* communication termination signalization */
 	unsigned *finished;
@@ -650,6 +669,7 @@ static void *task_execute(void *arg)
 		MSG_task_execute(task->task);
 		MSG_task_destroy(task->task);
 #endif
+		starpu_energy_use(task->energy);
 		_STARPU_DEBUG("task %p finished\n", task);
 
 		*task->finished = 1;
@@ -686,7 +706,7 @@ void _starpu_simgrid_wait_tasks(int workerid)
 }
 
 /* Task execution submitted by StarPU */
-void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished)
+void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, double energy, unsigned *finished)
 {
 	struct starpu_task *starpu_task = j->task;
 	double flops;
@@ -701,12 +721,18 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 
 	if (isnan(length))
 	{
-		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
+		length = starpu_task_worker_expected_length(starpu_task, workerid, sched_ctx_id, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
 				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
                 /* TODO: option to add variance according to performance model,
                  * to be able to easily check scheduling robustness */
+	}
+	if (isnan(energy))
+	{
+		energy = starpu_task_worker_expected_energy(starpu_task, workerid, sched_ctx_id, j->nimpl);
+		/* TODO: option to add variance according to performance model,
+		 * to be able to easily check scheduling robustness */
 	}
 
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
@@ -738,6 +764,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		MSG_task_execute(simgrid_task);
 		MSG_task_destroy(simgrid_task);
 #endif
+		starpu_energy_use(energy);
 	}
 	else
 	{
@@ -750,6 +777,7 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 #else
 		task->task = simgrid_task;
 #endif
+		task->energy = energy;
 		task->finished = finished;
 		*finished = 0;
 		task->next = NULL;
@@ -1168,6 +1196,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
+	_starpu_simgrid_actor_setup();
 
 	/* _args is freed with process context */
 	f(arg);
@@ -1374,5 +1403,15 @@ void _starpu_simgrid_data_transfer(size_t size, unsigned src_node, unsigned dst_
 }
 #endif
 
+void starpu_energy_use(float joules)
+{
+	_starpu_simgrid_dynamic_energy += joules;
+}
+
+double starpu_energy_used(void)
+{
+	float idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
+	return _starpu_simgrid_dynamic_energy + idle_power * starpu_timing_now() / 1000000;
+}
 
 #endif

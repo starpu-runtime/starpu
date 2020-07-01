@@ -22,6 +22,7 @@ race:^ntasks$
 race:^mc_cache_size$
 race:^mc_nb$
 race:^mc_clean_nb$
+race:^prefetch_out_of_memory$
 race:^data_requests$
 race:^prefetch_requests$
 race:^idle_requests$

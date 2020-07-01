@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +116,19 @@ Specify <c>hwloc</c> should not be used by StarPU.
 \addindex __configure__--disable-build-doc
 Disable the creation of the documentation. This should be done on a
 machine which does not have the tools <c>doxygen</c> and <c>latex</c>
-(plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
+(plus the packages <c>latex-xcolor</c> and
+<c>texlive-latex-extra</c>).
+</dd>
+
+<dt>--enable-build-doc-pdf</dt>
+<dd>
+\anchor enable-build-doc-pdf
+\addindex __configure__--enable-build-doc-pdf
+By default, ontly the HTML documentation is generated. Use this option
+to also enable the generation of the PDF documentation. This should be
+done on a machine which does have the tools <c>doxygen</c> and <c>latex</c>
+(plus the packages <c>latex-xcolor</c> and
+<c>texlive-latex-extra</c>).
 </dd>
 
 <dt>--disable-icc</dt>
@@ -512,6 +525,15 @@ extremely heavy and should only be enabled when debugging insides of StarPU.
 \addindex __configure__--enable-maxbuffers
 Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the macro ::STARPU_NMAXBUFS.
+</dd>
+
+<dt>--enable-fxt-max-files=<c>count</c></dt>
+<dd>
+\anchor enable-fxt-max-files
+\addindex __configure__--enable-fxt-max-files
+Use at most <c>count</c> mpi nodes fxt files for generating traces.  This information is then available as
+the macro ::STARPU_FXT_MAX_FILES.  This information is used by FxT tools when considering multi node traces.
+Default value is 64.
 </dd>
 
 <dt>--enable-allocation-cache</dt>

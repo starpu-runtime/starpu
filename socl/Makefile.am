@@ -25,6 +25,6 @@ dist_SOCL_vendors_DATA = @SOCL_VENDORS@
 recheck:
 	RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
+		$(MAKE) -C $$i recheck || RET=1 ; \
 	done ; \
 	exit $$RET

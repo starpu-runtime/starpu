@@ -111,6 +111,12 @@ struct starpu_conf
 	int magic;
 
 	/**
+	   @private
+	   Tell starpu_init() if MPI will be initialized later.
+	*/
+	int will_use_mpi;
+
+	/**
 	   Name of the scheduling policy. This can also be specified
 	   with the environment variable \ref STARPU_SCHED. (default =
 	   <c>NULL</c>).
@@ -124,6 +130,17 @@ struct starpu_conf
 	*/
 	struct starpu_sched_policy *sched_policy;
 	void (*sched_policy_init)(unsigned);
+
+	/**
+	   For all parameters specified in this structure that can
+	   also be set with environment variables, by default,
+	   StarPU chooses the value of the environment variable
+	   against the value set in starpu_conf. Setting the parameter
+	   starpu_conf::precedence_over_environment_variables to 1 allows to give precedence
+	   to the value set in the structure over the environment
+	   variable.
+	 */
+	int precedence_over_environment_variables;
 
 	/**
 	   Number of CPU cores that StarPU can use. This can also be
@@ -430,6 +447,16 @@ struct starpu_conf
 	   performance counters after initialization
 	 */
 	unsigned start_perf_counter_collection;
+
+	/**
+	   Minimum spinning backoff of drivers. Default value: \c 1
+	 */
+	unsigned driver_spinning_backoff_min;
+
+	/**
+	   Maximum spinning backoff of drivers. Default value: \c 32
+	 */
+	unsigned driver_spinning_backoff_max;
 };
 
 /**

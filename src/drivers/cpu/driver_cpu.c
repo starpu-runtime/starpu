@@ -108,7 +108,10 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 				_SIMGRID_TIMER_END;
 			}
 			else
-				_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL);
+			{
+				struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_args, j);
+				_starpu_simgrid_submit_job(cpu_args->workerid, sched_ctx->id, j, perf_arch, NAN, NAN, NULL);
+			}
 #else
 #  ifdef STARPU_PAPI
 			_starpu_profiling_papi_task_start_counters(task);
@@ -301,6 +304,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	if (pending_task != NULL && cpu_worker->nb_buffers_transferred == cpu_worker->nb_buffers_totransfer)
 	{
 		int ret;
+		STARPU_RMB();
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		j = _starpu_get_job_associated_to_task(pending_task);
 

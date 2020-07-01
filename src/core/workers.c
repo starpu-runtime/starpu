@@ -1059,6 +1059,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	memset(conf, 0, sizeof(*conf));
 	conf->magic = 42;
+	conf->will_use_mpi = 0;
 	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
 	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
@@ -1143,18 +1144,24 @@ int starpu_conf_init(struct starpu_conf *conf)
 	/* 64MiB by default */
 	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
 
+	conf->driver_spinning_backoff_min = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MIN", 1);
+	conf->driver_spinning_backoff_max = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MAX", 32);
+
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
 	return 0;
 }
 
-static void _starpu_conf_set_value_against_environment(char *name, int *value)
+static void _starpu_conf_set_value_against_environment(char *name, int *value, int precedence_over_env)
 {
-	int number;
-	number = starpu_get_env_number(name);
-	if (number != -1)
+	if (precedence_over_env == 0)
 	{
-		*value = number;
+		int number;
+		number = starpu_get_env_number(name);
+		if (number != -1)
+		{
+			*value = number;
+		}
 	}
 }
 
@@ -1166,16 +1173,16 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		conf->sched_policy_name = sched;
 	}
 
-	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus);
-	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus);
-	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus);
+	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus, conf->precedence_over_environment_variables);
 	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
 		conf->reserve_ncpus++;
-	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda);
-	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl);
-	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate);
-	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate);
+	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
 #ifdef STARPU_SIMGRID
 	if (conf->calibrate == 2)
 	{
@@ -1186,12 +1193,12 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		_STARPU_DISP("Warning: Bus calibration will be cleared due to bus_calibrate or STARPU_BUS_CALIBRATE being set. This will prevent simgrid from having data transfer simulation times!");
 	}
 #endif
-	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy);
+	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
 }
 
 struct starpu_tree* starpu_workers_get_tree(void)
@@ -1660,6 +1667,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_catch_signals();
 
+	/* if MPI is enabled, binding display will be done later, after MPI initialization */
+	if (!_starpu_config.conf.will_use_mpi && starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	{
+		fprintf(stdout, "== Binding ==\n");
+		starpu_display_bindings();
+		fprintf(stdout, "== End of binding ==\n");
+		fflush(stdout);
+	}
+
 	return 0;
 }
 
@@ -1748,6 +1764,8 @@ void starpu_pause()
 {
 	STARPU_HG_DISABLE_CHECKING(_starpu_config.pause_depth);
 	_starpu_config.pause_depth += 1;
+
+	starpu_fxt_trace_user_event_string("starpu_pause");
 }
 
 void starpu_resume()
@@ -1759,6 +1777,8 @@ void starpu_resume()
 		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
+
+	starpu_fxt_trace_user_event_string("starpu_resume");
 }
 
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
@@ -2634,31 +2654,37 @@ int starpu_worker_get_relax_state(void)
 	return _starpu_worker_get_relax_state();
 }
 
+#undef starpu_worker_lock
 void starpu_worker_lock(int workerid)
 {
 	_starpu_worker_lock(workerid);
 }
 
+#undef starpu_worker_trylock
 int starpu_worker_trylock(int workerid)
 {
 	return _starpu_worker_trylock(workerid);
 }
 
+#undef starpu_worker_unlock
 void starpu_worker_unlock(int workerid)
 {
 	_starpu_worker_unlock(workerid);
 }
 
+#undef starpu_worker_lock_self
 void starpu_worker_lock_self(void)
 {
 	_starpu_worker_lock_self();
 }
 
+#undef starpu_worker_unlock_self
 void starpu_worker_unlock_self(void)
 {
 	_starpu_worker_unlock_self();
 }
 
+#undef starpu_wake_worker_relax
 int starpu_wake_worker_relax(int workerid)
 {
 	return _starpu_wake_worker_relax(workerid);

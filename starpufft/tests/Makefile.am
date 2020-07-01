@@ -25,11 +25,8 @@ EXTRA_DIST =		\
 	testf_threads.c	\
 	test_threads.c
 
-if STARPU_HAVE_WINDOWS
+noinst_PROGRAMS	=
 check_PROGRAMS	=	$(STARPU_FFT_EXAMPLES)
-else
-check_PROGRAMS	=	$(LOADER) $(STARPU_FFT_EXAMPLES)
-endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
@@ -37,6 +34,7 @@ LOADER			=	loader
 loader_CPPFLAGS 	=  	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/starpufft/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
+noinst_PROGRAMS		+=	loader
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
@@ -53,11 +51,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 examplebin_PROGRAMS =
-if BUILD_EXAMPLES
 examplebin_PROGRAMS +=	\
 	testf 		\
 	test
-endif
 STARPU_FFT_EXAMPLES = testf
 testf_LDADD = ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
 

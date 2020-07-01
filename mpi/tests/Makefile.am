@@ -19,6 +19,8 @@ include $(top_srcdir)/starpu.mk
 CC=$(MPICC)
 CCLD=$(MPICC)
 
+noinst_PROGRAMS		=
+
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
@@ -26,6 +28,7 @@ loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
@@ -59,8 +62,6 @@ BUILT_SOURCES =
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 EXTRA_DIST = 				\
-	abstract_sendrecv_bench.h	\
-	bench_helper.h			\
 	helper.h			\
 	user_defined_datatype_value.h
 
@@ -90,8 +91,6 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(ST
 ########################
 # Unit testcases       #
 ########################
-
-if BUILD_TESTS
 
 starpu_mpi_TESTS =
 
@@ -139,17 +138,7 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench
-
-if !STARPU_USE_MPI_MPI
-starpu_mpi_TESTS +=				\
-	sendrecv_parallel_tasks_bench
-endif
-
-if !NO_BLAS_LIB
-starpu_mpi_TESTS +=				\
-	sendrecv_gemm_bench
-endif
+	display_bindings
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -178,7 +167,7 @@ starpu_mpi_TESTS +=				\
 	starpu_redefine
 endif
 
-noinst_PROGRAMS =				\
+noinst_PROGRAMS +=				\
 	datatypes				\
 	pingpong				\
 	mpi_test				\
@@ -238,18 +227,14 @@ noinst_PROGRAMS =				\
 	starpu_redefine				\
 	load_balancer				\
 	driver					\
-	sendrecv_bench				\
-	sendrecv_parallel_tasks_bench
-
-if !NO_BLAS_LIB
-noinst_PROGRAMS +=				\
-	sendrecv_gemm_bench
-endif
+	nothing							\
+	display_bindings
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\
-	starpu_redefine
+	starpu_redefine				\
+	nothing
 
 ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c
@@ -274,22 +259,3 @@ mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
-
-sendrecv_bench_SOURCES = sendrecv_bench.c
-sendrecv_bench_SOURCES += bench_helper.c
-sendrecv_bench_SOURCES += abstract_sendrecv_bench.c
-
-sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
-sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
-sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
-
-if !NO_BLAS_LIB
-sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
-sendrecv_gemm_bench_SOURCES += bench_helper.c
-sendrecv_gemm_bench_SOURCES += abstract_sendrecv_bench.c
-sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
-
-sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
-endif
-
-endif

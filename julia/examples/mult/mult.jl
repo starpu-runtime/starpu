@@ -1,12 +1,24 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 import Libdl
 using StarPU
 using LinearAlgebra
 
-#shoud be the same as in the makefile
-const STRIDE = 72
-
 @target STARPU_CPU+STARPU_CUDA
-@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}) :: Nothing
+@codelet function matrix_mult(m1 :: Matrix{Float32}, m2 :: Matrix{Float32}, m3 :: Matrix{Float32}, stride ::Int32) :: Nothing
 
     width_m2 :: Int32 = width(m2)
     height_m1 :: Int32 = height(m1)
@@ -59,38 +71,27 @@ end
 
 starpu_init()
 
-function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy)
+function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Matrix{Float32}, nslicesx, nslicesy, stride)
     scale= 3
     tmin=0
-    vert = StarpuDataFilter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
-    horiz = StarpuDataFilter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
+    vert = starpu_data_filter(STARPU_MATRIX_FILTER_VERTICAL_BLOCK, nslicesx)
+    horiz = starpu_data_filter(STARPU_MATRIX_FILTER_BLOCK, nslicesy)
     @starpu_block let
         hA,hB,hC = starpu_data_register(A, B, C)
         starpu_data_partition(hB, vert)
         starpu_data_partition(hA, horiz)
         starpu_data_map_filters(hC, vert, horiz)
         tmin=0
-        perfmodel = StarpuPerfmodel(
-            perf_type = STARPU_HISTORY_BASED,
-            symbol = "history_perf"
-        )
-        cl = StarpuCodelet(
-            cpu_func = CPU_CODELETS["matrix_mult"],
-            # cuda_func = CUDA_CODELETS["matrix_mult"],
-            #opencl_func="ocl_matrix_mult",
-            modes = [STARPU_R, STARPU_R, STARPU_W],
-            perfmodel = perfmodel
-        )
 
         for i in (1 : 10 )
             t=time_ns()
             @starpu_sync_tasks begin
                 for taskx in (1 : nslicesx)
                     for tasky in (1 : nslicesy)
-                        handles = [hA[tasky], hB[taskx], hC[taskx, tasky]]
-                        task = StarpuTask(cl = cl, handles = handles)
-                        starpu_task_submit(task)
-                        #@starpu_async_cl matrix_mult(hA[tasky], hB[taskx], hC[taskx, tasky])
+                        starpu_task_insert(codelet_name = "matrix_mult",
+                                           modes = [STARPU_R, STARPU_R, STARPU_W],
+                                           handles = [hA[tasky], hB[taskx], hC[taskx, tasky]],
+                                           cl_arg = (Int32(stride),))
                     end
                 end
             end
@@ -104,41 +105,45 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
 end
 
 
-function approximately_equals(
-    A :: Matrix{Cfloat},
-    B :: Matrix{Cfloat},
-    eps = 1e-2
-)
-    (height, width) = size(A)
+function check(A, B, C)
+    expected = A * B
+    height,width = size(C)
+    for i in 1:height
+        for j in 1:width
+            got = C[i, j]
+            exp = expected[i, j]
 
-    for j in (1 : width)
-        for i in (1 : height)
-            if (abs(A[i,j] - B[i,j]) > eps * max(abs(B[i,j]), abs(A[i,j])))
-                println("A[$i,$j] : $(A[i,j]), B[$i,$j] : $(B[i,j])")
-                return false
+            err = abs(exp - got) / exp
+            if err > 0.0001
+                error("[$i] -> $got != $exp (err $err)")
             end
         end
     end
-
-    return true
 end
 
-function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy)
+function compute_times(io,start_dim, step_dim, stop_dim, nslicesx, nslicesy, stride)
     for dim in (start_dim : step_dim : stop_dim)
         A = Array(rand(Cfloat, dim, dim))
         B = Array(rand(Cfloat, dim, dim))
         C = zeros(Float32, dim, dim)
-        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy)
+        mt =  multiply_with_starpu(A, B, C, nslicesx, nslicesy, stride)
         flops = (2*dim-1)*dim*dim/mt
         size=dim*dim*4*3/1024/1024
         println(io,"$size $flops")
         println("$size $flops")
+        check(A, B, C)
     end
 end
 
-
-io=open(ARGS[1],"w")
-compute_times(io,16*STRIDE,4*STRIDE,4096,2,2)
+if size(ARGS, 1) < 2
+    stride=4
+    filename="x.dat"
+else
+    stride=parse(Int, ARGS[1])
+    filename=ARGS[2]
+end
+io=open(filename,"w")
+compute_times(io,16*stride,4*stride,128*stride,2,2,stride)
 close(io)
 
 starpu_shutdown()

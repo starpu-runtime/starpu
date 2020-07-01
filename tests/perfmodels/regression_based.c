@@ -23,6 +23,7 @@
  * Benchmark memset with a linear regression
  */
 
+#define STARTlin 1024
 #define START 1024
 #ifdef STARPU_QUICK_CHECK
 #define END 1048576
@@ -184,11 +185,14 @@ int main(int argc, char **argv)
 #endif
 
 	int size;
-	for (size = START; size < END; size *= 2)
+	for (size = STARTlin; size < END; size *= 2)
 	{
 		/* Use a linear regression */
 		test_memset(size, &memset_cl);
+	}
 
+	for (size = START; size < END; size *= 2)
+	{
 		/* Use a non-linear regression */
 		test_memset(size, &nl_memset_cl);
 	}

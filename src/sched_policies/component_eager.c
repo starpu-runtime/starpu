@@ -16,6 +16,9 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#ifdef BUILDING_STARPU
+#include <core/workers.h>
+#endif
 
 struct _starpu_eager_data
 {
