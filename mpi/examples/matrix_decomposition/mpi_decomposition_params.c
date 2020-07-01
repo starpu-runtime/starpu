@@ -43,6 +43,7 @@ unsigned check = 0;
 unsigned display = 0;
 int dblockx = -1;
 int dblocky = -1;
+enum submission submission = TRIANGLES;
 
 void parse_args(int argc, char **argv, int nodes)
 {
@@ -79,6 +80,16 @@ void parse_args(int argc, char **argv, int nodes)
                         nbigblocks = strtol(argv[++i], &argptr, 10);
                 }
 
+                if (strcmp(argv[i], "-columns") == 0)
+                {
+                        submission = COLUMNS;
+                }
+
+                if (strcmp(argv[i], "-antidiagonals") == 0)
+                {
+                        submission = ANTIDIAGONALS;
+                }
+
                 if (strcmp(argv[i], "-no-prio") == 0)
                 {
                         noprio = 1;
@@ -96,7 +107,7 @@ void parse_args(int argc, char **argv, int nodes)
 
                 if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
                 {
-			printf("usage : %s [-size size] [-nblocks nblocks] [-no-prio] [-display] [-check]\n", argv[0]);
+                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-no-prio] [-display] [-check]\n", argv[0]);
                 }
         }
 

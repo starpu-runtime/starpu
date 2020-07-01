@@ -28,6 +28,13 @@ extern unsigned display;
 extern int dblockx;
 extern int dblocky;
 
+enum submission {
+	TRIANGLES,
+	COLUMNS,
+	ANTIDIAGONALS,
+};
+extern enum submission submission;
+
 void parse_args(int argc, char **argv, int nodes);
 
 #endif // __MPI_CHOLESKY_PARAMS_H__
