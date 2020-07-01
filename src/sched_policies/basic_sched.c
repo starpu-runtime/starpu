@@ -197,7 +197,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	starpu_task_list_init(&sub_package_1_j);
 	starpu_task_list_init(&sub_package_2_j);
 	/* Variable used to store the common data weight beetween two sub packages of packages i and j before merging */
-	long int common_data_last_package_i2_j2 = 0; 
+	long int common_data_last_package_i1_j1 = 0; 
 	long int common_data_last_package_i1_j2 = 0; 
 	long int common_data_last_package_i2_j1 = 0; 
 	long int common_data_last_package_i2_j2 = 0; 
@@ -672,7 +672,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							}
 							else {
 								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
-								 //~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+								 printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							packaging_impossible = 0;
 							
 							/* Forbid i and j to do merge in the remaining of this iteration */
@@ -763,30 +763,30 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										}
 									}
 								}
-								printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i2_j2,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+								printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
 								/* Figuring out wich switch we need to do */
 								max_common_data_last_package = common_data_last_package_i2_j1;
 								if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
 								if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
 								if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
 								
-								if (max_common_data_last_package == common_data_last_package_i1_j1) {
-									printf("SWITCH PAQUET I\n");
-									/* We reverse the order of the tasks in sub_package_1_i and sub_package_2_i and we put first sub_package_2_i*/
-									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
-										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_1_i));	
-									}
+								if (max_common_data_last_package == common_data_last_package_i2_j1) {
+									printf("PAS SWITCH :(\n");	
+									/* We just refill the sub_list of i like it was before */
 									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
-										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i));
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
 									}
-									/* We refill the sub_list of j like before */
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));	
+									}	
+									/* We just refill the sub_list of j like it was before */
 									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
 										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_2_j));
 									}
 									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
 										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
 									}
-								}
+								}								
 								else if (max_common_data_last_package == common_data_last_package_i1_j2) {
 									printf("SWITCH PAQUET I ET J\n");																	
 									/* We reverse the order of the tasks in sub_package_1_i and sub_package_2_i and we put first sub_package_2_i*/
@@ -804,25 +804,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
 									}
 								}
-								else if (max_common_data_last_package == common_data_last_package_i2_j1) {
-									printf("PAS SWITCH :(\n");	
-									/* We just refill the sub_list of i like it was before */
-									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
-										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
-									}
-									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
-										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));	
-									}	
-									/* We just refill the sub_list of j like it was before */
-									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
-										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_2_j));
-									}
-									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
-										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
-									}
-								}
-								else { /* max_common_data_last_package == common_data_last_package_i2_j2 */
-									printf("SWITCH PAQUET J\n");
+								else if (max_common_data_last_package == common_data_last_package_i2_j2) {
+										printf("SWITCH PAQUET J\n");
 									/* We reverse the order of the tasks in sub_package_1_j and sub_package_2_j and we put first sub_package_2_j*/
 									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
 										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_1_j));	
@@ -836,7 +819,24 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									}
 									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
 										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));	
+									}								
+								}
+								else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
+										printf("SWITCH PAQUET I\n");
+									/* We reverse the order of the tasks in sub_package_1_i and sub_package_2_i and we put first sub_package_2_i*/
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_1_i));	
 									}
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i));
+									}
+									/* We refill the sub_list of j like before */
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_2_j));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
+									}							
 								}
 													
 								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
