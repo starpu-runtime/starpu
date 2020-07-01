@@ -743,7 +743,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
 
-	if (is_prefetch > 0)
+	if (is_prefetch > STARPU_FETCH)
 	{
 		unsigned src_node_mask = 0;
 
@@ -761,7 +761,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 		if (src_node_mask == 0)
 		{
 			/* no valid copy, nothing to prefetch */
-			_STARPU_DISP("Warning: no valid copy to prefetch?! that's not supposed to happen, please report\n");
+			STARPU_ASSERT_MSG(handle->init_cl, "Could not find a valid copy of the data, and no handle initialization function");
 			_starpu_spin_unlock(&handle->header_lock);
 			return 0;
 		}
@@ -1250,7 +1250,9 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		if (local_replicate->mc)
 		{
 			local_replicate->mc->diduse = 1;
-			if (task->prefetched &&
+			if (task->prefetched && local_replicate->initialized &&
+				/* See prefetch conditions in
+				 * starpu_prefetch_task_input_on_node_prio and alike */
 				!(mode & (STARPU_SCRATCH|STARPU_REDUX)) &&
 				(mode & STARPU_R))
 			{
