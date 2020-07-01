@@ -625,7 +625,8 @@ done:		;
 		     task_to_prefetch  = starpu_task_prio_list_next(&worker->tasks_queue.list, task_to_prefetch))
 		{
 			/* prefetch from closest to end task */
-			starpu_prefetch_task_input_for(task_to_prefetch, workerid);
+			if (!task_to_prefetch->prefetched) /* FIXME: it seems we are prefetching several times?? */
+				starpu_prefetch_task_input_for(task_to_prefetch, workerid);
 			nb_added_tasks -= 1;
 		}
 	}
