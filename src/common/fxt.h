@@ -1292,11 +1292,7 @@ do {										\
 		handle->ops->describe(__interface, __buf, sizeof(__buf)); \
 	else \
 		__buf[0] = 0; \
-<<<<<<< HEAD
-	_STARPU_FUT_ALWAYS_PROBE4STR(_STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
-=======
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
->>>>>>> b1f1af644b33dfd9e4e655f1deb71ad60a75915d
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
