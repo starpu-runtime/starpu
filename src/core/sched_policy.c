@@ -570,9 +570,6 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	int ret = 0;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
-		if (starpu_get_prefetch_flag())
-			starpu_prefetch_task_input_for(task, task->workerid);
-
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
 	else
@@ -582,7 +579,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		/* When a task can only be executed on a given arch and we have
 		 * only one memory node for that arch, we can systematically
 		 * prefetch before the scheduling decision. */
-		if (starpu_get_prefetch_flag() && starpu_memory_nodes_get_count() > 1)
+		/* XXX: no, this is definitely not a good idea if the scheduler reorders tasks... */
+		if (0 && starpu_get_prefetch_flag() && starpu_memory_nodes_get_count() > 1)
 		{
 			if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
 				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);

@@ -414,6 +414,10 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	/* Remove a reference on the destination replicate for the request */
 	if (dst_replicate)
 	{
+		if (dst_replicate->mc)
+			/* Make sure it stays there for the task.  */
+			dst_replicate->mc->nb_tasks_prefetch += r->nb_tasks_prefetch;
+
 		STARPU_ASSERT(dst_replicate->refcnt > 0);
 		dst_replicate->refcnt--;
 	}

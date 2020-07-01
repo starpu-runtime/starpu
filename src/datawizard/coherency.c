@@ -761,6 +761,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 		if (src_node_mask == 0)
 		{
 			/* no valid copy, nothing to prefetch */
+			_STARPU_DISP("Warning: no valid copy to prefetch?! that's not supposed to happen, please report\n");
 			_starpu_spin_unlock(&handle->header_lock);
 			return 0;
 		}
@@ -937,6 +938,7 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 
 		_starpu_set_data_requested_flag_if_needed(handle, replicate);
 	}
+	task->prefetched = 1;
 
 	return 0;
 }
@@ -1014,6 +1016,7 @@ int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worke
 
 		_starpu_set_data_requested_flag_if_needed(handle, replicate);
 	}
+	task->prefetched = 1;
 
 	return 0;
 }
@@ -1247,7 +1250,9 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		if (local_replicate->mc)
 		{
 			local_replicate->mc->diduse = 1;
-			if (task->prefetched)
+			if (task->prefetched &&
+				!(mode & (STARPU_SCRATCH|STARPU_REDUX)) &&
+				(mode & STARPU_R))
 			{
 				/* Allocations or transfer prefetchs should have been done by now and marked
 				 * this mc as needed for us.
