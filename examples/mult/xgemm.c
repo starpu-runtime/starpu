@@ -472,7 +472,6 @@ int main(int argc, char **argv)
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
 				starpu_resume();
-
 				starpu_task_wait_for_all();
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
@@ -521,7 +520,7 @@ int main(int argc, char **argv)
 				
 		
 				
-				//~ //printf des tableaux
+				//printf des tableaux
 				//~ printf("A la fin \n");
 				//~ printf("Tableau x : \n");
 				//~ for (i= 0; i < nslicesx; i++) { for (j = 0; j < nslicesx; j++) { printf(" %3d ",tab_x[i][j]); } printf("\n"); }
@@ -544,9 +543,9 @@ int main(int argc, char **argv)
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
 						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
-				     check = 0;
-				     ret = 77;
-				     goto enodev;
+				     //~ check = 0;
+				     //~ ret = 77;
+				     //~ goto enodev;
 				}
 				starpu_resume();
 				starpu_task_wait_for_all();
