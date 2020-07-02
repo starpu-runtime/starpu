@@ -362,15 +362,17 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
-Instead of defining pack and unpack operations, users may want to attach a MPI type to their user defined data interface. The function starpu_mpi_datatype_register() allows to do so. This function takes 3 parameters: the data handle for which the MPI datatype is going to be defined, a function's pointer that will create the MPI datatype, and a function's pointer that will free the MPI datatype. If for some data an MPI datatype can not be built (e.g. complex data structure), the creation function can return -1, StarPU-MPI will then fallback to using pack/unpack.
+Instead of defining pack and unpack operations, users may want to
+attach a MPI type to their user defined data interface. The function
+starpu_mpi_interface_datatype_register() allows to do so. This function takes 3
+parameters: the interface ID for which the MPI datatype is going to be defined,
+a function's pointer that will create the MPI datatype, and a function's pointer
+that will free the MPI datatype. If for some data an MPI datatype can not be
+built (e.g. complex data structure), the creation function can return -1,
+StarPU-MPI will then fallback to using pack/unpack.
 
-\code{.c}
-starpu_data_interface handle;
-starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
-starpu_mpi_datatype_register(handle, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
-\endcode
-
-The functions to create and free the MPI datatype are defined as follows.
+The functions to create and free the MPI datatype are defined and registered as
+follows.
 
 \code{.c}
 void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
@@ -402,9 +404,27 @@ void starpu_complex_interface_datatype_free(MPI_Datatype *mpi_datatype)
 {
 	MPI_Type_free(mpi_datatype);
 }
+
+static struct starpu_data_interface_ops interface_complex_ops =
+{
+  ...
+};
+
+interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
+
+starpu_mpi_interface_datatype_register(interface_complex_ops.interfaceid, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
 \endcode
 
-Note that it is important to make sure no communication is going to occur before the function starpu_mpi_datatype_register() is called. This would produce an undefined result as the data may be received before the function is called, and so the MPI datatype would not be known by the StarPU-MPI communication engine, and the data would be processed with the pack and unpack operations.
+
+
+It is also possible to use starpu_mpi_datatype_register() to register the
+functions through a handler rather than the interface ID, but note that in that
+case it is important to make sure no communication is going to occur before the
+function starpu_mpi_datatype_register() is called. This would otherwise produce
+an undefined result as the data may be received before the function is called,
+and so the MPI datatype would not be known by the StarPU-MPI communication
+engine, and the data would be processed with the pack and unpack operations. One
+would thus need to synchronize all nodes:
 
 \code{.c}
 starpu_data_interface handle;
