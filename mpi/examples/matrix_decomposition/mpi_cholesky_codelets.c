@@ -211,7 +211,8 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 						       0);
 			}
 
-			if (b < a) {
+			if (b < a)
+			{
 				/* non-diagonal block, solve */
 				k = n;
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
@@ -322,7 +323,8 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	start = starpu_timing_now();
 
-	switch (submission) {
+	switch (submission)
+	{
 		case TRIANGLES:		run_cholesky(data_handles, rank, nodes); break;
 		case COLUMNS:		run_cholesky_column(data_handles, rank, nodes); break;
 		case ANTIDIAGONALS:	run_cholesky_antidiagonal(data_handles, rank, nodes); break;

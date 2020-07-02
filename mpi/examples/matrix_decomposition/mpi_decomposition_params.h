@@ -28,7 +28,8 @@ extern unsigned display;
 extern int dblockx;
 extern int dblocky;
 
-enum submission {
+enum submission
+{
 	TRIANGLES,
 	COLUMNS,
 	ANTIDIAGONALS,
