@@ -392,6 +392,9 @@ endif
 endif
 
 examplebin_PROGRAMS = \
+	microbenchs/async_tasks_overhead	\
+	microbenchs/sync_tasks_overhead		\
+	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
 examplebin_SCRIPTS = \
