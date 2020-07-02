@@ -68,56 +68,10 @@ static struct starpu_codelet cl22 =
 	.color = 0x00ff00,
 };
 
-/*
- *	code to bootstrap the factorization
- *	and construct the DAG
- */
-void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
+static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
-	double start;
-	double end;
-	starpu_data_handle_t **data_handles;
 	unsigned k, m, n;
-
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
-
-	/* create all the DAG nodes */
-
-	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
-	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
-
-	for (m = 0; m < nblocks; m++)
-	{
-		for(n = 0; n < nblocks ; n++)
-		{
-			int mpi_rank = my_distrib(m, n, nodes);
-			if (mpi_rank == rank)
-			{
-				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
-				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
-						ld, size/nblocks, size/nblocks, sizeof(float));
-			}
-#ifdef STARPU_DEVEL
-#warning TODO: make better test to only register what is needed
-#endif
-			else
-			{
-				/* I don't own this index, but will need it for my computations */
-				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, n, m);
-				starpu_matrix_data_register(&data_handles[m][n], -1, (uintptr_t)NULL,
-						ld, size/nblocks, size/nblocks, sizeof(float));
-			}
-			if (data_handles[m][n])
-			{
-				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
-				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
-			}
-		}
-	}
-
-	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	starpu_mpi_barrier(MPI_COMM_WORLD);
-	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -159,10 +113,226 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		}
 		starpu_iteration_pop();
 	}
+}
+
+/* TODO: generated from compiler polyhedral analysis of classical algorithm */
+static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+
+	/* Column */
+	for (n = 0; n<nblocks; n++)
+	{
+		starpu_iteration_push(n);
+
+		/* Row */
+		for (m = n; m<nblocks; m++)
+		{
+			for (k = 0; k < n; k++)
+			{
+				/* Accumulate updates from TRSMs */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       0);
+			}
+			k = n;
+			if (m > n)
+			{
+				/* non-diagonal block, solve */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[k][k],
+						       STARPU_RW, data_handles[m][k],
+						       0);
+			}
+			else
+			{
+				/* diagonal block, factorize */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+						       STARPU_RW, data_handles[k][k],
+						       0);
+			}
+		}
+
+		starpu_iteration_pop();
+	}
+
+	/* Submit flushes, StarPU will fit them according to the progress */
+	starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
+	for (m = 0; m < nblocks; m++)
+		for (n = 0; n < nblocks ; n++)
+			starpu_data_wont_use(data_handles[m][n]);
+}
+
+/* TODO: generated from compiler polyhedral analysis of classical algorithm */
+static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned a, b, c;
+	unsigned k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+
+	/* double-antidiagonal number:
+	 * - a=0 contains (0,0) plus (1,0)
+	 * - a=1 contains (2,0), (1,1) plus (3,0), (2, 1)
+	 * - etc.
+	 */
+	for (a = 0; a < nblocks; a++)
+	{
+		starpu_iteration_push(a);
+
+		unsigned bfirst;
+		if (2*a < nblocks)
+			bfirst = 0;
+		else
+			bfirst = 2*a - (nblocks-1);
+
+		/* column within first antidiagonal for a */
+		for (b = bfirst; b <= a; b++)
+		{
+			/* column */
+			n = b;
+			/* row */
+			m = 2*a-b;
+
+			/* Accumulate updates from TRSMs */
+			for (c = 0; c < n; c++)
+			{
+				k = c;
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       0);
+			}
+
+			if (b < a)
+			{
+				/* non-diagonal block, solve */
+				k = n;
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[k][k],
+						       STARPU_RW, data_handles[m][k],
+						       0);
+			}
+			else
+			{
+				/* diagonal block, factorize */
+				k = a;
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+						       STARPU_RW, data_handles[k][k],
+						       0);
+			}
+		}
+
+		/* column within second antidiagonal for a */
+		for (b = bfirst; b <= a; b++)
+		{
+			/* column */
+			n = b;
+			/* row */
+			m = 2*a-b + 1;
+
+			if (m >= nblocks)
+				/* Skip first item when even number of tiles */
+				continue;
+
+			/* Accumulate updates from TRSMs */
+			for (c = 0; c < n; c++)
+			{
+				k = c;
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       0);
+			}
+			/* non-diagonal block, solve */
+			k = n;
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[m][k],
+					       0);
+		}
+
+		starpu_iteration_pop();
+	}
+
+	/* Submit flushes, StarPU will fit them according to the progress */
+	starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
+	for (m = 0; m < nblocks; m++)
+		for (n = 0; n < nblocks ; n++)
+			starpu_data_wont_use(data_handles[m][n]);
+}
+
+/*
+ *	code to bootstrap the factorization
+ *	and construct the DAG
+ */
+void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
+{
+	double start;
+	double end;
+	starpu_data_handle_t **data_handles;
+	unsigned k, m, n;
+
+	/* create all the DAG nodes */
+
+	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
+	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
+
+	for (m = 0; m < nblocks; m++)
+	{
+		for(n = 0; n < nblocks ; n++)
+		{
+			int mpi_rank = my_distrib(m, n, nodes);
+			if (mpi_rank == rank || (check && rank == 0))
+			{
+				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
+						ld, size/nblocks, size/nblocks, sizeof(float));
+			}
+#ifdef STARPU_DEVEL
+#warning TODO: make better test to only register what is needed
+#endif
+			else
+			{
+				/* I don't own this index, but will need it for my computations */
+				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, n, m);
+				starpu_matrix_data_register(&data_handles[m][n], -1, (uintptr_t)NULL,
+						ld, size/nblocks, size/nblocks, sizeof(float));
+			}
+			if (data_handles[m][n])
+			{
+				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
+				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
+			}
+		}
+	}
 
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
+	start = starpu_timing_now();
 
+	switch (submission)
+	{
+		case TRIANGLES:		run_cholesky(data_handles, rank, nodes); break;
+		case COLUMNS:		run_cholesky_column(data_handles, rank, nodes); break;
+		case ANTIDIAGONALS:	run_cholesky_antidiagonal(data_handles, rank, nodes); break;
+		default: STARPU_ABORT();
+	}
+
+	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	starpu_mpi_barrier(MPI_COMM_WORLD);
 	end = starpu_timing_now();
 
 	for (m = 0; m < nblocks; m++)
@@ -170,7 +340,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		for(n = 0; n < nblocks ; n++)
 		{
 			/* Get back data on node 0 for the check */
-			if (check)
+			if (check && data_handles[m][n])
 				starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[m][n], 0);
 
 			if (data_handles[m][n])
@@ -248,24 +418,20 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	{
 		for (m = 0; m < nblocks; m++)
 		{
-			int mpi_rank = my_distrib(m, n, nodes);
-			if (mpi_rank == rank)
+			for (nn = BLOCKSIZE*n ; nn < BLOCKSIZE*(n+1); nn++)
 			{
-				for (nn = (size/nblocks)*n ; nn < (size/nblocks)*n+(size/nblocks); nn++)
+				for (mm = BLOCKSIZE*m ; mm < BLOCKSIZE*(m+1); mm++)
 				{
-					for (mm = (size/nblocks)*m ; mm < (size/nblocks)*m+(size/nblocks); mm++)
+					if (nn <= mm)
 					{
-						if (nn <= mm)
+						float orig = (1.0f/(1.0f+nn+mm)) + ((nn == mm)?1.0f*size:0.0f);
+						float err = fabsf(test_mat[mm +nn*size] - orig) / orig;
+						if (err > epsilon)
 						{
-							float orig = (1.0f/(1.0f+nn+mm)) + ((nn == mm)?1.0f*size:0.0f);
-							float err = fabsf(test_mat[mm +nn*size] - orig) / orig;
-							if (err > epsilon)
-							{
-								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, nn, mm, test_mat[mm +nn*size], orig, err);
-								*correctness = 0;
-								*flops = 0;
-								break;
-							}
+							FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, nn, mm, test_mat[mm +nn*size], orig, err);
+							*correctness = 0;
+							*flops = 0;
+							break;
 						}
 					}
 				}

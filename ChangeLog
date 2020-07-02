@@ -31,9 +31,20 @@ New features:
     files. This file can be parsed by the new script
     starpu_fxt_number_events_to_names.py to convert event keys to event names.
   * New STARPU_PER_WORKER perfmodel.
+  * Add energy accounting in the simgrid mode: starpu_energy_use() and
+    starpu_energy_used().
+  * New function starpu_mpi_get_thread_cpuid() to know where is bound the MPI
+    thread.
+  * New function starpu_get_pu_os_index() to convert logical index of a PU to
+    its OS index.
+  * New function starpu_get_hwloc_topology() to get the hwloc topology used by
+    StarPU.
+  * Add a task prefetch level, to improve retaining data in accelerators so we
+    can make prefetch more aggressive.
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
+  * Add a synthetic energy efficiency testcase.
 
 StarPU 1.3.4 (git revision xxx)
 ==============================================

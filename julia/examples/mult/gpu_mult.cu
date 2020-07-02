@@ -79,6 +79,8 @@ extern "C" void gpu_mult(void * descr[], void * args)
 	gpuMultKernel
 		<<< nblocks, THREADS_PER_BLOCK, 0, NULL /*starpu_cuda_get_local_stream()*/
 		>>> (nxC, nyC, nyA, ldA, ldB, ldC, d_subA, d_subB, d_subC);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 

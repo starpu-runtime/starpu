@@ -62,11 +62,7 @@ BUILT_SOURCES =
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 EXTRA_DIST = 				\
-	abstract_sendrecv_bench.h	\
-	bench_helper.h			\
 	helper.h			\
-	gemm_helper.h			\
-	burst_helper.h			\
 	user_defined_datatype_value.h
 
 examplebindir = $(libdir)/starpu/examples/mpi
@@ -142,20 +138,7 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	sendrecv_bench				\
-	burst						\
 	display_bindings
-
-if !STARPU_USE_MPI_MPI
-starpu_mpi_TESTS +=				\
-	sendrecv_parallel_tasks_bench
-endif
-
-if !STARPU_NO_BLAS_LIB
-starpu_mpi_TESTS +=				\
-	sendrecv_gemm_bench			\
-	burst_gemm
-endif
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -244,17 +227,8 @@ noinst_PROGRAMS +=				\
 	starpu_redefine				\
 	load_balancer				\
 	driver					\
-	sendrecv_bench				\
-	sendrecv_parallel_tasks_bench		\
-	burst					\
 	nothing							\
 	display_bindings
-
-if !STARPU_NO_BLAS_LIB
-noinst_PROGRAMS +=				\
-	sendrecv_gemm_bench			\
-	burst_gemm
-endif
 
 XFAIL_TESTS=					\
 	policy_register_toomany			\
@@ -285,31 +259,3 @@ mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
-
-sendrecv_bench_SOURCES = sendrecv_bench.c
-sendrecv_bench_SOURCES += bench_helper.c
-sendrecv_bench_SOURCES += abstract_sendrecv_bench.c
-
-sendrecv_parallel_tasks_bench_SOURCES = sendrecv_parallel_tasks_bench.c
-sendrecv_parallel_tasks_bench_SOURCES += bench_helper.c
-sendrecv_parallel_tasks_bench_SOURCES += abstract_sendrecv_bench.c
-
-burst_SOURCES = burst.c
-burst_SOURCES += burst_helper.c
-
-if !STARPU_NO_BLAS_LIB
-sendrecv_gemm_bench_SOURCES = sendrecv_gemm_bench.c
-sendrecv_gemm_bench_SOURCES += bench_helper.c
-sendrecv_gemm_bench_SOURCES += gemm_helper.c
-sendrecv_gemm_bench_SOURCES += abstract_sendrecv_bench.c
-sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
-
-sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
-
-burst_gemm_SOURCES = burst_gemm.c
-burst_gemm_SOURCES += gemm_helper.c
-burst_gemm_SOURCES += burst_helper.c
-burst_gemm_SOURCES += ../../examples/common/blas.c
-
-burst_gemm_LDADD = $(STARPU_BLAS_LDFLAGS)
-endif

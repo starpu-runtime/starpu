@@ -103,27 +103,27 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
  */
 
 /* the list of MPI transfers found in the different traces */
-static struct mpi_transfer *mpi_sends[MAX_MPI_NODES] = {NULL};
-static struct mpi_transfer *mpi_recvs[MAX_MPI_NODES] = {NULL};
+static struct mpi_transfer *mpi_sends[STARPU_FXT_MAX_FILES] = {NULL};
+static struct mpi_transfer *mpi_recvs[STARPU_FXT_MAX_FILES] = {NULL};
 
 /* number of available slots in the lists  */
-unsigned mpi_sends_list_size[MAX_MPI_NODES] = {0};
-unsigned mpi_recvs_list_size[MAX_MPI_NODES] = {0};
+unsigned mpi_sends_list_size[STARPU_FXT_MAX_FILES] = {0};
+unsigned mpi_recvs_list_size[STARPU_FXT_MAX_FILES] = {0};
 
 /* number of slots actually used in the list  */
-unsigned mpi_sends_used[MAX_MPI_NODES] = {0};
-unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
+unsigned mpi_sends_used[STARPU_FXT_MAX_FILES] = {0};
+unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
 
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
-unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
+unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
+unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle)
 {
 	STARPU_ASSERT(src >= 0);
-	if (src >= MAX_MPI_NODES)
+	if (src >= STARPU_FXT_MAX_FILES)
 		return;
 	unsigned slot = mpi_sends_used[src]++;
 
@@ -153,7 +153,7 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 
 void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
 {
-	if (dst >= MAX_MPI_NODES)
+	if (dst >= STARPU_FXT_MAX_FILES)
 		return;
 	unsigned slot = mpi_recvs_used[dst]++;
 
@@ -220,11 +220,11 @@ static unsigned long mpi_com_id = 0;
 
 static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comms_file, unsigned n)
 {
-	unsigned slot[MAX_MPI_NODES] = { 0 }, node;
+	unsigned slot[STARPU_FXT_MAX_FILES] = { 0 }, node;
 	unsigned nb_wrong_comm_timing = 0;
 	struct mpi_transfer_list pending_receives; /* Sorted list of matches which have not happened yet */
-	double current_out_bandwidth[MAX_MPI_NODES] = { 0. };
-	double current_in_bandwidth[MAX_MPI_NODES] = { 0. };
+	double current_out_bandwidth[STARPU_FXT_MAX_FILES] = { 0. };
+	double current_in_bandwidth[STARPU_FXT_MAX_FILES] = { 0. };
 #ifdef STARPU_HAVE_POTI
 	char mpi_container[STARPU_POTI_STR_LEN];
 #endif
@@ -246,7 +246,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		else
 			start_date = mpi_transfer_list_front(&pending_receives)->date;
 
-		src = MAX_MPI_NODES;
+		src = STARPU_FXT_MAX_FILES;
 		for (node = 0; node < n; node++)
 		{
 			if (slot[node] < mpi_sends_used[node] && mpi_sends[node][slot[node]].date < start_date)
@@ -260,7 +260,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			/* No event any more, we're finished! */
 			break;
 
-		if (src == MAX_MPI_NODES)
+		if (src == STARPU_FXT_MAX_FILES)
 		{
 			/* Pending match is earlier than all new sends, finish its communication */
 			match = mpi_transfer_list_pop_front(&pending_receives);
@@ -284,7 +284,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		size_t size = cur->size;
 		unsigned long send_handle = cur->handle;
 
-		if (dst < MAX_MPI_NODES)
+		if (dst < STARPU_FXT_MAX_FILES)
 			match = try_to_match_send_transfer(src, dst, mpi_tag);
 		else
 			match = NULL;
@@ -377,10 +377,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)
 {
-	if (options->ninputfiles > MAX_MPI_NODES)
+	if (options->ninputfiles > STARPU_FXT_MAX_FILES)
 	{
-		_STARPU_DISP("Warning: %u files given, maximum %u supported, truncating to %u\n", options->ninputfiles, MAX_MPI_NODES, MAX_MPI_NODES);
-		options->ninputfiles = MAX_MPI_NODES;
+		_STARPU_DISP("Warning: %u files given, maximum %u supported, truncating to %u\n", options->ninputfiles, STARPU_FXT_MAX_FILES, STARPU_FXT_MAX_FILES);
+		options->ninputfiles = STARPU_FXT_MAX_FILES;
 	}
 
 	/* display the MPI transfers if possible */

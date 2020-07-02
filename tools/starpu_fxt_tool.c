@@ -79,6 +79,11 @@ static int parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-i") == 0)
 		{
+			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
+			{
+				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%u)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
+				return 7;
+			}
 			options.filenames[options.ninputfiles++] = argv[++i];
 			reading_input_filenames = 1;
 			continue;
@@ -172,6 +177,11 @@ static int parse_args(int argc, char **argv)
 		 * assume this may be another filename */
 		if (reading_input_filenames)
 		{
+			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
+			{
+				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%u)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
+				return 7;
+			}
 			options.filenames[options.ninputfiles++] = argv[i];
 			continue;
 		}

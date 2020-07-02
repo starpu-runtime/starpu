@@ -46,6 +46,7 @@ static struct timespec executing_start_date[STARPU_NMAXWORKERS];
 #ifdef STARPU_PAPI
 static int papi_events[PAPI_MAX_HWCTRS];
 static int papi_nevents = 0;
+static int warned_component_unavailable = 0;
 #endif
 
 /* Store the busid of the different (src, dst) pairs. busid_matrix[src][dst]
@@ -160,7 +161,7 @@ void _starpu_profiling_init(void)
 		conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
 		if (conf_papi_events != NULL)
 		{
-			while ((papi_event_name = strtok_r(conf_papi_events, " ", &conf_papi_events)))
+			while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
 			{
 				_STARPU_DEBUG("Loading PAPI Event:%s\n", papi_event_name);
 				retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
@@ -188,7 +189,12 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 		PAPI_create_eventset(&profiling_info->papi_event_set);
 		for(int i=0; i<papi_nevents; i++)
 		{
-			PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+			int ret = PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+			if (ret == PAPI_ECMP_DISABLED && !warned_component_unavailable)
+			{
+				_STARPU_MSG("Error while registering Papi event: Component containing event is disabled. Try running `papi_component_avail` to get more information.\n");
+				warned_component_unavailable = 1;
+			}
 			profiling_info->papi_values[i]=0;
 		}
 		PAPI_reset(profiling_info->papi_event_set);

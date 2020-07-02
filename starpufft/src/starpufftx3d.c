@@ -164,7 +164,6 @@ static struct starpu_task *
 STARPUFFT(start3dC2C)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_data_handle_t out)
 {
 	STARPU_ASSERT(plan->type == C2C);
-	int z;
 	int ret;
 
 if (PARALLEL) {

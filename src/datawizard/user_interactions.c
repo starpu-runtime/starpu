@@ -22,6 +22,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 #include <core/sched_policy.h>
+#include <datawizard/memory_nodes.h>
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
@@ -46,7 +47,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 
 	_starpu_spin_lock(&handle->header_lock);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, 1, 0, 0, "starpu_data_request_allocation");
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, STARPU_PREFETCH, 0, 0, "starpu_data_request_allocation");
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -67,7 +68,7 @@ struct user_interaction_wrapper
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned detached;
-	unsigned prefetch;
+	enum _starpu_is_prefetch prefetch;
 	unsigned async;
 	int prio;
 	void (*callback)(void *);
@@ -535,7 +536,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, unsigned prefetch, int prio)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
 {
 	STARPU_ASSERT(handle);
 
@@ -595,12 +596,12 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 0, 0);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, 0);
 }
 
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 1, prio);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_PREFETCH, prio);
 }
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
@@ -610,7 +611,7 @@ int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, uns
 
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, 2, prio);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_IDLEFETCH, prio);
 }
 
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)

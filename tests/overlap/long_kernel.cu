@@ -29,4 +29,6 @@ extern "C" void long_kernel_cuda(unsigned long niters)
 	dim3 dimBlock(1,1);
 	dim3 dimGrid(1,1);
 	long_kernel<<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>>(niters);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

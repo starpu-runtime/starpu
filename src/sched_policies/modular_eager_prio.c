@@ -50,4 +50,5 @@ struct starpu_sched_policy _starpu_sched_modular_eager_prio_policy =
 	.policy_name = "modular-eager-prio",
 	.policy_description = "eager-prio modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

@@ -26,7 +26,6 @@
 int main(int argc, char **argv)
 {
 	int ret, rank, worldsize;
-	int mpi_init;
 	int pause_workers = 0;
 
 
@@ -52,8 +51,7 @@ int main(int argc, char **argv)
 	}
 
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -65,8 +63,7 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		if (!mpi_init)
-			MPI_Finalize();
+
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -85,8 +82,6 @@ int main(int argc, char **argv)
 	}
 
 	starpu_mpi_shutdown();
-	if (!mpi_init)
-		MPI_Finalize();
 
 	return 0;
 }

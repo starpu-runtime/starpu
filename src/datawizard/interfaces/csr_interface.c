@@ -16,6 +16,9 @@
  */
 
 #include <starpu.h>
+#ifdef BUILDING_STARPU
+#include <datawizard/memory_nodes.h>
+#endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 

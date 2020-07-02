@@ -94,4 +94,5 @@ struct starpu_sched_policy _starpu_sched_tree_heft_hierarchical_policy =
 	.policy_name = "modular-heft-hierarchical",
 	.policy_description = "hierarchical heft tree policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

@@ -19,6 +19,7 @@
 #include <common/thread.h>
 #include <common/fxt.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/memory_nodes.h>
 #include <core/workers.h>
 #include <starpu_stdlib.h>
 

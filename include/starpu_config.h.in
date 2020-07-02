@@ -186,6 +186,15 @@
 #undef STARPU_NMAXBUFS
 
 /**
+   Define the maximum number of fxt mpi files that can be read when
+   generating traces. The default value is 64, it can be changed by
+   using the configure option \ref enable-fxt-max-files
+   "--enable-fxt-max-files".
+   @ingroup API_MPI_Support
+*/
+#undef STARPU_FXT_MAX_FILES
+
+/**
    Define the maximum number of CPU workers managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxcpus "--enable-maxcpus".

@@ -49,13 +49,11 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	int ret, rank, mpi_init, other_rank;
+	int ret, rank, other_rank;
 
 	parse_args(argc, argv);
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
-
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -68,8 +66,6 @@ int main(int argc, char **argv)
 	burst_free_data(rank);
 
 	starpu_mpi_shutdown();
-	if (!mpi_init)
-		MPI_Finalize();
 
 	return 0;
 }

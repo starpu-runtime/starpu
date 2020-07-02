@@ -6,6 +6,7 @@
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2020       Télécom-Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +30,9 @@
 #include <core/workers.h>
 #include <core/sched_policy.h>
 #include <core/debug.h>
+#ifdef BUILDING_STARPU
+#include <datawizard/memory_nodes.h>
+#endif
 
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
@@ -1014,6 +1018,10 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
 	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (starpu_getenv("STARPU_SCHED_GAMMA"))
+		_STARPU_DISP("Warning: STARPU_SCHED_GAMMA was used, but --enable-blocking-drivers configuration was not set, CPU cores will not actually be sleeping\n");
+#endif
 	dt->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
 	/* data->idle_power: Idle power of the whole machine in Watt */
 	dt->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
@@ -1183,6 +1191,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.policy_name = "dm",
 	.policy_description = "performance model",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_policy =
@@ -1201,6 +1210,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
@@ -1219,6 +1229,7 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.policy_name = "dmdap",
 	.policy_description = "data-aware performance model (priority)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
@@ -1237,6 +1248,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.policy_name = "dmdas",
 	.policy_description = "data-aware performance model (sorted)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
@@ -1255,6 +1267,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 	.policy_name = "dmdasd",
 	.policy_description = "data-aware performance model (sorted decision)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
@@ -1273,4 +1286,5 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.policy_name = "dmdar",
 	.policy_description = "data-aware performance model (ready)",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

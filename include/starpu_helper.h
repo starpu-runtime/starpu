@@ -20,6 +20,10 @@
 #include <stdio.h>
 #include <starpu.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -190,6 +194,19 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 */
 void starpu_display_bindings(void);
 
+/**
+   If \c hwloc is used, convert the given \p logical_index of a PU to the OS
+   index of this PU. If \c hwloc is not used, return \p logical_index.
+*/
+int starpu_get_pu_os_index(unsigned logical_index);
+
+#ifdef STARPU_HAVE_HWLOC
+/**
+   Get the hwloc topology used by StarPU. One can use this pointer to get
+   information about topology, but not to change settings related to topology.
+*/
+hwloc_topology_t starpu_get_hwloc_topology(void);
+#endif
 /** @} */
 
 #ifdef __cplusplus

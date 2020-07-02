@@ -53,7 +53,7 @@ static void* comm_thread_func(void* arg)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
-		_STARPU_DISP("[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
+		fprintf(stderr, "[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
 	}
 
 	sendrecv_bench(mpi_rank, &thread_barrier);
@@ -118,7 +118,7 @@ void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	double start, end;
-	int ret, mpi_init, worldsize;
+	int ret, worldsize;
 	starpu_pthread_t comm_thread;
 
 	char hostname[255];
@@ -128,8 +128,7 @@ int main(int argc, char **argv)
 
 	starpu_fxt_autostart_profiling(0);
 
-	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
@@ -143,8 +142,7 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		if (!mpi_init)
-			MPI_Finalize();
+
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -162,7 +160,7 @@ int main(int argc, char **argv)
 
 	if (mpi_rank == 0)
 	{
-		PRINTF("# node\tx\ty\tz\tms\tGFlops\n");
+		printf("# node\tx\ty\tz\tms\tGFlops\n");
 	}
 
 	starpu_pause();
@@ -185,7 +183,7 @@ int main(int argc, char **argv)
 	double timing = end - start;
 	double flops = 2.0*((unsigned long long)matrix_dim) * ((unsigned long long)matrix_dim)*((unsigned long long)matrix_dim);
 
-	PRINTF("%s\t%u\t%u\t%u\t%.0f\t%.1f\n", hostname, matrix_dim, matrix_dim, matrix_dim, timing/1000.0, flops/timing/1000.0);
+	printf("%s\t%u\t%u\t%u\t%.0f\t%.1f\n", hostname, matrix_dim, matrix_dim, matrix_dim, timing/1000.0, flops/timing/1000.0);
 
 
 enodev:
@@ -200,8 +198,6 @@ enodev:
 
 	starpu_resume();
 	starpu_mpi_shutdown();
-	if (!mpi_init)
-		MPI_Finalize();
 
 	return ret;
 }

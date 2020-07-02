@@ -1359,6 +1359,9 @@ if test x$enable_cuda = xyes; then
 	    ]
 	)
 	if test x$have_valid_nvml = xyes ; then
+		AC_CHECK_DECLS([nvmlDeviceGetTotalEnergyConsumption], [
+			AC_CHECK_FUNCS([nvmlDeviceGetTotalEnergyConsumption])
+			], [], [[#include <nvml.h>]])
 		AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
 		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
 	fi
@@ -2241,6 +2244,14 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
+AC_MSG_CHECKING(how many MPI nodes fxt files can be manipulated when generating traces)
+AC_ARG_ENABLE(fxt-max-files, [AS_HELP_STRING([--enable-fxt-max-files=<nbuffers>],
+			[maximum number of mpi nodes for traces])],
+			nmaxfxtfiles=$enableval, nmaxfxtfiles=64)
+AC_MSG_RESULT($nmaxfxtfiles)
+AC_DEFINE_UNQUOTED(STARPU_FXT_MAX_FILES, [$nmaxfxtfiles],
+		[how many MPI nodes fxt files can be manipulated when generating traces])
+
 AC_MSG_CHECKING(maximum number of memory nodes to use per MPI rank)
 AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
 			[maximum number of memory nodes per MPI rank])],
@@ -2556,7 +2567,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 	fi
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
-		if test x$build_mpi_lib = xyes -o x$build_mpi_master_slave = xyes ; then
+		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
 			#Check MPIFORT
 			if test x$enable_simgrid = xyes ; then
 				DEFAULT_MPIFORT=smpifort
@@ -3531,6 +3542,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh tests/microbenchs/
+  mkdir -p tests/energy
+  test -e tests/energy/static.sh || ln -sf $ac_abs_top_srcdir/tests/energy/static.sh tests/energy/
+  test -e tests/energy/dynamic.sh || ln -sf $ac_abs_top_srcdir/tests/energy/dynamic.sh tests/energy/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
   mkdir -p tests/overlap

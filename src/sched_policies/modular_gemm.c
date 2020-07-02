@@ -199,4 +199,5 @@ struct starpu_sched_policy _starpu_sched_modular_gemm_policy =
 	.policy_name = "modular-gemm",
 	.policy_description = "gemm modular policy",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };

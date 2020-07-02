@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
+#include <datawizard/copy_driver.h>
 #include <string.h>
 
 #ifdef STARPU_HAVE_POTI
@@ -1194,8 +1195,8 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
  */
 static int create_ordered_stream_id (int nodeid, int devid)
 {
-	static int stable[MAX_MPI_NODES][STARPU_MAXCUDADEVS];
-	STARPU_ASSERT(nodeid < MAX_MPI_NODES);
+	static int stable[STARPU_FXT_MAX_FILES][STARPU_MAXCUDADEVS];
+	STARPU_ASSERT(nodeid < STARPU_FXT_MAX_FILES);
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 	return stable[nodeid][devid]++;
 }
@@ -2268,13 +2269,14 @@ static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	data->mpi_tag = tag;
 }
 
-static const char *copy_link_type(unsigned prefetch)
+static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
 {
 	switch (prefetch)
 	{
-		case 0: return "F";
-		case 1: return "PF";
-		case 2: return "IF";
+		case STARPU_FETCH: return "F";
+		case STARPU_TASK_PREFETCH: return "TF";
+		case STARPU_PREFETCH: return "PF";
+		case STARPU_IDLEFETCH: return "IF";
 		default: STARPU_ASSERT(0);
 	}
 }
@@ -2285,7 +2287,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
-	unsigned prefetch = ev->param[4];
+	enum _starpu_is_prefetch prefetch = ev->param[4];
 	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
@@ -2367,7 +2369,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
-	unsigned prefetch = ev->param[4];
+	enum _starpu_is_prefetch prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;

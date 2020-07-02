@@ -1983,7 +1983,11 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 		{
 			cpu_worker[cpuid] = workerid;
 			if (name)
+			{
+				if (cpu_name[cpuid])
+					free(cpu_name[cpuid]);
 				cpu_name[cpuid] = strdup(name);
+			}
 		}
 	}
 
@@ -3061,3 +3065,26 @@ void starpu_topology_print(FILE *output)
 		fprintf(output, "\n");
 	}
 }
+
+int starpu_get_pu_os_index(unsigned logical_index)
+{
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	hwloc_topology_t topo = topology->hwtopology;
+
+	return hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, logical_index)->os_index;
+#else
+	return logical_index;
+#endif
+}
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_topology_t starpu_get_hwloc_topology(void)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	return config->topology.hwtopology;
+}
+#endif

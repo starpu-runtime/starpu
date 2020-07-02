@@ -73,4 +73,6 @@ extern "C" void cuda_axpy(void *descr[], void *_args)
 	__P_HOSTSETUP(saxpy_partitioned,dim3(dimensions,1,1),dimensions,0,SM_mapping_start,SM_allocation,stream);
 
   	saxpy_partitioned<<<width,dimensions,0,stream>>>(__P_HKARGS,n,a,x,y);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

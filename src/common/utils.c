@@ -743,7 +743,7 @@ int starpu_get_env_size_default(const char *str, int defval)
 
 void starpu_display_bindings(void)
 {
-#ifdef STARPU_HAVE_HWLOC
+#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
 	int hwloc_ret = system("hwloc-ps -a -t -c");
 	if (hwloc_ret)
 	{

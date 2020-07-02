@@ -42,6 +42,9 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
+	energy/static.sh			\
+	energy/dynamic.sh			\
+	energy/perfs.gp				\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
@@ -212,6 +215,7 @@ myPROGRAMS +=					\
 
 if STARPU_SIMGRID
 myPROGRAMS +=					\
+	energy/energy_efficiency		\
 	datawizard/simgrid-locality
 endif
 
@@ -356,6 +360,10 @@ myPROGRAMS +=				\
 	parallel_tasks/spmd_peager		\
 	parallel_tasks/cuda_only		\
 	perfmodels/regression_based		\
+	perfmodels/regression_based_01		\
+	perfmodels/regression_based_02		\
+	perfmodels/regression_based_03		\
+	perfmodels/regression_based_04		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/user_base			\
@@ -987,9 +995,25 @@ endif
 perfmodels_regression_based_SOURCES=\
 	perfmodels/regression_based.c
 
+perfmodels_regression_based_01_SOURCES=\
+	perfmodels/regression_based_01.c
+
+perfmodels_regression_based_02_SOURCES=\
+	perfmodels/regression_based_02.c
+
+perfmodels_regression_based_03_SOURCES=\
+	perfmodels/regression_based_03.c
+
+perfmodels_regression_based_04_SOURCES=\
+	perfmodels/regression_based_04.c
+
 if STARPU_USE_OPENCL
 perfmodels_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
+
+perfmodels_regression_based_04_SOURCES+=\
+	perfmodels/opencl_memset.c
+
 nobase_STARPU_OPENCL_DATA_DATA += \
 	perfmodels/opencl_memset_kernel.cl
 endif

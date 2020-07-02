@@ -20,6 +20,7 @@
 #ifndef __STARPU_FXT_H__
 #define __STARPU_FXT_H__
 
+#include <starpu_config.h>
 #include <starpu_perfmodel.h>
 
 #ifdef __cplusplus
@@ -31,8 +32,6 @@ extern "C"
    @defgroup API_FxT_Support FxT Support
    @{
 */
-
-#define STARPU_FXT_MAX_FILES	64
 
 struct starpu_fxt_codelet_event
 {

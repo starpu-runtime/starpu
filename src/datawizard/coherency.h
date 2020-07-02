@@ -308,7 +308,7 @@ struct _starpu_data_state
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, enum _starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /** This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
@@ -351,7 +351,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
  */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_data_access_mode mode, unsigned is_prefetch,
+								  enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 

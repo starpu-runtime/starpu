@@ -161,6 +161,8 @@ extern "C" void CUDA_nbody_updt(void** buffers_gj6UYWT4, void* cl_arg_gj6UYWT4)
              ld_jJ5f8wMA, ptr_piPvdbTs, ld_piPvdbTs, ptr_JBaPgPiT, 
              ptr_0STm2S4k, ld_0STm2S4k);
     ;
+    cudaError_t status = cudaGetLastError();
+    if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
     cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 

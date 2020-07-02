@@ -398,6 +398,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	/* Link types */
 	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communication");
 	poti_DefineLinkType("F", "P", "Mm", "Mm", "Intra-node data Fetch");
+	poti_DefineLinkType("TF", "P", "Mm", "Mm", "Intra-node data TaskPreFetch");
 	poti_DefineLinkType("PF", "P", "Mm", "Mm", "Intra-node data PreFetch");
 	poti_DefineLinkType("IF", "P", "Mm", "Mm", "Intra-node data IdleFetch");
 	poti_DefineLinkType("WSL", "P", "W", "W", "Work steal");
@@ -551,6 +552,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
 5       MPIL     MPIP	MPICt	MPICt   \"MPI communication\"\n\
 5       F       P	Mm	Mm      \"Intra-node data Fetch\"\n\
+5       TF      P	Mm	Mm      \"Intra-node data TaskPreFetch\"\n\
 5       PF      P	Mm	Mm      \"Intra-node data PreFetch\"\n\
 5       IF      P	Mm	Mm      \"Intra-node data IdleFetch\"\n\
 5       WSL     P	W	W       \"Work steal\"\n");

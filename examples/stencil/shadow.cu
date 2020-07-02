@@ -53,4 +53,6 @@ extern "C" void cuda_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int 
 	dim3 dimGrid((nx + threads_per_dim_x-1) / threads_per_dim_x, (ny + threads_per_dim_y-1) / threads_per_dim_y);
 #endif
 	cuda_shadow <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> (bz, ptr, nx, ny, nz, ldy, ldz, i);
+	cudaError_t status = cudaGetLastError();
+	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

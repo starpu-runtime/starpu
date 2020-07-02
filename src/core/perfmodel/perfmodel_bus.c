@@ -37,6 +37,7 @@
 #include <core/topology.h>
 #include <common/utils.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <datawizard/memory_nodes.h>
 
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
@@ -177,7 +178,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
 	cures = cudaMalloc((void **)&d_buffer, size);
-	STARPU_ASSERT(cures == cudaSuccess);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -206,7 +207,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 		cudaHostRegister((void *)h_buffer, size, 0);
 	}
 
-	STARPU_ASSERT(cures == cudaSuccess);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -331,7 +332,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Allocate a buffer on the device */
 	unsigned char *s_buffer;
 	cures = cudaMalloc((void **)&s_buffer, size);
-	STARPU_ASSERT(cures == cudaSuccess);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 	cudaMemset(s_buffer, 0, size);
 	cudaDeviceSynchronize();
 
@@ -357,7 +358,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
 	cures = cudaMalloc((void **)&d_buffer, size);
-	STARPU_ASSERT(cures == cudaSuccess);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 	cudaMemset(d_buffer, 0, size);
 	cudaDeviceSynchronize();
 

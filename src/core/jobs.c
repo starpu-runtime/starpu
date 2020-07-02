@@ -24,10 +24,12 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/graph.h>
+#include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <core/debug.h>
 #include <limits.h>
+#include <core/workers.h>
 
 static int max_memory_use;
 static unsigned long njobs, maxnjobs;
@@ -483,6 +485,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * also the callback were executed. */
 		j->terminated = 2;
 	}
+	task->prefetched = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 	STARPU_AYU_REMOVETASK(j->job_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
