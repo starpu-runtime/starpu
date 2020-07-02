@@ -37,8 +37,8 @@ New features:
     thread.
   * New function starpu_get_pu_os_index() to convert logical index of a PU to
     its OS index.
-  * New function starpu_get_hwloc_topology() to get a copy of the hwloc
-    topology used by StarPU.
+  * New function starpu_get_hwloc_topology() to get the hwloc topology used by
+    StarPU.
   * Add a task prefetch level, to improve retaining data in accelerators so we
     can make prefetch more aggressive.
 

@@ -202,9 +202,10 @@ int starpu_get_pu_os_index(unsigned logical_index);
 
 #ifdef STARPU_HAVE_HWLOC
 /**
-   Get a copy of the hwloc topology used by StarPU.
+   Get the hwloc topology used by StarPU. One can use this pointer to get
+   information about topology, but not to change settings related to topology.
 */
-int starpu_get_hwloc_topology(hwloc_topology_t* topology);
+hwloc_topology_t starpu_get_hwloc_topology(void);
 #endif
 /** @} */
 
