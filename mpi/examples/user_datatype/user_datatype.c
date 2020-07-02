@@ -57,9 +57,6 @@ int main(int argc, char **argv)
 
 	starpu_my_data_register(&handle0, STARPU_MAIN_RAM, &my0);
 	starpu_my_data_register(&handle1, -1, &my1);
-	starpu_mpi_datatype_register(handle1, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
-
-	starpu_mpi_barrier(MPI_COMM_WORLD);
 
 	// Send data directly with MPI
 	if (rank == 0)
@@ -123,10 +120,10 @@ int main(int argc, char **argv)
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
-	starpu_mpi_datatype_unregister(handle0);
 	starpu_data_unregister(handle0);
 	starpu_data_unregister(handle1);
 
+	starpu_my_data_shutdown();
 	starpu_mpi_shutdown();
 
 	if (rank == 0)
