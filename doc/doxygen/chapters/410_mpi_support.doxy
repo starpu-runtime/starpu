@@ -413,6 +413,10 @@ static struct starpu_data_interface_ops interface_complex_ops =
 interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
 
 starpu_mpi_interface_datatype_register(interface_complex_ops.interfaceid, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
+
+starpu_data_interface handle;
+starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
+...
 \endcode
 
 
