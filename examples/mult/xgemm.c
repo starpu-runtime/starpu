@@ -31,6 +31,7 @@
 #define RANDOM_TASK_ORDER
 #define RECURSIVE_MATRIX_LAYOUT
 #define RANDOM_TASKS
+#define SEED
 
 #include <limits.h>
 #include <string.h>
@@ -377,7 +378,7 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	//Ajout pour randomiser l'ordre d'arrivé des tâches
-	srandom(time(0));
+	srandom(starpu_get_env_number_default("SEED",1));
 	
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
