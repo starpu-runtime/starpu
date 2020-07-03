@@ -336,7 +336,8 @@ starpu_mpi_EXAMPLES	+=			\
 
 examplebin_PROGRAMS +=				\
 	user_datatype/user_datatype		\
-	user_datatype/user_datatype2
+	user_datatype/user_datatype2		\
+	user_datatype/user_datatype_early
 
 user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
@@ -346,9 +347,14 @@ user_datatype_user_datatype2_SOURCES =		\
 	user_datatype/user_datatype2.c		\
 	user_datatype/my_interface.c
 
+user_datatype_user_datatype_early_SOURCES =	\
+	user_datatype/user_datatype_early.c	\
+	user_datatype/my_interface.c
+
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype2		\
+	user_datatype/user_datatype_early	\
 	user_datatype/user_datatype
 endif
 

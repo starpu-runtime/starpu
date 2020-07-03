@@ -208,6 +208,27 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
+MPI_Datatype _starpu_mpi_datatype_get_user_defined_datatype(starpu_data_handle_t data_handle)
+{
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
+	if (id < STARPU_MAX_INTERFACE_ID) return 0;
+
+	struct _starpu_mpi_datatype_funcs *table;
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	if (table && table->allocate_datatype_func)
+	{
+		MPI_Datatype datatype;
+		int ret = table->allocate_datatype_func(data_handle, &datatype);
+		if (ret == 0)
+			return datatype;
+		else
+			return 0;
+	}
+	return 0;
+}
+
 void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
