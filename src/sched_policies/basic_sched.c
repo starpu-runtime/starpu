@@ -174,7 +174,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0; int packing_time = 0; double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int *red = 0; int *green = 0; int *blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL; starpu_data_handle_t data_0_0_in_C = NULL;
-	int Nb_package_forbidden = 0; int Nb_package = 0; int *package_autorized = NULL;
+	int Nb_package_forbidden = 0; int Nb_package = 0; int *package_autorized = NULL; int i_HEM = 0;
 	
 	
 	int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
@@ -649,7 +649,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				}
 				}
 				/* ALGO 1, 2 and 3 */
-				else if ((data->ALGO_USED_READER == 1) || (data->ALGO_USED_READER == 2) || (data->ALGO_USED_READER == 3) || (data->ALGO_USED_READER == 8888)) {
+				else if ((data->ALGO_USED_READER == 1) || (data->ALGO_USED_READER == 2) || (data->ALGO_USED_READER == 3)) {
 					if (GPU_limit_switch == 1) {
 					/* Getting W_max. W_max get the max common data only if the merge of the two packages without the duplicates data would weight less than GPU_RAM */
 					for (i_bis =0; i_bis < nb_pop; i_bis++) { 
@@ -693,7 +693,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						} data->temp_pointer_1 = data->temp_pointer_1->next;
 					} data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link;
 				}
-		
+				
+			
 				
 				/* Merge of the packages and verification that the weight would be inferior to GPU_MAX */
 				for (i = 0; i < nb_pop; i++) {
@@ -717,6 +718,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						}
 												
 						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0))
+							
 						{
 							
 							if ( (weight_two_packages > GPU_RAM) && (GPU_limit_switch == 1) ) { 
@@ -725,6 +727,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							else {
 								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
 								 //~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+							merge:	 
 							packaging_impossible = 0;
 							
 							/* Forbid i and j to do merge in the remaining of this iteration */
@@ -954,10 +957,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								data->temp_pointer_2->nb_task_in_sub_list = 0;
 								
 								/* If we use algo 2 */
-								if (data->ALGO_USED_READER == 2) {
+								if (data->ALGO_USED_READER == 2 || data->ALGO_USED_READER == 6) {
+									printf("goto algo 2\n");
 									goto algo_2; 
 								}
-						} }
+						} } 
 						data->temp_pointer_2 = data->temp_pointer_2->next;
 					} 
 					if (nb_common_data > 1) {
@@ -978,7 +982,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					if (Nb_package != 1) { 
 						if (Nb_package != Nb_package_forbidden) {
 							int * package_autorized = malloc((Nb_package - Nb_package_forbidden)*sizeof(int));
-							while (data->temp_pointer_1 != NULL) {
+							//~ while (data->temp_pointer_1 != NULL) {
+							while (i_bis < (Nb_package - Nb_package_forbidden)) {
 								if (data->temp_pointer_1->forbidden == 0) { package_autorized[i_bis] = j_bis; i_bis++; }
 								data->temp_pointer_1 = data->temp_pointer_1->next; j_bis++; }
 							data->temp_pointer_1 = data->first_link;					
@@ -1018,89 +1023,25 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								/* We put i on the list of forbidden packages */
 								data->temp_pointer_1->forbidden = 1;
 								//~ free(package_autorized);
+								packaging_impossible = 0;
 								goto debut_HEM;
 							}
 							else {
-								//merge!
+								j = 0; 
 								data->temp_pointer_2 = data->first_link;
-								j = 0;
-								while (matrice_donnees_commune[i][j] != max_value_common_data_matrix)
-								{
-									j++;
-									data->temp_pointer_2 = data->temp_pointer_2->next;
+								while (max_value_common_data_matrix != matrice_donnees_commune[i][j]) {
+									j++; data->temp_pointer_2 = data->temp_pointer_2->next;
 								}
-								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
-								packaging_impossible = 0;
-								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
-								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
-								nb_common_data--;
-								/* Merging the tasks's list */
-								//~ printf("Ok0\n");
-								//~ printf("Il y a %d tâche dans i\n",data->temp_pointer_1->nb_task_in_sub_list);
-								//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-								//~ printf("Dans i : %p\n",temp_task_1); 
-							//~ }
-								//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-								//~ printf("Dans j : %p\n",temp_task_1); 
-							//~ }
-								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) { 
-								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
-								data->temp_pointer_1->nb_task_in_sub_list ++;
-								}
-									i_bis = 0; j_bis = 0;
-								tab_runner = 0;
-								//~ printf("Ok1\n");
-								starpu_data_handle_t *temp_data_tab = malloc((data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data) * sizeof(data->temp_pointer_1->package_data[0]));
-								/* Merge the two tabs containing data */
-								while (i_bis < data->temp_pointer_1->package_nb_data && j_bis < data->temp_pointer_2->package_nb_data) {
-									if (data->temp_pointer_1->package_data[i_bis] <= data->temp_pointer_2->package_data[j_bis]) {
-										temp_data_tab[tab_runner] = data->temp_pointer_1->package_data[i_bis];
-										i_bis++;
-									}
-									else
-									{
-										temp_data_tab[tab_runner] = data->temp_pointer_2->package_data[j_bis];
-										j_bis++;
-									}
-									tab_runner++;
-								}
-								
-								/* Copy the remaining data(s) of the tabs (if there are any) */
-								while (i_bis < data->temp_pointer_1->package_nb_data) { temp_data_tab[tab_runner] = data->temp_pointer_1->package_data[i_bis]; i_bis++; tab_runner++; }
-								while (j_bis < data->temp_pointer_2->package_nb_data) { temp_data_tab[tab_runner] = data->temp_pointer_2->package_data[j_bis]; j_bis++; tab_runner++; }
-								
-								/* We remove the duplicate data(s) */
-								for (i_bis = 0; i_bis < (data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data); i_bis++) {
-									if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1]) {
-										temp_data_tab[i_bis] = 0;
-										nb_duplicate_data++;
-									}
-								}
-								//~ free(data->temp_pointer_1->package_data);
-								//~ free(data->temp_pointer_2->package_data);
-								/* Then we put the temp_tab in temp_pointer_1 */
-								data->temp_pointer_1->package_data = malloc((data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
-								j_bis = 0;
-								for (i_bis = 0; i_bis < (data->temp_pointer_1->package_nb_data + data->temp_pointer_2->package_nb_data); i_bis++)
-								{
-									if (temp_data_tab[i_bis] != 0) { data->temp_pointer_1->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; }
-								}
-								
-								/* We update the number of data of each package. It's important because we use delete_link(data) to delete all the packages with 0 data */
-								data->temp_pointer_1->package_nb_data = data->temp_pointer_2->package_nb_data + data->temp_pointer_1->package_nb_data - nb_duplicate_data;
-								data->temp_pointer_2->package_nb_data = 0;
-								nb_duplicate_data = 0;
-								data->temp_pointer_2->nb_task_in_sub_list = 0;
-								//~ free(package_autorized);
-								//~ free(temp_data_tab);
-							} /* End of merging */								
-							 
+								printf("On va merge les paquets %d et %d\n",i,j);
+								goto merge;
+							}
 						}
 						else { /* On a autant d'interdit que de paquet, il faut enlever la limite */
+							printf("On enlève la limite du GPU\n");
+							//~ GPU_limit_switch = 0;
 						}
 					} /* Nb paquet vaut donc 1 ici */
-					else { printf("On a fini\n"); }
-					
+					else { printf("On a fini\n"); }				
 				printf("fin HEM\n");						
 				}
 				/* End of HEM */
