@@ -958,7 +958,6 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								
 								/* If we use algo 2 */
 								if (data->ALGO_USED_READER == 2 || data->ALGO_USED_READER == 6) {
-									printf("goto algo 2\n");
 									goto algo_2; 
 								}
 						} } 
@@ -1010,14 +1009,17 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									}
 								}
 								if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); }
-							}							
+							}	
+								if(GPU_limit_switch == 1) {
 								if((max_value_common_data_matrix < matrice_donnees_commune[i][j]) && (weight_two_packages <= GPU_RAM)) { 
-									max_value_common_data_matrix = matrice_donnees_commune[i][j];
-								} weight_two_packages = 0;					
+									max_value_common_data_matrix = matrice_donnees_commune[i][j]; } }
+								else { if(max_value_common_data_matrix < matrice_donnees_commune[i][j]) { 
+									max_value_common_data_matrix = matrice_donnees_commune[i][j]; } }
+							weight_two_packages = 0;					
 							data->temp_pointer_2 = data->temp_pointer_2->next;
 							}
 							/* If no package fit we forbid i */
-							if (max_value_common_data_matrix == 0) {
+							if (max_value_common_data_matrix == 0 && GPU_limit_switch == 1) {
 								printf("On interdit le paquet i : %d\n",i);
 								Nb_package_forbidden++;
 								/* We put i on the list of forbidden packages */
@@ -1038,7 +1040,14 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						}
 						else { /* On a autant d'interdit que de paquet, il faut enlever la limite */
 							printf("On enlève la limite du GPU\n");
-							//~ GPU_limit_switch = 0;
+							GPU_limit_switch = 0;
+							packaging_impossible = 0;
+							Nb_package_forbidden = 0;
+							while (data->temp_pointer_1 != NULL) {
+								data->temp_pointer_1->forbidden = 0;
+								data->temp_pointer_1 = data->temp_pointer_1->next;
+							}
+							goto debut_HEM;
 						}
 					} /* Nb paquet vaut donc 1 ici */
 					else { printf("On a fini\n"); }				
