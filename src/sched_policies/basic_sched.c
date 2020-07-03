@@ -170,13 +170,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	
 	/* Variables */
 	/* Variables used to calculate, navigate through a loop or other things */
-	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; double number_tasks = 0; int temp_number_task = 0; int random_value = 0;
-	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0; int packing_time = 0; double moyenne = 0; double ecart_type = 0;
+	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; double number_tasks = 0; int random_value = 0;
+	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;  double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int *red = 0; int *green = 0; int *blue = 0; int temp_i_bis = 0;
-	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL; starpu_data_handle_t data_0_0_in_C = NULL;
-	int Nb_package_forbidden = 0; int Nb_package = 0; int *package_autorized = NULL; int i_HEM = 0;
+	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;
+	int Nb_package_forbidden = 0; int Nb_package = 0;
 	
-	
+	 
 	int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
 	int nb_common_data = 0; /* Track the number of packages that have data in commons with other packages */
 	int link_index = 0; /* Track the number of packages */
@@ -232,11 +232,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			number_tasks = nb_pop;
 			
 			/* Putting all the coordinates of all the datas in a tabular */
-			i = 0; int *tab_coordinates = malloc((nb_pop*3+1)*sizeof(tab_coordinates[0])); tab_coordinates[0] = nb_pop*3+1; i++;
-			for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
-					if ((temp_tab_coordinates[0] == 0) && (temp_tab_coordinates[1] == 0)) { data_0_0_in_C = STARPU_TASK_GET_HANDLE(temp_task_1,2); }
-			}
+			//~ i = 0; int *tab_coordinates = malloc((nb_pop*3+1)*sizeof(tab_coordinates[0])); tab_coordinates[0] = nb_pop*3+1; i++;
+			//~ for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+					//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
+					//~ if ((temp_tab_coordinates[0] == 0) && (temp_tab_coordinates[1] == 0)) { data_0_0_in_C = STARPU_TASK_GET_HANDLE(temp_task_1,2); }
+			//~ }
 					
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",nb_pop); }
 			
@@ -310,8 +310,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 			int coordinate_order_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
 			for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
 				for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-					coordinate_visualization_matrix[j_bis][i_bis] = NULL;
-					coordinate_order_visualization_matrix[j_bis][i_bis] = NULL;
+					coordinate_visualization_matrix[j_bis][i_bis] = 0;
+					coordinate_order_visualization_matrix[j_bis][i_bis] = 0;
 				}
 			}
 			
@@ -972,12 +972,11 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				/* HEM */
 				else if (starpu_get_env_number_default("ALGO_USED",1) == 6) {
 					debut_HEM:
-					printf("debut HEM\n");					
 					Nb_package = nb_pop; 
 					//~ HEM_2:
 					data->temp_pointer_1 = data->first_link; data->temp_pointer_2 = data->first_link; 
 					max_value_common_data_matrix = 0; i_bis = 0; j_bis = 0;
-					printf("Nb package = %d / Nb package interdit = %d\n",Nb_package,Nb_package_forbidden);
+					//~ printf("Nb package = %d / Nb package interdit = %d\n",Nb_package,Nb_package_forbidden);
 					if (Nb_package != 1) { 
 						if (Nb_package != Nb_package_forbidden) {
 							int * package_autorized = malloc((Nb_package - Nb_package_forbidden)*sizeof(int));
@@ -988,7 +987,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							data->temp_pointer_1 = data->first_link;					
 							i = random()%(Nb_package - Nb_package_forbidden);
 							i = package_autorized[i];
-							printf("Le paquet i choisi est le : %d\n",i);
+							//~ printf("Le paquet i choisi est le : %d\n",i);
 							/* Getting on the right link */
 						for (i_bis = 0; i_bis < i; i_bis++) {
 							data->temp_pointer_1 = data->temp_pointer_1->next;
@@ -1020,7 +1019,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							}
 							/* If no package fit we forbid i */
 							if (max_value_common_data_matrix == 0 && GPU_limit_switch == 1) {
-								printf("On interdit le paquet i : %d\n",i);
+								//~ printf("On interdit le paquet i : %d\n",i);
 								Nb_package_forbidden++;
 								/* We put i on the list of forbidden packages */
 								data->temp_pointer_1->forbidden = 1;
@@ -1034,12 +1033,12 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								while (max_value_common_data_matrix != matrice_donnees_commune[i][j]) {
 									j++; data->temp_pointer_2 = data->temp_pointer_2->next;
 								}
-								printf("On va merge les paquets %d et %d\n",i,j);
+								//~ printf("On va merge les paquets %d et %d\n",i,j);
 								goto merge;
 							}
 						}
 						else { /* On a autant d'interdit que de paquet, il faut enlever la limite */
-							printf("On enlève la limite du GPU\n");
+							//~ printf("On enlève la limite du GPU\n");
 							GPU_limit_switch = 0;
 							packaging_impossible = 0;
 							Nb_package_forbidden = 0;
@@ -1050,8 +1049,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							goto debut_HEM;
 						}
 					} /* Nb paquet vaut donc 1 ici */
-					else { printf("On a fini\n"); }				
-				printf("fin HEM\n");						
+								
 				}
 				/* End of HEM */
 					
@@ -1061,6 +1059,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = delete_link(data);
+				//~ data = delete_link(data);
 				tab_runner = 0;
 					/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
@@ -1103,7 +1102,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 						if (coordinate_visualization_matrix[j_bis][i_bis] == 0) { red = 255; green = 255; blue = 255; }
 						else if (coordinate_visualization_matrix[j_bis][i_bis] == 6) { red = 70; green = 130; blue = 180; }
 						else { 
-							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue); 
+							rgb(coordinate_visualization_matrix[j_bis][i_bis], &red, &green, &blue);
 						}
 						fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_visualization_matrix[j_bis][i_bis]); 
 						fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,coordinate_order_visualization_matrix[j_bis][i_bis]); 
