@@ -94,7 +94,8 @@ void insertion(struct basic_sched_data *a)
 }
 
 /* Delete all the empty packages */
-struct basic_sched_data* delete_link(struct basic_sched_data* a)
+//~ struct basic_sched_data* delete_link(struct basic_sched_data* a)
+struct my_list* delete_link(struct basic_sched_data* a)
 {
 	while (a->first_link != NULL && a->first_link->package_nb_data == 0) {
 		a->temp_pointer_1 = a->first_link;
@@ -118,12 +119,13 @@ struct basic_sched_data* delete_link(struct basic_sched_data* a)
 		}
 	}
 	return a->first_link;
+	//~ return a;
 }
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
 static void rgb(int num, int *r, int *g, int *b)
 {
-    int *p[3] = {r, g, b};
+    //~ int *p[3] = {r, g, b};
     int i = 0;
 
     if (num < 7) {
@@ -172,7 +174,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	/* Variables used to calculate, navigate through a loop or other things */
 	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; double number_tasks = 0; int random_value = 0;
 	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;  double moyenne = 0; double ecart_type = 0;
-	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int *red = 0; int *green = 0; int *blue = 0; int temp_i_bis = 0;
+	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int red = 0; int green = 0; int blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;
 	int Nb_package_forbidden = 0; int Nb_package = 0;
 	
@@ -1125,7 +1127,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					fprintf(fcoordinate_order,"\n");
 					for (i_bis = 0; i_bis < sqrt(number_tasks); i_bis++) {
 						for (j_bis = 0; j_bis < sqrt(number_tasks); j_bis++) {
-							coordinate_visualization_matrix[j_bis][i_bis] = NULL;
+							coordinate_visualization_matrix[j_bis][i_bis] = 0;
 						}
 					}
 					// ----------------------------------------------------------------------------------------------------------------
