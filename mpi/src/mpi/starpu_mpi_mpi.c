@@ -898,6 +898,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 			int position=0;
 			void *ptr = starpu_data_get_local_ptr(args->data_handle);
 			MPI_Unpack(args->buffer, itf_src->get_size(args->early_handle), &position, ptr, 1, datatype, args->req->node_tag.node.comm);
+			_starpu_mpi_datatype_free(args->data_handle, &datatype);
 		}
 		else
 		{
