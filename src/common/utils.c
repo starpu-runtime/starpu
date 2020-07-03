@@ -528,7 +528,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 	if (force_mpi_hostnames && force_mpi_hostnames[0])
 	{
-		char *host, *srv_hosts;
+		char *host=NULL, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
 		int rank;
 		if (starpu_mpi_world_rank)
