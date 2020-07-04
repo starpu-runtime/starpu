@@ -33,6 +33,7 @@ enum submission
 	TRIANGLES,
 	COLUMNS,
 	ANTIDIAGONALS,
+	PRIOS,
 };
 extern enum submission submission;
 
