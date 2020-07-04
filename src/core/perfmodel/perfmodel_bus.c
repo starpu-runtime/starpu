@@ -318,9 +318,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, src, dst);
+		(void) cudaGetLastError();
 		if (!cures && can)
 		{
 			cures = cudaDeviceEnablePeerAccess(dst, 0);
+			(void) cudaGetLastError();
 			if (!cures)
 			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
@@ -344,9 +346,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, dst, src);
+		(void) cudaGetLastError();
 		if (!cures && can)
 		{
 			cures = cudaDeviceEnablePeerAccess(src, 0);
+			(void) cudaGetLastError();
 			if (!cures)
 			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
