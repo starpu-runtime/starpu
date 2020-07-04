@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 
 #ifndef STARPU_SIMGRID
-	if (check)
+	if (check && rank == 0)
 		assert(correctness);
 #endif
 
