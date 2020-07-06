@@ -109,6 +109,24 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	/* Submit a read on the whole vector */
+	ret = starpu_task_insert(&print_cl,
+				 STARPU_R, handle,
+				 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+        /* Submit a read on each sub-vector */
+	for (i=0; i<PARTS; i++)
+	{
+		ret = starpu_task_insert(&print_cl,
+					 STARPU_R, subhandles[i],
+					 0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
+	/* Submit a read on the whole vector */
 	ret = starpu_task_insert(&print_cl,
 				 STARPU_R, handle,
 				 0);
