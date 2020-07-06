@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #define RANDOM_TASK_ORDER
 #define RECURSIVE_MATRIX_LAYOUT
-#define RANDOM_TASKS
+#define RANDOM_DATA_ACCESS
 #define SEED
 
 #include <limits.h>
@@ -422,7 +422,7 @@ int main(int argc, char **argv)
 
 		unsigned x, y, iter;
 		
-		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_TASKS",0) == 0) {
+		if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
 			//~ printf("random\n");
 			//If environment variable RANDOM_TASK_ORDER == 1
 			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
@@ -477,7 +477,7 @@ int main(int argc, char **argv)
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
-		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1 && starpu_get_env_number_default("RANDOM_TASKS",0) == 0) {
+		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
 			// RECURSIVE_MATRIX_LAYOUT == 1, cela annule le random=1
 			int i = 0; int j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; int temp = 0; int k = 0; int n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -553,7 +553,7 @@ int main(int argc, char **argv)
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
-		else if (starpu_get_env_number_default("RANDOM_TASKS",0) == 1) {
+		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 1) {
 			for (iter = 0; iter < niter; iter++)
 			{
 				starpu_pause();
