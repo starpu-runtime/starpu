@@ -225,6 +225,7 @@ STARPU_EXAMPLES +=				\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
 	cpp/add_vectors_interface		\
+	filters/fread				\
 	filters/fvector				\
 	filters/fblock				\
 	filters/fmatrix				\
