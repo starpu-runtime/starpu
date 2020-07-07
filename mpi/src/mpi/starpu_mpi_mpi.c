@@ -126,6 +126,7 @@ struct _starpu_mpi_early_data_cb_args
 	starpu_data_handle_t early_handle;
 	struct _starpu_mpi_req *req;
 	void *buffer;
+	size_t size;
 };
 
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
@@ -233,6 +234,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				cb_args->data_handle = req->data_handle;
 				cb_args->early_handle = early_data_handle->handle;
 				cb_args->buffer = early_data_handle->buffer;
+				cb_args->size = early_data_handle->env->size;
 				cb_args->req = req;
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
@@ -898,6 +900,8 @@ static void _starpu_mpi_early_data_cb(void* arg)
 			int position=0;
 			void *ptr = starpu_data_get_local_ptr(args->data_handle);
 			MPI_Unpack(args->buffer, itf_src->get_size(args->early_handle), &position, ptr, 1, datatype, args->req->node_tag.node.comm);
+			starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) args->buffer, args->size, 0);
+			args->buffer = NULL;
 			_starpu_mpi_datatype_free(args->data_handle, &datatype);
 		}
 		else
