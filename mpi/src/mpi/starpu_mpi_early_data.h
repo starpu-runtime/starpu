@@ -34,9 +34,9 @@ extern "C"
 
 LIST_TYPE(_starpu_mpi_early_data_handle,
 	  starpu_data_handle_t handle;
-	  struct _starpu_mpi_envelope *env;
 	  struct _starpu_mpi_req *req;
 	  void *buffer;
+	  size_t size;
 	  int req_ready;
 	  struct _starpu_mpi_node_tag node_tag;
 	  starpu_pthread_mutex_t req_mutex;
@@ -49,6 +49,8 @@ struct _starpu_mpi_early_data_handle_tag_hashlist
 	UT_hash_handle hh;
 	starpu_mpi_tag_t data_tag;
 };
+
+struct _starpu_mpi_envelope;
 
 void _starpu_mpi_early_data_init(void);
 void _starpu_mpi_early_data_check_termination(void);
