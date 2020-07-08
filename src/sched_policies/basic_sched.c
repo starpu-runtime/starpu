@@ -206,6 +206,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	long int common_data_last_package_i2_j1 = 0; 
 	long int common_data_last_package_i2_j2 = 0; 
 	long int max_common_data_last_package = 0;
+	long int weight_package_i = 0;
+	long int weight_package_j = 0;
 		
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	starpu_ssize_t GPU_RAM = 0;
@@ -704,9 +706,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 					data->temp_pointer_2 = data->temp_pointer_2->next;
 					for (j = i + 1; j< nb_pop; j++) {
 						
-						weight_two_packages = 0;
+						weight_two_packages = 0; weight_package_i = 0; weight_package_j = 0;
 						for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) {
 							weight_two_packages += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]);
+							weight_package_i += starpu_data_get_size(data->temp_pointer_1->package_data[i_bis]);
 						}
 						for (i_bis = 0; i_bis < data->temp_pointer_2->package_nb_data; i_bis++) {
 							bool_data_common = 0;
@@ -717,6 +720,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								}
 							}
 							if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]); }
+							weight_package_j += starpu_data_get_size(data->temp_pointer_2->package_data[i_bis]);
 						}
 												
 						if ((matrice_donnees_commune[i][j] == max_value_common_data_matrix) && (max_value_common_data_matrix != 0))
@@ -728,7 +732,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							}
 							else {
 								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
-								 //~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
+								 printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							merge:	 
 							packaging_impossible = 0;
 							
@@ -745,8 +749,18 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							/* Go to used to do -U order */
 							hilbert:
 							if (starpu_get_env_number_default("HILBERT",0) == 1) {
+								printf("debut hilbert\n");
+								printf("Poids paquet i : %li / Poids paquet j : %li\n",weight_package_i,weight_package_j);
+								//regarder le poids des deux paquets i et j
+								// Si i et j > 2B
+								//compare les B dernier et B premier
+								//Si i > 2B
+								//On compare les B derniers et premier de i avec tout le paquet j et si y a on switch que i
+								//On compare les B premier et les B derniers élément du paquet comme avant
+								//On switch comme avant
+								
+								
 								i_bis = 0; j_bis = 0;
-								//~ printf("debut hilbert\n");
 								//~ printf("nb task in sub list de i = %d\n",data->temp_pointer_1->nb_task_in_sub_list);
 								//~ printf("nb task in sub list de j = %d\n",data->temp_pointer_2->nb_task_in_sub_list);
 								//~ printf("split last ij de i vaut : %d\n",data->temp_pointer_1->split_last_ij);
@@ -755,9 +769,21 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									//~ printf("La tâche %p est dans le paquet j\n",temp_task_1); 
 								}
 								if (data->temp_pointer_1->split_last_ij == 0 || data->temp_pointer_2->nb_task_in_sub_list == 0 || data->temp_pointer_1->nb_task_in_sub_list == 0) { 
-									//~ printf("on fais R on est a un paquet de 1 seule tâche\n"); 
+									printf("on fais R on est a un paquet de 1 seule tâche\n"); 
 								}
 								else {
+									if (weight_package_i > 2*GPU_RAM && weight_package_j > 2*GPU_RAM) { 
+										printf("I et J > 2*GPU_RAM\n"); 
+									}
+									else if (weight_package_i > 2*GPU_RAM) {
+										printf("I > 2*GPU_RAM\n"); 
+									}
+									else if (weight_package_j > 2*GPU_RAM) {
+										printf("J > 2*GPU_RAM\n"); 
+									}
+									else {
+										printf("I et J < 2*GPU_RAM\n");
+									
 									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {
 										starpu_task_list_push_back(&sub_package_1_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));										
 									}
@@ -820,7 +846,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										}
 									}
 								}
-								//~ printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+								printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
 								/* Figuring out wich switch we need to do */
 								max_common_data_last_package = common_data_last_package_i2_j1;
 								if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
@@ -899,12 +925,13 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 									//~ printf("Après le switch (ou pas) %p est dans le paquet j\n",temp_task_1); 
 								}
-								}									
+								}	
+								}								
 								/* We re-init this variable for the next merge */	
 								common_data_last_package_i1_j1 = 0; common_data_last_package_i1_j2 = 0; common_data_last_package_i2_j1 = 0; common_data_last_package_i2_j2 = 0;
 								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */						
 								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
-							//~ printf("fin hilbert\n");
+							printf("fin hilbert\n");
 							}
 							if (data->ALGO_USED_READER == 4) {  goto algo4prime; }
 							
