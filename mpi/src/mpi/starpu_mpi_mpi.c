@@ -1123,7 +1123,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		 * to the application when it post a receive for this tag
 		 */
 		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)envelope->size);
-		_STARPU_MPI_MALLOC(early_data_handle->buffer, early_data_handle->env->size);
+		_STARPU_MPI_MALLOC(early_data_handle->buffer, envelope->size);
 		early_data_handle->size = envelope->size;
 		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, envelope->size);
 		//_starpu_mpi_early_data_add(early_data_handle);
