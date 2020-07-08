@@ -67,6 +67,8 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_data_unregister_submit(handle);
+	/* Note: we have no way to know when this will happen. We have to wait
+	 * for starpu_shutdown before being able to free the registered buffer */
 
 	ret = starpu_task_submit(t1);
 	if (ret == -ENODEV)

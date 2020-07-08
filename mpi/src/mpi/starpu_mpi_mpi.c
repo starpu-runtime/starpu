@@ -957,6 +957,9 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	starpu_data_release(args->early_handle);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling unregister of early_handle..\n");
+	/* XXX: note that we have already freed the registered buffer above. In
+	 * principle that's unsafe. As of now it is fine because StarPU has no
+	 reason to access it. */
 	starpu_data_unregister_submit(args->early_handle);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
