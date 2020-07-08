@@ -86,7 +86,6 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _star
 	_STARPU_MPI_CALLOC(early_data_handle, 1, sizeof(struct _starpu_mpi_early_data_handle));
 	STARPU_PTHREAD_MUTEX_INIT(&early_data_handle->req_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&early_data_handle->req_cond, NULL);
-	early_data_handle->env = envelope;
 	early_data_handle->node_tag.node.comm = comm;
 	early_data_handle->node_tag.node.rank = source;
 	early_data_handle->node_tag.data_tag = envelope->data_tag;

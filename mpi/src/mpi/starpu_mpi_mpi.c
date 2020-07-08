@@ -249,7 +249,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				cb_args->data_handle = req->data_handle;
 				cb_args->early_handle = early_data_handle->handle;
 				cb_args->buffer = early_data_handle->buffer;
-				cb_args->size = early_data_handle->env->size;
+				cb_args->size = early_data_handle->size;
 				cb_args->req = req;
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
@@ -1146,9 +1146,10 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		 * we are going to receive the data as a raw memory, and give it
 		 * to the application when it post a receive for this tag
 		 */
-		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)early_data_handle->env->size);
-		early_data_handle->buffer = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, early_data_handle->env->size, 0);
-		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, early_data_handle->env->size);
+		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)envelope->size);
+		early_data_handle->buffer = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, envelope->size, 0);
+		early_data_handle->size = envelope->size;
+		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, envelope->size);
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
