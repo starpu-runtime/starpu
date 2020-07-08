@@ -982,6 +982,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
+	STARPU_ASSERT_MSG(handle->home_node >= 0, "data %p with application-allocated home buffer can not be safely unregistered asynchronously", handle);
 
 	/* Wait for all task dependencies on this handle before putting it for free */
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
