@@ -71,6 +71,8 @@ struct my_list
 	int split_last_ij;
 	/* To know if this package is forbidden in HEM or not */
 	int forbidden;
+	int split_2B_1;
+	int split_2B_2;
 	
 };
 
@@ -208,12 +210,20 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 	long int max_common_data_last_package = 0;
 	long int weight_package_i = 0;
 	long int weight_package_j = 0;
+	long int temp_weight = 0;
+	int nb_task_until_B_1_i = 0;
+	int nb_task_until_B_2_i = 0;
+	int nb_task_until_B_1_j = 0;
+	int nb_task_until_B_2_j = 0;
 		
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	starpu_ssize_t GPU_RAM = 0;
+	starpu_ssize_t GPU_RAM_M = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))))/2;
+	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
 	//~ printf("GPU_RAM = %d\n",GPU_RAM);
+	if (starpu_get_env_number_default("ALGO_USED",1) == 3 || starpu_get_env_number_default("ALGO_USED",1) == 5) { GPU_RAM = GPU_RAM_M; }
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -266,6 +276,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 				//~ starpu_task_list_push_back(&data->temp_pointer_1->last_package_1,temp_task_1);
 				//~ starpu_task_list_push_back(&data->temp_pointer_1->last_package_2,temp_task_1);
 				data->temp_pointer_1->split_last_ij = 0;
+				data->temp_pointer_1->split_2B_1 = 0;
+				data->temp_pointer_1->split_2B_2 = 0;
 				data->temp_pointer_1->forbidden = 0;
 				
 				link_index++;
@@ -732,7 +744,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							}
 							else {
 								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
-								 printf("On va merge le paquet %d et le paquet %d\n",i,j);
+								 //~ printf("On va merge le paquet %d et le paquet %d\n",i,j);
 							merge:	 
 							packaging_impossible = 0;
 							
@@ -749,10 +761,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							/* Go to used to do -U order */
 							hilbert:
 							if (starpu_get_env_number_default("HILBERT",0) == 1) {
-								printf("debut hilbert\n");
-								printf("Poids paquet i : %li / Poids paquet j : %li\n",weight_package_i,weight_package_j);
+								//~ printf("debut hilbert\n");
+								//~ printf("Poids paquet i : %li / Poids paquet j : %li\n",weight_package_i,weight_package_j);
 								//regarder le poids des deux paquets i et j
-								// Si i et j > 2B
+								// Si i et j > B (oui ca se recoupe au début)
 								//compare les B dernier et B premier
 								//Si i > 2B
 								//On compare les B derniers et premier de i avec tout le paquet j et si y a on switch que i
@@ -768,21 +780,235 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 									//~ printf("La tâche %p est dans le paquet j\n",temp_task_1); 
 								}
-								if (data->temp_pointer_1->split_last_ij == 0 || data->temp_pointer_2->nb_task_in_sub_list == 0 || data->temp_pointer_1->nb_task_in_sub_list == 0) { 
-									printf("on fais R on est a un paquet de 1 seule tâche\n"); 
+								if (data->temp_pointer_1->split_last_ij == 0 || data->temp_pointer_2->nb_task_in_sub_list == 0 || data->temp_pointer_1->nb_task_in_sub_list == 0 || data->temp_pointer_2->split_last_ij == 0) { 
+									//~ printf("on fais R on est a un paquet de 1 seule tâche\n"); 
 								}
 								else {
-									if (weight_package_i > 2*GPU_RAM && weight_package_j > 2*GPU_RAM) { 
-										printf("I et J > 2*GPU_RAM\n"); 
+									if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
+										nb_task_until_B_1_i = 0; nb_task_until_B_2_i = 0; nb_task_until_B_1_j = 0; nb_task_until_B_2_j = 0; 
+										//~ printf("I et J > GPU_RAM_M ####################\n"); 
+										temp_weight = 0;
+										for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+											if (temp_weight < GPU_RAM_M) {
+												nb_task_until_B_1_i++;
+											}
+											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												temp_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); 
+											}
+										}
+										nb_task_until_B_2_i = nb_task_until_B_1_i;
+										//~ temp_weight = 0;
+										//~ for (temp_task_1 = starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_prev(temp_task_1)) {
+											//~ if (temp_weight < GPU_RAM_M) {
+												//~ nb_task_until_B_2_i++;
+											//~ }
+											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												//~ temp_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); 
+											//~ }
+										//~ }
+										temp_weight = 0;
+										for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+											if (temp_weight < GPU_RAM_M) {
+												nb_task_until_B_1_j++;
+											}
+											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												temp_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); 
+											}
+										}
+										nb_task_until_B_2_j = nb_task_until_B_1_j;
+										//~ temp_weight = 0;
+										//~ for (temp_task_1 = starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 = starpu_task_list_prev(temp_task_1)) {
+											//~ if (temp_weight < GPU_RAM_M) {
+												//~ nb_task_until_B_2_j++;
+											//~ }
+											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												//~ temp_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); 
+											//~ }
+										//~ }
+										//~ printf ("B_1_i = %d / B_2_i = %d / B_1_j = %d / B_2_j = %d\n",nb_task_until_B_1_i,nb_task_until_B_2_i,nb_task_until_B_1_j,nb_task_until_B_2_j);
+										for (i_bis = 0; i_bis < nb_task_until_B_1_i; i_bis++) {
+											starpu_task_list_push_back(&sub_package_1_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_1_j; i_bis++) {
+											starpu_task_list_push_back(&sub_package_1_j,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list));
+										}
+										for (temp_task_1 = starpu_task_list_begin(&sub_package_1_i); temp_task_1 != starpu_task_list_end(&sub_package_1_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+										for (temp_task_2 = starpu_task_list_begin(&sub_package_1_j); temp_task_2 != starpu_task_list_end(&sub_package_1_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i1_j1++;
+												}
+											}
+										}
+										}
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_1_j; i_bis++) {
+											starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_2_j; i_bis++) {
+											starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
+										}
+										for (temp_task_1 = starpu_task_list_begin(&sub_package_1_i); temp_task_1 != starpu_task_list_end(&sub_package_1_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+										for (temp_task_2 = starpu_task_list_begin(&sub_package_2_j); temp_task_2 != starpu_task_list_end(&sub_package_2_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i1_j2++;
+												}
+											}
+										}
+										}
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_2_j; i_bis++) {
+											starpu_task_list_push_back(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_1_i; i_bis++) {
+											starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_2_i; i_bis++) {
+											starpu_task_list_push_back(&sub_package_2_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_1_j; i_bis++) {
+											starpu_task_list_push_back(&sub_package_1_j,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list));
+										}
+											for (temp_task_1 = starpu_task_list_begin(&sub_package_2_i); temp_task_1 != starpu_task_list_end(&sub_package_2_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+									for (temp_task_2 = starpu_task_list_begin(&sub_package_1_j); temp_task_2 != starpu_task_list_end(&sub_package_1_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i2_j1++;
+												}
+											}
+										}
 									}
-									else if (weight_package_i > 2*GPU_RAM) {
-										printf("I > 2*GPU_RAM\n"); 
 									}
-									else if (weight_package_j > 2*GPU_RAM) {
-										printf("J > 2*GPU_RAM\n"); 
+									for (i_bis = 0; i_bis < nb_task_until_B_1_j; i_bis++) {
+											starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_2_j; i_bis++) {
+											starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
+										}
+										for (temp_task_1 = starpu_task_list_begin(&sub_package_2_i); temp_task_1 != starpu_task_list_end(&sub_package_2_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
+										for (temp_task_2 = starpu_task_list_begin(&sub_package_2_j); temp_task_2 != starpu_task_list_end(&sub_package_2_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+												//~ printf ("Je compare la donnée %p du paquet %d et la donnée %p du paquet %d\n",STARPU_TASK_GET_HANDLE(temp_task_1,i_bis),i,STARPU_TASK_GET_HANDLE(temp_task_2,j_bis),j);
+												if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) {
+													//C'est le poids qu'il faut faire ici
+													common_data_last_package_i2_j2++;
+												}
+											}
+										}
+									}
+									}
+									for (i_bis = 0; i_bis < nb_task_until_B_2_j; i_bis++) {
+											starpu_task_list_push_back(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
+										}
+										for (i_bis = 0; i_bis < nb_task_until_B_2_i; i_bis++) {
+											starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
+										}
+										//~ printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+
+									/* Figuring out wich switch we need to do */
+								max_common_data_last_package = common_data_last_package_i2_j1;
+								if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
+								if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
+								if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
+								for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {
+										starpu_task_list_push_back(&sub_package_1_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));										
+									}
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&sub_package_2_i,starpu_task_list_pop_back(&data->temp_pointer_1->sub_list));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {
+										starpu_task_list_push_back(&sub_package_1_j,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list));
+										
+									}
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
+									
+									}
+								if (max_common_data_last_package == common_data_last_package_i2_j1) {
+									//~ printf("PAS SWITCH :(\n");	
+									/* We just refill the sub_list of i like it was before */
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));	
+									}	
+									/* We just refill the sub_list of j like it was before */
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_2_j));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
+									}
+								}								
+								else if (max_common_data_last_package == common_data_last_package_i1_j2) {
+									//~ printf("SWITCH PAQUET I ET J\n");																	
+									/* We reverse the order of the tasks in sub_package_1_i and sub_package_2_i and we put first sub_package_2_i*/
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_1_i));	
+									}
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i));
+									}
+										/* We reverse the order of the tasks in sub_package_1_j and sub_package_2_j and we put first sub_package_2_j*/
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_1_j));	
+									}
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
+									}
+								}
+								else if (max_common_data_last_package == common_data_last_package_i2_j2) {
+										//~ printf("SWITCH PAQUET J\n");
+									/* We reverse the order of the tasks in sub_package_1_j and sub_package_2_j and we put first sub_package_2_j*/
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_1_j));	
+									}
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_front(&sub_package_2_j));
+									}
+									/* We refill the sub_list of i like before */
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_1_i));	
+									}								
+								}
+								else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
+										//~ printf("SWITCH PAQUET I\n");
+									/* We reverse the order of the tasks in sub_package_1_i and sub_package_2_i and we put first sub_package_2_i*/
+									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_1_i));	
+									}
+									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&sub_package_2_i));
+									}
+									/* We refill the sub_list of j like before */
+									for (i_bis = data->temp_pointer_2->nb_task_in_sub_list; i_bis > data->temp_pointer_2->split_last_ij; i_bis--) {
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_2_j));
+									}
+									for (i_bis = 0; i_bis < data->temp_pointer_2->split_last_ij; i_bis++) {										
+										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
+									}							
+								}
+
+									
+									
 									}
 									else {
-										printf("I et J < 2*GPU_RAM\n");
+										//~ printf("I et J < 2*GPU_RAM\n");
 									
 									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {
 										starpu_task_list_push_back(&sub_package_1_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));										
@@ -798,6 +1024,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
 									
 									}
+								
 								for (temp_task_1 = starpu_task_list_begin(&sub_package_1_i); temp_task_1 != starpu_task_list_end(&sub_package_1_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
 									for (temp_task_2 = starpu_task_list_begin(&sub_package_1_j); temp_task_2 != starpu_task_list_end(&sub_package_1_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
 										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
@@ -846,7 +1073,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										}
 									}
 								}
-								printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+								
+								//~ printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
 								/* Figuring out wich switch we need to do */
 								max_common_data_last_package = common_data_last_package_i2_j1;
 								if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
@@ -921,17 +1149,17 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										starpu_task_list_push_front(&data->temp_pointer_2->sub_list,starpu_task_list_pop_back(&sub_package_1_j));	
 									}							
 								}
-													
+							}					
 								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 									//~ printf("Après le switch (ou pas) %p est dans le paquet j\n",temp_task_1); 
 								}
-								}	
+									
 								}								
 								/* We re-init this variable for the next merge */	
 								common_data_last_package_i1_j1 = 0; common_data_last_package_i1_j2 = 0; common_data_last_package_i2_j1 = 0; common_data_last_package_i2_j2 = 0;
-								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */						
+								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */
 								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
-							printf("fin hilbert\n");
+							//~ printf("fin hilbert\n");
 							}
 							if (data->ALGO_USED_READER == 4) {  goto algo4prime; }
 							
