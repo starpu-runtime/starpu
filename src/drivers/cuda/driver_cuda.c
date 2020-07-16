@@ -336,9 +336,13 @@ static void init_device_context(unsigned devid, unsigned memnode)
 			{
 				int can;
 				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+				(void) cudaGetLastError();
+
 				if (!cures && can)
 				{
 					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+					(void) cudaGetLastError();
+
 					if (!cures)
 					{
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
@@ -1170,6 +1174,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
 		}
+		(void) cudaGetLastError();
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	}
 
@@ -1189,6 +1194,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
+		(void) cudaGetLastError();
 
 		if (!cures)
 			cures = cudaDeviceSynchronize();
@@ -1388,12 +1394,14 @@ starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node,
 			double start;
 			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			cures = cudaMemcpy3DPeerAsync(&p, stream);
+			(void) cudaGetLastError();
 		}
 
 		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
 		if (stream == NULL || cures)
 		{
 			cures = cudaMemcpy3DPeer(&p);
+			(void) cudaGetLastError();
 
 			if (!cures)
 				cures = cudaDeviceSynchronize();
@@ -1485,6 +1493,7 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 		if (stream == NULL || cures)
 		{
 			cures = cudaMemcpy3DPeer(&p);
+			(void) cudaGetLastError();
 
 			if (!cures)
 				cures = cudaDeviceSynchronize();

@@ -148,7 +148,6 @@ myPROGRAMS =
 myPROGRAMS +=					\
 	main/bind				\
 	main/mkdtemp				\
-	main/display_binding			\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
@@ -225,6 +224,7 @@ myPROGRAMS +=				\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
 	main/deploop                            \
+	main/display_binding			\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\
 	main/insert_task_value			\
@@ -404,6 +404,9 @@ endif
 endif
 
 examplebin_PROGRAMS = \
+	microbenchs/async_tasks_overhead	\
+	microbenchs/sync_tasks_overhead		\
+	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
 examplebin_SCRIPTS = \

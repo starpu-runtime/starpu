@@ -162,7 +162,13 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 
 /**
    Destroy the data \p handle once it is no longer needed by any
-   submitted task. No coherency is assumed.
+   submitted task. No coherency is provided.
+
+   This is not safe to call starpu_data_unregister_submit() on a handle that
+   comes from the registration of a non-NULL application home buffer, since the
+   moment when the unregistration will happen is unknown to the
+   application. Only calling starpu_shutdown() allows to be sure that the data
+   was really unregistered.
 */
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
 

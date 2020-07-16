@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 {
 	int rank, nodes;
 	int ret=0;
-	int compare=0;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
@@ -44,55 +43,50 @@ int main(int argc, char **argv)
 	}
 
 	struct starpu_my_data my0 = {.d = 42 , .c = 'n'};
-	struct starpu_my_data my1 = {.d = 98 , .c = 'z'};
-
-	starpu_data_handle_t handle0;
-	starpu_data_handle_t handle1;
+	struct starpu_my_data my1 = {.d = 11 , .c = 'a'};
 
 	if (rank == 1)
 	{
-		my0.d = 0;
-		my0.c = 'z';
+		my0.d *= 2;
+		my0.c += 1;
+		my1.d *= 2;
+		my1.c += 1;
 	}
 
-	starpu_my_data2_register(&handle0, STARPU_MAIN_RAM, &my0);
-	starpu_my_data2_register(&handle1, -1, &my1);
-
-	starpu_mpi_barrier(MPI_COMM_WORLD);
+	starpu_data_handle_t handle0;
+	starpu_data_handle_t handle1;
+	starpu_my_data_register(&handle0, STARPU_MAIN_RAM, &my0);
+	starpu_my_data_register(&handle1, STARPU_MAIN_RAM, &my1);
 
 	if (rank == 0)
 	{
-		int *compare_ptr = &compare;
-
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 initial value", strlen("node0 initial value")+1, STARPU_R, handle0, 0);
-		starpu_mpi_isend_detached(handle0, 1, 10, MPI_COMM_WORLD, NULL, NULL);
-		starpu_mpi_irecv_detached(handle1, 1, 20, MPI_COMM_WORLD, NULL, NULL);
-
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 received value", strlen("node0 received value")+1, STARPU_R, handle1, 0);
-		starpu_task_insert(&starpu_my_data_compare_codelet, STARPU_R, handle0, STARPU_R, handle1, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
+		starpu_mpi_send(handle0, 1, 10, MPI_COMM_WORLD);
+		starpu_mpi_send(handle1, 1, 20, MPI_COMM_WORLD);
 	}
 	else if (rank == 1)
 	{
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, handle0, 0);
-		starpu_mpi_irecv_detached(handle0, 0, 10, MPI_COMM_WORLD, NULL, NULL);
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 received value", strlen("node1 received value")+1, STARPU_R, handle0, 0);
-		starpu_mpi_isend_detached(handle0, 0, 20, MPI_COMM_WORLD, NULL, NULL);
+		// We want handle0 to be received as early_data and as starpu_mpi_data_register() has not be called, it will be received as raw memory, and then unpacked with MPI_Unpack()
+		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 init value", strlen("node1 handle0 init value")+1, STARPU_R, handle0, 0);
+		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 init value", strlen("node1 handle1 init value")+1, STARPU_R, handle1, 0);
+		starpu_mpi_recv(handle1, 0, 20, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(handle0, 0, 10, MPI_COMM_WORLD, NULL);
+		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 received value", strlen("node1 handle0 received value")+1, STARPU_R, handle0, 0);
+		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 received value", strlen("node1 handle1 received value")+1, STARPU_R, handle1, 0);
 	}
 
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
-	starpu_mpi_datatype_unregister(handle0);
 	starpu_data_unregister(handle0);
 	starpu_data_unregister(handle1);
 
-	starpu_my_data2_shutdown();
-	starpu_mpi_shutdown();
-
-	if (rank == 0)
+	if (rank == 1)
 	{
-		FPRINTF(stderr, "[node 0] %s\n", compare==1?"SUCCESS":"FAILURE");
+		STARPU_ASSERT_MSG(my0.d == 42 && my0.c == 'n' && my1.d == 11 && my1.c == 'a', "Incorrect received values");
 	}
 
-	return (rank == 0) ? !compare : 0;
+	starpu_my_data_shutdown();
+	starpu_mpi_shutdown();
+
+	return 0;
 }

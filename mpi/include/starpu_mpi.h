@@ -349,6 +349,7 @@ typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 /**
    Register functions to create and free a MPI datatype for the given
    handle.
+   Similar to starpu_mpi_interface_datatype_register().
    It is important that the function is called before any
    communication can take place for a data with the given handle. See
    \ref ExchangingUserDefinedDataInterface for an example.

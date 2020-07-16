@@ -137,13 +137,13 @@ starpu_mpi_TESTS +=				\
 	ring_sync_detached			\
 	temporary				\
 	user_defined_datatype			\
-	early_stuff				\
-	display_bindings
+	early_stuff
 
 if !STARPU_SIMGRID
 # missing support in simgrid
 starpu_mpi_TESTS +=				\
 	attr					\
+	display_bindings			\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
 	block_interface				\

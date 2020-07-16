@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_mpi.h>
 
 #include "my_interface.h"
 
@@ -314,6 +315,7 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 	if (interface_data_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data_ops.interfaceid = starpu_data_interface_get_next_id();
+		starpu_mpi_interface_datatype_register(interface_data_ops.interfaceid, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =
@@ -325,6 +327,12 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 	};
 
 	starpu_data_register(handleptr, home_node, &data, &interface_data_ops);
+}
+
+void starpu_my_data_shutdown(void)
+{
+	starpu_mpi_interface_datatype_unregister(interface_data_ops.interfaceid);
+
 }
 
 static struct starpu_data_interface_ops interface_data2_ops =
@@ -349,6 +357,7 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 	if (interface_data2_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data2_ops.interfaceid = starpu_data_interface_get_next_id();
+		starpu_mpi_interface_datatype_register(interface_data2_ops.interfaceid, starpu_my_data2_datatype_allocate, starpu_my_data2_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =
@@ -360,4 +369,10 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 	};
 
 	starpu_data_register(handleptr, home_node, &data, &interface_data2_ops);
+}
+
+void starpu_my_data2_shutdown(void)
+{
+	starpu_mpi_interface_datatype_unregister(interface_data2_ops.interfaceid);
+
 }

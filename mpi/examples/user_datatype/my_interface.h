@@ -76,4 +76,7 @@ static struct starpu_codelet starpu_my_data_compare_codelet =
 	.name = "starpu_my_data_compare_codelet"
 };
 
+void starpu_my_data_shutdown(void);
+void starpu_my_data2_shutdown(void);
+
 #endif /* __MY_INTERFACE_H */

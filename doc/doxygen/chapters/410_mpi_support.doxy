@@ -323,88 +323,114 @@ starpu_malloc_flags(ptr, size, 0)
 \endcode
 
 along with its size where data to be conveyed
-to another node should be copied. The reversed operation is
-implemented in the function starpu_data_interface_ops::unpack_data which
-takes a contiguous memory buffer and recreates the data handle.
+to another node should be copied.
 
 \code{.c}
 static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
 {
-  STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+    STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+    struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
-  *count = complex_get_size(handle);
-  *ptr = starpu_malloc_on_node_flags(node, *count, 0);
-  memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
-  memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
+    *count = complex_get_size(handle);
+    *ptr = starpu_malloc_on_node_flags(node, *count, 0);
+    memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
+    memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 
-  return 0;
+    return 0;
 }
+\endcode
 
+The inverse operation is
+implemented in the function starpu_data_interface_ops::unpack_data which
+takes a contiguous memory buffer and recreates the data handle.
+
+\code{.c}
 static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
-  STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+    STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-  struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+    struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
 
-  memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
-  memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+    memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
+    memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
-  return 0;
+    return 0;
 }
 
 static struct starpu_data_interface_ops interface_complex_ops =
 {
-  ...
-  .pack_data = complex_pack_data,
-  .unpack_data = complex_unpack_data
+    ...
+    .pack_data = complex_pack_data,
+    .unpack_data = complex_unpack_data
 };
 \endcode
 
-Instead of defining pack and unpack operations, users may want to attach a MPI type to their user defined data interface. The function starpu_mpi_datatype_register() allows to do so. This function takes 3 parameters: the data handle for which the MPI datatype is going to be defined, a function's pointer that will create the MPI datatype, and a function's pointer that will free the MPI datatype. If for some data an MPI datatype can not be built (e.g. complex data structure), the creation function can return -1, StarPU-MPI will then fallback to using pack/unpack.
+Instead of defining pack and unpack operations, users may want to
+attach a MPI type to their user-defined data interface. The function
+starpu_mpi_interface_datatype_register() allows to do so. This function takes 3
+parameters: the interface ID for which the MPI datatype is going to be defined,
+a function's pointer that will create the MPI datatype, and a function's pointer
+that will free the MPI datatype. If for some data an MPI datatype can not be
+built (e.g. complex data structure), the creation function can return -1,
+StarPU-MPI will then fallback to using pack/unpack.
 
-\code{.c}
-starpu_data_interface handle;
-starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
-starpu_mpi_datatype_register(handle, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
-\endcode
-
-The functions to create and free the MPI datatype are defined as follows.
+The functions to create and free the MPI datatype are defined and registered as
+follows.
 
 \code{.c}
 void starpu_complex_interface_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
 {
-	int ret;
+    int ret;
 
-	int blocklengths[2];
-	MPI_Aint displacements[2];
-	MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
+    int blocklengths[2];
+    MPI_Aint displacements[2];
+    MPI_Datatype types[2] = {MPI_DOUBLE, MPI_DOUBLE};
 
-	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+    struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	MPI_Get_address(complex_interface, displacements);
-	MPI_Get_address(&complex_interface->imaginary, displacements+1);
-	displacements[1] -= displacements[0];
-	displacements[0] = 0;
+    MPI_Get_address(complex_interface, displacements);
+    MPI_Get_address(&complex_interface->imaginary, displacements+1);
+    displacements[1] -= displacements[0];
+    displacements[0] = 0;
 
-	blocklengths[0] = complex_interface->nx;
-	blocklengths[1] = complex_interface->nx;
+    blocklengths[0] = complex_interface->nx;
+    blocklengths[1] = complex_interface->nx;
 
-	ret = MPI_Type_create_struct(2, blocklengths, displacements, types, mpi_datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+    ret = MPI_Type_create_struct(2, blocklengths, displacements, types, mpi_datatype);
+    STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
 
-	ret = MPI_Type_commit(mpi_datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+    ret = MPI_Type_commit(mpi_datatype);
+    STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 void starpu_complex_interface_datatype_free(MPI_Datatype *mpi_datatype)
 {
-	MPI_Type_free(mpi_datatype);
+    MPI_Type_free(mpi_datatype);
 }
+
+static struct starpu_data_interface_ops interface_complex_ops =
+{
+    ...
+};
+
+interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
+
+starpu_mpi_interface_datatype_register(interface_complex_ops.interfaceid, starpu_complex_interface_datatype_allocate, starpu_complex_interface_datatype_free);
+
+starpu_data_interface handle;
+starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
+...
 \endcode
 
-Note that it is important to make sure no communication is going to occur before the function starpu_mpi_datatype_register() is called. This would produce an undefined result as the data may be received before the function is called, and so the MPI datatype would not be known by the StarPU-MPI communication engine, and the data would be processed with the pack and unpack operations.
+It is also possible to use starpu_mpi_datatype_register() to register the
+functions through a handle rather than the interface ID, but note that in that
+case it is important to make sure no communication is going to occur before the
+function starpu_mpi_datatype_register() is called. This would otherwise produce
+an undefined result as the data may be received before the function is called,
+and so the MPI datatype would not be known by the StarPU-MPI communication
+engine, and the data would be processed with the pack and unpack operations. One
+would thus need to synchronize all nodes:
 
 \code{.c}
 starpu_data_interface handle;

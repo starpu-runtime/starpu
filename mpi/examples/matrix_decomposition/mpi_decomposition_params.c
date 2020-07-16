@@ -90,6 +90,11 @@ void parse_args(int argc, char **argv, int nodes)
                         submission = ANTIDIAGONALS;
                 }
 
+                if (strcmp(argv[i], "-prios") == 0)
+                {
+                        submission = PRIOS;
+                }
+
                 if (strcmp(argv[i], "-no-prio") == 0)
                 {
                         noprio = 1;
@@ -107,7 +112,7 @@ void parse_args(int argc, char **argv, int nodes)
 
                 if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
                 {
-                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-no-prio] [-display] [-check]\n", argv[0]);
+                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-prios] [-no-prio] [-display] [-check]\n", argv[0]);
                 }
         }
 
