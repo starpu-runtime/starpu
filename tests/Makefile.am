@@ -24,6 +24,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	main/increment_codelet.h		\
 	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
