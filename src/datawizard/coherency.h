@@ -170,7 +170,7 @@ struct _starpu_data_state
 	 */
 	unsigned partitioned;
 	/** Whether a partition plan is currently submitted in readonly mode */
-	unsigned readonly:1;
+	unsigned part_readonly:1;
 
 	/** Whether our father is currently partitioned into ourself */
 	unsigned active:1;

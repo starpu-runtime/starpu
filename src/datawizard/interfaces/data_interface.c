@@ -277,7 +277,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	//handle->nplans = 0;
 	//handle->switch_cl = NULL;
 	//handle->partitioned = 0;
-	//handle->readonly = 0;
+	//handle->part_readonly = 0;
 	handle->active = 1;
 	//handle->active_ro = 0;
 	handle->root_handle = handle;
