@@ -232,19 +232,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		memset(child, 0, sizeof(*child));
 		_starpu_data_handle_init(child, ops, initial_handle->mf_node);
 
-		//child->nchildren = 0;
-		//child->nplans = 0;
-		//child->switch_cl = NULL;
-		//child->partitioned = 0;
-		//child->part_readonly = 0;
-		child->active = inherit_state;
-		//child->active_ro = 0;
-                //child->mpi_data = NULL;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
-		//child->active_children = NULL;
-		//child->active_readonly_children = NULL;
-		//child->nactive_readonly_children = 0;
+
 		child->nsiblings = nparts;
 		if (inherit_state)
 		{
@@ -255,58 +245,21 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->sibling_index = i;
 		child->depth = initial_handle->depth + 1;
 
-		child->is_not_important = initial_handle->is_not_important;
-		child->wt_mask = initial_handle->wt_mask;
-		child->home_node = initial_handle->home_node;
+		child->active = inherit_state;
 
-		/* initialize the chunk lock */
-		_starpu_data_requester_prio_list_init(&child->req_list);
-		_starpu_data_requester_prio_list_init(&child->reduction_req_list);
-		//child->reduction_tmp_handles = NULL;
-		//child->write_invalidation_req = NULL;
-		//child->refcnt = 0;
-		//child->unlocking_reqs = 0;
-		//child->busy_count = 0;
-		//child->busy_waiting = 0;
-		STARPU_PTHREAD_MUTEX_INIT0(&child->busy_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT0(&child->busy_cond, NULL);
-		//child->reduction_refcnt = 0;
-		_starpu_spin_init(&child->header_lock);
+		child->home_node = initial_handle->home_node;
+		child->wt_mask = initial_handle->wt_mask;
+
+		child->is_not_important = initial_handle->is_not_important;
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 		child->initialized = initial_handle->initialized;
 		child->ooc = initial_handle->ooc;
 
-		STARPU_PTHREAD_MUTEX_INIT0(&child->sequential_consistency_mutex, NULL);
-		child->last_submitted_mode = STARPU_R;
-		//child->last_sync_task = NULL;
-		//child->last_submitted_accessors.task = NULL;
-		child->last_submitted_accessors.next = &child->last_submitted_accessors;
-		child->last_submitted_accessors.prev = &child->last_submitted_accessors;
-		//child->post_sync_tasks = NULL;
-		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
-		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
-		//child->post_sync_tasks_cnt = 0;
-
 		/* The methods used for reduction are propagated to the
 		 * children. */
 		child->redux_cl = initial_handle->redux_cl;
 		child->init_cl = initial_handle->init_cl;
-
-#ifdef STARPU_USE_FXT
-		//child->last_submitted_ghost_sync_id_is_valid = 0;
-		//child->last_submitted_ghost_sync_id = 0;
-		//child->last_submitted_ghost_accessors_id = NULL;
-#endif
-
-		if (_starpu_global_arbiter)
-			/* Just for testing purpose */
-			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
-		else
-		{
-			//child->arbiter = NULL;
-		}
-		_starpu_data_requester_prio_list_init0(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -345,13 +298,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			STARPU_ASSERT_MSG(!(!inherit_state && child_replicate->automatically_allocated && child_replicate->allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
-
-		//child->per_worker = NULL;
-		//child->user_data = NULL;
-
-		/* We compute the size and the footprint of the child once and
-		 * store it in the handle */
-		child->footprint = _starpu_compute_data_footprint(child);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{

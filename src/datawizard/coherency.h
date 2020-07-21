@@ -193,14 +193,24 @@ struct _starpu_data_state
 
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
-	unsigned is_not_important;
+	unsigned is_not_important:1;
 
 	/** Does StarPU have to enforce some implicit data-dependencies ? */
-	unsigned sequential_consistency;
+	unsigned sequential_consistency:1;
 	/** Is the data initialized, or a task is already submitted to initialize it */
-	unsigned initialized;
+	unsigned initialized:1;
 	/** Can the data be pushed to the disk? */
-	unsigned ooc;
+	unsigned ooc:1;
+
+	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
+	unsigned lazy_unregister:1;
+
+	/** Whether automatic planned partitioning/unpartitioning should not be done */
+	int partition_automatic_disabled:1;
+
+#ifdef STARPU_OPENMP
+	unsigned removed_from_context_hash:1;
+#endif
 
 	/** This lock should protect any operation to enforce
 	 * sequential_consistency */
@@ -254,12 +264,6 @@ struct _starpu_data_state
 	/** Final request for write invalidation */
 	struct _starpu_data_request *write_invalidation_req;
 
-	unsigned lazy_unregister;
-
-#ifdef STARPU_OPENMP
-	unsigned removed_from_context_hash;
-#endif
-
         /** Used for MPI */
 	void *mpi_data;
 
@@ -278,8 +282,6 @@ struct _starpu_data_state
 	/** Last worker that took this data in locality mode, or -1 if nobody
 	 * took it yet */
 	int last_locality;
-
-	int partition_automatic_disabled;
 
 	/** Application-provided coordinates. The maximum dimension (5) is
 	  * relatively arbitrary. */

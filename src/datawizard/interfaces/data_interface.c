@@ -259,37 +259,21 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	STARPU_ASSERT(handle);
 
-	/* initialize the new lock */
-	_starpu_data_requester_prio_list_init0(&handle->req_list);
-	//handle->refcnt = 0;
-	//handle->unlocking_reqs = 0;
-	//handle->busy_count = 0;
-	//handle->busy_waiting = 0;
-	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
-	_starpu_spin_init(&handle->header_lock);
-
 	/* first take care to properly lock the data */
 	_starpu_spin_lock(&handle->header_lock);
 
-	/* there is no hierarchy yet */
-	//handle->nchildren = 0;
-	//handle->nplans = 0;
-	//handle->switch_cl = NULL;
-	//handle->partitioned = 0;
-	//handle->part_readonly = 0;
-	handle->active = 1;
-	//handle->active_ro = 0;
 	handle->root_handle = handle;
 	//handle->father_handle = NULL;
-	//handle->active_children = NULL;
-	//handle->active_readonly_children = NULL;
-	//handle->nactive_readonly_children = 0;
 	//handle->nsiblings = 0;
 	//handle->siblings = NULL;
 	//handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
-        //handle->mpi_data = NULL; /* invalid until set */
+
+	handle->active = 1;
+
+	handle->home_node = home_node;
+
+	handle->wt_mask = wt_mask;
 
 	//handle->is_not_important = 0;
 
@@ -298,50 +282,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->initialized = home_node != -1;
 	handle->ooc = 1;
 
-	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
-	handle->last_submitted_mode = STARPU_R;
-	//handle->last_sync_task = NULL;
-	//handle->last_submitted_accessors.task = NULL;
-	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
-	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
-	//handle->post_sync_tasks = NULL;
-
-	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
-	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
-	//handle->post_sync_tasks_cnt = 0;
-
 	/* By default, there are no methods available to perform a reduction */
 	//handle->redux_cl = NULL;
 	//handle->init_cl = NULL;
-
-	//handle->reduction_refcnt = 0;
-	_starpu_data_requester_prio_list_init0(&handle->reduction_req_list);
-	//handle->reduction_tmp_handles = NULL;
-	//handle->write_invalidation_req = NULL;
-
-#ifdef STARPU_USE_FXT
-	//handle->last_submitted_ghost_sync_id_is_valid = 0;
-	//handle->last_submitted_ghost_sync_id = 0;
-	//handle->last_submitted_ghost_accessors_id = NULL;
-#endif
-
-	handle->wt_mask = wt_mask;
-
-	/* Store some values directly in the handle not to recompute them all
-	 * the time. */
-	handle->footprint = _starpu_compute_data_footprint(handle);
-
-	handle->home_node = home_node;
-
-	if (_starpu_global_arbiter)
-		/* Just for testing purpose */
-		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
-	else
-	{
-		//handle->arbiter = NULL;
-	}
-	_starpu_data_requester_prio_list_init0(&handle->arbitered_req_list);
-	handle->last_locality = -1;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -371,9 +314,6 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 			//replicate->initialized = 0;
 		}
 	}
-
-	//handle->per_worker = NULL;
-	//handle->user_data = NULL;
 
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
@@ -449,14 +389,47 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	STARPU_HG_DISABLE_CHECKING(handle->busy_count);
 
 	handle->magic = 42;
-	handle->ops = interface_ops;
-	handle->mf_node = mf_node;
-	//handle->mpi_data = NULL;
-	//handle->partition_automatic_disabled = 0;
 
+	/* When not specified, the fields are initialized in _starpu_register_new_data and _starpu_data_partition */
+
+	_starpu_data_requester_prio_list_init0(&handle->req_list);
+	//handle->refcnt = 0;
+	//handle->unlocking_reqs = 0;
+	//handle->current_mode = STARPU_NONE;
+	_starpu_spin_init(&handle->header_lock);
+
+	//handle->busy_count = 0;
+	//handle->busy_waiting = 0;
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
+
+	//handle->root_handle
+	//handle->father_handle
+	//handle->active_children = NULL;
+	//handle->active_readonly_children = NULL;
+	//handle->nactive_readonly_children = 0;
+	//handle->nsiblings
+	//handle->siblings
+	//handle->sibling_index
+	//handle->depth
+
+	/* there is no hierarchy yet */
+	//handle->children = NULL;
+	//handle->nchildren = 0;
+	//handle->nplans = 0;
+	//handle->switch_cl = NULL;
+	//handle->switch_cl_nparts = 0;
+	//handle->partitioned = 0;
+	//handle->part_readonly = 0;
+
+	//handle->active
+	//handle->active_ro = 0;
+
+	//handle->per_node below
+
+	handle->ops = interface_ops;
 	size_t interfacesize = interface_ops->interface_size;
 
-	_starpu_memory_stats_init(handle);
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		_starpu_memory_stats_init_per_node(handle, node);
@@ -470,6 +443,78 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		if (handle->ops->init) handle->ops->init(replicate->data_interface);
 	}
+
+	//handle->per_worker = NULL;
+	//handle->ops above
+
+	/* Store some values directly in the handle not to recompute them all
+	 * the time. */
+	handle->footprint = _starpu_compute_data_footprint(handle);
+
+	//handle->home_node
+	//handle->wt_mask
+	//handle->is_not_important
+	//handle->sequential_consistency
+	//handle->initialized
+	//handle->ooc
+	//handle->lazy_unregister = 0;
+	//handle->partition_automatic_disabled = 0;
+	//handle->removed_from_context_hash = 0;
+
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
+
+	handle->last_submitted_mode = STARPU_R;
+	//handle->last_sync_task = NULL;
+	//handle->last_submitted_accessors.task = NULL;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
+
+#ifdef STARPU_USE_FXT
+	//handle->last_submitted_ghost_sync_id_is_valid = 0;
+	//handle->last_submitted_ghost_sync_id = 0;
+	//handle->last_submitted_ghost_accessors_id = NULL;
+#endif
+
+	//handle->post_sync_tasks = NULL;
+	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
+	//handle->post_sync_tasks_cnt = 0;
+
+	//handle->redux_cl
+	//handle->init_cl
+
+	//handle->reduction_refcnt = 0;
+
+	_starpu_data_requester_prio_list_init0(&handle->reduction_req_list);
+
+	//handle->reduction_tmp_handles = NULL;
+
+	//handle->write_invalidation_req = NULL;
+
+        //handle->mpi_data = NULL; /* invalid until set */
+
+	_starpu_memory_stats_init(handle);
+
+	handle->mf_node = mf_node;
+
+        //handle->unregister_hook = NULL;
+
+	if (_starpu_global_arbiter)
+		/* Just for testing purpose */
+		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
+	else
+	{
+		//handle->arbiter = NULL;
+	}
+	_starpu_data_requester_prio_list_init0(&handle->arbitered_req_list);
+
+	handle->last_locality = -1;
+
+	//handle->dimensions = 0;
+	//handle->coordinates = {};
+
+	//handle->user_data = NULL;
+
 
 	return 0;
 }
