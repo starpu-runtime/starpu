@@ -180,6 +180,17 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 			int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
 	_starpu_spin_lock(&src_handle->header_lock);
+	if (src_handle->readonly_dup) {
+		/* Already a ro duplicate, just return it with one more ref */
+		*dst_handle = src_handle->readonly_dup;
+		_starpu_spin_unlock(&src_handle->header_lock);
+		_starpu_spin_lock(&(*dst_handle)->header_lock);
+		(*dst_handle)->aliases++;
+		_starpu_spin_unlock(&(*dst_handle)->header_lock);
+		if (callback_func)
+			callback_func(callback_arg);
+		return 0;
+	}
 	if (src_handle->readonly) {
 		src_handle->aliases++;
 		_starpu_spin_unlock(&src_handle->header_lock);
@@ -190,9 +201,13 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	}
 	_starpu_spin_unlock(&src_handle->header_lock);
 
-	/* TODO: optimize when src_handle already has a read-only duplicate */
 	starpu_data_register_same(dst_handle, src_handle);
 	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
 	(*dst_handle)->readonly = 1;
+
+	_starpu_spin_lock(&src_handle->header_lock);
+	src_handle->readonly_dup = (*dst_handle);
+	_starpu_spin_unlock(&src_handle->header_lock);
+
 	return 0;
 }

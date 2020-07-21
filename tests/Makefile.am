@@ -793,6 +793,14 @@ fortran90_init_01_SOURCES =	\
 	fortran90/init_01.f90
 endif
 
+helper_starpu_data_dup_ro_SOURCES =		\
+	helper/starpu_data_dup_ro.c		\
+	main/increment_codelet.c
+if STARPU_USE_CUDA
+helper_starpu_data_dup_ro_SOURCES +=		\
+	main/increment.cu
+endif
+
 ###################
 # Block interface #
 ###################

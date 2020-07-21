@@ -227,7 +227,12 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 		if (mode & STARPU_W || mode == STARPU_REDUX)
 		{
+
+			STARPU_ASSERT_MSG(!handle->readonly, "Read-only handles can not be written to");
+
 			handle->initialized = 1;
+			/* We will change our value, disconnect from our readonly duplicates */
+			handle->readonly_dup = NULL;
 			if (write_hook)
 				write_hook(handle);
 		}

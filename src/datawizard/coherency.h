@@ -194,6 +194,9 @@ struct _starpu_data_state
 	/** for a readonly handle, the number of times that we have returned again the
 	    same handle and thus the number of times we have to ignore unregistration requests */
 	unsigned aliases;
+	/** for a non-readonly handle, a readonly-only duplicate, that we can
+	    return from starpu_data_dup_ro */
+	starpu_data_handle_t readonly_dup;
 
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */

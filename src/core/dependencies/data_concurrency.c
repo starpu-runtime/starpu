@@ -142,8 +142,6 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		_starpu_spin_lock(&handle->header_lock);
 	}
 
-	STARPU_ASSERT_MSG(!(handle->readonly && (mode & STARPU_W)), "Read-only handles can not be written to");
-
 	/* If we have a request that is not used for the reduction, and that a
 	 * reduction is pending, we put it at the end of normal list, and we
 	 * use the reduction_req_list instead */
