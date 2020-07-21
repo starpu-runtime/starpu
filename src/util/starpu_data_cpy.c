@@ -184,7 +184,8 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 		src_handle->aliases++;
 		_starpu_spin_unlock(&src_handle->header_lock);
 		*dst_handle = src_handle;
-		callback_func(callback_arg);
+		if (callback_func)
+			callback_func(callback_arg);
 		return 0;
 	}
 	_starpu_spin_unlock(&src_handle->header_lock);
