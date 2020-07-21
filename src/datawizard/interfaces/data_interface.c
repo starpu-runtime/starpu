@@ -271,6 +271,10 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	handle->active = 1;
 
+	/* Store some values directly in the handle not to recompute them all
+	 * the time. */
+	handle->footprint = _starpu_compute_data_footprint(handle);
+
 	handle->home_node = home_node;
 
 	handle->wt_mask = wt_mask;
@@ -450,9 +454,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->per_worker = NULL;
 	//handle->ops above
 
-	/* Store some values directly in the handle not to recompute them all
-	 * the time. */
-	handle->footprint = _starpu_compute_data_footprint(handle);
+	//handle->footprint
 
 	//handle->home_node
 	//handle->wt_mask

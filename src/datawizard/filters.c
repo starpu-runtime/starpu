@@ -302,6 +302,10 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
+		/* We compute the size and the footprint of the child once and
+		 * store it in the handle */
+		child->footprint = _starpu_compute_data_footprint(child);
+
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
