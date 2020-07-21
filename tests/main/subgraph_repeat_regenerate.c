@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/thread.h>
 
+#include "increment_codelet.h"
 #include "../helper.h"
 
 /*
@@ -54,28 +55,6 @@ static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 extern void cuda_host_increment(void *descr[], void *_args);
-
-void cpu_increment(void *descr[], void *arg)
-{
-	(void)arg;
-	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	(*var)++;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {cpu_increment},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_host_increment},
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
-	// TODO
-	//.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"cpu_increment"},
-	.model = NULL,
-	.modes = { STARPU_RW },
-	.nbuffers = 1
-};
 
 static void callback_task_B(void *arg)
 {
@@ -136,24 +115,24 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&check_data, STARPU_MAIN_RAM, (uintptr_t)check_cnt, sizeof(*check_cnt));
 
 	starpu_task_init(&taskA);
-	taskA.cl = &dummy_codelet;
+	taskA.cl = &increment_codelet;
 	taskA.regenerate = 0; /* this task will be explicitely resubmitted if needed */
 	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
-	taskB.cl = &dummy_codelet;
+	taskB.cl = &increment_codelet;
 	taskB.callback_func = callback_task_B;
 	taskB.regenerate = 1;
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
-	taskC.cl = &dummy_codelet;
+	taskC.cl = &increment_codelet;
 	taskC.callback_func = callback_task_C;
 	taskC.regenerate = 1;
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
-	taskD.cl = &dummy_codelet;
+	taskD.cl = &increment_codelet;
 	taskD.callback_func = callback_task_D;
 	taskD.regenerate = 1;
 	taskD.handles[0] = check_data;
