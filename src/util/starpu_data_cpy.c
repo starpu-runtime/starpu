@@ -175,3 +175,11 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 {
 	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
 }
+
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle,
+			int asynchronous, void (*callback_func)(void*), void *callback_arg)
+{
+	/* TODO: optimize when src_handle is already a read-only handle or already has a read-only duplicate */
+	starpu_data_register_same(dst_handle, src_handle);
+	return _starpu_data_cpy(*dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
+}

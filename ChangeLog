@@ -41,6 +41,7 @@ New features:
     StarPU.
   * Add a task prefetch level, to improve retaining data in accelerators so we
     can make prefetch more aggressive.
+  * Add starpu_data_dup_ro().
 
 Small changes:
   * Use the S4U interface of Simgrid instead of xbt and MSG.
