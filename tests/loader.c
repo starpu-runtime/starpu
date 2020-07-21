@@ -264,6 +264,10 @@ int main(int argc, char *argv[])
 			timeout *= 5;
 	}
 
+#ifdef STARPU_SIMGRID
+	timeout *= 10;
+#endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* compare values between the 2 values of timeout */
 	if (getenv("MPIEXEC_TIMEOUT"))
