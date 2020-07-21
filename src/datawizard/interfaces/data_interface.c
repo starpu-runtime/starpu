@@ -275,11 +275,14 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	handle->wt_mask = wt_mask;
 
+	//handle->aliases = 0;
+
 	//handle->is_not_important = 0;
 
 	handle->sequential_consistency =
 		starpu_data_get_default_sequential_consistency_flag();
 	handle->initialized = home_node != -1;
+	//handle->readonly = 0;
 	handle->ooc = 1;
 
 	/* By default, there are no methods available to perform a reduction */
@@ -453,9 +456,11 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	//handle->home_node
 	//handle->wt_mask
+	//handle->aliases = 0;
 	//handle->is_not_important
 	//handle->sequential_consistency
 	//handle->initialized
+	//handle->readonly
 	//handle->ooc
 	//handle->lazy_unregister = 0;
 	//handle->partition_automatic_disabled = 0;
@@ -788,6 +793,15 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	/* TODO: also check that it has the latest coherency */
 	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
 
+	_starpu_spin_lock(&handle->header_lock);
+	if (handle->aliases)
+	{
+		handle->aliases--;
+		_starpu_spin_unlock(&handle->header_lock);
+		return;
+	}
+        _starpu_spin_unlock(&handle->header_lock);
+
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency && !nowait)
 	{
@@ -1027,6 +1041,14 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
+	_starpu_spin_lock(&handle->header_lock);
+	if (handle->aliases)
+	{
+		handle->aliases--;
+		_starpu_spin_unlock(&handle->header_lock);
+		return;
+	}
+        _starpu_spin_unlock(&handle->header_lock);
 
 	/* Wait for all task dependencies on this handle before putting it for free */
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);

@@ -47,6 +47,8 @@ int main(int argc, char **argv)
 	ret = starpu_data_dup_ro(&var4_handle, var2_handle, 1, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 
+	STARPU_ASSERT(var4_handle == var2_handle);
+
 	starpu_data_acquire(var2_handle, STARPU_R);
 	var2 = starpu_data_get_local_ptr(var2_handle);
 	ret = EXIT_SUCCESS;

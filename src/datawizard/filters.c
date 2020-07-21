@@ -250,10 +250,13 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->home_node = initial_handle->home_node;
 		child->wt_mask = initial_handle->wt_mask;
 
+		child->aliases = initial_handle->aliases;
+
 		child->is_not_important = initial_handle->is_not_important;
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 		child->initialized = initial_handle->initialized;
+		child->readonly = initial_handle->readonly;
 		child->ooc = initial_handle->ooc;
 
 		/* The methods used for reduction are propagated to the

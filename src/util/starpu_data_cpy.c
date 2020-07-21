@@ -179,7 +179,18 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
-	/* TODO: optimize when src_handle is already a read-only handle or already has a read-only duplicate */
+	_starpu_spin_lock(&src_handle->header_lock);
+	if (src_handle->readonly) {
+		src_handle->aliases++;
+		_starpu_spin_unlock(&src_handle->header_lock);
+		*dst_handle = src_handle;
+		return 0;
+	}
+	_starpu_spin_unlock(&src_handle->header_lock);
+
+	/* TODO: optimize when src_handle already has a read-only duplicate */
 	starpu_data_register_same(dst_handle, src_handle);
-	return _starpu_data_cpy(*dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
+	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
+	(*dst_handle)->readonly = 1;
+	return 0;
 }

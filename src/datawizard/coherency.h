@@ -191,6 +191,10 @@ struct _starpu_data_state
 	/** what is the default write-through mask for that data ? */
 	uint32_t wt_mask;
 
+	/** for a readonly handle, the number of times that we have returned again the
+	    same handle and thus the number of times we have to ignore unregistration requests */
+	unsigned aliases;
+
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important:1;
@@ -199,6 +203,8 @@ struct _starpu_data_state
 	unsigned sequential_consistency:1;
 	/** Is the data initialized, or a task is already submitted to initialize it */
 	unsigned initialized:1;
+	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
+	unsigned readonly:1;
 	/** Can the data be pushed to the disk? */
 	unsigned ooc:1;
 
