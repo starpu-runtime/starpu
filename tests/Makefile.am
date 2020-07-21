@@ -1008,26 +1008,26 @@ overlap_gpu_concurrency_SOURCES+=\
 	overlap/long_kernel.cu
 endif
 
-perfmodels_regression_based_SOURCES=\
-	perfmodels/regression_based.c
+perfmodels_regression_based_memset_SOURCES=\
+	perfmodels/regression_based_memset.c
 
-perfmodels_regression_based_01_SOURCES=\
-	perfmodels/regression_based_01.c
+perfmodels_regression_based_check_SOURCES=\
+	perfmodels/regression_based_check.c
 
-perfmodels_regression_based_02_SOURCES=\
-	perfmodels/regression_based_02.c
+perfmodels_regression_based_multiimpl_SOURCES=\
+	perfmodels/regression_based_multiimpl.c
 
-perfmodels_regression_based_03_SOURCES=\
-	perfmodels/regression_based_03.c
+perfmodels_regression_based_energy_SOURCES=\
+	perfmodels/regression_based_energy.c
 
-perfmodels_regression_based_04_SOURCES=\
-	perfmodels/regression_based_04.c
+perfmodels_regression_based_gpu_SOURCES=\
+	perfmodels/regression_based_gpu.c
 
 if STARPU_USE_OPENCL
-perfmodels_regression_based_SOURCES+=\
+perfmodels_regression_based_memset_SOURCES+=\
 	perfmodels/opencl_memset.c
 
-perfmodels_regression_based_04_SOURCES+=\
+perfmodels_regression_based_gpu_SOURCES+=\
 	perfmodels/opencl_memset.c
 
 nobase_STARPU_OPENCL_DATA_DATA += \
