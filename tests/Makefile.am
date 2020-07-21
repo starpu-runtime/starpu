@@ -642,28 +642,32 @@ main_insert_task_where_SOURCES +=		\
 endif
 
 main_subgraph_repeat_SOURCES =		\
-	main/subgraph_repeat.c
+	main/subgraph_repeat.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_tag_SOURCES =		\
-	main/subgraph_repeat_tag.c
+	main/subgraph_repeat_tag.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_tag_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_regenerate_SOURCES =		\
-	main/subgraph_repeat_regenerate.c
+	main/subgraph_repeat_regenerate.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_regenerate_tag_SOURCES =		\
-	main/subgraph_repeat_regenerate_tag.c
+	main/subgraph_repeat_regenerate_tag.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
 	main/increment.cu
