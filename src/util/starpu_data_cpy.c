@@ -176,6 +176,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
 }
 
+/* TODO: implement copy on write, and introduce starpu_data_dup as well */
 int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
