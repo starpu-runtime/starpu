@@ -20,7 +20,7 @@
 #include "../helper.h"
 
 /*
- * Benchmark memset with a linear regression
+ * Benchmark memset with a linear and non-linear regression
  */
 
 #define STARTlin 1024

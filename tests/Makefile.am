@@ -360,11 +360,11 @@ myPROGRAMS +=				\
 	parallel_tasks/parallel_kernels_spmd	\
 	parallel_tasks/spmd_peager		\
 	parallel_tasks/cuda_only		\
-	perfmodels/regression_based		\
-	perfmodels/regression_based_01		\
-	perfmodels/regression_based_02		\
-	perfmodels/regression_based_03		\
-	perfmodels/regression_based_04		\
+	perfmodels/regression_based_memset	\
+	perfmodels/regression_based_check	\
+	perfmodels/regression_based_multiimpl	\
+	perfmodels/regression_based_energy	\
+	perfmodels/regression_based_gpu		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/user_base			\
