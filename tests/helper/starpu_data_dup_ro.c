@@ -77,7 +77,6 @@ int main(int argc, char **argv)
 
 	starpu_data_acquire(var3_handle, STARPU_R);
 	var = starpu_data_get_local_ptr(var3_handle);
-	ret = EXIT_SUCCESS;
 	if (*var != 42)
 	{
 	     FPRINTF(stderr, "var3 is %d but it should be %d\n", *var, 42);
@@ -87,7 +86,6 @@ int main(int argc, char **argv)
 
 	starpu_data_acquire(var4_handle, STARPU_R);
 	var = starpu_data_get_local_ptr(var4_handle);
-	ret = EXIT_SUCCESS;
 	if (*var != 42)
 	{
 	     FPRINTF(stderr, "var4 is %d but it should be %d\n", *var, 42);
@@ -97,7 +95,6 @@ int main(int argc, char **argv)
 
 	starpu_data_acquire(var5_handle, STARPU_R);
 	var = starpu_data_get_local_ptr(var5_handle);
-	ret = EXIT_SUCCESS;
 	if (*var != 43)
 	{
 	     FPRINTF(stderr, "var5 is %d but it should be %d\n", *var, 43);
