@@ -50,7 +50,16 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 	STARPU_ASSERT(var4_handle == var2_handle);
 
-	starpu_task_insert(&increment_codelet, STARPU_RW, var1_handle, 0);
+	ret = starpu_task_insert(&increment_codelet, STARPU_RW, var1_handle, 0);
+	if (ret == -ENODEV)
+	{
+		starpu_data_unregister(var1_handle);
+		starpu_data_unregister(var2_handle);
+		starpu_data_unregister(var3_handle);
+		starpu_data_unregister(var4_handle);
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	/* Make a duplicate of the new value */
 	ret = starpu_data_dup_ro(&var5_handle, var1_handle, 1, NULL, NULL);
