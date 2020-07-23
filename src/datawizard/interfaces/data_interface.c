@@ -280,6 +280,8 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->wt_mask = wt_mask;
 
 	//handle->aliases = 0;
+	//handle->readonly_dup = NULL;
+	//handle->readonly_dup_of = NULL;
 
 	//handle->is_not_important = 0;
 
@@ -801,6 +803,18 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		handle->aliases--;
 		_starpu_spin_unlock(&handle->header_lock);
 		return;
+	}
+	if (handle->readonly_dup)
+	{
+		STARPU_ASSERT(handle->readonly_dup->readonly_dup_of == handle);
+		handle->readonly_dup->readonly_dup_of = NULL;
+		handle->readonly_dup = NULL;
+	}
+	if (handle->readonly_dup_of)
+	{
+		STARPU_ASSERT(handle->readonly_dup_of->readonly_dup == handle);
+		handle->readonly_dup_of->readonly_dup = NULL;
+		handle->readonly_dup_of = NULL;
 	}
         _starpu_spin_unlock(&handle->header_lock);
 

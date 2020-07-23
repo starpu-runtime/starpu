@@ -40,6 +40,13 @@ int main(int argc, char **argv)
 	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 
+	/* Free it */
+	starpu_data_unregister(var2_handle);
+
+	/* Make another duplicate of the original data */
+	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1, NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
+
 	/* Make a second duplicate of the original data */
 	ret = starpu_data_dup_ro(&var3_handle, var1_handle, 1, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");

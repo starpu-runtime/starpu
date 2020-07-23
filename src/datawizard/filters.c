@@ -251,6 +251,8 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->wt_mask = initial_handle->wt_mask;
 
 		child->aliases = initial_handle->aliases;
+		//child->readonly_dup = NULL;
+		//child->readonly_dup_of = NULL;
 
 		child->is_not_important = initial_handle->is_not_important;
 

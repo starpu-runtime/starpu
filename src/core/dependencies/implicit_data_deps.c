@@ -232,7 +232,12 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 			handle->initialized = 1;
 			/* We will change our value, disconnect from our readonly duplicates */
-			handle->readonly_dup = NULL;
+			if (handle->readonly_dup)
+			{
+				STARPU_ASSERT(handle->readonly_dup->readonly_dup_of == handle);
+				handle->readonly_dup->readonly_dup_of = NULL;
+				handle->readonly_dup = NULL;
+			}
 			if (write_hook)
 				write_hook(handle);
 		}

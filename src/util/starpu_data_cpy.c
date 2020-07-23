@@ -208,6 +208,7 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 
 	_starpu_spin_lock(&src_handle->header_lock);
 	src_handle->readonly_dup = (*dst_handle);
+	(*dst_handle)->readonly_dup_of = src_handle;
 	_starpu_spin_unlock(&src_handle->header_lock);
 
 	return 0;

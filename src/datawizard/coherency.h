@@ -197,6 +197,9 @@ struct _starpu_data_state
 	/** for a non-readonly handle, a readonly-only duplicate, that we can
 	    return from starpu_data_dup_ro */
 	starpu_data_handle_t readonly_dup;
+	/** for a readonly handle, the non-readonly handle that is referencing
+	    is in its readonly_dup field. */
+	starpu_data_handle_t readonly_dup_of;
 
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
