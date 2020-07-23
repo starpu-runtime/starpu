@@ -381,7 +381,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch *arch, char *archname, size_t maxlen, unsigned nimpl);
 
 /**
-   Return the estimated time of a task with the given model and the given footprint.
+   Return the estimated time in µs of a task with the given model and the given footprint.
 */
 double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint);
 
