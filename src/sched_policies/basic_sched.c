@@ -39,7 +39,7 @@
 #define ALGO_USED /* 1,2,3 or 4. Add ALGO_4_RANDOM=1 and ALGO_USED=4 to use the algorithm 4. Add ALGO_4_RANDOM=0 and ALGO_USED=4 or just ALGO_USED=4 for the algorithm 4' */
 #define ALGO_4_RANDOM /* 0 or 1 */
 #define PRINTF /* O or 1 */
-#define HILBERT /* O or 1 */
+#define ORDER_U /* O or 1 */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct basic_sched_data
@@ -618,10 +618,10 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 								nb_common_data--;
 								
-								//~ printf("go to hilbert\n");
-								if (starpu_get_env_number_default("HILBERT",0) == 1) { goto hilbert; }
+								//~ printf("go to ORDER_U\n");
+								if (starpu_get_env_number_default("ORDER_U",0) == 1) { goto order_u; }
 								algo4prime:
-								//~ printf("fin go to hilbert\n");
+								//~ printf("fin go to ORDER_U\n");
 								
 								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
@@ -759,9 +759,9 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 							nb_common_data--;
 							
 							/* Go to used to do -U order */
-							hilbert:
-							if (starpu_get_env_number_default("HILBERT",0) == 1) {
-								printf("debut hilbert\n");
+							order_u:
+							if (starpu_get_env_number_default("ORDER_U",0) == 1) {
+								//~ printf("debut ORDER_U\n");
 								//~ printf("Poids paquet i : %li / Poids paquet j : %li\n",weight_package_i,weight_package_j);
 								//regarder le poids des deux paquets i et j
 								// Si i et j > B (oui ca se recoupe au début)
@@ -773,22 +773,22 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								
 								
 								i_bis = 0; j_bis = 0;
-								printf("nb task in sub list de i = %d\n",data->temp_pointer_1->nb_task_in_sub_list);
-								printf("nb task in sub list de j = %d\n",data->temp_pointer_2->nb_task_in_sub_list);
-								printf("split last ij de i vaut : %d\n",data->temp_pointer_1->split_last_ij);
-								printf("split last ij de j vaut : %d\n",data->temp_pointer_2->split_last_ij);
+								//~ printf("nb task in sub list de i = %d\n",data->temp_pointer_1->nb_task_in_sub_list);
+								//~ printf("nb task in sub list de j = %d\n",data->temp_pointer_2->nb_task_in_sub_list);
+								//~ printf("split last ij de i vaut : %d\n",data->temp_pointer_1->split_last_ij);
+								//~ printf("split last ij de j vaut : %d\n",data->temp_pointer_2->split_last_ij);
 								for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 									//~ printf("La tâche %p est dans le paquet j\n",temp_task_1); 
 								}
 								if (data->temp_pointer_1->split_last_ij == 0 || data->temp_pointer_2->nb_task_in_sub_list == 0 || data->temp_pointer_1->nb_task_in_sub_list == 0 || data->temp_pointer_2->split_last_ij == 0 
 								|| (data->ALGO_USED_READER == 6 && ( data->temp_pointer_2->split_last_ij > 2500 || data->temp_pointer_1->split_last_ij > 2500)) ) { 
-									printf("on fais R on est a un paquet de 1 seule tâche\n"); 
+									//~ printf("on fais R on est a un paquet de 1 seule tâche\n"); 
 								}
 								else {
 									if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
 									//~ if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M && data->ALGO_USED_READER != 6) {
 										nb_task_until_B_1_i = 0; nb_task_until_B_2_i = 0; nb_task_until_B_1_j = 0; nb_task_until_B_2_j = 0; 
-										printf("I et J > GPU_RAM_M ####################\n"); 
+										//~ printf("I et J > GPU_RAM_M ####################\n"); 
 										temp_weight = 0;
 										for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) {
 											if (temp_weight < GPU_RAM_M) {
@@ -1010,7 +1010,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									
 									}
 									else {
-										printf("I et J < 2*GPU_RAM\n");
+										//~ printf("I et J < 2*GPU_RAM\n");
 									
 									for (i_bis = 0; i_bis < data->temp_pointer_1->split_last_ij; i_bis++) {
 										starpu_task_list_push_back(&sub_package_1_i,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));										
@@ -1026,7 +1026,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 										starpu_task_list_push_front(&sub_package_2_j,starpu_task_list_pop_back(&data->temp_pointer_2->sub_list));
 									
 									}
-									printf("ok\n");
+									//~ printf("ok\n");
 								
 								for (temp_task_1 = starpu_task_list_begin(&sub_package_1_i); temp_task_1 != starpu_task_list_end(&sub_package_1_i); temp_task_1 = starpu_task_list_next(temp_task_1)) {
 									for (temp_task_2 = starpu_task_list_begin(&sub_package_1_j); temp_task_2 != starpu_task_list_end(&sub_package_1_j); temp_task_2 = starpu_task_list_next(temp_task_2)) {
@@ -1077,7 +1077,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 									}
 								}
 								
-								printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+								//~ printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
 								/* Figuring out wich switch we need to do */
 								max_common_data_last_package = common_data_last_package_i2_j1;
 								if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
@@ -1085,7 +1085,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
 								
 								if (max_common_data_last_package == common_data_last_package_i2_j1) {
-									printf("PAS SWITCH :(\n");	
+									//~ printf("PAS SWITCH :(\n");	
 									/* We just refill the sub_list of i like it was before */
 									for (i_bis = data->temp_pointer_1->nb_task_in_sub_list; i_bis > data->temp_pointer_1->split_last_ij; i_bis--) {
 										starpu_task_list_push_front(&data->temp_pointer_1->sub_list,starpu_task_list_pop_back(&sub_package_2_i));
@@ -1162,7 +1162,7 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 								common_data_last_package_i1_j1 = 0; common_data_last_package_i1_j2 = 0; common_data_last_package_i2_j1 = 0; common_data_last_package_i2_j2 = 0;
 								/* We take the number of task that are currently in the package i and it correspond to the separation between i and j */
 								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
-							printf("fin hilbert\n");
+							//~ printf("fin ORDER_U\n");
 							}
 							if (data->ALGO_USED_READER == 4) {  goto algo4prime; }
 							
@@ -1444,8 +1444,8 @@ static struct starpu_task *basic_pull_task(struct starpu_sched_component *compon
 		
 		if (data->ALGO_USED_READER != 6) { fprintf(mean_ecart_type_finaux,"%f	%f\n",moyenne,ecart_type); }
 		//~ if (data->ALGO_USED_READER != 3) { 
-			fprintf(fcoordinate,"\\caption{EMPAQUETAGE D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
-			fprintf(fcoordinate_order,"\\caption{ORDRE DE SORTIE DES TÂCHES D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / HILBERT %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("HILBERT",0),sqrt(number_tasks),sqrt(number_tasks));
+			fprintf(fcoordinate,"\\caption{EMPAQUETAGE D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / ORDER_U %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("ORDER_U",0),sqrt(number_tasks),sqrt(number_tasks));
+			fprintf(fcoordinate_order,"\\caption{ORDRE DE SORTIE DES TÂCHES D'ALGO %d / BW %d / CUDA MEM %d / RANDOM TASK ORDER %d / RANDOM TASKS %d / ORDER_U %d / MATRICE %.0fx%.0f} \\label{fig:fig} \\end{figure}",starpu_get_env_number_default("ALGO_USED",0),starpu_get_env_number_default("STARPU_LIMIT_BANDWIDTH",0),starpu_get_env_number_default("STARPU_LIMIT_CUDA_MEM",0),starpu_get_env_number_default("RANDOM_TASK_ORDER",0),starpu_get_env_number_default("RANDOM_TASKS",0),starpu_get_env_number_default("ORDER_U",0),sqrt(number_tasks),sqrt(number_tasks));
 			fclose(fcoordinate);
 			fclose(fcoordinate_order);
 			fclose(variance_ecart_type);
