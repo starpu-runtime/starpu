@@ -36,7 +36,7 @@ void matrix_display(float ***bmat, int rank)
 		for(y=0 ; y<nblocks ; y++)
 		{
 			unsigned x;
-			for(x=0 ; x<nblocks ; x++)
+			for(x=0 ; x<=y ; x++)
 			{
 				unsigned j;
 				printf("Block %u,%u :\n", x, y);
@@ -45,7 +45,7 @@ void matrix_display(float ***bmat, int rank)
 					unsigned i;
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
-						if (i <= j)
+						if (x < y || i <= j)
 						{
 							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
 						}
