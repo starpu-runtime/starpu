@@ -37,23 +37,23 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&var1_handle, STARPU_MAIN_RAM, (uintptr_t)&var1, sizeof(var1));
 
 	/* Make a duplicate of the original data */
-	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1, NULL, NULL);
+	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 
 	/* Free it */
 	starpu_data_unregister(var2_handle);
 
 	/* Make another duplicate of the original data */
-	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1, NULL, NULL);
+	ret = starpu_data_dup_ro(&var2_handle, var1_handle, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 
 	/* Make a second duplicate of the original data */
-	ret = starpu_data_dup_ro(&var3_handle, var1_handle, 1, NULL, NULL);
+	ret = starpu_data_dup_ro(&var3_handle, var1_handle, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 	STARPU_ASSERT(var3_handle == var2_handle);
 
 	/* Make a duplicate of a duplicate */
-	ret = starpu_data_dup_ro(&var4_handle, var2_handle, 1, NULL, NULL);
+	ret = starpu_data_dup_ro(&var4_handle, var2_handle, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 	STARPU_ASSERT(var4_handle == var2_handle);
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Make a duplicate of the new value */
-	ret = starpu_data_dup_ro(&var5_handle, var1_handle, 1, NULL, NULL);
+	ret = starpu_data_dup_ro(&var5_handle, var1_handle, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 
 	starpu_data_acquire(var2_handle, STARPU_R);

@@ -177,8 +177,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 }
 
 /* TODO: implement copy on write, and introduce starpu_data_dup as well */
-int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle,
-			int asynchronous, void (*callback_func)(void*), void *callback_arg)
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous)
 {
 	_starpu_spin_lock(&src_handle->header_lock);
 	if (src_handle->readonly_dup) {
@@ -188,22 +187,18 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 		_starpu_spin_lock(&(*dst_handle)->header_lock);
 		(*dst_handle)->aliases++;
 		_starpu_spin_unlock(&(*dst_handle)->header_lock);
-		if (callback_func)
-			callback_func(callback_arg);
 		return 0;
 	}
 	if (src_handle->readonly) {
 		src_handle->aliases++;
 		_starpu_spin_unlock(&src_handle->header_lock);
 		*dst_handle = src_handle;
-		if (callback_func)
-			callback_func(callback_arg);
 		return 0;
 	}
 	_starpu_spin_unlock(&src_handle->header_lock);
 
 	starpu_data_register_same(dst_handle, src_handle);
-	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
+	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, NULL, NULL, 0, NULL);
 	(*dst_handle)->readonly = 1;
 
 	_starpu_spin_lock(&src_handle->header_lock);

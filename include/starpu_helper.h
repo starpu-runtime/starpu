@@ -199,7 +199,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
    the handle has been copied, and it is given the pointer \p
    callback_arg as argument.
 */
-int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
 
 /**
    Call hwloc-ps to display binding of each processus and thread running on
