@@ -1311,8 +1311,7 @@ static struct starpu_task *AATO_pull_task(struct starpu_sched_component *compone
 					ecart_type = temp_ecart_type;					
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { 
 						printf("A la fin du tour numéro %d du while on a %d paquets\n",nb_of_loop,link_index);
-					}
-					
+					}					
 					temp_moyenne = 0; temp_variance = 0; temp_ecart_type = 0;				
 					fprintf(mean_task_by_loop,"%d	%d	%f	%f	\n",nb_of_loop,link_index,moyenne,ecart_type);
 			/* Else we are using algorithm 3 */					
@@ -1324,7 +1323,6 @@ static struct starpu_task *AATO_pull_task(struct starpu_sched_component *compone
 			/* If we have only one package we don't have to do more packages */			
 			if (nb_pop == 1) {  packaging_impossible = 1; }
 			
-
 		} /* End of while (packaging_impossible == 0) { */
 		/* We are in algorithm 3, we remove the size limit of a package */
 		if (data->ALGO_USED_READER == 3 || data->ALGO_USED_READER == 5) { GPU_limit_switch = 0; goto algo3; }	
