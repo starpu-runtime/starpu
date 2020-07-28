@@ -21,7 +21,7 @@
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int y, int x, int nb_nodes);
 
-void matrix_display(float ***bmat, int rank);
+void matrix_display(float ***bmat, int rank, int nodes);
 void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere);
 void matrix_free(float ****bmat, int rank, int nodes, int alloc_everywhere);
 
