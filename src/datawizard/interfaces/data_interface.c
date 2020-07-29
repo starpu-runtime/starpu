@@ -784,25 +784,19 @@ void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_
 	handle->unregister_hook = func;
 }
 
-/* Unregister the data handle, perhaps we don't need to update the home_node
- * (in that case coherent is set to 0)
- * nowait is for internal use when we already know for sure that we won't have to wait.
+/*
+ * We are about to unregister this R/O data. There might be still other aliases,
+ * in which case this returns 0. If not, users are not supposed to see it
+ * any more, so detach it from their sight and return 1 to let unregistration happen.
  */
-static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait)
+static int _starpu_ro_data_detach(starpu_data_handle_t handle)
 {
-	STARPU_ASSERT(handle);
-	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
-	STARPU_ASSERT_MSG(handle->nplans == 0, "data %p needs its partition plans to be cleaned before unregistration", handle);
-	STARPU_ASSERT_MSG(handle->partitioned == 0, "data %p needs its partitioned plans to be unpartitioned before unregistration", handle);
-	/* TODO: also check that it has the latest coherency */
-	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
-
 	_starpu_spin_lock(&handle->header_lock);
 	if (handle->aliases)
 	{
 		handle->aliases--;
 		_starpu_spin_unlock(&handle->header_lock);
-		return;
+		return 0;
 	}
 	if (handle->readonly_dup)
 	{
@@ -816,7 +810,28 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		handle->readonly_dup_of->readonly_dup = NULL;
 		handle->readonly_dup_of = NULL;
 	}
+	/* So that unregistration can use write dependencies to wait for
+	 * anything to finish */
+	handle->readonly = 0;
         _starpu_spin_unlock(&handle->header_lock);
+	return 1;
+}
+
+/* Unregister the data handle, perhaps we don't need to update the home_node
+ * (in that case coherent is set to 0)
+ * nowait is for internal use when we already know for sure that we won't have to wait.
+ */
+static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait)
+{
+	STARPU_ASSERT(handle);
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
+	STARPU_ASSERT_MSG(handle->nplans == 0, "data %p needs its partition plans to be cleaned before unregistration", handle);
+	STARPU_ASSERT_MSG(handle->partitioned == 0, "data %p needs its partitioned plans to be unpartitioned before unregistration", handle);
+	/* TODO: also check that it has the latest coherency */
+	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
+
+	if (!_starpu_ro_data_detach(handle))
+		return;
 
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency && !nowait)
@@ -1057,14 +1072,9 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
-	_starpu_spin_lock(&handle->header_lock);
-	if (handle->aliases)
-	{
-		handle->aliases--;
-		_starpu_spin_unlock(&handle->header_lock);
+
+	if (!_starpu_ro_data_detach(handle))
 		return;
-	}
-        _starpu_spin_unlock(&handle->header_lock);
 
 	/* Wait for all task dependencies on this handle before putting it for free */
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
