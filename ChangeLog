@@ -300,6 +300,12 @@ Small changes:
   * STARPU_COMM_STATS also displays the bandwidth
   * Update data interfaces implementations to only use public API
 
+StarPU 1.2.11 (git revision xxx)
+====================================================================
+
+Small features:
+  * Add starpu_tag_notify_restart_from_apps().
+
 StarPU 1.2.10 (git revision beb6ac9cc07dc9ae1c838a38d11ed2dae3775996)
 ====================================================================
 
