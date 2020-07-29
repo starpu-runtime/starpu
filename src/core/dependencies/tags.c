@@ -298,7 +298,7 @@ void _starpu_notify_restart_tag_dependencies(struct _starpu_tag *tag)
 
 	tag->state = STARPU_BLOCKED;
 
-	_starpu_notify_cg_list(tag, &tag->tag_successors);
+	_starpu_notify_cg_list(&tag->tag_successors);
 
 	_starpu_spin_unlock(&tag->lock);
 }
