@@ -180,6 +180,7 @@ noinst_PROGRAMS +=				\
 	main/subgraph_repeat_tag		\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
+	main/subgraph_repeat_regenerate_tag_cycle	\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
 	main/tag_wait_api			\
@@ -560,6 +561,13 @@ main_subgraph_repeat_regenerate_tag_SOURCES =		\
 	main/subgraph_repeat_regenerate_tag.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES =		\
+	main/subgraph_repeat_regenerate_tag_cycle.c	
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
 	main/increment.cu
 endif
 
