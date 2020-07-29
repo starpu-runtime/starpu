@@ -300,6 +300,13 @@ Small changes:
   * STARPU_COMM_STATS also displays the bandwidth
   * Update data interfaces implementations to only use public API
 
+StarPU 1.2.10 (git revision beb6ac9cc07dc9ae1c838a38d11ed2dae3775996)
+====================================================================
+
+Small features:
+  * New script starpu_env to set up StarPU environment variables
+  * New configure option --disable-build-doc-pdf
+
 StarPU 1.2.9 (git revision 3aca8da3138a99e93d7f93905d2543bd6f1ea1df)
 ====================================================================
 
