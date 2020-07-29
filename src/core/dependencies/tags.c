@@ -290,6 +290,33 @@ void starpu_tag_notify_from_apps(starpu_tag_t id)
 	_starpu_notify_tag_dependencies(tag);
 }
 
+void _starpu_notify_restart_tag_dependencies(struct _starpu_tag *tag)
+{
+	_starpu_spin_lock(&tag->lock);
+
+	if (tag->state == STARPU_DONE)
+	{
+		tag->state = STARPU_BLOCKED;
+		_starpu_spin_unlock(&tag->lock);
+		return;
+	}
+
+	_STARPU_TRACE_TAG_DONE(tag);
+
+	tag->state = STARPU_BLOCKED;
+
+	_starpu_notify_cg_list(tag, &tag->tag_successors);
+
+	_starpu_spin_unlock(&tag->lock);
+}
+
+void starpu_tag_notify_restart_from_apps(starpu_tag_t id)
+{
+	struct _starpu_tag *tag = gettag_struct(id);
+
+	_starpu_notify_restart_tag_dependencies(tag);
+}
+
 void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 {
 	_STARPU_TRACE_TAG(id, job);
