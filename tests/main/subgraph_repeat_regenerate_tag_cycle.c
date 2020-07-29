@@ -209,8 +209,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* Break the loop */
-	starpu_tag_notify_from_apps((starpu_tag_t) TAG_D);
-	starpu_tag_restart((starpu_tag_t) TAG_D);
+	starpu_tag_notify_restart_from_apps((starpu_tag_t) TAG_D);
 
 	starpu_do_schedule();
 	/* Wait for the termination of all loops */

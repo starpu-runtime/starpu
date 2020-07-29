@@ -288,6 +288,8 @@ void starpu_tag_notify_from_apps(starpu_tag_t id);
 
 void starpu_tag_restart(starpu_tag_t id);
 
+void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
+
 void starpu_tag_remove(starpu_tag_t id);
 
 void starpu_task_init(struct starpu_task *task);
