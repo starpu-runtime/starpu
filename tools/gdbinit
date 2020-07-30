@@ -98,10 +98,11 @@ define starpu-print-task
       if ! $job->job_successors->done[$n]
         set $cg = $job->job_successors->deps[$n]
         set $m = 0
+        printf "\t\tcg:\t\t\t<%u>\n", $cg->ndeps
 	while $m < $cg->ndeps
 	  if ! $cg->done[$m]
 	    set $depj = (struct _starpu_job *) $cg->deps[$m]
-            printf "\t\ttask %p\n", $depj->task
+            printf "\t\t\ttask %p\n", $depj->task
 	  end
 	  set $m = $m + 1
 	end
@@ -230,10 +231,11 @@ define starpu-print-tag
       if ! $tag_struct->tag_successors->done[$n]
         set $cg = $tag_struct->tag_successors->deps[$n]
         set $m = 0
+        printf "\t\tcg:\t\t\t<%u>\n", $cg->ndeps
 	while $m < $cg->ndeps
 	  if ! $cg->done[$m]
 	    set $dept = (starpu_tag_t) $cg->deps[$m]
-            printf "\t\ttag %u\n", $dept
+            printf "\t\t\ttag %u\n", $dept
 	  end
 	  set $m = $m + 1
 	end
