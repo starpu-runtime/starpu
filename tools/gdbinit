@@ -214,7 +214,30 @@ define starpu-print-tag
   if $tag_struct->state == STARPU_DONE
      set $status="STARPU_DONE"
   end
-  printf "tag %d state %s\n", $arg0, $status
+  printf "tag %d ((struct _starpu_tag *) %p)\n", $arg0, $tag_struct
+  printf "\tstate %s\n", $status
+  printf "\tdeps %d\n", $tag_struct->tag_successors.ndeps
+  printf "\tcompleted %d\n", $tag_struct->tag_successors.ndeps_completed
+  printf "\tndeps_remaining:\t\t<%u>\n", $tag_struct->tag_successors->ndeps - $tag_struct->tag_successors->ndeps_completed
+  if _starpu_debug
+    set $n = 0
+    while $n < $tag_struct->tag_successors->ndeps
+      if ! $tag_struct->tag_successors->done[$n]
+        set $cg = $tag_struct->tag_successors->deps[$n]
+        set $m = 0
+	while $m < $cg->ndeps
+	  if ! $cg->done[$m]
+	    set $dept = (starpu_tag_t) $cg->deps[$m]
+            printf "\t\ttag %u\n", $dept
+	  end
+	  set $m = $m + 1
+	end
+      end
+      set $n = $n + 1
+    end
+  end
+  printf "\tndeps_completed:\t\t<%u>\n", $tag_struct->tag_successors->ndeps_completed
+  printf "\tnsuccs:\t\t\t\t<%u>\n", $tag_struct->tag_successors->nsuccs
 end
 
 define starpu-tags
