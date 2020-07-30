@@ -723,7 +723,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 	{
 		length = starpu_task_worker_expected_length(starpu_task, workerid, sched_ctx_id, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
-				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables",
 				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
                 /* TODO: option to add variance according to performance model,
                  * to be able to easily check scheduling robustness */
