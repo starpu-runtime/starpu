@@ -416,11 +416,38 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 int starpu_mpi_cached_receive(starpu_data_handle_t data_handle);
 
 /**
+ * If \p data is already available in the reception cache, return 1
+ * If \p data is NOT available in the reception cache, add it to the
+ * cache and return 0
+ * Return 0 if the communication cache is not enabled
+ */
+int starpu_mpi_cached_receive_set(starpu_data_handle_t data);
+
+/**
+ * Remove \p data from the reception cache
+ */
+void starpu_mpi_cached_receive_clear(starpu_data_handle_t data);
+
+/**
    Test whether \p data_handle is cached for emission to node \p dest,
    i.e. the value was previously sent to \p dest, and not flushed
    since then.
 */
 int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
+
+/**
+ * If \p data is already available in the emission cache for node
+ * \p dest, return 1
+ * If \p data is NOT available in the emission cache for node \p dest,
+ * add it to the cache and return 0
+ * Return 0 if the communication cache is not enabled
+ */
+int starpu_mpi_cached_send_set(starpu_data_handle_t data, int dest);
+
+/**
+ * Remove \p data from the emission cache
+ */
+void starpu_mpi_cached_send_clear(starpu_data_handle_t data);
 
 /** @} */
 

@@ -32,22 +32,6 @@ void _starpu_mpi_cache_shutdown();
 void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle);
 void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle);
 
-/*
- * If the data is already available in the cache, return a pointer to the data
- * If the data is NOT available in the cache, add it to the cache and return NULL
- */
-int _starpu_mpi_cache_received_data_set(starpu_data_handle_t data);
-int _starpu_mpi_cache_received_data_get(starpu_data_handle_t data);
-void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data);
-
-/*
- * If the data is already available in the cache, return a pointer to the data
- * If the data is NOT available in the cache, add it to the cache and return NULL
- */
-int _starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
-int _starpu_mpi_cache_sent_data_get(starpu_data_handle_t data, int dest);
-void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data);
-
 void _starpu_mpi_cache_flush(starpu_data_handle_t data_handle);
 
 #ifdef __cplusplus

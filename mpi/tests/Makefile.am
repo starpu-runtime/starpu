@@ -96,8 +96,6 @@ starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
 	broadcast				\
-	cache					\
-	cache_disable				\
 	callback				\
 	driver					\
 	early_request				\
@@ -189,8 +187,6 @@ noinst_PROGRAMS +=				\
 	block_interface_pinned			\
 	attr					\
 	broadcast				\
-	cache					\
-	cache_disable				\
 	callback				\
 	matrix					\
 	matrix2					\

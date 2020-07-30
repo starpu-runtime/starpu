@@ -124,6 +124,17 @@ starpu_mpi_EXAMPLES	+=	\
 endif
 
 ##################
+# Cache examples #
+##################
+examplebin_PROGRAMS +=		\
+	cache/cache		\
+	cache/cache_disable
+starpu_mpi_EXAMPLES +=		\
+	cache/cache		\
+	cache/cache_disable
+
+
+##################
 # MPI LU example #
 ##################
 

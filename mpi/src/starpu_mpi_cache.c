@@ -172,7 +172,7 @@ static void _starpu_mpi_cache_data_remove_nolock(starpu_data_handle_t data_handl
 /**************************************
  * Received cache
  **************************************/
-void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data_handle)
+void starpu_mpi_cached_receive_clear(starpu_data_handle_t data_handle)
 {
 	int mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
@@ -198,7 +198,7 @@ void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data_handle)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
 
-int _starpu_mpi_cache_received_data_set(starpu_data_handle_t data_handle)
+int starpu_mpi_cached_receive_set(starpu_data_handle_t data_handle)
 {
 	int mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
@@ -226,7 +226,7 @@ int _starpu_mpi_cache_received_data_set(starpu_data_handle_t data_handle)
 	return already_received;
 }
 
-int _starpu_mpi_cache_received_data_get(starpu_data_handle_t data_handle)
+int starpu_mpi_cached_receive(starpu_data_handle_t data_handle)
 {
 	int already_received;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
@@ -241,15 +241,10 @@ int _starpu_mpi_cache_received_data_get(starpu_data_handle_t data_handle)
 	return already_received;
 }
 
-int starpu_mpi_cached_receive(starpu_data_handle_t data_handle)
-{
-	return _starpu_mpi_cache_received_data_get(data_handle);
-}
-
 /**************************************
  * Send cache
  **************************************/
-void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data_handle)
+void starpu_mpi_cached_send_clear(starpu_data_handle_t data_handle)
 {
 	int n, size;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
@@ -271,7 +266,7 @@ void _starpu_mpi_cache_sent_data_clear(starpu_data_handle_t data_handle)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
 
-int _starpu_mpi_cache_sent_data_set(starpu_data_handle_t data_handle, int dest)
+int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
@@ -296,7 +291,7 @@ int _starpu_mpi_cache_sent_data_set(starpu_data_handle_t data_handle, int dest)
 	return already_sent;
 }
 
-int _starpu_mpi_cache_sent_data_get(starpu_data_handle_t data_handle, int dest)
+int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	int already_sent;
@@ -309,11 +304,6 @@ int _starpu_mpi_cache_sent_data_get(starpu_data_handle_t data_handle, int dest)
 	already_sent = mpi_data->cache_sent[dest];
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 	return already_sent;
-}
-
-int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
-{
-	return _starpu_mpi_cache_sent_data_get(data_handle, dest);
 }
 
 static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
