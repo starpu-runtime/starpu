@@ -1094,7 +1094,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
-static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
+static void _dm_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id, int da)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
@@ -1105,7 +1105,6 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	double predicted = starpu_task_expected_length(task, perf_arch,
 						       starpu_task_get_implementation(task));
 
-	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
@@ -1117,32 +1116,35 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-	/* If there is no prediction available, we consider the task has a null length */
-	if (!isnan(predicted_transfer))
+	if (da)
 	{
-		if (starpu_timing_now() + predicted_transfer < fifo->exp_end)
+		double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
+		/* If there is no prediction available, we consider the task has a null length */
+		if (!isnan(predicted_transfer))
 		{
-			/* We may hope that the transfer will be finished by
-			 * the start of the task. */
-			predicted_transfer = 0;
+			if (starpu_timing_now() + predicted_transfer < fifo->exp_end)
+			{
+				/* We may hope that the transfer will be finished by
+				 * the start of the task. */
+				predicted_transfer = 0;
+			}
+			else
+			{
+				/* The transfer will not be finished by then, take the
+				 * remainder into account */
+				predicted_transfer = (starpu_timing_now() + predicted_transfer) - fifo->exp_end;
+			}
+			task->predicted_transfer = predicted_transfer;
+			fifo->exp_end += predicted_transfer;
+			fifo->exp_len += predicted_transfer;
+			if(dt->num_priorities != -1)
+			{
+				int i;
+				int task_prio = _normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
+				for(i = 0; i <= task_prio; i++)
+					fifo->exp_len_per_priority[i] += predicted_transfer;
+			}
 		}
-		else
-		{
-			/* The transfer will not be finished by then, take the
-			 * remainder into account */
-			predicted_transfer = (starpu_timing_now() + predicted_transfer) - fifo->exp_end;
-		}
-		task->predicted_transfer = predicted_transfer;
-		fifo->exp_end += predicted_transfer;
-		fifo->exp_len += predicted_transfer;
-		if(dt->num_priorities != -1)
-		{
-			int i;
-			int task_prio = _normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
-			for(i = 0; i <= task_prio; i++)
-				fifo->exp_len_per_priority[i] += predicted_transfer;
-		}
-
 	}
 
 	/* If there is no prediction available, we consider the task has a null length */
@@ -1173,6 +1175,16 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
+static void dm_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
+{
+	_dm_push_task_notify(task, workerid, perf_workerid, sched_ctx_id, 0);
+}
+
+static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
+{
+	_dm_push_task_notify(task, workerid, perf_workerid, sched_ctx_id, 1);
+}
+
 static void dmda_post_exec_hook(struct starpu_task * task)
 {
 
@@ -1196,6 +1208,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.remove_workers = dmda_remove_workers,
 	.push_task = dm_push_task,
 	.simulate_push_task = NULL,
+	.push_task_notify = dm_push_task_notify,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
