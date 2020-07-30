@@ -795,7 +795,7 @@ static int dm_push_task(struct starpu_task *task)
 	return _dmda_push_task(task, 0, task->sched_ctx, 0, 0, 0);
 }
 
-static int dm_simulate_push_task(struct starpu_task *task)
+static double dm_simulate_push_task(struct starpu_task *task)
 {
 	return _dmda_push_task(task, 0, task->sched_ctx, 0, 1, 0);
 }
