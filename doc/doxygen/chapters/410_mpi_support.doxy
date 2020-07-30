@@ -759,8 +759,16 @@ add fine-graph starpu_mpi_cache_flush() calls during the algorithm; the effect
 for the data deallocation will be the same, but it will additionally release some
 pressure from the StarPU-MPI cache hash table during task submission.
 
-One can determine whether a piece of is cached with starpu_mpi_cached_receive()
-and starpu_mpi_cached_send().
+One can determine whether a piece of data is cached with
+starpu_mpi_cached_receive() and starpu_mpi_cached_send().
+
+Functions starpu_mpi_cached_receive_set() and
+starpu_mpi_cached_send_set() are automatically called by
+starpu_mpi_task_insert() but can also be called directly by the
+application. Functions starpu_mpi_cached_send_clear() and
+starpu_mpi_cached_receive_clear() must be called to clear data from
+the cache. They are also automatically called when using
+starpu_mpi_task_insert().
 
 The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
 environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to <c>1</c>

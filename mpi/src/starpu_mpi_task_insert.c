@@ -112,7 +112,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
 		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
-			int already_received = _starpu_mpi_cache_received_data_set(data);
+			int already_received = starpu_mpi_cached_receive_set(data);
 			if (already_received == 0)
 			{
 				if (data_tag == -1)
@@ -126,7 +126,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (!do_execute && mpi_rank == me)
 		{
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
-			int already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
+			int already_sent = starpu_mpi_cached_send_set(data, xrank);
 			if (already_sent == 0)
 			{
 				if (data_tag == -1)
@@ -182,8 +182,8 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
-			_starpu_mpi_cache_sent_data_clear(data);
-			_starpu_mpi_cache_received_data_clear(data);
+			starpu_mpi_cached_send_clear(data);
+			starpu_mpi_cached_receive_clear(data);
 		}
 	}
 	else

@@ -17,7 +17,6 @@
 #include <starpu_mpi.h>
 #include <math.h>
 #include "helper.h"
-#include <starpu_mpi_cache.h>
 
 void func_cpu(void *descr[], void *_args)
 {
@@ -57,7 +56,7 @@ void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, sta
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
-	cache = _starpu_mpi_cache_received_data_get(data);
+	cache = starpu_mpi_cached_receive(data);
 
 	if (rank == 1)
 	{
