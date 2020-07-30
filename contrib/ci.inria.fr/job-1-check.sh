@@ -47,15 +47,15 @@ cd build
 
 STARPU_CONFIGURE_OPTIONS=""
 suname=$(uname)
-if test "$suname" == "Darwin"
+if test "$suname" = "Darwin"
 then
     STARPU_CONFIGURE_OPTIONS="--without-hwloc"
 fi
-if test "$suname" == "OpenBSD"
+if test "$suname" = "OpenBSD"
 then
     STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr"
 fi
-if test "$suname" == "FreeBSD"
+if test "$suname" = "FreeBSD"
 then
     STARPU_CONFIGURE_OPTIONS="--disable-fortran"
 fi
