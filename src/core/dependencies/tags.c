@@ -63,10 +63,21 @@ static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
+#ifdef STARPU_DEBUG
+	cg->ndeps = ntags;
+	cg->deps = NULL;
+	cg->done = NULL;
+#endif
 	cg->cg_type = STARPU_CG_TAG;
 
 	cg->succ.tag = tag;
 	tag->tag_successors.ndeps++;
+#ifdef STARPU_DEBUG
+	_STARPU_REALLOC(tag->tag_successors.deps, tag->tag_successors.ndeps * sizeof(tag->tag_successors.deps[0]));
+	_STARPU_REALLOC(tag->tag_successors.done, tag->tag_successors.ndeps * sizeof(tag->tag_successors.done[0]));
+	tag->tag_successors.deps[tag->tag_successors.ndeps-1] = cg;
+	tag->tag_successors.done[tag->tag_successors.ndeps-1] = 0;
+#endif
 
 	return cg;
 }
@@ -364,9 +375,19 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
 
+#ifdef STARPU_DEBUG
+	_STARPU_MALLOC(cg->deps, ndeps * sizeof(cg->deps[0]));
+	_STARPU_MALLOC(cg->done, ndeps * sizeof(cg->done[0]));
+#endif
+
 	for (i = 0; i < ndeps; i++)
 	{
 		starpu_tag_t dep_id = array[i];
+
+#ifdef STARPU_DEBUG
+		cg->deps[i] = (void*) (uintptr_t) dep_id;
+		cg->done[i] = 0;
+#endif
 
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
