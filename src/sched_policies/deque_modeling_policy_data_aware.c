@@ -1104,6 +1104,10 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 
 	double predicted = starpu_task_expected_length(task, perf_arch,
 						       starpu_task_get_implementation(task));
+	double predicted_transfer = NAN;
+
+	if (da)
+		predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -1118,7 +1122,6 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 
 	if (da)
 	{
-		double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 		/* If there is no prediction available, we consider the task has a null length */
 		if (!isnan(predicted_transfer))
 		{
