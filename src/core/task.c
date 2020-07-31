@@ -101,8 +101,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->detach = 1;
 
-#if STARPU_TASK_INVALID != 0
-	task->status = STARPU_TASK_INVALID;
+#if STARPU_TASK_INIT != 0
+	task->status = STARPU_TASK_INIT;
 #endif
 
 	task->predicted = NAN;
@@ -542,9 +542,9 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	if (task->status == STARPU_TASK_STOPPED || task->status == STARPU_TASK_FINISHED)
-		task->status = STARPU_TASK_INVALID;
+		task->status = STARPU_TASK_INIT;
 	else
-		STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
+		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 
 	if (j->internal)
 	{
@@ -829,7 +829,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
 	_starpu_job_set_ordered_buffers(j);
 
-	STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
+	STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
 

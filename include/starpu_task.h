@@ -144,8 +144,9 @@ enum starpu_codelet_type
 
 enum starpu_task_status
 {
-	STARPU_TASK_INVALID,     /**< The task has just been initialized. */
-#define STARPU_TASK_INVALID 0
+	STARPU_TASK_INIT,        /**< The task has just been initialized. */
+#define STARPU_TASK_INIT 0
+#define STARPU_TASK_INVALID STARPU_TASK_INIT  /**< old name for STARPU_TASK_INIT */
 	STARPU_TASK_BLOCKED,     /**< The task has just been
 				    submitted, and its dependencies has not been checked yet. */
 	STARPU_TASK_READY,       /**< The task is ready for execution. */
@@ -1209,7 +1210,7 @@ struct starpu_task
 	.detach = 1,					\
 	.destroy = 0,					\
 	.regenerate = 0,				\
-	.status = STARPU_TASK_INVALID,			\
+	.status = STARPU_TASK_INIT,			\
 	.profiling_info = NULL,				\
 	.predicted = NAN,				\
 	.predicted_transfer = NAN,			\

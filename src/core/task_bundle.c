@@ -50,7 +50,7 @@ int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *t
 		return -EPERM;
 	}
 
-	if (task->status != STARPU_TASK_INVALID)
+	if (task->status != STARPU_TASK_INIT)
 	{
 		/* The task has already been submitted, it's too late to put it
 		 * into a bundle now. */

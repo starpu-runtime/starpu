@@ -40,7 +40,7 @@ define starpu-print-task
   set $job = (struct _starpu_job *)$task->starpu_private
   set $status=0
   if $task->status == 0
-    set $status="STARPU_TASK_INVALID"
+    set $status="STARPU_TASK_INIT"
   end
   if $task->status == 1
     set $status="STARPU_TASK_BLOCKED"
