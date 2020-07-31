@@ -225,7 +225,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 			*pre_sync_jobid = pre_sync_job->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
-		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
+		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_release";
 		wrapper->post_sync_task->detach = 1;
 		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		post_sync_job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
