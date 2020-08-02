@@ -78,9 +78,9 @@ policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
 The remainder of this section describes the main concepts used in StarPU.
 
 A video is available on the StarPU website
-http://starpu.gforge.inria.fr/ that presents these concepts in 26 minutes.
+https://starpu.gitlabpages.inria.fr/ that presents these concepts in 26 minutes.
 
-Some tutorials are also available on http://starpu.gforge.inria.fr/tutorials/
+Some tutorials are also available on https://starpu.gitlabpages.inria.fr/tutorials/
 
 // explain the notion of codelet and task (i.e. g(A, B)
 
@@ -191,7 +191,7 @@ unregister it.
 \section ResearchPapers Research Papers
 
 Research papers about StarPU can be found at
-http://starpu.gforge.inria.fr/publications/.
+https://starpu.gitlabpages.inria.fr/publications/.
 
 A good overview is available in the research report at
 http://hal.archives-ouvertes.fr/inria-00467677.
