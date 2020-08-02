@@ -61,27 +61,22 @@ script <c>configure</c>.
 \subsection GettingSources Getting Sources
 
 StarPU's sources can be obtained from the download page of
-the StarPU website (http://starpu.gforge.inria.fr/files/).
+the StarPU website (https://starpu.gitlabpages.inria.fr/files/).
 
 All releases and the development tree of StarPU are freely available
-on Inria's gforge under the LGPL license. Some releases are available
+on StarPU SCM server under the LGPL license. Some releases are available
 under the BSD license.
 
-The latest release can be downloaded from the Inria's gforge (http://gforge.inria.fr/frs/?group_id=1570) or
-directly from the StarPU download page (http://starpu.gforge.inria.fr/files/).
+The latest release can be downloaded from the StarPU download page (https://starpu.gitlabpages.inria.fr/files/).
 
-The latest nightly snapshot can be downloaded from the StarPU gforge website (http://starpu.gforge.inria.fr/testing/).
-
-\verbatim
-$ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
-\endverbatim
+The latest nightly snapshot can be downloaded from the StarPU website (https://starpu.gitlabpages.inria.fr/files/testing/).
 
 And finally, current development version is also accessible via git.
 It should only be used if you need the very latest changes (i.e. less
 than a day old!).
 
 \verbatim
-$ git clone https://scm.gforge.inria.fr/anonscm/git/starpu/starpu.git
+$ git clone git@gitlab.inria.fr:starpu/starpu.git
 \endverbatim
 
 \subsection ConfiguringStarPU Configuring StarPU
@@ -139,7 +134,7 @@ $ make
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
 tests is done by calling <c>make check</c>. These tests are run every night
-and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/master/).
+and the result from the main profile is publicly available (https://starpu.gitlabpages/files/testing/master/).
 
 \verbatim
 $ make check
