@@ -244,8 +244,11 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_LATEX_DIR) \
     $(DOX_PDF)
 
-# Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= gforge
+EXTRA_DIST += doxygen.cfg refman.tex \
+	      $(chapters) $(images)
+
+# Rule to update documentation on web server. Should only be called from benchmarks dalton directory
+PUBLISHDIR	?= /home/benchmarks/softs/starpu/starpu-scripts/mirror/files/doc
 update-web: $(DOX_PDF)
-	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
+	cp -pr starpu.pdf html $(PUBLISHDIR)
 
