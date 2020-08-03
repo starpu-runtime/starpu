@@ -44,17 +44,16 @@ New features:
   * Add starpu_data_dup_ro().
 
 Small changes:
-  * Use the S4U interface of Simgrid instead of xbt and MSG.
   * Add a synthetic energy efficiency testcase.
 
-StarPU 1.3.4 (git revision xxx)
-==============================================
-=======
+StarPU 1.3.5 (git revision xxx)
+====================================================================
+
+Small changes:
   * Move MPI cache functions into the public API
 
 StarPU 1.3.4 (git revision c37a5d024cd997596da41f765557c58099baf896)
 ====================================================================
->>>>>>> 9e3b64fa8... update ChangeLog
 
 Small features:
   * New environment variables STARPU_BUS_STATS_FILE and
@@ -75,12 +74,17 @@ Small features:
   * Add field starpu_conf::precedence_over_environment_variables to ignore
     environment variables when parameters are set directly in starpu_conf
   * Add starpu_data_get_coordinates_array
+  * MPI: new functions starpu_mpi_interface_datatype_register() and
+    starpu_mpi_interface_datatype_unregister() which take a enum
+    starpu_data_interface_id instead of a starpu_data_handle_t
+  * New script starpu_env to set up StarPU environment variables
   * New STARPU_BACKOFF_MIN and STARPU_BACKOFF_MAX environment variables to the
     exponential backoff limits of the number of cycles to pause while drivers
     are spinning.
   * Add STARPU_DISPLAY_BINDINGS environment variable and
     starpu_display_bindings() function to display all bindings on the machine by
     calling hwloc-ps
+
 Small changes:
   * New configure option --disable-build-doc-pdf
 
@@ -122,7 +126,7 @@ Small features:
     STARPU_TASK_PROFILING_INFO
   * New function starpu_create_callback_task() which creates and
     submits an empty task with the specified callback
-
+  * Use the S4U interface of Simgrid instead of xbt and MSG.
 
 Small changes:
    * Default modular worker queues to 2 tasks unless it's an heft
