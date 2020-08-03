@@ -24,7 +24,7 @@ pipeline
 	// Trigger the build
 	triggers
 	{
-		// Poll gforge explicitly every past-half hour
+		// Poll SCM explicitly every past-half hour
 		pollSCM('30 * * * *')
 	}
 
