@@ -93,23 +93,23 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
 			if (my_distrib(k, k, nodes) == rank)
 				starpu_data_wont_use(data_handles[k][k]);
+		}
 
-			for (n = k+1; n<nblocks; n++)
+		for (n = k+1; n<nblocks; n++)
+		{
+			for (m = n; m<nblocks; m++)
 			{
-				if (n <= m)
-				{
-					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
-							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-							       STARPU_R, data_handles[n][k],
-							       STARPU_R, data_handles[m][k],
-							       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
-							       0);
-				}
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       0);
 			}
 
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
-			if (my_distrib(m, k, nodes) == rank)
-				starpu_data_wont_use(data_handles[m][k]);
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+			if (my_distrib(n, k, nodes) == rank)
+				starpu_data_wont_use(data_handles[n][k]);
 		}
 		starpu_iteration_pop();
 	}
