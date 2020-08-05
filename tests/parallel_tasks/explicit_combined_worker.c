@@ -114,7 +114,7 @@ int main(void)
 enodev:
 	starpu_data_unregister(v_handle);
 	starpu_free(v);
-	fprintf(stderr, "WARNING: No one can execute the task on workerid %d\n", worker);
+	fprintf(stderr, "WARNING: No one can execute the task on workerid %u\n", worker);
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();

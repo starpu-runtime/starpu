@@ -39,20 +39,20 @@ void cpu_show_bcsr(void *descr[], void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-	printf("\nnnz %d elemsize %d\n", nnz, elemsize);
+	printf("\nnnz %u elemsize %u\n", nnz, elemsize);
 
 	for (i = 0; i < nrow; i++)
 	{
 		uint32_t row_start = rowptr[i] - firstentry;
 		uint32_t row_end = rowptr[i+1] - firstentry;
 
-		printf("row %d\n", i);
+		printf("row %u\n", i);
 
 		for (j = row_start; j < row_end; j++)
 		{
 			int *block = nzval + j * r*c;
 
-			printf( " column %d\n", colind[j]);
+			printf( " column %u\n", colind[j]);
 
 			for (y = 0; y < r; y++)
 			{
