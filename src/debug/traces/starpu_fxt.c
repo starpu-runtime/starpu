@@ -4450,7 +4450,7 @@ void _starpu_fxt_number_events_file_close(void)
 		for (i = 0; i <= FUT_SETUP_CODE; i++)
 		{
 			if (number_events[i] > 0)
-				fprintf(number_events_file, "0x%x\t%lu\n", i, number_events[i]);
+				fprintf(number_events_file, "0x%x\t%llu\n", i, number_events[i]);
 		}
 
 		free(number_events);
