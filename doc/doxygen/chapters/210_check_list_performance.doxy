@@ -352,7 +352,20 @@ use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necess
 has not-so-stable performance. StarPU will force calibration (and thus ignore
 the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
 made on each architecture, to avoid bad scheduling decisions just because the
-first measurements were not so good. Details on the current performance model status
+first measurements were not so good.
+
+Note that StarPU will not record the very first measurement for a given codelet
+and a given size, because it would most often be hit by computation library
+loading or initialization. StarPU will also throw measurements away if it
+notices that after computing an average execution time, it notices that most
+subsequent tasks have an execution time largely outside the computed average
+("Too big deviation for model..." warning messages). By looking at the details
+of the message and their reported measurements, it can highlight that your
+computation library really has non-stable measurements, which is probably an
+indication of an issue in the computation library, or the execution environment
+(e.g. rogue daemons).
+
+Details on the current performance model status
 can be obtained with the tool <c>starpu_perfmodel_display</c>: the
 option <c>-l</c> lists the available performance models, and the
 option <c>-s</c> allows to choose the performance model to be
