@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	ret = EXIT_SUCCESS;
 	if (*var != 42)
 	{
-	     FPRINTF(stderr, "var2 is %d but it should be %d\n", *var, 42);
+	     FPRINTF(stderr, "var2 is %u but it should be %d\n", *var, 42);
 	     ret = EXIT_FAILURE;
 	}
 	starpu_data_release(var2_handle);
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	var = starpu_data_get_local_ptr(var3_handle);
 	if (*var != 42)
 	{
-	     FPRINTF(stderr, "var3 is %d but it should be %d\n", *var, 42);
+	     FPRINTF(stderr, "var3 is %u but it should be %d\n", *var, 42);
 	     ret = EXIT_FAILURE;
 	}
 	starpu_data_release(var3_handle);
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	var = starpu_data_get_local_ptr(var4_handle);
 	if (*var != 42)
 	{
-	     FPRINTF(stderr, "var4 is %d but it should be %d\n", *var, 42);
+	     FPRINTF(stderr, "var4 is %u but it should be %d\n", *var, 42);
 	     ret = EXIT_FAILURE;
 	}
 	starpu_data_release(var4_handle);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	var = starpu_data_get_local_ptr(var5_handle);
 	if (*var != 43)
 	{
-	     FPRINTF(stderr, "var5 is %d but it should be %d\n", *var, 43);
+	     FPRINTF(stderr, "var5 is %u but it should be %d\n", *var, 43);
 	     ret = EXIT_FAILURE;
 	}
 	starpu_data_release(var5_handle);

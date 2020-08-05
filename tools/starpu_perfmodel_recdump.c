@@ -122,7 +122,7 @@ void print_archs(FILE* output)
 	{
 		unsigned printed = 0;
 		char name[32];
-		fprintf(output, "MemoryNode: %d\n", node);
+		fprintf(output, "MemoryNode: %u\n", node);
 		starpu_memory_node_get_name(node, name, sizeof(name));
 		fprintf(output, "Name: %s\n", name);
 		fprintf(output, "Size: %ld\n", (long) starpu_memory_get_total(node));
@@ -135,7 +135,7 @@ void print_archs(FILE* output)
 					fprintf(output, "Workers:");
 					printed = 1;
 				}
-				fprintf(output, " %d", workerid);
+				fprintf(output, " %u", workerid);
 			}
 		}
 		if (printed)
@@ -149,8 +149,8 @@ void print_archs(FILE* output)
 		{
 			if (src != dst)
 			{
-				fprintf(output, "MemoryNodeSrc: %d\n", src);
-				fprintf(output, "MemoryNodeDst: %d\n", dst);
+				fprintf(output, "MemoryNodeSrc: %u\n", src);
+				fprintf(output, "MemoryNodeDst: %u\n", dst);
 				fprintf(output, "Bandwidth: %f\n", starpu_transfer_bandwidth(src, dst));
 				fprintf(output, "Latency: %f\n", starpu_transfer_latency(src, dst));
 				fprintf(output, "\n");

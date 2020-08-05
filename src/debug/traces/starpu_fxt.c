@@ -2652,9 +2652,9 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
 		fprintf(sched_tasks_file, "Priority: %d\n", priority);
 		if (options->file_rank < 0)
-			fprintf(sched_tasks_file, "JobId: %d\n", task);
+			fprintf(sched_tasks_file, "JobId: %u\n", task);
 		else
-			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+			fprintf(sched_tasks_file, "JobId: %d_%u\n", options->file_rank, task);
 		fprintf(sched_tasks_file, "\n");
 	}
 }
@@ -2701,9 +2701,9 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		fprintf(sched_tasks_file, "Time: %.9f\n", current_timestamp);
 		fprintf(sched_tasks_file, "Priority: %d\n", priority);
 		if (options->file_rank < 0)
-			fprintf(sched_tasks_file, "JobId: %d\n", task);
+			fprintf(sched_tasks_file, "JobId: %u\n", task);
 		else
-			fprintf(sched_tasks_file, "JobId: %d_%d\n", options->file_rank, task);
+			fprintf(sched_tasks_file, "JobId: %d_%u\n", options->file_rank, task);
 		fprintf(sched_tasks_file, "\n");
 	}
 }

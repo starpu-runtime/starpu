@@ -357,7 +357,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 					fprintf(out_comms_file, "SendJobId: %d_%lu\n", src, cur->jobid);
 				if (match->jobid != -1)
 					fprintf(out_comms_file, "RecvJobId: %d_%lu\n", dst, match->jobid);
-				fprintf(out_comms_file, "Size: %ld\n", size);
+				fprintf(out_comms_file, "Size: %lu\n", size);
 				fprintf(out_comms_file, "\n");
 			}
 		}
@@ -372,7 +372,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 	if (nb_wrong_comm_timing == 1)
 		_STARPU_MSG("Warning: a communication finished before it started !\n");
 	else if (nb_wrong_comm_timing > 1)
-		_STARPU_MSG("Warning: %d communications finished before they started !\n", nb_wrong_comm_timing);
+		_STARPU_MSG("Warning: %u communications finished before they started !\n", nb_wrong_comm_timing);
 }
 
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)
