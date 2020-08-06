@@ -199,7 +199,7 @@ struct _starpu_mpi_data
 {
 	int magic;
 	struct _starpu_mpi_node_tag node_tag;
-	int *cache_sent;
+	char *cache_sent;
 	int cache_received;
 
 	/* Rendez-vous data for opportunistic cooperative sends */
