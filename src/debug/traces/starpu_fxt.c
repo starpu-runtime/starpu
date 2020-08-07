@@ -333,7 +333,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 	return data;
 }
 
-static void handle_papi_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_papi_event(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_PAPI
 	int event_code = ev->param[0];
