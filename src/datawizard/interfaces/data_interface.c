@@ -836,6 +836,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency && !nowait)
 	{
+		/* We will acquire it in write mode to catch all dependencies,
+		 * but possibly it's not actually initialized. Fake it to avoid
+		 getting caught doing it */
+		handle->initialized = 1;
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
