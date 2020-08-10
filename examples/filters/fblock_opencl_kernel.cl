@@ -19,7 +19,7 @@
 __kernel void fblock_opencl(__global int* block, unsigned offset, int nx, int ny, int nz, unsigned ldy, unsigned ldz, int factor)
 {
         int i, j, k;
-        block = (__global char *)block + offset;
+        block = (__global int*) ((__global char *)block + offset);
         for(k=0; k<nz ; k++)
 	{
                 for(j=0; j<ny ; j++)
