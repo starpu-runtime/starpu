@@ -120,12 +120,22 @@ static void _starpu_tag_free(void *_tag)
 			unsigned STARPU_ATTRIBUTE_UNUSED remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 
 			if (!ntags && (cg->cg_type == STARPU_CG_TAG))
+			{
 				/* Last tag this cg depends on, cg becomes unreferenced */
+#ifdef STARPU_DEBUG
+				free(cg->deps);
+				free(cg->done);
+#endif
 				free(cg);
+			}
 		}
 
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 		free(tag->tag_successors.succ);
+#endif
+#ifdef STARPU_DEBUG
+		free(tag->tag_successors.deps);
+		free(tag->tag_successors.done);
 #endif
 
 		_starpu_spin_unlock(&tag->lock);
