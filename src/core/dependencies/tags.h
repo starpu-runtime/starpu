@@ -66,6 +66,8 @@ void _starpu_notify_dependencies(struct _starpu_job *j);
 void _starpu_notify_tag_dependencies(struct _starpu_tag *tag);
 
 void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job);
+
+/* lock should be taken, and this releases it */
 void _starpu_tag_set_ready(struct _starpu_tag *tag);
 
 unsigned _starpu_submit_job_enforce_task_deps(struct _starpu_job *j);

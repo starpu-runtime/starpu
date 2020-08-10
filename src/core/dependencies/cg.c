@@ -199,9 +199,10 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				{
 					/* reset the counter so that we can reuse the completion group */
 					tag_successors->ndeps_completed = 0;
+					/* This releases the lock */
 					_starpu_tag_set_ready(tag);
-				}
-				_starpu_spin_unlock(&tag->lock);
+				} else
+					_starpu_spin_unlock(&tag->lock);
 				break;
 			}
 
