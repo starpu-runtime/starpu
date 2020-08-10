@@ -245,7 +245,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 }
 
-/* the lock must be taken ! */
+/* the lock of the tag must already be taken ! */
 static void _starpu_tag_add_succ(struct _starpu_tag *tag, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(tag);
@@ -396,12 +396,10 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
-		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
-		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 }
@@ -434,12 +432,10 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
-		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
-		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);
