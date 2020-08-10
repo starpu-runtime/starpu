@@ -130,6 +130,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	starpu_do_schedule();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!finished)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
