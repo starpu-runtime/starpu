@@ -83,12 +83,12 @@ test_block_opencl_func(void *buffers[], void *args)
 	}
 			
 	{
-		size_t global = nx * ny * nz;
+		size_t global[3] = {nx, ny, nz};
 		err = clEnqueueNDRangeKernel(queue,
 					     kernel,
-					     1,
+					     3,
 					     NULL,
-					     &global,
+					     global,
 					     NULL,
 					     0,
 					     NULL,

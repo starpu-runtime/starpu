@@ -60,8 +60,8 @@ void opencl_func(void *buffers[], void *cl_arg)
 	CHECK_CL_SET_KERNEL_ARG(kernel, 7, sizeof(*factor), factor);
 
 	{
-		size_t global=nx*ny*nz;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+		size_t global[3]={nx,ny,nz};
+		err = clEnqueueNDRangeKernel(queue, kernel, 3, NULL, global, NULL, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	starpu_opencl_release_kernel(kernel);
