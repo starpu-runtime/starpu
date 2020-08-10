@@ -221,13 +221,17 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 	return tag;
 }
 
-/* lock should be taken */
+/* lock should be taken, and this releases it */
 void _starpu_tag_set_ready(struct _starpu_tag *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = STARPU_READY;
 	/* declare it to the scheduler ! */
 	struct _starpu_job *j = tag->job;
+
+	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
+	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
+	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 
 	/* In case the task job is going to be scheduled immediately, and if
 	 * the task is "empty", calling _starpu_push_task would directly try to enforce
@@ -238,11 +242,6 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	/* enforce data dependencies */
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_enforce_deps_starting_from_task(j);
-
-	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
-	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
-	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 }
 
 /* the lock of the tag must already be taken ! */
