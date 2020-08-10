@@ -169,6 +169,11 @@ int main(void)
         print_data(handle);
         starpu_data_unregister(handle);
 
+#ifdef STARPU_USE_OPENCL
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+#endif
+
         /* Print result block */
         FPRINTF(stderr, "OUT Block\n");
         print_block(block, NX, NY, NZ, NX, NX*NY);
