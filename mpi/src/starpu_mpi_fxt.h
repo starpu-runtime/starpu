@@ -72,7 +72,7 @@ extern "C"
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(dest, data_tag, size, jobid, handle)	\
-	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), _starpu_gettid(), (handle));
+	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), (handle), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\

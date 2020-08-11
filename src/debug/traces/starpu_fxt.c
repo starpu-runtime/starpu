@@ -2307,9 +2307,9 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
 			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 			memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
-			poti_StartLink(time, program_container, link_type, src_memnode_container, paje_value, paje_key);
+			poti_user_StartLink(_starpu_poti_CommLinkStart, time, program_container, link_type, src_memnode_container, paje_value, paje_key, 1, handle);
 #else
-			fprintf(out_paje_file, "18	%.9f	%s	%sp	%u	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, src, comid);
+			fprintf(out_paje_file, "24	%.9f	%s	%sp	%u	%smm%u	com_%u	%lx\n", time, link_type, prefix, size, prefix, src, comid, handle);
 #endif
 		}
 
@@ -2353,7 +2353,7 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		poti_EndLink(time+0.000000001, program_container, "WSL", dst_worker_container, paje_value, paje_key);
 #else
 
-		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time, prefix, size, prefix, src, steal_number);
+		fprintf(out_paje_file, "18	%.9f	WSL	%sp	%u	%sw%u	steal_%u	\n", time, prefix, size, prefix, src, steal_number);
 		fprintf(out_paje_file, "19	%.9f	WSL	%sp	%u	%sw%u	steal_%u\n", time+0.000000001, prefix, size, prefix, dst, steal_number);
 #endif
 	}

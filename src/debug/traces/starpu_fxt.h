@@ -68,6 +68,7 @@ void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *option
 extern int _starpu_poti_extendedSetState;
 extern int _starpu_poti_semiExtendedSetState;
 extern int _starpu_poti_MemoryEvent;
+extern int _starpu_poti_CommLinkStart;
 extern int _starpu_poti_MpiLinkStart;
 
 /*
