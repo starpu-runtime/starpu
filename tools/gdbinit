@@ -968,7 +968,7 @@ define starpu-mpi-print-request
     if $request->request_type == UNKNOWN_REQ
        set $request_type = "UNKNOWN_REQ"
     end
-    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type %s submitted %d completed %d posted %d detached %d is_internal_req %d\n", $request, $request->data_handle, $request->data_handle ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.rank, $request_type, $request->submitted, $request->completed, $request->posted, $request->detached, $request->is_internal_req
+    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type %s submitted %d completed %d posted %d detached %d\n", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.node.rank, $request_type, $request->submitted, $request->completed, $request->posted, $request->detached
 end
 
 define starpu-mpi-print-ready-recv-requests
@@ -984,17 +984,39 @@ define starpu-mpi-print-ready-recv-requests
     end
 end
 
+define starpu-mpi-print-requests-list
+  set $list = $arg0
+  set $request = $list->_head
+  while $request
+    starpu-mpi-print-request $request
+    set $request = $request->_next
+  end
+end
+
+define starpu-mpi-print-requests-tree
+  if $arg0
+    starpu-mpi-print-requests-tree $arg0->children[0]
+    set $stage = (struct _starpu_mpi_req_prio_list_stage *) $arg0
+    starpu-mpi-print-requests-list (&($stage->list))
+    starpu-mpi-print-requests-tree $arg0->children[1]
+  end
+end
+
 define starpu-mpi-print-ready-send-requests
-    set $list = (struct _starpu_mpi_req_prio_list) ready_send_requests
-    if $list
-	set $request = $list.list._head
-        while $request
-            starpu-mpi-print-request $request
-	    set $request = $request->_next
-	end
+  set $prio_list = (struct _starpu_mpi_req_prio_list) ready_send_requests
+  if _starpu_debug
+    if $prio_list
+        starpu-mpi-print-requests-list &$prio_list.list
     else
 	printf "No ready send requests\n"
     end
+  else
+    if $prio_list.empty == 0
+        starpu-mpi-print-requests-tree $prio_list.tree.root
+    else
+	printf "No ready send requests\n"
+    end
+  end
 end
 
 define starpu-mpi-print-detached-requests
