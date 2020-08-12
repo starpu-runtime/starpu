@@ -331,7 +331,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 
 			char str_mpi_tag[STARPU_POTI_STR_LEN];
 			snprintf(str_mpi_tag, sizeof(str_mpi_tag), "%ld", mpi_tag);
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 2, str_mpi_tag, send_handle);
+			char str_handle[STARPU_POTI_STR_LEN];
+			snprintf(str_handle, sizeof(str_handle), "%lx", send_handle);
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 2, str_mpi_tag, str_handle);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
