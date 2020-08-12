@@ -316,6 +316,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /** This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
+				  enum starpu_data_access_mode down_to_mode,
 				  struct _starpu_data_replicate *replicate);
 
 void _starpu_update_data_state(starpu_data_handle_t handle,

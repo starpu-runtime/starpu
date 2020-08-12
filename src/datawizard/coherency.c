@@ -855,7 +855,7 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 
 /* in case the data was accessed on a write mode, do not forget to
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, struct _starpu_data_replicate *replicate)
+void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, enum starpu_data_access_mode down_to_mode, struct _starpu_data_replicate *replicate)
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
@@ -880,14 +880,17 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
 
-	/* Release refcnt taken by fetch_data_on_node */
-	replicate->refcnt--;
-	STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
+	if (down_to_mode == STARPU_NONE)
+	{
+		/* Release refcnt taken by fetch_data_on_node */
+		replicate->refcnt--;
+		STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
 
-	STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
-	handle->busy_count--;
+		STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
+		handle->busy_count--;
+	}
 
-	if (!_starpu_notify_data_dependencies(handle))
+	if (!_starpu_notify_data_dependencies(handle, down_to_mode))
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
@@ -1222,7 +1225,7 @@ enomem:
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
-		_starpu_release_data_on_node(handle, 0, local_replicate);
+		_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 	}
 
 	return -1;
@@ -1331,13 +1334,13 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		if (node == -1)
 		{
 			/* NOWHERE case, just notify dependencies */
-			if (!_starpu_notify_data_dependencies(handle))
+			if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 		else
 		{
 			_starpu_spin_unlock(&handle->header_lock);
-			_starpu_release_data_on_node(handle, 0, local_replicate);
+			_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 		}
 	}
 

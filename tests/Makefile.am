@@ -268,6 +268,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/acquire_release_to		\
 	datawizard/acquire_try			\
 	datawizard/bcsr				\
 	datawizard/cache			\
@@ -491,6 +492,17 @@ datawizard_acquire_release2_SOURCES +=		\
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release2_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
+endif
+
+datawizard_acquire_release_to_SOURCES =		\
+	datawizard/acquire_release_to.c
+if STARPU_USE_CUDA
+datawizard_acquire_release_to_SOURCES +=		\
+	datawizard/acquire_release_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release_to_SOURCES +=		\
 	datawizard/acquire_release_opencl.c
 endif
 

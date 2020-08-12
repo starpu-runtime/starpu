@@ -509,7 +509,7 @@ void _starpu_submit_job_take_data_deps(struct _starpu_job *j)
  * This may free the handle if it was lazily unregistered (1 is returned in
  * that case). The handle pointer thus becomes invalid for the caller.
  */
-int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
+int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode)
 {
 	_starpu_spin_checklocked(&handle->header_lock);
 
@@ -521,21 +521,33 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle)
 		STARPU_ASSERT(_starpu_data_requester_prio_list_empty(&handle->reduction_req_list));
 		_starpu_spin_unlock(&handle->header_lock);
 		/* _starpu_notify_arbitered_dependencies will handle its own locking */
-		_starpu_notify_arbitered_dependencies(handle);
+		_starpu_notify_arbitered_dependencies(handle, down_to_mode);
 		/* We have already unlocked */
 		return 1;
 	}
 
-	/* A data access has finished so we remove a reference. */
-	STARPU_ASSERT(handle->refcnt > 0);
-	handle->refcnt--;
-	STARPU_ASSERT(handle->busy_count > 0);
-	handle->busy_count--;
-	if (_starpu_data_check_not_busy(handle))
-		/* Handle was destroyed, nothing left to do.  */
-		return 1;
-
 	STARPU_ASSERT(_starpu_data_requester_prio_list_empty(&handle->arbitered_req_list));
+
+	if (down_to_mode == STARPU_NONE)
+	{
+		/* A data access has finished so we remove a reference. */
+		STARPU_ASSERT(handle->refcnt > 0);
+		handle->refcnt--;
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+		if (_starpu_data_check_not_busy(handle))
+			/* Handle was destroyed, nothing left to do.  */
+			return 1;
+	}
+	else
+	{
+		/* Downgrade from W or RW down to R, keeping the same reference,
+		 * but thus allowing other readers without allowing writers.  */
+		STARPU_ASSERT(down_to_mode == STARPU_R &&
+				(handle->current_mode == STARPU_RW ||
+				 handle->current_mode == STARPU_W));
+		handle->current_mode = down_to_mode;
+	}
 
 	/* In case there is a pending reduction, and that this is the last
 	 * requester, we may go back to a "normal" coherency model. */

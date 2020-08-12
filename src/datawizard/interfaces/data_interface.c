@@ -749,12 +749,12 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	{
 		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, STARPU_FETCH, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
-		_starpu_release_data_on_node(handle, 0, replicate);
+		_starpu_release_data_on_node(handle, 0, STARPU_NONE, replicate);
 	}
 	else
 	{
 		_starpu_spin_lock(&handle->header_lock);
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 }

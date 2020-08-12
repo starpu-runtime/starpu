@@ -42,6 +42,7 @@ New features:
   * Add a task prefetch level, to improve retaining data in accelerators so we
     can make prefetch more aggressive.
   * Add starpu_data_dup_ro().
+  * Add starpu_data_release_to() and starpu_data_release_to_on_node().
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

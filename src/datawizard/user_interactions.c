@@ -485,16 +485,22 @@ int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access
 
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
+void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int node)
 {
 	STARPU_ASSERT(handle);
+
+	STARPU_ASSERT_MSG(mode == STARPU_NONE ||
+			  (mode == STARPU_R &&
+			    (handle->current_mode == STARPU_RW ||
+			     handle->current_mode == STARPU_W)),
+		"We only support releasing from W or RW to R");
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
 	_starpu_unlock_post_sync_tasks(handle);
 
 	/* The application can now release the rw-lock */
 	if (node >= 0)
-		_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
+		_starpu_release_data_on_node(handle, 0, mode, &handle->per_node[node]);
 	else
 	{
 		_starpu_spin_lock(&handle->header_lock);
@@ -505,17 +511,27 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 				handle->per_node[i].refcnt--;
 		}
 		handle->busy_count--;
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, mode))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 }
 
-void starpu_data_release(starpu_data_handle_t handle)
+void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
+{
+	starpu_data_release_to_on_node(handle, STARPU_NONE, node);
+}
+
+void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	int home_node = handle->home_node;
 	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
-	starpu_data_release_on_node(handle, home_node);
+	starpu_data_release_to_on_node(handle, mode, home_node);
+}
+
+void starpu_data_release(starpu_data_handle_t handle)
+{
+	starpu_data_release_to(handle, STARPU_NONE);
 }
 
 static void _prefetch_data_on_node(void *arg)
@@ -531,7 +547,7 @@ static void _prefetch_data_on_node(void *arg)
 		_starpu_data_acquire_wrapper_finished(wrapper);
 
 	_starpu_spin_lock(&handle->header_lock);
-	if (!_starpu_notify_data_dependencies(handle))
+	if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
@@ -581,7 +597,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		/* In case there was a temporary handle (eg. used for reduction), this
 		 * handle may have requested to be destroyed when the data is released
 		 * */
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 	else if (!async)
