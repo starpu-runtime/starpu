@@ -558,8 +558,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 			/* Downgrade from W or RW down to R, keeping the same reference,
 			 * but thus allowing other readers without allowing writers.  */
 			STARPU_ASSERT(down_to_mode == STARPU_R &&
-					(handle->current_mode == STARPU_RW ||
-					 handle->current_mode == STARPU_W));
+				      handle->current_mode == STARPU_W);
 			handle->current_mode = down_to_mode;
 		}
 #ifndef LOCK_OR_DELEGATE
@@ -586,8 +585,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 		/* Downgrade from W or RW down to R, keeping the same reference,
 		 * but thus allowing other readers without allowing writers.  */
 		STARPU_ASSERT(down_to_mode == STARPU_R &&
-				(handle->current_mode == STARPU_RW ||
-				 handle->current_mode == STARPU_W));
+			      handle->current_mode == STARPU_W);
 		handle->current_mode = down_to_mode;
 	}
 	/* There should be at least one busy_count reference for the waiter

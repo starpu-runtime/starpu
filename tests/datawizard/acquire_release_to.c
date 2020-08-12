@@ -109,6 +109,8 @@ void callback(void *arg)
 {
 	(void)arg;
 	token++;
+	starpu_data_release_to(token_handle, STARPU_W);
+	starpu_sleep(0.001);
 	starpu_data_release_to(token_handle, STARPU_R);
 	starpu_sleep(0.001);
 	starpu_data_release(token_handle);
@@ -154,6 +156,9 @@ int main(int argc, char **argv)
 		ret = check_token(4*i+2);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+		starpu_sleep(0.001);
+		starpu_data_release_to(token_handle, STARPU_W);
 
 		starpu_sleep(0.001);
 		starpu_data_release_to(token_handle, STARPU_R);

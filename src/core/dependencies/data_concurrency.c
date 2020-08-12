@@ -513,6 +513,12 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 {
 	_starpu_spin_checklocked(&handle->header_lock);
 
+	if (down_to_mode != STARPU_NONE && handle->current_mode == down_to_mode)
+	{
+		/* No change, nothing to do */
+		return 0;
+	}
+
 	if (handle->arbiter)
 	{
 		/* Keep our reference for now, _starpu_notify_arbitered_dependencies

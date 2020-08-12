@@ -360,9 +360,9 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
    Partly release the piece of data acquired by the application either by
    starpu_data_acquire() or by starpu_data_acquire_cb(), switching the
    acquisition down to \p down_to_mode. For now, only releasing from STARPU_RW
-   or STARPU_W acquisition down to STARPU_R is supported.  STARPU_NONE can also
-   be passed as \p down_to_mode, in which case this is equivalent to calling
-   starpu_data_release().
+   or STARPU_W acquisition down to STARPU_R is supported, or down to the same
+   acquisition.  STARPU_NONE can also be passed as \p down_to_mode, in which
+   case this is equivalent to calling starpu_data_release().
 */
 void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
 

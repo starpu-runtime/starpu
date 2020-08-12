@@ -489,11 +489,15 @@ void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_dat
 {
 	STARPU_ASSERT(handle);
 
+	if (mode == STARPU_RW)
+		/* They are equivalent here, and current_mode is never STARPU_RW */
+		mode = STARPU_W;
+
 	STARPU_ASSERT_MSG(mode == STARPU_NONE ||
+			  mode == handle->current_mode ||
 			  (mode == STARPU_R &&
-			    (handle->current_mode == STARPU_RW ||
-			     handle->current_mode == STARPU_W)),
-		"We only support releasing from W or RW to R");
+			     handle->current_mode == STARPU_W),
+		"We only support releasing from W to R");
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
 	_starpu_unlock_post_sync_tasks(handle);
