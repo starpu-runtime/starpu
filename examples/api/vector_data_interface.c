@@ -17,6 +17,8 @@
 // This program checks that the implementation of the vector data
 // interface only uses StarPU's public API
 
+#define starpu_interface_vector_ops my_starpu_interface_vector_ops
+#define starpu_vector_data_register my_starpu_vector_data_register
 #include "../../src/datawizard/interfaces/vector_interface.c"
 
 int main()

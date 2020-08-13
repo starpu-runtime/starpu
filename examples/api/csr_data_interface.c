@@ -17,6 +17,8 @@
 // This program checks that the implementation of the CSR data
 // interface only uses StarPU's public API
 
+#define starpu_interface_csr_ops my_starpu_interface_csr_ops
+#define starpu_csr_data_register my_starpu_csr_data_register
 #include "../../src/datawizard/interfaces/csr_interface.c"
 
 int main()
