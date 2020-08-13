@@ -17,6 +17,8 @@
 // This program checks that the implementation of the block data
 // interface only uses StarPU's public API
 
+#define starpu_interface_block_ops my_starpu_interface_block_ops
+#define starpu_block_data_register my_starpu_block_data_register
 #include "../../src/datawizard/interfaces/block_interface.c"
 
 int main()

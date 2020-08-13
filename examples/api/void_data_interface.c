@@ -17,6 +17,8 @@
 // This program checks that the implementation of the void data
 // interface only uses StarPU's public API
 
+#define starpu_interface_void_ops my_starpu_interface_void_ops
+#define starpu_void_data_register my_starpu_void_data_register
 #include "../../src/datawizard/interfaces/void_interface.c"
 
 int main()

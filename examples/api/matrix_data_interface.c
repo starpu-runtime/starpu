@@ -17,6 +17,8 @@
 // This program checks that the implementation of the matrix data
 // interface only uses StarPU's public API
 
+#define starpu_interface_matrix_ops my_starpu_interface_matrix_ops
+#define starpu_matrix_data_register my_starpu_matrix_data_register
 #include "../../src/datawizard/interfaces/matrix_interface.c"
 
 int main()
