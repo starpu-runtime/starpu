@@ -146,15 +146,15 @@ int main(int argc, char **argv)
                 token ++;
 
 		ret = check_token(4*i+1);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV) goto enodev_release;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = increment_token();
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV) goto enodev_release;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = check_token(4*i+2);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV) goto enodev_release;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		starpu_sleep(0.001);
@@ -198,6 +198,8 @@ int main(int argc, char **argv)
 		ret = EXIT_FAILURE;
 	return ret;
 
+enodev_release:
+	starpu_data_release(token_handle);
 enodev:
 	starpu_data_unregister(token_handle);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
