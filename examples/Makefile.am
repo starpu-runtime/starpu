@@ -206,6 +206,7 @@ STARPU_EXAMPLES +=				\
 	api/csr_data_interface			\
 	api/matrix_data_interface		\
 	api/multiformat_data_interface		\
+	api/tensor_data_interface		\
 	api/variable_data_interface		\
 	api/vector_data_interface		\
 	api/void_data_interface
