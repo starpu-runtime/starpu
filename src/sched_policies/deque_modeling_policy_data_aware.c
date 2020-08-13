@@ -400,7 +400,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned worker, worker_ctx = 0;
+	unsigned worker;
 	int best = -1;
 
 	double best_exp_end = 0.0;
