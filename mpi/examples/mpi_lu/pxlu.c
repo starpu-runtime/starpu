@@ -98,7 +98,7 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 
 	int rank_array[world_size];
 	MPI_Comm comm_array[world_size];
-	int mpi_tag_array[world_size];
+	starpu_mpi_tag_t mpi_tag_array[world_size];
 	starpu_data_handle_t handle_array[world_size];
 
 	int r;
