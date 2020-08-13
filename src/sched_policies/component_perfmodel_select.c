@@ -62,7 +62,7 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 
 }
 
-static struct starpu_task * perfmodel_select_pull_task(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_task * perfmodel_select_pull_task(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED)
 {
 	/* We don't want to pull tasks blindly, only let them go through push, so we push to the right component. */
 	return NULL;
