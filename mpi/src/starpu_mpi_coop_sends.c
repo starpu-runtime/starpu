@@ -47,13 +47,13 @@ void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req)
 			/* We were last, release data */
 			free(coop_sends->reqs_array);
 			free(coop_sends);
-			starpu_data_release(req->data_handle);
+			starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
 		}
 	}
 	else
 	{
 		/* Trivial request */
-		starpu_data_release(req->data_handle);
+		starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
 	}
 }
 
