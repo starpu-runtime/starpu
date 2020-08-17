@@ -451,7 +451,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 
 #ifndef STARPU_SIMGRID
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
+	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
@@ -623,7 +623,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	 * required for piom_ltask_set_bound_thread_indexes() */
 	_starpu_mpi_do_initialize(argc_argv);
 
-	if (_starpu_mpi_thread_cpuid < 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid < 0)
 	{
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
@@ -633,7 +633,8 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	/* Tell pioman to use a bound thread for communication progression:
 	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
 	int indexes[1] = { _starpu_mpi_thread_cpuid };
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;
