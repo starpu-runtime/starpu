@@ -1101,8 +1101,6 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 		_starpu_mpi_req_list_push_back(&detached_requests, req);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-		starpu_wake_all_blocked_workers();
-
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
