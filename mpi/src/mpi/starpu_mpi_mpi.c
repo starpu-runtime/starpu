@@ -686,7 +686,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 
-	if (STARPU_RUNNING_ON_VALGRIND) sched_yield();
+	STARPU_VALGRIND_YIELD();
 
 #ifdef STARPU_SIMGRID
 	ret = req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, flag);
