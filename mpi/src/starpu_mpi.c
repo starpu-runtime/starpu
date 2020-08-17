@@ -767,7 +767,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.rank, req->data_handle, req->ptr,
 			  req->datatype_name, (int)req->count, req->registered_datatype);
 
-	if (STARPU_RUNNING_ON_VALGRIND) sched_yield();
+	STARPU_VALGRIND_YIELD();
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.rank, req->node_tag.data_tag);
 
