@@ -109,6 +109,18 @@ void submitted_order_fun(void *buffers[], void *cl_arg)
 	(void)cl_arg;
 }
 
+static struct starpu_codelet submitted_order_rw =
+{
+	.where = STARPU_CPU,
+	.cpu_funcs = {submitted_order_fun, NULL},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+#ifdef STARPU_SIMGRID
+	.model = &starpu_perfmodel_nop,
+#endif
+	.name = "submitted_order_enforcer"
+};
+
 static struct starpu_codelet submitted_order =
 {
 	.where = STARPU_CPU,
@@ -156,11 +168,15 @@ void insert_work_for_one_element(struct element *el)
 			   STARPU_W,tmp_send,
 			   0);
 	//Send operation
-	starpu_insert_task(&submitted_order,
+	starpu_insert_task(&submitted_order_rw,
 			   STARPU_RW,el->ensure_submitted_order_send,
-			   STARPU_W,tmp_send,
+			   STARPU_RW,tmp_send,
 			   0);
 	starpu_mpi_isend_detached(tmp_send,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
+	starpu_insert_task(&submitted_order_rw,
+			   STARPU_RW,el->ensure_submitted_order_send,
+			   STARPU_RW,tmp_send,
+			   0);
 
 	//Recv operation for current element
 	starpu_insert_task(&submitted_order,
