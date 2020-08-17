@@ -612,6 +612,8 @@ int main(int argc, char **argv)
 				starpu_free(blockptr);
 		}
 	}
+	free(dataA_handles);
+	free(dataA);
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);

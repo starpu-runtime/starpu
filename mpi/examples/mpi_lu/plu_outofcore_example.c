@@ -410,6 +410,7 @@ int main(int argc, char **argv)
 			starpu_data_unregister(dataA_handles[j+nblocks*i]);
 		}
 	}
+	free(dataA_handles);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
