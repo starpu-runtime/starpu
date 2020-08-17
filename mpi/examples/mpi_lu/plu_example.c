@@ -434,6 +434,7 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 	int ret;
+	unsigned i, j;
 
 	/*
 	 *	Initialization
@@ -594,6 +595,16 @@ int main(int argc, char **argv)
 	/*
 	 * 	Termination
 	 */
+	for (j = 0; j < nblocks; j++)
+	{
+		for (i = 0; i < nblocks; i++)
+		{
+			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			TYPE *blockptr = dataA[j+i*nblocks];
+			if (blockptr != STARPU_POISON_PTR)
+				starpu_free(blockptr);
+		}
+	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
