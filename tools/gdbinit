@@ -54,6 +54,7 @@ define starpu-print-task
   end
   printf "\tnbuffers:\t\t\t<%d>\n", $nbuffers
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
+  printf "\tcl_arg:\t\t\t<%p>\n", $task->cl_arg
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
   printf "\tworkerid:\t\t\t<%d>\n", $task->workerid
