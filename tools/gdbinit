@@ -49,6 +49,7 @@ define starpu-print-task
     printf "\tcodelet name:\t\t\t<%s>\n", $task->cl->name
   end
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
+  printf "\tcl_arg:\t\t\t<%p>\n", $task->cl_arg
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
   printf "\tworkerid:\t\t\t<%d>\n", $task->workerid
