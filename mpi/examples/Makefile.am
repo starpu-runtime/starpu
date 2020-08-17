@@ -151,7 +151,9 @@ examplebin_PROGRAMS += 			\
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=	\
 	mpi_lu/plu_implicit_example_float	\
-	mpi_lu/plu_implicit_example_double
+	mpi_lu/plu_implicit_example_double	\
+	mpi_lu/plu_outofcore_example_float	\
+	mpi_lu/plu_outofcore_example_double
 endif
 
 mpi_lu_plu_example_float_LDADD =	\
