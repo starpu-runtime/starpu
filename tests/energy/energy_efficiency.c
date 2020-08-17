@@ -320,11 +320,19 @@ int main(int argc, char *argv[])
 
 	unsigned N, k, m, n, iter, NITER;
 	if (argc < 2)
+#ifdef STARPU_QUICK_CHECK
+		N = 10;
+#else
 		N = 40;
+#endif
 	else
 		N = atoi(argv[1]);
 	if (argc < 3)
+#ifdef STARPU_QUICK_CHECK
+		NITER = 3;
+#else
 		NITER = 10;
+#endif
 	else
 		NITER = atoi(argv[2]);
 	if (N == 0)
