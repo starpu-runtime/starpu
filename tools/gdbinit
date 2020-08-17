@@ -39,33 +39,6 @@ define starpu-print-task
   set $task = (struct starpu_task *)$arg0
   set $job = (struct _starpu_job *)$task->starpu_private
   set $status=0
-  if $task->status == 0
-    set $status="STARPU_TASK_INIT"
-  end
-  if $task->status == 1
-    set $status="STARPU_TASK_BLOCKED"
-  end
-  if $task->status == 2
-    set $status="STARPU_TASK_READY"
-  end
-  if $task->status == 3
-    set $status="STARPU_TASK_RUNNING"
-  end
-  if $task->status == 4
-    set $status="STARPU_TASK_FINISHED"
-  end
-  if $task->status == 5
-    set $status="STARPU_TASK_BLOCKED_ON_TAG"
-  end
-  if $task->status == 6
-    set $status="STARPU_TASK_BLOCKED_ON_TASK"
-  end
-  if $task->status == 7
-    set $status="STARPU_TASK_BLOCKED_ON_DATA"
-  end
-  if $task->status == 8
-    set $status="STARPU_TASK_STOPPED"
-  end
 
   printf "StarPU Task (%p)\n", $task
   if $task->name
@@ -82,7 +55,35 @@ define starpu-print-task
   printf "\tdetach:\t\t\t\t<%d>\n", $task->detach
   printf "\tdestroy:\t\t\t<%d>\n", $task->destroy
   printf "\tregenerate:\t\t\t<%d>\n", $task->regenerate
-  printf "\tstatus:\t\t\t\t<%s>\n", $status
+  printf "\tstatus:\t\t\t\t"
+  if $task->status == 0
+    printf "STARPU_TASK_INIT"
+  end
+  if $task->status == 1
+    printf "STARPU_TASK_BLOCKED"
+  end
+  if $task->status == 2
+    printf "STARPU_TASK_READY"
+  end
+  if $task->status == 3
+    printf "STARPU_TASK_RUNNING"
+  end
+  if $task->status == 4
+    printf "STARPU_TASK_FINISHED"
+  end
+  if $task->status == 5
+    printf "STARPU_TASK_BLOCKED_ON_TAG"
+  end
+  if $task->status == 6
+    printf "STARPU_TASK_BLOCKED_ON_TASK"
+  end
+  if $task->status == 7
+    printf "STARPU_TASK_BLOCKED_ON_DATA"
+  end
+  if $task->status == 8
+    printf "STARPU_TASK_STOPPED"
+  end
+  printf "\n"
   printf "\tjob:\t\t\t\t<%p>\n", $job
   printf "\ttag_id:\t\t\t\t<%d>\n", $task->tag_id
   printf "\tndeps:\t\t\t\t<%u>\n", $job->job_successors->ndeps
@@ -164,35 +165,36 @@ define starpu-workers
   printf "[Id] Name                                     Arch Mask Devid Bindid Workerid Isrunning Isinitialized Status\n"
   while $num<_starpu_config->topology->nworkers
     set $worker=&_starpu_config->workers[$num]
+    printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d ", $num, $worker->name, $worker->arch, $worker->worker_mask, \
+          $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized
     if $worker->status == STATUS_INVALID
-      set $status="INVALID"
+      printf "INVALID"
     end
     if $worker->status == STATUS_UNKNOWN
-      set $status="UNKNOWN"
+      printf "UNKNOWN"
     end
     if $worker->status == STATUS_INITIALIZING
-      set $status="INITIALIZING"
+      printf "INITIALIZING"
     end
     if $worker->status == STATUS_EXECUTING
-      set $status="EXECUTING"
+      printf "EXECUTING"
     end
     if $worker->status == STATUS_CALLBACK
-      set $status="CALLBACK"
+      printf "CALLBACK"
     end
     if $worker->status == STATUS_SCHEDULING
-      set $status="SCHEDULING"
+      printf "SCHEDULING"
     end
     if $worker->status == STATUS_WAITING
-      set $status="WAITING"
+      printf "WAITING"
     end
     if $worker->status == STATUS_SLEEPING_SCHEDULING
-      set $status="SLEEPING_SCHEDULING"
+      printf "SLEEPING_SCHEDULING"
     end
     if $worker->status == STATUS_SLEEPING
-      set $status="SLEEPING"
+      printf "SLEEPING"
     end
-    printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d %s\n", $num, $worker->name, $worker->arch, $worker->worker_mask, \
-          $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized, $status
+    printf "\n"
     set $num = $num + 1
   end
 end
@@ -200,23 +202,24 @@ end
 define starpu-print-tag
   set language c
   set $tag_struct = (struct _starpu_tag *)_gettag_struct($arg0)
+  printf "tag %d ((struct _starpu_tag *) %p)\n", $arg0, $tag_struct
+  printf "\tstate "
   if $tag_struct->state == STARPU_INVALID_STATE
-     set $status="STARPU_INVALID_STATE"
+     printf "STARPU_INVALID_STATE"
   end
   if $tag_struct->state == STARPU_ASSOCIATED
-     set $status="STARPU_ASSOCIATED"
+     printf "STARPU_ASSOCIATED"
   end
   if $tag_struct->state == STARPU_BLOCKED
-     set $status="STARPU_BLOCKED"
+     printf "STARPU_BLOCKED"
   end
   if $tag_struct->state == STARPU_READY
-     set $status="STARPU_READY"
+     printf "STARPU_READY"
   end
   if $tag_struct->state == STARPU_DONE
-     set $status="STARPU_DONE"
+     printf "STARPU_DONE"
   end
-  printf "tag %d ((struct _starpu_tag *) %p)\n", $arg0, $tag_struct
-  printf "\tstate %s\n", $status
+  printf "\n"
   printf "\tdeps %d\n", $tag_struct->tag_successors.ndeps
   printf "\tcompleted %d\n", $tag_struct->tag_successors.ndeps_completed
   printf "\tndeps_remaining:\t\t<%u>\n", $tag_struct->tag_successors->ndeps - $tag_struct->tag_successors->ndeps_completed
@@ -914,9 +917,9 @@ end
 define starpu-sched-print-component
     set $c = (struct starpu_sched_component *) $arg1
     starpu-print-spaces $arg0
-    printf "%s %s %s (struct starpu_sched_component *) %p\n", $c->name, $c->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS ? "homogeneous":"heterogeneous", $c->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE ? "single-node" : "multi-node", $c
+    printf "%s %c %c (struct starpu_sched_component *) %p\n", $c->name, $c->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS ? 'o':'e', $c->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE ? 's' : 'm', $c
     if $c->push_task == fifo_push_task
-      set $f = ((struct _starpu_fifo_data *) $c->data)->fifo
+      set $f = &((struct _starpu_fifo_data *) $c->data)->fifo
       starpu-print-spaces $arg0
       printf "%d tasks start %f len %f end %f processed %d\n", $f->ntasks, $f->exp_start, $f->exp_len, $f->exp_end, $f->nprocessed
     end
@@ -950,29 +953,29 @@ end
 
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
-    set $request_type = "unknown_type"
+    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type ", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.node.rank,
     if $request->request_type == SEND_REQ
-       set $request_type = "SEND_REQ"
+       printf "SEND_REQ"
     end
     if $request->request_type == RECV_REQ
-       set $request_type = "RECV_REQ"
+       printf "RECV_REQ"
     end
     if $request->request_type == WAIT_REQ
-       set $request_type = "WAIT_REQ"
+       printf "WAIT_REQ"
     end
     if $request->request_type == TEST_REQ
-       set $request_type = "TEST_REQ"
+       printf "TEST_REQ"
     end
     if $request->request_type == BARRIER_REQ
-       set $request_type = "BARRIER_REQ"
+       printf "BARRIER_REQ"
     end
     if $request->request_type == PROBE_REQ
-       set $request_type = "PROBE_REQ"
+       printf "PROBE_REQ"
     end
     if $request->request_type == UNKNOWN_REQ
-       set $request_type = "UNKNOWN_REQ"
+       printf "UNKNOWN_REQ"
     end
-    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type %s submitted %d completed %d posted %d detached %d\n", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.node.rank, $request_type, $request->submitted, $request->completed, $request->posted, $request->detached
+    printf " submitted %d completed %d posted %d detached %d\n", $request->submitted, $request->completed, $request->posted, $request->detached
 end
 
 define starpu-mpi-print-ready-recv-requests
