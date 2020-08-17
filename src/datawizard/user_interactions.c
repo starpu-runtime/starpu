@@ -500,7 +500,7 @@ void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_dat
 		"We only support releasing from W to R");
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
-	_starpu_unlock_post_sync_tasks(handle);
+	_starpu_unlock_post_sync_tasks(handle, mode);
 
 	/* The application can now release the rw-lock */
 	if (node >= 0)
