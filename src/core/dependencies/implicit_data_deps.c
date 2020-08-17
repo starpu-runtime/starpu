@@ -544,7 +544,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 	/* Here helgrind would shout that this is an unprotected access, but
 	 * count can only be zero if we don't have to care about
 	 * post_sync_tasks_cnt at all.  */
-	if (STARPU_RUNNING_ON_VALGRIND || handle->post_sync_tasks_cnt)
+	if (handle->post_sync_tasks_cnt)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		if (--handle->post_sync_tasks_cnt == 0)
