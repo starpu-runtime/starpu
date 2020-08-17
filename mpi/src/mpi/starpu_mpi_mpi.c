@@ -254,7 +254,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
 				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-				starpu_data_acquire_cb(early_data_handle->handle,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
+				starpu_data_acquire_on_node_cb(early_data_handle->handle,STARPU_MAIN_RAM,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
 				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			}
 			/* Case: no matching data has been received. Store the receive request as an early_request. */
@@ -954,7 +954,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	}
 
 	_STARPU_MPI_DEBUG(3, "Done, handling release of early_handle..\n");
-	starpu_data_release(args->early_handle);
+	starpu_data_release_on_node(args->early_handle, STARPU_MAIN_RAM);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling unregister of early_handle..\n");
 	/* XXX: note that we have already freed the registered buffer above. In
