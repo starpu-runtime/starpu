@@ -70,7 +70,7 @@ static struct starpu_codelet check_cl =
 {
 	.modes = { STARPU_R },
 	.cpu_funcs = {check_cpu},
-	.cpu_funcs_name = {"increment_cpu"},
+	.cpu_funcs_name = {"check_cpu"},
 	.nbuffers = 1
 };
 
