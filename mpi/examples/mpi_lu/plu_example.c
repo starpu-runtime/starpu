@@ -33,8 +33,8 @@
 static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
-static int p = 1;
-static int q = 1;
+static int p = -1;
+static int q = -1;
 static unsigned display = 0;
 static unsigned no_prio = 0;
 
@@ -459,7 +459,14 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	STARPU_ASSERT(p*q == world_size);
+	if (p == -1 && q==-1)
+	{
+		fprintf(stderr, "Setting default values for p and q\n");
+		p = (q % 2 == 0) ? 2 : 1;
+		q = world_size / p;
+
+	}
+	STARPU_ASSERT_MSG(p*q == world_size, "p=%d, q=%d, world_size=%d\n", p, q, world_size);
 
 	starpu_cublas_init();
 
