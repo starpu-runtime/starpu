@@ -149,6 +149,8 @@ AC_ARG_WITH(simgrid-lib-dir,
 	], [simgrid_lib_dir=no])
 
 if test x$enable_simgrid = xyes ; then
+	PKG_CHECK_MODULES([SIMGRID], [simgrid])
+
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
