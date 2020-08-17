@@ -206,7 +206,7 @@ static void _starpu_mpi_irecv_size_callback(void *arg)
 	struct _starpu_mpi_irecv_size_callback *callback = (struct _starpu_mpi_irecv_size_callback *)arg;
 
 	starpu_data_unregister(callback->handle);
-	callback->req->ptr = malloc(callback->req->count);
+	callback->req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, callback->req->count, 0);
 	STARPU_ASSERT_MSG(callback->req->ptr, "cannot allocate message of size %ld", callback->req->count);
 	_starpu_mpi_irecv_data_func(callback->req);
 	free(callback);
