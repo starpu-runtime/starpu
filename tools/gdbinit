@@ -312,7 +312,11 @@ define starpu-all-tasks
     while $l != &all_jobs_list
       set $j = (struct _starpu_job*) (((unsigned long) $l) - ((unsigned long) &((struct _starpu_job *)0)->all_submitted))
       set $task = $j->task
-      printf "task %p %s\n", $task, $task->name ? $task->name : ""
+      if $task->name
+        printf "task %p %s\n", $task, $task->name
+      else
+        printf "task %p\n", $task
+      end
       set $l = $l->next
     end
   end
