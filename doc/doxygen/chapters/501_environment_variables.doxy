@@ -254,6 +254,14 @@ it to -1 (the default value) will use a reserved CPU, subtracted from the CPU
 workers.
 </dd>
 
+<dt>STARPU_MPI_NOBIND</dt>
+<dd>
+\anchor STARPU_MPI_NOBIND
+\addindex __env__STARPU_MPI_NOBIND
+Setting it to non-zero will prevent StarPU from binding the MPI to
+a separate core. This is for instance useful when running the testsuite on a single system.
+</dd>
+
 <dt>STARPU_WORKERS_CUDAID</dt>
 <dd>
 \anchor STARPU_WORKERS_CUDAID

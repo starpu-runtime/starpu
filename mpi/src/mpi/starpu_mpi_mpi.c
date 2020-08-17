@@ -1180,12 +1180,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
 
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
 	{
 		_STARPU_DISP("No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n");
 	}
 	_starpu_mpi_do_initialize(argc_argv);
-	if (_starpu_mpi_thread_cpuid >= 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
 #endif
