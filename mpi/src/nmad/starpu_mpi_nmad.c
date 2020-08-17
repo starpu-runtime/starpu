@@ -344,7 +344,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 				// req->ptr is freed by starpu_data_unpack
 				starpu_data_unpack(req->data_handle, req->ptr, req->count);
 			else
-				free(req->ptr);
+				starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) req->ptr, req->count, 0);
 		}
 		else
 		{
