@@ -383,6 +383,8 @@ int main(int argc, char **argv)
 				starpu_free(blockptr);
 		}
 	}
+	free(dataA_handles);
+	free(dataA);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
