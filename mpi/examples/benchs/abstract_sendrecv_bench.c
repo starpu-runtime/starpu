@@ -25,6 +25,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 
 	if (mpi_rank >= 2)
 	{
+		starpu_pause();
 		if (thread_barrier != NULL)
 		{
 			STARPU_PTHREAD_BARRIER_WAIT(thread_barrier);
@@ -41,6 +42,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 				starpu_mpi_barrier(MPI_COMM_WORLD);
 			}
 		}
+		starpu_resume();
 
 		return;
 	}
