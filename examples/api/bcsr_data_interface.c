@@ -19,6 +19,15 @@
 
 #define starpu_interface_bcsr_ops my_starpu_interface_bcsr_ops
 #define starpu_bcsr_data_register my_starpu_bcsr_data_register
+#define starpu_bcsr_get_nnz my_starpu_bcsr_get_nnz
+#define starpu_bcsr_get_nrow my_starpu_bcsr_get_nrow
+#define starpu_bcsr_get_firstentry my_starpu_bcsr_get_firstentry
+#define starpu_bcsr_get_r my_starpu_bcsr_get_r
+#define starpu_bcsr_get_c my_starpu_bcsr_get_c
+#define starpu_bcsr_get_elemsize my_starpu_bcsr_get_elemsize
+#define starpu_bcsr_get_local_nzval my_starpu_bcsr_get_local_nzval
+#define starpu_bcsr_get_local_colind my_starpu_bcsr_get_local_colind
+#define starpu_bcsr_get_local_rowptr my_starpu_bcsr_get_local_rowptr
 #include "../../src/datawizard/interfaces/bcsr_interface.c"
 
 int main()

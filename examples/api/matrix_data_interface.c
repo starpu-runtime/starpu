@@ -19,6 +19,14 @@
 
 #define starpu_interface_matrix_ops my_starpu_interface_matrix_ops
 #define starpu_matrix_data_register my_starpu_matrix_data_register
+#define starpu_matrix_data_register_allocsize my_starpu_matrix_data_register_allocsize
+#define starpu_matrix_ptr_register my_starpu_matrix_data_ptr_register
+#define starpu_matrix_get_nx my_starpu_matrix_get_nx
+#define starpu_matrix_get_ny my_starpu_matrix_get_ny
+#define starpu_matrix_get_local_ld my_starpu_matrix_get_local_ld
+#define starpu_matrix_get_local_ptr my_starpu_matrix_get_local_ptr
+#define starpu_matrix_get_elemsize my_starpu_matrix_get_elemsize
+#define starpu_matrix_get_allocsize my_starpu_matrix_get_allocsize
 #include "../../src/datawizard/interfaces/matrix_interface.c"
 
 int main()

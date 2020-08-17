@@ -19,6 +19,13 @@
 
 #define starpu_interface_block_ops my_starpu_interface_block_ops
 #define starpu_block_data_register my_starpu_block_data_register
+#define starpu_block_get_nx my_starpu_block_get_nx
+#define starpu_block_get_ny my_starpu_block_get_ny
+#define starpu_block_get_nz my_starpu_block_get_nz
+#define starpu_block_get_local_ldy my_starpu_block_get_local_ldy
+#define starpu_block_get_local_ldz my_starpu_block_get_local_ldz
+#define starpu_block_get_local_ptr my_starpu_block_get_local_ptr
+#define starpu_block_get_elemsize my_starpu_block_get_elemsize
 #include "../../src/datawizard/interfaces/block_interface.c"
 
 int main()
