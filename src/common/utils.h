@@ -85,8 +85,10 @@
 #define _STARPU_UYIELD() ((void)0)
 #endif
 #if defined(STARPU_HAVE_SCHED_YIELD) && defined(STARPU_HAVE_HELGRIND_H)
+#define STARPU_VALGRIND_YIELD() do { if (STARPU_RUNNING_ON_VALGRIND) sched_yield(); } while (0)
 #define STARPU_UYIELD() do { if (STARPU_RUNNING_ON_VALGRIND) sched_yield(); else _STARPU_UYIELD(); } while (0)
 #else
+#define STARPU_VALGRIND_YIELD() do { } while (0)
 #define STARPU_UYIELD() _STARPU_UYIELD()
 #endif
 
