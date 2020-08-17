@@ -198,7 +198,7 @@ static void init_matrix(int rank)
 
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
-	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(1024*1024, size*size*sizeof(TYPE)));
+	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(16*1024*1024, size*size*sizeof(TYPE)));
 	assert(disk_node >= 0);
 
 	char filename[sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1];
