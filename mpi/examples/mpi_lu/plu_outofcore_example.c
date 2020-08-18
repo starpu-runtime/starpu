@@ -35,6 +35,7 @@
 
 static unsigned long size = 4096;
 static unsigned nblocks = 16;
+static size_t blocksize;
 static unsigned check = 0;
 static int p = -1;
 static int q = -1;
@@ -49,6 +50,9 @@ static unsigned numa = 0;
 static size_t allocated_memory = 0;
 
 static starpu_data_handle_t *dataA_handles;
+static void **disk_objs;
+
+static int disk_node;
 
 int get_block_rank(unsigned i, unsigned j);
 
@@ -138,7 +142,6 @@ static void fill_block_with_random(TYPE *blockptr, unsigned psize, unsigned pnbl
 
 static void create_matrix()
 {
-	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 	TYPE *blockptr = malloc(blocksize);
 	int fd;
 	char *filename;
@@ -191,10 +194,9 @@ static void init_matrix(int rank)
 {
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
 	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle_t));
+	disk_objs = calloc(nblocks*nblocks, sizeof(*disk_objs));
 
-	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
-
-	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(16*1024*1024, size*size*sizeof(TYPE)));
+	disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(16*1024*1024, size*size*sizeof(TYPE)));
 	assert(disk_node >= 0);
 
 	char filename[sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1];
@@ -211,21 +213,21 @@ static void init_matrix(int rank)
 
 			if (block_rank == rank)
 			{
-				void *disk_obj;
 				snprintf(filename, sizeof(filename), "%u,%u", i, j);
 				/* Register it to StarPU */
-				disk_obj = starpu_disk_open(disk_node, filename, blocksize);
-				if (!disk_obj)
+				disk_objs[j+nblocks*i] = starpu_disk_open(disk_node, filename, blocksize);
+				if (!disk_objs[j+nblocks*i])
 				{
 					fprintf(stderr,"could not open %s\n", filename);
 					exit(1);
 				}
 				starpu_matrix_data_register(handleptr, disk_node,
-					(uintptr_t) disk_obj, size/nblocks,
+					(uintptr_t) disk_objs[j+nblocks*i], size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
 			else
 			{
+				disk_objs[j+nblocks*i] = NULL;
 				starpu_matrix_data_register(handleptr, -1,
 					0, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
@@ -268,6 +270,8 @@ int main(int argc, char **argv)
 	starpu_srand48((long int)time(NULL));
 
 	parse_args(argc, argv);
+
+	blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
 	ret = mkdir(path, 0777);
 	if (ret != 0 && errno != EEXIST)
@@ -404,9 +408,12 @@ int main(int argc, char **argv)
 		for (i = 0; i < nblocks; i++)
 		{
 			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			if (disk_objs[j+nblocks*i])
+				starpu_disk_close(disk_node, disk_objs[j+nblocks*i], blocksize);
 		}
 	}
 	free(dataA_handles);
+	free(disk_objs);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
