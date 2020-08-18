@@ -263,8 +263,7 @@
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
-   fun:_dl_close_worker
-   fun:_dl_close_worker
+   ...
    fun:_dl_close
    fun:_dl_catch_exception
    fun:_dl_catch_error
