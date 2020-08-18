@@ -2638,10 +2638,12 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
                char paje_value[STARPU_POTI_STR_LEN];
                snprintf(paje_value, sizeof(paje_value), "%u", task);
                snprintf(container, sizeof(container), "%sp", options->file_prefix);
-               poti_NewEvent(get_event_time_stamp(ev, options), container, "pu", paje_value);
+		if (!options->no_events)
+			poti_NewEvent(get_event_time_stamp(ev, options), container, "pu", paje_value);
 #else
-	       fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
-               fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "pu", options->file_prefix, task);
+		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+		if (!options->no_events)
+			fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "pu", options->file_prefix, task);
 #endif
 	}
 
@@ -2683,11 +2685,13 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		char paje_value[STARPU_POTI_STR_LEN];
 		snprintf(paje_value, sizeof(paje_value), "%u", task);
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "po", paje_value);
+		if (!options->no_events)
+			poti_NewEvent(get_event_time_stamp(ev, options), container, "po", paje_value);
 #else
 		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
 		fprintf(out_paje_file, "13	%.9f	%ssched	nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
-		fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "po", options->file_prefix, task);
+		if (!options->no_events)
+			fprintf(out_paje_file, "9       %.9f    %s      %sp     %u\n", get_event_time_stamp(ev, options), "po", options->file_prefix, task);
 #endif
 	}
 
