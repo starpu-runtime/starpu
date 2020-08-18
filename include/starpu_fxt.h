@@ -69,42 +69,36 @@ struct starpu_fxt_options
 	char *number_events_path;
 	char *anim_path;
 	char *states_path;
+	char worker_names[STARPU_NMAXWORKERS][256];
+	int nworkers;
+	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
 
 	/**
 	   In case we are going to gather multiple traces (e.g in the case of
 	   MPI processes), we may need to prefix the name of the containers.
 	*/
 	char *file_prefix;
-	/**
-	   In case we are going to gather multiple traces (e.g in the case of
-	   MPI processes), we may need to prefix the name of the containers.
-	*/
-	uint64_t file_offset;
-	/**
-	   In case we are going to gather multiple traces (e.g in the case of
-	   MPI processes), we may need to prefix the name of the containers.
-	*/
-	int file_rank;
 
 	/**
-	   Output parameters
+	   In case we are going to gather multiple traces (e.g in the case of
+	   MPI processes), this variable stores the time offset with the rank 0.
 	*/
-	char worker_names[STARPU_NMAXWORKERS][256];
+	uint64_t file_offset;
+
 	/**
-	   Output parameters
+	   In case we are going to gather multiple traces (e.g in the case of
+	   MPI processes), this variable stores the MPI rank of the trace file.
 	*/
-	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
-	/**
-	   Output parameters
-	*/
-	int nworkers;
+	int file_rank;
 
 	/**
 	   In case we want to dump the list of codelets to an external tool
 	*/
 	struct starpu_fxt_codelet_event **dumped_codelets;
+
 	/**
-	   In case we want to dump the list of codelets to an external tool
+	   In case we want to dump the list of codelets to an external tool, number
+	   of dumped codelets.
 	*/
 	long dumped_codelets_count;
 };
