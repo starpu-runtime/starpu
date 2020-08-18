@@ -163,8 +163,12 @@ theory results), see the \ref STARPU_SIMGRID_TRANSFER_COST, \ref STARPU_SIMGRID_
 
 \section SimulationMPIApplications MPI Applications
 
-StarPU-MPI applications can also be run in SimGrid mode. It needs to be compiled
-with \c smpicc, and run using the <c>starpu_smpirun</c> script, for instance:
+StarPU-MPI applications can also be run in SimGrid mode. smpi currently requires
+that StarPU be build statically only, so <c>--disable-shared</c> needs to be
+passed to <c>./configure</c>.
+
+The application needs to be compiled with \c smpicc, and run using the
+<c>starpu_smpirun</c> script, for instance:
 
 \verbatim
 $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mpi/tests/pingpong
@@ -174,6 +178,13 @@ Where \c cluster.xml is a SimGrid-MPI platform description, and \c hostfile the
 list of MPI nodes to be used. StarPU currently only supports homogeneous MPI
 clusters: for each MPI node it will just replicate the architecture referred by
 \ref STARPU_HOSTNAME.
+
+So as to use FxT traces, libfxt also needs to be built statically, <b>and</b>
+with dynamic linking flags, i.e. with
+
+\verbatim
+CFLAGS=-fPIC ./configure --enable-static
+\endverbatim
 
 \section SimulationDebuggingApplications Debugging Applications
 
