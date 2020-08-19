@@ -22,6 +22,7 @@
 #define starpu_csr_get_nnz my_starpu_csr_get_nnz
 #define starpu_csr_get_nrow my_starpu_csr_get_nrow
 #define starpu_csr_get_firstentry my_starpu_csr_get_firstentry
+#define starpu_csr_get_elemsize my_starpu_csr_get_elemsize
 #define starpu_csr_get_local_nzval my_starpu_csr_get_local_nzval
 #define starpu_csr_get_local_colind my_starpu_csr_get_local_colind
 #define starpu_csr_get_local_rowptr my_starpu_csr_get_local_rowptr

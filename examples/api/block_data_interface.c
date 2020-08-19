@@ -19,6 +19,7 @@
 
 #define starpu_interface_block_ops my_starpu_interface_block_ops
 #define starpu_block_data_register my_starpu_block_data_register
+#define starpu_block_ptr_register my_starpu_block_ptr_register
 #define starpu_block_get_nx my_starpu_block_get_nx
 #define starpu_block_get_ny my_starpu_block_get_ny
 #define starpu_block_get_nz my_starpu_block_get_nz
