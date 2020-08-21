@@ -244,7 +244,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	if (rank == 0)
 	{
 		*timing = end - start;
-		*flops = (1.0f*size*size*size)/3.0f;
+		*flops = FLOPS_SPOTRF(size);
 	}
 }
 
