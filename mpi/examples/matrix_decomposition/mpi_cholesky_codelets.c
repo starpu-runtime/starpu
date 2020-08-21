@@ -180,7 +180,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
 static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
-	unsigned k, m, n;
+	unsigned k, m, n, i;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 	unsigned nn = size/nblocks;
 
@@ -202,6 +202,13 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
 						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 						       0);
+
+				if (m == n)
+				{
+					/* Nobody else will need it */
+					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
+					starpu_data_wont_use(data_handles[m][k]);
+				}
 			}
 			k = n;
 			if (m > n)
@@ -223,23 +230,22 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 						       0);
 			}
+
 		}
+
+		/* We won't need it any more */
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+		starpu_data_wont_use(data_handles[n][n]);
 
 		starpu_iteration_pop();
 	}
-
-	/* Submit flushes, StarPU will fit them according to the progress */
-	starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
-	for (m = 0; m < nblocks; m++)
-		for (n = 0; n < nblocks ; n++)
-			starpu_data_wont_use(data_handles[m][n]);
 }
 
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
 static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank, int nodes)
 {
 	unsigned a, c;
-	unsigned k, m, n;
+	unsigned k, m, n, i;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 	unsigned nn = size/nblocks;
 
@@ -274,6 +280,13 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
 						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 						       0);
+
+				if (m == nblocks-1)
+				{
+					/* Nobody else will need it */
+					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					starpu_data_wont_use(data_handles[n][k]);
+				}
 			}
 
 			/* k = n */
@@ -295,6 +308,13 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 						       STARPU_RW, data_handles[k][k],
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 						       0);
+			}
+
+			if (m == nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
 			}
 		}
 
@@ -318,6 +338,13 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
 						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 						       0);
+
+				if (m == nblocks-1)
+				{
+					/* Nobody else will need it */
+					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					starpu_data_wont_use(data_handles[n][k]);
+				}
 			}
 			/* non-diagonal block, solve */
 			k = n;
@@ -327,16 +354,17 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 					       STARPU_RW, data_handles[m][k],
 					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 					       0);
+
+			if (m == nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
+			}
 		}
 
 		starpu_iteration_pop();
 	}
-
-	/* Submit flushes, StarPU will fit them according to the progress */
-	starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
-	for (m = 0; m < nblocks; m++)
-		for (n = 0; n < nblocks ; n++)
-			starpu_data_wont_use(data_handles[m][n]);
 }
 
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
@@ -358,13 +386,12 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 	{
 		starpu_iteration_push(a);
 
-		for (k = 0; k < nblocks; k++)
+		for (k = 0; k < (int) nblocks; k++)
 		{
 			n = k;
 			/* Should be m = a-k-n; for potrf and trsm to respect
 			   priorities, but needs to be this for dependencies */
 			m = a-2*k-n;
-
 
 			if (m == n)
 			{
@@ -375,7 +402,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 						       0);
 			}
-			else if (m >= n && m < nblocks)
+			else if (m >= n && m < (int) nblocks)
 			{
 				/* non-diagonal block, solve */
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
@@ -386,13 +413,20 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 						       0);
 			}
 
+			if (m == (int) nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
+			}
+
 			/* column within antidiagonal for a */
-			for (n = k + 1; n < nblocks; n++)
+			for (n = k + 1; n < (int) nblocks; n++)
 			{
 				/* row */
 				m = a-2*k-n;
 
-				if (m >= n && m < nblocks)
+				if (m >= n && m < (int) nblocks)
 				{
 					/* Update */
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
@@ -402,6 +436,12 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 							       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
 							       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 							       0);
+					if (m == (int) nblocks - 1)
+					{
+						/* Nobody else will need it */
+						starpu_data_wont_use(data_handles[n][k]);
+						starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					}
 				}
 			}
 
@@ -409,12 +449,6 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 
 		starpu_iteration_pop();
 	}
-
-	/* Submit flushes, StarPU will fit them according to the progress */
-	starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
-	for (m = 0; m < nblocks; m++)
-		for (n = 0; n < nblocks ; n++)
-			starpu_data_wont_use(data_handles[m][n]);
 }
 
 /*
