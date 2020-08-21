@@ -348,7 +348,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 	unsigned nn = size/nblocks;
 
 	/*
-	 * This is basically similar to above, except that we shift k according to the priorities set in the algorithm, so that prio ~ 2*a or 2*a+1
+	 * This is basically similar to above, except that we shift k according to the priorities set in the algorithm, so that gemm prio ~= 2*nblocks - a
 	 * double-antidiagonal number:
 	 * - a=0 contains (0,0) plus (1,0)
 	 * - a=1 contains (2,0), (1,1) plus (3,0), (2, 1)
@@ -365,8 +365,6 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 			   priorities, but needs to be this for dependencies */
 			m = a-2*k-n;
 
-			if (m < n || m >= nblocks)
-				continue;
 
 			if (m == n)
 			{
@@ -377,7 +375,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 						       0);
 			}
-			else
+			else if (m >= n && m < nblocks)
 			{
 				/* non-diagonal block, solve */
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
