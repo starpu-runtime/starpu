@@ -27,6 +27,7 @@ unsigned long _starpu_job_cnt = 0;
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>
 #include <starpu_fxt.h>
+#include <sys/stat.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
@@ -95,6 +96,16 @@ static void _starpu_profile_set_tracefile(void)
 	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
 	     fxt_prefix = "/tmp/";
+	else
+	{
+		// Check if the given folder really exists:
+		struct stat folder_stat;
+		if (stat(fxt_prefix, &folder_stat) < 0 || !S_ISDIR(folder_stat.st_mode))
+		{
+			_STARPU_MSG("%s is not a valid directory.\n", fxt_prefix);
+			_starpu_abort();
+		}
+	}
 
 	user = starpu_getenv("USER");
 	if (!user)
