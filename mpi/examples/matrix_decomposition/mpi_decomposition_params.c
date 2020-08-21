@@ -51,48 +51,51 @@ void parse_args(int argc, char **argv, int nodes)
                         size = strtol(argv[++i], &argptr, 10);
                 }
 
-                if (strcmp(argv[i], "-dblockx") == 0)
+                else if (strcmp(argv[i], "-dblockx") == 0)
                 {
                         char *argptr;
                         dblockx = strtol(argv[++i], &argptr, 10);
                 }
 
-                if (strcmp(argv[i], "-dblocky") == 0)
+                else if (strcmp(argv[i], "-dblocky") == 0)
                 {
                         char *argptr;
                         dblocky = strtol(argv[++i], &argptr, 10);
                 }
 
-                if (strcmp(argv[i], "-nblocks") == 0)
+                else if (strcmp(argv[i], "-nblocks") == 0)
                 {
                         char *argptr;
                         nblocks = strtol(argv[++i], &argptr, 10);
                 }
 
-                if (strcmp(argv[i], "-nbigblocks") == 0)
+                else if (strcmp(argv[i], "-nbigblocks") == 0)
                 {
                         char *argptr;
                         nbigblocks = strtol(argv[++i], &argptr, 10);
                 }
 
-                if (strcmp(argv[i], "-no-prio") == 0)
+                else if (strcmp(argv[i], "-no-prio") == 0)
                 {
                         noprio = 1;
                 }
 
-                if (strcmp(argv[i], "-check") == 0)
+                else if (strcmp(argv[i], "-check") == 0)
                 {
                         check = 1;
                 }
 
-                if (strcmp(argv[i], "-display") == 0)
+                else if (strcmp(argv[i], "-display") == 0)
                 {
                         display = 1;
                 }
 
-                if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+                else
+                /* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) */
                 {
 			printf("usage : %s [-size size] [-nblocks nblocks] [-no-prio] [-display] [-check]\n", argv[0]);
+                        fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
+                        exit(0);
                 }
         }
 
