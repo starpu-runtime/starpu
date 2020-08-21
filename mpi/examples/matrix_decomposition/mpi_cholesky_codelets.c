@@ -365,7 +365,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 			   priorities, but needs to be this for dependencies */
 			m = a-2*k-n;
 
-			if (m < 0 || m >= nblocks)
+			if (m < n || m >= nblocks)
 				continue;
 
 			if (m == n)
