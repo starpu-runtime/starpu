@@ -97,7 +97,6 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned nidle)
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
-	conf.nmpi_ms = 0;
 	conf.ncpus = nbusy + nidle;
 
 	ret = starpu_initialize(&conf, argc, argv);
@@ -139,7 +138,6 @@ int main(int argc, char **argv)
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
-	conf.nmpi_ms = 0;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
