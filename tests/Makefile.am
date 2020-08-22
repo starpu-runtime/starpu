@@ -169,6 +169,7 @@ myPROGRAMS +=					\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	microbenchs/bandwidth			\
 	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
@@ -398,7 +399,8 @@ examplebin_PROGRAMS = \
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
-	microbenchs/local_pingpong
+	microbenchs/local_pingpong		\
+	microbenchs/bandwidth
 examplebin_SCRIPTS = \
 	microbenchs/tasks_data_overhead.sh \
 	microbenchs/sync_tasks_data_overhead.sh \
