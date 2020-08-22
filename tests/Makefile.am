@@ -149,6 +149,7 @@ noinst_PROGRAMS +=				\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
+	microbenchs/bandwidth			\
 	overlap/overlap				\
 	openmp/init_exit_01			\
 	perfmodels/value_nan
@@ -351,7 +352,8 @@ endif
 
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
-	microbenchs/local_pingpong
+	microbenchs/local_pingpong		\
+	microbenchs/bandwidth
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
