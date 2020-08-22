@@ -3524,6 +3524,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh tests/microbenchs/
   test -e tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh tests/microbenchs/
+  test -e tests/microbenchs/bandwidth_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/bandwidth_scheds.sh tests/microbenchs/
   mkdir -p tests/energy
   test -e tests/energy/static.sh || ln -sf $ac_abs_top_srcdir/tests/energy/static.sh tests/energy/
   test -e tests/energy/dynamic.sh || ln -sf $ac_abs_top_srcdir/tests/energy/dynamic.sh tests/energy/
