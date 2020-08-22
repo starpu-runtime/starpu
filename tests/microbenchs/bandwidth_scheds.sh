@@ -29,7 +29,7 @@ fi
 cat > bandwidth.gp << EOF
 set term postscript eps enhanced color font ",18"
 set output "bandwidth.eps"
-set key top left
+set key outside
 set ylabel "GB/s"
 set xlabel "ncores"
 
@@ -45,7 +45,7 @@ do
 		extra=
 	fi
 
-	STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $extra | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $extra | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints title \"$sched\", \\" >> bandwidth.gp
 done
 
