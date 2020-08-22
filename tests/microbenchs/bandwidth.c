@@ -25,11 +25,18 @@
  * kernels and number of idle workers.
  */
 
+#ifdef STARPU_QUICK_CHECK
+static size_t size = 1024;
+static unsigned cpustep = 4;
+#else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
+static unsigned cpustep = 1;
+#endif
 
-static int iter = 30;
-static int ncpus;
+static unsigned noalone = 0;
+static unsigned iter = 30;
+static unsigned ncpus;
 static starpu_pthread_barrier_t barrier;
 static float *result;
 
@@ -64,14 +71,18 @@ static struct starpu_codelet bw_codelet =
 
 static void usage(char **argv)
 {
-	fprintf(stderr, "Usage: %s [-n iter] [-s size (MB)]]\n", argv[0]);
+	fprintf(stderr, "Usage: %s [-n iter] [-s size (MB)] [-i increment] [-a]\n", argv[0]);
+	fprintf(stderr, "\t-n iter\tNumber of iterations\n");
+	fprintf(stderr, "\t-s size\tBuffer size in MB\n");
+	fprintf(stderr, "\t-i increment\tCpu number increment\n");
+	fprintf(stderr, "\t-a\tDo not run the alone test\n");
 	exit(EXIT_FAILURE);
 }
 
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "n:s:b:i:h")) != -1)
+	while ((c = getopt(argc, argv, "n:s:c:ah")) != -1)
 	switch(c)
 	{
 		case 'n':
@@ -79,6 +90,12 @@ static void parse_args(int argc, char **argv)
 			break;
 		case 's':
 			size = (long)atoi(optarg) << 20;
+			break;
+		case 'c':
+			cpustep = atoi(optarg);
+			break;
+		case 'a':
+			noalone = 1;
 			break;
 		case 'h':
 			usage(argv);
@@ -148,9 +165,12 @@ int main(int argc, char **argv)
 	result = malloc(ncpus * sizeof(result[0]));
 
 	printf("# nw\talone\t\t+idle\t\tidle efficiency\n");
-	for (n = 1; n <= ncpus; n++)
+	for (n = 1; n <= ncpus; n += cpustep)
 	{
-		alone = bench(&argc, &argv, n, 0);
+		if (noalone)
+			alone = 0.;
+		else
+			alone = bench(&argc, &argv, n, 0);
 		idle = bench(&argc, &argv, n, ncpus-n);
 		printf("%d\t%f\t%f\t%f\n", n, alone/1000, idle/1000, idle*100/alone);
 	}

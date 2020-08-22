@@ -3003,6 +3003,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   mkdir -p tests/microbenchs
   test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
   test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
+  test -e tests/microbenchs/bandwidth_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/bandwidth_scheds.sh tests/microbenchs/
   mkdir -p tests/datawizard
   test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
   mkdir -p tests/overlap
