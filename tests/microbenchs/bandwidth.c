@@ -110,6 +110,7 @@ static void parse_args(int argc, char **argv)
 
 static unsigned interleave(unsigned i)
 {
+	/* TODO: rather distribute over hierarchy */
 	if (total_ncpus > 1)
 		return (i % (total_ncpus/2))*2 + i / (total_ncpus/2);
 	else
