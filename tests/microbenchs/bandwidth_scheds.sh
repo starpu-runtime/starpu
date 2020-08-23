@@ -46,6 +46,8 @@ set xlabel "ncores"
 
 plot \\
 	"bandwidth-$DEFAULT.dat" using 1:2 with lines title "alone", \\
+	"bandwidth-$DEFAULT.dat" using 1:6 with lines title "nop", \\
+	"bandwidth-$DEFAULT.dat" using 1:7 with lines title "sync", \\
 	"bandwidth-$DEFAULT.dat" using 1:5 with lines title "alone interleave", \\
 EOF
 
@@ -60,7 +62,7 @@ do
 
 	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $extra | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
-	echo "\"bandwidth-$sched.dat\" using 1:6 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
+	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
 	type=$((type+1))
 done
 
