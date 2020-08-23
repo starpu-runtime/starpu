@@ -204,6 +204,7 @@ int main(int argc, char **argv)
 		idle = bench(&argc, &argv, n, total_ncpus, 0);
 		idle_int = bench(&argc, &argv, n, total_ncpus, 1);
 		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\n", n, alone/1000, idle/1000, idle*100/alone, alone_int/1000, idle_int/1000, idle_int*100/alone_int);
+		fflush(stdout);
 	}
 
 	free(result);
