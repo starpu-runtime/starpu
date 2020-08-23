@@ -39,32 +39,30 @@ static unsigned iter = 30;
 static unsigned total_ncpus;
 static starpu_pthread_barrier_t barrier;
 static float *result;
+static void **buffers;
 
 void bw_func(void *descr[], void *arg)
 {
-	void *src;
-	void *dst;
+	void *src = buffers[starpu_worker_get_id()];
+	void *dst = src + size;
 	unsigned i;
 	double start, stop;
 	int ret;
 
-	ret = posix_memalign(&src, getpagesize(), size);
-	STARPU_ASSERT(ret == 0);
-	ret = posix_memalign(&dst, getpagesize(), size);
-	STARPU_ASSERT(ret == 0);
 	memset(src, 0, size);
+	memset(dst, 0, size);
 
 	STARPU_PTHREAD_BARRIER_WAIT(&barrier);
 	start = starpu_timing_now();
 	for (i = 0; i < iter; i++)
+	{
 		memcpy(dst, src, size);
+		STARPU_SYNCHRONIZE();
+	}
 	stop = starpu_timing_now();
 	STARPU_PTHREAD_BARRIER_WAIT(&barrier);
 
 	result[starpu_worker_get_id()] = (size*iter) / (stop - start);
-
-	free(src);
-	free(dst);
 }
 
 static struct starpu_codelet bw_codelet =
@@ -187,9 +185,19 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	result = malloc(total_ncpus * sizeof(result[0]));
+	buffers = malloc(total_ncpus * sizeof(*buffers));
+	for (n = 0; n < total_ncpus; n++)
+	{
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
+		ret = posix_memalign(&buffers[n], getpagesize(), 2*size);
+		STARPU_ASSERT(ret == 0);
+#else
+		buffers[n] = malloc(2*size);
+#endif
+	}
 
 	printf("# nw\talone\t\t+idle\t\tefficiency\talone int.l\t+idle int.l\tefficiency\n");
-	for (n = 1; n <= total_ncpus; n += cpustep)
+	for (n = cpustep; n <= total_ncpus; n += cpustep)
 	{
 		if (noalone)
 		{
@@ -208,6 +216,9 @@ int main(int argc, char **argv)
 	}
 
 	free(result);
+
+	for (n = 0; n < total_ncpus; n++)
+		free(buffers[n]);
 
 	return EXIT_SUCCESS;
 
