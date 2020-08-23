@@ -44,7 +44,7 @@ static void **buffers;
 void bw_func(void *descr[], void *arg)
 {
 	void *src = buffers[starpu_worker_get_id()];
-	void *dst = src + size;
+	void *dst = (void*) ((uintptr_t)src + size);
 	unsigned i;
 	double start, stop;
 	int ret;
