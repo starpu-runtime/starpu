@@ -355,7 +355,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 
 	if (!data_source->queue.ntasks)
 	{
-		STARPU_ASSERT(ws->per_worker[source].notask == 1);
+		STARPU_ASSERT(ws->per_worker[source].notask == 0);
 		ws->per_worker[source].notask = 1;
 	}
 	return task;
@@ -402,7 +402,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 
 	if (!ws->per_worker[source].queue.ntasks)
 	{
-		STARPU_ASSERT(ws->per_worker[source].notask == 1);
+		STARPU_ASSERT(ws->per_worker[source].notask == 0);
 		ws->per_worker[source].notask = 1;
 	}
 	return task;
@@ -683,7 +683,7 @@ int ws_push_task(struct starpu_task *task)
 	_starpu_prio_deque_push_back_task(&ws->per_worker[workerid].queue, task);
 	if (ws->per_worker[workerid].queue.ntasks == 1)
 	{
-		STARPU_ASSERT(ws->per_worker[workerid].notask == 0);
+		STARPU_ASSERT(ws->per_worker[workerid].notask == 1);
 		ws->per_worker[workerid].notask = 0;
 	}
 	locality_pushed_task(ws, task, workerid, sched_ctx_id);
