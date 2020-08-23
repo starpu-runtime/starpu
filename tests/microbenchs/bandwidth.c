@@ -36,7 +36,7 @@ static unsigned cpustep = 1;
 
 static unsigned noalone = 0;
 static unsigned iter = 30;
-static unsigned ncpus;
+static unsigned total_ncpus;
 static starpu_pthread_barrier_t barrier;
 static float *result;
 
@@ -108,7 +108,15 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-static float bench(int *argc, char ***argv, unsigned nbusy, unsigned nidle)
+static unsigned interleave(unsigned i)
+{
+	if (total_ncpus > 1)
+		return (i % (total_ncpus/2))*2 + i / (total_ncpus/2);
+	else
+		return 0;
+}
+
+static float bench(int *argc, char ***argv, unsigned nbusy, unsigned ncpus, int intl)
 {
 	int ret;
 	unsigned i;
@@ -119,7 +127,14 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned nidle)
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
-	conf.ncpus = nbusy + nidle;
+	conf.ncpus = ncpus;
+
+	if (intl && nbusy == ncpus)
+	{
+		conf.use_explicit_workers_bindid = 1;
+		for (i = 0; i < ncpus; i++)
+			conf.workers_bindid[i] = interleave(i);
+	}
 
 	ret = starpu_initialize(&conf, argc, argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -132,7 +147,10 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned nidle)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &bw_codelet;
 		task->execute_on_a_specific_worker = 1;
-		task->workerid = i;
+		if (intl && nbusy != ncpus)
+			task->workerid = interleave(i);
+		else
+			task->workerid = i;
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -152,7 +170,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned n;
 	struct starpu_conf conf;
-	float alone, idle;
+	float alone, alone_int, idle, idle_int;
 
 	parse_args(argc, argv);
 
@@ -164,20 +182,27 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ncpus = starpu_cpu_worker_get_count();
+	total_ncpus = starpu_cpu_worker_get_count();
 	starpu_shutdown();
 
-	result = malloc(ncpus * sizeof(result[0]));
+	result = malloc(total_ncpus * sizeof(result[0]));
 
-	printf("# nw\talone\t\t+idle\t\tidle efficiency\n");
-	for (n = 1; n <= ncpus; n += cpustep)
+	printf("# nw\talone\t\t+idle\t\tefficiency\talone int.l\t+idle int.l\tefficiency\n");
+	for (n = 1; n <= total_ncpus; n += cpustep)
 	{
 		if (noalone)
+		{
 			alone = 0.;
+			alone_int = 0.;
+		}
 		else
-			alone = bench(&argc, &argv, n, 0);
-		idle = bench(&argc, &argv, n, ncpus-n);
-		printf("%d\t%f\t%f\t%f\n", n, alone/1000, idle/1000, idle*100/alone);
+		{
+			alone = bench(&argc, &argv, n, n, 0);
+			alone_int = bench(&argc, &argv, n, n, 1);
+		}
+		idle = bench(&argc, &argv, n, total_ncpus, 0);
+		idle_int = bench(&argc, &argv, n, total_ncpus, 1);
+		printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\n", n, alone/1000, idle/1000, idle*100/alone, alone_int/1000, idle_int/1000, idle_int*100/alone_int);
 	}
 
 	free(result);
