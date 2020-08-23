@@ -20,6 +20,14 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#if !defined(STARPU_HAVE_UNSETENV)
+#warning unsetenv is not defined. Skipping test
+int main(void)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 /*
  * Measure the memory bandwidth available to kernels depending on the number of
  * kernels and number of idle workers.
@@ -173,6 +181,11 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	unsetenv("STARPU_NCUDA");
+	unsetenv("STARPU_NOPENCL");
+	unsetenv("STARPU_NMIC");
+	unsetenv("STARPU_NSCC");
+
 	starpu_conf_init(&conf);
 	conf.ncuda = 0;
 	conf.nopencl = 0;
@@ -225,3 +238,4 @@ int main(int argc, char **argv)
 
 	return EXIT_SUCCESS;
 }
+#endif
