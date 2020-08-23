@@ -40,6 +40,7 @@ EXTRA_DIST =					\
 	regression/profiles.build.only.in	\
 	microbenchs/tasks_size_overhead.sh	\
 	microbenchs/tasks_size_overhead.gp	\
+	microbenchs/bandwidth_scheds.sh		\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
@@ -366,6 +367,7 @@ endif
 
 SHELL_TESTS += \
 	datawizard/locality.sh \
+	microbenchs/bandwidth_scheds.sh \
 	overlap/overlap.sh
 
 #######################
