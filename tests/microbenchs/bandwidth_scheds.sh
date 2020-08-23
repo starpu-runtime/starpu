@@ -26,9 +26,19 @@ else
 	DEFAULT=eager
 fi
 
-cat > bandwidth.gp << EOF
-set term postscript eps enhanced color font ",18"
-set output "bandwidth.eps"
+if [ -n "$STARPU_BENCH_DIR" ]; then
+	cat > bandwidth.gp << EOF
+	set term png font ",16"
+	set output "bandwidth.png"
+EOF
+else
+	cat > bandwidth.gp << EOF
+	set term postscript eps enhanced color font ",18"
+	set output "bandwidth.eps"
+EOF
+fi
+
+cat >> bandwidth.gp << EOF
 set key outside
 set ylabel "GB/s"
 set xlabel "ncores"
@@ -51,8 +61,6 @@ done
 
 if gnuplot bandwidth.gp ; then
 	if [ -n "$STARPU_BENCH_DIR" ]; then
-		cp bandwidth.eps $STARPU_BENCH_DIR/
-	else
-		gv bandwidth.eps &
+		cp bandwidth.png $STARPU_BENCH_DIR/
 	fi
 fi
