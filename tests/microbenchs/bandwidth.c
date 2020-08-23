@@ -42,11 +42,16 @@ static float *result;
 
 void bw_func(void *descr[], void *arg)
 {
-	void *src = malloc(size);
-	void *dst = malloc(size);
+	void *src;
+	void *dst;
 	unsigned i;
 	double start, stop;
+	int ret;
 
+	ret = posix_memalign(&src, getpagesize(), size);
+	STARPU_ASSERT(ret == 0);
+	ret = posix_memalign(&dst, getpagesize(), size);
+	STARPU_ASSERT(ret == 0);
 	memset(src, 0, size);
 
 	STARPU_PTHREAD_BARRIER_WAIT(&barrier);
