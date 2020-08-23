@@ -40,13 +40,16 @@ fi
 
 cat >> bandwidth.gp << EOF
 set key outside
+set size 2,1
 set ylabel "GB/s"
 set xlabel "ncores"
 
 plot \\
 	"bandwidth-$DEFAULT.dat" using 1:2 with lines title "alone", \\
+	"bandwidth-$DEFAULT.dat" using 1:5 with lines title "alone interleave", \\
 EOF
 
+type=1
 for sched in $SCHEDS
 do
 	if [ "$sched" != eager -a "$sched" != "$SCHEDS" ]; then
@@ -56,7 +59,9 @@ do
 	fi
 
 	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $extra | tee bandwidth-$sched.dat
-	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints title \"$sched\", \\" >> bandwidth.gp
+	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
+	echo "\"bandwidth-$sched.dat\" using 1:6 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
+	type=$((type+1))
 done
 
 if gnuplot bandwidth.gp ; then
