@@ -43,6 +43,7 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
+	microbenchs/bandwidth_scheds.sh		\
 	energy/static.sh			\
 	energy/dynamic.sh			\
 	energy/perfs.gp				\
@@ -446,6 +447,7 @@ endif
 if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
+	microbenchs/bandwidth_scheds.sh \
 	overlap/overlap.sh
 endif
 
