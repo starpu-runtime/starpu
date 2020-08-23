@@ -188,6 +188,9 @@ int main(int argc, char **argv)
 	total_ncpus = starpu_cpu_worker_get_count();
 	starpu_shutdown();
 
+	if (total_ncpus == 0)
+		return STARPU_TEST_SKIPPED;
+
 	result = malloc(total_ncpus * sizeof(result[0]));
 	buffers = malloc(total_ncpus * sizeof(*buffers));
 	for (n = 0; n < total_ncpus; n++)
@@ -225,10 +228,4 @@ int main(int argc, char **argv)
 		free(buffers[n]);
 
 	return EXIT_SUCCESS;
-
-enodev:
-	fprintf(stderr, "WARNING: No one can execute this task\n");
-	free(result);
-	starpu_shutdown();
-	return STARPU_TEST_SKIPPED;
 }
