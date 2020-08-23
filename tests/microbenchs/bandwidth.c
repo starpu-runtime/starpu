@@ -123,6 +123,7 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned ncpus, int 
 	float bw;
 
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
@@ -175,6 +176,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
 	conf.nmic = 0;
