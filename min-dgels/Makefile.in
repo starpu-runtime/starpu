@@ -25,6 +25,7 @@ clean:
 	rm -rf build *~
 
 distclean: clean
+	[ -f Makefile.in ] || rm -fr $(CLAPACK) $(ADDITIONAL)
 
 # This part is needed by StarPU
 
