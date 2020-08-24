@@ -63,7 +63,7 @@ EXTRA_DIST =					\
 	microbenchs/microbench.sh
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod bandwidth-*.dat
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.png
 
 BUILT_SOURCES =
 SUBDIRS =
