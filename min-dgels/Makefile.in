@@ -14,6 +14,10 @@ all:
 	cd $(ADDITIONAL) && $(CC) -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
 
 install:
+installcheck:
+uninstall:
+distuninstallcheck:
+dvi:
 
 clean:
 	-cd $(CLAPACK) && $(MAKE) clean && rm -rf *~
