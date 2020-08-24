@@ -137,11 +137,11 @@ static struct starpu_codelet sync_codelet =
 
 static void usage(char **argv)
 {
-	fprintf(stderr, "Usage: %s [-n iter] [-s size (MB)] [-i increment] [-a]\n", argv[0]);
-	fprintf(stderr, "\t-n iter\tNumber of iterations\n");
+	fprintf(stderr, "Usage: %s [-n niter] [-s size (MB)] [-c cpustep] [-a]\n", argv[0]);
+	fprintf(stderr, "\t-n niter\tNumber of iterations\n");
 	fprintf(stderr, "\t-s size\tBuffer size in MB\n");
-	fprintf(stderr, "\t-i increment\tCpu number increment\n");
-	fprintf(stderr, "\t-a\tDo not run the alone test\n");
+	fprintf(stderr, "\t-c cpustep\tCpu number increment\n");
+	fprintf(stderr, "\t-a Do not run the alone test\n");
 	exit(EXIT_FAILURE);
 }
 

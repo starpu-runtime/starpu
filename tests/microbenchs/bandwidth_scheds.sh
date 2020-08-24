@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
@@ -33,6 +33,7 @@ set output "bandwidth.svg"
 set pointsize 0.3
 EOF
 else
+	fast="-i 3 -c 4"
 	cat > bandwidth.gp << EOF
 set term postscript eps enhanced color font ",18"
 set output "bandwidth.eps"
@@ -61,7 +62,7 @@ do
 		extra=
 	fi
 
-	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $extra | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
 	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
 	type=$((type+1))
