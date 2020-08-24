@@ -43,13 +43,14 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int mpi_init;
+	int i;
 
 	int niter = DEFAULT_NITER;
 	int data_size = DEFAULT_DATA_SIZE;
 	int sleep_time = DEFAULT_SLEEP_TIME;
 	int method = DEFAULT_METHOD;
 
-	for (int i = 1; i < argc; i++)
+	for (i = 1; i < argc; i++)
 	{
 		if (strcmp(argv[i], "-n") == 0)
 		{

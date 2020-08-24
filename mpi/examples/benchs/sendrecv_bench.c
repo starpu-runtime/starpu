@@ -27,9 +27,10 @@ int main(int argc, char **argv)
 {
 	int ret, rank, worldsize;
 	int pause_workers = 0;
+	int i = 0;
 
 
-	for (int i = 1; i < argc; i++)
+	for (i = 1; i < argc; i++)
 	{
 		if (strcmp(argv[i], "-p") == 0)
 		{

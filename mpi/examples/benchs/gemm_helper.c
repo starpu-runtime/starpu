@@ -98,8 +98,9 @@ static void cpu_init_matrix_random(void *descr[], void *arg)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
+	unsigned i = 0;
 
-	for (unsigned i = 0; i < nx *ny; i++)
+	for (i = 0; i < nx *ny; i++)
 	{
 		subA[i] = (TYPE) (starpu_drand48());
 		subB[i] = (TYPE) (starpu_drand48());
@@ -113,8 +114,9 @@ static void cpu_init_matrix_zero(void *descr[], void *arg)
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
+	unsigned i = 0;
 
-	for (unsigned i = 0; i < nx *ny; i++)
+	for (i = 0; i < nx *ny; i++)
 	{
 		subA[i] = (TYPE) (0);
 	}
@@ -290,18 +292,21 @@ void gemm_add_polling_dependencies()
 {
 	starpu_tag_t nb_tasks = (starpu_tag_t) nslices * (starpu_tag_t) nslices;
 	unsigned nb_workers = starpu_worker_get_count();
+	starpu_tag_t synchro_tag = 0;
+	starpu_tag_t previous_tag = 0;
+	starpu_tag_t next_tag = 0;
 
-	for (starpu_tag_t synchro_tag = nb_workers+1; synchro_tag <= nb_tasks; synchro_tag += (nb_workers+1))
+	for (synchro_tag = nb_workers+1; synchro_tag <= nb_tasks; synchro_tag += (nb_workers+1))
 	{
 		// this synchro tag depends on tasks of previous column of tasks:
-		for (starpu_tag_t previous_tag = synchro_tag - nb_workers; previous_tag < synchro_tag; previous_tag++)
+		for (previous_tag = synchro_tag - nb_workers; previous_tag < synchro_tag; previous_tag++)
 		{
 			starpu_tag_declare_deps(synchro_tag, 1, previous_tag);
 		}
 
 		// tasks of the next column of tasks depend on this synchro tag:
 		// this actually allows workers to poll for new tasks, while no task is available
-		for (starpu_tag_t next_tag = synchro_tag+1; next_tag < (synchro_tag + nb_workers + 1) && next_tag <= nb_tasks; next_tag++)
+		for (next_tag = synchro_tag+1; next_tag < (synchro_tag + nb_workers + 1) && next_tag <= nb_tasks; next_tag++)
 		{
 			starpu_tag_declare_deps(next_tag, 1, synchro_tag);
 		}

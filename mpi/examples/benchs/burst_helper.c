@@ -45,7 +45,8 @@ void burst_init_data(int rank)
 		recv_reqs = malloc(burst_nb_requests * sizeof(starpu_mpi_req));
 		send_reqs = malloc(burst_nb_requests * sizeof(starpu_mpi_req));
 
-		for (int i = 0; i < burst_nb_requests; i++)
+		int i = 0;
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			send_buffers[i] = malloc(NX_ARRAY * sizeof(float));
 			memset(send_buffers[i], 0, NX_ARRAY * sizeof(float));
@@ -62,7 +63,8 @@ void burst_free_data(int rank)
 {
 	if (rank == 0 || rank == 1)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		int i = 0;
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			starpu_data_unregister(send_handles[i]);
 			free(send_buffers[i]);
@@ -84,12 +86,13 @@ void burst_free_data(int rank)
 void burst_bidir(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
+	int i = 0;
 
 	FPRINTF(stderr, "Simultaneous....start (rank %d)\n", rank);
 
 	if (rank == 0 || rank == 1)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
 			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
@@ -100,13 +103,13 @@ void burst_bidir(int rank)
 
 	if (rank == 0 || rank == 1)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
 			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
 		}
 
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			if (recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
 			if (send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
@@ -120,10 +123,11 @@ void burst_bidir(int rank)
 void burst_unidir(int sender, int receiver, int rank)
 {
 	FPRINTF(stderr, "%d -> %d... start (rank %d)\n", sender, receiver, rank);
+	int i = 0;
 
 	if (rank == receiver)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
 			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], sender, i, MPI_COMM_WORLD);
@@ -134,7 +138,7 @@ void burst_unidir(int sender, int receiver, int rank)
 
 	if (rank == sender)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
 			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], receiver, i, i, MPI_COMM_WORLD);
@@ -143,7 +147,7 @@ void burst_unidir(int sender, int receiver, int rank)
 
 	if (rank == sender || rank == receiver)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			if (rank != sender && recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
 			if (rank == sender && send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
@@ -160,12 +164,13 @@ void burst_bidir_half_postponed(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
 	int received = 0;
+	int i = 0;
 
 	FPRINTF(stderr, "Half/half burst...start (rank %d)\n", rank);
 
 	if (rank == 0 || rank == 1)
 	{
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
 			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
@@ -176,7 +181,7 @@ void burst_bidir_half_postponed(int rank)
 
 	if (rank == 0 || rank == 1)
 	{
-		for (int i = 0; i < (burst_nb_requests / 2); i++)
+		for (i = 0; i < (burst_nb_requests / 2); i++)
 		{
 			send_reqs[i] = NULL;
 			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
@@ -184,13 +189,13 @@ void burst_bidir_half_postponed(int rank)
 
 		if (recv_reqs[burst_nb_requests / 4]) starpu_mpi_wait(&recv_reqs[burst_nb_requests / 4], MPI_STATUS_IGNORE);
 
-		for (int i = (burst_nb_requests / 2); i < burst_nb_requests; i++)
+		for (i = (burst_nb_requests / 2); i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
 			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
 		}
 
-		for (int i = 0; i < burst_nb_requests; i++)
+		for (i = 0; i < burst_nb_requests; i++)
 		{
 			if (recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
 			if (send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);

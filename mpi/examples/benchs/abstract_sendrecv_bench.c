@@ -22,6 +22,9 @@
 void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 {
 	uint64_t iterations = LOOPS_DEFAULT;
+	uint64_t s = 0;
+	uint64_t j = 0;
+	uint64_t k = 0;
 
 	if (mpi_rank >= 2)
 	{
@@ -31,13 +34,13 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 			STARPU_PTHREAD_BARRIER_WAIT(thread_barrier);
 		}
 
-		for (uint64_t s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
+		for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 		{
 			iterations = bench_nb_iterations(iterations, s);
 
 			starpu_mpi_barrier(MPI_COMM_WORLD);
 
-			for (uint64_t j = 0; j < iterations; j++)
+			for (j = 0; j < iterations; j++)
 			{
 				starpu_mpi_barrier(MPI_COMM_WORLD);
 			}
@@ -66,7 +69,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 	}
 
 	global_tstart = starpu_timing_now();
-	for (uint64_t s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
+	for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 	{
 		vector_send = malloc(s);
 		vector_recv = malloc(s);
@@ -80,7 +83,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 
-		for (uint64_t j = 0; j < iterations; j++)
+		for (j = 0; j < iterations; j++)
 		{
 			if (mpi_rank == 0)
 			{
@@ -113,7 +116,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 			const double d9_lat = lats[9 * (iterations - 1) / 10];
 			double avg_lat = 0.0;
 
-			for(uint64_t k = 0; k < iterations; k++)
+			for(k = 0; k < iterations; k++)
 			{
 				avg_lat += lats[k];
 			}
