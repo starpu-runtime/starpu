@@ -26,7 +26,6 @@ else
 	DEFAULT=eager
 fi
 
-fast="-n 3 -c 4"
 if [ -n "$STARPU_BENCH_DIR" ]; then
 	cat > bandwidth.gp << EOF
 set term svg font ",12" size 1500,500 linewidth 0.5
@@ -34,6 +33,7 @@ set output "bandwidth.svg"
 set pointsize 0.3
 EOF
 else
+	fast="-n 3 -c 4"
 	cat > bandwidth.gp << EOF
 set term postscript eps enhanced color font ",18"
 set output "bandwidth.eps"

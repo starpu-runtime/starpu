@@ -39,11 +39,11 @@ static unsigned cpustep = 4;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
-static unsigned cpustep = 1;
+static unsigned cpustep = 4;
 #endif
 
 static unsigned noalone = 0;
-static unsigned iter = 30;
+static unsigned iter = 3;
 static unsigned total_ncpus;
 static starpu_pthread_barrier_t barrier_begin, barrier_end;
 static float *result;
