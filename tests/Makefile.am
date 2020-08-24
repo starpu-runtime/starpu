@@ -70,7 +70,7 @@ EXTRA_DIST =					\
 	model-checking/starpu-mc.sh.in
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec bandwidth-*.dat
 
 BUILT_SOURCES =
 SUBDIRS =
