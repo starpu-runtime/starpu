@@ -2962,6 +2962,9 @@ fi
 AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
 			[Disable multiple linear regression models])],
 			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
+AC_ARG_ENABLE(mlr-system-blas, [AS_HELP_STRING([--enable-mlr-system-blas],
+			[Make the multiple linear regression models use the system BLAS instead of min-dgels])],
+			enable_mlr_blas=$enableval, enable_mlr_blas=no)
 
 AC_MSG_CHECKING(whether multiple linear regression models are disabled)
 if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
@@ -2972,11 +2975,11 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	if test x$blas_lib = xnone ; then
 	   use_system_lapack=no
 	fi
-	if test x$use_system_lapack = xyes; then
+	if test x$enable_mlr_blas = xyes -a test x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
-		if test x$blas_lib = xmkl; then
+		if test x$enable_mlr_blas=xyes -a test x$blas_lib = xmkl; then
 		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])
 		else
 			AC_MSG_CHECKING(whether min-dgels is linked)
