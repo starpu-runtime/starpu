@@ -2416,8 +2416,8 @@ AC_SUBST(STARPU_EXPORT_DYNAMIC)
 # Computes the maximum number of different kernels a message-passing sink
 # can lookup for and launch.
 AC_MSG_CHECKING(Maximum number of message-passing kernels)
-AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
-	      -enable-maxmpkernels=<number>],
+AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING(
+	      [-enable-maxmpkernels=<number>],
 	      [maximum number of kernels a message-passing sink can lookup
 	      for and execute])],
 	      maxmpkernels=$enableval, maxmpkernels=10)
