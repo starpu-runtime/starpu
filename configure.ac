@@ -3043,6 +3043,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 				else
 					if test ! -d $PWD/min-dgels; then
 						cp -r $srcdir/min-dgels $PWD/
+						rm -f $PWD/min-dgels/Makefile.in
 						chmod +rwX -R $PWD/min-dgels
 					fi
 					AC_MSG_RESULT(yes)
