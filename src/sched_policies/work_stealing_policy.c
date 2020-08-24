@@ -140,8 +140,10 @@ static int select_victim_round_robin(struct _starpu_work_stealing_data *ws, unsi
 		if (!ws->per_worker[workerids[worker]].notask)
 		{
 			if (ws->per_worker[workerids[worker]].busy
-						   || starpu_worker_is_blocked_in_parallel(workerids[worker]))
+						   || starpu_worker_is_blocked_in_parallel(workerids[worker])) {
+				ntasks = 1;
 				break;
+			}
 		}
 
 		worker = (worker + 1) % nworkers;
