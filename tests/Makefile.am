@@ -174,7 +174,6 @@ myPROGRAMS +=					\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
-	microbenchs/bandwidth			\
 	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
@@ -358,6 +357,7 @@ myPROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
+	microbenchs/bandwidth			\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -414,8 +414,7 @@ examplebin_PROGRAMS = \
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
 	microbenchs/tasks_size_overhead		\
-	microbenchs/local_pingpong		\
-	microbenchs/bandwidth
+	microbenchs/local_pingpong
 examplebin_SCRIPTS = \
 	microbenchs/tasks_data_overhead.sh \
 	microbenchs/sync_tasks_data_overhead.sh \
@@ -424,6 +423,8 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
+examplebin_PROGRAMS += \
+	microbenchs/bandwidth
 SHELL_TESTS += \
 	microbenchs/tasks_data_overhead.sh \
 	microbenchs/sync_tasks_data_overhead.sh \
