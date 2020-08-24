@@ -3041,11 +3041,6 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 					install_min_dgels=no
 					support_mlr=no
 				else
-					if test ! -d $PWD/min-dgels; then
-						cp -r $srcdir/min-dgels $PWD/
-						rm -f $PWD/min-dgels/Makefile.in
-						chmod +rwX -R $PWD/min-dgels
-					fi
 					AC_MSG_RESULT(yes)
 					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
 					AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
