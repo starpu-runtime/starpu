@@ -236,6 +236,9 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 	if( info != 0 )
 	{
 		_STARPU_DISP("Warning: Problems when executing dgels_ function. It seems like the diagonal element %ld is zero.\n Multiple linear regression model will not be written into perfmodel file.\n", info);
+		free(X);
+		free(Y);
+		free(work);
 		return 1;
 	}
 
