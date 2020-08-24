@@ -150,7 +150,6 @@ noinst_PROGRAMS +=				\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
 	microbenchs/local_pingpong		\
-	microbenchs/bandwidth			\
 	overlap/overlap				\
 	openmp/init_exit_01			\
 	perfmodels/value_nan
@@ -277,6 +276,7 @@ noinst_PROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
+	microbenchs/bandwidth			\
 	openmp/init_exit_02			\
 	openmp/environment			\
 	openmp/api_01				\
@@ -353,11 +353,16 @@ endif
 
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
-	microbenchs/local_pingpong		\
-	microbenchs/bandwidth
+	microbenchs/local_pingpong
 examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
+if !STARPU_SIMGRID
+if !STARPU_USE_MPI_MASTER_SLAVE
+examplebin_PROGRAMS += \
+	microbenchs/bandwidth
+endif
+endif
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(noinst_PROGRAMS)
