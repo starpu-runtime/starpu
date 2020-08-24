@@ -33,7 +33,7 @@ set output "bandwidth.svg"
 set pointsize 0.3
 EOF
 else
-	fast="-i 3 -c 4"
+	fast="-n 3 -c 4"
 	cat > bandwidth.gp << EOF
 set term postscript eps enhanced color font ",18"
 set output "bandwidth.eps"
