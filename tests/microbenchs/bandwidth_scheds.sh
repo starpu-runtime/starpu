@@ -28,19 +28,19 @@ fi
 
 if [ -n "$STARPU_BENCH_DIR" ]; then
 	cat > bandwidth.gp << EOF
-	set term png font ",16"
-	set output "bandwidth.png"
+set term png font ",12" size 1500,500
+set output "bandwidth.png"
 EOF
 else
 	cat > bandwidth.gp << EOF
-	set term postscript eps enhanced color font ",18"
-	set output "bandwidth.eps"
+set term postscript eps enhanced color font ",18"
+set output "bandwidth.eps"
+set size 2,1
 EOF
 fi
 
 cat >> bandwidth.gp << EOF
 set key outside
-set size 2,1
 set ylabel "GB/s"
 set xlabel "ncores"
 
