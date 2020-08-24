@@ -45,10 +45,10 @@ set ylabel "GB/s"
 set xlabel "ncores"
 
 plot \\
-	"bandwidth-$DEFAULT.dat" using 1:2 with lines title "alone", \\
+	"bandwidth-$DEFAULT.dat" using 1:5 with lines title "alone interleave", \\
 	"bandwidth-$DEFAULT.dat" using 1:6 with lines title "nop", \\
 	"bandwidth-$DEFAULT.dat" using 1:7 with lines title "sync", \\
-	"bandwidth-$DEFAULT.dat" using 1:5 with lines title "alone interleave", \\
+	"bandwidth-$DEFAULT.dat" using 1:2 with lines title "alone contiguous", \\
 EOF
 
 type=1
