@@ -135,6 +135,7 @@ int main(int argc, char **argv)
 	int loop;
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int sender;
+	int r = 0;
 
 	if (method == 0) // ping pongs
 	{
@@ -162,7 +163,7 @@ int main(int argc, char **argv)
 			sender = loop % size;
 			if (sender == rank)
 			{
-				for (int r = 0; r < size; r++)
+				for (r = 0; r < size; r++)
 				{
 					if (r != rank)
 					{
@@ -176,7 +177,7 @@ int main(int argc, char **argv)
 				MPI_Status status;
 				starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
 
-				for (int r = 0; r < (size-1); r++)
+				for (r = 0; r < (size-1); r++)
 					starpu_sleep(sleep_time / 1000);
 			}
 		}
