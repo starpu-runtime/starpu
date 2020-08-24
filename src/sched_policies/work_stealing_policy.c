@@ -353,7 +353,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	else
 		task = _starpu_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
 
-	if (!data_source->queue.ntasks)
+	if (task && !data_source->queue.ntasks)
 	{
 		STARPU_ASSERT(ws->per_worker[source].notask == 0);
 		ws->per_worker[source].notask = 1;
@@ -400,7 +400,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	else
 		task = _starpu_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
 
-	if (!ws->per_worker[source].queue.ntasks)
+	if (task && !ws->per_worker[source].queue.ntasks)
 	{
 		STARPU_ASSERT(ws->per_worker[source].notask == 0);
 		ws->per_worker[source].notask = 1;
