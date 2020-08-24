@@ -768,6 +768,14 @@ this parameter is 10. Experimental.
 Allow to disable multiple linear regression models (see \ref PerformanceModelExample)
 </dd>
 
+<dt>--enable-mlr-system-blas</dt>
+<dd>
+\anchor enable-mlr-system-blas
+\addindex __configure__--enable-mlr-system-blas
+Allow to make multiple linear regression models use the system-provided BLAS for dgels
+(see \ref PerformanceModelExample)
+</dd>
+
 </dl>
 
 */

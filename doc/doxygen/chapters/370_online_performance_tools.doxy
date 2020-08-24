@@ -375,7 +375,11 @@ parameter are stored in <c>.starpu/sampling/codelets/tmp/</c>
 directory. These files are reused when \ref STARPU_CALIBRATE
 environment variable is set to <c>1</c>, to recompute coefficients
 based on the current, but also on the previous
-executions. Additionally, when multiple linear regression models are
+executions. By default StarPU uses a lightweight dgels implementation, but the
+\ref enable-mlr-system-blas "--enable-mlr-system-blas" configure option can be
+used to make StarPU use a system-provided dgels BLAS.
+
+Additionally, when multiple linear regression models are
 disabled (using \ref disable-mlr "--disable-mlr" configure option) or when the
 <c>model->combinations</c> are not defined, StarPU will still write
 output files into <c>.starpu/sampling/codelets/tmp/</c> to allow
