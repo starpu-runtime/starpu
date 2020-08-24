@@ -3043,6 +3043,7 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 				else
 					if test ! -d $PWD/min-dgels; then
 						cp -r $srcdir/min-dgels $PWD/
+						chmod +rwX -R $PWD/min-dgels
 					fi
 					AC_MSG_RESULT(yes)
 					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
