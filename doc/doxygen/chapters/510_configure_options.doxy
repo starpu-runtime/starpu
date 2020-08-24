@@ -561,11 +561,11 @@ Specify the blas library to be used by some of the examples. Librairies availabl
 Enable linking with LevelDB if available
 </dd>
 
-<dt>--disable-hdf5</dt>
+<dt>--enable-hdf5</dt>
 <dd>
-\anchor disable-hdf5
-\addindex __configure__--disable-hdf5
-Disable building HDF5 support.
+\anchor enable-hdf5
+\addindex __configure__--enable-hdf5
+Enable building HDF5 support.
 </dd>
 
 <dt>--with-hdf5-include-dir=<c>path</c></dt>

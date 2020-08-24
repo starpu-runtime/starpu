@@ -843,8 +843,8 @@ AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 
-AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
-                    enable_hdf5=$enableval, enable_hdf5=maybe)
+AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--enable-hdf5], [disable HDF5 support])],
+                    enable_hdf5=$enableval, enable_hdf5=no)
 
 if test "x$enable_hdf5" != xno ; then
 	AC_ARG_WITH(hdf5-include-dir,
@@ -903,8 +903,11 @@ fi
 
 if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno"; then
         AC_DEFINE([STARPU_HAVE_HDF5], [1], [Define to 1 if you have the <hdf5.h> header file.])
+	enable_hdf5=yes
+else
+	enable_hdf5=no
 fi
-AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno")
+AM_CONDITIONAL(STARPU_HAVE_HDF5, test "x$enable_hdf5" = "xyes")
 
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
@@ -3618,6 +3621,7 @@ AC_MSG_NOTICE([
                Scheduler Hypervisor:                          $build_sc_hypervisor
                simgrid enabled:                               $enable_simgrid
                ayudame enabled:                               $ayu_msg
+               HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
