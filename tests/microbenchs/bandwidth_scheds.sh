@@ -70,6 +70,6 @@ done
 
 if gnuplot bandwidth.gp ; then
 	if [ -n "$STARPU_BENCH_DIR" ]; then
-		cp bandwidth.png $STARPU_BENCH_DIR/
+		cp bandwidth.svg $STARPU_BENCH_DIR/
 	fi
 fi
