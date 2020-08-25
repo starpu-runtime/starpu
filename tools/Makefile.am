@@ -176,6 +176,7 @@ EXTRA_DIST =				\
 	dev/cppcheck/suppressions.txt	\
 	dev/valgrind/bash.suppr		\
 	dev/valgrind/fxt.suppr		\
+	dev/valgrind/glpk.suppr		\
 	dev/valgrind/hwloc.suppr	\
 	dev/valgrind/libc.suppr		\
 	dev/valgrind/libgomp.suppr	\
