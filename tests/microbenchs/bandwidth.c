@@ -346,6 +346,7 @@ int main(int argc, char **argv)
 
 	for (n = 0; n < total_ncpus; n++)
 		free(buffers[n]);
+	free(buffers);
 
 	return EXIT_SUCCESS;
 }
