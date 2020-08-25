@@ -29,7 +29,7 @@ struct _starpu_peager_data
         starpu_pthread_mutex_t policy_mutex;
 };
 
-#define STARPU_NMAXCOMBINED_WORKERS 520 
+#define STARPU_NMAXCOMBINED_WORKERS 600 
 /* instead of STARPU_NMAXCOMBINED_WORKERS, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
