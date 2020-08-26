@@ -82,6 +82,11 @@ struct _starpu_work_stealing_data_per_worker
 	int *proxlist;
 	int busy;	/* Whether this worker is working on a task */
 
+	/* keep track of the work performed from the beginning of the algorithm to make
+	 * better decisions about which queue to select when deferring work
+	 */
+	unsigned last_pop_worker;
+
 #ifdef USE_LOCALITY_TASKS
 	/* This records the same as queue, but hashed by data accessed with locality flag.  */
 	/* FIXME: we record only one task per data, assuming that the access is
@@ -99,9 +104,8 @@ struct _starpu_work_stealing_data
 	int (*select_victim)(struct _starpu_work_stealing_data *, unsigned, int);
 	struct _starpu_work_stealing_data_per_worker *per_worker;
 	/* keep track of the work performed from the beginning of the algorithm to make
-	 * better decisions about which queue to select when stealing or deferring work
+	 * better decisions about which queue to select when deferring work
 	 */
-	unsigned last_pop_worker;
 	unsigned last_push_worker;
 };
 
@@ -124,7 +128,8 @@ static int calibration_value = 0;
  */
 static int select_victim_round_robin(struct _starpu_work_stealing_data *ws, unsigned sched_ctx_id)
 {
-	unsigned worker = ws->last_pop_worker;
+	unsigned workerid = starpu_worker_get_id_check();
+	unsigned worker = ws->per_worker[workerid].last_pop_worker;
 	unsigned nworkers;
 	int *workerids = NULL;
 	nworkers = starpu_sched_ctx_get_workers_list_raw(sched_ctx_id, &workerids);
@@ -147,7 +152,7 @@ static int select_victim_round_robin(struct _starpu_work_stealing_data *ws, unsi
 		}
 
 		worker = (worker + 1) % nworkers;
-		if (worker == ws->last_pop_worker)
+		if (worker == ws->per_worker[workerid].last_pop_worker)
 		{
 			/* We got back to the first worker,
 			 * don't go in infinite loop */
@@ -156,7 +161,7 @@ static int select_victim_round_robin(struct _starpu_work_stealing_data *ws, unsi
 		}
 	}
 
-	ws->last_pop_worker = (worker + 1) % nworkers;
+	ws->per_worker[workerid].last_pop_worker = (worker + 1) % nworkers;
 
 	worker = workerids[worker];
 
@@ -750,9 +755,7 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(ws, sizeof(struct _starpu_work_stealing_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);
 
-	ws->last_pop_worker = 0;
 	ws->last_push_worker = 0;
-	STARPU_HG_DISABLE_CHECKING(ws->last_pop_worker);
 	STARPU_HG_DISABLE_CHECKING(ws->last_push_worker);
 	ws->select_victim = select_victim;
 
