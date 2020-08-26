@@ -141,6 +141,7 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
         STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
+	memset(&possible_combinations_cnt, 0, sizeof(possible_combinations_cnt));
 
 	free(data);
 }
