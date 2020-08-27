@@ -175,6 +175,14 @@ xwsne.o:	fio.h
 xwsne.o:	lio.h
 xwsne.o:	fmt.h
 
+main.o:		signal1.h
+signal_.o:	signal1.h
+s_paus.o:	signal1.h
+
+err.o:		sysdep1.h
+fio.h:		sysdep1.h
+util.c:		sysdep1.h
+
 arith.h: arithchk.c
 	$(CC) $(CFLAGS) -DNO_FPINIT arithchk.c -lm ||\
 	 $(CC) -DNO_LONG_LONG $(CFLAGS) -DNO_FPINIT arithchk.c -lm
