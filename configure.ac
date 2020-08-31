@@ -3023,11 +3023,11 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	if test x$blas_lib = xnone ; then
 	   use_system_lapack=no
 	fi
-	if test x$enable_mlr_blas = xyes -a test x$use_system_lapack = xyes; then
+	if test x$enable_mlr_blas = xyes -a x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
-		if test x$enable_mlr_blas=xyes -a test x$blas_lib = xmkl; then
+		if test x$enable_mlr_blas=xyes -a x$blas_lib = xmkl; then
 		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])
 		else
 			AC_MSG_CHECKING(whether min-dgels is linked)
