@@ -728,7 +728,10 @@ if test x"$enable_native_winthreads" = xyes ; then
 		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[1],[Using native windows threads]),
 		AC_MSG_ERROR([pthread_create unavailable]))
 else
-    AC_CHECK_LIB([pthread], [pthread_create])
+    AC_CHECK_LIB([pthread], [pthread_create], [
+        LIBS="$LIBS -lpthread"
+        STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lpthread"
+    ])
 fi
 
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
@@ -3418,7 +3421,7 @@ if test "x$enable_shared" = xno; then
         # No .so, so application will unexpected have to know which -l to
         # use. Give them in .pc file.
 	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
-	STARPU_EXPORTED_LIBS="$LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
+	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
 AC_SUBST(STARPU_EXPORTED_LIBS)
 
