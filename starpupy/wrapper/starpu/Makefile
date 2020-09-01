@@ -1,4 +1,6 @@
-CPPFLAGS=-I/usr/include/python3.6 -Wall -O2 -g
+PYTHON ?= python3.6
+
+CPPFLAGS = $(shell $(PYTHON)-config --includes) -Wall -O2 -g
 CFLAGS += $(shell pkg-config --cflags starpu-1.3)
 LDLIBS += $(shell pkg-config --libs starpu-1.3)
 
