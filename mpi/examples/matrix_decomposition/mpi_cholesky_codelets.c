@@ -240,7 +240,6 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 					       STARPU_RW, data_handles[m][k],
 					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 					       0);
-			}
 		}
 
 		/* We won't need it any more */
