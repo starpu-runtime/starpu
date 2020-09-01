@@ -189,8 +189,36 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 	{
 		starpu_iteration_push(n);
 
+		/* First handle the diagonal block */
 		/* Row */
-		for (m = n; m<nblocks; m++)
+		m = n;
+
+		for (k = 0; k < n; k++)
+		{
+			/* Accumulate updates from TRSMs */
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[n][k],
+					       STARPU_R, data_handles[m][k],
+					       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+					       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+					       0);
+
+			/* Nobody else will need it */
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
+			starpu_data_wont_use(data_handles[m][k]);
+		}
+
+		k = n;
+		/* Factorize */
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+				       STARPU_RW, data_handles[k][k],
+				       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+				       0);
+
+		/* Row */
+		for (m = n + 1; m<nblocks; m++)
 		{
 			for (k = 0; k < n; k++)
 			{
@@ -203,34 +231,16 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 						       0);
 
-				if (m == n)
-				{
-					/* Nobody else will need it */
-					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
-					starpu_data_wont_use(data_handles[m][k]);
-				}
 			}
 			k = n;
-			if (m > n)
-			{
-				/* non-diagonal block, solve */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
-						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-						       STARPU_R, data_handles[k][k],
-						       STARPU_RW, data_handles[m][k],
-						       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
-						       0);
+			/* Solve */
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[m][k],
+					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+					       0);
 			}
-			else
-			{
-				/* diagonal block, factorize */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
-						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
-						       STARPU_RW, data_handles[k][k],
-						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
-						       0);
-			}
-
 		}
 
 		/* We won't need it any more */
