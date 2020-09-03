@@ -754,6 +754,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	initial_handle->active_nchildren = initial_handle->active_readonly_nchildren[0];
 	initial_handle->active_children = initial_handle->active_readonly_children[0];
 	initial_handle->active_readonly_children[0] = NULL;
+	initial_handle->active_readonly_nchildren[0] = 0;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	unsigned i;

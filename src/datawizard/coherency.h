@@ -147,8 +147,8 @@ struct _starpu_data_state
 	starpu_data_handle_t *active_children; /** The currently active set of read-write children */
 	unsigned active_nchildren;
 	starpu_data_handle_t **active_readonly_children; /** The currently active set of read-only children */
-	unsigned nactive_readonly_children; /** Size of active_readonly_children array */
 	unsigned *active_readonly_nchildren; /** Size of active_readonly_children[i] array */
+	unsigned nactive_readonly_children; /** Size of active_readonly_children and active_readonly_nchildren arrays. Actual use is given by 'partitioned' */
 	/** Our siblings in the father partitioning */
 	unsigned nsiblings; /** How many siblings */
 	starpu_data_handle_t *siblings;

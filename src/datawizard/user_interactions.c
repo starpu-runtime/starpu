@@ -701,7 +701,7 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 	if (handle->nactive_readonly_children != 0)
 	{
 		unsigned i;
-		for(i=0 ; i<handle->nactive_readonly_children ; i++)
+		for(i=0 ; i<handle->partitioned; i++)
 		{
 			unsigned j;
 			for(j=0 ; j<handle->active_readonly_nchildren[i] ; j++)
