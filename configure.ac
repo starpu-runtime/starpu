@@ -149,8 +149,18 @@ AC_ARG_WITH(simgrid-lib-dir,
 	], [simgrid_lib_dir=no])
 
 if test x$enable_simgrid = xyes ; then
-	PKG_CHECK_MODULES([SIMGRID], [simgrid])
+	PKG_CHECK_MODULES([SIMGRID], [simgrid], [], [:])
 
+	if test "$simgrid_include_dir" != "no" ; then
+	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_include_dir"
+	fi
+	if test "$simgrid_lib_dir" != "no" ; then
+	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_lib_dir"
+	fi
+	if test "$simgrid_dir" != "no" ; then
+	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_dir/include"
+	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_dir/lib"
+	fi
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
@@ -158,20 +168,6 @@ if test x$enable_simgrid = xyes ; then
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
-	fi
-	if test "$simgrid_dir" != "no" ; then
-	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
-	   	CXXFLAGS="-I$simgrid_dir/include $CXXFLAGS"
-	   	NVCCFLAGS="-I$simgrid_dir/include $NVCCFLAGS"
-	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
-	fi
-	if test "$simgrid_include_dir" != "no" ; then
-	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
-	   	CXXFLAGS="-I$simgrid_include_dir $CXXFLAGS"
-	   	NVCCFLAGS="-I$simgrid_include_dir $NVCCFLAGS"
-	fi
-	if test "$simgrid_lib_dir" != "no" ; then
-	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
 	fi
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
