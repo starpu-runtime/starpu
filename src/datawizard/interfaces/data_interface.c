@@ -415,7 +415,9 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->root_handle
 	//handle->father_handle
 	//handle->active_children = NULL;
+	//handle->active_nchildren = 0;
 	//handle->active_readonly_children = NULL;
+	//handle->active_readonly_nchildren = NULL;
 	//handle->nactive_readonly_children = 0;
 	//handle->nsiblings
 	//handle->siblings
@@ -1025,6 +1027,7 @@ retry_busy:
 
 	_starpu_data_clear_implicit(handle);
 	free(handle->active_readonly_children);
+	free(handle->active_readonly_nchildren);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);

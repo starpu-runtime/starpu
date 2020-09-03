@@ -651,6 +651,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	STARPU_ASSERT_MSG(initial_handle->part_readonly == 0, "One can't submit a partition planning while a readonly partitioning is active");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->partitioned++;
+	initial_handle->active_nchildren = children[0]->nsiblings;
 	initial_handle->active_children = children[0]->siblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
@@ -715,9 +716,11 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
 	{
 		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
+		_STARPU_REALLOC(initial_handle->active_readonly_nchildren, initial_handle->partitioned * sizeof(initial_handle->active_readonly_nchildren[0]));
 		initial_handle->nactive_readonly_children = initial_handle->partitioned;
 	}
 	initial_handle->active_readonly_children[initial_handle->partitioned-1] = children[0]->siblings;
+	initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = children[0]->nsiblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	for (i = 0; i < nparts; i++)
@@ -748,6 +751,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	STARPU_ASSERT_MSG(initial_handle->part_readonly == 1, "One can only upgrade a readonly partition planning");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->part_readonly = 0;
+	initial_handle->active_nchildren = initial_handle->active_readonly_nchildren[0];
 	initial_handle->active_children = initial_handle->active_readonly_children[0];
 	initial_handle->active_readonly_children[0] = NULL;
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -782,18 +786,22 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 			if (initial_handle->active_readonly_children[i] == children[0]->siblings)
 			{
 				initial_handle->active_readonly_children[i] = initial_handle->active_readonly_children[initial_handle->partitioned-1];
+				initial_handle->active_readonly_nchildren[i] = initial_handle->active_readonly_nchildren[initial_handle->partitioned-1];
 				initial_handle->active_readonly_children[initial_handle->partitioned-1] = NULL;
+				initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = 0;
 				break;
 			}
 		}
 	}
 	else
 	{
+		initial_handle->active_nchildren = 0;
 		initial_handle->active_children = NULL;
 	}
 	initial_handle->partitioned--;
 	if (!initial_handle->partitioned)
 		initial_handle->part_readonly = 0;
+	initial_handle->active_nchildren = 0;
 	initial_handle->active_children = NULL;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 

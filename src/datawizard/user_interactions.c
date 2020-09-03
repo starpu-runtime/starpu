@@ -689,6 +689,34 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 	if (!handle->initialized)
 		/* No value atm actually */
 		return;
+
+	if (starpu_data_get_nb_children(handle) != 0)
+	{
+		int i;
+		for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+			starpu_data_wont_use(starpu_data_get_child(handle, i));
+		return;
+	}
+
+	if (handle->nactive_readonly_children != 0)
+	{
+		unsigned i;
+		for(i=0 ; i<handle->nactive_readonly_children ; i++)
+		{
+			unsigned j;
+			for(j=0 ; j<handle->active_readonly_nchildren[i] ; j++)
+				starpu_data_wont_use(handle->active_readonly_children[i][j]);
+		}
+	}
+
+	if (handle->active_nchildren != 0)
+	{
+		unsigned j;
+		for(j=0 ; j<handle->active_nchildren ; j++)
+			starpu_data_wont_use(handle->active_children[j]);
+		return;
+	}
+
 	_STARPU_TRACE_DATA_WONT_USE(handle);
 	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);
 }
