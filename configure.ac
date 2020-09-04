@@ -2997,15 +2997,9 @@ AC_SUBST(BLAS_LIB,$blas_lib)
 #			 Multiple linear regression			      #
 #                                                                             #
 ###############################################################################
-if test x$enable_simgrid = xyes ; then
-	# There is no need for building mlr models in simgrid mode
-	default_enable_mlr=no
-else
-	default_enable_mlr=yes
-fi
-AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
-			[Disable multiple linear regression models])],
-			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--enable-mlr],
+			[Enable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=no)
 AC_ARG_ENABLE(mlr-system-blas, [AS_HELP_STRING([--enable-mlr-system-blas],
 			[Make the multiple linear regression models use the system BLAS instead of min-dgels])],
 			enable_mlr_blas=$enableval, enable_mlr_blas=no)

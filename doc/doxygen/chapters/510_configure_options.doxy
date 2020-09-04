@@ -761,11 +761,11 @@ of this parameter must be in [0..100]. The default value of
 this parameter is 10. Experimental.
 </dd>
 
-<dt>--disable-mlr</dt>
+<dt>--enable-mlr</dt>
 <dd>
-\anchor disable-mlr
-\addindex __configure__--disable-mlr
-Allow to disable multiple linear regression models (see \ref PerformanceModelExample)
+\anchor enable-mlr
+\addindex __configure__--enable-mlr
+Allow to enable multiple linear regression models (see \ref PerformanceModelExample)
 </dd>
 
 <dt>--enable-mlr-system-blas</dt>

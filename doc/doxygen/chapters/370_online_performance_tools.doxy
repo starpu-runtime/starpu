@@ -366,7 +366,8 @@ are computed automatically by the StarPU at the end of the execution, using leas
 squares method of the <c>dgels_</c> LAPACK function.
 
 <c>examples/mlr/mlr.c</c> example provides more details on
-the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models.
+the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models. The \ref enable-mlr
+"--enable-mlr" configure option needs to be set to calibrate the model.
 
 Coefficients computation is done at the end of the execution, and the
 results are stored in standard codelet perfmodel files. Additional
@@ -379,8 +380,8 @@ executions. By default StarPU uses a lightweight dgels implementation, but the
 \ref enable-mlr-system-blas "--enable-mlr-system-blas" configure option can be
 used to make StarPU use a system-provided dgels BLAS.
 
-Additionally, when multiple linear regression models are
-disabled (using \ref disable-mlr "--disable-mlr" configure option) or when the
+Additionally, when multiple linear regression models are not enabled through 
+\ref enable-mlr "--enable-mlr" or when the
 <c>model->combinations</c> are not defined, StarPU will still write
 output files into <c>.starpu/sampling/codelets/tmp/</c> to allow
 performing an analysis. This analysis typically aims at finding the
