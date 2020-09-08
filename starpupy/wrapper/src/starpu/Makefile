@@ -1,4 +1,4 @@
-PYTHON ?= python3.6
+PYTHON ?= python3
 
 CPPFLAGS = $(shell $(PYTHON)-config --includes) -Wall -O2 -g
 CFLAGS += $(shell pkg-config --cflags starpu-1.3)
