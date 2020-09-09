@@ -226,9 +226,9 @@ if test x$enable_simgrid = xyes ; then
 		LIBS="$LIBS -lstdc++"
 	fi
 
-	case \ $CXXFLAGS\  in 
+	case \ $CXXFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
+	*)
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
 				  #include <simgrid/msg.h>
@@ -1298,9 +1298,9 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
-	case \ $NVCCFLAGS\  in 
+	case \ $NVCCFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
+	*)
 		SAVED_CXX="$CXX"
 		CXX="$NVCC"
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1323,7 +1323,7 @@ if test x$enable_cuda = xyes; then
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		case \ $NVCCFLAGS\  in 
+		case \ $NVCCFLAGS\  in
 			*\ -m64\ *) ;;
 			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
 		esac
@@ -2705,7 +2705,7 @@ if test "x$use_mpi_master_slave" = "xyes" ; then
       AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
    fi
    if test "x$enable_socl" = "xmaybe" ; then
-     enable_socl=no 
+     enable_socl=no
    fi
 fi
 
@@ -3271,9 +3271,9 @@ then
 			[AS_HELP_STRING([--with-dlb-include-dir=<path>],
 			[specify where DLB headers are installed])],
 			[dlb_inc_dirs="$withval"], [dlb_inc_dirs=""])
-	
+
 		dlb_inc_dirs="${dlb_inc_dirs} /usr/include/dlb"
-	
+
 		dlb_incdir_found=no
 		for dlb_incdir in $dlb_inc_dirs
 		do
@@ -3294,18 +3294,18 @@ then
 				unset ac_cv_header_dlb_h
 			fi
 		done
-	
+
 		AC_ARG_WITH(dlb-lib-dir,
 			[AS_HELP_STRING([--with-dlb-lib-dir=<path>],
 			[specify where DLB libraries are installed])],
 			[dlb_lib_dirs="$withval"], [dlb_lib_dirs=""])
-	
+
 		dlb_lib_dirs="${dlb_lib_dirs} /usr/lib/dlb"
-	
+
 		dlb_libdir_found=no
 		for dlb_libdir in $dlb_lib_dirs
 		do
-			if test -n "$dlb_libdir" 
+			if test -n "$dlb_libdir"
 			then
 				SAVED_LDFLAGS="${LDFLAGS}"
 				LDFLAGS=-L${dlb_libdir}
@@ -3322,7 +3322,7 @@ then
 				unset ac_cv_lib_dlb_DLB_Init
 			fi
 		done
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3334,7 +3334,7 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3350,13 +3350,13 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		if test "x$dlb_incdir_found" != "xyes" -o "x$dlb_libdir_found" != "xyes"
 		then
 			enable_dlb=no
 		fi
 	fi
-	
+
 	AC_MSG_CHECKING(whether DLB support should be enabled)
 	AC_MSG_RESULT($enable_dlb)
 	if test "x$enable_dlb" != "xno"
@@ -3385,8 +3385,6 @@ AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			[enable build of StarPU Resource Manager examples])],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
 AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
-
-
 
 ##########################################
 # Documentation                          #
@@ -3686,7 +3684,7 @@ AC_MSG_NOTICE([
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
-	       Resource Management enable:                    $starpurm_support
+	       Resource Management enabled:                   $starpurm_support
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
