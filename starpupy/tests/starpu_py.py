@@ -49,7 +49,7 @@ asyncio.run(func1_wait())
 def func1_deco():
 	#time.sleep(1)
 	print ("Example 3:")
-	print ("This is a function wrapped by the decorator function")
+	print ("This is a function no input no output wrapped by the decorator function")
 
 #apply starpu.delayed(func1_deco())
 func1_deco()
@@ -113,6 +113,19 @@ async def sub_wait():
 	print("The result of function sub is:", res5)
 asyncio.run(sub_wait())
 #print(sub(6, 2, 5.9))
+
+###############################################################################
+
+#using decorator wrap the function with input
+@starpu.delayed
+def add_deco(a,b,c):
+	#time.sleep(1)
+	print ("Example 8:")
+	print ("This is a function with input wrapped by the decorator function:")
+	print ("The result of function is:", a, "+", b, "+", c, "=", a+b+c)
+
+#apply starpu.delayed(add_deco)
+add_deco(1,2,3)
 
 ###############################################################################
 
