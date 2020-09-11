@@ -14,8 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 /*
- * Send-receive benchmark where peers exchange data at the same time.
- * Inspired a lot from NewMadeleine examples/benchmarks/nm_bench_bidir.c
+ * Basic send receive benchmark.
+ * Inspired a lot from NewMadeleine examples/benchmarks/nm_bench_sendrecv.c
+ *
+ * The option --bidir is available to do full-duplex communications.
  */
 
 #include <starpu_mpi.h>
